@@ -5,6 +5,8 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
+import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
+import * as ChatTypes from '../../../constants/types/chat2'
 import {Activity, ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
@@ -43,25 +45,43 @@ const AddToChannels = (props: Props) => {
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
       channelname: c.channelname,
+      conversationIDKey: c.conversationIDKey,
       numMembers: c.numParticipants,
       type: 'channel' as const,
     })),
   ]
-  const [selected, setSelected] = React.useState(new Set<string>())
-  const onSelect = (channelname: string) => {
-    if (selected.has(channelname)) {
-      selected.delete(channelname)
+  const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
+  const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
+    if (selected.has(convIDKey)) {
+      selected.delete(convIDKey)
       setSelected(new Set(selected))
     } else {
-      selected.add(channelname)
+      selected.add(convIDKey)
       setSelected(new Set(selected))
     }
   }
-  const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.channelname)))
+  const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.conversationIDKey)))
   const onSelectNone = () => setSelected(new Set())
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
-  const onFinish = () => {} // TODO useRPC probably
+
+  const submit = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
+  const [waiting, setWaiting] = React.useState(false)
+  const onFinish = () => {
+    setWaiting(true)
+    submit(
+      [{conversations: [], usernames}],
+      () => {
+        setWaiting(false)
+        onCancel()
+      },
+      error => {
+        console.error(error)
+        setWaiting(false)
+      }
+    )
+  }
+
   const numSelected = selected.size
 
   const renderItem = (_, item: Unpacked<typeof items>) => {
@@ -85,8 +105,8 @@ const AddToChannels = (props: Props) => {
             key={item.channelname}
             channelname={item.channelname}
             numMembers={item.numMembers}
-            selected={selected.has(item.channelname)}
-            onSelect={() => onSelect(item.channelname)}
+            selected={selected.has(item.conversationIDKey)}
+            onSelect={() => onSelect(item.conversationIDKey)}
           />
         )
     }
@@ -128,6 +148,7 @@ const AddToChannels = (props: Props) => {
                     label="Cancel"
                     onClick={onCancel}
                     style={Styles.globalStyles.flexOne}
+                    disabled={waiting}
                   />
                   <Kb.Button
                     label={
@@ -136,6 +157,7 @@ const AddToChannels = (props: Props) => {
                     onClick={onFinish}
                     disabled={!numSelected}
                     style={Styles.globalStyles.flexOne}
+                    waiting={waiting}
                   />
                 </Kb.Box2>
               ),

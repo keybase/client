@@ -45,6 +45,7 @@ export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type ChannelInfo = {
   channelname: string
+  conversationIDKey: ConversationIDKey
   description: string
   hasAllMembers?: boolean | null
   memberStatus: RPCChatTypes.ConversationMemberStatus
