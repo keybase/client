@@ -1185,23 +1185,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			n.membersType)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
-		if err != nil {
-			// Check for DuplicateTopicNameError and run findExisting again to try and find it
-			switch err.(type) {
-			case DuplicateTopicNameError:
-				n.Debug(ctx, "duplicate topic name encountered, attempting to findExisting again")
-				var findErr error
-				convs, findErr = n.findExisting(ctx, info.ID, findConvsTopicName,
-					types.InboxSourceDataSourceRemoteOnly)
-				if len(convs) == 1 {
-					n.Debug(ctx, "found previous conversation that matches, returning")
-					return convs[0], false, findErr
-				}
-				n.Debug(ctx, "failed to find previous conversation on second attempt: len(convs): %d err: %s",
-					len(convs), findErr)
-			default:
-				// Nothing to do for other error types.
-			}
+		switch err := err.(type) {
+		case nil:
+		case DuplicateTopicNameError:
+			return err.Conv, false, nil
+		default:
 			return res, false, err
 		}
 
