@@ -20,7 +20,11 @@ export type Props = {
   attachTo?: () => React.Component<any> | null
   badgeSubscribe: boolean
   canAddPeople: boolean
+  channelname?: string
   convProps?: ConvProps
+  floatingMenuContainerStyle?: Styles.StylesCrossPlatform
+  hasHeader: boolean
+  isInChannel: boolean
   isSmallTeam: boolean
   manageChannelsSubtitle: string
   manageChannelsTitle: string
@@ -31,12 +35,15 @@ export type Props = {
   onBlockConv: () => void
   onHidden: () => void
   onInvite: () => void
+  onJoinChannel: () => void
+  onLeaveChannel: () => void
   onLeaveTeam: () => void
   onHideConv: () => void
   onMuteConv: (muted: boolean) => void
   onUnhideConv: () => void
   onManageChannels: () => void
   onViewTeam: () => void
+  participantsCount: number
 }
 
 type AdhocHeaderProps = {
@@ -46,7 +53,7 @@ type AdhocHeaderProps = {
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => (
-  <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
+  <Kb.Box2 direction="horizontal" style={styles.headerContainer}>
     <Avatars
       backgroundColor={Styles.globalColors.white}
       isHovered={false}
@@ -54,14 +61,15 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
       isMuted={props.isMuted}
       isSelected={false}
       participants={props.participants}
+      singleSize={32}
     />
-    <Kb.Box2 direction="vertical" centerChildren={true}>
+    <Kb.Box2 alignItems="flex-start" direction="vertical">
       <Kb.ConnectedUsernames
         colorFollowing={true}
         commaColor={Styles.globalColors.black_50}
         inline={false}
         skipSelf={props.participants.length > 1}
-        containerStyle={Styles.collapseStyles([styles.maybeLongText, styles.adhocUsernames])}
+        containerStyle={styles.maybeLongText}
         type="BodyBig"
         underline={false}
         usernames={props.participants}
@@ -80,15 +88,25 @@ type TeamHeaderProps = {
 }
 const TeamHeader = (props: TeamHeaderProps) => {
   return (
-    <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
-      <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
-      <Kb.Box2 direction="vertical" centerChildren={true}>
+    <Kb.Box2 alignItems="center" direction="horizontal" style={styles.headerContainer}>
+      <TeamAvatar
+        teamname={props.teamname}
+        isMuted={props.isMuted}
+        isSelected={false}
+        isHovered={false}
+        size={32}
+      />
+      <Kb.Box2 direction="horizontal" style={styles.teamText}>
         <Kb.Text type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>
           {props.teamname}
         </Kb.Text>
-        <Kb.Text type="BodySmall">{`${props.memberCount} member${
-          props.memberCount !== 1 ? 's' : ''
-        }`}</Kb.Text>
+        <Kb.Meta
+          backgroundColor={Styles.globalColors.blueGrey}
+          color={Styles.globalColors.black_50}
+          icon="iconfont-people"
+          iconColor={Styles.globalColors.black_20}
+          title={props.memberCount}
+        />
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -97,6 +115,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
 class InfoPanelMenu extends React.Component<Props> {
   render() {
     const props = this.props
+    const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
     const addPeopleItems = [
       {
         icon: 'iconfont-mention',
@@ -109,6 +128,25 @@ class InfoPanelMenu extends React.Component<Props> {
         icon: 'iconfont-contact-book',
         onClick: props.onInvite,
         title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
+      },
+    ]
+    const channelHeader = [
+      {
+        unWrapped: true,
+        view: (
+          <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.channelHeader}>
+            <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
+              # <Kb.Text type="BodyBold">{props.channelname}</Kb.Text>
+            </Kb.Text>
+            <Kb.Meta
+              backgroundColor={Styles.globalColors.blueGrey}
+              color={Styles.globalColors.black_50}
+              icon="iconfont-people"
+              iconColor={Styles.globalColors.black_20}
+              title={props.participantsCount}
+            />
+          </Kb.Box2>
+        ),
       },
     ]
     const channelItem = props.isSmallTeam
@@ -124,28 +162,60 @@ class InfoPanelMenu extends React.Component<Props> {
           onClick: props.onManageChannels,
           title: props.manageChannelsTitle,
         }
+    const teamHeader = [
+      {
+        unWrapped: true,
+        view: (
+          <Kb.Box2
+            direction="horizontal"
+            fullHeight={true}
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
+          >
+            <Kb.Box2 direction="horizontal" gap="tiny">
+              <Kb.Avatar teamname={props.teamname} size={16} />
+              <Kb.Text type="BodyBold">{props.teamname}</Kb.Text>
+            </Kb.Box2>
+            <Kb.Meta
+              backgroundColor={Styles.globalColors.blueGrey}
+              color={Styles.globalColors.black_50}
+              icon="iconfont-people"
+              iconColor={Styles.globalColors.black_20}
+              title={props.memberCount}
+            />
+          </Kb.Box2>
+        ),
+      },
+    ]
 
     const isAdhoc =
       (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
     const items: Kb.MenuItems = (isAdhoc
       ? [
-          this.hideItem(),
           this.muteItem(),
+          this.hideItem(),
           {danger: true, icon: 'iconfont-block-user', onClick: props.onBlockConv, title: 'Block'},
         ]
       : [
-          ...(props.canAddPeople ? addPeopleItems : []),
+          ...(!props.isSmallTeam && !props.hasHeader ? channelHeader : []),
+          this.muteItem(),
+          this.hideItem(),
+          ...(!props.isSmallTeam && !props.isInChannel && !isGeneralChannel && !props.hasHeader
+            ? [{onClick: props.onJoinChannel, title: 'Join channel'}]
+            : []),
+          ...(!props.isSmallTeam && props.isInChannel && !isGeneralChannel && !props.hasHeader
+            ? [{danger: true, icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'}]
+            : []),
+          ...(!props.isSmallTeam && !props.hasHeader ? teamHeader : []),
+          channelItem,
           {
             icon: 'iconfont-people',
             onClick: props.onViewTeam,
             style: {borderTopWidth: 0},
-            title: 'View team',
+            title: 'Team info',
           },
-          this.hideItem(),
-          this.muteItem(),
-          channelItem,
+          ...(props.canAddPeople ? addPeopleItems : []),
           {danger: true, icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
-          {danger: true, icon: 'iconfont-remove', onClick: props.onBlockConv, title: 'Block team'},
         ]
     ).reduce<Kb.MenuItems>((arr, i) => {
       i && arr.push(i as Kb.MenuItem)
@@ -154,7 +224,7 @@ class InfoPanelMenu extends React.Component<Props> {
 
     const header = {
       title: 'header',
-      view:
+      view: props.hasHeader ? (
         isAdhoc && props.convProps ? (
           <AdhocHeader
             isMuted={props.convProps.muted}
@@ -170,7 +240,8 @@ class InfoPanelMenu extends React.Component<Props> {
             memberCount={props.memberCount}
             onViewTeam={props.onViewTeam}
           />
-        ) : null,
+        ) : null
+      ) : null,
     }
 
     return (
@@ -178,6 +249,7 @@ class InfoPanelMenu extends React.Component<Props> {
         {props.visible && <TeamsSubscriberMountOnly />}
         <Kb.FloatingMenu
           attachTo={props.attachTo}
+          containerStyle={props.floatingMenuContainerStyle}
           visible={props.visible}
           items={items}
           header={header}
@@ -207,8 +279,7 @@ class InfoPanelMenu extends React.Component<Props> {
           icon: 'iconfont-hide',
           onClick: this.props.onHideConv,
           style: {borderTopWidth: 0},
-          subTitle: 'Until next message',
-          title: 'Hide conversation',
+          title: 'Hide until next message',
         }
       }
     } else {
@@ -217,13 +288,14 @@ class InfoPanelMenu extends React.Component<Props> {
   }
 
   muteItem() {
-    if (this.props.convProps == null) {
+    if (this.props.convProps == null || !this.props.isInChannel) {
       return null
     }
     const convProps = this.props.convProps
-    const title = `${convProps.muted ? 'Unmute' : 'Mute all'} notifications`
+    const title = convProps.muted ? 'Unmute' : 'Mute'
     return {
       icon: 'iconfont-shh',
+      iconIsVisible: true,
       onClick: () => this.props.onMuteConv(!convProps.muted),
       title,
     }
@@ -233,9 +305,6 @@ class InfoPanelMenu extends React.Component<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      adhocUsernames: {
-        justifyContent: 'center',
-      },
       badge: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.blue,
@@ -251,6 +320,15 @@ const styles = Styles.styleSheetCreate(
           right: Styles.globalMargins.tiny,
         },
       }),
+      channelHeader: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+        backgroundColor: Styles.globalColors.blueGreyLight,
+        justifyContent: 'space-between',
+        marginTop: -Styles.globalMargins.tiny,
+      },
+      channelName: Styles.platformStyles({
+        isElectron: {wordBreak: 'break-all'},
+      }),
       headerAvatar: Styles.platformStyles({
         isElectron: {
           marginBottom: 2,
@@ -260,21 +338,17 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       headerContainer: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
-        },
         isElectron: {
-          paddingTop: 16,
-          width: 200, // don't expand if text is long
+          ...Styles.padding(
+            Styles.globalMargins.small,
+            Styles.globalMargins.small,
+            Styles.globalMargins.xsmall
+          ),
+          width: '100%', // don't expand if text is long
         },
         isMobile: {paddingBottom: 24, paddingTop: 40},
       }),
       maybeLongText: Styles.platformStyles({
-        common: {
-          ...Styles.padding(0, Styles.globalMargins.tiny),
-          textAlign: 'center',
-        },
         isElectron: {
           wordBreak: 'break-word',
         } as const,
@@ -285,6 +359,16 @@ const styles = Styles.styleSheetCreate(
       },
       noTopborder: {
         borderTopWidth: 0,
+      },
+      teamHeader: Styles.platformStyles({
+        isElectron: {
+          borderTop: `1px solid ${Styles.globalColors.black_10}`,
+          marginTop: Styles.globalMargins.tiny,
+        },
+      }),
+      teamText: {
+        flex: 1,
+        justifyContent: 'space-between',
       },
       text: Styles.platformStyles({
         isMobile: {

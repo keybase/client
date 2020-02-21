@@ -40,6 +40,7 @@ const BigTeamHeader = React.memo((props: Props) => {
       onHidden={() => setShowingPopup(false)}
       conversationIDKey={conversationIDKey}
       teamID={teamID}
+      hasHeader={true}
       isSmallTeam={false}
     />
   ))

@@ -79,6 +79,8 @@ export const TeamDropdownMenu = () => ({
       teamname: '',
     },
 
+    hasHeader: ownProps.hasHeader,
+    isInChannel: false,
     isSmallTeam: ownProps.isSmallTeam,
     manageChannelsSubtitle: ownProps.isSmallTeam ? 'Turns this into a big team' : '',
     manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
@@ -88,6 +90,8 @@ export const TeamDropdownMenu = () => ({
     onHidden: ownProps.onHidden,
     onHideConv: action('onHideConv'),
     onInvite: action('onInvite'),
+    onJoinChannel: action('onJoinChannel'),
+    onLeaveChannel: action('onLeaveChannel'),
     onLeaveTeam: action('onLeaveTeam'),
     onManageChannels: action('onManageChannels'),
     onMuteConv: action('onMuteConv'),
