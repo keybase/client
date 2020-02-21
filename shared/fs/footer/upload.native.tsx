@@ -158,13 +158,8 @@ const styles = Styles.styleSheetCreate(
       backgroundBox: Styles.platformStyles({
         common: {
           height: 48,
-          width: '100%',
-        },
-        isAndroid: {
-          zIndex: -100, // Android doesn't support `overflow: 'hidden'`.
-        },
-        isIOS: {
           overflow: 'hidden',
+          width: '100%',
         },
       }),
       backgroundImage: {
