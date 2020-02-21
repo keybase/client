@@ -67,7 +67,7 @@ type NotifyListener interface {
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
 	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay)
-	ChatParticipantsInfo(convID chat1.ConversationID, participants []chat1.ConversationLocalParticipant)
+	ChatParticipantsInfo(convID chat1.ConversationID, participants []chat1.UIParticipant)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -186,7 +186,7 @@ func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.Con
 func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)          {}
 func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, chat1.WelcomeMessageDisplay) {}
 func (n *NoopNotifyListener) ChatParticipantsInfo(convID chat1.ConversationID,
-	participants []chat1.ConversationLocalParticipant) {
+	participants []chat1.UIParticipant) {
 }
 
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
@@ -1487,7 +1487,7 @@ func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
 }
 
 func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
-	convID chat1.ConversationID, participants []chat1.ConversationLocalParticipant) {
+	convID chat1.ConversationID, participants []chat1.UIParticipant) {
 	if n == nil {
 		return
 	}

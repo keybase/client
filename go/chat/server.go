@@ -3506,11 +3506,12 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 	if err != nil {
 		return err
 	}
-	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return err
-	}
 	go func(ctx context.Context) {
+		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			h.Debug(ctx, "RefreshParticipants: failed to get conv: %s", err)
+			return
+		}
 		ch := h.G().ParticipantsSource.GetNonblock(ctx, conv)
 		for r := range ch {
 			uids := r.Uids
@@ -3528,7 +3529,8 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 			for _, row := range rows {
 				participants = append(participants, utils.UsernamePackageToParticipant(row))
 			}
-			h.G().NotifyRouter.HandleChatParticipantsInfo(ctx, convID, participants)
+			h.G().NotifyRouter.HandleChatParticipantsInfo(ctx, convID,
+				utils.PresentConversationParticipantsLocal(ctx, participants))
 		}
 	}(globals.BackgroundChatCtx(ctx, h.G()))
 	return nil

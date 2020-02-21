@@ -1402,7 +1402,7 @@ func getParticipantType(username string) chat1.UIParticipantType {
 	return chat1.UIParticipantType_USER
 }
 
-func presentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+func PresentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
 	for _, p := range rawParticipants {
 		participantType := getParticipantType(p.Username)
 		participants = append(participants, chat1.UIParticipant{
@@ -1468,7 +1468,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	}
 	switch partMode {
 	case PresentParticipantsModeInclude:
-		res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
+		res.Participants = PresentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	default:
 	}
 	return res

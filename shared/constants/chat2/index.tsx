@@ -525,6 +525,21 @@ export const getBotRestrictBlockMap = (
   return blocks
 }
 
+export const uiParticipantsToParticipantInfo = (uiParticipants: Array<RPCChatTypes.UIParticipant>) => {
+  const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
+  uiParticipants.forEach(part => {
+    const {assertion, contactName, inConvName} = part
+    participantInfo.all.push(assertion)
+    if (inConvName) {
+      participantInfo.name.push(assertion)
+    }
+    if (contactName) {
+      participantInfo.contactName.set(assertion, contactName)
+    }
+  })
+  return participantInfo
+}
+
 export {
   getBotCommands,
   getCommands,

@@ -915,7 +915,7 @@ func TestPresentConversationParticipantsLocal(t *testing.T) {
 			Username: "example@twitter",
 		},
 	}
-	res := presentConversationParticipantsLocal(context.TODO(), rawParticipants)
+	res := PresentConversationParticipantsLocal(context.TODO(), rawParticipants)
 
 	require.Equal(t, res[0].ContactName, &tofurkeyhq)
 	require.Equal(t, res[0].Type, chat1.UIParticipantType_EMAIL)

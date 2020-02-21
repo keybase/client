@@ -985,7 +985,7 @@
           "name": "participants",
           "type": {
             "type": "array",
-            "items": "ConversationLocalParticipant"
+            "items": "UIParticipant"
           }
         }
       ],
