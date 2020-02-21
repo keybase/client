@@ -68,9 +68,13 @@ const AddToChannels = (props: Props) => {
   const submit = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
   const onFinish = () => {
+    if (!selected.size) {
+      onCancel()
+      return
+    }
     setWaiting(true)
     submit(
-      [{conversations: [], usernames}],
+      [{conversations: [...selected].map(ChatTypes.keyToConversationID), usernames}],
       () => {
         setWaiting(false)
         onCancel()
