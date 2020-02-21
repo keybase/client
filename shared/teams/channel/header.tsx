@@ -34,6 +34,12 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         path: [{props: {conversationIDKey, teamID}, selected: 'chatEditChannel'}],
       })
     )
+  const onNavToTeam = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [{props: {teamID}, selected: 'team'}],
+      })
+    )
   const activityLevel = 'active' // TODO plumbing
   const newMemberCount = 1 // TODO plumbing
 
@@ -43,7 +49,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.flexShrink}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" style={styles.flexShrink}>
         <Kb.Avatar editable={false} teamname={teamname} size={16} style={styles.alignSelfFlexStart} />
-        <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
+        <Kb.Text type="BodySmallSemibold" onClick={onNavToTeam}>
+          {teamname}
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Text type="Header" lineClamp={1} style={styles.header}>
         {'#' + channelname}
