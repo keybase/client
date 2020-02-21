@@ -406,7 +406,8 @@ export default (p: Props) => {
   const commonSections = [
     ...p.commonSections,
     {
-      data: ['avselector'],
+      key: 'avselector',
+      data: [{key: 'avselector'}],
       renderItem: () => (
         <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
       ),
@@ -415,7 +416,8 @@ export default (p: Props) => {
   ]
 
   const loadMoreSection = {
-    data: ['load more'],
+    key: 'load-more',
+    data: [{key: 'load more'}],
     renderItem: () => {
       const status = attachmentInfo.status
       if (onLoadMore && status !== 'loading') {
@@ -449,10 +451,11 @@ export default (p: Props) => {
   if (attachmentInfo.messages.length === 0 && attachmentInfo.status !== 'loading') {
     sections = [
       {
-        data: ['No attachments'],
-        renderItem: ({item}: {item: string}) => (
+        key: 'no-attachments',
+        data: [{key: 'no-attachments'}],
+        renderItem: () => (
           <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
-            <Kb.Text type="BodySmall">{item}</Kb.Text>
+            <Kb.Text type="BodySmall">No attachments</Kb.Text>
           </Kb.Box2>
         ),
       },
@@ -484,7 +487,9 @@ export default (p: Props) => {
               })),
               rowSize
             ),
-            renderItem: ({item, index}: {item: Array<MediaThumbProps>; index: number}) => (
+            renderItem: (
+              {item, index}: {item: Array<MediaThumbProps>; index: number} // xxx
+            ) => (
               <Kb.Box2 key={index} direction="horizontal" fullWidth={true}>
                 {item.map((cell, i) => {
                   return <MediaThumb key={i} sizing={cell.sizing} thumb={cell.thumb} />
