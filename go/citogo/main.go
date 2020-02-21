@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 )
@@ -116,7 +115,6 @@ func (r *runner) listTests() error {
 		return err
 	}
 	r.tests = filter(strings.Split(out.String(), "\n"))
-	sort.Strings(r.tests)
 	return nil
 }
 
@@ -184,7 +182,8 @@ func (o Outcome) Abbrv() string {
 }
 
 func (r *runner) runTest(test string) error {
-	outcome, where, err := r.runTestOnce(test, false /* isRerun */)
+	canRerun := len(r.flakes) >= r.opts.Flakes
+	outcome, where, err := r.runTestOnce(test, false /* isRerun */, canRerun)
 	if err != nil {
 		return err
 	}
@@ -194,7 +193,7 @@ func (r *runner) runTest(test string) error {
 	if len(r.flakes) >= r.opts.Flakes {
 		return errTestFailed
 	}
-	outcome2, _, err2 := r.runTestOnce(test, true /* isRerun */)
+	outcome2, _, err2 := r.runTestOnce(test, true /* isRerun */, false /* canRerun */)
 	if err2 != nil {
 		return err2
 	}
@@ -202,7 +201,6 @@ func (r *runner) runTest(test string) error {
 	case OutcomeFail:
 		return errTestFailed
 	case OutcomeSuccess:
-		fmt.Printf("FLK: %s\n", test)
 		r.report(TestResult{Outcome: OutcomeFlake, TestName: test, Where: where, Branch: r.opts.Branch})
 		r.flakes = append(r.flakes, test)
 	}
@@ -213,9 +211,13 @@ var errTestFailed = errors.New("test failed")
 
 // runTestOnce only returns an error if there was a problem with the test
 // harness code; it does not return an error if the test failed.
-func (r *runner) runTestOnce(test string, isRerun bool) (outcome Outcome, where string, err error) {
+func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome Outcome, where string, err error) {
 	defer func() {
-		fmt.Printf("%s: %s %s\n", outcome.Abbrv(), test, where)
+		logOutcome := outcome
+		if outcome == OutcomeFail && canRerun {
+			logOutcome = OutcomeFlake
+		}
+		fmt.Printf("%s: %s %s\n", logOutcome.Abbrv(), test, where)
 		if r.opts.Branch == "master" && err == nil {
 			r.report(TestResult{Outcome: outcome, TestName: test, Where: where, Branch: r.opts.Branch})
 		}
