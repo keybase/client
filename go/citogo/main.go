@@ -2,17 +2,22 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/defaults"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
 )
 
 type opts struct {
@@ -40,10 +45,11 @@ func logError(f string, args ...interface{}) {
 }
 
 type runner struct {
-	opts   opts
-	flakes []string
-	fails  []string
-	tests  []string
+	lambdaCli *lambda.Client
+	opts      opts
+	flakes    []string
+	fails     []string
+	tests     []string
 }
 
 func convertBreakingChars(s string) string {
@@ -116,6 +122,7 @@ func (r *runner) listTests() error {
 		return err
 	}
 	r.tests = filter(strings.Split(out.String(), "\n"))
+	sort.Strings(r.tests)
 	return nil
 }
 
@@ -148,106 +155,104 @@ func (r *runner) flushTestLogsToTemp(logName string, log bytes.Buffer) (string, 
 	return fmt.Sprintf("see log: %s", tmpfile.Name()), nil
 }
 
-func (r *runner) reportFlake(test string, logs string) {
-	hook := os.Getenv("CITOGO_FLAKE_WEBHOOK")
-	if hook == "" {
+func (r *runner) report(result TestResult) {
+	functionName := "report-citogo"
+
+	b, err := json.Marshal(result)
+	if err != nil {
+		logError("error marshalling result: %s", err.Error())
 		return
 	}
 
-	r.doHook(hook, test, logs, "❄️")
-}
-
-func (r *runner) doHook(hook string, test string, logs string, emoji string) {
-	hook += url.QueryEscape(fmt.Sprintf("%s _client_ %s-%s %s *%s* %s [%s]", emoji, r.opts.Branch, r.opts.BuildID, r.opts.Prefix, test, logs, r.opts.BuildURL))
-	_, err := http.Get(hook)
+	req := r.lambdaCli.InvokeRequest(&lambda.InvokeInput{
+		FunctionName: &functionName,
+		Payload:      b,
+	})
+	_, err = req.Send(context.TODO())
 	if err != nil {
 		logError("error reporting flake: %s", err.Error())
 	}
 }
 
-type outcome string
+type Outcome string
 
 const (
-	success outcome = "success"
-	flake   outcome = "flake"
-	fail    outcome = "fail"
+	OutcomeSuccess Outcome = "success"
+	OutcomeFlake   Outcome = "flake"
+	OutcomeFail    Outcome = "fail"
 )
 
-func (o outcome) abbrv() string {
+func (o Outcome) Abbrv() string {
 	switch o {
-	case success:
+	case OutcomeSuccess:
 		return "PASS"
-	case flake:
+	case OutcomeFlake:
 		return "FLK?"
-	case fail:
+	case OutcomeFail:
 		return "FAIL"
 	default:
 		return "????"
 	}
 }
 
-func (r *runner) reportTestOutcome(outcome outcome, test string, where string) {
-	fmt.Printf("%s: %s", outcome.abbrv(), test)
-	if where != "" {
-		fmt.Printf(" %s", where)
-	}
-	fmt.Printf("\n")
-
-	if outcome != fail || r.opts.Branch != "master" {
-		return
-	}
-	hook := os.Getenv("CITOGO_MASTER_FAIL_WEBHOOK")
-	if hook == "" {
-		return
-	}
-	r.doHook(hook, test, where, "🥴")
-}
-
 func (r *runner) runTest(test string) error {
-	canRerun := len(r.flakes) < r.opts.Flakes
-	logs, err := r.runTestOnce(test, canRerun, false)
-	if err == errTestFailed && canRerun {
-		_, err = r.runTestOnce(test, false, true)
-		if err == nil {
-			r.reportFlake(test, logs)
-			r.flakes = append(r.flakes, test)
-		}
+	outcome, where, err := r.runTestOnce(test, false /* isRerun */)
+	if err != nil {
+		return err
 	}
-	return err
+	if outcome == OutcomeSuccess {
+		return nil
+	}
+	if len(r.flakes) >= r.opts.Flakes {
+		return errTestFailed
+	}
+	outcome2, _, err2 := r.runTestOnce(test, true /* isRerun */)
+	if err2 != nil {
+		return err2
+	}
+	switch outcome2 {
+	case OutcomeFail:
+		return errTestFailed
+	case OutcomeSuccess:
+		fmt.Printf("FLK: %s\n", test)
+		r.report(TestResult{Outcome: OutcomeFlake, TestName: test, Where: where, Branch: r.opts.Branch})
+		r.flakes = append(r.flakes, test)
+	}
+	return nil
 }
 
 var errTestFailed = errors.New("test failed")
 
-func (r *runner) runTestOnce(test string, canRerun bool, isRerun bool) (string, error) {
+// runTestOnce only returns an error if there was a problem with the test
+// harness code; it does not return an error if the test failed.
+func (r *runner) runTestOnce(test string, isRerun bool) (outcome Outcome, where string, err error) {
+	defer func() {
+		fmt.Printf("%s: %s %s\n", outcome.Abbrv(), test, where)
+		if r.opts.Branch == "master" && err == nil {
+			r.report(TestResult{Outcome: outcome, TestName: test, Where: where, Branch: r.opts.Branch})
+		}
+	}()
+
 	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$", "-test.timeout", r.opts.Timeout)
-	var combined bytes.Buffer
 	if isRerun {
+		fmt.Println("Rerun, appending env var")
 		cmd.Env = append(os.Environ(), "CITOGO_FLAKE_RERUN=1")
 	}
+	var combined bytes.Buffer
 	cmd.Stdout = &combined
 	cmd.Stderr = &combined
-	err := cmd.Run()
-	if err != nil {
+	testErr := cmd.Run()
+	if testErr != nil {
 		err = errTestFailed
-	}
-	var where string
-	var status outcome
-	if err != nil {
+
 		var flushErr error
-		where, flushErr = r.flushTestLogs(test, combined)
+		where, flushErr := r.flushTestLogs(test, combined)
 		if flushErr != nil {
-			return "", flushErr
+			return OutcomeFail, "", flushErr
 		}
-		if canRerun {
-			status = flake
-		} else {
-			status = fail
-		}
-	} else {
-		status = success
+		return OutcomeFail, where, nil
 	}
-	r.reportTestOutcome(status, test, where)
-	return where, err
+	return OutcomeSuccess, "", nil
 }
 
 func (r *runner) runTestFixError(t string) error {
@@ -325,6 +330,17 @@ func (r *runner) run() error {
 	if err != nil {
 		return err
 	}
+
+	creds := aws.NewStaticCredentialsProvider(
+		os.Getenv("CITOGO_AWS_ACCESS_KEY_ID"),
+		os.Getenv("CITOGO_AWS_SECRET_ACCESS_KEY"),
+		"", /* session */
+	)
+	cfg := defaults.Config()
+	cfg.Credentials = creds
+	cfg.Region = "us-east-1"
+	r.lambdaCli = lambda.New(cfg)
+
 	r.debugStartup()
 	err = r.compile()
 	if err != nil {
@@ -356,6 +372,13 @@ func (r *runner) run() error {
 		return fmt.Errorf("RED!: %d total tests failed", len(r.fails))
 	}
 	return nil
+}
+
+type TestResult struct {
+	Outcome  Outcome
+	TestName string
+	Where    string
+	Branch   string
 }
 
 func main2() error {
