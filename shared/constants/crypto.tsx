@@ -3,6 +3,7 @@ import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/crypto'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
+import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 
@@ -133,25 +134,64 @@ export const getFileWaitingKey = (operation: Types.Operations) => operationToFil
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
 
+
+export const cleanMessage = (
+  msg: string,
+): string => {
+  const wrongTypeStr = "Wrong saltpack message type: "
+  const badFrameStr = "Error in framing: "
+
+  if (msg.includes("unexpected EOF")) {
+    // e.g. if missing ending period
+    return "Invalid Saltpack format."
+  } else if (msg.includes("no suitable key found")) {
+    // e.g. if message was encrypted for not you, or can't find the 
+    // key that signed the message
+    return "No suitable key found."
+  } else if (msg.includes("API network error")) {
+    return "No network connection."
+  } else if (msg.includes(wrongTypeStr)) {
+    // example:
+    // input = "Decryption error: Wrong saltpack message type: wanted an encrypted
+    // message, but got an attached signature instead"
+    // output = "Wrong saltpack message type: wanted an encrypted
+    // message, but got an attached signature instead"
+    return msg.substring(msg.indexOf(wrongTypeStr), msg.length)
+  } else if (msg.includes(badFrameStr)) {
+    // example: 
+    // input = "Decryption error: msgpack decode error [pos 360]: Error in
+    // framing: wanted "ENCRYPTED MESSAGE" but got "SALTPACK MESSAGE""
+    // output = "Error in framing: wanted "ENCRYPTED MESSAGE" but got "SALTPACK MESSAGE""
+    return msg.substring(msg.indexOf(badFrameStr), msg.length)
+  } else {
+    return ""
+  }
+}
+
 export const getStatusCodeMessage = (
-  code: number,
+  error: RPCError,
   operation: Types.Operations,
-  type: Types.InputTypes
+  type: Types.InputTypes,
 ): string => {
   const inputType =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'file'
   const action = type === 'text' ? (operation === Operations.Verify ? 'enter a' : 'enter') : 'drop a'
   const addInput =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'encrypted file'
+ 
   const invalidInputMessage = `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`
+  const offlineMessage = `Cannot ${operation} offline.`
+  const genericMessage = `Failed to ${operation} ${type}.`
 
   const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
-    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}`,
-    [RPCTypes.StatusCode.scapinetworkerror]: `Cannot ${operation} offline.`,
+    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}. ` + `${error.fields && error.fields[0].key === "Cause" ? cleanMessage(error.fields[0].value) : ''}`,
+    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}. ` + `${error.fields && error.fields[0].key === "Cause" ? cleanMessage(error.fields[0].value) : ''}`,
+    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
+    [RPCTypes.StatusCode.scgeneric]: `${error.message.includes('API network error') ? offlineMessage : genericMessage}`,
   } as const
 
-  return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
+  return statusCodeToMessage[error.code] || genericMessage
 }
 
 // State
