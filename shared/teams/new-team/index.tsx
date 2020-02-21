@@ -1,6 +1,5 @@
 import React from 'react'
 import * as Kb from '../../common-adapters'
-import {ModalTitle} from '../common'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import openUrl from '../../util/open-url'
