@@ -137,6 +137,18 @@ export type WelcomeMessage = {
   text: string
 }
 
+export type Member = {
+  teamID: TeamID
+  username: string
+}
+
+export type MemberSubteamInfo = {
+  teamName: Teamname
+  teamID: TeamID
+  details: MemberInfo
+  role: TeamRoleType
+}
+
 export type State = {
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
@@ -172,6 +184,7 @@ export type State = {
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
   readonly teamIDToWelcomeMessage: Map<TeamID, WelcomeMessage>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
+  readonly teamMemberToSubteams: Map<string, MemberSubteamInfo>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   readonly teamnames: Set<Teamname> // TODO remove

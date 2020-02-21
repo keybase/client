@@ -50,13 +50,6 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamID": "Types.TeamID"
     },
-    "setChannelSelected": {
-      "_description": "Sets whether a channel is selected on the team page",
-      "teamID": "Types.TeamID",
-      "channel": "string",
-      "selected": "boolean",
-      "clearAll?": "boolean"
-    },
     "getTeams": {
       "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
       "_subscribe?": "boolean",
@@ -339,6 +332,10 @@
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
+    },
+    "getMemberSubteamDetails": {
+      "teamID": "Types.TeamID",
+      "username": "string"
     }
   }
 }

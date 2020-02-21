@@ -893,7 +893,6 @@ export type TypedActionsMap = {
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
   'teams:getChannelInfo': teams.GetChannelInfoPayload
   'teams:getChannels': teams.GetChannelsPayload
-  'teams:setChannelSelected': teams.SetChannelSelectedPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:loadTeam': teams.LoadTeamPayload
@@ -961,6 +960,7 @@ export type TypedActionsMap = {
   'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
+  'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateUserReset': tracker2.UpdateUserResetPayload

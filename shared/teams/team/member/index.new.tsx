@@ -44,6 +44,19 @@ const TeamMember = (props: OwnProps) => {
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )
+  const dispatch = Container.useDispatch()
+  const subteams = Container.useSelector(state => state.teams.teamMemberToSubteams.get(Constants.teamMemberToString({
+    teamID,
+    username,
+  })))
+  React.useEffect(() => {
+    if (!subteams) {
+      dispatch(TeamsGen.createGetMemberSubteamDetails({
+        teamID,
+        username,
+      }))
+    }
+  }, [dispatch, subteams])
   const sections = [
     {
       data: subteamsIn,

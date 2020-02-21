@@ -26,6 +26,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
+export const getMemberSubteamDetails = 'teams:getMemberSubteamDetails'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -48,7 +49,6 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
-export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setMemberPublicity = 'teams:setMemberPublicity'
@@ -144,6 +144,7 @@ type _GetChannelInfoPayload = {
   readonly teamID: Types.TeamID
 }
 type _GetChannelsPayload = {readonly teamID: Types.TeamID}
+type _GetMemberSubteamDetailsPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
@@ -196,12 +197,6 @@ type _SaveChannelMembershipPayload = {
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
-type _SetChannelSelectedPayload = {
-  readonly teamID: Types.TeamID
-  readonly channel: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
@@ -382,13 +377,6 @@ export const createSaveTeamRetentionPolicy = (
   payload: _SaveTeamRetentionPolicyPayload
 ): SaveTeamRetentionPolicyPayload => ({payload, type: saveTeamRetentionPolicy})
 /**
- * Sets whether a channel is selected on the team page
- */
-export const createSetChannelSelected = (payload: _SetChannelSelectedPayload): SetChannelSelectedPayload => ({
-  payload,
-  type: setChannelSelected,
-})
-/**
  * Stop listening for team details for this team
  */
 export const createUnsubscribeTeamDetails = (
@@ -459,6 +447,9 @@ export const createEditMembership = (payload: _EditMembershipPayload): EditMembe
 export const createEditTeamDescription = (
   payload: _EditTeamDescriptionPayload
 ): EditTeamDescriptionPayload => ({payload, type: editTeamDescription})
+export const createGetMemberSubteamDetails = (
+  payload: _GetMemberSubteamDetailsPayload
+): GetMemberSubteamDetailsPayload => ({payload, type: getMemberSubteamDetails})
 export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
   payload,
   type: getMembers,
@@ -688,6 +679,10 @@ export type GetChannelInfoPayload = {
   readonly type: typeof getChannelInfo
 }
 export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
+export type GetMemberSubteamDetailsPayload = {
+  readonly payload: _GetMemberSubteamDetailsPayload
+  readonly type: typeof getMemberSubteamDetails
+}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
 export type GetTeamProfileAddListPayload = {
   readonly payload: _GetTeamProfileAddListPayload
@@ -748,10 +743,6 @@ export type SetAddUserToTeamsResultsPayload = {
 export type SetChannelCreationErrorPayload = {
   readonly payload: _SetChannelCreationErrorPayload
   readonly type: typeof setChannelCreationError
-}
-export type SetChannelSelectedPayload = {
-  readonly payload: _SetChannelSelectedPayload
-  readonly type: typeof setChannelSelected
 }
 export type SetEditDescriptionErrorPayload = {
   readonly payload: _SetEditDescriptionErrorPayload
@@ -909,6 +900,7 @@ export type Actions =
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
+  | GetMemberSubteamDetailsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamRetentionPolicyPayload
@@ -931,7 +923,6 @@ export type Actions =
   | SaveTeamRetentionPolicyPayload
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
-  | SetChannelSelectedPayload
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
   | SetMemberPublicityPayload

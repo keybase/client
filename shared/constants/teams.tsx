@@ -195,6 +195,7 @@ const emptyState: Types.State = {
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamMemberToSubteams: new Map(),
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
@@ -828,3 +829,5 @@ export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: T
         latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
       }
     : newVersion
+
+export const teamMemberToString = (member: Types.Member): string => `${member.teamID}:${member.username}`

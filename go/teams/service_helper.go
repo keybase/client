@@ -2325,29 +2325,20 @@ func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username
 			return nil, err
 		}
 
-		var (
-			details keybase1.TeamMemberDetails
-			ok      bool
-		)
+		var details keybase1.TeamMemberDetails
 		switch role {
-		case keybase1.TeamRole_NONE:
-			continue
 		case keybase1.TeamRole_READER:
-			details, ok = findMemberDetails(members.Readers, upak.GetUID())
+			details, _ = findMemberDetails(members.Readers, upak.GetUID())
 		case keybase1.TeamRole_WRITER:
-			details, ok = findMemberDetails(members.Writers, upak.GetUID())
+			details, _ = findMemberDetails(members.Writers, upak.GetUID())
 		case keybase1.TeamRole_ADMIN:
-			details, ok = findMemberDetails(members.Admins, upak.GetUID())
+			details, _ = findMemberDetails(members.Admins, upak.GetUID())
 		case keybase1.TeamRole_OWNER:
-			details, ok = findMemberDetails(members.Owners, upak.GetUID())
+			details, _ = findMemberDetails(members.Owners, upak.GetUID())
 		case keybase1.TeamRole_BOT:
-			details, ok = findMemberDetails(members.Bots, upak.GetUID())
+			details, _ = findMemberDetails(members.Bots, upak.GetUID())
 		case keybase1.TeamRole_RESTRICTEDBOT:
-			details, ok = findMemberDetails(members.RestrictedBots, upak.GetUID())
-		}
-		if !ok {
-			// We're not a member, possibly a race condition?
-			continue
+			details, _ = findMemberDetails(members.RestrictedBots, upak.GetUID())
 		}
 
 		res = append(res, keybase1.AnnotatedSubteamMemberDetails{

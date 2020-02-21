@@ -1326,6 +1326,18 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
+async function getMemberSubteamDetails(action: TeamsGen.GetMemberSubteamDetailsPayload, logger: Saga.SagaLogger) {
+  const {teamID, username} = action.payload
+
+  const x = await RPCTypes.teamsGetUserSubteamMembershipsRpcPromise({
+    teamID,
+    username,
+  })
+  logger.info(`getMemberSubteamDetails: ${JSON.stringify(x)}`)
+  console.log(x)
+  return null
+}
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1406,6 +1418,11 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.showTeamByName, showTeamByName)
 
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
+
+  yield* Saga.chainAction(
+    TeamsGen.getMemberSubteamDetails,
+    getMemberSubteamDetails,
+  )
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()
