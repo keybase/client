@@ -311,6 +311,11 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 	}
 }
 
+type ParticipantResult struct {
+	Uids []gregor1.UID
+	Err  error
+}
+
 type DummyAttachmentFetcher struct{}
 
 var _ AttachmentFetcher = (*DummyAttachmentFetcher)(nil)

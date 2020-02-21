@@ -651,6 +651,10 @@
           "name": "allList"
         },
         {
+          "type": "string",
+          "name": "allListHash"
+        },
+        {
           "type": {
             "type": "array",
             "items": "gregor1.UID"

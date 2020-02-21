@@ -75,6 +75,10 @@ export type MessageTypes = {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID}
     outParam: void
   }
+  'chat.1.NotifyChat.ChatParticipantsInfo': {
+    inParam: {readonly convID: ConversationID; readonly participants?: Array<ConversationLocalParticipant> | null}
+    outParam: void
+  }
   'chat.1.NotifyChat.ChatPaymentInfo': {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly msgID: MessageID; readonly info: UIPaymentInfo}
     outParam: void
@@ -1127,7 +1131,7 @@ export type ConversationJourneycardInfo = {readonly w: /* welcomeEligible */ Boo
 export type ConversationLocal = {readonly error?: ConversationErrorLocal | null; readonly info: ConversationInfoLocal; readonly readerInfo: ConversationReaderInfo; readonly creatorInfo?: ConversationCreatorInfoLocal | null; readonly notifications?: ConversationNotificationInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly maxMessages?: Array<MessageSummary> | null; readonly isEmpty: Boolean; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly expunge: Expunge; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly convSettings?: ConversationSettingsLocal | null; readonly commands: ConversationCommandGroups; readonly botCommands: ConversationCommandGroups; readonly botAliases: {[key: string]: String}}
 export type ConversationLocalParticipant = {readonly username: String; readonly inConvName: Boolean; readonly fullname?: String | null; readonly contactName?: String | null}
 export type ConversationMember = {readonly uid: Gregor1.UID; readonly convID: ConversationID; readonly topicType: TopicType}
-export type ConversationMetadata = {readonly idTriple: ConversationIDTriple; readonly conversationID: ConversationID; readonly visibility: Keybase1.TLFVisibility; readonly status: ConversationStatus; readonly membersType: ConversationMembersType; readonly teamType: TeamType; readonly existence: ConversationExistence; readonly version: ConversationVers; readonly localVersion: LocalConversationVers; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly activeList?: Array<Gregor1.UID> | null; readonly allList?: Array<Gregor1.UID> | null; readonly resetList?: Array<Gregor1.UID> | null; readonly d: /* isDefaultConv */ Boolean}
+export type ConversationMetadata = {readonly idTriple: ConversationIDTriple; readonly conversationID: ConversationID; readonly visibility: Keybase1.TLFVisibility; readonly status: ConversationStatus; readonly membersType: ConversationMembersType; readonly teamType: TeamType; readonly existence: ConversationExistence; readonly version: ConversationVers; readonly localVersion: LocalConversationVers; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly activeList?: Array<Gregor1.UID> | null; readonly allList?: Array<Gregor1.UID> | null; readonly allListHash: String; readonly resetList?: Array<Gregor1.UID> | null; readonly d: /* isDefaultConv */ Boolean}
 export type ConversationMinWriterRoleInfo = {readonly uid: Gregor1.UID; readonly role: Keybase1.TeamRole}
 export type ConversationMinWriterRoleInfoLocal = {readonly changedBy: String; readonly cannotWrite: Boolean; readonly role: Keybase1.TeamRole}
 export type ConversationNotificationInfo = {readonly channelWide: Boolean; readonly settings: {[key: string]: {[key: string]: Boolean}}}
@@ -1513,6 +1517,7 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatConvUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded'?: (params: MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatParticipantsInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam'] & {sessionID: number}) => IncomingReturn
 }
 
 export type CustomResponseIncomingCallMap = {
@@ -1697,6 +1702,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.getLastActiveForTLF'
 // 'chat.1.local.getLastActiveForTeams'
 // 'chat.1.local.getRecentJoinsLocal'
+// 'chat.1.local.refreshParticipants'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
@@ -1721,6 +1727,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.NotifyChat.ChatPromptUnfurl'
 // 'chat.1.NotifyChat.ChatConvUpdate'
 // 'chat.1.NotifyChat.ChatWelcomeMessageLoaded'
+// 'chat.1.NotifyChat.ChatParticipantsInfo'
 // 'chat.1.remote.getInboxRemote'
 // 'chat.1.remote.getThreadRemote'
 // 'chat.1.remote.getUnreadlineRemote'

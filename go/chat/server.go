@@ -3498,3 +3498,38 @@ func (h *Server) GetRecentJoinsLocal(ctx context.Context, convID chat1.Conversat
 	}
 	return h.G().TeamChannelSource.GetRecentJoins(ctx, convID, h.remoteClient())
 }
+
+func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.ConversationID) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "RefreshParticipants")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	go func(ctx context.Context) {
+		ch := h.G().ParticipantsSource.GetNonblock(ctx, conv)
+		for r := range ch {
+			uids := r.Uids
+			kuids := make([]keybase1.UID, 0, len(uids))
+			participants := make([]chat1.ConversationLocalParticipant, 0, len(uids))
+			for _, uid := range uids {
+				kuids = append(kuids, keybase1.UID(uid.String()))
+			}
+			rows, err := h.G().UIDMapper.MapUIDsToUsernamePackages(ctx, h.G(), kuids, time.Hour*24,
+				time.Minute, true)
+			if err != nil {
+				h.Debug(ctx, "RefreshParticipants: failed to map uids: %s", err)
+				continue
+			}
+			for _, row := range rows {
+				participants = append(participants, utils.UsernamePackageToParticipant(row))
+			}
+			h.G().NotifyRouter.HandleChatParticipantsInfo(ctx, convID, participants)
+		}
+	}(globals.BackgroundChatCtx(ctx, h.G()))
+	return nil
+}

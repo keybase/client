@@ -600,6 +600,7 @@ type JourneyCardManager interface {
 
 type ParticipantSource interface {
 	Get(ctx context.Context, conv RemoteConversation) ([]gregor1.UID, error)
+	GetNonblock(ctx context.Context, conv RemoteConversation) chan ParticipantResult
 }
 
 type InternalError interface {
