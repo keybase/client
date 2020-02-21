@@ -20,8 +20,10 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
 const load = () => {
   Sb.storiesOf('Teams/Add member wizard', module)
     .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
-    .add('Add from where', () => <AddFromWhere teamID={fakeTeamID} />)
-    .add('Add from where (new team)', () => <AddFromWhere teamID={fakeTeamID} newTeam={true} />)
+    .add('Add from where', () => <AddFromWhere onContinue={Sb.action('onContinue')} teamID={fakeTeamID} />)
+    .add('Add from where (new team)', () => (
+      <AddFromWhere onContinue={Sb.action('onContinue')} teamID={fakeTeamID} newTeam={true} />
+    ))
     .add('Enable contacts', () => <EnableContacts onClose={Sb.action('onClose')} />)
 }
 
