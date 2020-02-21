@@ -28,24 +28,19 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
   </Kb.Text>
 )
 
-type TabProps = {
-  key: TabKey
-  selectedTab: TabKey
-}
-
-const Tab = ({key, selectedTab}: TabProps) => (
-  <Kb.Box key={key} style={styles.tabTextContainer}>
-    <TabText selected={selectedTab === key} text={capitalize(key)} />
+const makeTab = (name: TabKey, selectedTab: TabKey) => (
+  <Kb.Box key={name} style={styles.tabTextContainer}>
+    <TabText selected={selectedTab === name} text={capitalize(name)} />
   </Kb.Box>
 )
 
 const ChannelTabs = (props: Props) => {
   const {selectedTab, setSelectedTab} = props
   const tabs = [
-    <Tab key="members" selectedTab={selectedTab} />,
-    <Tab key="attachments" selectedTab={selectedTab} />,
-    ...(flags.botUI ? [<Tab key="bots" selectedTab={selectedTab} />] : []),
-    ...(props.admin ? [<Tab key="settings" selectedTab={selectedTab} />] : []),
+    makeTab('members', selectedTab),
+    makeTab('attachments', selectedTab),
+    ...(flags.botUI ? [makeTab('bots', selectedTab)] : []),
+    ...(props.admin ? [makeTab('settings', selectedTab)] : []),
     ...(!Styles.isMobile && props.loading
       ? [<Kb.ProgressIndicator key="loading" style={styles.progressIndicator} />]
       : []),
