@@ -1,9 +1,11 @@
 import React from 'react'
 import * as Kb from '../../common-adapters'
+import {ModalTitle} from '../common'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import openUrl from '../../util/open-url'
 import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
 
 const openSubteamInfo = () => openUrl('https://keybase.io/docs/teams/design')
 
@@ -34,6 +36,59 @@ const CreateNewTeam = (props: Props) => {
   React.useEffect(() => () => onClearError(), [onClearError])
 
   const modalHeader = Kb.useModalHeaderTitleAndCancel('Create a team', props.onCancel)
+
+  if (flags.teamsRedesign) {
+    const dispatch = Container.useDispatch()
+    const nav = Container.useSafeNavigation()
+    const onBack = () => dispatch(nav.safeNavigateUpPayload())
+
+    return (
+      <Kb.Modal
+        onClose={onBack}
+        header={{
+          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+          title: <ModalTitle teamname="" title="New team" />,
+        }}
+        allowOverflow={true}
+      >
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={styles.body}
+          gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        >
+          <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
+          <Kb.RichButton
+            description="A small group of people, with no initial need for channels."
+            icon="icon-teams-type-squad-64"
+            onClick={() => console.log('hi')}
+            title="Friends, family, or squad"
+          />
+
+          <Kb.RichButton
+            description="With multiple roles and channels."
+            icon="icon-teams-type-business-64"
+            onClick={() => console.log('hi')}
+            title="A project, business or organization"
+          />
+
+          <Kb.RichButton
+            description="A forum for people who share an interest or cause."
+            icon="icon-teams-type-community-64"
+            onClick={() => console.log('hi')}
+            title="A community"
+          />
+
+          <Kb.RichButton
+            description="Start simple and go from there."
+            icon="icon-teams-type-notsure-64"
+            onClick={() => console.log('hi')}
+            title="Other/You're not sure"
+          />
+        </Kb.Box2>
+      </Kb.Modal>
+    )
+  }
 
   return (
     <Kb.Modal
@@ -98,6 +153,14 @@ const CreateNewTeam = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  body: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.small),
+      backgroundColor: Styles.globalColors.blueGrey,
+    },
+    isElectron: {minHeight: 326},
+    isMobile: {...Styles.globalStyles.flexOne},
+  }),
   container: {
     padding: Styles.globalMargins.small,
   },
