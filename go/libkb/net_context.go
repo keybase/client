@@ -58,6 +58,18 @@ func LogTagsToString(ctx context.Context) string {
 	return strings.Join(out, ",")
 }
 
+func LogTagsFromString(tags string) map[string]string {
+	tagMap := make(map[string]string)
+	for _, tag := range strings.Split(tags, ",") {
+		parsedTag := strings.Split(tag, "=")
+		if len(parsedTag) != 2 {
+			continue
+		}
+		tagMap[parsedTag[0]] = parsedTag[1]
+	}
+	return tagMap
+}
+
 func CopyTagsToBackground(ctx context.Context) context.Context {
 	ret := context.Background()
 	if tags, ok := logger.LogTagsFromContext(ctx); ok {

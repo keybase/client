@@ -244,6 +244,9 @@ module.exports = {
   get RequireImage() {
     return require('./image').RequireImage
   },
+  get RichButton() {
+    return require('./rich-button').default
+  },
   get RoundedBox() {
     return require('./rounded-box').default
   },

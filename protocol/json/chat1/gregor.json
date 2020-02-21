@@ -495,16 +495,6 @@
     },
     {
       "type": "record",
-      "name": "TeamChannelUpdate",
-      "fields": [
-        {
-          "type": "TLFID",
-          "name": "teamID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "SetConvRetentionUpdate",
       "fields": [
         {

@@ -173,6 +173,7 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+	IsIPad          bool
 
 	SyncedContactList SyncedContactListProvider
 
@@ -218,6 +219,7 @@ func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	ret := &GlobalContext{
 		Log:                log,
+		PerfLog:            log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
@@ -282,7 +284,6 @@ func (g *GlobalContext) initGUILogFile() {
 
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
-	g.initPerfLogFile()
 	g.Service = false
 	g.Resolver = NewResolverImpl()
 	g.RateLimits = NewRateLimits(g)
@@ -356,6 +357,7 @@ func (g *GlobalContext) simulateServiceRestart() {
 // ConfigureLogging should be given non-nil Usage if called by the main
 // service.
 func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
+	g.initPerfLogFile()
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 
@@ -857,11 +859,11 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
 		if g.LocalNetworkInstrumenterStorage != nil {
-			<-g.LocalNetworkInstrumenterStorage.Stop()
+			<-g.LocalNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		if g.RemoteNetworkInstrumenterStorage != nil {
-			<-g.RemoteNetworkInstrumenterStorage.Stop()
+			<-g.RemoteNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		// shutdown the databases after the shutdown hooks run, we may want to
@@ -969,8 +971,8 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
-	g.LocalNetworkInstrumenterStorage.Start()
-	g.RemoteNetworkInstrumenterStorage.Start()
+	g.LocalNetworkInstrumenterStorage.Start(context.TODO())
+	g.RemoteNetworkInstrumenterStorage.Start(context.TODO())
 
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err
