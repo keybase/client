@@ -95,16 +95,18 @@ const handleRunOperation = (
   switch (action.type) {
     case CryptoGen.setInputThrottled: {
       const {operation, value, type} = action.payload
+      const {inProgress} = state.crypto[operation]
 
       // Input (text or file) was cleared or deleted
       if (!value.stringValue()) {
         return CryptoGen.createClearInput({operation})
       }
 
-      // Bail on running file operations automatically. Wait for CryptoGen.runFileOperation
-      if (type === 'file') {
-        return
-      }
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (type === 'file') return
+
+      // Defesnive: Bail if a file operation is in progress.
+      if (inProgress) return
 
       // Handle recipients and options for Encrypt
       if (operation === Constants.Operations.Encrypt) {
@@ -138,8 +140,15 @@ const handleRunOperation = (
     // recipients. Get the input and pass it to the operation
     case CryptoGen.setRecipients: {
       const {operation, recipients} = action.payload
-      const {input, inputType, options} = state.crypto.encrypt
+      const {inProgress, input, inputType, options} = state.crypto.encrypt
       const unhiddenInput = input.stringValue()
+
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (inputType === 'file') return
+
+      // Defesnive: Bail if a file operation is in progress.
+      if (inProgress) return
+
       if (unhiddenInput && inputType) {
         return makeOperationAction({
           input,
@@ -154,8 +163,15 @@ const handleRunOperation = (
     case CryptoGen.clearRecipients: {
       const {operation} = action.payload
       const {username} = state.config
-      const {input, inputType, options} = state.crypto.encrypt
+      const {inProgress, input, inputType, options} = state.crypto.encrypt
       const unhiddenInput = input.stringValue()
+
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (inputType === 'file') return
+
+      // Defesnive: Bail if a file operation is in progress.
+      if (inProgress) return
+
       if (unhiddenInput && inputType) {
         return makeOperationAction({
           input,
@@ -170,9 +186,15 @@ const handleRunOperation = (
     // User provided input and recipients, when options change, re-run saltpackEncrypt
     case CryptoGen.setEncryptOptions: {
       const {options} = action.payload
-      const {recipients, input, inputType} = state.crypto.encrypt
+      const {recipients, inProgress, input, inputType} = state.crypto.encrypt
       const {username} = state.config
       const unhiddenInput = input.stringValue()
+
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (inputType === 'file') return
+
+      // Defesnive: Bail if a file operation is in progress.
+      if (inProgress) return
 
       // If no recipients are set and the user adds input, we should default
       // to self encryption (with state.config.username as the only recipient)
@@ -187,6 +209,7 @@ const handleRunOperation = (
       }
       return
     }
+    // DO handle file RPC calls here
     case CryptoGen.runFileOperation: {
       const {operation, destinationDir} = action.payload
       const {input, inputType} = state.crypto[operation]
@@ -206,7 +229,6 @@ const handleRunOperation = (
         args.options = state.crypto.encrypt.options
       }
 
-      console.log('JRY crypto runFileOperation makeOperationAction', args)
       return makeOperationAction(args)
     }
     default:
@@ -244,10 +266,6 @@ const saltpackEncrypt = async (
   switch (type) {
     case 'file': {
       try {
-        console.log('JRY saltpackEncrypt', {
-          destinationDir: destinationDir?.stringValue(),
-          input: input.stringValue(),
-        })
         const fileRes = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
           {
             destinationDir: destinationDir ? destinationDir.stringValue() : '',

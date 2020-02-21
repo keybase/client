@@ -355,12 +355,14 @@ const Output = (props: OutputProps) => {
         {inProgress ? (
           <OutputProgress operation={operation} />
         ) : (
-          inputType === 'file' && <OutputFileDestination operation={operation} />
+          inputType === 'file' &&
+          outputStatus !== 'pending' && <OutputFileDestination operation={operation} />
         )}
       </Kb.Box2>
     )
   }
 
+  // File output
   if (outputType === 'file') {
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -383,6 +385,7 @@ const Output = (props: OutputProps) => {
     )
   }
 
+  // Text output
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Kb.Text

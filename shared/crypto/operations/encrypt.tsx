@@ -20,6 +20,7 @@ const EncryptOptions = () => {
   const hasSBS = Container.useSelector(state => state.crypto.encrypt.meta.hasSBS)
   const includeSelf = Container.useSelector(state => state.crypto.encrypt.options.includeSelf)
   const sign = Container.useSelector(state => state.crypto.encrypt.options.sign)
+  const inProgress = Container.useSelector(state => state.crypto.encrypt.inProgress)
 
   // Actions
   const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
@@ -32,14 +33,14 @@ const EncryptOptions = () => {
       {hideIncludeSelf ? null : (
         <Kb.Checkbox
           label="Include yourself"
-          disabled={hasSBS || !hasRecipients}
+          disabled={inProgress || hasSBS || !hasRecipients}
           checked={hasSBS || includeSelf}
           onCheck={newValue => onSetOptions({newIncludeSelf: newValue, newSign: sign})}
         />
       )}
       <Kb.Checkbox
         label="Sign"
-        disabled={hasSBS}
+        disabled={inProgress || hasSBS}
         checked={sign}
         onCheck={newValue => onSetOptions({newIncludeSelf: includeSelf, newSign: newValue})}
       />

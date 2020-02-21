@@ -234,6 +234,9 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
   const dispatch = Container.useDispatch()
 
+  // Store
+  const inProgress = Container.useSelector(store => store.crypto[operation].inProgress)
+
   // Actions
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
@@ -243,6 +246,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
+        disabled={inProgress}
         allowFolders={false}
         fullHeight={true}
         fullWidth={true}
