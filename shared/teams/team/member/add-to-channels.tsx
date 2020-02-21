@@ -3,28 +3,42 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import {Activity, ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
+import {memoize} from '../../../util/memoize'
 
 type Props = Container.RouteProps<{
   teamID: Types.TeamID
   usernames: Array<string>
+  test: React.ReactElement
 }>
+
+const getChannelsForList = memoize((channels: Map<string, Types.ChannelInfo>) =>
+  [...channels.values()].filter(c => c.channelname !== 'general')
+)
 
 const AddToChannels = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const usernames = Container.getRouteProps(props, 'usernames', [])
+
+  React.useEffect(() => {
+    dispatch(TeamsGen.createGetChannels({teamID}))
+  }, [dispatch, teamID])
+
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  const channelInfos = getChannelsForList(
+    Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  )
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
   const channels = filterLCase
-    ? [...channelInfos.values()].filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : [...channelInfos.values()]
+    ? channelInfos.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channelInfos
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
@@ -53,7 +67,7 @@ const AddToChannels = (props: Props) => {
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channelInfos.size
+        const allSelected = selected.size === channelInfos.length
         return (
           <HeaderRow
             key="{header}"
@@ -129,11 +143,12 @@ const AddToChannels = (props: Props) => {
       }
       allowOverflow={true}
       noScrollView={true}
+      onClose={onCancel}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channelInfos.size} ${pluralize('channel', channelInfos.size)}`}
+            placeholderText={`Search ${channelInfos.length} ${pluralize('channel', channelInfos.length)}`}
             icon="iconfont-search"
             onChange={setFilter}
             size="full-width"
