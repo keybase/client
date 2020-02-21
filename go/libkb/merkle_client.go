@@ -755,11 +755,11 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(m MetaContext, q HTTPArgs,
 func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, opts MerkleOpts) (apiRes *APIRes, err error) {
 	defer m.VTrace(VLog1, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
-	if !opts.NoServerPolling {
-		// Poll for 10s and ask for a race-free state.
-		w := 10 * int(CITimeMultiplier(mc.G()))
-		q.Add("poll", I{w})
-	}
+	// if !opts.NoServerPolling {
+	// 	// Poll for 10s and ask for a race-free state.
+	// 	w := 10 * int(CITimeMultiplier(mc.G()))
+	// 	q.Add("poll", I{w})
+	// }
 
 	q.Add("c", B{true})
 	if opts.isUser {
