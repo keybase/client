@@ -21,7 +21,7 @@ import flags from '../util/feature-flags'
 
 export const newRoutes = {
   team: {getScreen: (): TeamScreenType => require('./team/container').default},
-  teamEditChannel: {
+  teamChannel: {
     getScreen: (): typeof TeamEditChannel => require('./channel/container').default,
   },
   teamMember: flags.teamsRedesign

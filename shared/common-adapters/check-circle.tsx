@@ -16,6 +16,13 @@ type Props = {
 }
 
 const CheckCircle = (props: Props) => {
+  const onClick = props.onCheck
+    ? (evt: React.BaseSyntheticEvent) => {
+        !props.disabled && props.onCheck!(!props.checked)
+        evt.preventDefault()
+        evt.stopPropagation()
+      }
+    : null
   return (
     <Kb.Icon
       type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
@@ -26,7 +33,7 @@ const CheckCircle = (props: Props) => {
           ? props.selectedColor ?? Styles.globalColors.blue
           : Styles.globalColors.black_20
       }
-      onClick={props.disabled || !props.onCheck ? null : () => props.onCheck!(!props.checked)}
+      onClick={onClick}
       fontSize={props.fontSize}
       className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
       style={props.style}
