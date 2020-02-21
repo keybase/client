@@ -105,7 +105,7 @@ const handleRunOperation = (
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (type === 'file') return
 
-      // Defesnive: Bail if a file operation is in progress.
+      // Defensive: Bail if a file operation is in progress.
       if (inProgress) return
 
       // Handle recipients and options for Encrypt
@@ -146,7 +146,7 @@ const handleRunOperation = (
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (inputType === 'file') return
 
-      // Defesnive: Bail if a file operation is in progress.
+      // Defensive: Bail if a file operation is in progress.
       if (inProgress) return
 
       if (unhiddenInput && inputType) {
@@ -169,7 +169,7 @@ const handleRunOperation = (
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (inputType === 'file') return
 
-      // Defesnive: Bail if a file operation is in progress.
+      // Defensive: Bail if a file operation is in progress.
       if (inProgress) return
 
       if (unhiddenInput && inputType) {
@@ -193,7 +193,7 @@ const handleRunOperation = (
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (inputType === 'file') return
 
-      // Defesnive: Bail if a file operation is in progress.
+      // Defensive: Bail if a file operation is in progress.
       if (inProgress) return
 
       // If no recipients are set and the user adds input, we should default
@@ -209,7 +209,7 @@ const handleRunOperation = (
       }
       return
     }
-    // DO handle file RPC calls here
+    // Run file RPCs after destination set
     case CryptoGen.runFileOperation: {
       const {operation, destinationDir} = action.payload
       const {input, inputType} = state.crypto[operation]

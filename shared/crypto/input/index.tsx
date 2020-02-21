@@ -7,6 +7,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import HiddenString from '../../util/hidden-string'
+import {useOpenFile} from '../../util/use-file-picker'
 
 type InputProps = {
   operation: Types.Operations
@@ -67,26 +68,25 @@ export const TextInput = (props: TextProps) => {
     }
   }
 
-  // Handle native file browser via <input type='file' ... />
-  const filePickerRef = React.useRef<HTMLInputElement>(null)
-  const selectFile = () => {
-    const files = (filePickerRef && filePickerRef.current && filePickerRef.current.files) || []
-    const allPaths: Array<string> = files.length
-      ? Array.from(files)
-          .map((f: File) => f.path)
-          .filter(Boolean)
-      : ([] as any)
-    const path = allPaths.pop()
-    // Set input type to 'file' and value to 'path'
-    if (path) {
-      onSetFile(path)
-    }
+  const onFileSelected = (result: Electron.OpenDialogReturnValue) => {
+    if (result.canceled) return
+
+    const path = result.filePaths[0]
+    onSetFile(path)
   }
-  const openFilePicker = () => {
-    if (filePickerRef && filePickerRef.current) {
-      filePickerRef.current.click()
-    }
-  }
+
+  // State
+  const [counter, setCounter] = React.useState(0)
+
+  // Effects
+  useOpenFile(
+    counter,
+    {
+      buttonLabel: 'Select',
+      properties: ['openFile'],
+    },
+    onFileSelected
+  )
 
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
@@ -120,19 +120,9 @@ export const TextInput = (props: TextProps) => {
             ref={inputRef}
           />
           {!value && (
-            <>
-              <input
-                type="file"
-                accept="*"
-                ref={filePickerRef}
-                multiple={false}
-                onChange={selectFile}
-                style={styles.hidden}
-              />
-              <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
-                browse for one
-              </Kb.Text>
-            </>
+            <Kb.Text type="BodyPrimaryLink" onClick={() => setCounter(p => p + 1)} style={styles.browseFile}>
+              browse for one
+            </Kb.Text>
           )}
         </Kb.Box2>
       </Kb.Box2>

@@ -273,9 +273,8 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
 
   // Actions
   const onRunFileOperation = (result: Electron.OpenDialogReturnValue) => {
-    if (result.canceled) {
-      return
-    }
+    if (result.canceled) return
+
     const path = result.filePaths[0]
     const destinationDir = new Container.HiddenString(path)
     dispatch(
