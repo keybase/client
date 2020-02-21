@@ -17,19 +17,20 @@ import (
 )
 
 type opts struct {
-	Flakes      int
-	Fails       int
-	Prefix      string
-	S3Bucket    string
-	DirBasename string
-	BuildID     string
-	Branch      string
-	Preserve    bool
-	BuildURL    string
-	NoCompile   bool
-	TestBinary  string
-	Timeout     string
-	Pause       time.Duration
+	Flakes               int
+	Fails                int
+	Prefix               string
+	S3Bucket             string
+	ReportLambdaFunction string
+	DirBasename          string
+	BuildID              string
+	Branch               string
+	Preserve             bool
+	BuildURL             string
+	NoCompile            bool
+	TestBinary           string
+	Timeout              string
+	Pause                time.Duration
 }
 
 func logError(f string, args ...interface{}) {
@@ -62,6 +63,7 @@ func (r *runner) parseArgs() (err error) {
 	flag.IntVar(&r.opts.Fails, "fails", -1, "number of fails allowed before quitting")
 	flag.StringVar(&r.opts.Prefix, "prefix", "", "test set prefix")
 	flag.StringVar(&r.opts.S3Bucket, "s3bucket", "", "AWS S3 bucket to write failures to")
+	flag.StringVar(&r.opts.ReportLambdaFunction, "report-lambda-function", "", "lambda function to report results to")
 	flag.StringVar(&r.opts.BuildID, "build-id", "", "build ID of the current build")
 	flag.StringVar(&r.opts.Branch, "branch", "", "the branch of the current build")
 	flag.BoolVar(&r.opts.Preserve, "preserve", false, "preserve test binary after done")
@@ -150,13 +152,17 @@ func (r *runner) flushTestLogsToTemp(logName string, log bytes.Buffer) (string, 
 }
 
 func (r *runner) report(result types.TestResult) {
+	if r.opts.ReportLambdaFunction == "" {
+		return
+	}
+
 	b, err := json.Marshal(result)
 	if err != nil {
 		logError("error marshalling result: %s", err.Error())
 		return
 	}
 
-	err = lambdaInvoke("report-citogo", b)
+	err = lambdaInvoke(r.opts.ReportLambdaFunction, b)
 	if err != nil {
 		logError("error reporting flake: %s", err.Error())
 	}
