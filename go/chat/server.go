@@ -2681,6 +2681,7 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 				}
 			}
 			usernamesToAdd = usernamesToRetry
+			err = nil
 		default:
 			return e
 		}
