@@ -64,33 +64,45 @@ func awsStringSign4(key string, date string, region string, service string, toSi
 
 }
 
-// s3 put without the dependencies, adopted from this shell script:
-//
-//  https://superuser.com/questions/279986/uploading-files-to-s3-account-from-linux-command-line
-//
 func s3put(src io.Reader, bucket string, name string) (string, error) {
 	buf, err := gzipSource(src)
 	if err != nil {
 		return "", err
 	}
-
 	randSuffix, err := randString()
 	if err != nil {
 		return "", err
 	}
 	name += "-" + randSuffix + ".gz"
 
+	_, err = awsCall("s3", bucket+".s3.amazonaws.com", name, "PUT", buf)
+	if err != nil {
+		return "", err
+	}
+	where := fmt.Sprintf("(fetch with: `curl -s -o - https://%s.s3.amazonaws.com/%s | zcat -d`)", bucket, name)
+	return where, nil
+}
+
+func lambdaInvoke(functionName string, buf []byte) error {
+	_, err := awsCall("lambda", "lambda.us-east-1.s3.amazonaws.com", "2015-03-31/functions/"+functionName+"/invocations", "POST", buf)
+	return err
+}
+
+// generic aws call without the dependencies, adopted from this shell script:
+//
+//  https://superuser.com/questions/279986/uploading-files-to-s3-account-from-linux-command-line
+//
+func awsCall(service string, host string, path string, method string, buf []byte) (response []byte, err error) {
 	payloadHash := hashToHex(buf)
 	now := time.Now().UTC()
 	dateLong := now.Format("20060102T150405Z")
 	dateShort := now.Format("20060102")
 	contentType := "application/gzip"
-	host := bucket + ".s3.amazonaws.com"
 	storageClass := "STANDARD"
 	headerList := "content-type;host;x-amz-content-sha256;x-amz-date;x-amz-storage-class"
 	canonicalRequest := strings.Join([]string{
-		"PUT",
-		"/" + name,
+		method,
+		"/" + path,
 		"",
 		"content-type:" + contentType,
 		"host:" + host,
@@ -105,7 +117,6 @@ func s3put(src io.Reader, bucket string, name string) (string, error) {
 	canonicalRequestHash := hashToHex([]byte(canonicalRequest))
 	authType := "AWS4-HMAC-SHA256"
 	region := "us-east-1"
-	service := "s3"
 	req2 := strings.Join([]string{dateShort, region, service, "aws4_request"}, "/")
 	stringToSign := strings.Join([]string{
 		authType,
@@ -117,7 +128,7 @@ func s3put(src io.Reader, bucket string, name string) (string, error) {
 	keyID := os.Getenv("CITOGO_AWS_ACCESS_KEY_ID")
 	key := os.Getenv("CITOGO_AWS_SECRET_ACCESS_KEY")
 	if keyID == "" || key == "" {
-		return "", errors.New("need CITOGO_AWS_ACCESS_KEY_ID and CITOGO_AWS_SECRET_ACCESS_KEY environment variables")
+		return response, errors.New("need CITOGO_AWS_ACCESS_KEY_ID and CITOGO_AWS_SECRET_ACCESS_KEY environment variables")
 	}
 	sig := awsStringSign4(key, dateShort, region, service, stringToSign)
 	authorization := authType + " " + strings.Join([]string{
@@ -127,10 +138,10 @@ func s3put(src io.Reader, bucket string, name string) (string, error) {
 	}, ", ")
 
 	client := &http.Client{}
-	url := "https://" + host + "/" + name
-	req, err := http.NewRequest("PUT", url, bytes.NewReader(buf))
+	url := "https://" + host + "/" + path
+	req, err := http.NewRequest(method, url, bytes.NewReader(buf))
 	if err != nil {
-		return "", err
+		return response, err
 	}
 	req.Header.Set("Content-type", contentType)
 	req.Header.Set("Host", host)
@@ -141,14 +152,12 @@ func s3put(src io.Reader, bucket string, name string) (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return response, err
 	}
 	defer resp.Body.Close()
-	_, err = ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return response, err
 	}
-	where := fmt.Sprintf("(fetch with: ```curl -s -o - https://%s.s3.amazonaws.com/%s | zcat -d```)", bucket, name)
-
-	return where, nil
+	return body, nil
 }

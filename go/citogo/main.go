@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -14,10 +13,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/defaults"
-	"github.com/aws/aws-sdk-go-v2/service/lambda"
 )
 
 type opts struct {
@@ -45,11 +40,10 @@ func logError(f string, args ...interface{}) {
 }
 
 type runner struct {
-	lambdaCli *lambda.Client
-	opts      opts
-	flakes    []string
-	fails     []string
-	tests     []string
+	opts   opts
+	flakes []string
+	fails  []string
+	tests  []string
 }
 
 func convertBreakingChars(s string) string {
@@ -156,19 +150,13 @@ func (r *runner) flushTestLogsToTemp(logName string, log bytes.Buffer) (string, 
 }
 
 func (r *runner) report(result TestResult) {
-	functionName := "report-citogo"
-
 	b, err := json.Marshal(result)
 	if err != nil {
 		logError("error marshalling result: %s", err.Error())
 		return
 	}
 
-	req := r.lambdaCli.InvokeRequest(&lambda.InvokeInput{
-		FunctionName: &functionName,
-		Payload:      b,
-	})
-	_, err = req.Send(context.TODO())
+	err = lambdaInvoke("report-citogo", b)
 	if err != nil {
 		logError("error reporting flake: %s", err.Error())
 	}
@@ -330,16 +318,6 @@ func (r *runner) run() error {
 	if err != nil {
 		return err
 	}
-
-	creds := aws.NewStaticCredentialsProvider(
-		os.Getenv("CITOGO_AWS_ACCESS_KEY_ID"),
-		os.Getenv("CITOGO_AWS_SECRET_ACCESS_KEY"),
-		"", /* session */
-	)
-	cfg := defaults.Config()
-	cfg.Credentials = creds
-	cfg.Region = "us-east-1"
-	r.lambdaCli = lambda.New(cfg)
 
 	r.debugStartup()
 	err = r.compile()
