@@ -169,7 +169,7 @@ const styles = Styles.styleSheetCreate(
       }),
       backgroundImage: {
         height: 160,
-        width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
+        width: '100%',
       },
       box: {
         ...Styles.globalStyles.flexBoxColumn,
