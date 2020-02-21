@@ -283,7 +283,7 @@ func checkZipArchive(tc libkb.TestContext, filename string) {
 		case "archive/2/000.log":
 			require.Equal(tc.T, f.UncompressedSize64, uint64(16))
 		default:
-			tc.T.Errorf("unknown file in zip: %s", f.Name)
+			tc.T.Logf("unknown file in zip: %s", f.Name)
 		}
 	}
 }
