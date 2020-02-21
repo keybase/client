@@ -10,9 +10,7 @@ const Kb = {
 const load = () => {
   Sb.storiesOf('Common/RichButton', module).add('Basic', () => (
     <Kb.RichButton
-      onClick={() => {
-        console.log('hi')
-      }}
+      onClick={Sb.action('onClick')}
       imageUrl=""
       title="Friends, family, or squad"
       description="A small group of people, with no initial need for channels."

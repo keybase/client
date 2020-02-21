@@ -5,9 +5,11 @@ import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Avatar from './avatar'
 import Text from './text'
+import {IconType} from './icon.constants-gen'
+import Icon from './icon'
 
 type Props = {
-  imageUrl: string
+  icon: IconType
   title: string
   description: string
   onClick?: (event: React.BaseSyntheticEvent) => void
@@ -17,11 +19,12 @@ const Kb = {
   Avatar,
   Box2,
   ClickableBox,
+  Icon,
   Text,
 }
 
 const RichButton = (props: Props) => {
-  const [isPressing, setPressing] = React.useState()
+  const [isPressing, setPressing] = React.useState(false)
 
   return (
     <Kb.ClickableBox
@@ -32,12 +35,12 @@ const RichButton = (props: Props) => {
       onPressOut={() => setPressing(false)}
       hoverColor={Styles.globalColors.blueLighter_20}
     >
-      <Kb.Avatar imageOverrideUrl={props.imageUrl} style={styles.thumbnail} size={64} />
+      <Kb.Icon type={props.icon} style={styles.thumbnail} />
 
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} gap="xtiny">
         <Kb.Text
           className="hover_contained_color_blueDark"
-          style={Styles.collapseStyles([styles.title, isPressing && styles.mobileTitle])}
+          style={isPressing && styles.mobileTitle}
           type="BodySemibold"
         >
           {props.title}
@@ -67,9 +70,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   thumbnail: {
     marginRight: Styles.globalMargins.small,
-  },
-  title: {
-    marginBottom: Styles.globalMargins.xtiny,
   },
 }))
 
