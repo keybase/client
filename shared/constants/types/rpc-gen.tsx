@@ -4106,7 +4106,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'
 // 'keybase.1.teams.teamListSubteamsRecursive'
-// 'keybase.1.teams.teamChangeMembership'
 // 'keybase.1.teams.teamAddMembers'
 // 'keybase.1.teams.teamRemoveMembers'
 // 'keybase.1.teams.teamEditMembers'

@@ -3721,12 +3721,6 @@ type TeamListSubteamsRecursiveArg struct {
 	ForceRepoll    bool   `codec:"forceRepoll" json:"forceRepoll"`
 }
 
-type TeamChangeMembershipArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	Name      string        `codec:"name" json:"name"`
-	Req       TeamChangeReq `codec:"req" json:"req"`
-}
-
 type TeamAddMemberArg struct {
 	SessionID            int              `codec:"sessionID" json:"sessionID"`
 	TeamID               TeamID           `codec:"teamID" json:"teamID"`
@@ -4032,7 +4026,6 @@ type TeamsInterface interface {
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
 	TeamListVerified(context.Context, TeamListVerifiedArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
-	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamAddMembers(context.Context, TeamAddMembersArg) (TeamAddMembersResult, error)
 	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) (TeamAddMembersResult, error)
@@ -4284,21 +4277,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamListSubteamsRecursive(ctx, typedArgs[0])
-					return
-				},
-			},
-			"teamChangeMembership": {
-				MakeArg: func() interface{} {
-					var ret [1]TeamChangeMembershipArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TeamChangeMembershipArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]TeamChangeMembershipArg)(nil), args)
-						return
-					}
-					err = i.TeamChangeMembership(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5113,11 +5091,6 @@ func (c TeamsClient) TeamListVerified(ctx context.Context, __arg TeamListVerifie
 
 func (c TeamsClient) TeamListSubteamsRecursive(ctx context.Context, __arg TeamListSubteamsRecursiveArg) (res []TeamIDAndName, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamListSubteamsRecursive", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeMembershipArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamChangeMembership", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
