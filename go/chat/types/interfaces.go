@@ -598,6 +598,10 @@ type JourneyCardManager interface {
 	OnDbNuke(libkb.MetaContext) error
 }
 
+type ParticipantSource interface {
+	Get(ctx context.Context, conv RemoteConversation) ([]gregor1.UID, error)
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string
