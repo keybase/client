@@ -127,8 +127,8 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   headerStyle: {marginBottom: Styles.globalMargins.small},
-  label: {flexShrink: 1},
   iconStyle: {marginBottom: 20},
+  label: {flexShrink: 1},
   scrollContainer: {
     ...Styles.globalStyles.flexBoxCenter,
     flex: 1,
