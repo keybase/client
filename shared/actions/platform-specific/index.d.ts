@@ -1,4 +1,4 @@
-import * as Electron from 'electron'
+import {OpenDialogOptions, SaveDialogOptions, OpenDialogReturnValue, SaveDialogReturnValue} from 'electron'
 import * as Saga from '../../util/saga'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
@@ -19,12 +19,8 @@ export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPosi
 export declare function requestAudioPermission(): Promise<void>
 export declare function clearWatchPosition(watchID: number): void
 export declare function watchPositionForMap(errFn: () => void): Promise<number>
-export declare function showOpenDialog(
-  options: Electron.OpenDialogOptions
-): Promise<Electron.OpenDialogReturnValue | undefined>
-export declare function showSaveDialog(
-  options: Electron.SaveDialogOptions
-): Promise<Electron.SaveDialogReturnValue | undefined>
+export declare function showOpenDialog(options: OpenDialogOptions): Promise<OpenDialogReturnValue | undefined>
+export declare function showSaveDialog(options: SaveDialogOptions): Promise<SaveDialogReturnValue | undefined>
 
 export declare function displayNewMessageNotification(
   text: string,

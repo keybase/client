@@ -9,7 +9,8 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {useOpenFile} from '../../util/use-file-picker.desktop'
+import {humanizeBytes} from '../../constants/fs'
+import {useOpenFile} from '../../util/use-file-picker'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
 
@@ -121,7 +122,14 @@ export const OutputProgress = (props: OutputProgressProps) => {
 
   const progress = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
-  return progress ? <Kb.ProgressBar ratio={progress} style={{width: '100%'}} /> : <Kb.Divider />
+  return progress ? (
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} alignItems="center">
+      <Kb.ProgressBar ratio={progress} style={styles.progressBar} />
+      <Kb.Text type="Body">{`${humanizeBytes(bytesComplete, 1)} / ${humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
+    </Kb.Box2>
+  ) : null
+
+  // return progress ? <Kb.ProgressBar ratio={progress} style={{width: '100%'}} /> : <Kb.Divider />
 }
 
 export const OutputInfoBanner = (props: OutputInfoProps) => {
@@ -335,6 +343,7 @@ const Output = (props: OutputProps) => {
   const fileIcon = Constants.getOutputFileIcon(operation)
   const actionsDisabled = waiting || !outputValid
 
+  // Placeholder, progress, or encrypt file button
   if (!outputStatus || outputStatus !== 'success') {
     return (
       <Kb.Box2
@@ -343,7 +352,11 @@ const Output = (props: OutputProps) => {
         fullWidth={true}
         style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
       >
-        {inputType === 'file' && !inProgress && <OutputFileDestination operation={operation} />}
+        {inProgress ? (
+          <OutputProgress operation={operation} />
+        ) : (
+          inputType === 'file' && <OutputFileDestination operation={operation} />
+        )}
       </Kb.Box2>
     )
   }
@@ -412,6 +425,9 @@ const styles = Styles.styleSheetCreate(
       outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
       outputVerifiedContainer: {marginBottom: Styles.globalMargins.xlarge},
       placeholder: {color: Styles.globalColors.black_50},
+      progressBar: {
+        width: 200,
+      },
       signedContainer: {
         minHeight: Styles.globalMargins.mediumLarge,
         paddingLeft: Styles.globalMargins.tiny,

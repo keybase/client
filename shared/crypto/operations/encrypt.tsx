@@ -6,7 +6,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {Input, DragAndDrop, OperationBanner} from '../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender, OutputProgress} from '../output'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../output'
 import Recipients from '../recipients'
 
 const operation = Constants.Operations.Encrypt
@@ -91,7 +91,6 @@ const Encrypt = () => {
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Input operation={operation} />
         <EncryptOptions />
-        <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <EncryptOutputBanner />
           <SignedSender operation={operation} />

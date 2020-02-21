@@ -883,8 +883,8 @@ const onSetAudioRecordingPostInfo = async (
   await AudioRecorder.startRecording()
 }
 
-export function showOpenDialog() {}
-export function showSaveDialog() {}
+export async function showOpenDialog() {}
+export async function showSaveDialog() {}
 
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
