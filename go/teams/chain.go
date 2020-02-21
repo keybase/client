@@ -1981,8 +1981,21 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 		if byName[key] {
 			return nil, nil, NewInviteError(fmt.Sprintf("Invite %s appears twice in invite set", key))
 		}
-		if res.MaxUses != nil && *res.MaxUses == 0 {
-			return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has max_uses=0", id))
+		if res.MaxUses != nil {
+			if options.implicitTeam {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has max_uses in implicit team", key))
+			}
+			if *res.MaxUses <= 0 {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid max_uses %d", id, *res.MaxUses))
+			}
+		}
+		if res.Etime != nil {
+			if options.implicitTeam {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime in implicit team", key))
+			}
+			if *res.Etime <= 0 {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime invalid etime %d", id, *res.Etime))
+			}
 		}
 		byName[key] = true
 		byID[id] = true
@@ -2212,9 +2225,9 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 	for id := range completed {
 		invite, ok := stateToUpdate.inner.ActiveInvites[id]
 		if !ok {
-			// TODO: That's likely an error, but we've allowed this for so long
-			// that we have to prove that no team has done this in order to
-			// change this.
+			// Invite doesn't exist - that's likely an error, but we've allowed
+			// this for so long that we have to prove that no team has done
+			// this in order to change this.
 			continue
 		}
 		if invite.MaxUses != nil {
