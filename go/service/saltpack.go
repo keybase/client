@@ -919,9 +919,16 @@ func zipDir(directory string, prog *progress.ProgressWriter) (chan error, io.Rea
 
 			stripped := stripParent(path)
 
+			header, err := zip.FileInfoHeader(info)
+			if err != nil {
+				return err
+			}
+			header.Method = zip.Deflate
+
 			if info.IsDir() {
 				// make a directory by calling Create with a filename ending in a separator.
-				_, err := w.Create(stripped + string(filepath.Separator))
+				header.Name = stripped + string(filepath.Separator)
+				_, err := w.CreateHeader(header)
 				if err != nil {
 					return err
 				}
@@ -929,7 +936,8 @@ func zipDir(directory string, prog *progress.ProgressWriter) (chan error, io.Rea
 			}
 
 			// make a regular file and copy all the data into it.
-			w, err := w.Create(stripped)
+			header.Name = stripped
+			w, err := w.CreateHeader(header)
 			if err != nil {
 				return err
 			}
