@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import flags from '../../../util/feature-flags'
 import Participant from './participant'
 
@@ -25,9 +26,18 @@ export default (props: Props) => {
   const infoMap = Container.useSelector(state => state.users.infoMap)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
+  const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
+  React.useEffect(() => {
+    refreshParticipants(
+      [{convID: Types.keyToConversationID(conversationIDKey)}],
+      () => {},
+      () => {}
+    )
+  }, [conversationIDKey, refreshParticipants])
+
   let participants = participantInfo.all
   const adhocTeam = meta.teamType === 'adhoc'
 

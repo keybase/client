@@ -503,6 +503,10 @@ export type MessageTypes = {
     inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: {[key: string]: ProfileSearchConvStats}
   }
+  'chat.1.local.refreshParticipants': {
+    inParam: {readonly convID: ConversationID}
+    outParam: void
+  }
   'chat.1.local.removeBotMember': {
     inParam: {readonly convID: ConversationID; readonly username: String}
     outParam: void
@@ -1613,6 +1617,7 @@ export const localPostTextNonblockRpcPromise = (params: MessageTypes['chat.1.loc
 export const localPostTextNonblockRpcSaga = (p: {params: MessageTypes['chat.1.local.postTextNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.postTextNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.previewConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.previewConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRefreshParticipantsRpcPromise = (params: MessageTypes['chat.1.local.refreshParticipants']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.refreshParticipants']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.refreshParticipants', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxLayoutRpcPromise = (params: MessageTypes['chat.1.local.requestInboxLayout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxLayout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxLayout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxSmallIncreaseRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallIncrease']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallIncrease', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1702,7 +1707,6 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.getLastActiveForTLF'
 // 'chat.1.local.getLastActiveForTeams'
 // 'chat.1.local.getRecentJoinsLocal'
-// 'chat.1.local.refreshParticipants'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
