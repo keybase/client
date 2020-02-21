@@ -162,6 +162,18 @@ func (r *runner) report(result types.TestResult) {
 	}
 }
 
+func (r *runner) newTestResult(outcome types.Outcome, testName string, where string) types.TestResult {
+	return types.TestResult{
+		Outcome:  outcome,
+		TestName: testName,
+		Where:    where,
+		Branch:   r.opts.Branch,
+		BuildID:  r.opts.BuildID,
+		Prefix:   r.opts.Prefix,
+		BuildURL: r.opts.BuildURL,
+	}
+}
+
 func (r *runner) runTest(test string) error {
 	canRerun := len(r.flakes) < r.opts.Flakes
 	outcome, where, err := r.runTestOnce(test, false /* isRerun */, canRerun)
@@ -182,7 +194,7 @@ func (r *runner) runTest(test string) error {
 	case types.OutcomeFail:
 		return errTestFailed
 	case types.OutcomeSuccess:
-		r.report(types.TestResult{Outcome: types.OutcomeFlake, TestName: test, Where: where, Branch: r.opts.Branch})
+		r.report(r.newTestResult(types.OutcomeFlake, test, where))
 		r.flakes = append(r.flakes, test)
 	}
 	return nil
@@ -200,7 +212,7 @@ func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome 
 		}
 		fmt.Printf("%s: %s %s\n", logOutcome.Abbrv(), test, where)
 		if r.opts.Branch == "master" && err == nil {
-			r.report(types.TestResult{Outcome: outcome, TestName: test, Where: where, Branch: r.opts.Branch})
+			r.report(r.newTestResult(outcome, test, where))
 		}
 	}()
 

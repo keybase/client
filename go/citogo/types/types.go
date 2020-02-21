@@ -26,4 +26,8 @@ type TestResult struct {
 	TestName string
 	Where    string
 	Branch   string
+
+	BuildID  string
+	Prefix   string
+	BuildURL string
 }
