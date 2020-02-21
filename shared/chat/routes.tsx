@@ -1,4 +1,3 @@
-import {isPhone} from '../constants/platform'
 import ChatConversation from './conversation/container'
 import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import ChatRoot from './inbox/container'
