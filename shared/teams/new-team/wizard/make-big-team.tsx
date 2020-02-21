@@ -32,14 +32,14 @@ const MakeBigTeam = (props: Props) => {
         <Kb.RichButton
           description="With multiple roles and channels. Big team chats appear in the lower section in the inbox."
           icon="icon-teams-size-big-64"
-          onClick={() => console.log('hi')}
+          onClick={() => undefined} //TODO: Implement this
           title="Yes, make it a big team"
         />
 
         <Kb.RichButton
           description="You can always make it a big team later."
           icon="icon-teams-size-small-64"
-          onClick={() => console.log('hi')}
+          onClick={() => undefined} //TODO: Implement this
           title="No, keep it a simple conversation for now"
         />
       </Kb.Box2>
