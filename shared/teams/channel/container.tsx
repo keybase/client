@@ -18,9 +18,6 @@ const defaultTab: TabKey = 'members'
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamID = Container.getRouteProps(ownProps, 'teamID', '')
   const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey', '')
-  if (!teamID) {
-    throw new Error('There was a problem loading the team page, please report this error.')
-  }
 
   return {
     _channelInfo:

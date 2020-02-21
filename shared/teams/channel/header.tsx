@@ -9,12 +9,12 @@ import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
 
-type HeaderTitleProps = Kb.PropsWithOverlay<{
+type HeaderTitleProps = {
   teamID: TeamID
   conversationIDKey: ConversationIDKey
-}>
+}
 
-const _HeaderTitle = (props: HeaderTitleProps) => {
+const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
   const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const {channelname, description, numParticipants} = Container.useSelector(
@@ -75,17 +75,11 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         <Kb.Button
           label="Add members"
           onClick={undefined /* TODO */}
-          ref={props.setAttachmentRef}
           small={true}
           mode="Secondary"
           style={styles.addMembersButton}
         />
-        <Kb.Button
-          mode="Secondary"
-          small={true}
-          ref={props.setAttachmentRef}
-          onClick={props.toggleShowingMenu}
-        >
+        <Kb.Button mode="Secondary" small={true}>
           <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
         </Kb.Button>
         {/* TODO: Channel Menu */}
@@ -128,7 +122,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 }
-export default Kb.OverlayParentHOC(_HeaderTitle)
+export default HeaderTitle
 
 const nyi = () => console.warn('not yet implemented')
 const useHeaderCallbacks = (_: TeamID, conversationIDKey: ConversationIDKey) => {
