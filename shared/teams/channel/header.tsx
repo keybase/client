@@ -80,18 +80,29 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         {yourOperations.editChannelDescription && (
           <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
         )}
-        <Kb.Button
-          label="Add members"
-          onClick={undefined /* TODO */}
-          small={true}
-          mode="Secondary"
-          style={styles.addMembersButton}
-        />
+        {!Styles.isMobile && (
+          <Kb.Button
+            label="Add members"
+            onClick={undefined /* TODO */}
+            small={true}
+            mode="Secondary"
+            style={styles.addMembersButton}
+          />
+        )}
         <Kb.Button mode="Secondary" small={true}>
           <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
         </Kb.Button>
         {/* TODO: Channel Menu */}
       </Kb.Box2>
+    </Kb.Box2>
+  )
+
+  const tip = (
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny">
+      <Kb.Icon color={Styles.globalColors.black_20} fontSize={12} type="iconfont-info" />
+      <Kb.Text type="BodySmall" lineClamp={3}>
+        Tip: Use @mentions to invite team members to channels from the chat.
+      </Kb.Text>
     </Kb.Box2>
   )
 
@@ -103,7 +114,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             {topDescriptors}
           </Kb.Box2>
           {bottomDescriptorsAndButtons}
-          {yourOperations.manageMembers && <Kb.Box2 direction="horizontal" fullWidth={true}></Kb.Box2>}
+          {tip}
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -125,7 +136,12 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         style={styles.outerBoxDesktop}
       >
         {topDescriptors}
-        {bottomDescriptorsAndButtons}
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          {bottomDescriptorsAndButtons}
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.tipBoxDesktop}>
+            {tip}
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -178,5 +194,9 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: Styles.desktopStyles.windowDraggingClickable,
       }),
+      tipBoxDesktop: {
+        marginLeft: Styles.globalMargins.xlarge + Styles.globalMargins.large,
+        width: 200,
+      },
     } as const)
 )
