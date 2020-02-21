@@ -411,26 +411,6 @@ const setOnLoginStartup = async (enabled: boolean) => {
     logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
   })
 }
-export async function showOpenDialog(options: Electron.OpenDialogOptions) {
-  try {
-    const result = await Electron.remote.dialog.showOpenDialog(Electron.remote.getCurrentWindow(), options)
-    return result
-  } catch (err) {
-    logger.warn('Unable to open save diaglog (Electron.showOpenDialog)')
-    return
-  }
-}
-
-export async function showSaveDialog(options: Electron.SaveDialogOptions) {
-  try {
-    const result = await Electron.remote.dialog.showSaveDialog(Electron.remote.getCurrentWindow(), options)
-    console.log('JRY actions Electron showSaveDialog', {options, result})
-    return result
-  } catch (err) {
-    logger.warn('Unable to open save diaglog (Electron.showSaveDialog)')
-    return
-  }
-}
 
 export const requestLocationPermission = () => Promise.resolve()
 export const requestAudioPermission = () => Promise.resolve()

@@ -123,7 +123,7 @@ export const OutputProgress = (props: OutputProgressProps) => {
   const progress = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
   return progress ? (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} alignItems="center">
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
       <Kb.ProgressBar ratio={progress} style={styles.progressBar} />
       <Kb.Text type="Body">{`${humanizeBytes(bytesComplete, 1)} / ${humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
     </Kb.Box2>

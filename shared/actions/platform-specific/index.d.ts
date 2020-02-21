@@ -19,8 +19,6 @@ export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPosi
 export declare function requestAudioPermission(): Promise<void>
 export declare function clearWatchPosition(watchID: number): void
 export declare function watchPositionForMap(errFn: () => void): Promise<number>
-export declare function showOpenDialog(options: OpenDialogOptions): Promise<OpenDialogReturnValue | undefined>
-export declare function showSaveDialog(options: SaveDialogOptions): Promise<SaveDialogReturnValue | undefined>
 
 export declare function displayNewMessageNotification(
   text: string,

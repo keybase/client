@@ -1,7 +1,27 @@
 import * as Electron from 'electron'
 import * as React from 'react'
-import {showOpenDialog, showSaveDialog} from '../actions/platform-specific'
+import logger from '../logger'
 import {usePrevious} from './container'
+
+export async function showSaveDialog(options: Electron.SaveDialogOptions) {
+  try {
+    const result = await Electron.remote.dialog.showSaveDialog(Electron.remote.getCurrentWindow(), options)
+    return result
+  } catch (err) {
+    logger.warn('Unable to open save diaglog (Electron.showSaveDialog)')
+    return
+  }
+}
+
+export async function showOpenDialog(options: Electron.OpenDialogOptions) {
+  try {
+    const result = await Electron.remote.dialog.showOpenDialog(Electron.remote.getCurrentWindow(), options)
+    return result
+  } catch (err) {
+    logger.warn('Unable to open save diaglog (Electron.showOpenDialog)')
+    return
+  }
+}
 
 export const useOpenFile = (
   toggleCounter: number,
