@@ -55,6 +55,7 @@ const styles = Styles.styleSheetCreate(() => ({
   containerStyle: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
+    backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
