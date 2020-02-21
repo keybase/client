@@ -88,5 +88,11 @@ func TestSignatures(t *testing.T) {
 		t.Logf("testing at link %s %d\n", test.username, test.seqno)
 		testOne(t, test.sig, test.sigID)
 	}
+}
 
+func TestPrefixTable(t *testing.T) {
+	for _, tv := range testVectors {
+		res := isMaybeModernSigIDMakerModern(keybase1.SigID(tv.sigID))
+		require.Equal(t, res, tv.isModern)
+	}
 }
