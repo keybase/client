@@ -71,15 +71,19 @@ var badWhitespaceLinkIDConversion = map[keybase1.LinkID]keybase1.LinkID{
 	"99668480e4731a47a81051e35d4957780395990d718d8629a8653ba718d489f2": "f5f324e91a94c073fdc936b50d56250133dc19415ae592d2c7cb99db9e980e1b",
 }
 
+func fixupSeqType(st *keybase1.SeqType) {
+	if *st == keybase1.SeqType_NONE {
+		*st = keybase1.SeqType_PUBLIC
+	}
+}
+
 func importLinkFromServerV2Stubbed(m MetaContext, parent *SigChain, raw string) (ret *ChainLink, err error) {
 	ol, err := DecodeStubbedOuterLinkV2(raw)
 	if err != nil {
 		return nil, err
 	}
-	if ol.SeqType == 0 {
-		// Assume public if unset
-		ol.SeqType = keybase1.SeqType_PUBLIC
-	}
+
+	fixupSeqType(&ol.SeqType)
 
 	if !ol.IgnoreIfUnsupported.Bool() && !ol.LinkType.IsSupportedType() {
 		return nil, ChainLinkStubbedUnsupportedError{fmt.Sprintf("Stubbed link with type %d is unknown and not marked with IgnoreIfUnsupported", ol.LinkType)}
@@ -501,10 +505,7 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (*importRes, 
 		return nil, err
 	}
 	sig2Imploded.OuterLink.Seqno = seqno
-	if sig2Imploded.OuterLink.SeqType == keybase1.SeqType_NONE {
-		// Assume public if unset
-		sig2Imploded.OuterLink.SeqType = keybase1.SeqType_PUBLIC
-	}
+	fixupSeqType(&sig2Imploded.OuterLink.SeqType)
 
 	outerPayload, err := sig2Imploded.OuterLink.EncodePartial(sig2Imploded.NumFields)
 	if err != nil {
