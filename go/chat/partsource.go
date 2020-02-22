@@ -80,7 +80,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, conv types.R
 		}
 
 		// load remote if necessary
-		if local.Hash == conv.Conv.Metadata.AllListHash {
+		if found && local.Hash == conv.Conv.Metadata.AllListHash {
 			return
 		}
 		iboxRes, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
