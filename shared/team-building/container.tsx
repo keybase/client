@@ -639,7 +639,7 @@ const mergeProps = (
               }
             : null,
         onClosePopup: dispatchProps._onCancelTeamBuilding,
-        tabBarShim: true,
+        tabBarShim: ownProps.namespace === 'people',
       }
 
   return {

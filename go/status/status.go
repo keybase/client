@@ -194,7 +194,7 @@ func GetConfig(mctx libkb.MetaContext, forkType keybase1.ForkType) (c keybase1.C
 	if err == nil {
 		c.BinaryRealpath = realpath
 	} else {
-		mctx.Warning("Failed to get service realpath: %s", err)
+		mctx.Debug("Failed to get service realpath: %s", err)
 	}
 
 	c.ConfigPath = mctx.G().Env.GetConfigFilename()
@@ -238,7 +238,9 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 
 	// set kbfs status
 	kbfsInstalledVersion, err := install.KBFSBundleVersion(mctx.G(), "")
-	if err == nil {
+	if err != nil {
+		mctx.Debug("Failed to get KBFSBundleVersion: %s", err)
+	} else {
 		status.Kbfs.InstalledVersion = kbfsInstalledVersion
 	}
 	if kbfs := GetFirstClient(status.ExtStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
