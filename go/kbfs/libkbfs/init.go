@@ -876,7 +876,7 @@ func doInit(
 	// (e.g., during a git pull), because KBFS might be running in
 	// constrained mode and the cache remote proxy wouldn't be
 	// available (which is fine).
-	doSendWarnings := config.Mode().Type() != InitSingleOp
+	doSendWarnings := !config.Mode().IsSingleOp()
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)

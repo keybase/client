@@ -1924,6 +1924,9 @@ type InitMode interface {
 	Type() InitModeType
 	// IsTestMode returns whether we are running a test.
 	IsTestMode() bool
+	// IsSingleOp returns whether this is a single-op mode (only one
+	// write is expected at a time).
+	IsSingleOp() bool
 	// BlockWorkers returns the number of block workers to run.
 	BlockWorkers() int
 	// PrefetchWorkers returns the number of prefetch workers to run.
