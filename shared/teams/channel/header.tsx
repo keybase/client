@@ -60,7 +60,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const bottomDescriptorsAndButtons = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={true}>
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={!Styles.isMobile}>
       {!!description && (
         <Kb.Text type="Body" lineClamp={3}>
           {description}
@@ -110,9 +110,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            {topDescriptors}
-          </Kb.Box2>
+          {topDescriptors}
           {bottomDescriptorsAndButtons}
           {tip}
         </Kb.Box2>
