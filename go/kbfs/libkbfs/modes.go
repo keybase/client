@@ -78,6 +78,10 @@ func (md modeDefault) IsTestMode() bool {
 	return false
 }
 
+func (md modeDefault) IsSingleOp() bool {
+	return false
+}
+
 func (md modeDefault) DirtyBlockCacheEnabled() bool {
 	return true
 }
@@ -233,6 +237,10 @@ func (mm modeMinimal) RekeyQueueSize() int {
 }
 
 func (mm modeMinimal) IsTestMode() bool {
+	return false
+}
+
+func (mm modeMinimal) IsSingleOp() bool {
 	return false
 }
 
@@ -455,6 +463,10 @@ func (mso modeSingleOp) InitialDelayForBackgroundWork() time.Duration {
 func (mso modeSingleOp) BackgroundWorkPeriod() time.Duration {
 	// No background work
 	return math.MaxInt64
+}
+
+func (mso modeSingleOp) IsSingleOp() bool {
+	return true
 }
 
 // Constrained mode:
