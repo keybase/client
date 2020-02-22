@@ -592,7 +592,8 @@ export type TypedActionsMap = {
   'fs:favoriteIgnore': fs.FavoriteIgnorePayload
   'fs:favoriteIgnoreError': fs.FavoriteIgnoreErrorPayload
   'fs:newFolderRow': fs.NewFolderRowPayload
-  'fs:newFolderName': fs.NewFolderNamePayload
+  'fs:startRename': fs.StartRenamePayload
+  'fs:setEditName': fs.SetEditNamePayload
   'fs:commitEdit': fs.CommitEditPayload
   'fs:editSuccess': fs.EditSuccessPayload
   'fs:discardEdit': fs.DiscardEditPayload

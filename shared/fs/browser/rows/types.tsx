@@ -5,7 +5,7 @@ export enum RowType {
   TlfType,
   Tlf,
   Still,
-  Editing,
+  NewFolder,
   Placeholder,
   Empty,
   Header,
@@ -29,6 +29,7 @@ export type TlfRowItem = {
 }
 
 export type StillRowItem = {
+  editID?: Types.EditID // empty if not being renamed
   key: string
   lastModifiedTimestamp: number
   name: string
@@ -37,13 +38,13 @@ export type StillRowItem = {
   type: Types.PathType
 }
 
-export type EditingRowItem = {
+export type NewFolderRowItem = {
   editType: Types.EditType
   editID: Types.EditID
   key: string
   name: string
-  rowType: RowType.Editing
-  type: Types.PathType
+  rowType: RowType.NewFolder
+  type: Types.PathType.Folder
 }
 
 export type PlaceholderRowItem = {
@@ -65,6 +66,6 @@ export type HeaderRowItem = {
   node: React.ReactElement
 }
 
-export type NamedRowItem = TlfTypeRowItem | TlfRowItem | StillRowItem | EditingRowItem | PlaceholderRowItem
+export type NamedRowItem = TlfTypeRowItem | TlfRowItem | StillRowItem | NewFolderRowItem | PlaceholderRowItem
 
 export type RowItem = NamedRowItem | EmptyRowItem | HeaderRowItem

@@ -148,6 +148,22 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
         )
       draftState.pathItems.set(path, newPathItem)
     })
+
+    // Remove Rename edits that are for path items that don't exist anymore in
+    // case when/if a new item is added later the edit causes confusion.
+    const newEntries = [...draftState.edits.entries()].filter(([_, edit]) => {
+      if (edit.type !== Types.EditType.Rename) {
+        return true
+      }
+      const parent = Constants.getPathItem(draftState.pathItems, edit.parentPath)
+      if (parent.type === Types.PathType.Folder && parent.children.has(edit.name)) {
+        return true
+      }
+      return false
+    })
+    if (newEntries.length !== draftState.edits.size) {
+      draftState.edits = new Map(newEntries)
+    }
   },
   [FsGen.favoritesLoaded]: (draftState, action) => {
     draftState.tlfs.private = action.payload.private
@@ -277,12 +293,23 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
 
     draftState.edits.set(Constants.makeEditID(), {
       ...Constants.emptyNewFolder,
-      hint: newFolderName,
       name: newFolderName,
+      originalName: newFolderName,
       parentPath,
     })
   },
-  [FsGen.newFolderName]: (draftState, action) => {
+  [FsGen.startRename]: (draftState, action) => {
+    const parentPath = Types.getPathParent(action.payload.path)
+    const originalName = Types.getPathName(action.payload.path)
+    draftState.edits.set(Constants.makeEditID(), {
+      name: originalName,
+      originalName,
+      parentPath,
+      status: Types.EditStatusType.Editing,
+      type: Types.EditType.Rename,
+    })
+  },
+  [FsGen.setEditName]: (draftState, action) => {
     updateExistingEdit(draftState, action.payload.editID, draftEdit => {
       draftEdit.name = action.payload.name
     })

@@ -23,9 +23,9 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const emptyNewFolder: Types.NewFolder = {
-  hint: 'New Folder',
+export const emptyNewFolder: Types.Edit = {
   name: 'New Folder',
+  originalName: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
   status: Types.EditStatusType.Editing,
   type: Types.EditType.NewFolder,
@@ -311,16 +311,6 @@ export const humanReadableFileSize = (size: number) => {
   if (size >= mib) return `${Math.round(size / mib)} MB`
   if (size >= kib) return `${Math.round(size / kib)} KB`
   return `${size} B`
-}
-
-export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
-  switch (type) {
-    case Types.EditType.NewFolder:
-      return Types.PathType.Folder
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
-      return Types.PathType.Unknown
-  }
 }
 
 export const downloadIsOngoing = (dlState: Types.DownloadState) =>

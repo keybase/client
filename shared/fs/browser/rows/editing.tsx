@@ -1,27 +1,37 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
+import * as Container from '../../../util/container'
+import * as FsGen from '../../../actions/fs-gen'
 import {rowStyles} from './common'
 
-type EditingProps = {
-  name: string
-  projectedPath: Types.Path
-  hint: string
-  status: Types.EditStatusType
-  isCreate: boolean
-  onSubmit: () => void
-  onUpdate: (name: string) => void
-  onCancel: () => void
+type Props = {
+  editID: Types.EditID
 }
 
-const Editing = (props: EditingProps) => {
-  const [filename, setFilename] = React.useState(props.name)
+const Editing = ({editID}: Props) => {
+  const dispatch = Container.useDispatch()
+  const onCancel = () => dispatch(FsGen.createDiscardEdit({editID}))
+  const onSubmit = () => dispatch(FsGen.createCommitEdit({editID}))
+  const edit = Container.useSelector(state => state.fs.edits.get(editID) || Constants.emptyNewFolder)
+  const [filename, setFilename] = React.useState(edit.name)
+  React.useEffect(() => {
+    dispatch(FsGen.createSetEditName({editID: editID, name: filename}))
+  }, [editID, filename, dispatch])
+  const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (
     <Kb.ListItem2
       type="Small"
       firstItem={true /* we add divider in Rows */}
-      statusIcon={<Kb.Icon type="iconfont-add" sizeType="Small" padding="xtiny" />}
+      statusIcon={
+        <Kb.Icon
+          type={edit.type === Types.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}
+          sizeType="Small"
+          padding="xtiny"
+        />
+      }
       icon={
         <Kb.Box style={rowStyles.pathItemIcon}>
           <Kb.Icon type="icon-folder-32" />
@@ -31,33 +41,36 @@ const Editing = (props: EditingProps) => {
         <Kb.Box key="main" style={rowStyles.itemBox}>
           <Kb.PlainInput
             value={filename}
-            placeholder={props.hint}
+            placeholder={edit.originalName}
+            selectTextOnFocus={true}
             style={styles.text}
-            onEnterKeyDown={props.onSubmit}
-            onChangeText={name => {
-              setFilename(name)
-              props.onUpdate(name)
-            }}
+            onEnterKeyDown={onSubmit}
+            onChangeText={name => setFilename(name)}
             autoFocus={true}
+            onKeyUp={onKeyUp}
           />
         </Kb.Box>
       }
       action={
         <Kb.Box key="right" style={styles.rightBox}>
-          {props.status === Types.EditStatusType.Failed && <Kb.Text type="BodySmallError">Failed</Kb.Text>}
+          {edit.status === Types.EditStatusType.Failed && <Kb.Text type="BodySmallError">Failed</Kb.Text>}
           <Kb.Button
             key="create"
             style={styles.button}
             small={true}
             label={
-              props.status === Types.EditStatusType.Failed ? 'Retry' : props.isCreate ? 'Create' : 'Save'
+              edit.status === Types.EditStatusType.Failed
+                ? 'Retry'
+                : edit.type === Types.EditType.NewFolder
+                ? 'Create'
+                : 'Save'
             }
-            waiting={props.status === Types.EditStatusType.Saving}
-            onClick={props.status === Types.EditStatusType.Saving ? undefined : props.onSubmit}
+            waiting={edit.status === Types.EditStatusType.Saving}
+            onClick={edit.status === Types.EditStatusType.Saving ? undefined : onSubmit}
           />
           <Kb.Icon
-            onClick={props.onCancel}
-            type="iconfont-trash"
+            onClick={onCancel}
+            type={edit.type === Types.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
             color={Styles.globalColors.black_50}
             hoverColor={Styles.globalColors.black}
             style={styles.iconCancel}

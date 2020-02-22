@@ -159,6 +159,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _onFocus = () => {
     this.props.onFocus && this.props.onFocus()
+    this.props.selectTextOnFocus &&
+      setTimeout(() =>
+        this.setSelection({
+          end: this.props.value?.length || 0,
+          start: 0,
+        })
+      )
   }
 
   _onBlur = () => {

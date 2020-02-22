@@ -293,6 +293,7 @@ export type PathStatusIcon = LocalConflictStatus | SyncStatusStatic | number // 
 export type EditID = string
 export enum EditType {
   NewFolder = 'new-folder',
+  Rename = 'rename',
 }
 export enum EditStatusType {
   Editing = 'editing',
@@ -300,15 +301,14 @@ export enum EditStatusType {
   Failed = 'failed',
 }
 
-export type NewFolder = {
-  readonly type: EditType.NewFolder
+export type Edit = {
+  readonly type: EditType
   readonly parentPath: Path
   readonly name: string
-  readonly hint: string
+  // For new folders, this is the automatically generated hint.
+  readonly originalName: string
   readonly status: EditStatusType
 }
-
-export type Edit = NewFolder
 
 export enum SortSetting {
   NameAsc = 'name-asc',

@@ -13,8 +13,12 @@ export type StillCommonProps = {
 
 export const StillCommon = (
   props: StillCommonProps & {
-    children: React.ReactNode
+    body?: React.ReactNode
+    // content and status are ignored if body is set.
+    content?: React.ReactNode
+    status?: React.ReactNode
     writingToJournal: boolean
+    uploadErrored?: boolean
   }
 ) => (
   <Kb.ListItem2
@@ -24,13 +28,30 @@ export const StillCommon = (
       <ItemIcon
         path={props.path}
         size={32}
-        style={Styles.collapseStyles([rowStyles.pathItemIcon, props.writingToJournal && rowStyles.opacity30])}
+        style={Styles.collapseStyles([
+          rowStyles.pathItemIcon,
+          props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
+        ])}
         mixedMode={props.mixedMode}
       />
     }
     firstItem={true /* we add divider in Rows */}
     onClick={props.onOpen}
-    body={props.children}
+    body={
+      props.body || (
+        <Kb.Box
+          style={Styles.collapseStyles([
+            rowStyles.itemBox,
+            props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
+          ])}
+        >
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            {props.content}
+          </Kb.Box2>
+          {props.status || null}
+        </Kb.Box>
+      )
+    }
     onlyShowActionOnHover="fade"
     action={
       !props.inDestinationPicker &&
@@ -72,9 +93,6 @@ export const rowStyles = Styles.styleSheetCreate(
           flexShrink: 1,
         },
       }),
-      rowText_30: {
-        opacity: 0.3,
-      },
     } as const)
 )
 
