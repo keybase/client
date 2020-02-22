@@ -1985,7 +1985,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 			if options.implicitTeam {
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has max_uses in implicit team", key))
 			}
-			if *res.MaxUses <= 0 {
+			if !(*res.MaxUses).IsValid() {
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid max_uses %d", id, *res.MaxUses))
 			}
 		}
@@ -2263,8 +2263,9 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		if invite.MaxUses == nil {
 			return fmt.Errorf("`used_invites` for an invite that did not have `max_uses`: %s", inviteID)
 		}
+		maxUses := *invite.MaxUses
 		uses := len(stateToUpdate.inner.UsedInvites[inviteID])
-		if uses+1 >= *invite.MaxUses {
+		if !maxUses.IsInfiniteUses() && uses+1 >= int(maxUses) {
 			return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses+1)
 		}
 		uv, err := keybase1.ParseUserVersion(pair.UV)

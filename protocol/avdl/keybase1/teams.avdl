@@ -100,6 +100,11 @@ protocol teams {
   @typedef("string")
   record TeamInviteID {}
 
+  // "max_uses" field of team invite. Values above 0 and -1 are allowed.
+  // -1 means infinite number of uses.
+  @typedef("int")
+  record TeamInviteMaxUses {}
+
   record ReaderKeyMask {
     TeamApplication application;
     PerTeamKeyGeneration generation;
@@ -614,7 +619,7 @@ protocol teams {
     TeamInviteType type;
     TeamInviteName name;
     UserVersion inviter;
-    union { null, int } maxUses;
+    union { null, TeamInviteMaxUses } maxUses;
     union { null, UnixTime } etime;
   }
 

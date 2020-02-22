@@ -144,6 +144,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteMaxUses",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "ReaderKeyMask",
       "fields": [
         {
@@ -1347,7 +1353,7 @@
         {
           "type": [
             null,
-            "int"
+            "TeamInviteMaxUses"
           ],
           "name": "maxUses"
         },

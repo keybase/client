@@ -286,6 +286,12 @@ func (o TeamInviteID) DeepCopy() TeamInviteID {
 	return o
 }
 
+type TeamInviteMaxUses int
+
+func (o TeamInviteMaxUses) DeepCopy() TeamInviteMaxUses {
+	return o
+}
+
 type ReaderKeyMask struct {
 	Application TeamApplication      `codec:"application" json:"application"`
 	Generation  PerTeamKeyGeneration `codec:"generation" json:"generation"`
@@ -1718,13 +1724,13 @@ func (o TeamInviteName) DeepCopy() TeamInviteName {
 }
 
 type TeamInvite struct {
-	Role    TeamRole       `codec:"role" json:"role"`
-	Id      TeamInviteID   `codec:"id" json:"id"`
-	Type    TeamInviteType `codec:"type" json:"type"`
-	Name    TeamInviteName `codec:"name" json:"name"`
-	Inviter UserVersion    `codec:"inviter" json:"inviter"`
-	MaxUses *int           `codec:"maxUses,omitempty" json:"maxUses,omitempty"`
-	Etime   *UnixTime      `codec:"etime,omitempty" json:"etime,omitempty"`
+	Role    TeamRole           `codec:"role" json:"role"`
+	Id      TeamInviteID       `codec:"id" json:"id"`
+	Type    TeamInviteType     `codec:"type" json:"type"`
+	Name    TeamInviteName     `codec:"name" json:"name"`
+	Inviter UserVersion        `codec:"inviter" json:"inviter"`
+	MaxUses *TeamInviteMaxUses `codec:"maxUses,omitempty" json:"maxUses,omitempty"`
+	Etime   *UnixTime          `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
 func (o TeamInvite) DeepCopy() TeamInvite {
@@ -1734,11 +1740,11 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 		Type:    o.Type.DeepCopy(),
 		Name:    o.Name.DeepCopy(),
 		Inviter: o.Inviter.DeepCopy(),
-		MaxUses: (func(x *int) *int {
+		MaxUses: (func(x *TeamInviteMaxUses) *TeamInviteMaxUses {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.MaxUses),
 		Etime: (func(x *UnixTime) *UnixTime {

@@ -53,7 +53,7 @@ func (s *Storage) Put(mctx libkb.MetaContext, state *keybase1.TeamData) {
 	s.storageGeneric.put(mctx, state)
 }
 
-// Can return nil.
+// Get can return nil and no error.
 func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) (data *keybase1.TeamData, frozen bool, tombstoned bool) {
 	vp := s.storageGeneric.get(mctx, teamID, public)
 	if vp == nil {
@@ -64,6 +64,8 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 		mctx.Debug("teams.Storage#Get cast error: %T is wrong type", vp)
 		return nil, false, false
 	}
+
+	// TODO: old migrations, version is now 11, remove these:
 
 	if diskStorageVersion == 10 && ret.Subversion == 0 {
 		migrateInvites(mctx, ret.ID(), ret.Chain.ActiveInvites)

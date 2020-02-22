@@ -224,7 +224,7 @@ func TestMultiUseInviteChains2(t *testing.T) {
 		EldestSeqno: keybase1.Seqno(1),
 	}, usedInvitesForID[2].Uv)
 	// Logpoint 0 is when they first join, logpoint 1 is when they leave, and
-	// logpoint 3 is the second join.
+	// logpoint 2 is the second join.
 	require.Equal(t, 2, usedInvitesForID[2].LogPoint)
 
 	for _, usedInvitePair := range usedInvitesForID {

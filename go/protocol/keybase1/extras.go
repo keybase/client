@@ -2569,6 +2569,14 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 	return ParseUserVersion(UserVersionPercentForm(t.Name))
 }
 
+func (e TeamInviteMaxUses) IsInfiniteUses() bool {
+	return e == -1
+}
+
+func (e TeamInviteMaxUses) IsValid() bool {
+	return e > 0 || e == -1
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }

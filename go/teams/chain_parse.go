@@ -74,11 +74,11 @@ type SCTeamInvites struct {
 }
 
 type SCTeamInvite struct {
-	Type    string                  `json:"type"`
-	Name    keybase1.TeamInviteName `json:"name"`
-	ID      SCTeamInviteID          `json:"id"`
-	Etime   *int                    `json:"etime,omitempty"` // UnixTime
-	MaxUses *int                    `json:"max_uses,omitempty"`
+	Type    string                      `json:"type"`
+	Name    keybase1.TeamInviteName     `json:"name"`
+	ID      SCTeamInviteID              `json:"id"`
+	Etime   *int                        `json:"etime,omitempty"` // UnixTime
+	MaxUses *keybase1.TeamInviteMaxUses `json:"max_uses,omitempty"`
 }
 
 type SCTeamParent struct {
