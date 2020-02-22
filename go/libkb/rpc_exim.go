@@ -425,6 +425,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return UserDeletedError{Msg: s.Desc}
 	case SCDecryptionError:
 		ret := DecryptionError{}
+		ret.Cause = fmt.Errorf(s.Desc)
 		for _, field := range s.Fields {
 			if field.Key == "Cause" {
 				ret.Cause = fmt.Errorf(field.Value)
@@ -433,6 +434,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ret
 	case SCSigCannotVerify:
 		ret := kbcrypto.VerificationError{}
+		ret.Cause = fmt.Errorf(s.Desc)
 		for _, field := range s.Fields {
 			if field.Key == "Cause" {
 				ret.Cause = fmt.Errorf(field.Value)
@@ -778,6 +780,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return e
+
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1963,11 +1966,14 @@ func (e UserDeletedError) ToStatus() keybase1.Status {
 }
 
 func (e DecryptionError) ToStatus() keybase1.Status {
+	cause := e.Error()
+	desc := kbcrypto.CleanVerificationOrDecryptionErrorMsg(cause)
 	return keybase1.Status{
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
+		Desc: desc, // more user-friendly description, if match found
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Error()},
+			{Key: "Cause", Value: cause}, // raw developer-friendly string
 		},
 	}
 }
@@ -2473,6 +2479,7 @@ func parseUIDsToString(input []keybase1.UID) string {
 	}
 	return strings.Join(uids, ",")
 }
+
 func parseUsernamesToString(input []NormalizedUsername) string {
 	usernames := make([]string, len(input))
 	for i, username := range input {

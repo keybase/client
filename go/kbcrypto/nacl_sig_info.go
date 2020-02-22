@@ -67,14 +67,19 @@ func (e VerificationError) Error() string {
 
 func (e VerificationError) ToStatus() keybase1.Status {
 	cause := ""
+	desc := ""
+
 	if e.Cause != nil {
 		cause = e.Cause.Error()
+		desc = CleanVerificationOrDecryptionErrorMsg(cause)
 	}
+
 	return keybase1.Status{
 		Code: SCSigCannotVerify,
 		Name: "SC_SIG_CANNOT_VERIFY",
+		Desc: desc, // more user-friendly description, if match found
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: cause},
+			{Key: "Cause", Value: cause}, // raw developer-friendly string
 		},
 	}
 }
