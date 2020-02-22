@@ -1905,7 +1905,7 @@ const previewConversationTeam = async (
 ) => {
   const {conversationIDKey, teamname, reason} = action.payload
   if (conversationIDKey) {
-    if (reason === 'messageLink' || reason === 'teamMention') {
+    if (reason === 'messageLink' || reason === 'teamMention' || reason === 'channelHeader') {
       // Add preview channel to inbox
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
