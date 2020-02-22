@@ -120,6 +120,14 @@ type importRes struct {
 	ol2     *OuterLinkV2WithMetadata
 }
 
+func getPGPSig(m MetaContext, data []byte) (sig string) {
+	sig, _ = jsonparserw.GetString(data, "sig")
+	if sig != "" && IsPGPSig(sig) {
+		return sig
+	}
+	return ""
+}
+
 func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 
 	sig2Stubbed, _ := jsonparserw.GetString(data, "s2")
@@ -132,20 +140,19 @@ func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 		return nil, ChainLinkError{"cannot read signature version from server"}
 	}
 
-	sig, _ := jsonparserw.GetString(data, "sig")
-	isPGP := IsPGPSig(sig)
+	pgpSig := getPGPSig(m, data)
+	sigVersion := SigVersion(versionRaw)
 
 	var ir *importRes
-	sigVersion := SigVersion(versionRaw)
 	switch {
-	case sigVersion == KeybaseSignatureV1 && isPGP:
-		ir, err = importLinkFromServerPGP(m, sig, data)
-	case sigVersion == KeybaseSignatureV1 && !isPGP:
+	case sigVersion == KeybaseSignatureV1 && pgpSig != "":
+		ir, err = importLinkFromServerPGP(m, pgpSig, data)
+	case sigVersion == KeybaseSignatureV1 && pgpSig == "":
 		ir, err = importLinkFromServerV1NaCl(m, data)
-	case sigVersion == KeybaseSignatureV2 && !isPGP:
+	case sigVersion == KeybaseSignatureV2 && pgpSig == "":
 		ir, err = importLinkFromServerV2Unstubbed(m, data)
 	default:
-		err = ChainLinkError{fmt.Sprintf("bad link back from server; version=%d; pgp=%v", sigVersion, isPGP)}
+		err = ChainLinkError{fmt.Sprintf("bad link back from server; version=%d; pgp=%v", sigVersion, (pgpSig != ""))}
 	}
 	if err != nil {
 		return nil, err
