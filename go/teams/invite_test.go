@@ -305,6 +305,44 @@ func TestTeamPlayerInviteMaxUses(t *testing.T) {
 	}
 }
 
+func TestTeamPlayerEtime(t *testing.T) {
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	inviteID := NewInviteID()
+	section := makeTeamSection(team)
+	invite := SCTeamInvite{
+		Type:    "seitan_invite_token",
+		Name:    keybase1.TeamInviteName("test"),
+		ID:      inviteID,
+		MaxUses: nil,
+	}
+
+	badEtime := []int{0, -100}
+	for _, v := range badEtime {
+		invite.Etime = &v
+		section.Invites = &SCTeamInvites{
+			Readers: &[]SCTeamInvite{invite},
+		}
+
+		_, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+			section, me, nil /* merkleRoot */)
+		requirePrecheckError(t, err)
+		require.Contains(t, err.Error(), fmt.Sprintf("has invalid etime %d", v))
+	}
+
+	etime := int(keybase1.ToUnixTime(time.Now()))
+	invite.Etime = &etime
+	section.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{invite},
+	}
+
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		section, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	require.Len(t, state.inner.ActiveInvites, 1)
+}
+
 func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 	tc, team, me := setupTestForPrechecks(t, true /* implicitTeam */)
 	defer tc.Cleanup()

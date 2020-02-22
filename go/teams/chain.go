@@ -1994,7 +1994,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime in implicit team", key))
 			}
 			if *res.Etime <= 0 {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime invalid etime %d", id, *res.Etime))
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid etime %d", id, *res.Etime))
 			}
 		}
 		byName[key] = true
