@@ -408,9 +408,8 @@ type sig2Imploded struct {
 }
 
 type sigChainPayloadJSON struct {
-	s    string
-	b    []byte
-	hash LinkID
+	s string
+	b []byte
 }
 
 func newSigChainPayloadJSON(s string) *sigChainPayloadJSON {
