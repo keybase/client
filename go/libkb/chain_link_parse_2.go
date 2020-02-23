@@ -583,20 +583,20 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (*importRes, 
 }
 
 func importLinkFromServerPGP(m MetaContext, sig string, packed []byte) (*importRes, error) {
-	var res importRes
+	var ret importRes
 	var err error
 
-	res.payload, res.sigID, err = SigExtractPGPPayload(sig)
+	ret.payload, ret.sigID, err = SigExtractPGPPayload(sig)
 	if err != nil {
 		return nil, err
 	}
-	res.linkID, err = computeLinkIDFromHashWithWhitespaceFixes(m, res.payload)
+	ret.linkID, err = computeLinkIDFromHashWithWhitespaceFixes(m, ret.payload)
 	if err != nil {
 		return nil, err
 	}
-	payloadJSON := newSigChainPayloadJSONFromBytes(res.payload)
+	payloadJSON := newSigChainPayloadJSONFromBytes(ret.payload)
 
-	err = payloadJSON.AssertJSON(res.linkID)
+	err = payloadJSON.AssertJSON(ret.linkID)
 	if err != nil {
 		return nil, err
 	}
@@ -616,8 +616,8 @@ func importLinkFromServerPGP(m MetaContext, sig string, packed []byte) (*importR
 	if !payloadKID.IsNil() && !payloadKID.Equal(serverKID) {
 		return nil, ChainLinkKIDMismatchError{"server returned a bad KID that didn't match PGP body"}
 	}
-	res.kid = serverKID
-	res.payload = payloadJSON.Bytes()
-	res.sig = sig
-	return &res, nil
+	ret.kid = serverKID
+	ret.payload = payloadJSON.Bytes()
+	ret.sig = sig
+	return &ret, nil
 }
