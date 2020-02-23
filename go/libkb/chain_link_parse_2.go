@@ -125,16 +125,36 @@ type importRes struct {
 }
 
 func getPGPSig(m MetaContext, data []byte) (sig string) {
-	sig, _ = jsonparserw.GetString(data, "sig")
-	if sig != "" && IsPGPSig(sig) {
-		return sig
+	sig = jsonGetString(data, "sig")
+	if sig == "" || !IsPGPSig(sig) {
+		return ""
 	}
-	return ""
+	return sig
+}
+
+func jsonGetString(d []byte, args ...string) string {
+	s, err := jsonparserw.GetString(d, args...)
+	if err != nil {
+		return ""
+	}
+	return s
+
+}
+
+func importServerTrustFields(m MetaContext, tmp *ChainLinkUnpacked, data []byte, selfUID keybase1.UID) error {
+	if selfUID.Equal(tmp.uid) {
+		tmp.proofText = jsonGetString(data, "proof_text_full")
+	}
+
+	if i, err := jsonparserw.GetInt(data, "merkle_seqno"); err == nil {
+		tmp.firstAppearedMerkleSeqnoUnverified = keybase1.Seqno(i)
+	}
+	return nil
 }
 
 func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 
-	sig2Stubbed, _ := jsonparserw.GetString(data, "s2")
+	sig2Stubbed := jsonGetString(data, "s2")
 	if sig2Stubbed != "" {
 		return importLinkFromServerV2Stubbed(m, parent, sig2Stubbed)
 	}
@@ -182,14 +202,9 @@ func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 	// unpackPayloadJSON to fix this issue.
 	tmp.kid = ir.kid
 
-	if selfUID.Equal(tmp.uid) {
-		if pt, tmpErr := jsonparserw.GetString(data, "proof_text_full"); tmpErr == nil {
-			tmp.proofText = pt
-		}
-	}
-
-	if i, err := jsonparserw.GetInt(data, "merkle_seqno"); err == nil {
-		tmp.firstAppearedMerkleSeqnoUnverified = keybase1.Seqno(i)
+	err = importServerTrustFields(m, &tmp, data, selfUID)
+	if err != nil {
+		return nil, err
 	}
 
 	ret.unpacked = &tmp
@@ -248,14 +263,8 @@ func (s *sigChainPayloadJSON) Version() (SigVersion, error) {
 }
 
 func (s *sigChainPayloadJSON) ClientNameAndVersion() (string, string) {
-	name, err := jsonparserw.GetString(s.b, "client", "name")
-	if err != nil {
-		return "", ""
-	}
-	version, err := jsonparserw.GetString(s.b, "client", "version")
-	if err != nil {
-		return "", ""
-	}
+	name, _ := jsonparserw.GetString(s.b, "client", "name")
+	version, _ := jsonparserw.GetString(s.b, "client", "version")
 	return name, version
 }
 
@@ -370,8 +379,8 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (*importRes, error
 	var sigBody []byte
 	var ret importRes
 
-	sig1ImplodedRaw, err := jsonparserw.GetString(packed, "si1")
-	if err != nil || sig1ImplodedRaw == "" {
+	sig1ImplodedRaw := jsonGetString(packed, "si1")
+	if sig1ImplodedRaw == "" {
 		return nil, ChainLinkError{"no si1 field as expected"}
 	}
 
@@ -474,8 +483,8 @@ func decodeSig2Imploded(s string) (*sig2Imploded, error) {
 func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (*importRes, error) {
 	var ret importRes
 
-	sig2ImplodedRaw, err := jsonparserw.GetString(packed, "si2")
-	if err != nil || sig2ImplodedRaw == "" {
+	sig2ImplodedRaw := jsonGetString(packed, "si2")
+	if sig2ImplodedRaw == "" {
 		return nil, ChainLinkError{"no si2 field as expected"}
 	}
 	payloadJSON, err := getPayloadJSONFromServerLink(packed)
