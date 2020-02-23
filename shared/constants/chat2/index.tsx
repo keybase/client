@@ -1,4 +1,5 @@
 import * as Types from '../types/chat2'
+import * as UserTypes from '../types/users'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
@@ -460,19 +461,18 @@ export const getParticipantInfo = (
   return participantInfo ? participantInfo : noParticipantInfo
 }
 
-// we want the memoized function to have access to state but not have it be a part of the memoization else it'll fail always
-let _unmemoizedState: TypedState
 const _getParticipantSuggestionsMemoized = memoize(
   (
     teamMembers: Map<string, TeamTypes.MemberInfo> | undefined,
     participantInfo: Types.ParticipantInfo,
+    infoMap: Map<string, UserTypes.UserInfo>,
     teamType: Types.TeamType
   ) => {
     const usernames = teamMembers
       ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
       : participantInfo.all
     const suggestions = usernames.map(username => ({
-      fullName: getFullname(_unmemoizedState, username) || '',
+      fullName: infoMap.get(username)?.fullname || '',
       username,
     }))
     if (teamType !== 'adhoc') {
@@ -487,8 +487,7 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   const {teamID, teamType} = getMeta(state, id)
   const teamMembers = state.teams.teamIDToMembers.get(teamID)
   const participantInfo = getParticipantInfo(state, id)
-  _unmemoizedState = state
-  return _getParticipantSuggestionsMemoized(teamMembers, participantInfo, teamType)
+  return _getParticipantSuggestionsMemoized(teamMembers, participantInfo, state.users.infoMap, teamType)
 }
 
 export const messageAuthorIsBot = (
