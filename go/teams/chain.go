@@ -1983,7 +1983,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 		}
 		if res.MaxUses != nil {
 			if options.implicitTeam {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has max_uses in implicit team", key))
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has max_uses in implicit team", id))
 			}
 			if !(*res.MaxUses).IsValid() {
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid max_uses %d", id, *res.MaxUses))
@@ -1991,7 +1991,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 		}
 		if res.Etime != nil {
 			if options.implicitTeam {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime in implicit team", key))
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime in implicit team", id))
 			}
 			if *res.Etime <= 0 {
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid etime %d", id, *res.Etime))
@@ -2284,6 +2284,8 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		}
 		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
 		if logPoint < 0 {
+			// This check is redundant, but better to be safe here instead of
+			// storing wrong index to UserLog.
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
 		}
 		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],

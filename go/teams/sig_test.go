@@ -25,7 +25,7 @@ import (
 // serverside check, but that doesn't mean that similar check should not exist
 // on the client side.
 
-func makeTeamSection(team *Team) SCTeamSection {
+func makeTestSCTeamSection(team *Team) SCTeamSection {
 	return SCTeamSection{
 		ID:       SCTeamID(team.ID),
 		Implicit: team.IsImplicit(),
@@ -70,9 +70,16 @@ func setupTestForPrechecks(t *testing.T, implicitTeam bool) (tc libkb.TestContex
 		require.NoError(t, err)
 	} else {
 		teamname := createTeam(tc)
-		team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{Name: teamname})
+		team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{
+			Name:      teamname,
+			NeedAdmin: true,
+		})
 		require.NoError(t, err)
 	}
+
+	// Prepare key-manager if we plan to do ChangeMembership links or similar.
+	_, err = team.getKeyManager(context.TODO())
+	require.NoError(t, err)
 
 	me = tc.G.ActiveDevice.UserVersion()
 

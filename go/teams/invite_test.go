@@ -263,18 +263,21 @@ func TestTeamInviteMaxUsesUnit(t *testing.T) {
 	require.True(t, keybase1.TeamInviteMaxUses(-1).IsInfiniteUses())
 }
 
+func makeTestSCForInviteLink() SCTeamInvite {
+	return SCTeamInvite{
+		Type: "seitan_invite_token",
+		Name: keybase1.TeamInviteName("test"),
+		ID:   NewInviteID(),
+	}
+}
+
 func TestTeamPlayerInviteMaxUses(t *testing.T) {
 	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
 	defer tc.Cleanup()
 
-	inviteID := NewInviteID()
-	section := makeTeamSection(team)
-	invite := SCTeamInvite{
-		Type:    "seitan_invite_token",
-		Name:    keybase1.TeamInviteName("test"),
-		ID:      inviteID,
-		MaxUses: nil,
-	}
+	section := makeTestSCTeamSection(team)
+	invite := makeTestSCForInviteLink()
+	inviteID := invite.ID
 
 	badMaxUses := []int{0, -2, -1000}
 	for _, v := range badMaxUses {
@@ -288,6 +291,7 @@ func TestTeamPlayerInviteMaxUses(t *testing.T) {
 			section, me, nil /* merkleRoot */)
 		requirePrecheckError(t, err)
 		require.Contains(t, err.Error(), fmt.Sprintf("has invalid max_uses %d", v))
+		require.Contains(t, err.Error(), inviteID)
 	}
 
 	goodMaxUses := []int{-1, 1, 100, 9999}
@@ -302,6 +306,7 @@ func TestTeamPlayerInviteMaxUses(t *testing.T) {
 			section, me, nil /* merkleRoot */)
 		require.NoError(t, err)
 		require.Len(t, state.inner.ActiveInvites, 1)
+		require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
 	}
 }
 
@@ -309,14 +314,9 @@ func TestTeamPlayerEtime(t *testing.T) {
 	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
 	defer tc.Cleanup()
 
-	inviteID := NewInviteID()
-	section := makeTeamSection(team)
-	invite := SCTeamInvite{
-		Type:    "seitan_invite_token",
-		Name:    keybase1.TeamInviteName("test"),
-		ID:      inviteID,
-		MaxUses: nil,
-	}
+	section := makeTestSCTeamSection(team)
+	invite := makeTestSCForInviteLink()
+	inviteID := invite.ID
 
 	badEtime := []int{0, -100}
 	for _, v := range badEtime {
@@ -329,6 +329,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 			section, me, nil /* merkleRoot */)
 		requirePrecheckError(t, err)
 		require.Contains(t, err.Error(), fmt.Sprintf("has invalid etime %d", v))
+		require.Contains(t, err.Error(), inviteID)
 	}
 
 	etime := int(keybase1.ToUnixTime(time.Now()))
@@ -341,21 +342,18 @@ func TestTeamPlayerEtime(t *testing.T) {
 		section, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 	require.Len(t, state.inner.ActiveInvites, 1)
+	require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
 }
 
 func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 	tc, team, me := setupTestForPrechecks(t, true /* implicitTeam */)
 	defer tc.Cleanup()
 
-	inviteID := NewInviteID()
-	section := makeTeamSection(team)
+	section := makeTestSCTeamSection(team)
+	invite := makeTestSCForInviteLink()
 	maxUses := keybase1.TeamInviteMaxUses(100)
-	invite := SCTeamInvite{
-		Type:    "seitan_invite_token",
-		Name:    keybase1.TeamInviteName("test"),
-		ID:      inviteID,
-		MaxUses: &maxUses,
-	}
+	invite.MaxUses = &maxUses
+	inviteID := invite.ID
 	section.Invites = &SCTeamInvites{
 		Readers: &[]SCTeamInvite{invite},
 	}
@@ -364,6 +362,7 @@ func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 		section, me, nil /* merkleRoot */)
 	requirePrecheckError(t, err)
 	require.Contains(t, err.Error(), "has max_uses in implicit team")
+	require.Contains(t, err.Error(), inviteID)
 
 	// Transmutate invite into invite with expiration time instead of max_uses
 	etime := int(keybase1.ToUnixTime(time.Now()))
@@ -377,6 +376,183 @@ func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 		section, me, nil /* merkleRoot */)
 	requirePrecheckError(t, err)
 	require.Contains(t, err.Error(), "has etime in implicit team")
+	require.Contains(t, err.Error(), inviteID)
+}
+
+func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+	// testUV2 is same UID as testUV but different eldest_seqno.
+	testUV2 := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 5}
+	testUV3 := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_doug_t"), EldestSeqno: 1}
+	testUV4 := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_bob_t"), EldestSeqno: 1}
+
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	sectionInvite := makeTestSCForInviteLink()
+	maxUses := keybase1.TeamInviteMaxUses(100)
+	sectionInvite.MaxUses = &maxUses
+	inviteID := sectionInvite.ID
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{sectionInvite},
+	}
+
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+
+	{
+		// Trying to add the members as role=writer and "use invite", but the
+		// invite was for role=reader.
+		teamSectionCM := makeTestSCTeamSection(team)
+		teamSectionCM.Members = &SCTeamMembers{
+			Writers: &[]SCTeamMember{SCTeamMember(testUV)},
+		}
+		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+			{InviteID: inviteID, UV: testUV.PercentForm()},
+		}
+		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		requirePrecheckError(t, err)
+		require.Contains(t, err.Error(), fmt.Sprintf("%s that was not added as role reader", testUV.String()))
+	}
+
+	{
+		// Trying to append change_membership with used_invites for UV that's not
+		// being added in the link.
+		teamSectionCM := makeTestSCTeamSection(team)
+		for _, badUV := range []keybase1.UserVersion{testUV2, testUV3} {
+			// Member with correct role this time.
+			teamSectionCM.Members = &SCTeamMembers{
+				Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+			}
+			// But used_invites uv doesn't match.
+			teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+				{InviteID: inviteID, UV: badUV.PercentForm()},
+			}
+			_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+				teamSectionCM, me, nil /* merkleRoot */)
+			requirePrecheckError(t, err)
+			require.Contains(t, err.Error(), fmt.Sprintf("%s that was not added as role reader", badUV.String()))
+		}
+	}
+
+	{
+		// used_invites in link that does not add any members at all.
+		teamSectionCM := makeTestSCTeamSection(team)
+		teamSectionCM.Members = &SCTeamMembers{}
+		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+			{InviteID: inviteID, UV: testUV.PercentForm()},
+		}
+		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		requirePrecheckError(t, err)
+		require.Contains(t, err.Error(), fmt.Sprintf("%s that was not added as role reader", testUV.String()))
+	}
+
+	{
+		// One of the UVs doesn't match, the other one does.
+		teamSectionCM := makeTestSCTeamSection(team)
+		teamSectionCM.Members = &SCTeamMembers{
+			Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+			Writers: &[]SCTeamMember{SCTeamMember(testUV3)},
+		}
+		// But used_invites uv doesn't match.
+		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+			{InviteID: inviteID, UV: testUV.PercentForm()},
+			{InviteID: inviteID, UV: testUV4.PercentForm()},
+		}
+		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		requirePrecheckError(t, err)
+		require.Contains(t, err.Error(), fmt.Sprintf("%s that was not added as role reader", testUV4.String()))
+	}
+}
+
+func TestTeamPlayerBadUsedInvites(t *testing.T) {
+	// Test used_invites for invites that are not compatible. For used_invites
+	// entry to be valid, the invite should define `max_uses`. Any other
+	// invite, including invites with `etime`, is incompatible with
+	// `used_invites`, and `completed_invites` should be used instead.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	// Seitan invite without `max_uses` or `etime`.
+	scInvite1 := makeTestSCForInviteLink()
+
+	// Seitan invite with `etime`.
+	scInvite2 := makeTestSCForInviteLink()
+	etime := int(keybase1.ToUnixTime(time.Now()))
+	scInvite2.Etime = &etime
+
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	for _, scInvite := range []SCTeamInvite{scInvite1, scInvite2} {
+		inviteID := scInvite.ID
+		teamSectionForInvite.Invites = &SCTeamInvites{
+			Readers: &[]SCTeamInvite{scInvite},
+		}
+
+		state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+			teamSectionForInvite, me, nil /* merkleRoot */)
+		require.NoError(t, err)
+		require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+
+		// Try to do `used_invites` for an invite that does not have `max_uses`.
+		teamSectionCM := makeTestSCTeamSection(team)
+		teamSectionCM.Members = &SCTeamMembers{
+			Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+		}
+		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+			{InviteID: inviteID, UV: testUV.PercentForm()},
+		}
+		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		requirePrecheckError(t, err)
+		require.Contains(t, err.Error(), "`used_invites` for an invite that did not have `max_uses`")
+	}
+}
+
+func TestTeamPlayerBadCompletedInvites(t *testing.T) {
+	// Test if `completed_invites` errors out when used on an invite that
+	// defines `max_uses`, and therefore `used_invites` should be used instead
+	// to mark the invite usage.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	sectionInvite := makeTestSCForInviteLink()
+	maxUses := keybase1.TeamInviteMaxUses(10)
+	sectionInvite.MaxUses = &maxUses
+	inviteID := keybase1.TeamInviteID(sectionInvite.ID)
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{sectionInvite},
+	}
+
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	require.NotNil(t, state.inner.ActiveInvites[inviteID])
+
+	teamSectionCM := makeTestSCTeamSection(team)
+	teamSectionCM.Members = &SCTeamMembers{
+		Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+	}
+	teamSectionCM.CompletedInvites = SCMapInviteIDToUV{
+		inviteID: testUV.PercentForm(),
+	}
+	_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+		teamSectionCM, me, nil /* merkleRoot */)
+	requirePrecheckError(t, err)
+	require.Contains(t, err.Error(), "`completed_invites` for an invite with `max_uses`")
+	require.Contains(t, err.Error(), inviteID)
 }
 
 func TestTeamInvitePrecheckWIP(t *testing.T) {
@@ -387,7 +563,7 @@ func TestTeamInvitePrecheckWIP(t *testing.T) {
 	inviteID := NewInviteID()
 	maxUses := keybase1.TeamInviteMaxUses(1)
 
-	section := makeTeamSection(team)
+	section := makeTestSCTeamSection(team)
 	invite := SCTeamInvite{
 		Type:    "seitan_invite_token",
 		Name:    keybase1.TeamInviteName("test"),
