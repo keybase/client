@@ -97,6 +97,7 @@ export const TeamDropdownMenu = () => ({
     onMuteConv: action('onMuteConv'),
     onUnhideConv: action('onUnhideConv'),
     onViewTeam: action('onViewTeam'),
+    participantsCount: 42,
     teamname: '',
     visible: ownProps.visible,
   }),

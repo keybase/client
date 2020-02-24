@@ -185,10 +185,10 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: Styles.globalMargins.tiny,
       },
+      firstIsUnWrapped: {paddingTop: 0},
       flexOne: {
         flex: 1,
       },
-      firstIsUnWrapped: {paddingTop: 0},
       iconBadge: {
         backgroundColor: Styles.globalColors.blue,
         height: Styles.globalMargins.tiny,
@@ -211,18 +211,18 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         position: 'relative',
       },
+      itemContainerLast: {
+        height: 'auto',
+        paddingBottom: Styles.globalMargins.small,
+      },
+      itemContainerUnwrapped: {
+        height: unWrappedContainerHeight,
+      },
       itemContainerWrapped: {
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.medium,
         paddingRight: Styles.globalMargins.medium,
         paddingTop: Styles.globalMargins.tiny,
-      },
-      itemContainerUnwrapped: {
-        height: unWrappedContainerHeight,
-      },
-      itemContainerLast: {
-        height: 'auto',
-        paddingBottom: Styles.globalMargins.small,
       },
       menuBox: {
         ...Styles.globalStyles.flexBoxColumn,
