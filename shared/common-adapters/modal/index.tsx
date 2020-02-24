@@ -40,7 +40,7 @@ type Props = {
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
-  mode: 'Default' | 'Wide'
+  mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean
 }
@@ -74,7 +74,7 @@ const Modal = (props: Props) =>
     <PopupDialog
       onClose={props.onClose}
       styleClipContainer={Styles.collapseStyles([
-        props.mode === 'Default' ? styles.modeDefault : styles.modeWide,
+        clipContainerStyles[props.mode],
         props.allowOverflow && styles.overflowVisible,
       ])}
     >
@@ -274,6 +274,13 @@ const styles = Styles.styleSheetCreate(() => {
         width: 400,
       },
     }),
+    modeDefaultFullHeight: Styles.platformStyles({
+      isElectron: {
+        height: 560,
+        overflow: 'hidden',
+        width: 400,
+      },
+    }),
     modeWide: Styles.platformStyles({
       isElectron: {
         height: 400,
@@ -298,6 +305,12 @@ const styles = Styles.styleSheetCreate(() => {
     }),
   }
 })
+
+const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
+  Default: styles.modeDefault,
+  DefaultFullHeight: styles.modeDefaultFullHeight,
+  Wide: styles.modeWide,
+}
 
 export default Modal
 export {Header}

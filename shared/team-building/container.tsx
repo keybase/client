@@ -29,6 +29,8 @@ import {Props as HeaderHocProps} from '../common-adapters/header-hoc'
 import {HocExtractProps as PopupHocProps} from '../common-adapters/popup-dialog-hoc'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
+import {ModalTitle as TeamModalTitle} from '../teams/common'
+import flags from '../util/feature-flags'
 
 // TODO remove when bots are fully integrated in gui
 type TeamRoleTypeWithoutBots = Exclude<TeamTypes.TeamRoleType, 'bot' | 'restrictedbot'>
@@ -584,7 +586,17 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const title = ownProps.namespace === 'teams' ? `Add to ${stateProps.teamname}` : ownProps.title
+  let title, titleComponent
+  if (ownProps.namespace === 'teams') {
+    if (flags.teamsRedesign) {
+      title = 'Search people'
+      titleComponent = <TeamModalTitle teamname={stateProps.teamname} title={title} />
+    } else {
+      title = `Add to ${stateProps.teamname}`
+    }
+  } else {
+    title = ownProps.title
+  }
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         borderless: true,
@@ -616,6 +628,7 @@ const mergeProps = (
             : null,
         ],
         title,
+        titleComponent,
       }
     : emptyObj
 
@@ -698,10 +711,11 @@ const mergeProps = (
   }
 }
 
-// TODO fix typing, remove compose
-const Connected: React.ComponentType<OwnProps> = Container.compose(
-  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
-  Container.isMobile ? HeaderHoc : PopupDialogHoc
+const Connected = Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'TeamBuilding'
 )(TeamBuilding)
 
 type RealOwnProps = Container.RouteProps<{

@@ -569,6 +569,25 @@ class TeamBuilding extends React.PureComponent<Props> {
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: this.offset}}}], {useNativeDriver: true})
     : undefined
 
+  private modalTitle = () => {
+    // Handle when team-building is making a new chat v.s. adding members to a team.
+    const chatHeader =
+      this.props.namespace === 'people' ? null : this.props.rolePickerProps ? (
+        <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+          <Kb.Avatar teamname={this.props.teamname} size={32} style={styles.teamAvatar} />
+          <Kb.Text type="Header">{this.props.title}</Kb.Text>
+          <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" alignItems="center">
+          <Kb.Text type="Header" style={styles.newChatHeader}>
+            {this.props.title}
+          </Kb.Text>
+        </Kb.Box2>
+      )
+    return chatHeader
+  }
+
   render() {
     const props = this.props
 
@@ -636,34 +655,17 @@ class TeamBuilding extends React.PureComponent<Props> {
       />
     )
 
-    // Handle when team-building is making a new chat v.s. adding members to a team.
-    const chatHeader =
-      props.namespace === 'people' ? null : props.rolePickerProps ? (
-        <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-          <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
-          <Kb.Text type="Header">{props.title}</Kb.Text>
-          <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" alignItems="center">
-          <Kb.Text type="Header" style={styles.newChatHeader}>
-            {props.title}
-          </Kb.Text>
-        </Kb.Box2>
-      )
-
     // If there are no filterServices or if the filterServices has a phone
     const showContactsBanner =
       Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
 
-    const containerStyle = Styles.collapseStyles([
-      styles.container,
-      props.namespace !== 'people' ? styles.fixedWidthContainer : null,
-    ])
+    // const containerStyle = Styles.collapseStyles([
+    //   styles.container,
+    //   props.namespace !== 'people' ? styles.fixedWidthContainer : null,
+    // ])
 
-    return (
-      <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
-        {Styles.isMobile ? null : chatHeader}
+    const body = (
+      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
         {teamBox &&
           (Styles.isMobile ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -701,6 +703,24 @@ class TeamBuilding extends React.PureComponent<Props> {
         )}
         {content}
       </Kb.Box2>
+    )
+
+    return props.namespace === 'people' && !Styles.isMobile ? (
+      <Kb.Box onClick={props.onClose} style={styles.containerPeopleOuter}>
+        <Kb.Box2 direction="vertical" style={styles.containerPeople}>
+          {body}
+        </Kb.Box2>
+      </Kb.Box>
+    ) : (
+      <Kb.Modal
+        onClose={props.onClose}
+        header={{hideBorder: true, title: this.modalTitle()}}
+        allowOverflow={true}
+        noScrollView={true}
+        mode="DefaultFullHeight"
+      >
+        {body}
+      </Kb.Modal>
     )
   }
 }
@@ -742,19 +762,29 @@ const styles = Styles.styleSheetCreate(
         common: {
           position: 'relative',
         },
-        isElectron: {
-          borderRadius: 4,
-          flex: 1,
-          height: 560,
-          maxHeight: 560,
-          minHeight: 200,
-          overflow: 'visible',
-        },
-        isMobile: {
-          flexGrow: 1,
-          height: '100%',
-        },
+        // isElectron: {
+        //   borderRadius: 4,
+        //   flex: 1,
+        //   height: 560,
+        //   maxHeight: 560,
+        //   minHeight: 200,
+        //   overflow: 'visible',
+        // },
+        // isMobile: {
+        //   flexGrow: 1,
+        //   height: '100%',
+        // },
       }),
+      containerPeople: {
+        backgroundColor: Styles.globalColors.white,
+        height: 'auto',
+        width: 'auto',
+      },
+      containerPeopleOuter: {
+        ...Styles.globalStyles.fillAbsolute,
+        paddingLeft: Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.mediumLarge,
+      },
       emptyContainer: Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
