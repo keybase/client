@@ -1216,6 +1216,12 @@ func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisR
 		right = *lastRoot.Seqno()
 	}
 
+	// In historical queries (for which we fetch old roots), we check the skip
+	// sequence in the opposite direction.
+	if opts.historical {
+		left, right = right, left
+	}
+
 	// In this case, the server did not return a skip sequence. It's OK if
 	// the last known root is too old. It's not OK if the last known root is
 	// from after the server starting providing skip pointers.
@@ -1925,7 +1931,7 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	path.root, err = readRootFromAPIRes(m, apiRes.Body, opts)
+	path.root, err = readRootFromAPIRes(m, apiRes.Body.AtKey("root"), opts)
 	if err != nil {
 		return nil, nil, nil, err
 	}
