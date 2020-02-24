@@ -6,7 +6,7 @@ import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
 import paperKey from './paper-key/index.stories'
 import addDevice from './add-device/index.stories'
-import {sub} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 const idToType = i => {
   switch (i) {
@@ -33,9 +33,9 @@ const activeDevices = withNew => {
 }
 
 const now = new Date()
-const secondAgo = sub(now, {seconds: 1})
+const secondAgo = dateFns.sub(now, {seconds: 1})
 
-const fourHoursAgo = sub(now, {hours: 4})
+const fourHoursAgo = dateFns.sub(now, {hours: 4})
 
 const revokedDevices = withNew => {
   const existingDevices = [

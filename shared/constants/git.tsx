@@ -1,7 +1,7 @@
 import * as Types from './types/git'
 import * as RPCTypes from './types/rpc-gen'
 import {TypedState} from './reducer'
-import {formatDistanceToNow} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 const emptyInfo = {
   canDelete: false,
@@ -31,7 +31,7 @@ const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | undefi
       chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
       devicename: r.serverMetadata.lastModifyingDeviceName,
       id: r.globalUniqueID,
-      lastEditTime: formatDistanceToNow(new Date(r.serverMetadata.mtime)),
+      lastEditTime: dateFns.formatDistanceToNow(new Date(r.serverMetadata.mtime)),
       lastEditUser: r.serverMetadata.lastModifyingUsername,
       name: r.localMetadata.repoName,
       repoID: r.repoID,

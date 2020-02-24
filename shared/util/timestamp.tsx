@@ -1,80 +1,65 @@
-import moment from 'moment'
-import {pluralize} from './string'
-import {
-  startOfDay,
-  sub,
-  format,
-  isSameDay,
-  isSameYear,
-  isAfter,
-  formatISO,
-  startOfYesterday,
-  startOfToday,
-  formatRelative,
-  formatDistanceStrict,
-  formatDistanceToNow,
-} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 import {enUS} from 'date-fns/esm/locale'
 
 export function formatTimeForChat(time: number): string | null {
   const m = new Date(time)
-  const hma = format(m, 'h:mm a')
+  const hma = dateFns.format(m, 'h:mm a')
   const now = new Date()
-  const today = startOfToday()
-  if (isSameDay(now, m)) {
+  const today = dateFns.startOfToday()
+  if (dateFns.isSameDay(now, m)) {
     return hma
   }
-  if (isSameDay(startOfYesterday(), m)) {
+  if (dateFns.isSameDay(dateFns.startOfYesterday(), m)) {
     return `${hma} - Yesterday`
   }
-  const lastWeek = sub(today, {days: 7})
-  if (isAfter(m, lastWeek)) {
-    return `${hma} - ${format(m, 'EEE')}`
+  const lastWeek = dateFns.sub(today, {days: 7})
+  if (dateFns.isAfter(m, lastWeek)) {
+    return `${hma} - ${dateFns.format(m, 'EEE')}`
   }
-  const lastMonth = sub(today, {months: 1})
-  if (isAfter(m, lastMonth)) {
-    return `${hma} - ${format(m, 'd MMM')}`
+  const lastMonth = dateFns.sub(today, {months: 1})
+  if (dateFns.isAfter(m, lastMonth)) {
+    return `${hma} - ${dateFns.format(m, 'd MMM')}`
   }
-  return `${hma} - ${format(m, 'd MMM yy')}`
+  return `${hma} - ${dateFns.format(m, 'd MMM yy')}`
 }
 
 export function formatTimeForConversationList(time: number, nowOverride?: number | null): string {
   const m = new Date(time)
   const now = nowOverride ? new Date(nowOverride) : new Date()
-  const weekOld = sub(startOfDay(now), {days: 7})
+  const weekOld = dateFns.sub(dateFns.startOfDay(now), {days: 7})
 
-  if (isSameDay(now, m)) {
-    return format(m, 'h:mm a')
-  } else if (isAfter(m, weekOld)) {
-    return format(m, 'EEE')
-  } else if (isSameYear(now, m)) {
-    return format(m, 'MMM d')
+  if (dateFns.isSameDay(now, m)) {
+    return dateFns.format(m, 'h:mm a')
+  } else if (dateFns.isAfter(m, weekOld)) {
+    return dateFns.format(m, 'EEE')
+  } else if (dateFns.isSameYear(now, m)) {
+    return dateFns.format(m, 'MMM d')
   }
 
-  return format(m, 'd MMM yy')
+  return dateFns.format(m, 'd MMM yy')
 }
 
 export function formatTimeForMessages(time: number, nowOverride?: number): string {
   const m = new Date(time)
-  const now = nowOverride ? new Date(nowOverride) : startOfToday()
-  const weekAgo = sub(now, {days: 7})
+  const now = nowOverride ? new Date(nowOverride) : dateFns.startOfToday()
+  const weekAgo = dateFns.sub(now, {days: 7})
 
-  if (isSameDay(now, m)) {
+  if (dateFns.isSameDay(now, m)) {
     // Covers interval [startOfToday, endOfToday]
-    return 'Today ' + format(m, 'h:mm a') // Today 4:34 PM
-  } else if (isSameDay(startOfYesterday(), m)) {
+    return 'Today ' + dateFns.format(m, 'h:mm a') // Today 4:34 PM
+  } else if (dateFns.isSameDay(dateFns.startOfYesterday(), m)) {
     // Covers interval [startOfYesterday, endOfYesterday]
-    return 'Yesterday ' + format(m, 'h:mm a') // Yesterday 4:34 PM
-  } else if (isAfter(m, weekAgo)) {
+    return 'Yesterday ' + dateFns.format(m, 'h:mm a') // Yesterday 4:34 PM
+  } else if (dateFns.isAfter(m, weekAgo)) {
     // Covers interval [startOfWeekAgo, startOfYesterday)
-    return format(m, 'EEE h:mm a') // Wed 4:34 PM
-  } else if (!isSameYear(now, m)) {
+    return dateFns.format(m, 'EEE h:mm a') // Wed 4:34 PM
+  } else if (!dateFns.isSameYear(now, m)) {
     // Covers interval [foreverAgo, startOfThisYear)
-    return format(m, 'MMM dd yyyy h:mm a') // Jan 5 2016 4:34 PM
+    return dateFns.format(m, 'MMM dd yyyy h:mm a') // Jan 5 2016 4:34 PM
   } else {
     // Covers interval [startOfThisYear, startOfWeekAgo)
-    return format(m, 'MMM dd h:mm a') // Jan 5 4:34 PM
+    return dateFns.format(m, 'MMM dd h:mm a') // Jan 5 4:34 PM
   }
 }
 
@@ -92,14 +77,14 @@ const upperCaseFirst = {
 
 const formatRelativeCalendarForFS = (dontUpperCase: boolean, token: string, date: Date, baseDate: Date) => {
   if (token === 'other') {
-    return isSameYear(date, baseDate) ? "ddd MMM D YYYY 'at' LT" : "ddd MMM D 'at' LT"
+    return dateFns.isSameYear(date, baseDate) ? "ddd MMM D YYYY 'at' LT" : "ddd MMM D 'at' LT"
   }
 
   return dontUpperCase ? noUpperCaseFirst[token] : upperCaseFirst[token]
 }
 
 export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
-  formatRelative(time, Date.now(), {
+  dateFns.formatRelative(time, Date.now(), {
     locale: {
       ...enUS,
       formatRelative: (token, date, baseDate) =>
@@ -112,12 +97,17 @@ export const formatDuration = (duration: number): string => {
   if (!duration) {
     return ''
   }
-  const d = moment.duration(duration)
-  return d.hours() ? `${d.hours()} hr` : d.minutes() ? `${d.minutes()} min` : `${d.seconds()} s`
+
+  const d = new Date(duration)
+  return d.getUTCHours()
+    ? `${d.getUTCHours()} hr`
+    : d.getUTCMinutes()
+    ? `${d.getUTCMinutes()} min`
+    : `${d.getUTCSeconds()} s`
 }
 
 export const formatAudioRecordDuration = (duration: number): string => {
-  return format(duration * 1000, 'mm:ss')
+  return dateFns.format(duration * 1000, 'mm:ss')
 }
 
 export const formatDurationForAutoreset = (duration: number): string => {
@@ -129,65 +119,53 @@ export const formatDurationForAutoreset = (duration: number): string => {
     return 'no time'
   }
   // This +1 / -1 is so that the timer says "7 days" when there are between 6 and 7 days left, "1 second" between 0 and 1 seconds, and so on.
-  const d = moment.duration(duration - 1)
-  let label: string
-  let amt: number
-  if (d.days()) {
-    amt = d.days()
-    label = 'day'
-  } else if (d.hours()) {
-    amt = d.hours()
-    label = 'hour'
-  } else if (d.minutes()) {
-    amt = d.minutes()
-    label = 'minute'
-  } else {
-    amt = d.seconds()
-    label = 'second'
-  }
-  amt += 1
-  return `${amt} ${pluralize(label, amt)}`
+  const d = new Date(duration - 1)
+  return dateFns.formatDistanceStrict(0, d, {roundingMethod: 'ceil'})
 }
 
 export const formatDurationForLocation = (duration: number): string => {
   if (!duration) {
     return ''
   }
-  const d = moment.duration(duration)
-  return d.hours() ? `${d.hours()}h` : d.minutes() ? `${d.minutes()}m` : `${d.seconds()}s`
+  return dateFns.formatDistanceStrict(0, duration, {
+    locale: {
+      ...enUS,
+      formatDistance: (token, count, _) => formatDistanceAbbr(token, count),
+    },
+  })
 }
 
 export const formatDurationFromNowTo = (timeInFuture?: number): string =>
   timeInFuture ? formatDuration(timeInFuture - Date.now()) : ''
 
 export function formatTimeForPopup(time: number): string {
-  return format(time, 'EEE MMM dd h:mm:ss a') // Wed Jan 5 2016 4:34:15 PM
+  return dateFns.format(time, 'EEE MMM dd h:mm:ss a') // Wed Jan 5 2016 4:34:15 PM
 }
 
 export function formatTimeForStellarDetail(timestamp: Date) {
-  return format(timestamp, 'EEE, MMM dd yyyy - h:mm a') // Tue, Jan 5 2018 - 4:34 PM
+  return dateFns.format(timestamp, 'EEE, MMM dd yyyy - h:mm a') // Tue, Jan 5 2018 - 4:34 PM
 }
 
 export function formatTimeForStellarTooltip(timestamp: Date) {
-  return formatISO(timestamp)
+  return dateFns.formatISO(timestamp)
 }
 
 export function formatTimeForRevoked(time: number): string {
   const m = new Date(time)
-  return format(m, 'EEE MMM dd') // Wed Jan 05
+  return dateFns.format(m, 'EEE MMM dd') // Wed Jan 05
 }
 
 export function formatTimeForAssertionPopup(time: number): string {
   const m = new Date(time)
-  return format(m, 'EEE MMM d, yyyy') // Wed Jan 5, 2018
+  return dateFns.format(m, 'EEE MMM d, yyyy') // Wed Jan 5, 2018
 }
 
 export function formatTimeForDeviceTimeline(time: number): string {
-  return format(new Date(time), 'MMM d, yyyy')
+  return dateFns.format(new Date(time), 'MMM d, yyyy')
 }
 
 export function formatTimeRelativeToNow(time: number): string {
-  return formatDistanceToNow(new Date(time))
+  return dateFns.formatDistanceToNow(new Date(time))
 }
 
 export function daysToLabel(days: number): string {
@@ -199,56 +177,22 @@ export function daysToLabel(days: number): string {
 }
 
 const formatDistanceLocale = {
-  xSeconds: {
-    one: 'now',
-    other: '{{count}}s',
-  },
-
-  halfAMinute: '1m',
-
-  xMinutes: {
-    one: '1m',
-    other: '{{count}}m',
-  },
-
-  xHours: {
-    one: '1h',
-    other: '{{count}}h',
-  },
-
-  xDays: {
-    one: '1d',
-    other: '{{count}}d',
-  },
-
-  xMonths: {
-    one: '1mo',
-    other: '{{count}}mo',
-  },
-
-  xYears: {
-    one: '1y',
-    other: '{{count}}y',
-  },
+  xDays: '{{count}}d',
+  xHours: '{{count}}h',
+  xMinutes: '{{count}}m',
+  xMonths: '{{count}}mo',
+  xSeconds: '{{count}}s',
+  xYears: '{{count}}y',
 }
 
-const formatDistancePeople = (token, count) => {
-  let result
-  if (typeof formatDistanceLocale[token] === 'string') {
-    result = formatDistanceLocale[token]
-  } else if (count === 1) {
-    result = formatDistanceLocale[token].one
-  } else {
-    result = formatDistanceLocale[token].other.replace('{{count}}', count)
-  }
-  return result
-}
+const formatDistanceAbbr = (token, count) => formatDistanceLocale[token].replace('{{count}}', count)
 
 export function formatTimeForPeopleItem(time: number): string {
-  return formatDistanceStrict(time, Date.now(), {
+  return dateFns.formatDistanceStrict(time, Date.now(), {
     locale: {
       ...enUS,
-      formatDistance: (token, count, _) => formatDistancePeople(token, count),
+      formatDistance: (token, count, _) =>
+        token == 'xSeconds' && count == 1 ? 'now' : formatDistanceAbbr(token, count),
     },
   })
 }

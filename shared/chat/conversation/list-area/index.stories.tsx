@@ -14,7 +14,7 @@ import HiddenString from '../../../util/hidden-string'
 import JumpToRecent from './jump-to-recent'
 import SpecialTopMessage from '../messages/special-top-message'
 import * as Constants from '../../../constants/chat2'
-import {addDays, addMilliseconds, getMilliseconds, differenceInMilliseconds} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
@@ -75,15 +75,15 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
     // Initialize or reset because threshold was crossed
     if (currentTimestamp === 0 || generatedCount > messagesThreshold) {
       // Move the start day up by the previous number of days to avoid overlap
-      start = addDays(start, dayRange)
+      start = dateFns.addDays(start, dayRange)
       // Get a new date range for random timestamps
       dayRange = (r.next() % days) + 1
-      end = addDays(end, dayRange)
+      end = dateFns.addDays(end, dayRange)
 
-      const diff = differenceInMilliseconds(end, start)
+      const diff = dateFns.differenceInMilliseconds(end, start)
       // Multiply the epoch time different by some floating point between [0, 1]
       const newDiff = diff * (r.next() / 2147483647)
-      const newTimestamp = getMilliseconds(addMilliseconds(start, newDiff))
+      const newTimestamp = dateFns.getMilliseconds(dateFns.addMilliseconds(start, newDiff))
       currentTimestamp = newTimestamp.valueOf()
 
       // Reset threashold and count

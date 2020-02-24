@@ -5,8 +5,7 @@ import React, {Component} from 'react'
 import SubHeading from '../subheading'
 import {Props} from '.'
 import {intersperseFn} from '../../util/arrays'
-
-import {fromUnixTime, format} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 type State = {
   inviteEmail: string
@@ -164,7 +163,9 @@ function PendingEmailContent({
         <Kb.Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}
         </Kb.Text>
-        <Kb.Text type="BodySmall">Invited {format(fromUnixTime(invite.created), 'MMM d, YYYY')}</Kb.Text>
+        <Kb.Text type="BodySmall">
+          Invited {dateFns.format(dateFns.fromUnixTime(invite.created), 'MMM d, YYYY')}
+        </Kb.Text>
       </Kb.Box>
     </Kb.Box>
   )

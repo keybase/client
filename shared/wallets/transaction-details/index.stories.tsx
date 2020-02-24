@@ -3,10 +3,10 @@ import * as Sb from '../../stories/storybook'
 import * as Types from '../../constants/types/wallets'
 import {Box2} from '../../common-adapters'
 import TransactionDetails from '.'
-import {sub} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 const now = new Date()
-const yesterday = sub(now, {days: 1})
+const yesterday = dateFns.sub(now, {days: 1})
 
 const memo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'

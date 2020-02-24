@@ -3,12 +3,12 @@ import * as Sb from '../../stories/storybook'
 import {Box2} from '../../common-adapters'
 import {platformStyles, styleSheetCreate} from '../../styles'
 import {Transaction} from '.'
-import {sub} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 const now = new Date()
-const yesterday = sub(now, {days: 1})
-const lastWeek = sub(now, {days: 6})
-const beforeLastWeek = sub(now, {days: 8})
+const yesterday = dateFns.sub(now, {days: 1})
+const lastWeek = dateFns.sub(now, {days: 6})
+const beforeLastWeek = dateFns.sub(now, {days: 8})
 
 const singleEmojiMemo = '🎁'
 const shortMemo = 'Short memo.'

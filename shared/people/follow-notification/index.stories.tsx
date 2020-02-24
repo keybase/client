@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '../../constants/people'
 import * as Sb from '../../stories/storybook'
 import FollowNotification from '.'
-import {sub} from 'date-fns'
+import * as dateFns from 'date-fns'
 
 const singleFollowProps1 = {
   badged: true,
@@ -25,7 +25,7 @@ const singleContactProps = {
 const singleFollowProps2 = {
   badged: false,
   newFollows: [C.makeFollowedNotification({username: 'max'})],
-  notificationTime: sub(new Date(), {days: 3}),
+  notificationTime: dateFns.sub(new Date(), {days: 3}),
   onClickUser: Sb.action('onClickUser'),
   type: 'follow' as const,
 }
@@ -37,7 +37,7 @@ const multiFollowProps1 = {
     C.makeFollowedNotification({username: 'mmaxim'}),
     C.makeFollowedNotification({username: 'chrisnojima'}),
   ],
-  notificationTime: sub(new Date(), {days: 21}), // 3 weeks
+  notificationTime: dateFns.sub(new Date(), {days: 21}), // 3 weeks
   numAdditional: 0,
   onClickUser: Sb.action('onClickUser'),
   type: 'follow' as const,
@@ -59,7 +59,7 @@ const multiFollowProps2 = {
     C.makeFollowedNotification({username: 'mlsteele'}),
     C.makeFollowedNotification({username: 'joshblum'}),
   ],
-  notificationTime: sub(new Date(), {months: 3}),
+  notificationTime: dateFns.sub(new Date(), {months: 3}),
   numAdditional: 5,
   onClickUser: Sb.action('onClickUser'),
   type: 'follow' as const,
