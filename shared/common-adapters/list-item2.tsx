@@ -37,7 +37,7 @@ type Props = {
 
 const ListItem = (props: Props) => (
   <Kb.ClickableBox
-    onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // cause click styles if just onMouseDown is defined
+    onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // make sure clickable box applies click styles if just onMouseDown is given.
     onMouseDown={props.onMouseDown}
     style={Styles.collapseStyles([
       props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,

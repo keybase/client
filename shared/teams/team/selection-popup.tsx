@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -108,6 +109,8 @@ const MembersActions = ({teamID}: ActionsProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const members = Container.useSelector(s => s.teams.selectedMembers.get(teamID))
+  const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamname))
   if (!members) {
     // we shouldn't be rendered
     return null
@@ -125,12 +128,14 @@ const MembersActions = ({teamID}: ActionsProps) => {
 
   return (
     <ActionsWrapper>
-      <Kb.Button
-        label="Add to channels"
-        mode="Secondary"
-        onClick={onAddToChannel}
-        fullWidth={Styles.isMobile}
-      />
+      {isBigTeam && (
+        <Kb.Button
+          label="Add to channels"
+          mode="Secondary"
+          onClick={onAddToChannel}
+          fullWidth={Styles.isMobile}
+        />
+      )}
       <Kb.Button label="Edit role" mode="Secondary" onClick={onEditRoles} fullWidth={Styles.isMobile} />
       <Kb.Button
         label="Remove from team"

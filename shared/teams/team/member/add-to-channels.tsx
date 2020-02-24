@@ -64,6 +64,8 @@ const AddToChannels = (props: Props) => {
   const onSelectNone = () => setSelected(new Set())
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const onCreate = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
 
   const submit = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
@@ -95,9 +97,7 @@ const AddToChannels = (props: Props) => {
         return (
           <HeaderRow
             key="{header}"
-            onCreate={() => {
-              /* TODO */
-            }}
+            onCreate={onCreate}
             onSelectAll={allSelected ? undefined : onSelectAll}
             onSelectNone={allSelected ? onSelectNone : undefined}
           />
@@ -205,7 +205,7 @@ const HeaderRow = ({onCreate, onSelectAll, onSelectNone}) => (
   >
     <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
     <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
-      {onSelectAll ? 'Select all' : 'Select none'}
+      {onSelectAll ? 'Select all' : 'Clear'}
     </Kb.Text>
   </Kb.Box2>
 )
