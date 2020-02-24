@@ -567,10 +567,11 @@ func TestTeamInvite64BitEtime(t *testing.T) {
 		break // get first invite
 	}
 
-	require.NotNil(t, invite.Etime)
-	require.Equal(t, 2030, invite.Etime.Time().Year())
 	require.NotNil(t, invite.MaxUses)
 	require.True(t, (*invite.MaxUses).IsInfiniteUses())
+
+	require.NotNil(t, invite.Etime)
+	require.Equal(t, 2030, invite.Etime.Time().Year())
 
 	require.Len(t, state.UsedInvites[invite.Id], 2)
 }
