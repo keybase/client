@@ -327,6 +327,7 @@ const (
 	SCChatStalePreviousState                    = int(keybase1.StatusCode_SCChatStalePreviousState)
 	SCChatEphemeralRetentionPolicyViolatedError = int(keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError)
 	SCMerkleClientError                         = int(keybase1.StatusCode_SCMerkleClientError)
+	SCMerkleUpdateRoot                          = int(keybase1.StatusCode_SCMerkleUpdateRoot)
 	SCBadEmail                                  = int(keybase1.StatusCode_SCBadEmail)
 	SCIdentifySummaryError                      = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey                             = int(keybase1.StatusCode_SCNeedSelfRekey)

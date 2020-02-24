@@ -41,6 +41,7 @@ const (
 	StatusCode_SCIdentifiesFailed                          StatusCode = 295
 	StatusCode_SCNoSpaceOnDevice                           StatusCode = 297
 	StatusCode_SCMerkleClientError                         StatusCode = 299
+	StatusCode_SCMerkleUpdateRoot                          StatusCode = 300
 	StatusCode_SCBadEmail                                  StatusCode = 472
 	StatusCode_SCRateLimit                                 StatusCode = 602
 	StatusCode_SCBadSignupUsernameTaken                    StatusCode = 701
@@ -280,6 +281,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCIdentifiesFailed":          295,
 	"SCNoSpaceOnDevice":           297,
 	"SCMerkleClientError":         299,
+	"SCMerkleUpdateRoot":          300,
 	"SCBadEmail":                  472,
 	"SCRateLimit":                 602,
 	"SCBadSignupUsernameTaken":    701,
@@ -517,6 +519,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	295:  "SCIdentifiesFailed",
 	297:  "SCNoSpaceOnDevice",
 	299:  "SCMerkleClientError",
+	300:  "SCMerkleUpdateRoot",
 	472:  "SCBadEmail",
 	602:  "SCRateLimit",
 	701:  "SCBadSignupUsernameTaken",
