@@ -555,7 +555,11 @@ func TestTeamPlayerBadCompletedInvites(t *testing.T) {
 }
 
 func TestTeamInvite64BitEtime(t *testing.T) {
-	t.Skip("unixtime fail: Not equal:  expected: 2030  actual  : 1851")
+	// Load a chain from JSON file where there is an invite with `etime` in far
+	// future - 3020, so 32bit signed int is not enough to store that - and see
+	// if we can work with that UnixTime value.
+
+	// t.Skip("unixtime fail: Not equal:  expected: 3020  actual  : 1851")
 
 	team, _ := runUnitFromFilename(t, "multiple_use_invite_1000_years.json")
 
@@ -571,7 +575,96 @@ func TestTeamInvite64BitEtime(t *testing.T) {
 	require.True(t, (*invite.MaxUses).IsInfiniteUses())
 
 	require.NotNil(t, invite.Etime)
-	require.Equal(t, 2030, invite.Etime.Time().Year())
+	require.Equal(t, 3020, invite.Etime.Time().Year())
 
 	require.Len(t, state.UsedInvites[invite.Id], 2)
+}
+
+func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
+	// Try to "use invite" which has its max uses exhausted.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	var testUVs [3]keybase1.UserVersion
+	for i := range testUVs {
+		testUVs[i] = keybase1.UserVersion{Uid: libkb.UsernameToUID(fmt.Sprintf("t_alice_%d", i)), EldestSeqno: 1}
+	}
+
+	maxUses := keybase1.TeamInviteMaxUses(1)
+
+	scInvite := makeTestSCForInviteLink()
+	scInvite.MaxUses = &maxUses
+
+	inviteID := scInvite.ID
+
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{scInvite},
+	}
+
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+
+	{
+		// Try to add two people in same link. Max uses is 1, so it should not
+		// allow us to do that.
+		teamSectionCM := makeTestSCTeamSection(team)
+		teamSectionCM.Members = &SCTeamMembers{
+			Readers: &[]SCTeamMember{SCTeamMember(testUVs[0]), SCTeamMember(testUVs[1])},
+		}
+		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+			{InviteID: inviteID, UV: testUVs[0].PercentForm()},
+			{InviteID: inviteID, UV: testUVs[1].PercentForm()},
+		}
+		_, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		requirePrecheckError(t, err)
+		require.Contains(t, err.Error(), "is expired after 1 use")
+		require.Contains(t, err.Error(), inviteID)
+	}
+
+	{
+		// If we add two people, but only one of them is "using the invite", we should be fine.
+		teamSectionCM := makeTestSCTeamSection(team)
+		teamSectionCM.Members = &SCTeamMembers{
+			Readers: &[]SCTeamMember{SCTeamMember(testUVs[0]), SCTeamMember(testUVs[1])},
+		}
+		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+			{InviteID: inviteID, UV: testUVs[0].PercentForm()},
+		}
+		state, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		require.NoError(t, err)
+		require.Len(t, state.inner.UsedInvites[keybase1.TeamInviteID(inviteID)], 1)
+		require.Len(t, state.GetAllUVs(), 3) // team creator and two people added in this link
+	}
+
+	{
+		state := state
+
+		// Add users one by one, first one should go through.
+		for i, uv := range testUVs[:2] {
+			teamSectionCM := makeTestSCTeamSection(team)
+			teamSectionCM.Members = &SCTeamMembers{
+				Readers: &[]SCTeamMember{SCTeamMember(uv)},
+			}
+			teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+				{InviteID: inviteID, UV: uv.PercentForm()},
+			}
+			newState, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+				teamSectionCM, me, nil /* merkleRoot */)
+			if i == 0 {
+				require.NoError(t, err)
+				state = newState
+			} else {
+				requirePrecheckError(t, err)
+			}
+		}
+
+		require.Len(t, state.inner.UsedInvites[keybase1.TeamInviteID(inviteID)], 1)
+		require.Len(t, state.GetAllUVs(), 2) // team creator and one person added in loop above
+	}
 }
