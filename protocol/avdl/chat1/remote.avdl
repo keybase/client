@@ -214,7 +214,7 @@ protocol remote {
     SyncInboxRes inboxRes;
   }
 
-  SyncChatRes syncChat(InboxVers vers, boolean summarizeMaxMsgs);
+  SyncChatRes syncChat(InboxVers vers, boolean summarizeMaxMsgs, InboxParticipantsMode participantsMode);
 
   enum SyncAllProtVers {
     V0_0,
@@ -239,7 +239,7 @@ protocol remote {
   }
 
   @compression_type("msgpackzip")
-  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName, boolean summarizeMaxMsgs);
+  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName, boolean summarizeMaxMsgs, InboxParticipantsMode participantsMode);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
@@ -273,7 +273,7 @@ protocol remote {
     array<Conversation> conversations;
     union { null, RateLimit } rateLimit;
   }
-  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs, boolean useCache);
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.

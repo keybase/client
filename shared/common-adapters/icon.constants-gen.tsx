@@ -530,6 +530,7 @@ export type IconType =
   | 'icon-illustration-teams-216'
   | 'icon-illustration-teams-80'
   | 'icon-illustration-teams-channels-460-96'
+  | 'icon-illustration-teams-subteams-460-96'
   | 'icon-illustration-welcome-96'
   | 'icon-illustration-zen-240-180'
   | 'icon-invite-link-48'
@@ -820,6 +821,10 @@ export type IconType =
   | 'icon-team-placeholder-avatar-80'
   | 'icon-team-placeholder-avatar-960'
   | 'icon-team-sparkles-64-40'
+  | 'icon-teams-type-business-64'
+  | 'icon-teams-type-community-64'
+  | 'icon-teams-type-notsure-64'
+  | 'icon-teams-type-squad-64'
   | 'icon-terminal-32'
   | 'icon-terminal-48'
   | 'icon-twitter-logo-16'
@@ -5723,6 +5728,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-illustration-teams-channels-460-96.png')
     },
   },
+  'icon-illustration-teams-subteams-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-subteams-460-96.png')
+    },
+  },
   'icon-illustration-welcome-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -8629,6 +8642,38 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-team-sparkles-64-40.png')
+    },
+  },
+  'icon-teams-type-business-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-business-64.png')
+    },
+  },
+  'icon-teams-type-community-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-community-64.png')
+    },
+  },
+  'icon-teams-type-notsure-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-notsure-64.png')
+    },
+  },
+  'icon-teams-type-squad-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-squad-64.png')
     },
   },
   'icon-terminal-32': {

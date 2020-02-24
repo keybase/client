@@ -493,27 +493,25 @@ func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gre
 }
 
 type DebugLabeler struct {
-	log     logger.Logger
-	perfLog logger.Logger
+	libkb.Contextified
 	label   string
 	verbose bool
 }
 
 func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		log:     g.GetLog().CloneWithAddedDepth(1),
-		perfLog: g.GetPerfLog().CloneWithAddedDepth(1),
-		label:   label,
-		verbose: verbose,
+		Contextified: libkb.NewContextified(g),
+		label:        label,
+		verbose:      verbose,
 	}
 }
 
 func (d DebugLabeler) GetLog() logger.Logger {
-	return d.log
+	return d.G().GetLog()
 }
 
 func (d DebugLabeler) GetPerfLog() logger.Logger {
-	return d.perfLog
+	return d.G().GetPerfLog()
 }
 
 func (d DebugLabeler) showVerbose() bool {
@@ -529,16 +527,16 @@ func (d DebugLabeler) showLog() bool {
 
 func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
 	if d.showLog() {
-		d.log.CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
+		d.G().GetLog().CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
 	}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
-	return d.trace(ctx, d.log, f, format, args...)
+	return d.trace(ctx, d.G().GetLog(), f, format, args...)
 }
 
 func (d DebugLabeler) PerfTrace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
-	return d.trace(ctx, d.perfLog, f, format, args...)
+	return d.trace(ctx, d.G().GetPerfLog(), f, format, args...)
 }
 
 func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, f func() error, format string, args ...interface{}) func() {
