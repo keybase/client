@@ -12,8 +12,7 @@ type Props = {
   teamID: Types.TeamID
 }
 
-const EnableContacts = ({newTeam, onContinue, teamID}: Props) => {
-  const dispatch = Container.useDispatch()
+const AddFromWhere = ({newTeam, onContinue, teamID}: Props) => {
   const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   return (
     <Kb.Modal
@@ -97,4 +96,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default EnableContacts
+export default AddFromWhere
