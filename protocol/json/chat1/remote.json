@@ -940,7 +940,7 @@
       "fields": [
         {
           "type": "gregor1.Time",
-          "name": "activeAt"
+          "name": "lastActiveAt"
         },
         {
           "type": [

@@ -1346,13 +1346,13 @@ func (o RefreshParticipantsRemoteRes) DeepCopy() RefreshParticipantsRemoteRes {
 }
 
 type GetLastActiveAtRes struct {
-	ActiveAt  gregor1.Time `codec:"activeAt" json:"activeAt"`
-	RateLimit *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	LastActiveAt gregor1.Time `codec:"lastActiveAt" json:"lastActiveAt"`
+	RateLimit    *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetLastActiveAtRes) DeepCopy() GetLastActiveAtRes {
 	return GetLastActiveAtRes{
-		ActiveAt: o.ActiveAt.DeepCopy(),
+		LastActiveAt: o.LastActiveAt.DeepCopy(),
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
