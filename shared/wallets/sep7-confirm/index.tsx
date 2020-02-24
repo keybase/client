@@ -112,9 +112,9 @@ const Header = (props: HeaderProps) => (
       )}
       {!props.signed && (
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Banner color="red">
+          <Kb.Banner color="yellow">
             <Kb.BannerParagraph
-              bannerColor="red"
+              bannerColor="yellow"
               content="This link does not have an attached signature! Ensure that you trust the source of this link."
             />
           </Kb.Banner>
