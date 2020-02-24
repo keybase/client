@@ -958,14 +958,14 @@
 		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "ca363e35fa500a7bc2c1cfc360fe2034be07e952",
-			"revisionTime": "2020-02-24T21:14:41Z"
+			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
+			"revisionTime": "2020-02-24T21:58:29Z"
 		},
 		{
 			"checksumSHA1": "NstCqfXwErGgU2i+UYTShuA9Avs=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "ca363e35fa500a7bc2c1cfc360fe2034be07e952",
-			"revisionTime": "2020-02-24T21:14:41Z"
+			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
+			"revisionTime": "2020-02-24T21:58:29Z"
 		},
 		{
 			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",
