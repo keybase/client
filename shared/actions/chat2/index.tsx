@@ -216,7 +216,7 @@ const onGetInboxConvsUnboxed = (
         participants: participantInfo,
       })
     }
-    ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
+    inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
       const {assertion, fullName} = part
       if (!infoMap.get(assertion) && fullName) {
         added = true
