@@ -1880,6 +1880,13 @@ func (mc *MerkleClient) lookupLeafAtSeqno(m MetaContext, leafID keybase1.UserOrT
 			a.Add("no_root_sigs", B{Val: true})
 		}
 	}
+	// Since we are looking up a leaf at a specific seqno, ensure we have root
+	// at least as recent as that seqno.
+	_, err = mc.FetchRootFromServerByMinSeqno(m, s)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	checker := func(path *VerificationPath) error {
 		if path.root.Seqno() == nil {
 			return MerkleClientError{"no such seqno was found", merkleErrorNotFound}
@@ -2026,17 +2033,14 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, proces
 		return nil, nil, nil, err
 	}
 
-	// Grab the cached seqno before the call to get the next one is made.
-	// Note, we can have multiple concurrent calls to LookupUser that can return in any order.
-	// Checking against the cache after the call completes can cause false-positive rollback
-	// warnings if the first call is super slow, and the second call is super fast, and there
-	// was a change on the server side. See CORE-4064.
-	rootBeforeCall := mc.LastRoot(m)
-
+	root, err := mc.FetchRootFromServer(m, DefaultMerkleRootFreshness)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	q := NewHTTPArgs()
 	q.Add("leaf_id", S{Val: teamID.String()})
 
-	if path, apiRes, err = mc.lookupLeafAndPath(m, q, rootBeforeCall, nil, opts); err != nil {
+	if path, apiRes, err = mc.lookupLeafAndPath(m, q, root, nil, opts); err != nil {
 		return nil, nil, nil, err
 	}
 
