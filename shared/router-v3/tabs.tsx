@@ -95,18 +95,10 @@ const convertNavigationOptionsToStackOptions = (C: any): any => {
   const {navigationOptions} = C
 
   if (!navigationOptions) {
-    return defaultScreenOptions
+    return undefined
   }
 
-  const options = {
-    ...defaultScreenOptions,
-  }
-
-  Object.keys(navigationOptions).forEach(key => {
-    options[key] = navigationOptions[key]
-  })
-
-  return options
+  return navigationOptions
 }
 
 const getScreens = memoize(() =>
@@ -115,15 +107,16 @@ const getScreens = memoize(() =>
 
     const Component = routes[name].getScreen()
     const options = convertNavigationOptionsToStackOptions(Component)
-    if (name === 'profile') {
-      console.log('aaa')
-    }
     return <Stack.Screen key={name} name={name} component={Component} options={options} />
   })
 )
 
 const BlankTab = () => null
-const PeopleStack = () => <Stack.Navigator initialRouteName="peopleRoot">{getScreens()}</Stack.Navigator>
+const PeopleStack = () => (
+  <Stack.Navigator initialRouteName="peopleRoot" screenOptions={defaultScreenOptions}>
+    {getScreens()}
+  </Stack.Navigator>
+)
 const ChatStack = () => <Stack.Navigator initialRouteName="chatRoot">{getScreens()}</Stack.Navigator>
 const FSStack = () => <Stack.Navigator initialRouteName="fsRoot">{getScreens()}</Stack.Navigator>
 const TeamsStack = () => <Stack.Navigator initialRouteName="teamsRoot">{getScreens()}</Stack.Navigator>

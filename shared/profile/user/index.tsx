@@ -354,8 +354,8 @@ class User extends React.Component<Props, State> {
     headerTintColor: Styles.globalColors.white,
     headerTitle: Header,
     headerTitleContainerStyle: {
-      left: 60,
-      right: 20,
+      flexGrow: 1,
+      paddingLeft: Styles.globalMargins.mediumLarge,
     },
     headerTransparent: true,
     underNotch: true,
