@@ -6,7 +6,7 @@ import * as Kb from '../../common-adapters'
 import * as TeamsGen from '../../actions/teams-gen'
 import {pluralize} from '../../util/string'
 
-type SelectableTab = Extract<Types.TabKey, 'members' | 'channels'> // TODO is this the best type for this?
+type SelectableTab = Extract<Types.TabKey, 'members' | 'channels'>
 
 type Props = {
   selectedTab: SelectableTab
