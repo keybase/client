@@ -29,6 +29,12 @@ const tabThings = {
   members: 'member',
 }
 
+// How much to bump the list height by when the selection popup is present on mobile
+const heightsMap = {
+  channels: {height: 70},
+  members: {height: 180},
+}
+
 const SelectionPopup = (props: Props) => {
   const selectedCount = Container.useSelector(state => getSelectedCount(state, props))
   const dispatch = Container.useDispatch()
@@ -69,7 +75,10 @@ const SelectionPopup = (props: Props) => {
   const tabThing = tabThings[props.selectedTab]
   const onSelectableTab = !!tabThing
 
-  return onSelectableTab && (!Styles.isMobile || !!selectedCount) ? (
+  if (!onSelectableTab || (Styles.isMobile && !selectedCount)) {
+    return null
+  }
+  const popup = (
     <Kb.Box2
       fullWidth={Styles.isMobile}
       direction={Styles.isMobile ? 'vertical' : 'horizontal'}
@@ -122,7 +131,15 @@ const SelectionPopup = (props: Props) => {
         </Kb.Box2>
       )}
     </Kb.Box2>
-  ) : null
+  )
+  return Styles.isMobile ? (
+    <>
+      <Kb.Box style={heightsMap[props.selectedTab]} />
+      <Kb.FloatingBox>{popup}</Kb.FloatingBox>
+    </>
+  ) : (
+    popup
+  )
 }
 
 export default SelectionPopup
