@@ -13,7 +13,7 @@ type Props = {
 }
 
 const AddFromWhere = ({newTeam, onContinue, teamID}: Props) => {
-  const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   return (
     <Kb.Modal
       allowOverflow={true}
