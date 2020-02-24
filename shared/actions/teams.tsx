@@ -1209,14 +1209,6 @@ const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaL
   }
 }
 
-const onSetMembers = (_: TypedState, action: TeamsGen.SetMembersPayload) => {
-  const usernameToFullname: {[username: string]: string} = {}
-  action.payload.members.forEach((v, k) => {
-    usernameToFullname[k] = v.fullName
-  })
-  return UsersGen.createUpdateFullnames({usernameToFullname})
-}
-
 const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const loggedIn = state.config.loggedIn
   if (!loggedIn) {
@@ -1359,7 +1351,6 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam)
   yield* Saga.chainAction2(TeamsGen.loadTeam, loadTeam)
   yield* Saga.chainAction(TeamsGen.getMembers, getMembers)
-  yield* Saga.chainAction2(TeamsGen.setMembers, onSetMembers)
   yield* Saga.chainAction2(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
   yield* Saga.chainAction2(TeamsGen.getChannelInfo, getChannelInfo)
   yield* Saga.chainAction2(TeamsGen.getChannels, getChannels)
