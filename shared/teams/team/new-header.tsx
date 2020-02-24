@@ -10,35 +10,24 @@ import TeamMenu from './menu-container'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
-import AddPeopleHow from './header/add-people-how/container'
 import {Activity} from '../common'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import flags from '../../util/feature-flags'
 
-const _AddPeopleButton = (
-  props: {
-    teamID: TeamID
-  } & Kb.OverlayParentProps
-) => (
-  <>
+const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
+  const dispatch = Container.useDispatch()
+  const onAdd = () => dispatch(appendNewTeamBuilder(teamID)) // TODO this should append step 1 of wizard 🧙‍♂️
+  return (
     <Kb.Button
       label="Add/Invite people"
-      onClick={props.toggleShowingMenu}
-      ref={props.setAttachmentRef}
+      onClick={onAdd}
       type="Success"
       mode="Primary"
       fullWidth={true}
       style={styles.addPeopleButton}
     />
-    <AddPeopleHow
-      attachTo={props.getAttachmentRef}
-      onHidden={props.toggleShowingMenu}
-      teamID={props.teamID}
-      visible={props.showingMenu}
-    />
-  </>
-)
-const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
+  )
+}
 
 type HeaderTitleProps = Kb.PropsWithOverlay<{
   teamID: TeamID
