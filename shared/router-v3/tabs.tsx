@@ -5,6 +5,7 @@ import * as Kbfs from '../fs/common'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
+import {LeftAction} from '../common-adapters/header-hoc'
 import {createBottomTabNavigator, BottomTabBarProps} from '@react-navigation/bottom-tabs'
 import {createStackNavigator} from '@react-navigation/stack'
 import {routes} from './routes'
@@ -89,34 +90,35 @@ const TabBar = (props: BottomTabBarProps) => {
 const Tab = createBottomTabNavigator()
 const Stack = createStackNavigator()
 
-const convertNavigationOptionsToStackOptions = (C: any) => {
+// TODO better typing
+const convertNavigationOptionsToStackOptions = (C: any): any => {
   const {navigationOptions} = C
 
-  if (navigationOptions) {
-    return {
-      ...defaultScreenOptions,
-      header: navigationOptions.header,
-      headerLeft: navigationOptions.headerLeft,
-      headerRight: navigationOptions.headerRight,
-      headerTitle: navigationOptions.headerTitle,
-      headerTitleContainerStyle: navigationOptions.headerTitleContainerStyle,
-    }
+  if (!navigationOptions) {
+    return defaultScreenOptions
   }
-  return undefined
+
+  const options = {
+    ...defaultScreenOptions,
+  }
+
+  Object.keys(navigationOptions).forEach(key => {
+    options[key] = navigationOptions[key]
+  })
+
+  return options
 }
 
 const getScreens = memoize(() =>
   Object.keys(routes).map(name => {
     // TODO is there a way to defer the require now?
+
     const Component = routes[name].getScreen()
-    return (
-      <Stack.Screen
-        key={name}
-        name={name}
-        component={Component}
-        options={convertNavigationOptionsToStackOptions(Component)}
-      />
-    )
+    const options = convertNavigationOptionsToStackOptions(Component)
+    if (name === 'profile') {
+      console.log('aaa')
+    }
+    return <Stack.Screen key={name} name={name} component={Component} options={options} />
   })
 )
 
@@ -128,17 +130,18 @@ const TeamsStack = () => <Stack.Navigator initialRouteName="teamsRoot">{getScree
 const SettingsStack = () => <Stack.Navigator initialRouteName="settingsRoot">{getScreens()}</Stack.Navigator>
 
 const defaultScreenOptions = {
-  backBehavior: 'none',
-  header: null,
-  headerLeft: hp =>
-    hp.scene.index === 0 ? null : (
+  //backBehavior: 'none',
+  //header: () => null,
+  headerLeft: ({canGoBack, onPress, tintColor}) =>
+    canGoBack ? (
       <LeftAction
         badgeNumber={0}
         leftAction="back"
-        onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
-        customIconColor={hp.tintColor}
+        onLeftAction={onPress} // react navigation makes sure this onPress can only happen once
+        customIconColor={tintColor}
       />
-    ),
+    ) : null,
+  headerRight: undefined,
   headerStyle: {
     get backgroundColor() {
       return Styles.globalColors.fastBlank
@@ -150,9 +153,9 @@ const defaultScreenOptions = {
     borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
   },
-  headerTitle: hp => (
+  headerTitle: ({children}) => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
-      {hp.children}
+      {children}
     </Kb.Text>
   ),
 }
@@ -162,7 +165,8 @@ const NavTabs = () => {
     <Tab.Navigator
       initialRouteName="blankTab"
       backBehavior="none"
-      tabBar={props => <TabBar {...props} screenOptions={defaultScreenOptions} />}
+      tabBar={props => <TabBar {...props} />}
+      screenOptions={defaultScreenOptions}
     >
       <Tab.Screen name="blankTab" component={BlankTab} />
       <Tab.Screen name="tabs.peopleTab" component={PeopleStack} />

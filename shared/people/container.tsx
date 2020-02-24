@@ -39,8 +39,9 @@ type Props = {
 export class LoadOnMount extends React.PureComponent<Props> {
   static navigationOptions = {
     header: undefined,
+    headerMode: 'screen',
     headerTitle: () => <ConnectedHeader />,
-    headerTitleContainerStyle: {flexGrow: 1, marginLeft: 40, marginRight: 0},
+    headerTitleContainerStyle: {alignSelf: 'flex-end', flexGrow: 1, marginLeft: 40, marginRight: 0},
     underNotch: true,
   }
   _onReload = () => this.props.getData(false)

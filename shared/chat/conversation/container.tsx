@@ -23,6 +23,10 @@ type SwitchProps = {
 }
 
 export class Conversation extends React.PureComponent<SwitchProps> {
+  static navigationOptions = {
+    headerMode: 'screen',
+    header: () => null,
+  }
   _onDidFocus = () => {
     this.props.selectConversation()
   }
