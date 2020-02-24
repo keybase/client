@@ -16,11 +16,19 @@ krbin="/usr/bin/keybase-redirector"
 BASH=$(command -v bash)
 
 redirector_enabled() {
-  keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-root-redirector &> /dev/null
+  echo CALL
+  keybase --debug --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-root-redirector
+  X=$?
+  echo DONE
+  return $X
 }
 
 autorestart_enabled() {
-  keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-autorestart &> /dev/null
+  echo CALLA
+  keybase --debug --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-autorestart
+  X=$?
+  echo DONEA
+  return $X
 }
 
 make_mountpoint() {
