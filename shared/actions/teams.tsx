@@ -634,6 +634,7 @@ const getChannelInfo = async (
 
   const channelInfo = {
     channelname: meta.channelname,
+    conversationIDKey,
     description: meta.description,
     hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
@@ -671,6 +672,7 @@ const getChannels = async (
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
     channelInfos.set(convID, {
       channelname: conv.channel,
+      conversationIDKey: convID,
       description: conv.headline,
       hasAllMembers: null,
       memberStatus: conv.memberStatus,

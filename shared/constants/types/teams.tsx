@@ -22,7 +22,7 @@ export type PublicitySettings = {
   publicityTeam: boolean
 }
 
-export type ActivityLevel = 'active' | 'recently' | 'extinct'
+export type ActivityLevel = 'active' | 'recently' | 'none'
 
 export type Teamname = string
 
@@ -45,6 +45,7 @@ export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type ChannelInfo = {
   channelname: string
+  conversationIDKey: ConversationIDKey
   description: string
   hasAllMembers?: boolean | null
   memberStatus: RPCChatTypes.ConversationMemberStatus

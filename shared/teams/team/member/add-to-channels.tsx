@@ -3,59 +3,101 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
+import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
+import * as ChatTypes from '../../../constants/types/chat2'
 import {Activity, ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
+import {memoize} from '../../../util/memoize'
 
-type Props = {
+type Props = Container.RouteProps<{
   teamID: Types.TeamID
-  username: string
-}
+  usernames: Array<string>
+  test: React.ReactElement
+}>
 
-const AddToChannels = ({teamID, username}: Props) => {
+const getChannelsForList = memoize((channels: Map<string, Types.ChannelInfo>) =>
+  [...channels.values()].filter(c => c.channelname !== 'general')
+)
+
+const AddToChannels = (props: Props) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const usernames = Container.getRouteProps(props, 'usernames', [])
+
+  React.useEffect(() => {
+    dispatch(TeamsGen.createGetChannels({teamID}))
+  }, [dispatch, teamID])
+
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  const channelInfos = getChannelsForList(
+    Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  )
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
   const channels = filterLCase
-    ? [...channelInfos.values()].filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : [...channelInfos.values()]
+    ? channelInfos.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channelInfos
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
       channelname: c.channelname,
+      conversationIDKey: c.conversationIDKey,
       numMembers: c.numParticipants,
       type: 'channel' as const,
     })),
   ]
-  const [selected, setSelected] = React.useState(new Set<string>())
-  const onSelect = (channelname: string) => {
-    if (selected.has(channelname)) {
-      selected.delete(channelname)
+  const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
+  const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
+    if (selected.has(convIDKey)) {
+      selected.delete(convIDKey)
       setSelected(new Set(selected))
     } else {
-      selected.add(channelname)
+      selected.add(convIDKey)
       setSelected(new Set(selected))
     }
   }
-  const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.channelname)))
+  const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.conversationIDKey)))
   const onSelectNone = () => setSelected(new Set())
 
-  const onCancel = () => {} // TODO
-  const onFinish = () => {} // TODO useRPC probably
+  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const onCreate = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+
+  const submit = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
+  const [waiting, setWaiting] = React.useState(false)
+  const onFinish = () => {
+    if (!selected.size) {
+      onCancel()
+      return
+    }
+    setWaiting(true)
+    submit(
+      [{conversations: [...selected].map(ChatTypes.keyToConversationID), usernames}],
+      () => {
+        setWaiting(false)
+        onCancel()
+      },
+      error => {
+        console.error(error)
+        setWaiting(false)
+      }
+    )
+  }
+
   const numSelected = selected.size
 
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channelInfos.size
+        const allSelected = selected.size === channelInfos.length
         return (
           <HeaderRow
             key="{header}"
-            onCreate={() => {
-              /* TODO */
-            }}
+            onCreate={onCreate}
             onSelectAll={allSelected ? undefined : onSelectAll}
             onSelectNone={allSelected ? onSelectNone : undefined}
           />
@@ -67,8 +109,8 @@ const AddToChannels = ({teamID, username}: Props) => {
             key={item.channelname}
             channelname={item.channelname}
             numMembers={item.numMembers}
-            selected={selected.has(item.channelname)}
-            onSelect={() => onSelect(item.channelname)}
+            selected={selected.has(item.conversationIDKey)}
+            onSelect={() => onSelect(item.conversationIDKey)}
           />
         )
     }
@@ -78,7 +120,13 @@ const AddToChannels = ({teamID, username}: Props) => {
     <Kb.Modal
       header={{
         hideBorder: Styles.isMobile,
-        leftButton: Styles.isMobile ? <Kb.Text type="BodyBigLink">Cancel</Kb.Text> : undefined,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+            Cancel
+          </Kb.Text>
+        ) : (
+          undefined
+        ),
         rightButton: Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
             Add
@@ -86,7 +134,12 @@ const AddToChannels = ({teamID, username}: Props) => {
         ) : (
           undefined
         ),
-        title: <ModalTitle teamname={meta.teamname} title={`Add ${username} to...`} />,
+        title: (
+          <ModalTitle
+            teamname={meta.teamname}
+            title={`Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`}
+          />
+        ),
       }}
       footer={
         Styles.isMobile
@@ -99,6 +152,7 @@ const AddToChannels = ({teamID, username}: Props) => {
                     label="Cancel"
                     onClick={onCancel}
                     style={Styles.globalStyles.flexOne}
+                    disabled={waiting}
                   />
                   <Kb.Button
                     label={
@@ -107,6 +161,7 @@ const AddToChannels = ({teamID, username}: Props) => {
                     onClick={onFinish}
                     disabled={!numSelected}
                     style={Styles.globalStyles.flexOne}
+                    waiting={waiting}
                   />
                 </Kb.Box2>
               ),
@@ -114,11 +169,12 @@ const AddToChannels = ({teamID, username}: Props) => {
       }
       allowOverflow={true}
       noScrollView={true}
+      onClose={onCancel}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channelInfos.size} ${pluralize('channel', channelInfos.size)}`}
+            placeholderText={`Search ${channelInfos.length} ${pluralize('channel', channelInfos.length)}`}
             icon="iconfont-search"
             onChange={setFilter}
             size="full-width"
@@ -149,7 +205,7 @@ const HeaderRow = ({onCreate, onSelectAll, onSelectNone}) => (
   >
     <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
     <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
-      {onSelectAll ? 'Select all' : 'Select none'}
+      {onSelectAll ? 'Select all' : 'Clear'}
     </Kb.Text>
   </Kb.Box2>
 )
@@ -190,7 +246,7 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
             <Kb.Text type="BodySmall">
               {numMembers} {pluralize('member', numMembers)} •
             </Kb.Text>
-            <Activity level="extinct" />
+            <Activity level="recently" />
           </Kb.Box2>
         </Kb.Box2>
       }

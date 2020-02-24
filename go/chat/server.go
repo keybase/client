@@ -2681,6 +2681,10 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 				}
 			}
 			usernamesToAdd = usernamesToRetry
+			if len(usernamesToRetry) == 0 {
+				// don't let this bubble up if everyone is already in the channel
+				err = nil
+			}
 		default:
 			return e
 		}
