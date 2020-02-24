@@ -27,6 +27,7 @@ func GetCurrentStatus(mctx libkb.MetaContext) (res keybase1.CurrentStatus, err e
 	}
 	res.SessionIsValid = mctx.ActiveDevice().Valid()
 	res.LoggedIn = res.SessionIsValid
+	res.DeviceName = mctx.ActiveDevice().Name()
 	return res, nil
 }
 
