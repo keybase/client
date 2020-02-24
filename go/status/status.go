@@ -278,7 +278,7 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 	status.Git.Log = filepath.Join(status.ExtStatus.LogDir, libkb.GitLogFileName)
 
 	// set anything os-specific
-	mctx.Debug("Getting osSpecific status info : %s")
+	mctx.Debug("Getting osSpecific status info")
 	if err := osSpecific(mctx, status); err != nil {
 		return nil, err
 	}
