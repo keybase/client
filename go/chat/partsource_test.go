@@ -43,7 +43,8 @@ func TestParticipantsSource(t *testing.T) {
 	}
 	time.Sleep(time.Millisecond * 200)
 	select {
-	case <-ch:
+	case _, ok := <-ch:
+		require.False(t, ok)
 	default:
 	}
 
@@ -58,7 +59,8 @@ func TestParticipantsSource(t *testing.T) {
 	}
 	time.Sleep(time.Millisecond * 200)
 	select {
-	case <-ch:
+	case _, ok := <-ch:
+		require.False(t, ok)
 	default:
 	}
 
@@ -93,7 +95,8 @@ func TestParticipantsSource(t *testing.T) {
 	}
 	time.Sleep(time.Millisecond * 200)
 	select {
-	case <-ch:
+	case _, ok := <-ch:
+		require.False(t, ok)
 	default:
 	}
 }
