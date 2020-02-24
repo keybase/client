@@ -40,7 +40,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 0,
       width: '100%',
     },
-    isTablet: { backgroundColor: Styles.globalColors.transparent, },
+    isTablet: {backgroundColor: Styles.globalColors.transparent},
   }),
 }))
 
