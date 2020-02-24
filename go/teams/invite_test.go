@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -318,7 +317,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 	invite := makeTestSCForInviteLink()
 	inviteID := invite.ID
 
-	badEtime := []int{0, -100}
+	badEtime := []keybase1.UnixTime{0, -100}
 	for _, v := range badEtime {
 		invite.Etime = &v
 		section.Invites = &SCTeamInvites{
@@ -332,7 +331,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 		require.Contains(t, err.Error(), inviteID)
 	}
 
-	etime := int(keybase1.ToUnixTime(time.Now()))
+	etime := keybase1.ToUnixTime(time.Now())
 	invite.Etime = &etime
 	section.Invites = &SCTeamInvites{
 		Readers: &[]SCTeamInvite{invite},
@@ -365,7 +364,7 @@ func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 	require.Contains(t, err.Error(), inviteID)
 
 	// Transmutate invite into invite with expiration time instead of max_uses
-	etime := int(keybase1.ToUnixTime(time.Now()))
+	etime := keybase1.ToUnixTime(time.Now())
 	invite.MaxUses = nil
 	invite.Etime = &etime
 	section.Invites = &SCTeamInvites{
@@ -487,7 +486,7 @@ func TestTeamPlayerBadUsedInvites(t *testing.T) {
 
 	// Seitan invite with `etime`.
 	scInvite2 := makeTestSCForInviteLink()
-	etime := int(keybase1.ToUnixTime(time.Now()))
+	etime := keybase1.ToUnixTime(time.Now())
 	scInvite2.Etime = &etime
 
 	teamSectionForInvite := makeTestSCTeamSection(team)
@@ -555,91 +554,23 @@ func TestTeamPlayerBadCompletedInvites(t *testing.T) {
 	require.Contains(t, err.Error(), inviteID)
 }
 
-func TestTeamInvitePrecheckWIP(t *testing.T) {
-	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
-	defer tc.Cleanup()
+func TestTeamInvite64BitEtime(t *testing.T) {
+	t.Skip("unixtime fail: Not equal:  expected: 2030  actual  : 1851")
 
-	// Make a state with multi use invite (max_uses=1).
-	inviteID := NewInviteID()
-	maxUses := keybase1.TeamInviteMaxUses(1)
+	team, _ := runUnitFromFilename(t, "multiple_use_invite_1000_years.json")
 
-	section := makeTestSCTeamSection(team)
-	invite := SCTeamInvite{
-		Type:    "seitan_invite_token",
-		Name:    keybase1.TeamInviteName("test"),
-		ID:      inviteID,
-		MaxUses: &maxUses,
-	}
-	section.Invites = &SCTeamInvites{
-		Readers: &[]SCTeamInvite{invite},
+	state := &team.chain().inner
+	require.Len(t, state.ActiveInvites, 1)
+
+	var invite keybase1.TeamInvite
+	for _, invite = range state.ActiveInvites {
+		break // get first invite
 	}
 
-	curState, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
-		section, me, nil /* merkleRoot */)
-	require.NoError(t, err)
+	require.NotNil(t, invite.Etime)
+	require.Equal(t, 2030, invite.Etime.Time().Year())
+	require.NotNil(t, invite.MaxUses)
+	require.True(t, (*invite.MaxUses).IsInfiniteUses())
 
-	// Ensure that this worked.
-
-	invite.Name = keybase1.TeamInviteName("overwritten")
-	section.Invites = &SCTeamInvites{
-		Writers: &[]SCTeamInvite{invite},
-	}
-
-	curState, err = appendSigToState(t, team, curState, libkb.LinkTypeInvite,
-		section, me, nil /* merkleRoot */)
-	require.NoError(t, err)
-
-	require.Len(t, curState.inner.ActiveInvites, 1)
-	var inviteObj keybase1.TeamInvite
-	for _, inviteObj = range curState.inner.ActiveInvites {
-		break // take first invite
-	}
-	require.EqualValues(t, inviteObj.Id, inviteID)
-	require.NotNil(t, inviteObj.MaxUses)
-	require.EqualValues(t, 1, *inviteObj.MaxUses)
-	require.Equal(t, keybase1.TeamRole_READER, inviteObj.Role)
-
-	spew.Dump(curState)
-
-	// teamID := SCTeamID("2123209b98b16083c69c91152b861724")
-	// teamName := SCTeamName("cabal")
-
-	// consumer := NewUserVersion("99759da4f968b16121ece44652f01a19", 1)
-	// link := ChainLinkUnpacked{
-	// 	inner: &SCChainLinkPayload{
-	// 		Body: SCPayloadBody{
-	// 			Key: &SCKeySection{
-	// 				UID: consumer.Uid,
-	// 			},
-	// 			Type:    "team.root",
-	// 			Version: 2,
-	// 			Team: &SCTeamSection{
-	// 				ID:   teamID,
-	// 				Name: &teamName,
-	// 				Members: &SCTeamMembers{
-	// 					Owners: &[]SCTeamMember{
-	// 						{
-	// 							Uid:         consumer.Uid,
-	// 							EldestSeqno: consumer.EldestSeqno,
-	// 						},
-	// 					},
-	// 				},
-	// 				PerTeamKey: &SCPerTeamKey{},
-	// 			},
-	// 		},
-	// 		SeqType: keybase1.SeqType_PRIVATE,
-	// 		Seqno:   1,
-	// 		Tag:     "signature",
-	// 	},
-	// 	outerLink: &libkb.OuterLinkV2WithMetadata{
-	// 		OuterLinkV2: libkb.OuterLinkV2{
-	// 			Seqno:    1,
-	// 			Version:  2,
-	// 			LinkType: 33,
-	// 		},
-	// 	},
-	// }
-	// newState, err := AppendChainLink(context.TODO(), team.G(), consumer, nil, &link, signerToX(&consumer))
-	// require.NoError(t, err)
-	// spew.Dump(newState)
+	require.Len(t, state.UsedInvites[invite.Id], 2)
 }
