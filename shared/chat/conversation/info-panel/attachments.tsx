@@ -576,8 +576,8 @@ export default (p: Props) => {
           }, [])
 
           const s = formMonths(links).map(month => ({
-            key: month.key,
             data: month.data,
+            key: month.key,
             renderItem: ({item}: {item: Link}) => {
               return (
                 <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">

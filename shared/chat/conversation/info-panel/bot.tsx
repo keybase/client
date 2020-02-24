@@ -311,8 +311,8 @@ export default (props: Props) => {
 
   const sections = [
     {
-      key: 'bots',
       data: items,
+      key: 'bots',
       keyExtractor: (item: Unpacked<typeof items>, index: number) => {
         if (typeof item === 'string' || item instanceof String) {
           return item
