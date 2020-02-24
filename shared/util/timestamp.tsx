@@ -1,6 +1,5 @@
 import * as dateFns from 'date-fns'
-
-import {enUS} from 'date-fns/esm/locale'
+import {enUS} from 'date-fns/locale'
 
 export function formatTimeForChat(time: number): string | null {
   const m = new Date(time)
@@ -77,7 +76,7 @@ const upperCaseFirst = {
 
 const formatRelativeCalendarForFS = (dontUpperCase: boolean, token: string, date: Date, baseDate: Date) => {
   if (token === 'other') {
-    return dateFns.isSameYear(date, baseDate) ? "ddd MMM D YYYY 'at' LT" : "ddd MMM D 'at' LT"
+    return dateFns.isSameYear(date, baseDate) ? "ddd MMM D yyyy'at' LT" : "ddd MMM D 'at' LT"
   }
 
   return dontUpperCase ? noUpperCaseFirst[token] : upperCaseFirst[token]

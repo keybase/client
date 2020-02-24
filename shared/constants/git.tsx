@@ -31,7 +31,7 @@ const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | undefi
       chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
       devicename: r.serverMetadata.lastModifyingDeviceName,
       id: r.globalUniqueID,
-      lastEditTime: dateFns.formatDistanceToNow(new Date(r.serverMetadata.mtime)),
+      lastEditTime: dateFns.formatDistanceToNow(new Date(r.serverMetadata.mtime), {addSuffix: true}),
       lastEditUser: r.serverMetadata.lastModifyingUsername,
       name: r.localMetadata.repoName,
       repoID: r.repoID,

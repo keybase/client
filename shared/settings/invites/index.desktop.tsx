@@ -164,7 +164,7 @@ function PendingEmailContent({
           {invite.email}
         </Kb.Text>
         <Kb.Text type="BodySmall">
-          Invited {dateFns.format(dateFns.fromUnixTime(invite.created), 'MMM d, YYYY')}
+          Invited {dateFns.format(dateFns.fromUnixTime(invite.created), 'MMM d, yyyy')}
         </Kb.Text>
       </Kb.Box>
     </Kb.Box>
