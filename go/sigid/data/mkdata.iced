@@ -16,8 +16,8 @@ class Runner
   read : ({input}, cb) ->
     esc = make_esc cb, "read"
     gets = (new Gets input).run()
-    h = {} # Sigs that start with 'h' are the fixed/new ones
-    g = [] # Sigs that start with 'g' are the bugged/legacy ones
+    h = {} # Sigs that start with 'h' are the new-style signatures (like >= 1.0.17)
+    g = [] # Sigs that start with 'g' are the legacy-style signatures (like < 1.0.16)
     loop
       await gets.gets esc defer line
       break unless line?
