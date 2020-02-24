@@ -199,7 +199,7 @@ func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ t
 	}
 }
 
-func (b *baseInboxSource) setParticipantMode(q *chat1.GetInboxQuery) *chat1.GetInboxQuery {
+func (b *baseInboxSource) setDefaultParticipantMode(q *chat1.GetInboxQuery) *chat1.GetInboxQuery {
 	if q == nil {
 		q = new(chat1.GetInboxQuery)
 	}
@@ -319,7 +319,7 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		return types.Inbox{}, OfflineError{}
 	}
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: s.setParticipantMode(rquery),
+		Query: s.setDefaultParticipantMode(rquery),
 	})
 	if err != nil {
 		return types.Inbox{}, err
@@ -904,7 +904,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	rquery.SummarizeMaxMsgs = true // always summarize max msgs
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: s.setParticipantMode(&rquery),
+		Query: s.setDefaultParticipantMode(&rquery),
 	})
 	if err != nil {
 		return types.Inbox{}, err

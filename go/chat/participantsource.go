@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -20,18 +22,26 @@ type CachingParticipantSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	locktab *libkb.LockTable
-	ri      func() chat1.RemoteInterface
+	locktab     *libkb.LockTable
+	ri          func() chat1.RemoteInterface
+	encryptedDB *encrypteddb.EncryptedDB
 }
 
 var _ types.ParticipantSource = (*CachingParticipantSource)(nil)
 
 func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInterface) *CachingParticipantSource {
+	keyFn := func(ctx context.Context) ([32]byte, error) {
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
+	}
+	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalChatDb
+	}
 	return &CachingParticipantSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "CachingParticipantSource", false),
 		locktab:      libkb.NewLockTable(),
 		ri:           ri,
+		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 }
 
@@ -69,7 +79,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, conv types.R
 
 		// load local first and send to channel
 		var local partDiskStorage
-		found, err := s.G().GetKVStore().GetInto(&local, s.dbKey(conv.GetConvID()))
+		found, err := s.encryptedDB.Get(ctx, s.dbKey(conv.GetConvID()), &local)
 		if err != nil {
 			resCh <- types.ParticipantResult{Err: err}
 			return
@@ -96,7 +106,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, conv types.R
 			return
 		}
 
-		if err := s.G().GetKVStore().PutObj(s.dbKey(conv.GetConvID()), nil, partDiskStorage{
+		if err := s.encryptedDB.Put(ctx, s.dbKey(conv.GetConvID()), partDiskStorage{
 			Uids: partRes.Uids,
 			Hash: partRes.Hash,
 		}); err != nil {
