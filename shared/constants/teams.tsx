@@ -2,6 +2,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {noConversationIDKey} from './types/chat2/common'
 import {getFullRoute} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
@@ -53,6 +54,7 @@ export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcome
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
+  conversationIDKey: noConversationIDKey,
   description: '',
   hasAllMembers: null,
   memberStatus: RPCChatTypes.ConversationMemberStatus.active,
