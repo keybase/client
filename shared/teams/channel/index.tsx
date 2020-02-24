@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
 import ChannelTabs from './tabs/container'
 import {TabKey} from './tabs'
 import {Row} from './rows'
@@ -51,6 +52,7 @@ const Channel = (props: Props & TabProps) => {
 
   return (
     <Kb.Box style={styles.container}>
+      {Styles.isMobile && <MobileHeader />}
       <Kb.SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
@@ -64,7 +66,24 @@ const Channel = (props: Props & TabProps) => {
   )
 }
 
+const MobileHeader = () => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.header}>
+      <Kb.BackButton onClick={onBack} style={styles.backButton} />
+    </Kb.Box2>
+  )
+}
+
 const styles = Styles.styleSheetCreate(() => ({
+  backButton: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
@@ -77,6 +96,7 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     height: 0,
   },
+  header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
   list: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,
