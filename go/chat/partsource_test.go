@@ -45,7 +45,6 @@ func TestParticipantsSource(t *testing.T) {
 	select {
 	case _, ok := <-ch:
 		require.False(t, ok)
-	default:
 	}
 
 	// cached should get one
@@ -61,7 +60,6 @@ func TestParticipantsSource(t *testing.T) {
 	select {
 	case _, ok := <-ch:
 		require.False(t, ok)
-	default:
 	}
 
 	// hash wrong, should get two
@@ -97,6 +95,5 @@ func TestParticipantsSource(t *testing.T) {
 	select {
 	case _, ok := <-ch:
 		require.False(t, ok)
-	default:
 	}
 }
