@@ -7,29 +7,29 @@ import (
 	"golang.org/x/net/context"
 )
 
-type CmdChatClearAdvertisements struct {
+type CmdChatClearCommands struct {
 	libkb.Contextified
 }
 
-func NewCmdChatClearAdvertisementsRunner(g *libkb.GlobalContext) *CmdChatClearAdvertisements {
-	return &CmdChatClearAdvertisements{
+func NewCmdChatClearCommandsRunner(g *libkb.GlobalContext) *CmdChatClearCommands {
+	return &CmdChatClearCommands{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func newCmdChatClearAdvertisements(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatClearCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "clear-advertisements",
+		Name:  "clear-commands",
 		Usage: "Clear any advertised commands for the logged-in user.",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdChatClearAdvertisementsRunner(g), "clear-advertisements", c)
+			cl.ChooseCommand(NewCmdChatClearCommandsRunner(g), "clear-commands", c)
 			cl.SetNoStandalone()
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 	}
 }
 
-func (c *CmdChatClearAdvertisements) Run() error {
+func (c *CmdChatClearCommands) Run() error {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -43,14 +43,14 @@ func (c *CmdChatClearAdvertisements) Run() error {
 	return err
 }
 
-func (c *CmdChatClearAdvertisements) ParseArgv(ctx *cli.Context) (err error) {
+func (c *CmdChatClearCommands) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) > 0 {
-		return UnexpectedArgsError("clear-advertisements")
+		return UnexpectedArgsError("clear-commands")
 	}
 	return nil
 }
 
-func (c *CmdChatClearAdvertisements) GetUsage() libkb.Usage {
+func (c *CmdChatClearCommands) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
