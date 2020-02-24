@@ -94,7 +94,10 @@ const convertNavigationOptionsToStackOptions = (C: any) => {
 
   if (navigationOptions) {
     return {
+      ...defaultScreenOptions,
       header: navigationOptions.header,
+      headerLeft: navigationOptions.headerLeft,
+      headerRight: navigationOptions.headerRight,
       headerTitle: navigationOptions.headerTitle,
       headerTitleContainerStyle: navigationOptions.headerTitleContainerStyle,
     }
@@ -124,9 +127,43 @@ const FSStack = () => <Stack.Navigator initialRouteName="fsRoot">{getScreens()}<
 const TeamsStack = () => <Stack.Navigator initialRouteName="teamsRoot">{getScreens()}</Stack.Navigator>
 const SettingsStack = () => <Stack.Navigator initialRouteName="settingsRoot">{getScreens()}</Stack.Navigator>
 
+const defaultScreenOptions = {
+  backBehavior: 'none',
+  header: null,
+  headerLeft: hp =>
+    hp.scene.index === 0 ? null : (
+      <LeftAction
+        badgeNumber={0}
+        leftAction="back"
+        onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
+        customIconColor={hp.tintColor}
+      />
+    ),
+  headerStyle: {
+    get backgroundColor() {
+      return Styles.globalColors.fastBlank
+    },
+    get borderBottomColor() {
+      return Styles.globalColors.black_10
+    },
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    elevation: undefined, // since we use screen on android turn off drop shadow
+  },
+  headerTitle: hp => (
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
+      {hp.children}
+    </Kb.Text>
+  ),
+}
+
 const NavTabs = () => {
   return (
-    <Tab.Navigator initialRouteName="blankTab" backBehavior="none" tabBar={props => <TabBar {...props} />}>
+    <Tab.Navigator
+      initialRouteName="blankTab"
+      backBehavior="none"
+      tabBar={props => <TabBar {...props} screenOptions={defaultScreenOptions} />}
+    >
       <Tab.Screen name="blankTab" component={BlankTab} />
       <Tab.Screen name="tabs.peopleTab" component={PeopleStack} />
       <Tab.Screen name="tabs.chatTab" component={ChatStack} />
@@ -156,6 +193,7 @@ const styles = Styles.styleSheetCreate(() => ({
     right: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
   },
+  headerTitle: {color: Styles.globalColors.black},
   tab: Styles.platformStyles({
     common: {
       paddingBottom: 6,

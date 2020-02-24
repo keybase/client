@@ -55,7 +55,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
       },
-      gradientContainer: {flex: 1, height: 36, left: 0, position: 'absolute', top: 0, width: '100%'},
+      gradientContainer: {flex: 1, height: '100%', left: 0, position: 'absolute', top: 0, width: '100%'},
       gradientGreen: Styles.platformStyles({
         common: {
           backgroundColor: '#3AFFAC',
@@ -99,7 +99,7 @@ const styles = Styles.styleSheetCreate(
       }),
       rainbowButtonContainer: Styles.platformStyles({
         common: {
-          alignSelf: 'flex-start',
+          height: 36,
           marginLeft: Styles.globalMargins.small,
           marginRight: Styles.globalMargins.small,
           position: 'relative',

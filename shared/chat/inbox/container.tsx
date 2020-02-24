@@ -95,14 +95,13 @@ const InboxWrapper = (props: Props) => {
 
 InboxWrapper.navigationOptions = {
   header: undefined,
-  headerRight: <HeaderNewChatButton />,
+  headerRight: () => <HeaderNewChatButton />,
   headerTitle: () => (
     <Kb.Text type="BodyBig" lineClamp={1}>
       {' '}
       Chats{' '}
     </Kb.Text>
   ),
-  title: 'AAAChats',
 }
 
 const Connected = Container.namedConnect(
