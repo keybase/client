@@ -285,7 +285,11 @@ const styles = Styles.styleSheetCreate(
           flexShrink: 1,
           position: 'relative',
         },
-        isTablet: {width: 300},
+        isTablet: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          minWidth: 300,
+          width: '30%',
+        },
       }),
       loadingContainer: {
         left: 0,
