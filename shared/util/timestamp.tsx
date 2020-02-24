@@ -7,11 +7,12 @@ import {
   isSameDay,
   isSameYear,
   isAfter,
-  formatDistanceToNow,
   formatISO,
   startOfYesterday,
   startOfToday,
   formatRelative,
+  formatDistanceStrict,
+  formatDistanceToNow,
 } from 'date-fns'
 
 import {enUS} from 'date-fns/esm/locale'
@@ -197,50 +198,59 @@ export function daysToLabel(days: number): string {
   return label
 }
 
-const defaultLocale = moment.locale()
-moment.defineLocale('people', {
-  parentLocale: 'en',
-  relativeTime: {
-    M: '1mo',
-    MM: '%dmo',
-    d: '1d',
-    dd: '%dd',
-    future: 'in %s',
-    h: '1h',
-    hh: '%dh',
-    m: '1m',
-    mm: '%dm',
-    past: '%s ago',
-    s: 'now',
-    ss: '%ds',
-    y: '1y',
-    yy: '%dy',
+const formatDistanceLocale = {
+  xSeconds: {
+    one: 'now',
+    other: '{{count}}s',
   },
-})
-// When we define a locale, moment uses it. So reset it to use the default
-moment.locale(defaultLocale)
 
-const formatRelativeLocale = {
-  M: '1mo',
-  MM: '%dmo',
-  d: '1d',
-  dd: '%dd',
-  future: 'in %s',
-  h: '1h',
-  hh: '%dh',
-  m: '1m',
-  mm: '%dm',
-  past: '%s ago',
-  s: 'now',
-  ss: '%ds',
-  y: '1y',
-  yy: '%dy',
+  halfAMinute: '1m',
+
+  xMinutes: {
+    one: '1m',
+    other: '{{count}}m',
+  },
+
+  xHours: {
+    one: '1h',
+    other: '{{count}}h',
+  },
+
+  xDays: {
+    one: '1d',
+    other: '{{count}}d',
+  },
+
+  xMonths: {
+    one: '1mo',
+    other: '{{count}}mo',
+  },
+
+  xYears: {
+    one: '1y',
+    other: '{{count}}y',
+  },
+}
+
+const formatDistancePeople = (token, count) => {
+  let result
+  if (typeof formatDistanceLocale[token] === 'string') {
+    result = formatDistanceLocale[token]
+  } else if (count === 1) {
+    result = formatDistanceLocale[token].one
+  } else {
+    result = formatDistanceLocale[token].other.replace('{{count}}', count)
+  }
+  return result
 }
 
 export function formatTimeForPeopleItem(time: number): string {
-  return moment(time)
-    .locale('people') // todo: figure out how to deal with this mess
-    .fromNow(true)
+  return formatDistanceStrict(time, Date.now(), {
+    locale: {
+      ...enUS,
+      formatDistance: (token, count, _) => formatDistancePeople(token, count),
+    },
+  })
 }
 
 const oneMinuteInMs = 60 * 1000
