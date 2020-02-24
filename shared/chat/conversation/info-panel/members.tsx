@@ -31,12 +31,14 @@ export default (props: Props) => {
     Constants.getParticipantInfo(state, conversationIDKey)
   )
   React.useEffect(() => {
-    refreshParticipants(
-      [{convID: Types.keyToConversationID(conversationIDKey)}],
-      () => {},
-      () => {}
-    )
-  }, [conversationIDKey, refreshParticipants])
+    if (teamname) {
+      refreshParticipants(
+        [{convID: Types.keyToConversationID(conversationIDKey)}],
+        () => {},
+        () => {}
+      )
+    }
+  }, [conversationIDKey, refreshParticipants, teamname])
 
   let participants = participantInfo.all
   const adhocTeam = meta.teamType === 'adhoc'

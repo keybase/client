@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -80,33 +79,30 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, conv types.R
 		}
 
 		// load remote if necessary
-		if found && local.Hash == conv.Conv.Metadata.AllListHash {
-			return
+		localHash := ""
+		if found {
+			localHash = local.Hash
 		}
-		iboxRes, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-			Vers: 0,
-			Query: &chat1.GetInboxQuery{
-				ConvIDs:          []chat1.ConversationID{conv.GetConvID()},
-				ParticipantsMode: chat1.InboxParticipantsMode_ALL,
-			},
+		partRes, err := s.ri().RefreshParticipantsRemote(ctx, chat1.RefreshParticipantsRemoteArg{
+			ConvID: conv.GetConvID(),
+			Hash:   localHash,
 		})
 		if err != nil {
 			resCh <- types.ParticipantResult{Err: err}
 			return
 		}
-		if len(iboxRes.Inbox.Full().Conversations) == 0 {
-			resCh <- types.ParticipantResult{Err: errors.New("no participant conversation found")}
+		if partRes.HashMatch {
+			s.Debug(ctx, "GetNonblock: hash match on remote, all done")
 			return
 		}
-		rconv := iboxRes.Inbox.Full().Conversations[0]
+
 		if err := s.G().GetKVStore().PutObj(s.dbKey(conv.GetConvID()), nil, partDiskStorage{
-			Uids: rconv.Metadata.AllList,
-			Hash: rconv.Metadata.AllListHash,
+			Uids: partRes.Uids,
+			Hash: partRes.Hash,
 		}); err != nil {
 			s.Debug(ctx, "GetNonblock: failed to store participants: %s", err)
 		}
-		resCh <- types.ParticipantResult{Uids: rconv.Metadata.AllList}
-
+		resCh <- types.ParticipantResult{Uids: partRes.Uids}
 	}(globals.BackgroundChatCtx(ctx, s.G()))
 	return resCh
 }

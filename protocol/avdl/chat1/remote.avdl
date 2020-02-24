@@ -408,4 +408,12 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   GetRecentJoinsRes getRecentJoins(ConversationID convID);
+
+  record RefreshParticipantsRemoteRes {
+    boolean hashMatch;
+    array<gregor1.UID> uids;
+    string hash;
+    union { null, RateLimit } rateLimit;
+  }
+  RefreshParticipantsRemoteRes refreshParticipantsRemote(ConversationID convID, string hash);
 }
