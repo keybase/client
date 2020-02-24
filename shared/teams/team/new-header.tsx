@@ -16,7 +16,9 @@ import flags from '../../util/feature-flags'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
-  const onAdd = () => dispatch(appendNewTeamBuilder(teamID)) // TODO this should append step 1 of wizard 🧙‍♂️
+  const nav = Container.useSafeNavigation()
+  const onAdd = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamAddToTeamFromWhere'}]}))
   return (
     <Kb.Button
       label="Add/Invite people"
