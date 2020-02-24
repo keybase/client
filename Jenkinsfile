@@ -607,7 +607,8 @@ def testGo(prefix, packagesToTest) {
         'github.com/keybase/client/go/kbfs/libfuse': [
           flags: '',
           timeout: '5m',
-          citogo_extra : '--pause 1s'
+          citogo_extra : '--pause 1s',
+          no_citogo : '1'
         ],
         'github.com/keybase/client/go/kbfs/idutil': [
           flags: '-race',
@@ -783,7 +784,11 @@ def testGo(prefix, packagesToTest) {
                 println "Running tests for ${testSpec.dirPath}"
                 def t = getOverallTimeout(testSpec)
                 timeout(activity: true, time: t.time, unit: t.unit) {
-                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra || ''}"
+                  if (testSpec.no_citogo) {
+                    sh "./${testBinary} -test.timeout ${testSpec.timeout}"
+                  } else {
+                    sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra || ''}"
+                  }
                 }
               }
             }
