@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import flags from '../../../util/feature-flags'
@@ -108,7 +109,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       data: [{key: 'header-item'}], // 'header' cannot be used as a key, RN uses that key.
       key: 'header-section',
       renderItem: () => (
-        <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true} style={styles.header}>
+        <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
           {this.props.teamname && this.props.channelname ? (
             <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
           ) : (
@@ -194,9 +195,11 @@ const styles = Styles.styleSheetCreate(
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
           width: 320,
         },
-        isTablet: {marginTop: Styles.globalMargins.small},
+        isTablet: {
+          paddingTop: Styles.globalMargins.small,
+          width: 350,
+        },
       }),
-      header: Styles.platformStyles({isTablet: {marginBottom: Styles.globalMargins.small}}),
       tabContainerStyle: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.white,
@@ -205,9 +208,6 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           overflowX: 'hidden',
           overflowY: 'hidden',
-        },
-        isTablet: {
-          justifyContent: 'center',
         },
       }),
       tabStyle: {
@@ -226,4 +226,8 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
+function HeaderSometimes<P>(WrappedComponent: React.ComponentType<P>) {
+  return Styles.isMobile && !ChatConstants.isSplit ? Kb.HeaderHoc(WrappedComponent) : WrappedComponent
+}
+
+export const InfoPanel = HeaderSometimes(_InfoPanel)

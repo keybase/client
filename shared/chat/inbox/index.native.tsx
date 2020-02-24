@@ -282,12 +282,10 @@ const styles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           backgroundColor: Styles.globalColors.fastBlank,
-          flex: 1,
+          flexShrink: 1,
           position: 'relative',
         },
-        isTablet: {
-          maxWidth: Styles.globalStyles.shortWidth,
-        },
+        isTablet: {width: 300},
       }),
       loadingContainer: {
         left: 0,

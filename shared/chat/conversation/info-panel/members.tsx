@@ -128,7 +128,6 @@ const styles = Styles.styleSheetCreate(
         isTablet: {
           alignSelf: 'center',
           maxWidth: 800,
-          minWidth: 400,
         },
       }),
     } as const)
