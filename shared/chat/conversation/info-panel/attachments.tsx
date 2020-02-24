@@ -488,24 +488,27 @@ export default (p: Props) => {
                   width: m.previewWidth,
                 } as Thumb)
             )
-          ).map(month => ({
-            key: month.key,
-            data: chunk(
+          ).map(month => {
+            const data = chunk(
               month.data.map(thumb => ({
                 sizing: Constants.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
                 thumb,
               })),
               rowSize
-            ),
-            renderItem: ({item, index}: {item: Array<MediaThumbProps>; index: number}) => (
-              <Kb.Box2 key={index} direction="horizontal" fullWidth={true}>
-                {item.map((cell, i) => {
-                  return <MediaThumb key={i} sizing={cell.sizing} thumb={cell.thumb} />
-                })}
-              </Kb.Box2>
-            ),
-            renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
-          }))
+            ).map((images, i) => ({images, key: i}))
+            return {
+              key: month.key,
+              data,
+              renderItem: ({item}: {item: Unpacked<typeof data>; index: number}) => (
+                <Kb.Box2 direction="horizontal" fullWidth={true}>
+                  {item.images.map(cell => {
+                    return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
+                  })}
+                </Kb.Box2>
+              ),
+              renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+            }
+          })
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
