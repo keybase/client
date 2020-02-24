@@ -1938,21 +1938,29 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	path.root, err = readRootFromAPIRes(m, apiRes.Body.AtKey("root"), opts)
+	resSeqno, err := apiRes.Body.AtKey("root").AtKey("seqno").GetInt64()
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	ss, err = mc.readSkipSequenceFromAPIRes(m, apiRes, path.root, currentRoot)
-	if err != nil {
-		return nil, nil, nil, err
+
+	if keybase1.Seqno(resSeqno) == *currentRoot.Seqno() {
+		path.root = currentRoot
+	} else {
+		path.root, err = readRootFromAPIRes(m, apiRes.Body.AtKey("root"), opts)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		ss, err = mc.readSkipSequenceFromAPIRes(m, apiRes, path.root, currentRoot)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		err = mc.verifySkipSequenceAndRoot(m, ss, path.root, currentRoot, apiRes, opts)
+		if err != nil {
+			return nil, nil, nil, err
+		}
 	}
 
 	if err = checker(path); err != nil {
-		return nil, nil, nil, err
-	}
-
-	err = mc.verifySkipSequenceAndRoot(m, ss, path.root, currentRoot, apiRes, opts)
-	if err != nil {
 		return nil, nil, nil, err
 	}
 
