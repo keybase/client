@@ -2265,8 +2265,8 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		}
 		maxUses := *invite.MaxUses
 		uses := len(stateToUpdate.inner.UsedInvites[inviteID])
-		if !maxUses.IsInfiniteUses() && uses+1 >= int(maxUses) {
-			return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses+1)
+		if !maxUses.IsInfiniteUses() && uses >= int(maxUses) {
+			return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
 		}
 		uv, err := keybase1.ParseUserVersion(pair.UV)
 		if err != nil {
