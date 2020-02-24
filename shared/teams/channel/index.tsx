@@ -105,6 +105,8 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
+      position: 'relative',
+      top: 40,
     },
   }),
   listContentContainer: Styles.platformStyles({
