@@ -5,7 +5,8 @@ import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 //import {modalRoutes, tabRoots} from './routes'
 import logger from '../logger'
-//import {getActiveKey} from './util'
+// TODO move
+import {getActiveKey} from '../router-v2/util'
 
 //const getNumModals = navigation => {
 //const path = Constants._getModalStackForNavigator(navigation.state)
@@ -72,8 +73,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
 
       if (action.payload.fromKey) {
         const {fromKey} = action.payload
-        // TODO
-        const activeKey = getActiveKey(navigation.state)
+        const activeKey = getActiveKey(navigation.getRootState())
         if (fromKey !== activeKey) {
           logger.warn('Skipping append on wrong screen')
           return

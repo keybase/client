@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {getActiveKey} from '../router-v2/util'
-import {useNavigationState} from './navigation-hooks'
+import * as Container from '../util/container'
 
 type Path = Array<string | {props?: any; selected?: string}>
 
@@ -14,8 +13,8 @@ type SafeNavigationProps = {
 type SafeNavHook = () => SafeNavigationProps
 
 export const useSafeNavigation: SafeNavHook = () => {
-  const state = useNavigationState()
-  const fromKey = getActiveKey(state)
+  const route = Container.useRoute()
+  const fromKey = route.key
   return React.useMemo(
     () => ({
       navKey: fromKey,

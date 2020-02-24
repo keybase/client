@@ -7,48 +7,8 @@ import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import {createBottomTabNavigator, BottomTabBarProps} from '@react-navigation/bottom-tabs'
 import {createStackNavigator} from '@react-navigation/stack'
-import {newRoutes as peopleNewRoutes} from '../people/routes'
-//import {newRoutes as chatNewRoutes} from '../chat/routes'
-
-const Tab = createBottomTabNavigator()
-const Stack = createStackNavigator()
-
-const convertNavigationOptionsToStackOptions = (C: any) => {
-  const {navigationOptions} = C
-
-  if (navigationOptions) {
-    return {
-      header: navigationOptions.header,
-      headerTitle: navigationOptions.headerTitle,
-      headerTitleContainerStyle: navigationOptions.headerTitleContainerStyle,
-    }
-  }
-  return undefined
-}
-
-// TODO generate from routes
-const PeopleRoot = peopleNewRoutes.peopleRoot.getScreen()
-const PeopleStack = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="peopleRoot"
-        component={PeopleRoot}
-        options={convertNavigationOptionsToStackOptions(PeopleRoot)}
-      />
-    </Stack.Navigator>
-  )
-}
-const TempChat = () => {
-  return <Kb.Text type="Body">temp chat</Kb.Text>
-}
-const ChatStack = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="chatRoot" component={TempChat /*chatNewRoutes.chatRoot.getScreen()*/} />
-    </Stack.Navigator>
-  )
-}
+import {routes} from './routes'
+import {memoize} from '../util/memoize'
 
 const icons = new Map<string, Kb.IconType>([
   [Tabs.chatTab, 'iconfont-nav-2-chat'],
@@ -126,7 +86,43 @@ const TabBar = (props: BottomTabBarProps) => {
   )
 }
 
+const Tab = createBottomTabNavigator()
+const Stack = createStackNavigator()
+
+const convertNavigationOptionsToStackOptions = (C: any) => {
+  const {navigationOptions} = C
+
+  if (navigationOptions) {
+    return {
+      header: navigationOptions.header,
+      headerTitle: navigationOptions.headerTitle,
+      headerTitleContainerStyle: navigationOptions.headerTitleContainerStyle,
+    }
+  }
+  return undefined
+}
+
+const getScreens = memoize(() =>
+  Object.keys(routes).map(name => {
+    // TODO is there a way to defer the require now?
+    const Component = routes[name].getScreen()
+    return (
+      <Stack.Screen
+        key={name}
+        name={name}
+        component={Component}
+        options={convertNavigationOptionsToStackOptions(Component)}
+      />
+    )
+  })
+)
+
 const BlankTab = () => null
+const PeopleStack = () => <Stack.Navigator initialRouteName="peopleRoot">{getScreens()}</Stack.Navigator>
+const ChatStack = () => <Stack.Navigator initialRouteName="chatRoot">{getScreens()}</Stack.Navigator>
+const FSStack = () => <Stack.Navigator initialRouteName="fsRoot">{getScreens()}</Stack.Navigator>
+const TeamsStack = () => <Stack.Navigator initialRouteName="teamsRoot">{getScreens()}</Stack.Navigator>
+const SettingsStack = () => <Stack.Navigator initialRouteName="settingsRoot">{getScreens()}</Stack.Navigator>
 
 const NavTabs = () => {
   return (
@@ -134,9 +130,9 @@ const NavTabs = () => {
       <Tab.Screen name="blankTab" component={BlankTab} />
       <Tab.Screen name="tabs.peopleTab" component={PeopleStack} />
       <Tab.Screen name="tabs.chatTab" component={ChatStack} />
-      <Tab.Screen name="tabs.fsTab" component={ChatStack} />
-      <Tab.Screen name="tabs.teamsTab" component={ChatStack} />
-      <Tab.Screen name="tabs.settingsTab" component={ChatStack} />
+      <Tab.Screen name="tabs.fsTab" component={FSStack} />
+      <Tab.Screen name="tabs.teamsTab" component={TeamsStack} />
+      <Tab.Screen name="tabs.settingsTab" component={SettingsStack} />
     </Tab.Navigator>
   )
 }

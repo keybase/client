@@ -4,19 +4,13 @@ import * as Container from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
 import * as Shared from './shared'
 import logger from '../logger'
-import GlobalError from '../app/global-errors/container'
-import OutOfDate from '../app/out-of-date'
-import RuntimeStats from '../app/runtime-stats/container'
 import {NavigationContainer, NavigationContainerRef} from '@react-navigation/native'
 import {createStackNavigator} from '@react-navigation/stack'
-import {StatusBar} from 'react-native'
 import NavTabs from './tabs'
-
-import {newModalRoutes as peopleNewModalRoutes} from '../people/routes'
+import {modalRoutes} from './routes'
+import {memoize} from '../util/memoize'
 
 const ModalStack = createStackNavigator()
-
-const TeamBuildingModal = peopleNewModalRoutes.peopleTeamBuilder.getScreen()
 
 const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}) => {
   const {navRef} = props
@@ -56,15 +50,21 @@ const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}
   return null
 })
 
+const getModals = memoize(() =>
+  Object.keys(modalRoutes).map(name => {
+    // TODO is there a way to defer the require now?
+    const Component = modalRoutes[name].getScreen()
+    return <ModalStack.Screen key={name} name={name} component={Component} />
+  })
+)
+
 const RouterV3 = () => {
-  const isDarkMode = Styles.isDarkMode()
   const [nav, setNav] = React.useState<NavigationContainerRef>(null)
   const navIsSet = React.useRef(false)
   // TODO chagne routes
   //const loggedIn = Container.useSelector(state => state.config.loggedIn)
   return (
     <>
-      <StatusBar barStyle={Styles.isAndroid ? 'default' : isDarkMode ? 'light-content' : 'dark-content'} />
       <ReduxPlumbing navRef={nav} />
       <NavigationContainer
         ref={r => {
@@ -75,13 +75,9 @@ const RouterV3 = () => {
         }}
       >
         <ModalStack.Navigator mode="modal" screenOptions={{headerShown: false}} initialRouteName="Tabs">
-          <ModalStack.Screen name="Tabs" component={NavTabs} />
-          <ModalStack.Screen name="peopleTeamBuilder" component={TeamBuildingModal} />
+          {[<ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} />, ...getModals()]}
         </ModalStack.Navigator>
       </NavigationContainer>
-      <GlobalError />
-      <OutOfDate />
-      <RuntimeStats />
     </>
   )
 }

@@ -18,8 +18,8 @@ export const getActiveKey = (navState: NavState): string => {
     return navState.key
   }
   const route = navState.routes[navState.index]
-  if (route.routes) {
-    return getActiveKey(route)
+  if (route.state) {
+    return getActiveKey(route.state)
   }
   return navState.routes[navState.index].key
 }
