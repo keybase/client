@@ -42,10 +42,8 @@ func TestParticipantsSource(t *testing.T) {
 		require.Fail(t, "no uids")
 	}
 	time.Sleep(time.Millisecond * 200)
-	select {
-	case _, ok := <-ch:
-		require.False(t, ok)
-	}
+	_, ok := <-ch
+	require.False(t, ok)
 
 	// cached should get one
 	ch = tc.Context().ParticipantsSource.GetNonblock(ctx, conv)
@@ -57,10 +55,8 @@ func TestParticipantsSource(t *testing.T) {
 		require.Fail(t, "no uids")
 	}
 	time.Sleep(time.Millisecond * 200)
-	select {
-	case _, ok := <-ch:
-		require.False(t, ok)
-	}
+	_, ok = <-ch
+	require.False(t, ok)
 
 	// hash wrong, should get two
 	err = teams.SetRoleWriter(context.TODO(), tc.G, info.TlfName, users[2].Username)
@@ -92,8 +88,6 @@ func TestParticipantsSource(t *testing.T) {
 		require.Fail(t, "no uids")
 	}
 	time.Sleep(time.Millisecond * 200)
-	select {
-	case _, ok := <-ch:
-		require.False(t, ok)
-	}
+	_, ok = <-ch
+	require.False(t, ok)
 }
