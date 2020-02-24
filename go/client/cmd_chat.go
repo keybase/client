@@ -47,6 +47,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatFeaturedBots(cl, g),
 		newCmdChatSearchBots(cl, g),
 		newCmdChatClearCommands(cl, g),
+		newCmdChatConvInfo(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificChatCommands(cl, g)...)
 	sort.Sort(cli.ByName(subcommands))
