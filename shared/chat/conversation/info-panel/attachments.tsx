@@ -29,6 +29,7 @@ const monthNames = [
 ]
 
 type Thumb = {
+  key: React.Key
   ctime: number
   height: number
   isVideo: boolean
@@ -65,29 +66,36 @@ function getDateInfo<I extends {ctime: number}>(thumb: I) {
   }
 }
 
-function formMonths<I extends {ctime: number}>(
+function formMonths<I extends {ctime: number; key: React.Key}>(
   items: Array<I>
-): Array<{data: Array<I>; month: string; year: number}> {
+): Array<{
+  key: React.Key
+  data: Array<I>
+  month: string
+  year: number
+}> {
   if (items.length === 0) {
     return []
   }
+  const dateInfo = getDateInfo(items[0])
   let curMonth = {
-    ...getDateInfo(items[0]),
+    ...dateInfo,
+    key: `month-${dateInfo.year}-${dateInfo.month}`,
     data: [] as Array<I>,
   }
-  const months = items.reduce<Array<typeof curMonth>>((l, t, index) => {
-    const dateInfo = getDateInfo(t)
+  const months = items.reduce<Array<typeof curMonth>>((l, item, index) => {
+    const dateInfo = getDateInfo(item)
     if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
       if (curMonth.data.length > 0) {
         l.push(curMonth)
       }
       curMonth = {
-        data: [t],
-        month: dateInfo.month,
-        year: dateInfo.year,
+        ...dateInfo,
+        key: `month-${dateInfo.year}-${dateInfo.month}`,
+        data: [item],
       }
     } else {
-      curMonth.data.push(t)
+      curMonth.data.push(item)
     }
     if (index === items.length - 1 && curMonth.data.length > 0) {
       l.push(curMonth)
@@ -471,6 +479,7 @@ export default (p: Props) => {
             (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
               m =>
                 ({
+                  key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
                   ctime: m.timestamp,
                   height: m.previewHeight,
                   isVideo: !!m.videoDuration,
@@ -480,6 +489,7 @@ export default (p: Props) => {
                 } as Thumb)
             )
           ).map(month => ({
+            key: month.key,
             data: chunk(
               month.data.map(thumb => ({
                 sizing: Constants.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
@@ -487,9 +497,7 @@ export default (p: Props) => {
               })),
               rowSize
             ),
-            renderItem: (
-              {item, index}: {item: Array<MediaThumbProps>; index: number} // xxx
-            ) => (
+            renderItem: ({item, index}: {item: Array<MediaThumbProps>; index: number}) => (
               <Kb.Box2 key={index} direction="horizontal" fullWidth={true}>
                 {item.map((cell, i) => {
                   return <MediaThumb key={i} sizing={cell.sizing} thumb={cell.thumb} />
@@ -504,6 +512,7 @@ export default (p: Props) => {
       case RPCChatTypes.GalleryItemTyp.doc:
         {
           const docs = (attachmentInfo.messages as Array<Types.MessageAttachment>).map(m => ({
+            key: `doc-${m.ordinal}-${m.author}-${m.timestamp}-${m.fileName}`,
             author: m.author,
             ctime: m.timestamp,
             downloading: m.transferState === 'downloading',
@@ -516,6 +525,7 @@ export default (p: Props) => {
           }))
 
           const s = formMonths(docs).map(month => ({
+            key: month.key,
             data: month.data,
             renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
@@ -526,21 +536,30 @@ export default (p: Props) => {
       case RPCChatTypes.GalleryItemTyp.link:
         {
           const links = attachmentInfo.messages.reduce<
-            Array<{author: string; ctime: number; snippet: string; title?: string; url?: string}>
+            Array<{
+              key: React.Key
+              author: string
+              ctime: number
+              snippet: string
+              title?: string
+              url?: string
+            }>
           >((l, m) => {
             if (m.type !== 'text') {
               return l
             }
             if (!m.unfurls.size) {
               l.push({
+                key: `unfurl-empty-${m.ordinal}-${m.author}-${m.timestamp}`,
                 author: m.author,
                 ctime: m.timestamp,
                 snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
               })
             } else {
-              ;[...m.unfurls.values()].forEach(u => {
+              ;[...m.unfurls.values()].forEach((u, i) => {
                 if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
                   l.push({
+                    key: `unfurl-${m.ordinal}-${i}-${m.author}-${m.timestamp}-${u.unfurl.generic.url}`,
                     author: m.author,
                     ctime: m.timestamp,
                     snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
@@ -554,6 +573,7 @@ export default (p: Props) => {
           }, [])
 
           const s = formMonths(links).map(month => ({
+            key: month.key,
             data: month.data,
             renderItem: ({item}: {item: Link}) => {
               return (

@@ -61,6 +61,7 @@ export default (props: Props) => {
 
   const participantsItems = participants
     .map(p => ({
+      key: `user-${p}`,
       fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
       isAdmin: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
       isOwner: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
@@ -79,6 +80,8 @@ export default (props: Props) => {
 
   const onShowProfile = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
 
+  const data = [...(showAuditingBanner ? [{key: auditingBannerItem}] : []), ...participantsItems]
+
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
@@ -88,16 +91,16 @@ export default (props: Props) => {
       sections={[
         ...props.commonSections,
         {
-          data: [...(showAuditingBanner ? [auditingBannerItem] : []), ...participantsItems],
-          renderItem: ({index, item}: {index: number; item: any}) => {
-            if (item === auditingBannerItem) {
+          data,
+          renderItem: ({index, item}: {index: number; item: Unpacked<typeof data>}) => {
+            if (item.key === auditingBannerItem) {
               return (
                 <Kb.Banner color="grey" small={true}>
                   Auditing team members...
                 </Kb.Banner>
               )
             }
-            if (!item.username) {
+            if (!('username' in item) || !item.username) {
               return null
             }
             return (
