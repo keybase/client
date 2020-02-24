@@ -61,7 +61,6 @@ const words = ['At', 'Et', 'Itaque', 'Nam', 'Nemo', 'Quis', 'Sed', 'Temporibus',
 // messagesThreshold number of consecutive messages with the same timestamp
 const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
   const r = new Sb.Rnd(1337)
-  const origin = {year: 2018, month: 0, day: 0}
 
   let messagesThreshold: number = 0
   let generatedCount: number = 0
