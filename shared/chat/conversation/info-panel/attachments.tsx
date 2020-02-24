@@ -80,8 +80,8 @@ function formMonths<I extends {ctime: number; key: React.Key}>(
   const dateInfo = getDateInfo(items[0])
   let curMonth = {
     ...dateInfo,
-    key: `month-${dateInfo.year}-${dateInfo.month}`,
     data: [] as Array<I>,
+    key: `month-${dateInfo.year}-${dateInfo.month}`,
   }
   const months = items.reduce<Array<typeof curMonth>>((l, item, index) => {
     const dateInfo = getDateInfo(item)
@@ -91,8 +91,8 @@ function formMonths<I extends {ctime: number; key: React.Key}>(
       }
       curMonth = {
         ...dateInfo,
-        key: `month-${dateInfo.year}-${dateInfo.month}`,
         data: [item],
+        key: `month-${dateInfo.year}-${dateInfo.month}`,
       }
     } else {
       curMonth.data.push(item)
@@ -298,7 +298,7 @@ const styles = Styles.styleSheetCreate(
       },
       selectorContainer: Styles.platformStyles({
         common: {padding: Styles.globalMargins.small},
-        isTablet: {maxWidth: 600, alignSelf: 'center'},
+        isTablet: {alignSelf: 'center', maxWidth: 600},
       }),
       selectorDocContainer: {
         borderColor: Styles.globalColors.blue,
@@ -414,8 +414,8 @@ export default (p: Props) => {
   const commonSections = [
     ...p.commonSections,
     {
-      key: 'avselector',
       data: [{key: 'avselector'}],
+      key: 'avselector',
       renderItem: () => (
         <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
       ),
@@ -424,8 +424,8 @@ export default (p: Props) => {
   ]
 
   const loadMoreSection = {
-    key: 'load-more',
     data: [{key: 'load more'}],
+    key: 'load-more',
     renderItem: () => {
       const status = attachmentInfo.status
       if (onLoadMore && status !== 'loading') {
@@ -459,8 +459,8 @@ export default (p: Props) => {
   if (attachmentInfo.messages.length === 0 && attachmentInfo.status !== 'loading') {
     sections = [
       {
-        key: 'no-attachments',
         data: [{key: 'no-attachments'}],
+        key: 'no-attachments',
         renderItem: () => (
           <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
             <Kb.Text type="BodySmall">No attachments</Kb.Text>
@@ -479,10 +479,10 @@ export default (p: Props) => {
             (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
               m =>
                 ({
-                  key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
                   ctime: m.timestamp,
                   height: m.previewHeight,
                   isVideo: !!m.videoDuration,
+                  key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
                   onClick: () => onMediaClick(m),
                   previewURL: m.previewURL,
                   width: m.previewWidth,
@@ -497,8 +497,8 @@ export default (p: Props) => {
               rowSize
             ).map((images, i) => ({images, key: i}))
             return {
-              key: month.key,
               data,
+              key: month.key,
               renderItem: ({item}: {item: Unpacked<typeof data>; index: number}) => (
                 <Kb.Box2 direction="horizontal" fullWidth={true}>
                   {item.images.map(cell => {
@@ -515,11 +515,11 @@ export default (p: Props) => {
       case RPCChatTypes.GalleryItemTyp.doc:
         {
           const docs = (attachmentInfo.messages as Array<Types.MessageAttachment>).map(m => ({
-            key: `doc-${m.ordinal}-${m.author}-${m.timestamp}-${m.fileName}`,
             author: m.author,
             ctime: m.timestamp,
             downloading: m.transferState === 'downloading',
             fileName: m.fileName,
+            key: `doc-${m.ordinal}-${m.author}-${m.timestamp}-${m.fileName}`,
             message: m,
             name: m.title || m.fileName,
             onDownload: () => onDocDownload(m),
@@ -528,8 +528,8 @@ export default (p: Props) => {
           }))
 
           const s = formMonths(docs).map(month => ({
-            key: month.key,
             data: month.data,
+            key: month.key,
             renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
           }))
@@ -540,9 +540,9 @@ export default (p: Props) => {
         {
           const links = attachmentInfo.messages.reduce<
             Array<{
-              key: React.Key
               author: string
               ctime: number
+              key: React.Key
               snippet: string
               title?: string
               url?: string
@@ -553,18 +553,18 @@ export default (p: Props) => {
             }
             if (!m.unfurls.size) {
               l.push({
-                key: `unfurl-empty-${m.ordinal}-${m.author}-${m.timestamp}`,
                 author: m.author,
                 ctime: m.timestamp,
+                key: `unfurl-empty-${m.ordinal}-${m.author}-${m.timestamp}`,
                 snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
               })
             } else {
               ;[...m.unfurls.values()].forEach((u, i) => {
                 if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
                   l.push({
-                    key: `unfurl-${m.ordinal}-${i}-${m.author}-${m.timestamp}-${u.unfurl.generic.url}`,
                     author: m.author,
                     ctime: m.timestamp,
+                    key: `unfurl-${m.ordinal}-${i}-${m.author}-${m.timestamp}-${u.unfurl.generic.url}`,
                     snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
                     title: u.unfurl.generic.title,
                     url: u.unfurl.generic.url,

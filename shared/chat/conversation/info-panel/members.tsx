@@ -61,10 +61,10 @@ export default (props: Props) => {
 
   const participantsItems = participants
     .map(p => ({
-      key: `user-${p}`,
       fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
       isAdmin: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
       isOwner: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+      key: `user-${p}`,
       username: p,
     }))
     .sort((l, r) => {
@@ -125,7 +125,11 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       sectionList: Styles.platformStyles({
-        isTablet: {alignSelf: 'center', minWidth: 400, maxWidth: 800},
+        isTablet: {
+          alignSelf: 'center',
+          maxWidth: 800,
+          minWidth: 400,
+        },
       }),
     } as const)
 )

@@ -180,7 +180,11 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       sectionList: Styles.platformStyles({
-        isTablet: {alignSelf: 'center', minWidth: 400, maxWidth: 800},
+        isTablet: {
+          alignSelf: 'center',
+          maxWidth: 800,
+          minWidth: 400,
+        },
       }),
     } as const)
 )
