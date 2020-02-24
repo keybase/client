@@ -1,5 +1,7 @@
 #!groovy
 
+// TODO remove me. Used to trigger a Jenkins full rerun.
+
 import groovy.json.JsonSlurperClassic
 
 helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
