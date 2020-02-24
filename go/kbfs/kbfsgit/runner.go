@@ -672,8 +672,10 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 // unrecognized attributes are ignored. The list ends with a blank
 // line.
 func (r *runner) handleList(ctx context.Context, args []string) (err error) {
+	forPush := false
 	if len(args) == 1 && args[0] == "for-push" {
-		r.log.CDebugf(ctx, "Treating for-push the same as a regular list")
+		r.log.CDebugf(ctx, "Excluding symbolic refs during a for-push list")
+		forPush = true
 	} else if len(args) > 0 {
 		return errors.Errorf("Bad list request: %v", args)
 	}
@@ -726,7 +728,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		}
 	}
 
-	if hashesSeen {
+	if hashesSeen && !forPush {
 		for _, refStr := range symRefs {
 			r.log.CDebugf(ctx, "Listing symbolic ref %s", refStr)
 			_, err = r.output.Write([]byte(refStr))
