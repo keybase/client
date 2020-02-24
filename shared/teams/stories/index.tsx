@@ -24,11 +24,6 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         },
       ],
     ]),
-    teamMeta: new Map([
-      [fakeTeamID, Constants.makeTeamMeta({memberCount: 32, teamname: 'keybase_storybook'})],
-      [teamID2, Constants.makeTeamMeta({isOpen: true, memberCount: 11947, teamname: 'fan_club'})],
-      [teamID3, Constants.makeTeamMeta({isOpen: false, memberCount: 234, teamname: 'club_penguin'})],
-    ]),
     teamIDToChannelInfos: new Map([
       [
         fakeTeamID,
@@ -53,6 +48,11 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
           ['14', {...Constants.initialChannelInfo, channelname: 'team-dogs-of-the-sea-and-other-creatures'}],
         ]),
       ],
+    ]),
+    teamMeta: new Map([
+      [fakeTeamID, Constants.makeTeamMeta({memberCount: 32, teamname: 'keybase_storybook'})],
+      [teamID2, Constants.makeTeamMeta({isOpen: true, memberCount: 11947, teamname: 'fan_club'})],
+      [teamID3, Constants.makeTeamMeta({isOpen: false, memberCount: 234, teamname: 'club_penguin'})],
     ]),
   }
   draftState.config = {
