@@ -3449,23 +3449,6 @@
         "items": "TeamIDAndName"
       }
     },
-    "teamChangeMembership": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "req",
-          "type": "TeamChangeReq"
-        }
-      ],
-      "response": null
-    },
     "teamAddMember": {
       "request": [
         {
