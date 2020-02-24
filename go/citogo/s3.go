@@ -79,7 +79,7 @@ func s3put(src io.Reader, bucket string, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	where := fmt.Sprintf("(fetch with: `curl -s -o - https://%s.s3.amazonaws.com/%s | zcat -d`)", bucket, name)
+	where := fmt.Sprintf("(fetch with: ```curl -s -o - https://%s.s3.amazonaws.com/%s | zcat -d```)", bucket, name)
 	return where, nil
 }
 
