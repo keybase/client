@@ -337,12 +337,12 @@ func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.
 
 	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("encrypt error, so removing %q", outFilename)
+		h.G().Log.Debug("encrypt error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
@@ -355,7 +355,7 @@ func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.
 }
 
 func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
-	h.G().Log.Debug("encrypting directory %s", arg.Filename)
+	h.G().Log.Debug("encrypting directory")
 
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
@@ -365,7 +365,7 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 
-	zipch, pipeRead := zipDir(arg.Filename, prog)
+	pipeRead := zipDir(arg.Filename, prog)
 
 	outFilename, bw, err := boxFilename(arg.Filename, encryptedDirSuffix, arg.DestinationDir)
 	if err != nil {
@@ -387,26 +387,14 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 
 	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("encrypt error, so removing %q", outFilename)
+		h.G().Log.Debug("encrypt error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return keybase1.SaltpackEncryptFileResult{}, err
-	}
-
-	ziperr := <-zipch
-	if ziperr != nil {
-		h.G().Log.Debug("encrypt error, so removing %q", outFilename)
-		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
-		}
-		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
-		}
-		return keybase1.SaltpackEncryptFileResult{}, ziperr
 	}
 
 	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
@@ -439,12 +427,12 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("decrypt error, so removing %q", outFilename)
+		h.G().Log.Debug("decrypt error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return keybase1.SaltpackFileResult{}, err
 	}
@@ -492,12 +480,12 @@ func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.Sal
 	}
 
 	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
-		h.G().Log.Debug("sign error, so removing %q", outFilename)
+		h.G().Log.Debug("sign error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return "", err
 	}
@@ -506,7 +494,7 @@ func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.Sal
 }
 
 func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
-	h.G().Log.Debug("signing directory %s", arg.Filename)
+	h.G().Log.Debug("signing directory")
 
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
@@ -517,7 +505,7 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 		return "", err
 	}
 
-	zipch, pipeRead := zipDir(arg.Filename, prog)
+	pipeRead := zipDir(arg.Filename, prog)
 
 	outFilename, bw, err := boxFilename(arg.Filename, signedDirSuffix, arg.DestinationDir)
 	if err != nil {
@@ -536,26 +524,14 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
 
 	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
-		h.G().Log.Debug("sign error, so removing %q", outFilename)
+		h.G().Log.Debug("sign error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return "", err
-	}
-
-	ziperr := <-zipch
-	if ziperr != nil {
-		h.G().Log.Debug("sign error (zip), so removing %q", outFilename)
-		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
-		}
-		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
-		}
-		return "", ziperr
 	}
 
 	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
@@ -584,12 +560,12 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 
 	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("verify error, so removing %q", outFilename)
+		h.G().Log.Debug("verify error, so removing ouput file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
@@ -893,9 +869,8 @@ func dirTotalSize(filename string) (int64, error) {
 }
 
 // zipDir will create a zip archive of everything in directory suitablie for streaming.
-// It will send something on the chan error when it is done.
 // Read the data of the zip archive from the returned io.ReadCloser.
-func zipDir(directory string, prog *progress.ProgressWriter) (chan error, io.ReadCloser) {
+func zipDir(directory string, prog *progress.ProgressWriter) io.ReadCloser {
 	// make a pipe so we can give saltpack engines a reader for the zip source
 	pipeRead, pipeWrite := io.Pipe()
 
@@ -910,7 +885,6 @@ func zipDir(directory string, prog *progress.ProgressWriter) (chan error, io.Rea
 		return strings.TrimPrefix(s, parent+string(filepath.Separator))
 	}
 
-	zipch := make(chan error)
 	go func() {
 		err := filepath.Walk(directory, func(path string, info os.FileInfo, inErr error) error {
 			if inErr != nil {
@@ -956,14 +930,14 @@ func zipDir(directory string, prog *progress.ProgressWriter) (chan error, io.Rea
 		})
 
 		// close everything
-		w.Close()
-		pipeWrite.Close()
-
-		// send the error over zipch
-		zipch <- err
+		closeErr := w.Close()
+		if closeErr != nil && err == nil {
+			err = closeErr
+		}
+		pipeWrite.CloseWithError(err)
 	}()
 
-	return zipch, pipeRead
+	return pipeRead
 }
 
 func newDirProgressWriter(p types.ProgressReporter, dir string) (*progress.ProgressWriter, error) {
