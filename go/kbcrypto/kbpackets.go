@@ -178,6 +178,11 @@ type keybasePacket struct {
 	Version PacketVersion      `codec:"version"`
 }
 
+// newKeybasePacket creates a new keybase crypto packet, optionally computing a
+// hash over all data in the packet (via doHash). Every client 1.0.17 and above
+// provides this flag (implicitly, since before it wasn't optional).  Some 1.0.16
+// clients did this, and no clients 1.0.15 and earlier did it. We use the flag
+// so that we can generate the legacy hashes for old 1.0.16
 func newKeybasePacket(body Packetable, doHash bool) (*keybasePacket, error) {
 	tag, version := body.GetTagAndVersion()
 	ret := keybasePacket{

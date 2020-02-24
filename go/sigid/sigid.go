@@ -53,8 +53,8 @@ func isModernSigIDMaker(clientName string, clientVersionString string) YNM {
 // we have prefixes of wrong/legacy signature IDs, that need to be fixed. To save
 // binary space, we only include in data.go the shortest possible prefix of the
 // wrong/legacy signature IDs that don't collide with prefixes from the group of
-// correct signatures. So the idea is that if we compute a hash the right way,
-// then find its prefix in data.go, then we need to recompute it the wrong way,
+// correct signatures. So the idea is that if we compute a hash the modern way,
+// then find its prefix in data.go, then we need to recompute it the legacy way,
 // since that's the SigID that we use throughout the app.
 //
 // Background:
