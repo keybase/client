@@ -224,16 +224,16 @@ func computeLinkIDFromHashWithWhitespaceFixes(m MetaContext, payload []byte) (Li
 		return linkID, nil
 	}
 	last := len(payload) - 1
-	if payload[last] == '\n' {
-		m.Debug("Fixing payload hash by stripping newline on link '%s'", linkID.Export())
+	if payload[last] != '\n' {
+		err := ChainLinkError{fmt.Sprintf("failed to strip newline from line '%s'", linkID.Export())}
+		return nil, err
 	}
+	m.Debug("Fixing payload hash by stripping newline on link '%s'", linkID.Export())
 	toHash := payload[0:last]
 	hsh = sha256.Sum256(toHash)
 	fixedLinkID := LinkID(hsh[:])
 	if !fixedLinkID.Export().Eq(converted) {
-		msg := fmt.Sprintf("failed hash comparison after whitespace-fixing link '%s'", linkID.Export())
-		m.Debug(msg)
-		err := ChainLinkError{msg}
+		err := ChainLinkError{fmt.Sprintf("failed hash comparison after whitespace-fixing link '%s'", linkID.Export())}
 		return nil, err
 	}
 	return fixedLinkID, nil
@@ -428,20 +428,15 @@ type sig2Imploded struct {
 }
 
 type sigChainPayloadJSON struct {
-	s string
 	b []byte
 }
 
 func newSigChainPayloadJSON(s string) *sigChainPayloadJSON {
-	return &sigChainPayloadJSON{s: s, b: []byte(s)}
+	return &sigChainPayloadJSON{b: []byte(s)}
 }
 
 func newSigChainPayloadJSONFromBytes(b []byte) *sigChainPayloadJSON {
-	return &sigChainPayloadJSON{s: string(b), b: b}
-}
-
-func (s *sigChainPayloadJSON) String() string {
-	return s.s
+	return &sigChainPayloadJSON{b: b}
 }
 
 func (s *sigChainPayloadJSON) Bytes() []byte {
