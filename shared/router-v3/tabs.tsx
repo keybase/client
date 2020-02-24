@@ -63,7 +63,7 @@ const FilesTabBadge = () => {
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 
-const TabBarIcon = ({focused, name}) => {
+const TabBarIcon = ({focused, name, ...rest}) => {
   const settingsTabChildren: Array<Tabs.Tab> = [
     Tabs.gitTab,
     Tabs.devicesTab,
@@ -79,7 +79,8 @@ const TabBarIcon = ({focused, name}) => {
     )
   )
   return (
-    <Kb.NativeView pointerEvents="none">
+    // note 'rest' required by TouchableWithoutFeedback, see docs
+    <Kb.NativeView {...rest}>
       <Kb.Icon
         type={icons.get(name) ?? ('iconfont-nav-2-hamburger' as const)}
         fontSize={32}
@@ -93,17 +94,20 @@ const TabBarIcon = ({focused, name}) => {
 }
 
 const TabBar = (props: BottomTabBarProps) => {
-  const {state, descriptors, navigation} = props
+  const {state, navigation} = props
 
   return (
     <Kb.Box2 direction="horizontal" style={styles.container}>
       {state.routes.map((route, index) => {
-        if (route.name === 'blankTab') return null
+        if (route.name === 'blankTab') {
+          return null
+        }
 
         const isFocused = state.index === index
 
         const onPress = () => {
           const event = navigation.emit({
+            canPreventDefault: true,
             target: route.key,
             type: 'tabPress',
           })
@@ -113,13 +117,7 @@ const TabBar = (props: BottomTabBarProps) => {
           }
         }
         return (
-          <Kb.NativeTouchableWithoutFeedback
-            key={route.name}
-            accessibilityRole="button"
-            accessibilityStates={isFocused ? ['selected'] : []}
-            onPress={onPress}
-            style={undefined}
-          >
+          <Kb.NativeTouchableWithoutFeedback key={route.name} onPressIn={onPress}>
             <TabBarIcon focused={isFocused} name={route.name} />
           </Kb.NativeTouchableWithoutFeedback>
         )
@@ -131,7 +129,6 @@ const TabBar = (props: BottomTabBarProps) => {
 const BlankTab = () => null
 
 const NavTabs = () => {
-  //const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
   return (
     <Tab.Navigator initialRouteName="blankTab" backBehavior="none" tabBar={props => <TabBar {...props} />}>
       <Tab.Screen name="blankTab" component={BlankTab} />
