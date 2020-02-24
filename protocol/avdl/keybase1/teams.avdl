@@ -1236,8 +1236,6 @@ protocol teams {
   // admin only
   array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);
 
-  void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
-
   TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string phone, string username,
     TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 

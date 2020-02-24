@@ -1402,7 +1402,11 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, convID chat1.
 			c.G().Log.Warning("GetInboxLocal error: %s", err)
 			return nil, nil, err
 		}
-		return gilres.Conversations, gilres.RateLimits, nil
+		convs := gilres.Conversations
+		if len(convs) == 0 {
+			return nil, nil, fmt.Errorf("no conversations matched %q", convID)
+		}
+		return convs, gilres.RateLimits, nil
 	}
 
 	tlfName := channel.Name

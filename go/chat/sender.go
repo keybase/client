@@ -472,7 +472,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 				validConvs = append(validConvs, conv)
 			}
 			if conv.GetTopicName() == newTopicName {
-				return nil, DuplicateTopicNameError{TopicName: newTopicName}
+				return nil, DuplicateTopicNameError{Conv: conv}
 			}
 		}
 

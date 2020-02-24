@@ -50,7 +50,7 @@ type Packetable interface {
 }
 
 func EncodePacket(p Packetable, encoder *codec.Encoder) error {
-	packet, err := newKeybasePacket(p)
+	packet, err := newKeybasePacket(p, true)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,15 @@ func EncodePacket(p Packetable, encoder *codec.Encoder) error {
 }
 
 func EncodePacketToBytes(p Packetable) ([]byte, error) {
-	packet, err := newKeybasePacket(p)
+	packet, err := newKeybasePacket(p, true)
+	if err != nil {
+		return nil, err
+	}
+	return packet.encode()
+}
+
+func EncodePacketToBytesWithOptionalHash(p Packetable, doHash bool) ([]byte, error) {
+	packet, err := newKeybasePacket(p, doHash)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +74,7 @@ func EncodePacketToBytes(p Packetable) ([]byte, error) {
 }
 
 func EncodePacketToArmoredString(p Packetable) (string, error) {
-	packet, err := newKeybasePacket(p)
+	packet, err := newKeybasePacket(p, true)
 	if err != nil {
 		return "", err
 	}
@@ -170,23 +178,29 @@ type keybasePacket struct {
 	Version PacketVersion      `codec:"version"`
 }
 
-func newKeybasePacket(body Packetable) (*keybasePacket, error) {
+// newKeybasePacket creates a new keybase crypto packet, optionally computing a
+// hash over all data in the packet (via doHash). Every client 1.0.17 and above
+// provides this flag (implicitly, since before it wasn't optional).  Some 1.0.16
+// clients did this, and no clients 1.0.15 and earlier did it. We use the flag
+// so that we can generate the legacy hashes for old 1.0.16
+func newKeybasePacket(body Packetable, doHash bool) (*keybasePacket, error) {
 	tag, version := body.GetTagAndVersion()
 	ret := keybasePacket{
 		Body:    body,
 		Tag:     tag,
 		Version: version,
-		Hash: &keybasePacketHash{
+	}
+	if doHash {
+		ret.Hash = &keybasePacketHash{
 			Type:  SHA256Code,
 			Value: []byte{},
-		},
+		}
+		hashBytes, hashErr := ret.hashSum()
+		if hashErr != nil {
+			return nil, hashErr
+		}
+		ret.Hash.Value = hashBytes
 	}
-
-	hashBytes, hashErr := ret.hashSum()
-	if hashErr != nil {
-		return nil, hashErr
-	}
-	ret.Hash.Value = hashBytes
 	return &ret, nil
 }
 

@@ -821,6 +821,8 @@ export type IconType =
   | 'icon-team-placeholder-avatar-80'
   | 'icon-team-placeholder-avatar-960'
   | 'icon-team-sparkles-64-40'
+  | 'icon-teams-size-big-64'
+  | 'icon-teams-size-small-64'
   | 'icon-teams-type-business-64'
   | 'icon-teams-type-community-64'
   | 'icon-teams-type-notsure-64'
@@ -8642,6 +8644,22 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-team-sparkles-64-40.png')
+    },
+  },
+  'icon-teams-size-big-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-size-big-64.png')
+    },
+  },
+  'icon-teams-size-small-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-size-small-64.png')
     },
   },
   'icon-teams-type-business-64': {

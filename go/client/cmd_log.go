@@ -12,6 +12,7 @@ import (
 func NewCmdLog(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	subcommands := []cli.Command{
 		NewCmdLogSend(cl, g),
+		NewCmdLogProfile(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificLogCommands(cl, g)...)
 	return cli.Command{

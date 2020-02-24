@@ -823,10 +823,20 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
-			require.NoError(t, err)
 			require.Equal(t, topicName, ncres.Conv.Info.TopicName)
 			require.NotEqual(t, conv.Id, ncres.Conv.GetConvID())
-		case chat1.ConversationMembersType_KBFS:
+		default:
+			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
+		}
+		// recreate as the second user
+		tc2 := ctc.as(t, users[1])
+		ncres2, err := tc2.chatLocalHandler().NewConversationLocal(tc2.startCtx, arg)
+		require.NoError(t, err)
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Equal(t, topicName, ncres.Conv.Info.TopicName)
+			require.Equal(t, ncres.Conv.GetConvID(), ncres2.Conv.GetConvID())
+		default:
 			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
 		}
 
@@ -842,11 +852,9 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		require.Error(t, err)
 		arg.TopicName = nil
 		ncres, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.NoError(t, err)
 		switch mt {
-		case chat1.ConversationMembersType_KBFS:
-			require.NoError(t, err)
 		case chat1.ConversationMembersType_TEAM:
-			require.NoError(t, err)
 			require.Equal(t, globals.DefaultTeamTopic, ncres.Conv.Info.TopicName)
 		}
 		arg.TopicName = &topicName
