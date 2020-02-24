@@ -4,6 +4,7 @@ import {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import {ActionHandler as _ActionHandler} from './make-reducer'
 import {TypedState as _TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
+import {RouteProp as _RouteProp, ParamListBase} from '@react-navigation/native'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector} from 'react-redux'
@@ -101,3 +102,7 @@ export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 export {useIsFocused, useNavigation, useRoute, useFocusEffect} from '@react-navigation/native'
+export type RouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList> = _RouteProp<
+  ParamList,
+  RouteName
+>
