@@ -18,7 +18,7 @@ type Props = {
 const CheckCircle = (props: Props) => {
   const onClick = (evt: React.BaseSyntheticEvent) => {
     if (props.onCheck) {
-      !props.disabled && props.onCheck!(!props.checked)
+      !props.disabled && props.onCheck(!props.checked)
       evt.preventDefault()
       evt.stopPropagation()
     }
