@@ -934,7 +934,7 @@ func zipDir(directory string, prog *progress.ProgressWriter) io.ReadCloser {
 		if closeErr != nil && err == nil {
 			err = closeErr
 		}
-		pipeWrite.CloseWithError(err)
+		_ = pipeWrite.CloseWithError(err)
 	}()
 
 	return pipeRead
