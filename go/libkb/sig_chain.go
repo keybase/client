@@ -244,7 +244,6 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	readDeleted := m.G().Env.GetReadDeletedSigChain()
 
 	v2Compressed := (stubMode == StubModeStubbed)
-	nopj := true
 
 	resp, finisher, err := sc.G().API.GetResp(m, APIArg{
 		Endpoint:    "sig/get",
@@ -253,7 +252,10 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
 			"v2_compressed": B{v2Compressed},
-			"nopj":          B{nopj},
+			"nopj":          B{true},
+			"noph":          B{true},
+			"nokid":         B{true},
+			"implode":       B{true},
 			"read_deleted":  B{readDeleted},
 		},
 	})
