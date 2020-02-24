@@ -1,5 +1,4 @@
 import * as React from 'react'
-import moment from 'moment'
 import * as Sb from '../stories/storybook'
 import {stringToDeviceID} from '../constants/types/devices'
 import DevicesReal from './container'

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import {platformStyles, styleSheetCreate} from '../../styles'
 import {Transaction} from '.'
