@@ -744,7 +744,7 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *Merkl
 		q.Add("last", I{int(*lastSeqno)})
 		// If the last root known to the server has seqno last, we do not need
 		// to receive it again.
-		q.Add("strip_last", B{true})
+		q.Add("skip_last", B{true})
 	}
 
 	apiRes, err = m.G().API.Get(m, APIArg{
