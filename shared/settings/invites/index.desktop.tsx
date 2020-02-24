@@ -3,9 +3,10 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/settings'
 import React, {Component} from 'react'
 import SubHeading from '../subheading'
-import moment from 'moment'
 import {Props} from '.'
 import {intersperseFn} from '../../util/arrays'
+
+import {fromUnixTime, format} from 'date-fns'
 
 type State = {
   inviteEmail: string
@@ -163,7 +164,7 @@ function PendingEmailContent({
         <Kb.Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}
         </Kb.Text>
-        <Kb.Text type="BodySmall">Invited {moment.unix(invite.created).format('MMM D, YYYY')}</Kb.Text>
+        <Kb.Text type="BodySmall">Invited {format(fromUnixTime(invite.created), 'MMM d, YYYY')}</Kb.Text>
       </Kb.Box>
     </Kb.Box>
   )

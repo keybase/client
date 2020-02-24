@@ -1,7 +1,6 @@
 /* eslint-disable sort-keys */
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import moment from 'moment'
 import {Button, ButtonBar, Box2, Text} from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
 import {propProvider as ReactionsRowProvider} from '../messages/reactions-row/index.stories'
@@ -15,6 +14,7 @@ import HiddenString from '../../../util/hidden-string'
 import JumpToRecent from './jump-to-recent'
 import SpecialTopMessage from '../messages/special-top-message'
 import * as Constants from '../../../constants/chat2'
+import {addDays, addMilliseconds, getMilliseconds, differenceInMilliseconds} from 'date-fns'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
@@ -68,22 +68,22 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
   let currentTimestamp: number = 0
 
   let dayRange: number = 0
-  const start = moment(origin)
-  const end = moment(origin)
+  let start = new Date(2018, 0, 0)
+  let end = new Date(2018, 0, 0)
 
   return (): number => {
     // Initialize or reset because threshold was crossed
     if (currentTimestamp === 0 || generatedCount > messagesThreshold) {
       // Move the start day up by the previous number of days to avoid overlap
-      start.add(dayRange, 'days')
+      start = addDays(start, dayRange)
       // Get a new date range for random timestamps
       dayRange = (r.next() % days) + 1
-      end.add(dayRange, 'days')
+      end = addDays(end, dayRange)
 
-      const diff = end.diff(start)
+      const diff = differenceInMilliseconds(end, start)
       // Multiply the epoch time different by some floating point between [0, 1]
       const newDiff = diff * (r.next() / 2147483647)
-      const newTimestamp = moment(start.valueOf() + newDiff)
+      const newTimestamp = getMilliseconds(addMilliseconds(start, newDiff))
       currentTimestamp = newTimestamp.valueOf()
 
       // Reset threashold and count

@@ -175,15 +175,18 @@ const output: {
   unmatched: [],
 }
 
-const buildEvent = (info: Info, ph: 'B' | 'E' | 'i'): Event => ({
-  args: info.args,
-  id: info.id,
-  name: info.name,
-  ph,
-  pid: 0,
-  tid: info.app,
-  ts: moment(info.time).valueOf() * (isGUI ? 1 : 1000),
-})
+const buildEvent = (info: Info, ph: 'B' | 'E' | 'i'): Event => {
+  // TODO: figure out what format info.time is so we can get rid of moment here
+  return {
+    args: info.args,
+    id: info.id,
+    name: info.name,
+    ph,
+    pid: 0,
+    tid: info.app,
+    ts: moment(info.time).valueOf() * (isGUI ? 1 : 1000),
+  }
+}
 
 const buildGood = (old: Info, info: Info) => {
   const s = buildEvent(old, 'B')
