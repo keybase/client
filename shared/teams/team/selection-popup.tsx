@@ -142,7 +142,7 @@ const MembersActions = ({teamID}: ActionsProps) => {
   )
 }
 
-const ChannelsActions = ({teamID}: ActionsProps) => {
+const ChannelsActions = (_: ActionsProps) => {
   // Channels tab functions
   const onDelete = () => {}
   return (
