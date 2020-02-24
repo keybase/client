@@ -1,6 +1,6 @@
 // A utility to convert our log sends to something consumable by chrome://tracing
 import fs from 'fs'
-import moment from 'moment'
+import {parseISO} from 'date-fns'
 
 type Args = {
   counter?: string
@@ -184,7 +184,7 @@ const buildEvent = (info: Info, ph: 'B' | 'E' | 'i'): Event => {
     ph,
     pid: 0,
     tid: info.app,
-    ts: moment(info.time).valueOf() * (isGUI ? 1 : 1000),
+    ts: parseISO(info.time).getMilliseconds() * (isGUI ? 1 : 1000),
   }
 }
 
