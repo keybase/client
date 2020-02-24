@@ -10,6 +10,7 @@ import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
+import HeaderArea from './header-area/container'
 
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
@@ -24,8 +25,9 @@ type SwitchProps = {
 
 export class Conversation extends React.PureComponent<SwitchProps> {
   static navigationOptions = {
-    headerMode: 'screen',
-    header: () => null,
+    header: ({scene}) => (
+      <HeaderArea conversationIDKey={scene.route.params.conversationIDKey} progress={scene.progress} />
+    ),
   }
   _onDidFocus = () => {
     this.props.selectConversation()
