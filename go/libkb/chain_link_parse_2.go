@@ -513,6 +513,7 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (*importRes, 
 
 	outerPayload, err := sig2Imploded.OuterLink.EncodePartial(sig2Imploded.NumFields)
 	if err != nil {
+		m.Debug("EncodePartial failed on input si2=%s", sig2ImplodedRaw)
 		return nil, err
 	}
 	ret.linkID = ComputeLinkID(outerPayload)
