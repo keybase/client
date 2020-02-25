@@ -10,7 +10,6 @@ import TeamBuilding, {
   numSectionLabel,
   Props as TeamBuildingProps,
 } from '.'
-import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
@@ -18,19 +17,13 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
-import * as Styles from '../styles'
 import * as TeamTypes from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {getDisabledReasonsForRolePicker, getTeamDetails, getTeamMeta} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
-import {Props as HeaderHocProps} from '../common-adapters/header-hoc'
-import {HocExtractProps as PopupHocProps} from '../common-adapters/popup-dialog-hoc'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
-import {ModalTitle as TeamModalTitle} from '../teams/common'
-import flags from '../util/feature-flags'
 
 // TODO remove when bots are fully integrated in gui
 type TeamRoleTypeWithoutBots = Exclude<TeamTypes.TeamRoleType, 'bot' | 'restrictedbot'>
@@ -586,54 +579,9 @@ const mergeProps = (
     teamSoFar,
   })
 
-  let title, titleComponent
-  if (ownProps.namespace === 'teams') {
-    if (flags.teamsRedesign) {
-      title = 'Search people'
-      titleComponent = <TeamModalTitle teamname={stateProps.teamname} title={title} />
-    } else {
-      title = `Add to ${stateProps.teamname}`
-    }
-  } else {
-    title = ownProps.title
-  }
-  const headerHocProps: HeaderHocProps = Container.isMobile
-    ? {
-        borderless: true,
-        leftAction: 'cancel',
-        onLeftAction: dispatchProps._onCancelTeamBuilding,
-        rightActions: [
-          teamSoFar.length
-            ? rolePickerProps
-              ? {
-                  custom: (
-                    <RolePickerHeaderAction
-                      onFinishTeamBuilding={dispatchProps.onFinishTeamBuilding}
-                      rolePickerProps={rolePickerProps}
-                      count={teamSoFar.length}
-                    />
-                  ),
-                }
-              : {
-                  custom: (
-                    <Button
-                      label="Start"
-                      mode="Primary"
-                      onClick={dispatchProps.onFinishTeamBuilding}
-                      small={true}
-                      type="Success"
-                    />
-                  ),
-                }
-            : null,
-        ],
-        title,
-        titleComponent,
-      }
-    : emptyObj
+  const title = ownProps.namespace === 'teams' ? `Add to ${stateProps.teamname}` : ownProps.title
 
   return {
-    ...headerHocProps,
     ...contactProps,
     error: stateProps.error,
     fetchUserRecs: dispatchProps.fetchUserRecs,

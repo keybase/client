@@ -31,6 +31,7 @@ import {
   SelectedUser,
   ServiceIdWithContact,
 } from '../constants/types/team-building'
+import RolePickerHeaderAction from './role-picker-header-action'
 
 export const numSectionLabel = '0-9'
 
@@ -585,7 +586,28 @@ class TeamBuilding extends React.PureComponent<Props> {
     }
     // Handle when team-building is making a new chat v.s. adding members to a team.
     if (Styles.isMobile) {
-      return {hideBorder: true, leftButton: mobileCancel, title: this.props.title}
+      const rightButton =
+        this.props.namespace === 'teams' && this.props.rolePickerProps ? (
+          <RolePickerHeaderAction
+            onFinishTeamBuilding={this.props.onFinishTeamBuilding}
+            rolePickerProps={this.props.rolePickerProps}
+            count={this.props.teamSoFar.length}
+          />
+        ) : (
+          <Kb.Button
+            label="Start"
+            onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
+            small={true}
+            type="Success"
+            style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+          />
+        )
+      return {
+        hideBorder: true,
+        leftButton: mobileCancel,
+        rightButton,
+        title: this.props.title,
+      }
     }
     const title = this.props.rolePickerProps ? (
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
@@ -787,6 +809,7 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
+      hide: {opacity: 0},
       iconContactBookContainer: {
         alignItems: 'center',
         marginLeft: Styles.globalMargins.xsmall,
