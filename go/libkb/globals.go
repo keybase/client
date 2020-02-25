@@ -32,6 +32,8 @@ import (
 	context "golang.org/x/net/context"
 )
 
+var IsIPad bool // Set by bind's Init.
+
 type ShutdownHook func(mctx MetaContext) error
 
 type LoginHook interface {

@@ -311,6 +311,11 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 	}
 }
 
+type ParticipantResult struct {
+	Uids []gregor1.UID
+	Err  error
+}
+
 type DummyAttachmentFetcher struct{}
 
 var _ AttachmentFetcher = (*DummyAttachmentFetcher)(nil)
@@ -701,3 +706,16 @@ func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID c
 func (d DummyUIThreadLoader) IsOffline(ctx context.Context) bool { return true }
 func (d DummyUIThreadLoader) Connected(ctx context.Context)      {}
 func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}
+
+type DummyParticipantSource struct{}
+
+func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]gregor1.UID, error) {
+	return nil, nil
+}
+func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan ParticipantResult {
+	ch := make(chan ParticipantResult)
+	close(ch)
+	return ch
+}
+func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+}
