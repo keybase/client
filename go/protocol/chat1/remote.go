@@ -1345,6 +1345,24 @@ func (o RefreshParticipantsRemoteRes) DeepCopy() RefreshParticipantsRemoteRes {
 	}
 }
 
+type GetLastActiveAtRes struct {
+	LastActiveAt gregor1.Time `codec:"lastActiveAt" json:"lastActiveAt"`
+	RateLimit    *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetLastActiveAtRes) DeepCopy() GetLastActiveAtRes {
+	return GetLastActiveAtRes{
+		LastActiveAt: o.LastActiveAt.DeepCopy(),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -1598,6 +1616,11 @@ type RefreshParticipantsRemoteArg struct {
 	Hash   string         `codec:"hash" json:"hash"`
 }
 
+type GetLastActiveAtArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1647,6 +1670,7 @@ type RemoteInterface interface {
 	SetDefaultTeamChannels(context.Context, SetDefaultTeamChannelsArg) (SetDefaultTeamChannelsRes, error)
 	GetRecentJoins(context.Context, ConversationID) (GetRecentJoinsRes, error)
 	RefreshParticipantsRemote(context.Context, RefreshParticipantsRemoteArg) (RefreshParticipantsRemoteRes, error)
+	GetLastActiveAt(context.Context, GetLastActiveAtArg) (GetLastActiveAtRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -2358,6 +2382,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getLastActiveAt": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveAtArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveAtArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveAtArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveAt(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2619,5 +2658,10 @@ func (c RemoteClient) GetRecentJoins(ctx context.Context, convID ConversationID)
 
 func (c RemoteClient) RefreshParticipantsRemote(ctx context.Context, __arg RefreshParticipantsRemoteArg) (res RefreshParticipantsRemoteRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.refreshParticipantsRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) GetLastActiveAt(ctx context.Context, __arg GetLastActiveAtArg) (res GetLastActiveAtRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getLastActiveAt", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

@@ -1185,6 +1185,7 @@ export type GetInboxQuery = {readonly convID?: ConversationID | null; readonly t
 export type GetInboxRemoteRes = {readonly inbox: InboxView; readonly rateLimit?: RateLimit | null}
 export type GetInboxSummaryForCLILocalQuery = {readonly topicType: TopicType; readonly after: String; readonly before: String; readonly visibility: Keybase1.TLFVisibility; readonly status?: Array<ConversationStatus> | null; readonly convIDs?: Array<ConversationID> | null; readonly unreadFirst: Boolean; readonly unreadFirstLimit: UnreadFirstNumLimit; readonly activitySortedLimit: Int}
 export type GetInboxSummaryForCLILocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
+export type GetLastActiveAtRes = {readonly lastActiveAt: Gregor1.Time; readonly rateLimit?: RateLimit | null}
 export type GetMessageBeforeRes = {readonly msgID: MessageID; readonly rateLimit?: RateLimit | null}
 export type GetMessagesLocalRes = {readonly messages?: Array<MessageUnboxed> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetMessagesRemoteRes = {readonly msgs?: Array<MessageBoxed> | null; readonly rateLimit?: RateLimit | null}
@@ -1781,3 +1782,4 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.setDefaultTeamChannels'
 // 'chat.1.remote.getRecentJoins'
 // 'chat.1.remote.refreshParticipantsRemote'
+// 'chat.1.remote.getLastActiveAt'

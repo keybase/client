@@ -933,6 +933,23 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetLastActiveAtRes",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "lastActiveAt"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1677,6 +1694,19 @@
         }
       ],
       "response": "RefreshParticipantsRemoteRes"
+    },
+    "getLastActiveAt": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "GetLastActiveAtRes"
     }
   },
   "namespace": "chat.1",
