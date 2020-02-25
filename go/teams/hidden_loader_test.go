@@ -23,6 +23,9 @@ func makeHiddenRotation(t *testing.T, userContext *libkb.GlobalContext, teamName
 }
 
 func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, committedSeqno, uncommittedSeqno keybase1.Seqno) {
+	// since polling does not take into account hidden chain updates, manually update the merkle root.
+	_, err := tc.G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tc), 0)
+	require.NoError(t, err)
 	_, teamHiddenChain, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          teamID,
 		ForceRepoll: true,
@@ -668,6 +671,9 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
 
+	// since polling does not take into account hidden chain updates, manually update the merkle root.
+	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
+	require.NoError(t, err)
 	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
 		ID:                   teamID,
 		ForceRefresh:         true,
@@ -688,6 +694,8 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
 
+	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
+	require.NoError(t, err)
 	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
 		ID:                   teamID,
 		ForceRefresh:         true,
@@ -710,6 +718,8 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
 
+	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
+	require.NoError(t, err)
 	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
 		ID:                   teamID,
 		ForceRefresh:         true,
@@ -730,6 +740,8 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
 
+	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
+	require.NoError(t, err)
 	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
 		ID:                   teamID,
 		ForceRefresh:         true,
