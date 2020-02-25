@@ -52,7 +52,6 @@ export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setMemberPublicity = 'teams:setMemberPublicity'
-export const setMemberSelected = 'teams:setMemberSelected'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
@@ -84,6 +83,7 @@ export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamCreated = 'teams:teamCreated'
 export const teamLoaded = 'teams:teamLoaded'
+export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
 export const toggleInvitesCollapsed = 'teams:toggleInvitesCollapsed'
 export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
 export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
@@ -208,12 +208,6 @@ type _SetChannelSelectedPayload = {
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
-type _SetMemberSelectedPayload = {
-  readonly teamID: Types.TeamID
-  readonly username: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
@@ -304,6 +298,12 @@ type _TeamCreatedPayload = {
   readonly teamname: string
 }
 type _TeamLoadedPayload = {readonly teamID: Types.TeamID; readonly details: Types.TeamDetails}
+type _TeamSetMemberSelectedPayload = {
+  readonly teamID: Types.TeamID
+  readonly username: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}
 type _ToggleInvitesCollapsedPayload = {readonly teamID: Types.TeamID}
 type _UnsubscribeTeamDetailsPayload = {readonly teamID: Types.TeamID}
 type _UnsubscribeTeamListPayload = void
@@ -412,10 +412,9 @@ export const createSetChannelSelected = (payload: _SetChannelSelectedPayload): S
 /**
  * Sets whether a member is selected on the team page
  */
-export const createSetMemberSelected = (payload: _SetMemberSelectedPayload): SetMemberSelectedPayload => ({
-  payload,
-  type: setMemberSelected,
-})
+export const createTeamSetMemberSelected = (
+  payload: _TeamSetMemberSelectedPayload
+): TeamSetMemberSelectedPayload => ({payload, type: teamSetMemberSelected})
 /**
  * Stop listening for team details for this team
  */
@@ -796,10 +795,6 @@ export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
   readonly type: typeof setMemberPublicity
 }
-export type SetMemberSelectedPayload = {
-  readonly payload: _SetMemberSelectedPayload
-  readonly type: typeof setMemberSelected
-}
 export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: typeof setMembers}
 export type SetNewTeamInfoPayload = {
   readonly payload: _SetNewTeamInfoPayload
@@ -909,6 +904,10 @@ export type ShowTeamByNamePayload = {
 }
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
+export type TeamSetMemberSelectedPayload = {
+  readonly payload: _TeamSetMemberSelectedPayload
+  readonly type: typeof teamSetMemberSelected
+}
 export type ToggleInvitesCollapsedPayload = {
   readonly payload: _ToggleInvitesCollapsedPayload
   readonly type: typeof toggleInvitesCollapsed
@@ -978,7 +977,6 @@ export type Actions =
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
   | SetMemberPublicityPayload
-  | SetMemberSelectedPayload
   | SetMembersPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload
@@ -1010,6 +1008,7 @@ export type Actions =
   | ShowTeamByNamePayload
   | TeamCreatedPayload
   | TeamLoadedPayload
+  | TeamSetMemberSelectedPayload
   | ToggleInvitesCollapsedPayload
   | UnsubscribeTeamDetailsPayload
   | UnsubscribeTeamListPayload

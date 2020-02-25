@@ -228,7 +228,7 @@ export default Container.makeReducer<
       }
     }
   },
-  [TeamsGen.setMemberSelected]: (draftState, action) => {
+  [TeamsGen.teamSetMemberSelected]: (draftState, action) => {
     const {teamID, username, selected, clearAll} = action.payload
     if (clearAll) {
       draftState.selectedMembers.delete(teamID)

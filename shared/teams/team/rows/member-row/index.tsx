@@ -80,7 +80,7 @@ export const TeamMemberRow = (props: Props) => {
     const selected = !!selectedMembers?.has(props.username)
 
     const onSelect = (selected: boolean) => {
-      dispatch(TeamsGen.createSetMemberSelected({selected, teamID, username: props.username}))
+      dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
     }
 
     const checkCircle = (

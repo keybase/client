@@ -50,7 +50,7 @@ const SelectionPopup = (props: Props) => {
         return
       case 'members':
         dispatch(
-          TeamsGen.createSetMemberSelected({
+          TeamsGen.createTeamSetMemberSelected({
             clearAll: true,
             selected: false,
             teamID: props.teamID,
