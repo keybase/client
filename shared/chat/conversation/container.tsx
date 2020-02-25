@@ -53,16 +53,16 @@ let Conversation = (p: SwitchProps) => {
     // eslint-disable-next-line
     React.useEffect(() => {
       if (isFocused) {
+        Constants.setIsUserActivelyLookingAtThread(conversationIDKey)
         if (_storeConvoIDKey !== conversationIDKey) {
           dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'}))
         }
       } else {
-        if (!Constants.isSplit && _storeConvoIDKey !== conversationIDKey) {
-          dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey: conversationIDKey}))
+        if (Constants.getIsUserActivelyLookingAtThread() === conversationIDKey) {
+          Constants.setIsUserActivelyLookingAtThread(Constants.noConversationIDKey)
         }
       }
-      // eslint-disable-next-line
-    }, [isFocused, dispatch, _storeConvoIDKey, conversationIDKey])
+    }, [isFocused, dispatch, conversationIDKey])
   }
 
   switch (type) {

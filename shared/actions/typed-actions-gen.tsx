@@ -82,7 +82,6 @@ export type TypedActionsMap = {
   'bots:searchFeaturedAndUsers': bots.SearchFeaturedAndUsersPayload
   'bots:setSearchFeaturedAndUsersResults': bots.SetSearchFeaturedAndUsersResultsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
-  'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
   'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload

@@ -276,28 +276,21 @@ export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => 
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id) || (emptySet as Set<string>)
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-export const isUserActivelyLookingAtThisThread = (
+
+let _activelyLookingAtThread: Types.ConversationIDKey = noConversationIDKey
+export const setIsUserActivelyLookingAtThread = (convID: Types.ConversationIDKey) => {
+  _activelyLookingAtThread = convID
+}
+export const getIsUserActivelyLookingAtThread = () => _activelyLookingAtThread
+
+export const isUserActivelyLookingAtThisThreadAndActive = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey
 ) => {
-  const selectedConversationIDKey = getSelectedConversation(state)
-
-  let chatThreadSelected = false
-  if (!isSplit) {
-    chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
-  } else {
-    const maybeVisibleScreen = Router2.getVisibleScreen()
-    chatThreadSelected =
-      (maybeVisibleScreen === null || maybeVisibleScreen === undefined
-        ? undefined
-        : maybeVisibleScreen.routeName) === 'chatRoot'
-  }
-
   return (
     state.config.appFocused && // app focused?
     state.config.userActive && // actually interacting w/ the app
-    chatThreadSelected && // looking at the chat tab?
-    conversationIDKey === selectedConversationIDKey // looking at the selected thread?
+    _activelyLookingAtThread === conversationIDKey // looking at the chat tab?
   )
 }
 export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
