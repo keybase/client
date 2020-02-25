@@ -133,6 +133,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       addBot: {
+        alignSelf: undefined,
         marginBottom: Styles.globalMargins.xtiny,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
