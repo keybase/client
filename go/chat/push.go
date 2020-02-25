@@ -45,7 +45,7 @@ type gregorMessageOrderer struct {
 func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 	return &gregorMessageOrderer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorMessageOrderer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "gregorMessageOrderer", false),
 		waiters:      make(map[string][]messageWaiterEntry),
 		clock:        clockwork.NewRealClock(),
 	}
@@ -219,7 +219,7 @@ type PushHandler struct {
 func NewPushHandler(g *globals.Context) *PushHandler {
 	p := &PushHandler{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "PushHandler", false),
 		identNotifier: NewCachingIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
 		typingMonitor: NewTypingMonitor(g),
@@ -656,7 +656,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d", nm.ConvID, nm.MsgID)
 
 			uid := m.UID().Bytes()
-			if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
+			if _, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 		case types.ActionSetStatus:
@@ -668,7 +668,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: setStatus: convID: %s status: %d", nm.ConvID, nm.Status)
 
 			uid := m.UID().Bytes()
-			if conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
+			conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status)
+			if err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			activity = new(chat1.ChatActivity)

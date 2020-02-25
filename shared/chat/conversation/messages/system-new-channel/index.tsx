@@ -10,14 +10,12 @@ type Props = {
 
 const NewChannel = (props: Props) => {
   const descStyleOverride = {
-    link: {fontSize: Styles.isMobile ? 15 : 13, fontWeight: 600},
-    paragraph: Styles.collapseStyles([
-      {
-        fontSize: Styles.isMobile ? 15 : 13,
-      },
-      styles.text,
-    ]),
-  } as any
+    link: {fontSize: Styles.isMobile ? 15 : 13, fontWeight: '600'},
+    paragraph: {
+      fontSize: Styles.isMobile ? 15 : 13,
+      ...styles.text,
+    },
+  } as const
   const {message} = props
   return (
     <UserNotice>

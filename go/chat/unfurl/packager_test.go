@@ -16,7 +16,6 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
@@ -44,12 +43,11 @@ func (p paramsRemote) GetS3Params(ctx context.Context, convID chat1.Conversation
 func TestPackager(t *testing.T) {
 	tc := libkb.SetupTest(t, "packager", 1)
 	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
 
-	log := logger.NewTestLogger(t)
-	store := attachments.NewStoreTesting(log, nil, tc.G)
+	store := attachments.NewStoreTesting(g, nil)
 	s3Signer := &ptsigner{}
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
-	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	packager := NewPackager(g, store, s3Signer, ri)
 	clock := clockwork.NewFakeClock()
 	packager.cache.setClock(clock)

@@ -325,9 +325,10 @@ type SaltpackEncryptStringToTextFileArg struct {
 }
 
 type SaltpackEncryptFileArg struct {
-	SessionID int                            `codec:"sessionID" json:"sessionID"`
-	Filename  string                         `codec:"filename" json:"filename"`
-	Opts      SaltpackFrontendEncryptOptions `codec:"opts" json:"opts"`
+	SessionID      int                            `codec:"sessionID" json:"sessionID"`
+	Filename       string                         `codec:"filename" json:"filename"`
+	DestinationDir string                         `codec:"destinationDir" json:"destinationDir"`
+	Opts           SaltpackFrontendEncryptOptions `codec:"opts" json:"opts"`
 }
 
 type SaltpackDecryptStringArg struct {
@@ -338,6 +339,7 @@ type SaltpackDecryptStringArg struct {
 type SaltpackDecryptFileArg struct {
 	SessionID         int    `codec:"sessionID" json:"sessionID"`
 	EncryptedFilename string `codec:"encryptedFilename" json:"encryptedFilename"`
+	DestinationDir    string `codec:"destinationDir" json:"destinationDir"`
 }
 
 type SaltpackSignStringArg struct {
@@ -351,8 +353,9 @@ type SaltpackSignStringToTextFileArg struct {
 }
 
 type SaltpackSignFileArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Filename  string `codec:"filename" json:"filename"`
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	Filename       string `codec:"filename" json:"filename"`
+	DestinationDir string `codec:"destinationDir" json:"destinationDir"`
 }
 
 type SaltpackSaveCiphertextToFileArg struct {
@@ -373,6 +376,7 @@ type SaltpackVerifyStringArg struct {
 type SaltpackVerifyFileArg struct {
 	SessionID      int    `codec:"sessionID" json:"sessionID"`
 	SignedFilename string `codec:"signedFilename" json:"signedFilename"`
+	DestinationDir string `codec:"destinationDir" json:"destinationDir"`
 }
 
 type SaltpackInterface interface {

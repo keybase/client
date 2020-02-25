@@ -41,6 +41,9 @@ export type Box2Props = {
   gapEnd?: boolean
 }
 
+/**
+ * Box is deprecated, use Box2 instead
+ **/
 export declare class Box extends React.Component<Props> {}
 export declare class Box2 extends React.Component<Box2Props> {}
 export default Box

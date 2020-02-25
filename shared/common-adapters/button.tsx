@@ -31,31 +31,32 @@ type WithIconProps =
     }
   | {
       icon: IconType
+      iconColor?: Styles.Color
       tooltip: string
     }
 
 // Either type or backgroundColor must be set
 type DefaultProps = {
+  backgroundColor?: ButtonColor
   badgeNumber?: number
   children?: React.ReactNode
+  className?: string
+  disabled?: boolean
+  fullWidth?: boolean
+  label?: string
+  labelContainerStyle?: Styles.StylesCrossPlatform
+  labelStyle?: Styles.StylesCrossPlatform
+  mode?: 'Primary' | 'Secondary'
+  narrow?: boolean
   onClick?: (event: React.BaseSyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
   onMouseLeave?: (e: React.MouseEvent) => void
-  label?: string
-  style?: Styles.StylesCrossPlatform
-  labelContainerStyle?: Styles.StylesCrossPlatform
-  labelStyle?: Styles.StylesCrossPlatform
-  type?: ButtonType
-  backgroundColor?: ButtonColor
-  mode?: 'Primary' | 'Secondary'
-  narrow?: boolean
-  disabled?: boolean
-  waiting?: boolean
   small?: boolean
+  style?: Styles.StylesCrossPlatform
   subLabel?: string
   subLabelStyle?: Styles.StylesCrossPlatform
-  fullWidth?: boolean
-  className?: string
+  type?: ButtonType
+  waiting?: boolean
 }
 
 export type Props = DefaultProps & WithIconProps
@@ -188,6 +189,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
           {!!props.icon && (
             <Kb.Icon
               type={props.icon}
+              color={props.iconColor}
               sizeType="Default"
               style={Styles.collapseStyles([labelStyle, props.labelStyle])}
             />

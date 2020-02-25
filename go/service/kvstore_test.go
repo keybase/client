@@ -197,19 +197,19 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	// Bob cannot read the entry anymore.
 	getRes, err = bobHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "user does not have access to this entry")
+	require.Contains(t, err.Error(), "You are not a member of this team (error 2623)")
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ := err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamBadMembership {
-		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
+	if aerr.Code != libkb.SCTeamReadError {
+		t.Fatalf("expected an SCTeamReadError error but got %v", err)
 	}
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
 	_, err = bobHandler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.Error(t, err)
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ = err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamBadMembership {
-		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
+	if aerr.Code != libkb.SCTeamReadError {
+		t.Fatalf("expected an SCTeamReadError error but got %v", err)
 	}
 	t.Logf("bob can no longer GET or LIST the entry")
 

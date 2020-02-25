@@ -158,18 +158,13 @@ const styles = Styles.styleSheetCreate(
       backgroundBox: Styles.platformStyles({
         common: {
           height: 48,
-          width: '100%',
-        },
-        isAndroid: {
-          zIndex: -100, // Android doesn't support `overflow: 'hidden'`.
-        },
-        isIOS: {
           overflow: 'hidden',
+          width: '100%',
         },
       }),
       backgroundImage: {
         height: 160,
-        width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
+        width: '100%',
       },
       box: {
         ...Styles.globalStyles.flexBoxColumn,

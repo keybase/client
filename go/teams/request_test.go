@@ -84,7 +84,7 @@ func TestAccessRequestAccept(t *testing.T) {
 }
 
 func TestAccessRequestIgnore(t *testing.T) {
-	t.Skip()
+	t.Skip() // Y2K-1455
 
 	tc, owner, u1, _, teamName := memberSetupMultiple(t)
 	defer tc.Cleanup()
@@ -116,6 +116,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
+	require.NoError(t, tc.G.UIDMapper.ClearUIDFullName(context.Background(), tc.G, u1.User.GetUID()))
 	reqs, err := ListRequests(context.Background(), tc.G, nil)
 	if err != nil {
 		t.Fatal(err)

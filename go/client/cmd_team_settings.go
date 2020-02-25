@@ -363,7 +363,7 @@ func (c *CmdTeamSettings) setDisableAccessRequests(ctx context.Context, cli keyb
 }
 
 func (c *CmdTeamSettings) setWelcomeMessage(ctx context.Context, welcomeMessage string) error {
-	msg := chat1.WelcomeMessage{Set: true, Text: welcomeMessage}
+	msg := chat1.WelcomeMessage{Set: true, Raw: welcomeMessage}
 	cli, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -441,8 +441,8 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 			c.G().Log.CWarningf(ctx, "failed to call get welcome message: %v", err)
 		} else {
 			if msg.Set {
-				if len(msg.Text) > 0 {
-					dui.Printf("  Welcome message: %q\n", msg.Text)
+				if len(msg.Raw) > 0 {
+					dui.Printf("  Welcome message: %q\n", msg.Raw)
 				} else {
 					dui.Printf("  Welcome message: none\n")
 				}

@@ -2,6 +2,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {noConversationIDKey} from './types/chat2/common'
 import {getFullRoute} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
@@ -49,9 +50,11 @@ export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${team
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
+export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
+  conversationIDKey: noConversationIDKey,
   description: '',
   hasAllMembers: null,
   memberStatus: RPCChatTypes.ConversationMemberStatus.active,
@@ -173,6 +176,7 @@ const emptyState: Types.State = {
   errorInAddToTeam: '',
   errorInChannelCreation: '',
   errorInEditDescription: '',
+  errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
   errorInTeamCreation: '',
@@ -183,6 +187,8 @@ const emptyState: Types.State = {
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  selectedChannels: new Map(),
+  selectedMembers: new Map(),
   subteamFilter: '',
   subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
@@ -472,7 +478,7 @@ export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.Team
 export const getTeamWelcomeMessageByID = (
   state: TypedState,
   teamID: Types.TeamID
-): Types.WelcomeMessage | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
+): RPCChatTypes.WelcomeMessageDisplay | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()

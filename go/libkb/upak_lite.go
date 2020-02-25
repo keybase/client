@@ -139,7 +139,10 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 		var link *ChainLink
 
 		parentSigChain := &SigChain{} // because we don't want the cache to use these
-		link, err = ImportLinkFromServer(m, parentSigChain, value, selfUID)
+		link, err = importLinkFromServer1(m, parentSigChain, value, selfUID)
+		if err != nil {
+			m.Debug("Error importing link: %s", err.Error())
+		}
 		links = append(links, link)
 		lastLink = link
 	}, "sigs")

@@ -3,6 +3,7 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
+import * as UsersGen from '../../../../actions/users-gen'
 import * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -27,6 +28,7 @@ export default connect(
       fullName: state.config.username === username ? 'You' : info.fullName,
       roleType: info.type,
       status: info.status,
+      teamID: teamID,
       teamname,
       username: info.username,
       waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),
@@ -36,6 +38,19 @@ export default connect(
     }
   },
   (dispatch, {teamID, username}: OwnProps) => ({
+    onBlock: () =>
+      username &&
+      dispatch(
+        UsersGen.createSetUserBlocks({
+          blocks: [
+            {
+              setChatBlock: true,
+              setFollowBlock: true,
+              username,
+            },
+          ],
+        })
+      ),
     onChat: () =>
       username &&
       dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'})),
@@ -43,6 +58,7 @@ export default connect(
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]})
       ),
+    onOpenProfile: () => username && dispatch(ProfileGen.createShowUserProfile({username})),
     onReAddToTeam: () =>
       dispatch(
         TeamsGen.createReAddToTeam({
@@ -61,13 +77,16 @@ export default connect(
   (stateProps, dispatchProps, _: OwnProps) => ({
     following: stateProps.following,
     fullName: stateProps.fullName,
+    onBlock: dispatchProps.onBlock,
     onChat: dispatchProps.onChat,
     onClick: dispatchProps.onClick,
+    onOpenProfile: dispatchProps.onOpenProfile,
     onReAddToTeam: dispatchProps.onReAddToTeam,
     onRemoveFromTeam: dispatchProps.onRemoveFromTeam,
     onShowTracker: dispatchProps.onShowTracker,
     roleType: stateProps.roleType,
     status: stateProps.status,
+    teamID: stateProps.teamID,
     username: stateProps.username,
     waitingForAdd: stateProps.waitingForAdd,
     waitingForRemove: stateProps.waitingForRemove,

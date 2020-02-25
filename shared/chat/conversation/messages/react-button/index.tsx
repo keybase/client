@@ -35,7 +35,9 @@ if (!Styles.isMobile) {
   })
 }
 
-const ButtonBox = Styles.styled(ClickableBox, {shouldForwardProp: prop => prop !== 'noEffect'})(
+const ButtonBox = Styles.styled(ClickableBox, {
+  shouldForwardProp: prop => prop !== 'noEffect' && prop !== 'border',
+})(
   // @ts-ignore
   (props: ClickableBoxProps & {border: boolean; noEffect: boolean}) =>
     Styles.isMobile || props.noEffect

@@ -124,7 +124,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded': {
-    inParam: {readonly teamID: Keybase1.TeamID; readonly message: WelcomeMessage}
+    inParam: {readonly teamID: Keybase1.TeamID; readonly message: WelcomeMessageDisplay}
     outParam: void
   }
   'chat.1.NotifyChat.NewChatActivity': {
@@ -405,7 +405,7 @@ export type MessageTypes = {
   }
   'chat.1.local.getWelcomeMessage': {
     inParam: {readonly teamID: Keybase1.TeamID}
-    outParam: WelcomeMessage
+    outParam: WelcomeMessageDisplay
   }
   'chat.1.local.ignorePinnedMessage': {
     inParam: {readonly convID: ConversationID}
@@ -769,6 +769,11 @@ export enum HeaderPlaintextVersion {
 export enum InboxLayoutReselectMode {
   default = 0,
   force = 1,
+}
+
+export enum InboxParticipantsMode {
+  all = 0,
+  skipTeams = 1,
 }
 
 export enum InboxResType {
@@ -1168,7 +1173,7 @@ export type GetInboxAndUnboxLocalRes = {readonly conversations?: Array<Conversat
 export type GetInboxAndUnboxUILocalRes = {readonly conversations?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetInboxByTLFIDRemoteRes = {readonly convs?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
 export type GetInboxLocalQuery = {readonly name?: NameQuery | null; readonly topicName?: String | null; readonly convIDs?: Array<ConversationID> | null; readonly topicType?: TopicType | null; readonly tlfVisibility?: Keybase1.TLFVisibility | null; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly oneChatTypePerTLF?: Boolean | null; readonly status?: Array<ConversationStatus> | null; readonly memberStatus?: Array<ConversationMemberStatus> | null; readonly unreadOnly: Boolean; readonly readOnly: Boolean; readonly computeActiveList: Boolean}
-export type GetInboxQuery = {readonly convID?: ConversationID | null; readonly topicType?: TopicType | null; readonly tlfID?: TLFID | null; readonly tlfVisibility?: Keybase1.TLFVisibility | null; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly oneChatTypePerTLF?: Boolean | null; readonly topicName?: String | null; readonly status?: Array<ConversationStatus> | null; readonly memberStatus?: Array<ConversationMemberStatus> | null; readonly existences?: Array<ConversationExistence> | null; readonly membersTypes?: Array<ConversationMembersType> | null; readonly convIDs?: Array<ConversationID> | null; readonly unreadOnly: Boolean; readonly readOnly: Boolean; readonly computeActiveList: Boolean; readonly summarizeMaxMsgs: Boolean; readonly skipBgLoads: Boolean; readonly allowUnseenQuery: Boolean}
+export type GetInboxQuery = {readonly convID?: ConversationID | null; readonly topicType?: TopicType | null; readonly tlfID?: TLFID | null; readonly tlfVisibility?: Keybase1.TLFVisibility | null; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly oneChatTypePerTLF?: Boolean | null; readonly topicName?: String | null; readonly status?: Array<ConversationStatus> | null; readonly memberStatus?: Array<ConversationMemberStatus> | null; readonly existences?: Array<ConversationExistence> | null; readonly membersTypes?: Array<ConversationMembersType> | null; readonly convIDs?: Array<ConversationID> | null; readonly unreadOnly: Boolean; readonly readOnly: Boolean; readonly computeActiveList: Boolean; readonly summarizeMaxMsgs: Boolean; readonly participantsMode: InboxParticipantsMode; readonly skipBgLoads: Boolean; readonly allowUnseenQuery: Boolean}
 export type GetInboxRemoteRes = {readonly inbox: InboxView; readonly rateLimit?: RateLimit | null}
 export type GetInboxSummaryForCLILocalQuery = {readonly topicType: TopicType; readonly after: String; readonly before: String; readonly visibility: Keybase1.TLFVisibility; readonly status?: Array<ConversationStatus> | null; readonly convIDs?: Array<ConversationID> | null; readonly unreadFirst: Boolean; readonly unreadFirstLimit: UnreadFirstNumLimit; readonly activitySortedLimit: Int}
 export type GetInboxSummaryForCLILocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
@@ -1360,7 +1365,6 @@ export type TLFFinalizeUpdate = {readonly finalizeInfo: ConversationFinalizeInfo
 export type TLFID = Bytes
 export type TLFIDStr = String
 export type TLFResolveUpdate = {readonly convID: ConversationID; readonly inboxVers: InboxVers}
-export type TeamChannelUpdate = {readonly teamID: TLFID}
 export type TeamMember = {readonly uid: Gregor1.UID; readonly role: Keybase1.TeamRole; readonly status: Keybase1.TeamMemberStatus}
 export type TeamMemberRoleUpdate = {readonly tlfID: TLFID; readonly role: Keybase1.TeamRole}
 export type TeamTypeInfo = {readonly convID: ConversationID; readonly teamType: TeamType; readonly conv?: InboxUIItem | null}
@@ -1446,7 +1450,8 @@ export type UserBotCommandInput = {readonly name: String; readonly description: 
 export type UserBotCommandOutput = {readonly name: String; readonly description: String; readonly usage: String; readonly extendedDescription?: UserBotExtendedDescription | null; readonly username: String}
 export type UserBotExtendedDescription = {readonly title: String; readonly desktopBody: String; readonly mobileBody: String}
 export type VersionKind = String
-export type WelcomeMessage = {readonly set: Boolean; readonly text: String}
+export type WelcomeMessage = {readonly set: Boolean; readonly raw: String}
+export type WelcomeMessageDisplay = {readonly set: Boolean; readonly display: String; readonly raw: String}
 
 export type IncomingCallMapType = {
   'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1691,6 +1696,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.setDefaultTeamChannelsLocal'
 // 'chat.1.local.getLastActiveForTLF'
 // 'chat.1.local.getLastActiveForTeams'
+// 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

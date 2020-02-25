@@ -1063,6 +1063,13 @@
             null,
             "ConversationID"
           ]
+        },
+        {
+          "name": "retentionPolicy",
+          "type": [
+            null,
+            "RetentionPolicy"
+          ]
         }
       ],
       "response": "NewConversationRemoteRes",
@@ -1177,6 +1184,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "participantsMode",
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncChatRes"
@@ -1218,6 +1229,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "participantsMode",
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncAllResult",
@@ -1360,10 +1375,6 @@
         },
         {
           "name": "summarizeMaxMsgs",
-          "type": "boolean"
-        },
-        {
-          "name": "useCache",
           "type": "boolean"
         }
       ],

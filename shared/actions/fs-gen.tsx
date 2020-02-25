@@ -70,7 +70,7 @@ export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath
 export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
-export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
+export const setIncomingShareSource = 'fs:setIncomingShareSource'
 export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownload = 'fs:setPathItemActionMenuDownload'
@@ -95,6 +95,7 @@ export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
+export const uploadFromDragAndDrop = 'fs:uploadFromDragAndDrop'
 export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
@@ -190,7 +191,7 @@ type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly 
 type _SetDirectMountDirPayload = {readonly directMountDir: string}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string | null}
-type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
+type _SetIncomingShareSourcePayload = {readonly source: Types.LocalPath | Array<RPCTypes.IncomingShareItem>}
 type _SetLastPublicBannerClosedTlfPayload = {readonly tlf: string}
 type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
 type _SetPathItemActionMenuDownloadPayload = {
@@ -225,7 +226,12 @@ type _TlfSyncConfigLoadedPayload = {
 }
 type _UninstallKBFSConfirmPayload = void
 type _UnsubscribePayload = {readonly subscriptionID: string}
-type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
+type _UploadFromDragAndDropPayload = {readonly parentPath: Types.Path; readonly localPaths: Array<string>}
+type _UploadPayload = {
+  readonly parentPath: Types.Path
+  readonly localPath: string
+  readonly deleteSourceFile?: boolean
+}
 type _UploadStartedPayload = {readonly path: Types.Path}
 type _UploadWritingSuccessPayload = {readonly path: Types.Path}
 type _UserFileEditsLoadPayload = void
@@ -460,9 +466,9 @@ export const createSetDriverStatus = (payload: _SetDriverStatusPayload): SetDriv
 export const createSetFolderViewFilter = (
   payload: _SetFolderViewFilterPayload
 ): SetFolderViewFilterPayload => ({payload, type: setFolderViewFilter})
-export const createSetIncomingShareLocalPath = (
-  payload: _SetIncomingShareLocalPathPayload
-): SetIncomingShareLocalPathPayload => ({payload, type: setIncomingShareLocalPath})
+export const createSetIncomingShareSource = (
+  payload: _SetIncomingShareSourcePayload
+): SetIncomingShareSourcePayload => ({payload, type: setIncomingShareSource})
 export const createSetLastPublicBannerClosedTlf = (
   payload: _SetLastPublicBannerClosedTlfPayload
 ): SetLastPublicBannerClosedTlfPayload => ({payload, type: setLastPublicBannerClosedTlf})
@@ -544,6 +550,9 @@ export const createUnsubscribe = (payload: _UnsubscribePayload): UnsubscribePayl
   type: unsubscribe,
 })
 export const createUpload = (payload: _UploadPayload): UploadPayload => ({payload, type: upload})
+export const createUploadFromDragAndDrop = (
+  payload: _UploadFromDragAndDropPayload
+): UploadFromDragAndDropPayload => ({payload, type: uploadFromDragAndDrop})
 export const createUploadStarted = (payload: _UploadStartedPayload): UploadStartedPayload => ({
   payload,
   type: uploadStarted,
@@ -787,9 +796,9 @@ export type SetFolderViewFilterPayload = {
   readonly payload: _SetFolderViewFilterPayload
   readonly type: typeof setFolderViewFilter
 }
-export type SetIncomingShareLocalPathPayload = {
-  readonly payload: _SetIncomingShareLocalPathPayload
-  readonly type: typeof setIncomingShareLocalPath
+export type SetIncomingShareSourcePayload = {
+  readonly payload: _SetIncomingShareSourcePayload
+  readonly type: typeof setIncomingShareSource
 }
 export type SetLastPublicBannerClosedTlfPayload = {
   readonly payload: _SetLastPublicBannerClosedTlfPayload
@@ -874,6 +883,10 @@ export type UninstallKBFSConfirmPayload = {
   readonly type: typeof uninstallKBFSConfirm
 }
 export type UnsubscribePayload = {readonly payload: _UnsubscribePayload; readonly type: typeof unsubscribe}
+export type UploadFromDragAndDropPayload = {
+  readonly payload: _UploadFromDragAndDropPayload
+  readonly type: typeof uploadFromDragAndDrop
+}
 export type UploadPayload = {readonly payload: _UploadPayload; readonly type: typeof upload}
 export type UploadStartedPayload = {
   readonly payload: _UploadStartedPayload
@@ -966,7 +979,7 @@ export type Actions =
   | SetDirectMountDirPayload
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
-  | SetIncomingShareLocalPathPayload
+  | SetIncomingShareSourcePayload
   | SetLastPublicBannerClosedTlfPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadPayload
@@ -990,6 +1003,7 @@ export type Actions =
   | TlfSyncConfigLoadedPayload
   | UninstallKBFSConfirmPayload
   | UnsubscribePayload
+  | UploadFromDragAndDropPayload
   | UploadPayload
   | UploadStartedPayload
   | UploadWritingSuccessPayload

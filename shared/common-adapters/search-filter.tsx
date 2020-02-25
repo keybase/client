@@ -101,9 +101,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.inputRef.current && this.inputRef.current.blur()
   }
   private clear = () => {
-    if (!this.props.valueControlled) {
-      this.update('')
-    }
+    this.update('')
   }
   private cancel = (e?: any) => {
     this.blur()

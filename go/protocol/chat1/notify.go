@@ -1066,8 +1066,8 @@ type ChatConvUpdateArg struct {
 }
 
 type ChatWelcomeMessageLoadedArg struct {
-	TeamID  keybase1.TeamID `codec:"teamID" json:"teamID"`
-	Message WelcomeMessage  `codec:"message" json:"message"`
+	TeamID  keybase1.TeamID       `codec:"teamID" json:"teamID"`
+	Message WelcomeMessageDisplay `codec:"message" json:"message"`
 }
 
 type NotifyChatInterface interface {

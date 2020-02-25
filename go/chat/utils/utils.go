@@ -440,6 +440,14 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
 }
 
+func IsBadgeableMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.BadgeableMessageTypes())
+}
+
+func IsNonEmptyConvMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.NonEmptyConvMessageTypes())
+}
+
 func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
 }
@@ -469,39 +477,41 @@ func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 
 func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
 	chanMention chat1.ChannelMention) bool {
-	if IsVisibleChatMessageType(messageType) {
-		return true
-	}
 	switch messageType {
 	case chat1.MessageType_EDIT:
 		// an edit with atMention or channel mention should generate notifications
-		if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
-			return true
-		}
+		return len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE
 	case chat1.MessageType_REACTION:
 		// effect of this is all reactions will notify if they are sent to a person that
 		// is notified for any messages in the conversation
 		return true
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+		return false
+	default:
+		return IsVisibleChatMessageType(messageType)
 	}
-	return false
 }
 
 type DebugLabeler struct {
-	log     logger.Logger
+	libkb.Contextified
 	label   string
 	verbose bool
 }
 
-func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler {
+func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		log:     log.CloneWithAddedDepth(1),
-		label:   label,
-		verbose: verbose,
+		Contextified: libkb.NewContextified(g),
+		label:        label,
+		verbose:      verbose,
 	}
 }
 
 func (d DebugLabeler) GetLog() logger.Logger {
-	return d.log
+	return d.G().GetLog()
+}
+
+func (d DebugLabeler) GetPerfLog() logger.Logger {
+	return d.G().GetPerfLog()
 }
 
 func (d DebugLabeler) showVerbose() bool {
@@ -517,17 +527,25 @@ func (d DebugLabeler) showLog() bool {
 
 func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
 	if d.showLog() {
-		d.log.CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
+		d.G().GetLog().CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
 	}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetLog(), f, format, args...)
+}
+
+func (d DebugLabeler) PerfTrace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetPerfLog(), f, format, args...)
+}
+
+func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, f func() error, format string, args ...interface{}) func() {
 	if d.showLog() {
 		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
-		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
+		log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
+			log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
@@ -872,7 +890,7 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 		return false
 	default:
 		for _, msg := range conv.MaxMsgSummaries {
-			if IsVisibleChatMessageType(msg.GetMessageType()) {
+			if IsNonEmptyConvMessageType(msg.GetMessageType()) {
 				return false
 			}
 		}
@@ -1714,6 +1732,20 @@ func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.Messag
 	return ""
 }
 
+func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
+	// escape before applying xforms
+	body = EscapeForDecorate(ctx, body)
+	body = EscapeShrugs(ctx, body)
+
+	// This needs to happen before (deep) links.
+	kbfsPaths := ParseKBFSPaths(ctx, body)
+	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
+
+	// Links
+	body = DecorateWithLinks(ctx, body)
+	return body
+}
+
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
@@ -1739,18 +1771,11 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 		return nil
 	}
 
-	// escape before applying xforms
-	body = EscapeForDecorate(ctx, body)
-	body = EscapeShrugs(ctx, body)
+	body = PresentDecoratedTextNoMentions(ctx, body)
 
-	// This needs to happen before (deep) links.
-	kbfsPaths := ParseKBFSPaths(ctx, body)
-	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
-
-	// Links
-	body = DecorateWithLinks(ctx, body)
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
 		msg.ChannelNameMentions)
@@ -2796,7 +2821,7 @@ func supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMe
 		for _, conv := range convs {
 			if superseder.ConversationID.Eq(conv.GetConvID()) {
 				for _, msg := range conv.Conv.MaxMsgSummaries {
-					if IsVisibleChatMessageType(msg.GetMessageType()) {
+					if IsNonEmptyConvMessageType(msg.GetMessageType()) {
 						return true
 					}
 				}

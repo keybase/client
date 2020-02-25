@@ -13,6 +13,7 @@ type StatusCode int
 const (
 	StatusCode_SCOk                                        StatusCode = 0
 	StatusCode_SCInputError                                StatusCode = 100
+	StatusCode_SCAssertionParseError                       StatusCode = 101
 	StatusCode_SCLoginRequired                             StatusCode = 201
 	StatusCode_SCBadSession                                StatusCode = 202
 	StatusCode_SCBadLoginUserNotFound                      StatusCode = 203
@@ -251,6 +252,7 @@ func (o StatusCode) DeepCopy() StatusCode { return o }
 var StatusCodeMap = map[string]StatusCode{
 	"SCOk":                        0,
 	"SCInputError":                100,
+	"SCAssertionParseError":       101,
 	"SCLoginRequired":             201,
 	"SCBadSession":                202,
 	"SCBadLoginUserNotFound":      203,
@@ -487,6 +489,7 @@ var StatusCodeMap = map[string]StatusCode{
 var StatusCodeRevMap = map[StatusCode]string{
 	0:    "SCOk",
 	100:  "SCInputError",
+	101:  "SCAssertionParseError",
 	201:  "SCLoginRequired",
 	202:  "SCBadSession",
 	203:  "SCBadLoginUserNotFound",

@@ -6,7 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -46,8 +47,12 @@ func (s *memConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 }
 
 func TestUnfurlSetting(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
 	uid := gregor1.UID([]byte{0, 1})
-	settings := NewSettings(logger.NewTestLogger(t), newMemConversationBackedStorage())
+	settings := NewSettings(g, newMemConversationBackedStorage())
 	res, err := settings.Get(context.TODO(), uid)
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlMode_WHITELISTED, res.Mode)

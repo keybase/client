@@ -4,11 +4,7 @@
 package engine
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
-	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -74,36 +70,11 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
 		return err
 	}
-	if err := statement.SetKey("confidence", e.confidence()); err != nil {
+	if err := statement.SetKey("confidence", e.arg.Confidence.ToJsonw()); err != nil {
 		return err
 	}
-
-	vouch := jsonw.NewDictionary()
-	if err := vouch.SetKey("obj", statement); err != nil {
-		return err
-	}
-	randKey, err := libkb.RandBytes(16)
+	expansions, sum, err := libkb.EmbedExpansionObj(statement)
 	if err != nil {
-		return err
-	}
-	hexKey := hex.EncodeToString(randKey)
-	if err := vouch.SetKey("key", jsonw.NewString(hexKey)); err != nil {
-		return err
-	}
-
-	marshaled, err := statement.Marshal()
-	if err != nil {
-		return err
-	}
-
-	mac := hmac.New(sha256.New, randKey)
-	if _, err := mac.Write(marshaled); err != nil {
-		return err
-	}
-	sum := mac.Sum(nil)
-
-	expansions := jsonw.NewDictionary()
-	if err := expansions.SetKey(hex.EncodeToString(sum), vouch); err != nil {
 		return err
 	}
 
@@ -168,26 +139,4 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		JSONPayload: payload,
 	})
 	return err
-}
-
-func (e *WotVouch) confidence() *jsonw.Wrapper {
-	c := jsonw.NewDictionary()
-	if e.arg.Confidence.UsernameVerifiedVia != keybase1.UsernameVerificationType_NONE {
-		_ = c.SetKey("username_verified_via", jsonw.NewString(strings.ToLower(e.arg.Confidence.UsernameVerifiedVia.String())))
-	}
-	if len(e.arg.Confidence.VouchedBy) > 0 {
-		vb := jsonw.NewArray(len(e.arg.Confidence.VouchedBy))
-		for i, username := range e.arg.Confidence.VouchedBy {
-			_ = vb.SetIndex(i, jsonw.NewString(libkb.GetUIDByUsername(e.G(), username).String()))
-		}
-		_ = c.SetKey("vouched_by", vb)
-	}
-	if e.arg.Confidence.KnownOnKeybaseDays > 0 {
-		_ = c.SetKey("known_on_keybase_days", jsonw.NewInt(e.arg.Confidence.KnownOnKeybaseDays))
-	}
-	if e.arg.Confidence.Other != "" {
-		_ = c.SetKey("other", jsonw.NewString(e.arg.Confidence.Other))
-	}
-
-	return c
 }

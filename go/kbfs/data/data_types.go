@@ -143,6 +143,18 @@ func (bdt BlockDirectType) String() string {
 	return fmt.Sprintf("<unknown blockDirectType %d>", bdt)
 }
 
+// BlockDirectTypeFromString returns a direct block type, given the string.
+func BlockDirectTypeFromString(s string) BlockDirectType {
+	switch s {
+	case "direct":
+		return DirectBlock
+	case "indirect":
+		return IndirectBlock
+	default:
+		return UnknownDirectType
+	}
+}
+
 // BlockRef is a block ID/ref nonce pair, which defines a unique
 // reference to a block.
 type BlockRef struct {
@@ -335,6 +347,9 @@ const (
 	// Sym is a symbolic link.
 	Sym
 
+	// RealDir can be used to indicate a real directory entry should
+	// be used, usually with a provided BlockPointer.
+	RealDir EntryType = 0xfffd
 	// FakeFile can be used to indicate a faked-out entry for a file,
 	// that will be specially processed by folderBranchOps.
 	FakeFile EntryType = 0xfffe

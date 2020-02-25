@@ -44,6 +44,8 @@ const (
 	// InitMemoryLimitedString is for when KBFS will use memory limited
 	// resources.
 	InitMemoryLimitedString = "memoryLimited"
+	// InitTestSearchString is for when KBFS will index synced TLFs.
+	InitTestSearchString = "testSearch"
 )
 
 // CtxInitTagKey is the type used for unique context tags for KBFS init.
@@ -653,6 +655,9 @@ func getInitMode(
 	case InitMemoryLimitedString:
 		log.CDebugf(ctx, "Initializing in memoryLimited mode")
 		mode = InitMemoryLimited
+	case InitTestSearchString:
+		log.CDebugf(ctx, "Initializing in testSearch mode")
+		mode = InitTestSearch
 	default:
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}

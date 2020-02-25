@@ -3816,6 +3816,24 @@
     },
     {
       "type": "record",
+      "name": "WelcomeMessageDisplay",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "set"
+        },
+        {
+          "type": "string",
+          "name": "display"
+        },
+        {
+          "type": "string",
+          "name": "raw"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "WelcomeMessage",
       "fields": [
         {
@@ -3824,7 +3842,7 @@
         },
         {
           "type": "string",
-          "name": "text"
+          "name": "raw"
         }
       ]
     },
@@ -5658,7 +5676,7 @@
           "type": "keybase1.TeamID"
         }
       ],
-      "response": "WelcomeMessage"
+      "response": "WelcomeMessageDisplay"
     },
     "getDefaultTeamChannelsLocal": {
       "request": [
@@ -5701,6 +5719,15 @@
         "values": "LastActiveStatus",
         "keys": "TLFIDStr"
       }
+    },
+    "getRecentJoinsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "int"
     }
   },
   "namespace": "chat.1"

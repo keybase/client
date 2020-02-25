@@ -842,16 +842,16 @@
 			"revisionTime": "2020-01-23T00:39:47Z"
 		},
 		{
-			"checksumSHA1": "H8SBEqxUApDJo3Zczaryd7tli/k=",
+			"checksumSHA1": "wVxPwraD/RPx0b+Z70N9cgyBbcY=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "1b45a7425e2f890c1efcc02a4e74c153a1eeaed4",
-			"revisionTime": "2020-02-06T22:07:37Z"
+			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
+			"revisionTime": "2020-02-20T20:58:49Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "1b45a7425e2f890c1efcc02a4e74c153a1eeaed4",
-			"revisionTime": "2020-02-06T22:07:37Z"
+			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
+			"revisionTime": "2020-02-20T20:58:49Z"
 		},
 		{
 			"checksumSHA1": "cVToVAflSUcimfMfrEGACvPChH0=",
@@ -1882,6 +1882,12 @@
 			"path": "golang.org/x/sync/errgroup",
 			"revision": "316e794f7b5e3df4e95175a45a5fb8b12f85cb4f",
 			"revisionTime": "2016-07-15T18:54:39Z"
+		},
+		{
+			"checksumSHA1": "MTRW5w1fGNY0KEKHo98/I9D8LsA=",
+			"path": "golang.org/x/sync/semaphore",
+			"revision": "cd5d95a43a6e21273425c7ae415d3df9ea832eeb",
+			"revisionTime": "2019-08-30T23:09:31Z"
 		},
 		{
 			"checksumSHA1": "CQfE0XDYpqkQ/o+Hr3yEEIGRwTo=",

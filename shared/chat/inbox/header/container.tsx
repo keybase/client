@@ -1,6 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {namedConnect, isPhone} from '../../../util/container'
+import {namedConnect, isMobile} from '../../../util/container'
 import ChatInboxHeader from '.'
 import HiddenString from '../../../util/hidden-string'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
@@ -18,7 +18,7 @@ export default namedConnect(
       (state.chat2.inboxLayout.smallTeams || []).length === 0 &&
       (state.chat2.inboxLayout.bigTeams || []).length === 0
     const showEmptyInbox = !state.chat2.inboxSearch && hasLoadedEmptyInbox
-    const showNewChat = !isPhone && showEmptyInbox
+    const showNewChat = !isMobile && showEmptyInbox
     return {
       isSearching: !!state.chat2.inboxSearch,
       showFilter: !showEmptyInbox,

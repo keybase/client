@@ -228,6 +228,7 @@ const (
 const (
 	SCOk                                        = int(keybase1.StatusCode_SCOk)
 	SCInputError                                = int(keybase1.StatusCode_SCInputError)
+	SCAssertionParseError                       = int(keybase1.StatusCode_SCAssertionParseError)
 	SCLoginRequired                             = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession                                = int(keybase1.StatusCode_SCBadSession)
 	SCNoSession                                 = int(keybase1.StatusCode_SCNoSession)
@@ -407,6 +408,7 @@ const (
 	LinkTypePerUserKey        LinkType = "per_user_key"
 	LinkTypeWalletStellar     LinkType = "wallet.stellar"
 	LinkTypeWotVouch          LinkType = "wot.vouch"
+	LinkTypeWotReact          LinkType = "wot.react"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
@@ -596,6 +598,7 @@ const (
 const (
 	ServiceLogFileName = "keybase.service.log"
 	EKLogFileName      = "keybase.ek.log"
+	PerfLogFileName    = "keybase.perf.log"
 	KBFSLogFileName    = kbconst.KBFSLogFileName
 	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"

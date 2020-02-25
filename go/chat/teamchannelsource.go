@@ -4,26 +4,93 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"sync"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
+type recentJoinsCacheItem struct {
+	numJoins int
+	mtime    gregor1.Time
+}
+
+type recentJoinsMemCache struct {
+	sync.RWMutex
+	cache map[chat1.ConvIDStr]recentJoinsCacheItem
+}
+
+func newRecentJoinsMemCache() *recentJoinsMemCache {
+	return &recentJoinsMemCache{
+		cache: make(map[chat1.ConvIDStr]recentJoinsCacheItem),
+	}
+}
+
+func (i *recentJoinsMemCache) Get(convID chat1.ConversationID) int {
+	i.RLock()
+	defer i.RUnlock()
+	if item, ok := i.cache[convID.ConvIDStr()]; ok {
+		if time.Since(item.mtime.Time()) > time.Hour {
+			delete(i.cache, convID.ConvIDStr())
+			return -1
+		}
+		return item.numJoins
+	}
+	return -1
+}
+
+func (i *recentJoinsMemCache) Put(convID chat1.ConversationID, numJoins int) {
+	i.Lock()
+	defer i.Unlock()
+	i.cache[convID.ConvIDStr()] = recentJoinsCacheItem{
+		numJoins: numJoins,
+		mtime:    gregor1.ToTime(time.Now()),
+	}
+}
+
+func (i *recentJoinsMemCache) clearCache() {
+	i.Lock()
+	defer i.Unlock()
+	i.cache = make(map[chat1.ConvIDStr]recentJoinsCacheItem)
+}
+
+func (i *recentJoinsMemCache) OnLogout(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
+func (i *recentJoinsMemCache) OnDbNuke(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
 type TeamChannelSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+	recentJoinsCache *recentJoinsMemCache
 }
 
 var _ types.TeamChannelSource = (*TeamChannelSource)(nil)
 
 func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
 	return &TeamChannelSource{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamChannelSource", false),
+		Contextified:     globals.NewContextified(g),
+		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "TeamChannelSource", false),
+		recentJoinsCache: newRecentJoinsMemCache(),
 	}
+}
+
+func (c *TeamChannelSource) OnLogout(mctx libkb.MetaContext) error {
+	return c.recentJoinsCache.OnLogout(mctx)
+}
+
+func (c *TeamChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
+	return c.recentJoinsCache.OnDbNuke(mctx)
 }
 
 func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1.UID,
@@ -174,4 +241,19 @@ func (c *TeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1
 		}
 	}
 	return "", fmt.Errorf("no convs found with conv ID")
+}
+
+func (c *TeamChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (res int, err error) {
+	defer c.Trace(ctx, func() error { return err }, "GetRecentJoins")()
+
+	numJoins := c.recentJoinsCache.Get(convID)
+	if numJoins < 0 {
+		res, err := remoteClient.GetRecentJoins(ctx, convID)
+		if err != nil {
+			return 0, err
+		}
+		numJoins = res.NumJoins
+		c.recentJoinsCache.Put(convID, numJoins)
+	}
+	return numJoins, nil
 }

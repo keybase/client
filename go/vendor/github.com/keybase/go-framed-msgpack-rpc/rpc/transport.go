@@ -90,8 +90,8 @@ func NewTransport(c net.Conn, l LogFactory, instrumenterStorage NetworkInstrumen
 	enc := newFramedMsgpackEncoder(maxFrameLength, c)
 	ret.enc = enc
 	ret.dispatcher = newDispatch(enc, ret.calls, log, instrumenterStorage)
-	ret.receiver = newReceiveHandler(enc, ret.protocols, log, instrumenterStorage)
-	ret.packetizer = newPacketizer(maxFrameLength, c, ret.protocols, ret.calls, log)
+	ret.receiver = newReceiveHandler(enc, ret.protocols, log)
+	ret.packetizer = newPacketizer(maxFrameLength, c, ret.protocols, ret.calls, log, instrumenterStorage)
 	return ret
 }
 

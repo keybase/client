@@ -6,6 +6,7 @@ import * as Styles from '../../../../../styles'
 import flags from '../../../../../util/feature-flags'
 import {isLargeScreen} from '../../../../../constants/platform'
 import {formatTimeRelativeToNow} from '../../../../../util/timestamp'
+import MenuHeader from '../../menu-header.new'
 
 export type RowProps = {
   ctime: number
@@ -79,15 +80,15 @@ const TeamRequestRowNew = (props: Props) => {
       header={{
         title: 'header',
         view: (
-          <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.newMenuHeader}>
-            <Kb.Avatar username={username} size={64} style={styles.newMenuAvatar} />
-            <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
-            {fullName !== '' && <Kb.Text type="BodySmall">{fullName}</Kb.Text>}
-            <Kb.Text type="BodySmall">Requested to join {formatTimeRelativeToNow(ctime * 1000)}</Kb.Text>
-          </Kb.Box2>
+          <MenuHeader
+            username={username}
+            fullName={fullName ? fullName : undefined}
+            label={`Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
+          />
         ),
       }}
       items={[
+        'Divider',
         {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
         {icon: 'iconfont-check', onClick: props.onAccept, title: 'Approve'},
         {
@@ -235,14 +236,6 @@ const styles = Styles.styleSheetCreate(() => ({
   newFullName: {
     ...Styles.globalStyles.flexOne,
     paddingRight: Styles.globalMargins.xtiny,
-  },
-  newMenuAvatar: {
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  newMenuHeader: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    paddingBottom: Styles.globalMargins.xsmall,
   },
   userDetails: {
     ...Styles.globalStyles.flexBoxColumn,

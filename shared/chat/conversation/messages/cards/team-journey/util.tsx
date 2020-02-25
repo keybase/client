@@ -1,38 +1,46 @@
 import * as React from 'react'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
-import * as Styles from '../../../../../styles'
 import * as Kb from '../../../../../common-adapters'
 
-function renderWelcomeMessage(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): React.ReactNode {
-  if (message.set) {
-    return (
-      <Kb.Text style={styles.text} type="BodySmall">
-        {message.text}
-      </Kb.Text>
-    )
+const defaultWelcomeMessageWriter = ':wave: Welcome to the team! Say hi to everyone and introduce yourself.'
+const defaultWelcomeMessageNonwriter = ':wave: Welcome to the team!'
+
+function computeWelcomeMessageTextHelper(set: boolean, text: string, cannotWrite: boolean): string {
+  if (set) {
+    return text
   } else if (cannotWrite) {
-    return (
-      <Kb.Text style={styles.text} type="BodySmall">
-        <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-        the team!
-      </Kb.Text>
-    )
-  } else {
-    return (
-      <Kb.Text style={styles.text} type="BodySmall">
-        <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-        the team! Say hi to everyone and introduce yourself.
-      </Kb.Text>
-    )
+    return defaultWelcomeMessageNonwriter
   }
+  return defaultWelcomeMessageWriter
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  text: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-  }),
-}))
+function computeWelcomeMessageTextRaw(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): string {
+  return computeWelcomeMessageTextHelper(message.set, message.raw, cannotWrite)
+}
 
-export {renderWelcomeMessage}
+function computeWelcomeMessageText(
+  message: RPCChatTypes.WelcomeMessageDisplay,
+  cannotWrite: boolean
+): string {
+  return computeWelcomeMessageTextHelper(message.set, message.display, cannotWrite)
+}
+
+// removeWhitespaceOnlyLines removes lines with only whitespace so the
+// lineClamp works properly (otherwise, the lineClamp only applies within
+// each "paragraph."
+function removeWhitespaceOnlyLines(x: string): string {
+  return x.replace(/(^[[\s]*\n)/gm, '')
+}
+
+function renderWelcomeMessage(
+  message: RPCChatTypes.WelcomeMessageDisplay,
+  cannotWrite: boolean
+): React.ReactNode {
+  return (
+    <Kb.Markdown smallStandaloneEmoji={false} lineClamp={3} selectable={false}>
+      {removeWhitespaceOnlyLines(computeWelcomeMessageText(message, cannotWrite))}
+    </Kb.Markdown>
+  )
+}
+
+export {computeWelcomeMessageText, computeWelcomeMessageTextRaw, renderWelcomeMessage}

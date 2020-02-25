@@ -54,7 +54,7 @@ type startFlipSendStatus struct {
 func newSentMessageListener(g *globals.Context, outboxID chat1.OutboxID) *sentMessageListener {
 	return &sentMessageListener{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sentMessageListener", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "sentMessageListener", false),
 		outboxID:     outboxID,
 		listenCh:     make(chan sentMessageResult, 10),
 	}
@@ -168,7 +168,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 	gameOutboxIDs, _ := lru.New(200)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
-		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
+		DebugLabeler:               utils.NewDebugLabeler(g.ExternalG(), "FlipManager", false),
 		ri:                         ri,
 		clock:                      clockwork.NewRealClock(),
 		games:                      games,
@@ -983,9 +983,22 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 				membersType)
 		default:
 		}
+		// Preserve the ephemeral lifetime from the conv/message to the game
+		// conversation.
+		elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv)
+		if err != nil {
+			m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
+			convCreatedCh <- err
+			return
+		}
+		var retentionPolicy *chat1.RetentionPolicy
+		if elf != nil {
+			retentionPolicy = new(chat1.RetentionPolicy)
+			*retentionPolicy = chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf})
+		}
 		conv, _, err = NewConversationWithMemberSourceConv(ctx, m.G(), uid, tlfName, &topicName,
 			chat1.TopicType_DEV, membersType,
-			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, &hostConvID)
+			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, retentionPolicy, &hostConvID)
 		convCreatedCh <- err
 	}()
 
@@ -1009,21 +1022,6 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	m.G().NotifyRouter.RemoveListener(nid)
 	if sendRes.Err != nil {
 		return sendRes.Err
-	}
-
-	// Preserve the ephemeral lifetime from the conv/message to the game
-	// conversation.
-	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv); err != nil {
-		m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
-		return err
-	} else if elf != nil {
-		m.Debug(ctx, "StartFlip: setting ephemeral retention for conv: %v", *elf)
-		if _, err := m.ri().SetConvRetention(ctx, chat1.SetConvRetentionArg{
-			ConvID: conv.GetConvID(),
-			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf}),
-		}); err != nil {
-			return err
-		}
 	}
 
 	// Record metadata of the host message into the game thread as the first message

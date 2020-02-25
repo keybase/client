@@ -243,6 +243,7 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
 
   return (
     <Kb.ClickableBox
+      feedback={false}
       key={tab}
       onClick={() => onTabClick(tab)}
       onMouseOver={isCrypto ? () => setHovering(true) : undefined}

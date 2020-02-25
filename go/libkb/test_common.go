@@ -116,10 +116,10 @@ func (tc *TestContext) Cleanup() {
 		tc.G.Log.Warning("tc.G.Shutdown failed: %s", err)
 	}
 	if len(tc.Tp.Home) > 0 {
-		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
-		os.RemoveAll(tc.Tp.Home)
 		tc.G.Log.Debug("clearing stored secrets:")
 		err := tc.ClearAllStoredSecrets()
+		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
+		os.RemoveAll(tc.Tp.Home)
 		require.NoError(tc.T, err)
 	}
 	tc.G.Log.Debug("cleanup complete")

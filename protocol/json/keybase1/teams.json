@@ -3242,6 +3242,28 @@
           "name": "showcase"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedSubteamMemberDetails",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamMemberDetails",
+          "name": "details"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3426,23 +3448,6 @@
         "type": "array",
         "items": "TeamIDAndName"
       }
-    },
-    "teamChangeMembership": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "req",
-          "type": "TeamChangeReq"
-        }
-      ],
-      "response": null
     },
     "teamAddMember": {
       "request": [
@@ -4310,6 +4315,22 @@
         }
       ],
       "response": "AnnotatedTeam"
+    },
+    "getUserSubteamMemberships": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "AnnotatedSubteamMemberDetails"
+      }
     }
   },
   "namespace": "keybase.1"

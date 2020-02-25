@@ -143,6 +143,14 @@ func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID
 	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
 }
 
+func (h *TeamsHandler) GetUserSubteamMemberships(ctx context.Context, arg keybase1.GetUserSubteamMembershipsArg) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUserSubteamMemberships(%s, %s)", arg.TeamID, arg.Username), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetUserSubteamMemberships(mctx, arg.TeamID, arg.Username)
+}
+
 func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
 	if details.Settings.Open {
 		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)
@@ -231,14 +239,6 @@ func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybas
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListSubteamsRecursive(%s)", arg.ParentTeamName), func() error { return err })()
 	return teams.ListSubteamsRecursive(ctx, h.G().ExternalG(), arg.ParentTeamName, arg.ForceRepoll)
-}
-
-func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
-		return err
-	}
-	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }
 
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {

@@ -66,7 +66,7 @@ type NotifyListener interface {
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
-	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message chat1.WelcomeMessage)
+	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -79,7 +79,7 @@ type NotifyListener interface {
 	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
-	TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration)
+	TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration)
 	NewTeambotKey(teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration)
 	TeambotKeyNeeded(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.TeambotKeyGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
@@ -182,8 +182,8 @@ func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.Conv
 func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 }
-func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)   {}
-func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, chat1.WelcomeMessage) {}
+func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)          {}
+func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, chat1.WelcomeMessageDisplay) {}
 
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
@@ -198,7 +198,7 @@ func (n *NoopNotifyListener) TeamRoleMapChanged(version keybase1.UserTeamVersion
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)    {}
 func (n *NoopNotifyListener) NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 func (n *NoopNotifyListener) TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID,
-	generation keybase1.EkGeneration) {
+	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) {
 }
 func (n *NoopNotifyListener) NewTeambotKey(teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration) {
 }
@@ -451,8 +451,13 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg s
 
 // HandleUserChanged is called whenever we know that a given user has
 // changed (and must be cache-busted). It will broadcast the messages
-// to all curious listeners.
+// to all curious listeners. NOTE: we now only do this for the current logged in user
 func (n *NotifyRouter) HandleUserChanged(mctx MetaContext, uid keybase1.UID, reason string) {
+	if !mctx.G().GetMyUID().Equal(uid) {
+		// don't send these for anyone but the current logged in user, no one cares about anything
+		// about other users
+		return
+	}
 	mctx.Debug("Sending UserChanged notification %v '%v')", uid, reason)
 	if n == nil {
 		return
@@ -1454,7 +1459,7 @@ func (n *NotifyRouter) HandleChatConvUpdate(ctx context.Context, uid keybase1.UI
 }
 
 func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
-	teamID keybase1.TeamID, message chat1.WelcomeMessage) {
+	teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay) {
 	if n == nil {
 		return
 	}
@@ -2242,15 +2247,16 @@ func (n *NotifyRouter) HandleNewTeambotEK(ctx context.Context, teamID keybase1.T
 }
 
 func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase1.TeamID,
-	botUID keybase1.UID, generation keybase1.EkGeneration) {
+	botUID keybase1.UID, generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) {
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeambotEkNeededArg{
-		Id:         teamID,
-		Uid:        botUID,
-		Generation: generation,
+		Id:                    teamID,
+		Uid:                   botUID,
+		Generation:            generation,
+		ForceCreateGeneration: forceCreateGen,
 	}
 
 	var wg sync.WaitGroup
@@ -2270,7 +2276,7 @@ func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase
 	wg.Wait()
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.TeambotEKNeeded(teamID, botUID, generation)
+		listener.TeambotEKNeeded(teamID, botUID, generation, forceCreateGen)
 	})
 	n.G().Log.CDebugf(ctx, "- Sent TeambotEKNeeded notification")
 }

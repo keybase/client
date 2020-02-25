@@ -23,6 +23,7 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
+import * as Platform from '../../constants/platform'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import {NotifyPopup} from '../../native/notifications'
@@ -1904,7 +1905,7 @@ const previewConversationTeam = async (
 ) => {
   const {conversationIDKey, teamname, reason} = action.payload
   if (conversationIDKey) {
-    if (reason === 'messageLink' || reason === 'teamMention') {
+    if (reason === 'messageLink' || reason === 'teamMention' || reason === 'channelHeader') {
       // Add preview channel to inbox
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
@@ -2217,6 +2218,27 @@ function* attachmentsUpload(
   )
 }
 
+const attachFromDragAndDrop = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttachFromDragAndDropPayload
+) => {
+  if (Platform.isDarwin) {
+    const paths = await Promise.all(
+      action.payload.paths.map(p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
+    )
+    return Chat2Gen.createAttachmentsUpload({
+      conversationIDKey: action.payload.conversationIDKey,
+      paths,
+      titles: action.payload.titles,
+    })
+  }
+  return Chat2Gen.createAttachmentsUpload({
+    conversationIDKey: action.payload.conversationIDKey,
+    paths: action.payload.paths,
+    titles: action.payload.titles,
+  })
+}
+
 // Tell service we're typing
 const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
   const {conversationIDKey, typing} = action.payload
@@ -2369,7 +2391,10 @@ const dismissJourneycard = (action: Chat2Gen.DismissJourneycardPayload, logger: 
 }
 
 // Get the full channel names/descs for a team if we don't already have them.
-function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectConversationPayload) {
+function* loadSuggestionData(
+  state: Container.TypedState,
+  action: Chat2Gen.ChannelSuggestionsTriggeredPayload
+) {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamID = meta.teamID
@@ -2377,10 +2402,10 @@ function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectC
   if (!meta.teamname) {
     return
   }
-  if (!TeamsConstants.hasChannelInfos(state, teamID)) {
-    yield Saga.delay(4000)
-    yield Saga.put(TeamsGen.createGetChannels({teamID}))
-  }
+  // This only happens when user enters '#' which isn't that often. If this
+  // becomes a problem, we can make a notification from service for when
+  // channels change, and skip the load here if nothing has changed yet.
+  yield Saga.put(TeamsGen.createGetChannels({teamID}))
 }
 
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
@@ -2407,8 +2432,8 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
   let replace = false
   const visible = Router2Constants.getVisibleScreen()
 
-  if (!Container.isPhone && visible && visible.routeName === 'chatRoot') {
-    // Don't append; we don't want to increase the size of the stack on desktop
+  if (Constants.isSplit && visible && visible.routeName === 'chatRoot') {
+    // Don't append; we don't want to increase the size of the stack with a split chat view.
     return
   }
 
@@ -3743,6 +3768,7 @@ function* chat2Saga() {
     attachmentDownload
   )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield* Saga.chainAction2(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)
@@ -3809,9 +3835,9 @@ function* chat2Saga() {
   yield* Saga.chainAction2(GregorGen.pushState, gregorPushState)
   yield* Saga.chainAction2(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 
-  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
-    Chat2Gen.selectConversation,
-    loadChannelInfos
+  yield* Saga.chainGenerator<Chat2Gen.ChannelSuggestionsTriggeredPayload>(
+    Chat2Gen.channelSuggestionsTriggered,
+    loadSuggestionData
   )
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)

@@ -143,7 +143,7 @@ var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
 func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "BackgroundConvLoader", false),
 		stopCh:        make(chan struct{}),
 		suspendCh:     make(chan chan struct{}, 10),
 		loadCh:        make(chan *clTask, 100),
@@ -476,6 +476,7 @@ func (b *BackgroundConvLoader) IsBackgroundActive() bool {
 
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
 	defer b.Trace(ictx, func() error { return nil }, "load: %s", task.job)()
+	defer b.PerfTrace(ictx, func() error { return nil }, "load: %s", task.job)()
 	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(

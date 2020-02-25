@@ -64,7 +64,7 @@ var _ rpc.ConnectionHandler = (*gregorTestConnection)(nil)
 func newGregorTestConnection(g *globals.Context, uid gregor1.UID, sessionToken string) *gregorTestConnection {
 	return &gregorTestConnection{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorTestConnection", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "gregorTestConnection", false),
 		uid:          uid,
 		sessionToken: sessionToken,
 	}
@@ -822,10 +822,20 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
-			require.NoError(t, err)
 			require.Equal(t, topicName, ncres.Conv.Info.TopicName)
 			require.NotEqual(t, conv.Id, ncres.Conv.GetConvID())
-		case chat1.ConversationMembersType_KBFS:
+		default:
+			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
+		}
+		// recreate as the second user
+		tc2 := ctc.as(t, users[1])
+		ncres2, err := tc2.chatLocalHandler().NewConversationLocal(tc2.startCtx, arg)
+		require.NoError(t, err)
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Equal(t, topicName, ncres.Conv.Info.TopicName)
+			require.Equal(t, ncres.Conv.GetConvID(), ncres2.Conv.GetConvID())
+		default:
 			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
 		}
 
@@ -841,11 +851,9 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		require.Error(t, err)
 		arg.TopicName = nil
 		ncres, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.NoError(t, err)
 		switch mt {
-		case chat1.ConversationMembersType_KBFS:
-			require.NoError(t, err)
 		case chat1.ConversationMembersType_TEAM:
-			require.NoError(t, err)
 			require.Equal(t, globals.DefaultTeamTopic, ncres.Conv.Info.TopicName)
 		}
 		arg.TopicName = &topicName
@@ -2182,7 +2190,7 @@ func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.Con
 	n.unfurlPrompt <- msgID
 }
 func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
-	_ chat1.WelcomeMessage) {
+	_ chat1.WelcomeMessageDisplay) {
 	n.welcomeMessage <- teamID
 }
 func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
@@ -6306,8 +6314,13 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
-		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
-		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
+		default:
+			require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
+			require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
+		}
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
@@ -8137,5 +8150,24 @@ func TestChatSrvTeamActivity(t *testing.T) {
 		require.Equal(t, 2, len(res))
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID1])
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID2])
+	})
+}
+
+func TestChatSrvGetRecentJoins(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TeamActivity", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		tc := ctc.as(t, users[0])
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		numJoins, err := tc.chatLocalHandler().GetRecentJoinsLocal(context.TODO(), created.Id)
+		require.NoError(t, err)
+		require.Equal(t, 2, numJoins)
 	})
 }
