@@ -75,133 +75,107 @@ const makeRadar = (show: boolean) => {
 }
 
 // simple bucketing of incoming log lines, we have a queue of incoming items, we bucket them
-// and choose a max to show
+// and choose a max to show. We use refs a lot since we only want to figure stuff out based on an interval
 // TODO mobile
 const LogStats = (props: {num?: number}) => {
   const {num} = props
   const maxBuckets = num ?? 5
 
-  const [incoming, setIncoming] = React.useState<Array<string>>([])
-  const [buckets, setBuckets] = React.useState<Array<{count: number; label: string; updated: boolean}>>(
-    new Array(maxBuckets).fill('').map(() => ({count: 0, label: '', updated: false}))
-  )
-
-  // bucketize
-  React.useEffect(() => {
-    setBuckets(buckets => {
-      // copy existing buckets
-      let newBuckets = buckets.map(b => ({...b, updated: false}))
-
-      console.log('aaa effect 0', incoming)
-      console.log(
-        'aaa effect 1',
-        newBuckets.map(b => ({...b}))
-      )
-
-      // find existing or add new ones
-      incoming.forEach(i => {
-        const existing = newBuckets.find(b => b.label === i)
-        if (existing) {
-          existing.updated = true
-          existing.count++
-        } else {
-          newBuckets.push({count: 1, label: i, updated: true})
-        }
-      })
-
-      console.log(
-        'aaa effect 2',
-        newBuckets.map(b => ({...b}))
-      )
-
-      // sort to remove unupdated or small ones
-      newBuckets = newBuckets.sort((a, b) => {
-        if (a.updated !== b.updated) {
-          return a.updated ? -1 : 1
-        }
-
-        return b.count - a.count
-      })
-
-      // clamp buckets
-      newBuckets = newBuckets.slice(0, maxBuckets)
-
-      // if no new ones, lets eliminate the last item
-      if (!incoming.length) {
-        newBuckets = newBuckets.reverse()
-        newBuckets.some(b => {
-          if (b.label) {
-            b.label = ''
-            b.count = 0
-            return true
-          }
-          return false
-        })
-        newBuckets = newBuckets.reverse()
-      }
-
-      // sort remainder by alpha so things don't move around a lot
-      newBuckets = newBuckets.sort((a, b) => a.label.localeCompare(b.label))
-
-      console.log(
-        'aaa effect 3',
-        newBuckets.map(b => ({...b}))
-      )
-      return newBuckets
-    })
-  }, [incoming])
-
+  const bucketsRef = React.useRef<Array<{count: number; label: string; updated: boolean}>>([])
+  const [, setDoRender] = React.useState(0)
   const events = Container.useSelector(state => state.config.runtimeStats?.perfEvents)
+  const lastEventsRef = React.useRef(new WeakSet<Array<RPCTypes.PerfEvent>>())
 
   const eventsRef = React.useRef<Array<RPCTypes.PerfEvent>>([])
   if (events) {
-    eventsRef.current.push(...events)
+    // only if unprocessed
+    if (!lastEventsRef.current.has(events)) {
+      lastEventsRef.current.add(events)
+      eventsRef.current.push(...events)
+    }
   }
 
   Kb.useInterval(() => {
-    if (eventsRef.current.length) {
-      const events = eventsRef.current
-      eventsRef.current = []
-      setIncoming(
-        events.map(e => {
-          const parts = e.message.split(' ')
-          if (parts.length >= 2) {
-            const [prefix, body] = parts
-            const bodyParts = body.split('.')
-            const b = bodyParts.length > 1 ? bodyParts.slice(-2).join('.') : bodyParts[0]
-            switch (prefix) {
-              case 'GET':
-                return `<w:${b}`
-              case 'POST':
-                return `>w:${b}`
-              case 'CallCompressed':
-                return `cc:${b}`
-              case 'FullCachingSource:':
-                return `fcs:${b}`
-              case 'Call':
-                return `c:${b}`
-              default:
-                return e.message
-            }
-          } else {
+    const events = eventsRef.current
+    eventsRef.current = []
+    const incoming = events.map(e => {
+      const parts = e.message.split(' ')
+      if (parts.length >= 2) {
+        const [prefix, body] = parts
+        const bodyParts = body.split('.')
+        const b = bodyParts.length > 1 ? bodyParts.slice(-2).join('.') : bodyParts[0]
+        switch (prefix) {
+          case 'GET':
+            return `<w:${b}`
+          case 'POST':
+            return `>w:${b}`
+          case 'CallCompressed':
+            return `cc:${b}`
+          case 'FullCachingSource:':
+            return `fcs:${b}`
+          case 'Call':
+            return `c:${b}`
+          default:
             return e.message
-          }
-        })
-      )
-    }
-  }, 1000)
+        }
+      } else {
+        return e.message
+      }
+    })
 
-  // age out old logs
-  Kb.useInterval(() => {
-    setIncoming([])
-  }, 5000)
+    // copy existing buckets
+    let newBuckets = bucketsRef.current.map(b => ({...b, updated: false}))
+
+    // find existing or add new ones
+    incoming.forEach(i => {
+      const existing = newBuckets.find(b => b.label === i)
+      if (existing) {
+        existing.updated = true
+        existing.count++
+      } else {
+        newBuckets.push({count: 1, label: i, updated: true})
+      }
+    })
+
+    // sort to remove unupdated or small ones
+    newBuckets = newBuckets.sort((a, b) => {
+      if (a.updated !== b.updated) {
+        return a.updated ? -1 : 1
+      }
+
+      return b.count - a.count
+    })
+
+    // clamp buckets
+    newBuckets = newBuckets.slice(0, maxBuckets)
+
+    // if no new ones, lets eliminate the last item
+    if (!incoming.length) {
+      newBuckets = newBuckets.reverse()
+      newBuckets.some(b => {
+        if (b.label) {
+          b.label = ''
+          b.count = 0
+          return true
+        }
+        return false
+      })
+      newBuckets = newBuckets.reverse()
+    }
+
+    // sort remainder by alpha so things don't move around a lot
+    newBuckets = newBuckets.sort((a, b) => a.label.localeCompare(b.label))
+
+    bucketsRef.current = newBuckets
+    setDoRender(r => r + 1)
+  }, 2000)
 
   return (
     <Kb.Box2 direction="vertical" style={{minHeight: 22 * maxBuckets}} fullWidth={true}>
       <Kb.Text type="BodyTinyBold" style={styles.stat}>
         Logs
       </Kb.Text>
-      {buckets.map((b, i) => (
+      {bucketsRef.current.map((b, i) => (
         <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.stat} lineClamp={1}>
           {b.label && b.count > 1 ? b.count : ''} {b.label}
         </Kb.Text>
