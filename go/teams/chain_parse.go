@@ -327,11 +327,6 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
-	var etimePtr *keybase1.UnixTime
-	if i.Etime != nil {
-		etimeVal := keybase1.UnixTime(*i.Etime)
-		etimePtr = &etimeVal
-	}
 	return keybase1.TeamInvite{
 		Id:      id,
 		Role:    r,
@@ -339,7 +334,7 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 		Name:    i.Name,
 		Inviter: inviter,
 		MaxUses: i.MaxUses,
-		Etime:   etimePtr,
+		Etime:   i.Etime,
 	}, nil
 }
 
