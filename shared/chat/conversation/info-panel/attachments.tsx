@@ -492,9 +492,9 @@ export default (p: Props) => {
             const data = chunk(
               month.data.map(thumb => ({
                 debug: {
-                  width: thumb.width,
                   height: thumb.height,
                   maxMediaThumbSize,
+                  width: thumb.width,
                 },
                 sizing: Constants.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
                 thumb,
