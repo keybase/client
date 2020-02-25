@@ -171,12 +171,21 @@ const LogStats = (props: {num?: number}) => {
   }, 2000)
 
   return (
-    <Kb.Box2 direction="vertical" style={{minHeight: 22 * maxBuckets}} fullWidth={true}>
-      <Kb.Text type="BodyTinyBold" style={styles.stat}>
-        Logs
-      </Kb.Text>
+    <Kb.Box2
+      direction="vertical"
+      style={{
+        backgroundColor: 'rgba(0,0,0, 0.3)',
+        minHeight: (Styles.isMobile ? 12 : 16) * maxBuckets,
+      }}
+      fullWidth={true}
+    >
+      {!Styles.isMobile && (
+        <Kb.Text type="BodyTinyBold" style={styles.stat}>
+          Logs
+        </Kb.Text>
+      )}
       {bucketsRef.current.map((b, i) => (
-        <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.stat} lineClamp={1}>
+        <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.logStat} lineClamp={1}>
           {b.label && b.count > 1 ? b.count : ''} {b.label}
         </Kb.Text>
       ))}
@@ -304,61 +313,66 @@ const RuntimeStatsMobile = ({stats}: Props) => {
   const coreCompaction = compactionActive(stats.dbStats, chatDbs)
   const kbfsCompaction = compactionActive(stats.dbStats, kbfsDbs)
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
-      {processStat && (
+    <>
+      <Kb.Box2 direction="vertical" style={styles.modalLogStats} gap="xtiny" pointerEvents="none">
+        <LogStats />
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
+        {processStat && (
+          <Kb.Box2 direction="vertical">
+            <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
+              <Kb.Text
+                style={Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity)])}
+                type="BodyTiny"
+              >{`C:${processStat.cpu}`}</Kb.Text>
+              <Kb.Text
+                style={Styles.collapseStyles([styles.stat, severityStyle(processStat.residentSeverity)])}
+                type="BodyTiny"
+              >{`R:${processStat.resident}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`V:${processStat.virt}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`F:${processStat.free}`}</Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${processStat.goheap}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${processStat.goheapsys}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${processStat.goreleased}`}</Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Kb.Box2 direction="vertical">
-          <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
-            <Kb.Text
-              style={Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity)])}
-              type="BodyTiny"
-            >{`C:${processStat.cpu}`}</Kb.Text>
-            <Kb.Text
-              style={Styles.collapseStyles([styles.stat, severityStyle(processStat.residentSeverity)])}
-              type="BodyTiny"
-            >{`R:${processStat.resident}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`V:${processStat.virt}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`F:${processStat.free}`}</Kb.Text>
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${processStat.goheap}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${processStat.goheapsys}`}</Kb.Text>
-            <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${processStat.goreleased}`}</Kb.Text>
-          </Kb.Box2>
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.stat,
+              stats.convLoaderActive ? styles.statWarning : styles.statNormal,
+            ])}
+            type="BodyTiny"
+          >{`CLA: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.stat,
+              stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+            ])}
+            type="BodyTiny"
+          >{`SSA: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
         </Kb.Box2>
-      )}
-      <Kb.Box2 direction="vertical">
-        <Kb.Text
-          style={Styles.collapseStyles([
-            styles.stat,
-            stats.convLoaderActive ? styles.statWarning : styles.statNormal,
-          ])}
-          type="BodyTiny"
-        >{`CLA: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
-        <Kb.Text
-          style={Styles.collapseStyles([
-            styles.stat,
-            stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
-          ])}
-          type="BodyTiny"
-        >{`SSA: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
+        <Kb.Box2 direction="vertical">
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.stat,
+              coreCompaction ? styles.statWarning : styles.statNormal,
+            ])}
+            type="BodyTiny"
+          >{`LC: ${yesNo(coreCompaction)}`}</Kb.Text>
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.stat,
+              kbfsCompaction ? styles.statWarning : styles.statNormal,
+            ])}
+            type="BodyTiny"
+          >{`LK: ${yesNo(kbfsCompaction)}`}</Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical">
-        <Kb.Text
-          style={Styles.collapseStyles([
-            styles.stat,
-            coreCompaction ? styles.statWarning : styles.statNormal,
-          ])}
-          type="BodyTiny"
-        >{`LC: ${yesNo(coreCompaction)}`}</Kb.Text>
-        <Kb.Text
-          style={Styles.collapseStyles([
-            styles.stat,
-            kbfsCompaction ? styles.statWarning : styles.statNormal,
-          ])}
-          type="BodyTiny"
-        >{`LK: ${yesNo(kbfsCompaction)}`}</Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2>
+    </>
   )
 }
 
@@ -387,6 +401,25 @@ const styles = Styles.styleSheetCreate(() => ({
       right: isIPhoneX ? 10 : 0,
     },
   }),
+  logStat: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.whiteOrWhite,
+    },
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+    isMobile: {
+      fontFamily: 'Courier',
+      fontSize: 12,
+      lineHeight: 16,
+    },
+  }),
+  modalLogStats: {
+    position: 'absolute',
+    right: 0,
+    top: 20,
+    width: 130,
+  },
   radarContainer: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white_20,
