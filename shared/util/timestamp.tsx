@@ -105,7 +105,7 @@ export const formatDuration = (duration: number): string => {
 }
 
 export const formatAudioRecordDuration = (duration: number): string => {
-  return dateFns.format(duration * 1000, 'mm:ss')
+  return dateFns.format(duration, 'mm:ss')
 }
 
 export const formatDurationForAutoreset = (duration: number): string => {
