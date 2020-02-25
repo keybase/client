@@ -125,8 +125,8 @@ function main() {
   if (saltpackIcon) {
     packagerOpts.extraResource = [...packagerOpts.extraResource, saltpackIcon]
   } else {
-    console.log(
-      `Missing 'saltpackIcon' from yarn package arguments. Need ${saltpackIcon} to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
+    console.warn(
+      `Missing 'saltpack.icns' from yarn package arguments. Need an icon to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
     )
   }
 

@@ -44,7 +44,7 @@ kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
 icon_path="$client_dir/media/icons/Keybase.icns"
-saltpack_icon="$client_dir/media/icons/saltpack-encrypted.icns"
+saltpack_icon="$client_dir/media/icons/saltpack.icns"
 
 echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
