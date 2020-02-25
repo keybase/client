@@ -147,6 +147,7 @@ const styles = Styles.styleSheetCreate(
       },
       mainTitleText: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
       rootTitle: {
+        alignSelf: 'center',
         marginLeft: Styles.globalMargins.xsmall,
       },
       slash: {
