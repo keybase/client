@@ -2805,6 +2805,7 @@ export type GUIFileContext = {readonly viewType: GUIViewType; readonly contentTy
 export type GcOptions = {readonly maxLooseRefs: Int; readonly pruneMinLooseObjects: Int; readonly pruneExpireTime: Time; readonly maxObjectPacks: Int}
 export type Generic = {readonly m: {[key: string]: Generic}; readonly a?: Array<Generic> | null; readonly s?: String | null; readonly i?: Int | null}
 export type GetBlockRes = {readonly blockKey: String; readonly buf: Bytes; readonly size: Int; readonly status: BlockStatus}
+export type GetBlockSizesRes = {readonly sizes?: Array<Int> | null; readonly statuses?: Array<BlockStatus> | null}
 export type GetLockdownResponse = {readonly history?: Array<LockdownHistory> | null; readonly status: Boolean}
 export type GetPassphraseRes = {readonly passphrase: String; readonly storeSecret: Boolean}
 export type GetRevisionsArgs = {readonly opID: OpID; readonly path: Path; readonly spanType: RevisionSpanType}
@@ -3764,6 +3765,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.block.putBlock'
 // 'keybase.1.block.putBlockAgain'
 // 'keybase.1.block.getBlock'
+// 'keybase.1.block.getBlockSizes'
 // 'keybase.1.block.addReference'
 // 'keybase.1.block.delReference'
 // 'keybase.1.block.archiveReference'
