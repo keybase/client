@@ -19,6 +19,7 @@ import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
+import HiddenString from '../../util/hidden-string'
 
 const {join} = KB.path
 const {env} = KB.process
@@ -26,6 +27,7 @@ const {env} = KB.process
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
 let startupURL: string | null = null
+let saltpackFilePath: string | null = null
 
 const installCrashReporter = () => {
   if (env.KEYBASE_CRASH_REPORT) {
@@ -111,6 +113,17 @@ const isRelevantDeepLink = (x: string) => {
   return x.startsWith('web+stellar:') || x.startsWith('keybase://')
 }
 
+const isValidSaltpackFilePath = (p: string) => {
+  const valid = p.endsWith('.encrypted.saltpack') || p.endsWith('.siged.saltpack')
+  if (!valid) {
+    logger.warn(
+      'Received Electron open-file event with a file not ending in either ".encrypted.saltpack" or ".signed.saltpack".'
+    )
+    return false
+  }
+  return valid
+}
+
 const handleCrashes = () => {
   process.on('uncaughtException', e => {
     console.log('Uncaught exception on main thread:', e)
@@ -143,6 +156,48 @@ const handleCrashes = () => {
   })
 }
 
+// On Windows and Linux startup, open-file and open-url arguments will be
+// passed via process.argv instead of via Electron event arguments.
+const getStartupProcessArgs = () => {
+  let arg: string | undefined
+
+  if (
+    process.argv.length > 1 &&
+    (isRelevantDeepLink(process.argv[1]) || isValidSaltpackFilePath(process.argv[1]))
+  ) {
+    arg = process.argv[1]
+  } else if (
+    process.argv.length > 2 &&
+    (isRelevantDeepLink(process.argv[2]) || isValidSaltpackFilePath(process.argv[2]))
+  ) {
+    arg = process.argv[2]
+  }
+
+  // Bail if nothing was passed
+  if (!arg) {
+    logger.info(
+      `Received open-file or open-url event on ${
+        isWindows ? 'Windows' : 'Linux'
+      } but did not get filePath or url from process.argv`
+    )
+    return
+  }
+
+  if (isRelevantDeepLink(arg)) {
+    mainWindowDispatch(DeeplinksGen.createLink({link: arg}))
+  } else if (isValidSaltpackFilePath(arg)) {
+    logger.error(
+      'JRY appStartedUp -> no saltpackFilePath -> getStartupProcessArgs -> createSaltpackFileOpen',
+      {saltpackFilePath}
+    )
+    console.error(
+      'JRY appStartedUp -> no saltpackFilePath -> getStartupProcessArgs -> createSaltpackFileOpen',
+      {saltpackFilePath}
+    )
+    mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: new HiddenString(arg)}))
+  }
+}
+
 const handleActivate = () => {
   mainWindow && mainWindow.show()
   const dock = Electron.app.dock
@@ -156,6 +211,17 @@ const handleQuitting = (event: Electron.Event) => {
 }
 
 const willFinishLaunching = () => {
+  Electron.app.on('open-file', (event, path) => {
+    event.preventDefault()
+    if (!appStartedUp) {
+      saltpackFilePath = path
+    } else {
+      logger.warn('JRY willFinishLaunching -> saltpackFilePath -> createSaltpackFileOpen', {path})
+      console.warn('JRY willFinishLaunching -> saltpackFilePath -> createSaltpackFileOpen', {path})
+      mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: new HiddenString(path)}))
+    }
+  })
+
   Electron.app.on('open-url', (event, link) => {
     event.preventDefault()
     if (!appStartedUp) {
@@ -260,17 +326,13 @@ const plumbEvents = () => {
           // stash a startupURL to be dispatched when we're ready for it.
           mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
           startupURL = null
+        } else if (saltpackFilePath) {
+          logger.warn('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
+          console.warn('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
+          mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: new HiddenString(saltpackFilePath)}))
+          saltpackFilePath = null
         } else if (!isDarwin) {
-          // Windows and Linux instead store a launch URL in argv.
-          let link: string | undefined
-          if (process.argv.length > 1 && isRelevantDeepLink(process.argv[1])) {
-            link = process.argv[1]
-          } else if (process.argv.length > 2 && isRelevantDeepLink(process.argv[2])) {
-            link = process.argv[2]
-          }
-          if (link) {
-            mainWindowDispatch(DeeplinksGen.createLink({link}))
-          }
+          getStartupProcessArgs()
         }
 
         // run installer

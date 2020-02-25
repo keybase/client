@@ -59,12 +59,13 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   return actions
 }
 
-function* teamBuildingSaga() {
-  yield* commonTeamBuildingSaga('crypto')
+const handleSaltpackOpenFile = (state: Container.TypedState, action: CryptoGen.OnSaltpackFileOpenPayload) => {
+  // const {operation, path} = action.payload
 
-  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
-  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
-  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+  // TODO what to do if opening a file while an operation is in progress? Should things get queued?
+  // if (inProgress) return
+
+  return
 }
 
 // more of a debounce to keep things simple
@@ -610,6 +611,14 @@ const downloadSignedText = async (state: TypedState) => {
   })
 }
 
+function* teamBuildingSaga() {
+  yield* commonTeamBuildingSaga('crypto')
+
+  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
+  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
+  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+}
+
 function* cryptoSaga() {
   yield* Saga.chainAction2(CryptoGen.downloadEncryptedText, downloadEncryptedText)
   yield* Saga.chainAction2(CryptoGen.downloadSignedText, downloadSignedText)
@@ -628,6 +637,7 @@ function* cryptoSaga() {
   yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
+  yield* Saga.chainAction2(CryptoGen.onSaltpackFileOpen, handleSaltpackOpenFile)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)

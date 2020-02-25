@@ -9,6 +9,9 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
+import * as CryptoGen from '../actions/crypto-gen'
+import * as CryptoTypes from '../constants/types/crypto'
+import * as CrytoConstants from '../constants/crypto'
 import URL from 'url-parse'
 import logger from '../logger'
 
@@ -141,9 +144,58 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   return false
 }
 
+const handleSaltpackOpenFile = (
+  state: Container.TypedState,
+  action: DeeplinksGen.SaltpackFileOpenPayload
+) => {
+  // TODO inspect saltpack file type
+  // TODO determine if there are any conditions to block on
+  // TODO route to crypto tab
+  // TODO route to specific sub-route
+  // TODO pass fiel path arguments to sub-route
+  // TODO override existing operation store input
+  // TODO reset operation store output/errors, etc
+
+  const hiddenPath = action.payload.path
+  if (!hiddenPath) {
+    logger.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> no path')
+    console.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> no path')
+    return
+  }
+  logger.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> have a path', {
+    hiddenPath,
+    stringValue: hiddenPath.stringValue(),
+  })
+  console.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> have a path', {
+    hiddenPath,
+    stringValue: hiddenPath.stringValue(),
+  })
+  const path = hiddenPath.stringValue()
+  let operation: CryptoTypes.Operations | null = null
+  if (path.endsWith('.encrypted.saltpack')) {
+    operation = CrytoConstants.Operations.Decrypt
+  } else if (path.endsWith('.signed.saltpack')) {
+    operation = CrytoConstants.Operations.Verify
+  } else {
+    logger.warn(
+      'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
+    )
+    return
+  }
+
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}),
+    CryptoGen.createOnSaltpackFileOpen({
+      operation,
+      path: action.payload.path,
+    }),
+  ]
+}
+
 function* deeplinksSaga() {
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
   yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
+  yield* Saga.chainAction2(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
 }
 
 export default deeplinksSaga
