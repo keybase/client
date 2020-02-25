@@ -60,11 +60,7 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
 }
 
 const handleSaltpackOpenFile = (state: Container.TypedState, action: CryptoGen.OnSaltpackFileOpenPayload) => {
-  // const {operation, path} = action.payload
-
-  // TODO what to do if opening a file while an operation is in progress? Should things get queued?
-  // if (inProgress) return
-
+  // TODO implement
   return
 }
 

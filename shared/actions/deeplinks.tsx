@@ -156,21 +156,9 @@ const handleSaltpackOpenFile = (
   // TODO override existing operation store input
   // TODO reset operation store output/errors, etc
 
-  const hiddenPath = action.payload.path
-  if (!hiddenPath) {
-    logger.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> no path')
-    console.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> no path')
-    return
-  }
-  logger.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> have a path', {
-    hiddenPath,
-    stringValue: hiddenPath.stringValue(),
-  })
-  console.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> have a path', {
-    hiddenPath,
-    stringValue: hiddenPath.stringValue(),
-  })
-  const path = hiddenPath.stringValue()
+  logger.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> action', {action})
+  console.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> action', {action})
+  const path = action.payload.path
   let operation: CryptoTypes.Operations | null = null
   if (path.endsWith('.encrypted.saltpack')) {
     operation = CrytoConstants.Operations.Decrypt
@@ -187,7 +175,7 @@ const handleSaltpackOpenFile = (
     RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}),
     CryptoGen.createOnSaltpackFileOpen({
       operation,
-      path: action.payload.path,
+      path: new Container.HiddenString(path),
     }),
   ]
 }

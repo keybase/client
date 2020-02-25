@@ -1,7 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import HiddenString from '../util/hidden-string'
-
 // Constants
 export const resetStore = 'common:resetStore' // not a part of deeplinks but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'deeplinks:'
@@ -13,7 +11,7 @@ export const setKeybaseLinkError = 'deeplinks:setKeybaseLinkError'
 // Payload Types
 type _HandleKeybaseLinkPayload = {readonly link: string}
 type _LinkPayload = {readonly link: string}
-type _SaltpackFileOpenPayload = {readonly path: HiddenString}
+type _SaltpackFileOpenPayload = {readonly path: string}
 type _SetKeybaseLinkErrorPayload = {readonly error: string}
 
 // Action Creators

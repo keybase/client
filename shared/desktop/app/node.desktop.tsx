@@ -19,7 +19,6 @@ import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
-import HiddenString from '../../util/hidden-string'
 
 const {join} = KB.path
 const {env} = KB.process
@@ -186,15 +185,7 @@ const getStartupProcessArgs = () => {
   if (isRelevantDeepLink(arg)) {
     mainWindowDispatch(DeeplinksGen.createLink({link: arg}))
   } else if (isValidSaltpackFilePath(arg)) {
-    logger.error(
-      'JRY appStartedUp -> no saltpackFilePath -> getStartupProcessArgs -> createSaltpackFileOpen',
-      {saltpackFilePath}
-    )
-    console.error(
-      'JRY appStartedUp -> no saltpackFilePath -> getStartupProcessArgs -> createSaltpackFileOpen',
-      {saltpackFilePath}
-    )
-    mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: new HiddenString(arg)}))
+    mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: saltpackFilePath}))
   }
 }
 
@@ -216,9 +207,7 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       saltpackFilePath = path
     } else {
-      logger.warn('JRY willFinishLaunching -> saltpackFilePath -> createSaltpackFileOpen', {path})
-      console.warn('JRY willFinishLaunching -> saltpackFilePath -> createSaltpackFileOpen', {path})
-      mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: new HiddenString(path)}))
+      mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path}))
     }
   })
 
@@ -327,9 +316,9 @@ const plumbEvents = () => {
           mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
           startupURL = null
         } else if (saltpackFilePath) {
-          logger.warn('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
-          console.warn('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
-          mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: new HiddenString(saltpackFilePath)}))
+          logger.error('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
+          console.error('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
+          mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path}))
           saltpackFilePath = null
         } else if (!isDarwin) {
           getStartupProcessArgs()
