@@ -43,6 +43,12 @@ type Props = {
   mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean
+
+  // Desktop only popup overrides
+  popupStyleClose?: Styles.StylesCrossPlatform
+  popupStyleContainer?: Styles.StylesCrossPlatform
+  popupStyleCover?: Styles.StylesCrossPlatform
+  popupTabBarShim?: boolean
 }
 
 const ModalInner = (props: Props) => (
@@ -77,6 +83,10 @@ const Modal = (props: Props) =>
         clipContainerStyles[props.mode],
         props.allowOverflow && styles.overflowVisible,
       ])}
+      styleClose={props.popupStyleClose}
+      styleContainer={props.popupStyleContainer}
+      styleCover={props.popupStyleCover}
+      tabBarShim={props.popupTabBarShim}
     >
       <ModalInner {...props} />
     </PopupDialog>

@@ -632,32 +632,8 @@ const mergeProps = (
       }
     : emptyObj
 
-  const popupProps: PopupHocProps | null = Container.isMobile
-    ? null
-    : {
-        closeStyleOverrides: ownProps.namespace === 'people' ? {display: 'none'} : null,
-        containerStyleOverrides:
-          ownProps.namespace === 'people'
-            ? {
-                width: '100%',
-                ...Styles.padding(0, Styles.globalMargins.xsmall),
-              }
-            : null,
-        coverStyleOverrides:
-          ownProps.namespace === 'people'
-            ? {
-                alignItems: 'flex-start',
-                backgroundColor: 'initial',
-                ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
-              }
-            : null,
-        onClosePopup: dispatchProps._onCancelTeamBuilding,
-        tabBarShim: ownProps.namespace === 'people',
-      }
-
   return {
     ...headerHocProps,
-    ...popupProps,
     ...contactProps,
     error: stateProps.error,
     fetchUserRecs: dispatchProps.fetchUserRecs,
