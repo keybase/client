@@ -760,7 +760,7 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *Merkl
 
 	seqno, err := apiRes.Body.AtKey("seqno").GetInt64()
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("merkle/root response does not contain seqno")
+		return nil, nil, nil, fmt.Errorf("merkle/root response does not contain seqno: %v", err)
 	}
 	if lastSeqno != nil && *lastSeqno == keybase1.Seqno(seqno) {
 		// here we can ignore the rest of the server response (the server
