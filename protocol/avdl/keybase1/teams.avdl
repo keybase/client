@@ -100,7 +100,7 @@ protocol teams {
   @typedef("string")
   record TeamInviteID {}
 
-  // "max_uses" field of team invite. Values above 0 and -1 are allowed.
+  // "max_uses" field of team invite. Value can be positive or -1, not 0.
   // -1 means infinite number of uses.
   @typedef("int")
   record TeamInviteMaxUses {}
@@ -226,7 +226,12 @@ protocol teams {
     array<UserVersion> bots;
     map<UserVersion, TeamBotSettings> restrictedBots;
     array<UserVersion> none;
+    // If added UserVersion completes an invite, store the inviteID->UV mapping
+    // here.
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
+    // If added UserVersion uses a multi-use invite, store the inviteID->UV pair
+    // here. This only applies to multi-use invites (invites with max_uses field).
+    // Any other invite should use completedInvites.
     array<TeamUsedInvite> usedInvites;
   }
 
@@ -776,7 +781,8 @@ protocol teams {
 
   record TeamUsedInviteLog {
     UserVersion uv;
-    int logPoint; // index into UserLogPoint array for UV
+    // index into TeamSigChainState.userLog[uv][]
+    int logPoint;
   }
 
   // A subteam got this name at this point in time.

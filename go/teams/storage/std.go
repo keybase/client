@@ -65,7 +65,7 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 		return nil, false, false
 	}
 
-	// TODO: old migrations, version is now 11, remove these:
+	// TODO Y2K-1486: old migrations, version is now 11, remove these:
 
 	if diskStorageVersion == 10 && ret.Subversion == 0 {
 		migrateInvites(mctx, ret.ID(), ret.Chain.ActiveInvites)
