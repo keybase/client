@@ -1028,6 +1028,11 @@ func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.Conversa
 	return res, errors.New("TeamIDOfConv not mocked")
 }
 
+func (m *ChatRemoteMock) RefreshParticipantsRemote(ctx context.Context,
+	arg chat1.RefreshParticipantsRemoteArg) (res chat1.RefreshParticipantsRemoteRes, err error) {
+	return res, errors.New("not implemented")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error

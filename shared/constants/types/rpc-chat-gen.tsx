@@ -75,6 +75,10 @@ export type MessageTypes = {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID}
     outParam: void
   }
+  'chat.1.NotifyChat.ChatParticipantsInfo': {
+    inParam: {readonly convID: ConversationID; readonly participants?: Array<UIParticipant> | null}
+    outParam: void
+  }
   'chat.1.NotifyChat.ChatPaymentInfo': {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly msgID: MessageID; readonly info: UIPaymentInfo}
     outParam: void
@@ -498,6 +502,10 @@ export type MessageTypes = {
   'chat.1.local.profileChatSearch': {
     inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: {[key: string]: ProfileSearchConvStats}
+  }
+  'chat.1.local.refreshParticipants': {
+    inParam: {readonly convID: ConversationID}
+    outParam: void
   }
   'chat.1.local.removeBotMember': {
     inParam: {readonly convID: ConversationID; readonly username: String}
@@ -1311,6 +1319,7 @@ export type ReactionUpdate = {readonly reactions: ReactionMap; readonly targetMs
 export type ReactionUpdateNotif = {readonly convID: ConversationID; readonly userReacjis: Keybase1.UserReacjis; readonly reactionUpdates?: Array<ReactionUpdate> | null}
 export type ReadMessageInfo = {readonly convID: ConversationID; readonly msgID: MessageID; readonly conv?: InboxUIItem | null}
 export type ReadMessagePayload = {readonly Action: String; readonly convID: ConversationID; readonly msgID: MessageID; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
+export type RefreshParticipantsRemoteRes = {readonly hashMatch: Boolean; readonly uids?: Array<Gregor1.UID> | null; readonly hash: String; readonly rateLimit?: RateLimit | null}
 export type RegexpRes = {readonly hits?: Array<ChatSearchHit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type RemoteBotCommandsAdvertisement = {typ: BotCommandsAdvertisementTyp.public; public: RemoteBotCommandsAdvertisementPublic} | {typ: BotCommandsAdvertisementTyp.tlfidMembers; tlfidMembers: RemoteBotCommandsAdvertisementTLFID} | {typ: BotCommandsAdvertisementTyp.tlfidConvs; tlfidConvs: RemoteBotCommandsAdvertisementTLFID}
 export type RemoteBotCommandsAdvertisementPublic = {readonly convID: ConversationID}
@@ -1513,6 +1522,7 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatConvUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded'?: (params: MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatParticipantsInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam'] & {sessionID: number}) => IncomingReturn
 }
 
 export type CustomResponseIncomingCallMap = {
@@ -1608,6 +1618,7 @@ export const localPostTextNonblockRpcPromise = (params: MessageTypes['chat.1.loc
 export const localPostTextNonblockRpcSaga = (p: {params: MessageTypes['chat.1.local.postTextNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.postTextNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.previewConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.previewConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRefreshParticipantsRpcPromise = (params: MessageTypes['chat.1.local.refreshParticipants']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.refreshParticipants']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.refreshParticipants', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxLayoutRpcPromise = (params: MessageTypes['chat.1.local.requestInboxLayout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxLayout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxLayout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxSmallIncreaseRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallIncrease']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallIncrease', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1721,6 +1732,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.NotifyChat.ChatPromptUnfurl'
 // 'chat.1.NotifyChat.ChatConvUpdate'
 // 'chat.1.NotifyChat.ChatWelcomeMessageLoaded'
+// 'chat.1.NotifyChat.ChatParticipantsInfo'
 // 'chat.1.remote.getInboxRemote'
 // 'chat.1.remote.getThreadRemote'
 // 'chat.1.remote.getUnreadlineRemote'
@@ -1768,3 +1780,4 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.getDefaultTeamChannels'
 // 'chat.1.remote.setDefaultTeamChannels'
 // 'chat.1.remote.getRecentJoins'
+// 'chat.1.remote.refreshParticipantsRemote'

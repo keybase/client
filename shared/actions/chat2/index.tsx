@@ -207,27 +207,22 @@ const onGetInboxConvsUnboxed = (
     if (meta) {
       metas.push(meta)
     }
-    const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
-    ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
-      const {assertion, fullName, contactName, inConvName} = part
-      if (!infoMap.get(assertion) && fullName) {
-        added = true
-        usernameToFullname[assertion] = fullName
-      }
-      participantInfo.all.push(assertion)
-      if (inConvName) {
-        participantInfo.name.push(assertion)
-      }
-      if (contactName) {
-        participantInfo.contactName.set(assertion, contactName)
-      }
-    })
+    const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
+      inboxUIItem.participants ?? []
+    )
     if (participantInfo.all.length > 0) {
       participants.push({
         conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
         participants: participantInfo,
       })
     }
+    inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
+      const {assertion, fullName} = part
+      if (!infoMap.get(assertion) && fullName) {
+        added = true
+        usernameToFullname[assertion] = fullName
+      }
+    })
   })
   if (added) {
     actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))

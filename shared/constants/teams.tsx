@@ -56,10 +56,8 @@ export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
   conversationIDKey: noConversationIDKey,
   description: '',
-  hasAllMembers: null,
   memberStatus: RPCChatTypes.ConversationMemberStatus.active,
   mtime: 0,
-  numParticipants: 0,
 })
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({

@@ -47,10 +47,8 @@ export type ChannelInfo = {
   channelname: string
   conversationIDKey: ConversationIDKey
   description: string
-  hasAllMembers?: boolean | null
   memberStatus: RPCChatTypes.ConversationMemberStatus
   mtime: number
-  numParticipants: number
 }
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'

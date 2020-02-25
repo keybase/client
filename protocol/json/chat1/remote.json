@@ -905,6 +905,34 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "RefreshParticipantsRemoteRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hashMatch"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "uids"
+        },
+        {
+          "type": "string",
+          "name": "hash"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1636,6 +1664,19 @@
         }
       ],
       "response": "GetRecentJoinsRes"
+    },
+    "refreshParticipantsRemote": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "hash",
+          "type": "string"
+        }
+      ],
+      "response": "RefreshParticipantsRemoteRes"
     }
   },
   "namespace": "chat.1",

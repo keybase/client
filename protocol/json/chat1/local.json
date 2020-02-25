@@ -5728,6 +5728,15 @@
         }
       ],
       "response": "int"
+    },
+    "refreshParticipants": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

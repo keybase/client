@@ -272,3 +272,6 @@ func (d *chatNotificationDisplay) ChatConvUpdate(context.Context, chat1.ChatConv
 func (d *chatNotificationDisplay) ChatWelcomeMessageLoaded(context.Context, chat1.ChatWelcomeMessageLoadedArg) error {
 	return nil
 }
+func (d *chatNotificationDisplay) ChatParticipantsInfo(context.Context, chat1.ChatParticipantsInfoArg) error {
+	return nil
+}

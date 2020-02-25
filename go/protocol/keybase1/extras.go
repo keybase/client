@@ -3847,3 +3847,16 @@ func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
 	}
 	return true
 }
+
+func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
+	size := len(t.Admins) + len(t.Bots) + len(t.Owners) + len(t.Writers) + len(t.Readers) +
+		len(t.RestrictedBots)
+	res = make([]TeamMemberDetails, 0, size)
+	return append(res,
+		append(t.Admins,
+			append(t.Bots,
+				append(t.Owners,
+					append(t.Readers,
+						append(t.RestrictedBots,
+							append(t.Writers)...)...)...)...)...)...)
+}

@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {ConversationIDKey} from '../../constants/types/chat2'
 import {TeamID} from '../../constants/types/teams'
@@ -17,13 +18,15 @@ type HeaderTitleProps = {
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
   const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const {channelname, description, numParticipants} = Container.useSelector(
+  const {channelname, description} = Container.useSelector(
     s =>
       Constants.getChannelInfoFromConvID(s, teamID, conversationIDKey) ?? {
         channelname: '',
         description: '',
-        numParticipants: 0,
       }
+  )
+  const numParticipants = Container.useSelector(
+    s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
   )
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const dispatch = Container.useDispatch()
