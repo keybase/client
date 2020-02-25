@@ -747,30 +747,34 @@ func (o WriteArgs) DeepCopy() WriteArgs {
 }
 
 type CopyArgs struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID           OpID `codec:"opID" json:"opID"`
+	Src            Path `codec:"src" json:"src"`
+	Dest           Path `codec:"dest" json:"dest"`
+	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
 }
 
 func (o CopyArgs) DeepCopy() CopyArgs {
 	return CopyArgs{
-		OpID: o.OpID.DeepCopy(),
-		Src:  o.Src.DeepCopy(),
-		Dest: o.Dest.DeepCopy(),
+		OpID:           o.OpID.DeepCopy(),
+		Src:            o.Src.DeepCopy(),
+		Dest:           o.Dest.DeepCopy(),
+		ExclCreateFile: o.ExclCreateFile,
 	}
 }
 
 type MoveArgs struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID           OpID `codec:"opID" json:"opID"`
+	Src            Path `codec:"src" json:"src"`
+	Dest           Path `codec:"dest" json:"dest"`
+	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
 }
 
 func (o MoveArgs) DeepCopy() MoveArgs {
 	return MoveArgs{
-		OpID: o.OpID.DeepCopy(),
-		Src:  o.Src.DeepCopy(),
-		Dest: o.Dest.DeepCopy(),
+		OpID:           o.OpID.DeepCopy(),
+		Src:            o.Src.DeepCopy(),
+		Dest:           o.Dest.DeepCopy(),
+		ExclCreateFile: o.ExclCreateFile,
 	}
 }
 
@@ -1354,6 +1358,7 @@ const (
 	SubscriptionTopic_FILES_TAB_BADGE     SubscriptionTopic = 4
 	SubscriptionTopic_OVERALL_SYNC_STATUS SubscriptionTopic = 5
 	SubscriptionTopic_SETTINGS            SubscriptionTopic = 6
+	SubscriptionTopic_UPLOAD_STATUS       SubscriptionTopic = 7
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
@@ -1366,6 +1371,7 @@ var SubscriptionTopicMap = map[string]SubscriptionTopic{
 	"FILES_TAB_BADGE":     4,
 	"OVERALL_SYNC_STATUS": 5,
 	"SETTINGS":            6,
+	"UPLOAD_STATUS":       7,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
@@ -1376,6 +1382,7 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	4: "FILES_TAB_BADGE",
 	5: "OVERALL_SYNC_STATUS",
 	6: "SETTINGS",
+	7: "UPLOAD_STATUS",
 }
 
 func (e SubscriptionTopic) String() string {
@@ -1480,6 +1487,28 @@ func (o DownloadStatus) DeepCopy() DownloadStatus {
 			}
 			return ret
 		})(o.States),
+	}
+}
+
+type UploadState struct {
+	UploadID   string   `codec:"uploadID" json:"uploadID"`
+	TargetPath KBFSPath `codec:"targetPath" json:"targetPath"`
+	Error      *string  `codec:"error,omitempty" json:"error,omitempty"`
+	Canceled   bool     `codec:"canceled" json:"canceled"`
+}
+
+func (o UploadState) DeepCopy() UploadState {
+	return UploadState{
+		UploadID:   o.UploadID,
+		TargetPath: o.TargetPath.DeepCopy(),
+		Error: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error),
+		Canceled: o.Canceled,
 	}
 }
 
@@ -1666,9 +1695,10 @@ type SimpleFSReadListArg struct {
 }
 
 type SimpleFSCopyArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID           OpID `codec:"opID" json:"opID"`
+	Src            Path `codec:"src" json:"src"`
+	Dest           Path `codec:"dest" json:"dest"`
+	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
 }
 
 type SimpleFSSymlinkArg struct {
@@ -1677,15 +1707,17 @@ type SimpleFSSymlinkArg struct {
 }
 
 type SimpleFSCopyRecursiveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID           OpID `codec:"opID" json:"opID"`
+	Src            Path `codec:"src" json:"src"`
+	Dest           Path `codec:"dest" json:"dest"`
+	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
 }
 
 type SimpleFSMoveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID           OpID `codec:"opID" json:"opID"`
+	Src            Path `codec:"src" json:"src"`
+	Dest           Path `codec:"dest" json:"dest"`
+	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
 }
 
 type SimpleFSRenameArg struct {
@@ -1894,6 +1926,25 @@ type SimpleFSConfigureDownloadArg struct {
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
+type SimpleFSMakeTempDirForUploadArg struct {
+}
+
+type SimpleFSStartUploadArg struct {
+	SourceLocalPath  string   `codec:"sourceLocalPath" json:"sourceLocalPath"`
+	TargetParentPath KBFSPath `codec:"targetParentPath" json:"targetParentPath"`
+}
+
+type SimpleFSGetUploadStatusArg struct {
+}
+
+type SimpleFSCancelUploadArg struct {
+	UploadID string `codec:"uploadID" json:"uploadID"`
+}
+
+type SimpleFSDismissUploadArg struct {
+	UploadID string `codec:"uploadID" json:"uploadID"`
+}
+
 type SimpleFSGetFilesTabBadgeArg struct {
 }
 
@@ -1941,11 +1992,22 @@ type SimpleFSInterface interface {
 	// Get list of Paths in progress. Can indicate status of pending
 	// to get more entries.
 	SimpleFSReadList(context.Context, OpID) (SimpleFSListResult, error)
-	// Begin copy of file or directory
+	// Begin copy of file or directory.
+	//
+	// If exclCreateFile is set, the destination file will be created with the
+	// O_EXCL flag, meaning it will fail if file already exists.
 	SimpleFSCopy(context.Context, SimpleFSCopyArg) error
 	// Make a symlink of file or directory
 	SimpleFSSymlink(context.Context, SimpleFSSymlinkArg) error
 	// Begin recursive copy of directory
+	//
+	// If exclCreateFile is set, the destination file will be created with the
+	// O_EXCL flag, meaning it will fail if file already exists.
+	//
+	// Note that this applies to files only. If dest is a directory that already
+	// exists, they will get merged. But if any file under the same name exists in
+	// the dst directory being merged into, this still protects them from being
+	// overwritten.
 	SimpleFSCopyRecursive(context.Context, SimpleFSCopyRecursiveArg) error
 	// Begin move of file or directory, from/to KBFS only
 	SimpleFSMove(context.Context, SimpleFSMoveArg) error
@@ -2040,6 +2102,11 @@ type SimpleFSInterface interface {
 	SimpleFSCancelDownload(context.Context, string) error
 	SimpleFSDismissDownload(context.Context, string) error
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
+	SimpleFSMakeTempDirForUpload(context.Context) (string, error)
+	SimpleFSStartUpload(context.Context, SimpleFSStartUploadArg) (string, error)
+	SimpleFSGetUploadStatus(context.Context) ([]UploadState, error)
+	SimpleFSCancelUpload(context.Context, string) error
+	SimpleFSDismissUpload(context.Context, string) error
 	SimpleFSGetFilesTabBadge(context.Context) (FilesTabBadge, error)
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
 	SimpleFSUserIn(context.Context, string) error
@@ -2838,6 +2905,71 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSMakeTempDirForUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSMakeTempDirForUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSMakeTempDirForUpload(ctx)
+					return
+				},
+			},
+			"simpleFSStartUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSStartUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSStartUploadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSStartUploadArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSStartUpload(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSGetUploadStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetUploadStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetUploadStatus(ctx)
+					return
+				},
+			},
+			"simpleFSCancelUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSCancelUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSCancelUploadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSCancelUploadArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSCancelUpload(ctx, typedArgs[0].UploadID)
+					return
+				},
+			},
+			"simpleFSDismissUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSDismissUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSDismissUploadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSDismissUploadArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSDismissUpload(ctx, typedArgs[0].UploadID)
+					return
+				},
+			},
 			"simpleFSGetFilesTabBadge": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSGetFilesTabBadgeArg
@@ -2972,7 +3104,10 @@ func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res Si
 	return
 }
 
-// Begin copy of file or directory
+// Begin copy of file or directory.
+//
+// If exclCreateFile is set, the destination file will be created with the
+// O_EXCL flag, meaning it will fail if file already exists.
 func (c SimpleFSClient) SimpleFSCopy(ctx context.Context, __arg SimpleFSCopyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopy", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
@@ -2985,6 +3120,14 @@ func (c SimpleFSClient) SimpleFSSymlink(ctx context.Context, __arg SimpleFSSymli
 }
 
 // Begin recursive copy of directory
+//
+// If exclCreateFile is set, the destination file will be created with the
+// O_EXCL flag, meaning it will fail if file already exists.
+//
+// Note that this applies to files only. If dest is a directory that already
+// exists, they will get merged. But if any file under the same name exists in
+// the dst directory being merged into, this still protects them from being
+// overwritten.
 func (c SimpleFSClient) SimpleFSCopyRecursive(ctx context.Context, __arg SimpleFSCopyRecursiveArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopyRecursive", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
@@ -3298,6 +3441,33 @@ func (c SimpleFSClient) SimpleFSDismissDownload(ctx context.Context, downloadID 
 
 func (c SimpleFSClient) SimpleFSConfigureDownload(ctx context.Context, __arg SimpleFSConfigureDownloadArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSConfigureDownload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSMakeTempDirForUpload(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMakeTempDirForUpload", []interface{}{SimpleFSMakeTempDirForUploadArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSStartUpload(ctx context.Context, __arg SimpleFSStartUploadArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStartUpload", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetUploadStatus(ctx context.Context) (res []UploadState, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetUploadStatus", []interface{}{SimpleFSGetUploadStatusArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSCancelUpload(ctx context.Context, uploadID string) (err error) {
+	__arg := SimpleFSCancelUploadArg{UploadID: uploadID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelUpload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSDismissUpload(ctx context.Context, uploadID string) (err error) {
+	__arg := SimpleFSDismissUploadArg{UploadID: uploadID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDismissUpload", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

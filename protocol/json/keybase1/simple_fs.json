@@ -446,6 +446,10 @@
         {
           "type": "Path",
           "name": "dest"
+        },
+        {
+          "type": "boolean",
+          "name": "exclCreateFile"
         }
       ]
     },
@@ -464,6 +468,10 @@
         {
           "type": "Path",
           "name": "dest"
+        },
+        {
+          "type": "boolean",
+          "name": "exclCreateFile"
         }
       ]
     },
@@ -809,7 +817,8 @@
         "DOWNLOAD_STATUS_3",
         "FILES_TAB_BADGE_4",
         "OVERALL_SYNC_STATUS_5",
-        "SETTINGS_6"
+        "SETTINGS_6",
+        "UPLOAD_STATUS_7"
       ]
     },
     {
@@ -897,6 +906,31 @@
             "items": "DownloadState"
           },
           "name": "states"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UploadState",
+      "fields": [
+        {
+          "type": "string",
+          "name": "uploadID"
+        },
+        {
+          "type": "KBFSPath",
+          "name": "targetPath"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": "boolean",
+          "name": "canceled"
         }
       ]
     },
@@ -1105,10 +1139,14 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "exclCreateFile",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin copy of file or directory"
+      "doc": "Begin copy of file or directory.\n\n   If exclCreateFile is set, the destination file will be created with the\n   O_EXCL flag, meaning it will fail if file already exists."
     },
     "simpleFSSymlink": {
       "request": [
@@ -1137,10 +1175,14 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "exclCreateFile",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin recursive copy of directory"
+      "doc": "Begin recursive copy of directory \n\n   If exclCreateFile is set, the destination file will be created with the\n   O_EXCL flag, meaning it will fail if file already exists.\n   \n   Note that this applies to files only. If dest is a directory that already\n   exists, they will get merged. But if any file under the same name exists in\n   the dst directory being merged into, this still protects them from being\n   overwritten."
     },
     "simpleFSMove": {
       "request": [
@@ -1155,6 +1197,10 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "exclCreateFile",
+          "type": "boolean"
         }
       ],
       "response": null,
@@ -1678,6 +1724,48 @@
         },
         {
           "name": "downloadDirOverride",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSMakeTempDirForUpload": {
+      "request": [],
+      "response": "string"
+    },
+    "simpleFSStartUpload": {
+      "request": [
+        {
+          "name": "sourceLocalPath",
+          "type": "string"
+        },
+        {
+          "name": "targetParentPath",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSGetUploadStatus": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "UploadState"
+      }
+    },
+    "simpleFSCancelUpload": {
+      "request": [
+        {
+          "name": "uploadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSDismissUpload": {
+      "request": [
+        {
+          "name": "uploadID",
           "type": "string"
         }
       ],

@@ -131,6 +131,7 @@ type SimpleFS struct {
 	onlineStatusTracker libkbfs.OnlineStatusTracker
 
 	downloadManager *downloadManager
+	uploadManager   *uploadManager
 
 	httpClient *http.Client
 }
@@ -220,6 +221,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		httpClient:          &http.Client{},
 	}
 	k.downloadManager = newDownloadManager(k)
+	k.uploadManager = newUploadManager(k)
 	return k
 }
 
@@ -1244,7 +1246,7 @@ func (k *SimpleFS) doCopyFromSource(
 	ctx context.Context, opID keybase1.OpID,
 	srcFS billy.Filesystem, srcFI os.FileInfo,
 	dstPath keybase1.Path, dstFS billy.Filesystem,
-	finalDstElem string) (err error) {
+	finalDstElem string, exclCreateFile bool) (err error) {
 	defer func() {
 		if err == nil {
 			k.updateReadProgress(opID, 0, 1)
@@ -1262,8 +1264,11 @@ func (k *SimpleFS) doCopyFromSource(
 	}
 	defer src.Close()
 
-	dst, err := dstFS.OpenFile(
-		finalDstElem, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	mode := os.O_RDWR | os.O_CREATE | os.O_TRUNC
+	if exclCreateFile {
+		mode = os.O_RDWR | os.O_CREATE | os.O_EXCL
+	}
+	dst, err := dstFS.OpenFile(finalDstElem, mode, 0600)
 	if err != nil {
 		return err
 	}
@@ -1288,7 +1293,7 @@ func (k *SimpleFS) doCopyFromSource(
 
 func (k *SimpleFS) doCopy(
 	ctx context.Context, opID keybase1.OpID,
-	srcPath, destPath keybase1.Path) (err error) {
+	srcPath, destPath keybase1.Path, exclCreateFile bool) (err error) {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
@@ -1310,8 +1315,8 @@ func (k *SimpleFS) doCopy(
 		return err
 	}
 
-	return k.doCopyFromSource(
-		ctx, opID, srcFS, srcFI, destPath, destFS, finalDestElem)
+	return k.doCopyFromSource(ctx, opID,
+		srcFS, srcFI, destPath, destFS, finalDestElem, exclCreateFile)
 }
 
 // SimpleFSCopy - Begin copy of file or directory
@@ -1321,7 +1326,7 @@ func (k *SimpleFS) SimpleFSCopy(
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
-			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
+			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest, arg.ExclCreateFile)
 		})
 }
 
@@ -1367,8 +1372,8 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 	return p
 }
 
-func (k *SimpleFS) doCopyRecursive(
-	ctx context.Context, opID keybase1.OpID, src, dest keybase1.Path) error {
+func (k *SimpleFS) doCopyRecursive(ctx context.Context,
+	opID keybase1.OpID, src, dest keybase1.Path, exclCreateFile bool) error {
 	// Get the full byte/file count.
 	srcFS, finalSrcElem, err := k.getFSIfExists(ctx, src)
 	if err != nil {
@@ -1391,7 +1396,7 @@ func (k *SimpleFS) doCopyRecursive(
 		k.setProgressTotals(opID, bytes, files+1)
 	} else {
 		// No need for recursive.
-		return k.doCopy(ctx, opID, src, dest)
+		return k.doCopy(ctx, opID, src, dest, exclCreateFile)
 	}
 
 	destFS, finalDestElem, err := k.getFS(ctx, dest)
@@ -1423,7 +1428,7 @@ func (k *SimpleFS) doCopyRecursive(
 
 		err = k.doCopyFromSource(
 			ctx, opID, node.srcFS, srcFI, node.dest, node.destFS,
-			node.destFinalElem)
+			node.destFinalElem, exclCreateFile)
 		if err != nil {
 			return err
 		}
@@ -1467,7 +1472,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
-			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
+			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.ExclCreateFile)
 		})
 }
 
@@ -1571,7 +1576,7 @@ func (k *SimpleFS) SimpleFSMove(
 				return fs.Rename(srcPath, destPath)
 			}
 
-			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
+			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.ExclCreateFile)
 			if err != nil {
 				return err
 			}
@@ -3365,6 +3370,37 @@ func (k *SimpleFS) SimpleFSGetIndexProgress(
 	}
 
 	return res, nil
+}
+
+// SimpleFSMakeTempDirForUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSMakeTempDirForUpload(
+	ctx context.Context) (dirPath string, err error) {
+	return k.uploadManager.makeTempDir()
+}
+
+// SimpleFSStartUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSStartUpload(ctx context.Context,
+	arg keybase1.SimpleFSStartUploadArg) (uploadID string, err error) {
+	return k.uploadManager.start(ctx, arg.SourceLocalPath, arg.TargetParentPath)
+}
+
+// SimpleFSGetUploadStatus implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetUploadStatus(
+	ctx context.Context) (status []keybase1.UploadState, err error) {
+	return k.uploadManager.getUploads(), nil
+}
+
+// SimpleFSCancelUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSCancelUpload(
+	ctx context.Context, uploadID string) (err error) {
+	k.uploadManager.cancel(ctx, uploadID)
+	return nil
+}
+
+// SimpleFSDismissUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSDismissUpload(
+	ctx context.Context, uploadID string) (err error) {
+	return k.uploadManager.dismiss(uploadID)
 }
 
 // Shutdown shuts down SimpleFS.
