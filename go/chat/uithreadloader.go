@@ -180,16 +180,15 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, c
 			}
 
 			if activeMap == nil && len(usernames) > 0 {
+				activeMap = make(map[string]struct{})
 				allList, err := t.G().ParticipantsSource.Get(ctx, uid, convID, dataSource)
 				if err == nil {
-					activeMap = make(map[string]struct{})
 					for _, uid := range allList {
 						activeMap[uid.String()] = struct{}{}
 					}
 				} else {
 					t.Debug(ctx, "groupGeneric: failed to form active map, could not get participants: %s",
 						err)
-					activeMap = make(map[string]struct{})
 				}
 			}
 
