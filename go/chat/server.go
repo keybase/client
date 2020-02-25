@@ -1715,7 +1715,7 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	// find a list of conversations that the provided uid is a member of
 	var memberConvs []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
-		uids, err := h.G().ParticipantsSource.Get(ctx, conv)
+		uids, err := h.G().ParticipantsSource.Get(ctx, myUID, conv.GetConvID())
 		if err != nil {
 			return res, err
 		}

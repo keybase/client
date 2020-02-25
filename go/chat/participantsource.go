@@ -50,9 +50,10 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 	}
 }
 
-func (s *CachingParticipantSource) Get(ctx context.Context, conv types.RemoteConversation) (res []gregor1.UID, err error) {
+func (s *CachingParticipantSource) Get(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (res []gregor1.UID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get")()
-	ch := s.GetNonblock(ctx, conv)
+	ch := s.GetNonblock(ctx, uid, convID)
 	for r := range ch {
 		res = r.Uids
 	}
@@ -66,13 +67,20 @@ func (s *CachingParticipantSource) dbKey(convID chat1.ConversationID) libkb.DbKe
 	}
 }
 
-func (s *CachingParticipantSource) GetNonblock(ctx context.Context, conv types.RemoteConversation) (resCh chan types.ParticipantResult) {
+func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (resCh chan types.ParticipantResult) {
 	resCh = make(chan types.ParticipantResult, 1)
 	go func(ctx context.Context) {
 		defer s.Trace(ctx, func() error { return nil }, "GetNonblock")()
 		defer close(resCh)
-		lock := s.locktab.AcquireOnName(ctx, s.G(), conv.ConvIDStr.String())
+		lock := s.locktab.AcquireOnName(ctx, s.G(), convID.String())
 		defer lock.Release(ctx)
+
+		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			resCh <- types.ParticipantResult{Err: err}
+			return
+		}
 
 		switch conv.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
@@ -128,12 +136,7 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 		s.sema.Acquire(ctx, 1)
 		defer s.sema.Release(1)
 
-		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			s.Debug(ctx, "GetWithNotifyNonblock: failed to get conv: %s", err)
-			return
-		}
-		ch := s.G().ParticipantsSource.GetNonblock(ctx, conv)
+		ch := s.G().ParticipantsSource.GetNonblock(ctx, uid, convID)
 		for r := range ch {
 			uids := r.Uids
 			kuids := make([]keybase1.UID, 0, len(uids))

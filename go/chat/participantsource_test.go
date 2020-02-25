@@ -33,7 +33,7 @@ func TestParticipantsSource(t *testing.T) {
 	require.NoError(t, err)
 
 	// empty should get one
-	ch := tc.Context().ParticipantsSource.GetNonblock(ctx, conv)
+	ch := tc.Context().ParticipantsSource.GetNonblock(ctx, uid, conv.GetConvID())
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
@@ -46,7 +46,7 @@ func TestParticipantsSource(t *testing.T) {
 	require.False(t, ok)
 
 	// cached should get one
-	ch = tc.Context().ParticipantsSource.GetNonblock(ctx, conv)
+	ch = tc.Context().ParticipantsSource.GetNonblock(ctx, uid, conv.GetConvID())
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
@@ -62,7 +62,7 @@ func TestParticipantsSource(t *testing.T) {
 	err = teams.SetRoleWriter(context.TODO(), tc.G, info.TlfName, users[2].Username)
 	require.NoError(t, err)
 	consumeMembersUpdate(t, listener0)
-	ch = tc.Context().ParticipantsSource.GetNonblock(ctx, conv)
+	ch = tc.Context().ParticipantsSource.GetNonblock(ctx, uid, conv.GetConvID())
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
@@ -79,7 +79,7 @@ func TestParticipantsSource(t *testing.T) {
 	}
 
 	// cached should get one
-	ch = tc.Context().ParticipantsSource.GetNonblock(ctx, conv)
+	ch = tc.Context().ParticipantsSource.GetNonblock(ctx, uid, conv.GetConvID())
 	select {
 	case pres := <-ch:
 		require.NoError(t, pres.Err)
