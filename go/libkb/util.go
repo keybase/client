@@ -1210,3 +1210,32 @@ func JsonwStringArray(a []string) *jsonw.Wrapper {
 	}
 	return aj
 }
+
+func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) interface{},
+	reset func() interface{}, delay time.Duration) func(interface{}) {
+	var lock sync.Mutex
+	var lastCalled time.Time
+	var stored interface{}
+	var creation func(interface{})
+	scheduled := false
+	creation = func(arg interface{}) {
+		lock.Lock()
+		defer lock.Unlock()
+		elapsed := time.Since(lastCalled)
+		if arg != struct{}{} {
+			stored = batcher(stored, arg)
+		}
+		if elapsed > delay {
+			f(stored)
+			stored = reset()
+			lastCalled = time.Now()
+		} else if !scheduled {
+			scheduled = true
+			go func() {
+				time.Sleep(delay - elapsed)
+				creation(struct{}{})
+			}()
+		}
+	}
+	return creation
+}
