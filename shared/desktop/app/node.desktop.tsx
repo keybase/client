@@ -164,6 +164,9 @@ const willFinishLaunching = () => {
       mainWindowDispatch(DeeplinksGen.createLink({link}))
     }
   })
+  Electron.app.on('open-file', (_, path) => {
+    mainWindowDispatch(DeeplinksGen.createHandleFile({path}))
+  })
 }
 
 let menubarWindowID = 0
