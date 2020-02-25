@@ -26,7 +26,7 @@ const load = () => {
       <AddFromWhere onContinue={Sb.action('onContinue')} teamID={fakeTeamID} newTeam={true} />
     ))
     .add('Enable contacts', () => <EnableContacts onClose={Sb.action('onClose')} />)
-  
+
   Sb.storiesOf('Teams/Add by email wizard', module).add('Basic', () => (
     <AddEmail teamname="keybase" errorMessage="" />
   ))
