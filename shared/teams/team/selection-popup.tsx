@@ -109,8 +109,7 @@ const MembersActions = ({teamID}: ActionsProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const members = Container.useSelector(s => s.teams.selectedMembers.get(teamID))
-  const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamname))
+  const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
   if (!members) {
     // we shouldn't be rendered
     return null
