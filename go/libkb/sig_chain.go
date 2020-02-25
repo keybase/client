@@ -233,7 +233,6 @@ func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 type sigCompression3Type int
 
 const (
-	sigCompression3None      sigCompression3Type = 0
 	sigCompression3Unstubbed sigCompression3Type = 1
 	sigCompression3Stubbed   sigCompression3Type = 2
 )
