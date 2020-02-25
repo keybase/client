@@ -796,7 +796,7 @@ def testGoTestSuite(prefix, packagesToTest) {
   def parallelTests = []
   def testBatch = [:]
   tests.each { name, closure ->
-    if (testBatch.size() == 16) {
+    if (testBatch.size() == 6) {
       parallelTests << testBatch
       testBatch = [:]
     }
