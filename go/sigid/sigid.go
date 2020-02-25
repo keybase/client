@@ -120,6 +120,5 @@ func ComputeSigBodyAndID(sigInfo *kbcrypto.NaclSigInfo, clientName string, clien
 		return nil, sigID, err
 	}
 	sigID = kbcrypto.ComputeSigIDFromSigBody(body)
-
 	return body, sigID, nil
 }

@@ -180,3 +180,7 @@ func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
 func (ps *ParsedSig) ID() keybase1.SigID {
 	return kbcrypto.ComputeSigIDFromSigBody(ps.SigBody)
 }
+
+func IsPGPSig(s string) bool {
+	return strings.HasPrefix(s, "-----BEGIN PGP MESSAGE-----\n")
+}

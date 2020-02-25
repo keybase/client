@@ -31,6 +31,8 @@ const ChannelRow = (props: ChannelRowProps) => {
   }
   const onEditChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
+  const onNavToChannel = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamChannel'}]}))
   const onDeleteChannel = () => dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
 
   const checkCircle = (
@@ -112,7 +114,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       body={body}
       firstItem={isGeneral}
       style={selected ? styles.selected : undefined}
-      onClick={isGeneral ? undefined : () => onSelect(!selected)}
+      onClick={onNavToChannel}
     />
   )
 }
