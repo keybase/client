@@ -175,7 +175,7 @@ const LogStats = (props: {num?: number}) => {
       direction="vertical"
       style={{
         backgroundColor: 'rgba(0,0,0, 0.3)',
-        minHeight: (Styles.isMobile ? 12 : 16) * maxBuckets,
+        minHeight: (Styles.isMobile ? 12 : 20) * maxBuckets,
       }}
       fullWidth={true}
     >
@@ -402,12 +402,8 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   logStat: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.whiteOrWhite,
-    },
-    isElectron: {
-      wordBreak: 'break-all',
-    },
+    common: {color: Styles.globalColors.whiteOrWhite},
+    isElectron: {wordBreak: 'break-all'},
     isMobile: {
       fontFamily: 'Courier',
       fontSize: 12,
@@ -432,12 +428,8 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   stat: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.whiteOrGreenDark,
-    },
-    isElectron: {
-      wordBreak: 'break-all',
-    },
+    common: {color: Styles.globalColors.whiteOrGreenDark},
+    isElectron: {wordBreak: 'break-all'},
     isMobile: {
       fontFamily: 'Courier',
       fontSize: 10,
