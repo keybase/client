@@ -599,10 +599,12 @@ type JourneyCardManager interface {
 }
 
 type ParticipantSource interface {
-	Resumable
-	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]gregor1.UID, error)
-	GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan ParticipantResult
-	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error)
+	GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
+	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp)
 }
 
 type InternalError interface {

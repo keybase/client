@@ -218,7 +218,7 @@ func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome 
 		}
 		fmt.Printf("%s: %s %s\n", logOutcome.Abbrv(), test, where)
 		if r.opts.Branch == "master" && err == nil {
-			r.report(r.newTestResult(outcome, test, where))
+			r.report(r.newTestResult(logOutcome, test, where))
 		}
 	}()
 
