@@ -53,7 +53,7 @@ type AdhocHeaderProps = {
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => (
-  <Kb.Box2 direction="horizontal" style={styles.headerContainer}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
     <Avatars
       backgroundColor={Styles.globalColors.white}
       isHovered={false}
@@ -320,22 +320,22 @@ const styles = Styles.styleSheetCreate(
           right: Styles.globalMargins.tiny,
         },
       }),
-      channelHeader: {
-        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.blueGreyLight,
-        justifyContent: 'space-between',
-        marginTop: -Styles.globalMargins.tiny,
-      },
-      channelName: Styles.platformStyles({
-        isElectron: {wordBreak: 'break-all'},
-      }),
-      headerAvatar: Styles.platformStyles({
+      channelHeader: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGreyLight,
+          justifyContent: 'space-between',
+        },
         isElectron: {
-          marginBottom: 2,
+          ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+          marginTop: -Styles.globalMargins.tiny,
         },
         isMobile: {
-          marginBottom: 4,
+          ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
         },
+      }),
+      channelName: Styles.platformStyles({
+        isElectron: {wordBreak: 'break-all'},
+        isMobile: {height: 'auto'},
       }),
       headerContainer: Styles.platformStyles({
         isElectron: {
@@ -346,7 +346,10 @@ const styles = Styles.styleSheetCreate(
           ),
           width: '100%', // don't expand if text is long
         },
-        isMobile: {paddingBottom: 24, paddingTop: 40},
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small),
+          height: 64,
+        },
       }),
       maybeLongText: Styles.platformStyles({
         isElectron: {
@@ -360,12 +363,12 @@ const styles = Styles.styleSheetCreate(
       noTopborder: {
         borderTopWidth: 0,
       },
-      teamHeader: Styles.platformStyles({
-        isElectron: {
-          borderTop: `1px solid ${Styles.globalColors.black_10}`,
-          marginTop: Styles.globalMargins.tiny,
-        },
-      }),
+      teamHeader: {
+        borderStyle: 'solid',
+        borderTopColor: Styles.globalColors.black_10,
+        borderTopWidth: 1,
+        marginTop: Styles.globalMargins.tiny,
+      },
       teamText: {
         flex: 1,
         justifyContent: 'space-between',

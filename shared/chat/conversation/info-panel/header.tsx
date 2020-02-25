@@ -61,17 +61,17 @@ const _TeamHeader = (props: SmallProps) => {
               color={Styles.globalColors.black_50}
               icon="iconfont-people"
               iconColor={Styles.globalColors.black_20}
+              style={styles.meta}
               title={participantCount}
             />
           </>
         ) : (
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
+          <Kb.Box2 direction="vertical" gap="xxtiny" style={styles.channelnameContainer}>
             <Kb.Box2
               alignSelf="flex-start"
               direction="horizontal"
               fullWidth={true}
-              gap="xtiny"
-              style={{flex: 1, justifyContent: 'space-between'}}
+              style={styles.textWrapper}
             >
               <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
                 # <Kb.Text type="BodyBold">{channelname}</Kb.Text>
@@ -88,8 +88,7 @@ const _TeamHeader = (props: SmallProps) => {
               alignSelf="flex-start"
               direction="horizontal"
               fullWidth={true}
-              gap="xtiny"
-              style={{flex: 1, justifyContent: 'space-between'}}
+              style={styles.textWrapper}
             >
               <Kb.Box2 direction="horizontal" gap="xtiny">
                 <Kb.Avatar teamname={teamname} size={16} />
@@ -189,12 +188,7 @@ const styles = Styles.styleSheetCreate(
       channelName: Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
-      channelnameContainer: {
-        alignSelf: 'center',
-        marginBottom: 2,
-        marginTop: Styles.globalMargins.medium,
-        position: 'relative',
-      },
+      channelnameContainer: {flex: 1},
       description: {
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
@@ -221,9 +215,14 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {width: gearIconSize + 32},
       }),
+      meta: {alignSelf: 'center'},
       smallContainer: {
         alignItems: 'center',
         paddingLeft: Styles.globalMargins.small,
+      },
+      textWrapper: {
+        flex: 1,
+        justifyContent: 'space-between',
       },
     } as const)
 )

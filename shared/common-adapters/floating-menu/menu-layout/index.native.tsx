@@ -25,16 +25,19 @@ type MenuRowProps = {
 } & MenuItem
 
 const itemContainerHeight = 56
+const unWrappedContainerHeight = 42
 
 const MenuRow = (props: MenuRowProps) => (
   <NativeTouchableOpacity
     disabled={props.disabled}
     onPress={() => {
-      props.onHidden && props.onHidden() // auto hide after a selection
-      props.onClick && props.onClick()
+      props.onHidden && !props.unWrapped && props.onHidden() // auto hide after a selection
+      props.onClick && !props.unWrapped && props.onClick()
     }}
     style={Styles.collapseStyles([
       styles.itemContainer,
+      !props.unWrapped && styles.itemContainerWrapped,
+      props.unWrapped && styles.itemContainerUnwrapped,
       props.last && styles.itemContainerLast,
       props.backgroundColor && {backgroundColor: props.backgroundColor},
     ])}
@@ -105,6 +108,8 @@ const MenuLayout = (props: MenuLayoutProps) => {
     isLargeScreen ? 500 : 350
   )
 
+  const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
+
   return (
     <NativeSafeAreaView
       style={Styles.collapseStyles([
@@ -115,6 +120,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
       <Box
         style={Styles.collapseStyles([
           styles.menuBox,
+          firstIsUnWrapped && styles.firstIsUnWrapped,
           props.backgroundColor && {backgroundColor: props.backgroundColor},
         ])}
       >
@@ -179,6 +185,7 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: Styles.globalMargins.tiny,
       },
+      firstIsUnWrapped: {paddingTop: 0},
       flexOne: {
         flex: 1,
       },
@@ -202,15 +209,20 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.white,
         height: itemContainerHeight,
         justifyContent: 'center',
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.medium,
-        paddingTop: Styles.globalMargins.tiny,
         position: 'relative',
       },
       itemContainerLast: {
         height: 'auto',
         paddingBottom: Styles.globalMargins.small,
+      },
+      itemContainerUnwrapped: {
+        height: unWrappedContainerHeight,
+      },
+      itemContainerWrapped: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+        paddingTop: Styles.globalMargins.tiny,
       },
       menuBox: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -238,7 +250,7 @@ const styles = Styles.styleSheetCreate(
       scrollView: {
         flexGrow: 1,
         paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        // paddingTop: Styles.globalMargins.tiny,
       },
     } as const)
 )
