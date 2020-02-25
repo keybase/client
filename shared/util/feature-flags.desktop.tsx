@@ -24,7 +24,7 @@ const ff: FeatureFlags = {
   stellarExternalPartners: true,
   tabletSupport: false, // Whether tablet support is public. Changes some UI on non-tablets.
   teamInvites: false,
-  teamsRedesign: false,
+  teamsRedesign: true,
   userBlocking: true,
   webOfTrust: false,
 }
