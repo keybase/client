@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
-import * as Styles from '../../../styles'
-import {ModalTitle} from '../../common'
+import * as Kb from '../../common-adapters'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
+import * as Styles from '../../styles'
+import {ModalTitle} from '../common'
 
 type Props = {
   teamname: string
