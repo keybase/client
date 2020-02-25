@@ -60,10 +60,10 @@ func (s *CachingParticipantSource) Get(ctx context.Context, uid gregor1.UID,
 	return res, nil
 }
 
-func (s *CachingParticipantSource) dbKey(convID chat1.ConversationID) libkb.DbKey {
+func (s *CachingParticipantSource) dbKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatParticipants,
-		Key: convID.String(),
+		Key: uid.String() + convID.String(),
 	}
 }
 
@@ -92,9 +92,12 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 
 		// load local first and send to channel
 		var local partDiskStorage
-		found, err := s.encryptedDB.Get(ctx, s.dbKey(conv.GetConvID()), &local)
+		found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
 		if err != nil {
 			resCh <- types.ParticipantResult{Err: err}
+			if err := s.encryptedDB.Delete(ctx, s.dbKey(uid, conv.GetConvID())); err != nil {
+				s.Debug(ctx, "GetNonblock: failed to delete after read error: %s", err)
+			}
 			return
 		}
 		if found {
@@ -119,7 +122,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 			return
 		}
 
-		if err := s.encryptedDB.Put(ctx, s.dbKey(conv.GetConvID()), partDiskStorage{
+		if err := s.encryptedDB.Put(ctx, s.dbKey(uid, conv.GetConvID()), partDiskStorage{
 			Uids: partRes.Uids,
 			Hash: partRes.Hash,
 		}); err != nil {
