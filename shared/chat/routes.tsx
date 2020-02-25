@@ -33,7 +33,9 @@ export const newRoutes = {
   },
   chatRoot: {
     getScreen: (): typeof ChatRoot =>
-      isPhone ? require('./inbox/defer-loading').default : require('./inbox-and-conversation-2').default,
+      isPhone
+        ? require('./inbox/defer-loading.native').default
+        : require('./inbox-and-conversation-2').default,
   },
 }
 
