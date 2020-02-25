@@ -32,6 +32,8 @@ import {
   ServiceIdWithContact,
 } from '../constants/types/team-building'
 import RolePickerHeaderAction from './role-picker-header-action'
+import {ModalTitle as TeamsModalTitle} from '../teams/common'
+import flags from '../util/feature-flags'
 
 export const numSectionLabel = '0-9'
 
@@ -571,29 +573,56 @@ class TeamBuilding extends React.PureComponent<Props> {
     : undefined
 
   private modalHeader = () => {
-    const mobileCancel = (
+    const mobileCancel = Styles.isMobile ? (
       <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
         Cancel
       </Kb.Text>
+    ) : (
+      undefined
     )
-    if (this.props.namespace === 'people') {
-      return Styles.isMobile
-        ? {
+    switch (this.props.namespace) {
+      case 'people': {
+        return Styles.isMobile
+          ? {
+              hideBorder: true,
+              leftButton: mobileCancel,
+            }
+          : undefined
+      }
+      case 'teams': {
+        const rightButton =
+          Styles.isMobile && this.props.rolePickerProps ? (
+            <RolePickerHeaderAction
+              onFinishTeamBuilding={this.props.onFinishTeamBuilding}
+              rolePickerProps={this.props.rolePickerProps}
+              count={this.props.teamSoFar.length}
+            />
+          ) : (
+            undefined
+          )
+        if (flags.teamsRedesign) {
+          return {
             hideBorder: true,
-            leftButton: mobileCancel,
+            leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
+            rightButton,
+            title: <TeamsModalTitle teamname={this.props.teamname ?? ''} title="Search people" />,
           }
-        : undefined
-    }
-    // Handle when team-building is making a new chat v.s. adding members to a team.
-    if (Styles.isMobile) {
-      const rightButton =
-        this.props.namespace === 'teams' && this.props.rolePickerProps ? (
-          <RolePickerHeaderAction
-            onFinishTeamBuilding={this.props.onFinishTeamBuilding}
-            rolePickerProps={this.props.rolePickerProps}
-            count={this.props.teamSoFar.length}
-          />
-        ) : (
+        }
+        return Styles.isMobile
+          ? {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
+          : {
+              hideBorder: true,
+              title: (
+                <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+                  <Kb.Avatar teamname={this.props.teamname} size={32} style={styles.teamAvatar} />
+                  <Kb.Text type="Header">{this.props.title}</Kb.Text>
+                  <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
+                </Kb.Box2>
+              ),
+            }
+      }
+      case 'chat2': {
+        const rightButton = Styles.isMobile ? (
           <Kb.Button
             label="Start"
             onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
@@ -601,28 +630,15 @@ class TeamBuilding extends React.PureComponent<Props> {
             type="Success"
             style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
           />
+        ) : (
+          undefined
         )
-      return {
-        hideBorder: true,
-        leftButton: mobileCancel,
-        rightButton,
-        title: this.props.title,
+        return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
+      }
+      default: {
+        return {hideBorder: true, leftButton: mobileCancel, title: this.props.title}
       }
     }
-    const title = this.props.rolePickerProps ? (
-      <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-        <Kb.Avatar teamname={this.props.teamname} size={32} style={styles.teamAvatar} />
-        <Kb.Text type="Header">{this.props.title}</Kb.Text>
-        <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="Header" style={styles.newChatHeader}>
-          {this.props.title}
-        </Kb.Text>
-      </Kb.Box2>
-    )
-    return {hideBorder: true, title}
   }
 
   render() {
