@@ -63,7 +63,7 @@ const packagerOpts: any = {
     CFBundleDocumentTypes: [
       {
         CFBundleTypeExtensions: ['saltpack'],
-        CFBundleTypeIconFile: 'electron.icns',
+        CFBundleTypeIconFile: 'saltpack.icns',
         CFBundleTypeName: 'io.keybase.saltpack',
         CFBundleTypeRole: 'Editor',
         LSHandlerRank: 'Owner',
@@ -74,7 +74,7 @@ const packagerOpts: any = {
       {
         UTTypeConformsTo: ['public.data'],
         UTTypeDescription: 'Saltpack file format',
-        UTTypeIconFile: 'electron.icns',
+        UTTypeIconFile: 'saltpack.icns',
         UTTypeIdentifier: 'io.keybase.saltpack',
         UTTypeReferenceURL: 'https://saltpack.org',
         UTTypeTagSpecification: {
