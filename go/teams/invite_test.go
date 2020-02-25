@@ -668,3 +668,60 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 		require.Len(t, state.GetAllUVs(), 2) // team creator and one person added in loop above
 	}
 }
+
+func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
+	// See TestTeamPlayerNoRoleChange in members_test.go
+	//
+	// If a result of change_membership is no role change, a log point is not
+	// created for the UV. This is weird from perspective of using invites.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	// Add multi use invite.
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	sectionInvite := makeTestSCForInviteLink()
+	maxUses := keybase1.TeamInviteMaxUses(10)
+	sectionInvite.MaxUses = &maxUses
+	inviteID := keybase1.TeamInviteID(sectionInvite.ID)
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{sectionInvite},
+	}
+
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	require.NotNil(t, state.inner.ActiveInvites[inviteID])
+
+	// Add member without using the invite first.
+	teamSectionCM := makeTestSCTeamSection(team)
+	teamSectionCM.Members = &SCTeamMembers{
+		Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+	}
+	state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+		teamSectionCM, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	require.Len(t, state.inner.UserLog[testUV], 1)
+	require.EqualValues(t, 3, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+
+	// Add member again, with similar link, but using the invite.
+	// (re-use teamSectionCM)
+	teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+	}
+	state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+		teamSectionCM, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	// That didn't change UserLog - no change in role, didn't add a checkpoint.
+	require.Len(t, state.inner.UserLog[testUV], 1)
+
+	// ...which makes the usedInvites weird with the log pointer:
+	require.Len(t, state.inner.UsedInvites[inviteID], 1)
+	require.Equal(t, testUV, state.inner.UsedInvites[inviteID][0].Uv)
+	// this would be the wrong log point: testUV did not accept invite at that point
+	require.Equal(t, 0, state.inner.UsedInvites[inviteID][0].LogPoint)
+}
