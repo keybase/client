@@ -11038,9 +11038,9 @@ react-native-unimodules@0.7.0-rc.1:
     unimodules-sensors-interface "~4.0.0"
     unimodules-task-manager-interface "~4.0.0"
 
-"react-native-v8@git://github.com/keybase/react-native-v8#7557c145de2ba9f91ed705ec34751cb776b3ced2":
+"react-native-v8@git://github.com/keybase/react-native-v8#rn_v0.61.5-v8_v8.80.0":
   version "0.60.5-patch.0"
-  resolved "git://github.com/keybase/react-native-v8#7557c145de2ba9f91ed705ec34751cb776b3ced2"
+  resolved "git://github.com/keybase/react-native-v8#b0ee24b560fc9b93230c3254fbf984281495a028"
   dependencies:
     v8-android "^7.5.1"
 
@@ -13289,7 +13289,7 @@ typescript-tuple@^2.2.1:
 typescript@3.8.1-rc:
   version "3.8.1-rc"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.8.1-rc.tgz#f94333c14da70927ccd887be2e91be652a9a09f6"
-  integrity sha512-aOIe066DyZn2uYIiND6fXMUUJ70nxwu/lKhA92QuQzXyC86fr0ywo1qvO8l2m0EnDcfjprYPuFRgNgDj7U2GlQ==
+  integrity "sha1-+UMzwU2nCSfM2Ie+LpG+ZSqaCfY= sha512-aOIe066DyZn2uYIiND6fXMUUJ70nxwu/lKhA92QuQzXyC86fr0ywo1qvO8l2m0EnDcfjprYPuFRgNgDj7U2GlQ=="
 
 ua-parser-js@^0.7.18, ua-parser-js@^0.7.19:
   version "0.7.20"
@@ -13591,9 +13591,9 @@ uuid@^3.0.1, uuid@^3.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
-"v8-android-nointl@git://github.com/keybase/v8-android-nointl#v7.5.1":
+"v8-android-nointl@git://github.com/keybase/v8-android-nointl#v8.80.0":
   version "7.5.1"
-  resolved "git://github.com/keybase/v8-android-nointl#09802382bfbd12902e69f3dc3232b00a0531c07c"
+  resolved "git://github.com/keybase/v8-android-nointl#961d5a8ab1034e4da0298895226d97f8e4c5f3bc"
 
 v8-android@^7.5.1:
   version "7.5.1"
