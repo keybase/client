@@ -63,20 +63,20 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
 }
 
 const noUpperCaseFirst = {
-  lastWeek: "ddd 'at' LT",
-  today: "'today at' LT",
-  tomorrow: "'tomorrow at' LT",
-  yesterday: "'yesterday at' LT",
+  lastWeek: "EEE 'at' p",
+  today: "'today at' p",
+  tomorrow: "'tomorrow at' p",
+  yesterday: "'yesterday at' p",
 }
 const upperCaseFirst = {
-  lastWeek: "ddd 'at' LT",
-  today: "'Today at' LT",
-  yesterday: "'Yesterday at' LT",
+  lastWeek: "EEE 'at' p",
+  today: "'Today at' p",
+  yesterday: "'Yesterday at' p",
 }
 
 const formatRelativeCalendarForFS = (dontUpperCase: boolean, token: string, date: Date, baseDate: Date) => {
   if (token === 'other') {
-    return dateFns.isSameYear(date, baseDate) ? "ddd MMM D yyyy'at' LT" : "ddd MMM D 'at' LT"
+    return dateFns.isSameYear(date, baseDate) ? "EEE MMM d yyyy 'at' p" : "EEE MMM d 'at' p"
   }
 
   return dontUpperCase ? noUpperCaseFirst[token] : upperCaseFirst[token]
@@ -163,7 +163,7 @@ export function formatTimeForDeviceTimeline(time: number): string {
 }
 
 export function formatTimeRelativeToNow(time: number): string {
-  return dateFns.formatDistanceToNow(new Date(time))
+  return dateFns.formatDistanceToNow(new Date(time), {addSuffix: true})
 }
 
 export function daysToLabel(days: number): string {
