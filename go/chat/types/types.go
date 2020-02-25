@@ -709,13 +709,16 @@ func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}
 
 type DummyParticipantSource struct{}
 
-func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]gregor1.UID, error) {
+func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
 	return nil, nil
 }
-func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan ParticipantResult {
+func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) chan ParticipantResult {
 	ch := make(chan ParticipantResult)
 	close(ch)
 	return ch
 }
-func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
 }

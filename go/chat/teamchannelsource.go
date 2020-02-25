@@ -161,7 +161,8 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 		return nil, err
 	}
 	for _, rc := range rcs {
-		c.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, rc.GetConvID())
+		c.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, rc.GetConvID(),
+			types.InboxSourceDataSourceAll)
 	}
 	convs, _, err := c.G().InboxSource.Localize(ctx, uid, rcs, types.ConversationLocalizerBlocking)
 	if err != nil {
