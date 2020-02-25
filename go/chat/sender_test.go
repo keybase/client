@@ -318,6 +318,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.CoinFlipManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
 	g.UIThreadLoader = NewUIThreadLoader(g)
+	g.ParticipantsSource = types.DummyParticipantSource{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
