@@ -29,7 +29,6 @@ export const newRoutes = {
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
     : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
-  // TODO connect broken
   teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
 }
 
@@ -41,7 +40,6 @@ const addWizardRoutes = {
 
 export const newModalRoutes = {
   ...addWizardRoutes,
-  // TODO connect broken
   contactRestricted: {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
   },
