@@ -100,6 +100,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         gap={Styles.isMobile ? 'small' : 'tiny'}
         style={Styles.collapseStyles([
           styles.containerNotFiltering,
+          Styles.isPhone ? null : Styles.isTablet && this.props.showSearch ? null : styles.whiteBg,
           !Styles.isMobile && styles.whiteBg,
           this.props.style,
         ])}
