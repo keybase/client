@@ -75,9 +75,9 @@ export const TeamMemberRow = (props: Props) => {
     const teamID = props.teamID
 
     const dispatch = Container.useDispatch()
-    const selectedMembers = Container.useSelector(state => state.teams.selectedMembers.get(teamID))
-    const anySelected = !!selectedMembers?.size
-    const selected = !!selectedMembers?.has(props.username)
+    const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
+    const anySelected = !!teamSelectedMembers?.size
+    const selected = !!teamSelectedMembers?.has(props.username)
 
     const onSelect = (selected: boolean) => {
       dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))

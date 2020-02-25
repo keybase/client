@@ -17,9 +17,9 @@ type Props = {
 const getSelectedCount = (state: Container.TypedState, props: Props) => {
   switch (props.selectedTab) {
     case 'channels':
-      return state.teams.selectedChannels.get(props.teamID)?.size ?? 0
+      return state.teams.teamSelectedChannels.get(props.teamID)?.size ?? 0
     case 'members':
-      return state.teams.selectedMembers.get(props.teamID)?.size ?? 0
+      return state.teams.teamSelectedMembers.get(props.teamID)?.size ?? 0
     default:
       return 0
   }
@@ -108,7 +108,7 @@ const ActionsWrapper = ({children}) => (
 const MembersActions = ({teamID}: ActionsProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const members = Container.useSelector(s => s.teams.selectedMembers.get(teamID))
+  const members = Container.useSelector(s => s.teams.teamSelectedMembers.get(teamID))
   const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
   if (!members) {
     // we shouldn't be rendered

@@ -149,8 +149,8 @@ export type State = {
   readonly teamsWithChosenChannels: Set<Teamname>
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean
-  readonly selectedChannels: Map<TeamID, Set<string>>
-  readonly selectedMembers: Map<TeamID, Set<string>>
+  readonly teamSelectedChannels: Map<TeamID, Set<string>>
+  readonly teamSelectedMembers: Map<TeamID, Set<string>>
   readonly subteamFilter: string
   readonly subteamsFiltered: Set<TeamID> | undefined
   readonly teamAccessRequestsPending: Set<Teamname>
