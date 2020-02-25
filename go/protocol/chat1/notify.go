@@ -1071,8 +1071,8 @@ type ChatWelcomeMessageLoadedArg struct {
 }
 
 type ChatParticipantsInfoArg struct {
-	ConvID       ConversationID  `codec:"convID" json:"convID"`
-	Participants []UIParticipant `codec:"participants" json:"participants"`
+	ConvID       ConversationID                `codec:"convID" json:"convID"`
+	Participants map[ConvIDStr][]UIParticipant `codec:"participants" json:"participants"`
 }
 
 type NotifyChatInterface interface {

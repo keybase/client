@@ -984,8 +984,12 @@
         {
           "name": "participants",
           "type": {
-            "type": "array",
-            "items": "UIParticipant"
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "UIParticipant"
+            },
+            "keys": "ConvIDStr"
           }
         }
       ],

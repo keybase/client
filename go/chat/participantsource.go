@@ -1,7 +1,9 @@
 package chat
 
 import (
+	"github.com/keybase/clockwork"
 	"context"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -21,11 +23,25 @@ type partDiskStorage struct {
 	Hash string
 }
 
+type partNotifyResult struct {
+	convIDStr chat1.ConvIDStr
+	parts []chat1.UIParticipant
+}
+
 type CachingParticipantSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+	sync.Mutex
 
-	locktab     *libkb.LockTable
+	uid      gregor1.UID
+	started  bool
+	locktab  *libkb.LockTable
+	stopCh   chan struct{}
+	notifyCh chan partNotifyResult
+	notifyCurrent map[chat1.ConvIDStr][]chat1.UIParticipant
+	lastNotify time.Time
+	clock clockwork.Clock
+
 	ri          func() chat1.RemoteInterface
 	encryptedDB *encrypteddb.EncryptedDB
 	sema        *semaphore.Weighted
@@ -47,6 +63,41 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 		ri:           ri,
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		sema:         semaphore.NewWeighted(20),
+		clock: clockwork.NewRealClock(),
+	}
+}
+
+func (s *CachingParticipantSource) Start(ctx context.Context, uid gregor1.UID) {
+	defer s.Trace(ctx, func() error { return nil }, "Start")()
+	s.Lock()
+	defer s.Unlock()
+	if s.started {
+		return
+	}
+
+}
+
+func (s *CachingParticipantSource) Stop(ctx context.Context) chan struct{} {
+
+}
+
+func (s *CachingParticipantSource) notify(ctx context.Context) {
+	s.G().NotifyRouter.HandleChatParticipantsInfo(ctx, s.notifyCurrent)
+	s.notifyCurrent = make(map[chat1.ConvIDStr][]chat1.UIParticipant)
+	s.lastNotify = s.clock.Now()
+}
+
+func (s *CachingParticipantSource) notifyLoop() {
+	ctx := context.Background()
+	delay := 200*time.Millisecond
+	for {
+		select {
+		case r := <-s.notifyCh:
+			if time.Since(r.lastNotify) > delay {
+				s.notify()
+			}
+			s.notifyCurrent[r.convIDStr] =
+
 	}
 }
 

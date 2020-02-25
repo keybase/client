@@ -256,5 +256,5 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatParticipantsInfo(ConversationID convID, array<UIParticipant> participants);
+  void ChatParticipantsInfo(map<ConvIDStr, array<UIParticipant>> participants);
 }
