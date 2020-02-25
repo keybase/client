@@ -28,7 +28,8 @@ const ChannelRow = (props: ChannelRowProps) => {
   const numParticipants = Container.useSelector(
     state => ChatConstants.getParticipantInfo(state, conversationIDKey).all.length
   )
-  const hasAllMembers = false
+  const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const hasAllMembers = details.members.size === numParticipants
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

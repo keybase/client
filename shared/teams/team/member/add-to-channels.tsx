@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
@@ -36,6 +35,7 @@ const AddToChannels = (props: Props) => {
   const channelInfos = getChannelsForList(
     Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
   )
+  const participantMap = Container.useSelector(s => s.chat2.participantMap)
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
@@ -44,17 +44,12 @@ const AddToChannels = (props: Props) => {
     : channelInfos
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
-    ...channels.map(c => {
-      const participantInfo = Container.useSelector(s =>
-        ChatConstants.getParticipantInfo(s, c.conversationIDKey)
-      )
-      return {
-        channelname: c.channelname,
-        conversationIDKey: c.conversationIDKey,
-        numMembers: participantInfo.all.length,
-        type: 'channel' as const,
-      }
-    }),
+    ...channels.map(c => ({
+      channelname: c.channelname,
+      conversationIDKey: c.conversationIDKey,
+      numMembers: participantMap.get(c.conversationIDKey)?.all?.length ?? 0,
+      type: 'channel' as const,
+    })),
   ]
   const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
   const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
