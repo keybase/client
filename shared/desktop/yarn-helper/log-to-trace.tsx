@@ -176,7 +176,6 @@ const output: {
 }
 
 const buildEvent = (info: Info, ph: 'B' | 'E' | 'i'): Event => {
-  // TODO: figure out what format info.time is so we can get rid of moment here
   return {
     args: info.args,
     id: info.id,

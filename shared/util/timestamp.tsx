@@ -92,7 +92,6 @@ export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
   })
 
 export const formatDuration = (duration: number): string => {
-  // TODO: figure out how to do this with date-fns
   if (!duration) {
     return ''
   }
@@ -184,7 +183,8 @@ const formatDistanceLocale = {
   xYears: '{{count}}y',
 }
 
-const formatDistanceAbbr = (token, count) => formatDistanceLocale[token].replace('{{count}}', count)
+const formatDistanceAbbr = (token: keyof typeof formatDistanceLocale, count: number): string =>
+  formatDistanceLocale[token].replace('{{count}}', String(count))
 
 export function formatTimeForPeopleItem(time: number): string {
   return dateFns.formatDistanceStrict(time, Date.now(), {
