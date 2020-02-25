@@ -60,6 +60,38 @@ func (o GetBlockRes) DeepCopy() GetBlockRes {
 	}
 }
 
+type GetBlockSizesRes struct {
+	Sizes    []int         `codec:"sizes" json:"sizes"`
+	Statuses []BlockStatus `codec:"statuses" json:"statuses"`
+}
+
+func (o GetBlockSizesRes) DeepCopy() GetBlockSizesRes {
+	return GetBlockSizesRes{
+		Sizes: (func(x []int) []int {
+			if x == nil {
+				return nil
+			}
+			ret := make([]int, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Sizes),
+		Statuses: (func(x []BlockStatus) []BlockStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make([]BlockStatus, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Statuses),
+	}
+}
+
 type BlockRefNonce [8]byte
 
 func (o BlockRefNonce) DeepCopy() BlockRefNonce {
@@ -182,6 +214,11 @@ type GetBlockArg struct {
 	SizeOnly bool         `codec:"sizeOnly" json:"sizeOnly"`
 }
 
+type GetBlockSizesArg struct {
+	Bids   []BlockIdCombo `codec:"bids" json:"bids"`
+	Folder string         `codec:"folder" json:"folder"`
+}
+
 type AddReferenceArg struct {
 	Folder string         `codec:"folder" json:"folder"`
 	Ref    BlockReference `codec:"ref" json:"ref"`
@@ -229,6 +266,7 @@ type BlockInterface interface {
 	PutBlock(context.Context, PutBlockArg) error
 	PutBlockAgain(context.Context, PutBlockAgainArg) error
 	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
+	GetBlockSizes(context.Context, GetBlockSizesArg) (GetBlockSizesRes, error)
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
@@ -311,6 +349,21 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetBlock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getBlockSizes": {
+				MakeArg: func() interface{} {
+					var ret [1]GetBlockSizesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetBlockSizesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetBlockSizesArg)(nil), args)
+						return
+					}
+					ret, err = i.GetBlockSizes(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -470,6 +523,11 @@ func (c BlockClient) PutBlockAgain(ctx context.Context, __arg PutBlockAgainArg) 
 
 func (c BlockClient) GetBlock(ctx context.Context, __arg GetBlockArg) (res GetBlockRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c BlockClient) GetBlockSizes(ctx context.Context, __arg GetBlockSizesArg) (res GetBlockSizesRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.getBlockSizes", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
