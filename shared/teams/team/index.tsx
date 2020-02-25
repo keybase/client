@@ -8,7 +8,7 @@ import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
 import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
-import SelectionPopup from './selection-popup'
+import SelectionPopup from '../common/selection-popup'
 import flags from '../../util/feature-flags'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
