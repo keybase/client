@@ -370,7 +370,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -444,7 +444,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -467,7 +467,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -512,7 +512,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
@@ -542,7 +542,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
