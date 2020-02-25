@@ -10,6 +10,7 @@ import renderRow from './rows/render'
 import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
 import SelectionPopup from './selection-popup'
 import flags from '../../util/feature-flags'
+import {pluralize} from '../../util/string'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
@@ -58,17 +59,20 @@ const Team = props => {
 
   const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
 
+  // Scroll offset animation, ReAnimated on mobile and react-spring on desktop
   const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
   const offset = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
+  const [{scroll}, setScroll] = Kb.useSpring(() => ({scroll: 0}))
   const onScroll = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
-    : undefined
+    : evt => setScroll({scroll: evt.target.scrollTop})
 
   return (
     <Kb.Box style={styles.container}>
       <TeamsSubscriber />
       <TeamDetailsSubscriber teamID={props.teamID} />
       {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={props.teamID} offset={offset} />}
+      {!Styles.isMobile && flags.teamsRedesign && <DesktopHeader teamID={props.teamID} offset={scroll} />}
       <SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
@@ -84,7 +88,7 @@ const Team = props => {
   )
 }
 
-const startAnimationOffset = 40
+const startAnimationOffset = Styles.isMobile ? 40 : 80
 const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const dispatch = Container.useDispatch()
@@ -119,6 +123,32 @@ const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => 
   )
 }
 
+const DesktopHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: number}) => {
+  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  // @ts-ignore animated value
+  const top = offset.interpolate({
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    output: [40, 40, 0],
+    range: [0, startAnimationOffset, startAnimationOffset + 40],
+  })
+  return (
+    <Kb.animated.div style={{left: 0, position: 'absolute', top}}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+        <Kb.NameWithIcon
+          horizontal={true}
+          teamname={meta.teamname}
+          size="smaller"
+          avatarSize={32}
+          title={meta.teamname}
+          metaOne={`${meta.memberCount} ${pluralize('member', meta.memberCount)}`}
+          selectable={true}
+        />
+      </Kb.Box2>
+    </Kb.animated.div>
+  )
+}
+
 const styles = Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: 0,
@@ -134,7 +164,13 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
     width: '100%',
   },
-  header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+  header: Styles.platformStyles({
+    isElectron: {
+      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
+      backgroundColor: Styles.globalColors.white,
+    },
+    isMobile: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+  }),
   list: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,
@@ -151,7 +187,10 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  listTeamsRedesign: Styles.platformStyles({isMobile: {top: 40}}),
+  listTeamsRedesign: Styles.platformStyles({
+    common: {top: 40},
+    isElectron: {backgroundColor: Styles.globalColors.white, top: 43},
+  }),
   smallHeader: {
     ...Styles.padding(0, Styles.globalMargins.xlarge),
   },
