@@ -12,6 +12,7 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
 import chunk from 'lodash/chunk'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
+import {infoPanelWidth} from './common'
 
 const monthNames = [
   'January',
@@ -296,10 +297,9 @@ const styles = Styles.styleSheetCreate(
         top: '50%',
         width: 24,
       },
-      selectorContainer: Styles.platformStyles({
-        common: {padding: Styles.globalMargins.small},
-        isTablet: {alignSelf: 'center', maxWidth: 600},
-      }),
+      selectorContainer: {
+        padding: Styles.globalMargins.small,
+      },
       selectorDocContainer: {
         borderColor: Styles.globalColors.blue,
         borderLeftWidth: 1,
@@ -473,8 +473,8 @@ export default (p: Props) => {
     switch (selectedAttachmentView) {
       case RPCChatTypes.GalleryItemTyp.media:
         {
-          const rowSize = 4
-          const maxMediaThumbSize = Styles.isMobile ? imgMaxWidthRaw() / rowSize : 80
+          const rowSize = 4 // count of images in each row
+          const maxMediaThumbSize = infoPanelWidth() / rowSize
           const s = formMonths(
             (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
               m =>
@@ -491,6 +491,11 @@ export default (p: Props) => {
           ).map(month => {
             const data = chunk(
               month.data.map(thumb => ({
+                debug: {
+                  width: thumb.width,
+                  height: thumb.height,
+                  maxMediaThumbSize,
+                },
                 sizing: Constants.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
                 thumb,
               })),

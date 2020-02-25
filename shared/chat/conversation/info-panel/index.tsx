@@ -12,6 +12,7 @@ import BotsList from './bot'
 import AttachmentsList from './attachments'
 import {MaybeTeamRoleType} from 'constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
+import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
@@ -193,11 +194,11 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           backgroundColor: Styles.globalColors.white,
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
-          width: 320,
+          width: infoPanelWidthElectron,
         },
         isTablet: {
           paddingTop: Styles.globalMargins.small,
-          width: 350,
+          width: infoPanelWidthTablet,
         },
       }),
       tabContainerStyle: Styles.platformStyles({
