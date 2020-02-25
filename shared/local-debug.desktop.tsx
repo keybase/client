@@ -7,7 +7,7 @@ let PERF = false
 let config = {
   allowMultipleInstances: false, // Multiple instances of the app
   enableActionLogging: true, // Log actions to the log
-  enableStoreLogging: false, // Log full store changes
+  enableStoreLogging: true, // Log full store changes
   featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
@@ -22,7 +22,7 @@ let config = {
   printRPCBytes: false, // Print raw bytes going over the wire
   printRPCStats: false, // Print more detailed stats about rpcs
   printRPCWaitingSession: false, // session / waiting info
-  showDevTools: false, // Show devtools on start
+  showDevTools: true, // Show devtools on start
   skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
   skipSecondaryDevtools: true, // Don't show devtools for menubar/trackers etc
   userTimings: false, // Add user timings api to timeline in chrome
