@@ -98,8 +98,8 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           tabs={tabs}
           selected={selected}
           onSelect={this.onSelectTab}
-          style={styles.tabContainerStyle}
-          tabStyle={styles.tabStyle}
+          style={styles.tabContainer}
+          tabStyle={styles.tab}
         />
       </Kb.Box2>
     )
@@ -178,17 +178,38 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       default:
         sectionList = null
     }
-    return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-        {sectionList}
-      </Kb.Box2>
-    )
+    if (Styles.isTablet) {
+      // Use a View to make the left border.
+      return (
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          fullHeight={true}
+          style={styles.containerOuterTablet}
+        >
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.containerBorder}></Kb.Box2>
+          <Kb.Box2 direction="vertical" style={styles.container}>
+            {sectionList}
+          </Kb.Box2>
+        </Kb.Box2>
+      )
+    } else {
+      return (
+        <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+          {sectionList}
+        </Kb.Box2>
+      )
+    }
   }
 }
+
+const tabletContainerBorderSize = 1
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      containerBorder: {width: tabletContainerBorderSize, backgroundColor: '#E5E5E5'},
+      containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
         isElectron: {
@@ -201,7 +222,7 @@ const styles = Styles.styleSheetCreate(
           width: infoPanelWidthTablet,
         },
       }),
-      tabContainerStyle: Styles.platformStyles({
+      tabContainer: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.white,
         },
@@ -211,7 +232,7 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'hidden',
         },
       }),
-      tabStyle: {
+      tab: {
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
       },
