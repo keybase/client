@@ -3,10 +3,11 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/teams'
 import {ModalTitle} from '../common'
 
 type Props = {
-  teamname: string
+  teamID: Types.TeamID
   errorMessage: string
 }
 
@@ -17,21 +18,21 @@ const AddEmail = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
 
-  const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
   const disabled = invitees.length < 1
+
+  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, props.teamID).teamname)
 
   return (
     <Kb.Modal
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={props.teamname} title="Email list" />,
+        title: <ModalTitle teamname={teamname} title="Email list" />,
       }}
       allowOverflow={true}
       footer={{
         content: (
           <Kb.Button
-            waiting={waiting}
             fullWidth={true}
             label="Continue"
             onClick={() => undefined} //TODO: Implement this
