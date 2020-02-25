@@ -325,7 +325,7 @@ export type TypedActionsMap = {
   'crypto:saltpackSign': crypto.SaltpackSignPayload
   'crypto:saltpackStart': crypto.SaltpackStartPayload
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
-  'deeplinks:handleFileLink': deeplinks.HandleFileLinkPayload
+  'deeplinks:handleFile': deeplinks.HandleFilePayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload

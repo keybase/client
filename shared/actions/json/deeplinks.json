@@ -1,7 +1,7 @@
 {
   "prelude": [],
   "actions": {
-    "handleFileLink": {"path": "string"},
+    "handleFile": {"path": "string"},
     "handleKeybaseLink": {"link": "string"},
     "link": {"link": "string"},
     "setKeybaseLinkError": {
