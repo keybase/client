@@ -160,6 +160,9 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 	if err != nil {
 		return nil, err
 	}
+	for _, rc := range rcs {
+		c.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, rc.GetConvID())
+	}
 	convs, _, err := c.G().InboxSource.Localize(ctx, uid, rcs, types.ConversationLocalizerBlocking)
 	if err != nil {
 		c.Debug(ctx, "GetChannelsFull: failed to localize conversations: %s", err.Error())

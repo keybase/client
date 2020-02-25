@@ -1352,4 +1352,8 @@ protocol local {
   map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
 
   int getRecentJoinsLocal(ConversationID convID);
+
+  // queue up a refresh of participants, this will result in notifications to the UI with the data
+  // from local and remote sources
+  void refreshParticipants(ConversationID convID);
 }

@@ -4,6 +4,8 @@
 package client
 
 import (
+	"sort"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -27,6 +29,7 @@ func NewCmdGit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		}...)
 	}
 
+	sort.Sort(cli.ByName(subcommands))
 	return cli.Command{
 		Name:         "git",
 		Usage:        "Manage git repos",

@@ -194,6 +194,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_PIN,
 	MessageType_HEADLINE,
 	MessageType_SYSTEM,
+	MessageType_FLIP,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.

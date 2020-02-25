@@ -648,11 +648,10 @@ const getChannelInfo = async (
 
   const channelInfo = {
     channelname: meta.channelname,
+    conversationIDKey,
     description: meta.description,
-    hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
-    numParticipants: convs[0].participants?.length ?? 0,
   }
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamID})
@@ -685,11 +684,10 @@ const getChannels = async (
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
     channelInfos.set(convID, {
       channelname: conv.channel,
+      conversationIDKey: convID,
       description: conv.headline,
-      hasAllMembers: null,
       memberStatus: conv.memberStatus,
       mtime: conv.time,
-      numParticipants: (conv.participants || []).length,
     })
   })
 

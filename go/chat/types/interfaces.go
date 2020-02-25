@@ -598,6 +598,12 @@ type JourneyCardManager interface {
 	OnDbNuke(libkb.MetaContext) error
 }
 
+type ParticipantSource interface {
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]gregor1.UID, error)
+	GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan ParticipantResult
+	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string

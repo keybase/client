@@ -1024,8 +1024,17 @@ func (m *ChatRemoteMock) GetRecentJoins(ctx context.Context, convID chat1.Conver
 	return res, errors.New("GetRecentJoins not mocked")
 }
 
+func (m *ChatRemoteMock) GetLastActiveAt(ctx context.Context, arg chat1.GetLastActiveAtArg) (res chat1.GetLastActiveAtRes, err error) {
+	return res, errors.New("GetLastActiveAt not mocked")
+}
+
 func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res *keybase1.TeamID, err error) {
 	return res, errors.New("TeamIDOfConv not mocked")
+}
+
+func (m *ChatRemoteMock) RefreshParticipantsRemote(ctx context.Context,
+	arg chat1.RefreshParticipantsRemoteArg) (res chat1.RefreshParticipantsRemoteRes, err error) {
+	return res, errors.New("not implemented")
 }
 
 type NonblockInboxResult struct {

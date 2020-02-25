@@ -7,7 +7,7 @@ use Data::Dumper qw(Dumper);
 use JSON::PP qw(encode_json);
 
 my $dep_packages = {};
-my @oses = ('linux', 'darwin', 'windows');
+my @oses = ('linux', 'windows');
 my $os_packages = {};
 my $total_packages = 0;
 # Any packages to exclude. This needs to include CGO packages since those aren't cross-compilable.

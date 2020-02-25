@@ -27,6 +27,7 @@ func GetCurrentStatus(mctx libkb.MetaContext) (res keybase1.CurrentStatus, err e
 	}
 	res.SessionIsValid = mctx.ActiveDevice().Valid()
 	res.LoggedIn = res.SessionIsValid
+	res.DeviceName = mctx.ActiveDevice().Name()
 	return res, nil
 }
 
@@ -241,6 +242,7 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 	if err != nil {
 		mctx.Debug("Failed to get KBFSBundleVersion: %s", err)
 	} else {
+		mctx.Debug("Got KBFSBundleVersion: %s", kbfsInstalledVersion)
 		status.Kbfs.InstalledVersion = kbfsInstalledVersion
 	}
 	if kbfs := GetFirstClient(status.ExtStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
@@ -276,6 +278,7 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 	status.Git.Log = filepath.Join(status.ExtStatus.LogDir, libkb.GitLogFileName)
 
 	// set anything os-specific
+	mctx.Debug("Getting osSpecific status info")
 	if err := osSpecific(mctx, status); err != nil {
 		return nil, err
 	}
