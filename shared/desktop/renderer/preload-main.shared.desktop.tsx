@@ -69,12 +69,38 @@ const darwinCopyToChatTempUploadFile = isDarwin
       throw new Error('unsupported platform')
     }
 
+// Expose native file picker to components.
+// Improved experience over HTML <input type='file' />
+const openFile = async (options: KBElectronOpenProperties) => {
+  try {
+    const result = await Electron.remote.dialog.showOpenDialog(Electron.remote.getCurrentWindow(), options)
+    if (!result) return
+    if (result.canceled) return
+    return result.filePaths
+  } catch (err) {
+    return
+  }
+}
+
+const saveFile = async (options: KBElectronSaveProperties) => {
+  try {
+    const result = await Electron.remote.dialog.showSaveDialog(Electron.remote.getCurrentWindow(), options)
+    if (!result) return
+    if (result.canceled) return
+    return result.filePath
+  } catch (err) {
+    return
+  }
+}
+
 target.KB = {
   __dirname: __dirname,
   electron: {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
     },
+    openFile,
+    saveFile,
   },
   kb: {
     darwinCopyToChatTempUploadFile,

@@ -12,6 +12,8 @@ global.KB = {
         return ''
       },
     },
+    openFile: async () => {},
+    saveFile: async () => {},
   },
   path: {
     basename: path.basename,

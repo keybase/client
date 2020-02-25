@@ -7,7 +7,9 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import HiddenString from '../../util/hidden-string'
-import {useOpenFile} from '../../util/use-file-picker'
+
+const {electron} = KB
+const {openFile} = electron
 
 type InputProps = {
   operation: Types.Operations
@@ -68,25 +70,19 @@ export const TextInput = (props: TextProps) => {
     }
   }
 
-  const onFileSelected = (result: Electron.OpenDialogReturnValue) => {
-    if (result.canceled) return
-
-    const path = result.filePaths[0]
+  const onFileSelected = (filePaths: Array<string> | undefined) => {
+    if (!filePaths) return
+    const path = filePaths[0]
     onSetFile(path)
   }
 
-  // State
-  const [counter, setCounter] = React.useState(0)
-
-  // Effects
-  useOpenFile(
-    counter,
-    {
+  const onOpenFile = () => {
+    const options = {
       buttonLabel: 'Select',
-      properties: ['openFile'],
-    },
-    onFileSelected
-  )
+      properties: ['openFile'] as Array<OpenProperties>,
+    }
+    openFile(options).then(onFileSelected)
+  }
 
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
@@ -120,7 +116,7 @@ export const TextInput = (props: TextProps) => {
             ref={inputRef}
           />
           {!value && (
-            <Kb.Text type="BodyPrimaryLink" onClick={() => setCounter(p => p + 1)} style={styles.browseFile}>
+            <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={() => onOpenFile()}>
               browse for one
             </Kb.Text>
           )}

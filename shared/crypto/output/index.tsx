@@ -10,9 +10,11 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {humanizeBytes} from '../../constants/fs'
-import {useOpenFile} from '../../util/use-file-picker'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
+
+const {electron} = KB
+const {openFile} = electron
 
 type OutputProps = {
   operation: Types.Operations
@@ -265,17 +267,14 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   const operationTitle = capitalize(operation)
   const dispatch = Container.useDispatch()
 
-  // State
-  const [counter, setCounter] = React.useState(0)
-
   // Store
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
 
   // Actions
-  const onRunFileOperation = (result: Electron.OpenDialogReturnValue) => {
-    if (result.canceled) return
+  const onRunFileOperation = (filePaths: Array<string> | undefined) => {
+    if (!filePaths) return
 
-    const path = result.filePaths[0]
+    const path = filePaths[0]
     const destinationDir = new Container.HiddenString(path)
     dispatch(
       CryptoGen.createRunFileOperation({
@@ -285,21 +284,19 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
     )
   }
 
-  // Effects
-  useOpenFile(
-    counter,
-    {
+  const onOpenFile = () => {
+    const options = {
       buttonLabel: 'Select',
       defaultPath: input,
-      properties: ['openDirectory'],
-    },
-    onRunFileOperation
-  )
+      properties: ['openDirectory'] as Array<OpenProperties>,
+    }
+    openFile(options).then(onRunFileOperation)
+  }
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ButtonBar>
-        <Kb.Button mode="Primary" label={`${operationTitle}`} onClick={() => setCounter(p => p + 1)} />
+        <Kb.Button mode="Primary" label={`${operationTitle}`} onClick={() => onOpenFile()} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )
