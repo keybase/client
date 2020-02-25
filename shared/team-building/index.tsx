@@ -570,19 +570,23 @@ class TeamBuilding extends React.PureComponent<Props> {
     : undefined
 
   private modalHeader = () => {
+    const mobileCancel = (
+      <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
+        Cancel
+      </Kb.Text>
+    )
     if (this.props.namespace === 'people') {
       return Styles.isMobile
         ? {
             hideBorder: true,
-            leftButton: (
-              <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
-                Cancel
-              </Kb.Text>
-            ),
+            leftButton: mobileCancel,
           }
         : undefined
     }
     // Handle when team-building is making a new chat v.s. adding members to a team.
+    if (Styles.isMobile) {
+      return {hideBorder: true, leftButton: mobileCancel, title: this.props.title}
+    }
     const title = this.props.rolePickerProps ? (
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
         <Kb.Avatar teamname={this.props.teamname} size={32} style={styles.teamAvatar} />
