@@ -116,7 +116,7 @@ function main() {
   })
 
   const icon = argv.icon
-  const saltpackIcon = argv.saltpackICon
+  const saltpackIcon = argv.saltpackIcon
 
   if (icon) {
     packagerOpts.icon = icon
