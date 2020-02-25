@@ -17,7 +17,10 @@ type _GetFeaturedBotsPayload = {readonly limit?: number; readonly page?: number}
 type _SearchFeaturedAndUsersPayload = {readonly query: string}
 type _SearchFeaturedBotsPayload = {readonly query: string; readonly limit?: number; readonly offset?: number}
 type _SetLoadedAllBotsPayload = {readonly loaded: boolean}
-type _SetSearchFeaturedAndUsersResultsPayload = {readonly results?: Types.BotSearchResults}
+type _SetSearchFeaturedAndUsersResultsPayload = {
+  readonly query: string
+  readonly results?: Types.BotSearchResults
+}
 type _UpdateFeaturedBotsPayload = {readonly bots: Array<RPCTypes.FeaturedBot>; readonly page?: number}
 
 // Action Creators
@@ -44,7 +47,7 @@ export const createSearchFeaturedAndUsers = (
  * Set results of a search
  */
 export const createSetSearchFeaturedAndUsersResults = (
-  payload: _SetSearchFeaturedAndUsersResultsPayload = Object.freeze({})
+  payload: _SetSearchFeaturedAndUsersResultsPayload
 ): SetSearchFeaturedAndUsersResultsPayload => ({payload, type: setSearchFeaturedAndUsersResults})
 /**
  * Sets a flag if all featured bots have been loaded
