@@ -178,6 +178,13 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("charlie vouches for alice with confidence")
 
+	// ensure alice does a full load of bob by adding another link
+	// to bob's chain so the wot.vouch isn't the last one (which is always unstubbed)
+	// and nuking alice's local db to wipe any cache
+	trackUser(tcBob, bob, charlie.NormalizedUsername(), sigVersion)
+	_, err = mctxA.G().LocalDb.Nuke()
+	require.NoError(t, err)
+
 	vouches, err = libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
 	require.Len(t, vouches, 2)
