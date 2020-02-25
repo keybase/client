@@ -51,10 +51,13 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 }
 
 func (s *CachingParticipantSource) Get(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) (res []gregor1.UID, err error) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res []gregor1.UID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get")()
-	ch := s.GetNonblock(ctx, uid, convID)
+	ch := s.GetNonblock(ctx, uid, convID, dataSource)
 	for r := range ch {
+		if r.Err != nil {
+			return res, err
+		}
 		res = r.Uids
 	}
 	return res, nil
@@ -68,7 +71,7 @@ func (s *CachingParticipantSource) dbKey(uid gregor1.UID, convID chat1.Conversat
 }
 
 func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) (resCh chan types.ParticipantResult) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (resCh chan types.ParticipantResult) {
 	resCh = make(chan types.ParticipantResult, 1)
 	go func(ctx context.Context) {
 		defer s.Trace(ctx, func() error { return nil }, "GetNonblock")()
@@ -76,7 +79,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 		lock := s.locktab.AcquireOnName(ctx, s.G(), convID.String())
 		defer lock.Release(ctx)
 
-		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, dataSource)
 		if err != nil {
 			resCh <- types.ParticipantResult{Err: err}
 			return
@@ -91,55 +94,61 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 		}
 
 		// load local first and send to channel
-		var local partDiskStorage
-		found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
-		if err != nil {
-			resCh <- types.ParticipantResult{Err: err}
-			if err := s.encryptedDB.Delete(ctx, s.dbKey(uid, conv.GetConvID())); err != nil {
-				s.Debug(ctx, "GetNonblock: failed to delete after read error: %s", err)
+		localHash := ""
+		switch dataSource {
+		case types.InboxSourceDataSourceAll, types.InboxSourceDataSourceLocalOnly:
+			var local partDiskStorage
+			found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
+			if err != nil {
+				resCh <- types.ParticipantResult{Err: err}
+				if err := s.encryptedDB.Delete(ctx, s.dbKey(uid, conv.GetConvID())); err != nil {
+					s.Debug(ctx, "GetNonblock: failed to delete after read error: %s", err)
+				}
+				return
 			}
-			return
-		}
-		if found {
-			resCh <- types.ParticipantResult{Uids: local.Uids}
+			if found {
+				resCh <- types.ParticipantResult{Uids: local.Uids}
+				localHash = local.Hash
+			}
+		default:
 		}
 
 		// load remote if necessary
-		localHash := ""
-		if found {
-			localHash = local.Hash
-		}
-		partRes, err := s.ri().RefreshParticipantsRemote(ctx, chat1.RefreshParticipantsRemoteArg{
-			ConvID: conv.GetConvID(),
-			Hash:   localHash,
-		})
-		if err != nil {
-			resCh <- types.ParticipantResult{Err: err}
-			return
-		}
-		if partRes.HashMatch {
-			s.Debug(ctx, "GetNonblock: hash match on remote, all done")
-			return
-		}
+		switch dataSource {
+		case types.InboxSourceDataSourceAll, types.InboxSourceDataSourceRemoteOnly:
+			partRes, err := s.ri().RefreshParticipantsRemote(ctx, chat1.RefreshParticipantsRemoteArg{
+				ConvID: conv.GetConvID(),
+				Hash:   localHash,
+			})
+			if err != nil {
+				resCh <- types.ParticipantResult{Err: err}
+				return
+			}
+			if partRes.HashMatch {
+				s.Debug(ctx, "GetNonblock: hash match on remote, all done")
+				return
+			}
 
-		if err := s.encryptedDB.Put(ctx, s.dbKey(uid, conv.GetConvID()), partDiskStorage{
-			Uids: partRes.Uids,
-			Hash: partRes.Hash,
-		}); err != nil {
-			s.Debug(ctx, "GetNonblock: failed to store participants: %s", err)
+			if err := s.encryptedDB.Put(ctx, s.dbKey(uid, conv.GetConvID()), partDiskStorage{
+				Uids: partRes.Uids,
+				Hash: partRes.Hash,
+			}); err != nil {
+				s.Debug(ctx, "GetNonblock: failed to store participants: %s", err)
+			}
+			resCh <- types.ParticipantResult{Uids: partRes.Uids}
+		default:
 		}
-		resCh <- types.ParticipantResult{Uids: partRes.Uids}
 	}(globals.BackgroundChatCtx(ctx, s.G()))
 	return resCh
 }
 
 func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) {
 	go func(ctx context.Context) {
 		s.sema.Acquire(ctx, 1)
 		defer s.sema.Release(1)
 
-		ch := s.G().ParticipantsSource.GetNonblock(ctx, uid, convID)
+		ch := s.G().ParticipantsSource.GetNonblock(ctx, uid, convID, dataSource)
 		for r := range ch {
 			uids := r.Uids
 			kuids := make([]keybase1.UID, 0, len(uids))

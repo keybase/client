@@ -1715,7 +1715,8 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	// find a list of conversations that the provided uid is a member of
 	var memberConvs []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
-		uids, err := h.G().ParticipantsSource.Get(ctx, myUID, conv.GetConvID())
+		uids, err := h.G().ParticipantsSource.Get(ctx, myUID, conv.GetConvID(),
+			types.InboxSourceDataSourceAll)
 		if err != nil {
 			return res, err
 		}
@@ -3516,6 +3517,6 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 	if err != nil {
 		return err
 	}
-	h.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, convID)
+	h.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, convID, types.InboxSourceDataSourceAll)
 	return nil
 }
