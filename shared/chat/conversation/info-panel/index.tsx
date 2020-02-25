@@ -208,8 +208,6 @@ const tabletContainerBorderSize = 1
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      containerBorder: {width: tabletContainerBorderSize, backgroundColor: '#E5E5E5'},
-      containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
         isElectron: {
@@ -222,6 +220,12 @@ const styles = Styles.styleSheetCreate(
           width: infoPanelWidthTablet,
         },
       }),
+      containerBorder: {backgroundColor: '#E5E5E5', width: tabletContainerBorderSize},
+      containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
+      tab: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+      },
       tabContainer: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.white,
@@ -232,10 +236,6 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'hidden',
         },
       }),
-      tab: {
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-      },
       tabTextContainer: Styles.platformStyles({
         common: {
           justifyContent: 'center',

@@ -105,7 +105,7 @@ export default (props: Props) => {
         ...props.commonSections,
         {
           data: sections,
-          renderItem: ({index, item}: {index: number; item: Unpacked<typeof data>}) => {
+          renderItem: ({index, item}: {index: number; item: Unpacked<typeof sections>}) => {
             if (item.key === auditingBannerItem) {
               return (
                 <Kb.Banner color="grey" small={true}>
