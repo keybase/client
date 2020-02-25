@@ -4155,7 +4155,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.user.loadAllPublicKeysUnverified'
 // 'keybase.1.user.meUserVersion'
 // 'keybase.1.user.getUPAK'
-// 'keybase.1.user.getUPAKLite'
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
