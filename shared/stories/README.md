@@ -29,7 +29,11 @@ Storybook is controlled by the constants return value in `Storybook.m`. Changing
 
 We use an addon to storybook called [Storyshots][1] that adds jest tests on all our defined stories. `yarn test` will run the jest tests and compare the output DOM to the stored snapshots, which are checked into the client repo. This means that updating components with stories can cause jest tests to fail if the snapshots haven't also been updated. Running `yarn test -u` will update the snapshots to the current output.
 
-## Connected children
+## useSelector and storybooks
+
+You may want to have a component that accesses state with useSelector. The storybook for this component should use a mock store.
+
+## Connected children (THE OLD WAY)
 
 If a story has a child that is connected to the redux store, that child will still try to its connector in storybook mode, which will fail. To work around this, we patch `connect` in storybook mode to access the store in a different way. `connect` in storybook mode will assume the store is a map that looks like this:
 
@@ -49,6 +53,6 @@ Making a prop factory requires knowing the display name of the connected compone
 
 ### Mocks
 
-Mocks are handled a couple of ways. How storybook and storyshots work is slightly different. Jest has some overrides in the package.json file in the 'jest' section. Storybook has some overrides with webpack in the .storybook/webpack.config.js file. React native storybook was also ignoring some mocks (unclear why) so react-redux is being injected manually in mock-react-redux.js
+Mocks are handled a couple of ways. How storybook and storyshots work is slightly different. Jest has some overrides in the `package.json` file in the 'jest' section. Desktop storybook has some overrides with webpack in the `.storybook/webpack.config.js` file. Native storybook has some overrides through metro in `metro.config.js`.
 
 [1]: https://github.com/storybooks/storybook/tree/master/addons/storyshots

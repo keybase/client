@@ -11,6 +11,8 @@
 #ifndef Storybook_h
 #define Storybook_h
 
+extern const BOOL IS_STORYBOOK;
+
 @interface Storybook : NSObject<RCTBridgeModule>
 @end
 

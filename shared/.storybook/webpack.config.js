@@ -1,3 +1,5 @@
+// This is the desktop storybook configuration. The mobile version is in ../.storybook
+
 const webpack = require('webpack')
 const path = require('path')
 // you can use this file to add your custom webpack plugins, loaders and anything you like.
@@ -48,8 +50,8 @@ module.exports = ({config, mode}) => {
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.tsx'),
     new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.tsx'),
     new webpack.NormalModuleReplacementPlugin(
-      /safe-navigation/,
-      __dirname + '/../__mocks__/safe-navigation.tsx'
+      /navigation-hooks/,
+      __dirname + '/../util/__mocks__/navigation-hooks.tsx'
     ),
   ]
 
