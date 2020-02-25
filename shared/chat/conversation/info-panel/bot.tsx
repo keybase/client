@@ -179,12 +179,6 @@ const styles = Styles.styleSheetCreate(
           ...Styles.desktopStyles.clickable,
         },
       }),
-      sectionList: Styles.platformStyles({
-        isTablet: {
-          alignSelf: 'center',
-          maxWidth: 800,
-        },
-      }),
     } as const)
 )
 
@@ -388,7 +382,6 @@ export default (props: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      style={styles.sectionList}
       renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[...props.commonSections, ...sections]}
     />

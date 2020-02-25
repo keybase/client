@@ -87,7 +87,6 @@ export default (props: Props) => {
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
       renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
-      style={styles.sectionList}
       sections={[
         ...props.commonSections,
         {
@@ -120,15 +119,3 @@ export default (props: Props) => {
     />
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      sectionList: Styles.platformStyles({
-        isTablet: {
-          alignSelf: 'center',
-          maxWidth: 800,
-        },
-      }),
-    } as const)
-)
