@@ -18,6 +18,7 @@ import {
 } from '.'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
+// @ts-ignore
 import {withNavigationFocus} from '@react-navigation/core'
 
 type OwnProps = {

@@ -10,13 +10,12 @@ import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import HeaderArea from './header-area/container'
+// @ts-ignore
 import {withNavigationFocus} from '@react-navigation/core'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
-type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}> & {
-  conversationIDKey: Types.ConversationIDKey
-}
+type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 let Conversation = (p: SwitchProps) => {
   const _storeConvoIDKey = Container.useSelector(state => Constants.getSelectedConversation(state))
@@ -27,7 +26,7 @@ let Conversation = (p: SwitchProps) => {
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 
   let type: ConvoType
-  switch (p.conversationIDKey) {
+  switch (conversationIDKey) {
     case Constants.noConversationIDKey:
       type = 'noConvo'
       break
