@@ -189,6 +189,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, c
 				} else {
 					t.Debug(ctx, "groupGeneric: failed to form active map, could not get participants: %s",
 						err)
+					activeMap = make(map[string]struct{})
 				}
 			}
 
