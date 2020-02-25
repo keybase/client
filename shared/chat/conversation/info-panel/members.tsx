@@ -5,7 +5,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
-import * as Styles from '../../../styles'
 import flags from '../../../util/feature-flags'
 import Participant from './participant'
 
