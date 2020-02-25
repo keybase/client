@@ -77,21 +77,26 @@ const makeRadar = (show: boolean) => {
 // simple bucketing of incoming log lines, we have a queue of incoming items, we bucket them
 // and choose a max to show
 // TODO mobile
-const LogStats = () => {
-  const maxBuckets = 3
+const LogStats = (props: {num?: number}) => {
+  const {num} = props
+  const maxBuckets = num ?? 5
 
   const [incoming, setIncoming] = React.useState<Array<string>>([])
-  const [buckets, setBuckets] = React.useState([
-    {count: 0, label: '', updated: false},
-    {count: 0, label: '', updated: false},
-    {count: 0, label: '', updated: false},
-  ])
+  const [buckets, setBuckets] = React.useState<Array<{count: number; label: string; updated: boolean}>>(
+    new Array(maxBuckets).fill('').map(() => ({count: 0, label: '', updated: false}))
+  )
 
   // bucketize
   React.useEffect(() => {
     setBuckets(buckets => {
       // copy existing buckets
       let newBuckets = buckets.map(b => ({...b, updated: false}))
+
+      console.log('aaa effect 0', incoming)
+      console.log(
+        'aaa effect 1',
+        newBuckets.map(b => ({...b}))
+      )
 
       // find existing or add new ones
       incoming.forEach(i => {
@@ -103,6 +108,11 @@ const LogStats = () => {
           newBuckets.push({count: 1, label: i, updated: true})
         }
       })
+
+      console.log(
+        'aaa effect 2',
+        newBuckets.map(b => ({...b}))
+      )
 
       // sort to remove unupdated or small ones
       newBuckets = newBuckets.sort((a, b) => {
@@ -122,6 +132,7 @@ const LogStats = () => {
         newBuckets.some(b => {
           if (b.label) {
             b.label = ''
+            b.count = 0
             return true
           }
           return false
@@ -131,32 +142,59 @@ const LogStats = () => {
 
       // sort remainder by alpha so things don't move around a lot
       newBuckets = newBuckets.sort((a, b) => a.label.localeCompare(b.label))
+
+      console.log(
+        'aaa effect 3',
+        newBuckets.map(b => ({...b}))
+      )
       return newBuckets
     })
   }, [incoming])
 
-  // TEMP to inject
+  const events = Container.useSelector(state => state.config.runtimeStats?.perfEvents)
+
+  const eventsRef = React.useRef<Array<RPCTypes.PerfEvent>>([])
+  if (events) {
+    eventsRef.current.push(...events)
+  }
+
   Kb.useInterval(() => {
-    // @ts-ignore
-    if (window.NOJIMA) {
-      const types = ['id', 'sig']
-      const newIncoming: Array<string> = []
-      const numToConsume = 1 + Math.floor(Math.random() * 5)
-      for (let i = 0; i < numToConsume; ++i) {
-        let type = types[Math.floor(Math.random() * 3)]
-        if (!type) {
-          type = Math.floor(Math.random() * 100) + '.random'
-        }
-        newIncoming.push(type)
-      }
-      setIncoming(newIncoming)
+    if (eventsRef.current.length) {
+      const events = eventsRef.current
+      eventsRef.current = []
+      setIncoming(
+        events.map(e => {
+          const parts = e.message.split(' ')
+          if (parts.length >= 2) {
+            const [prefix, body] = parts
+            const bodyParts = body.split('.')
+            const b = bodyParts.length > 1 ? bodyParts.slice(-2).join('.') : bodyParts[0]
+            switch (prefix) {
+              case 'GET':
+                return `<w:${b}`
+              case 'POST':
+                return `>w:${b}`
+              case 'CallCompressed':
+                return `cc:${b}`
+              case 'FullCachingSource:':
+                return `fcs:${b}`
+              case 'Call':
+                return `c:${b}`
+              default:
+                return e.message
+            }
+          } else {
+            return e.message
+          }
+        })
+      )
     }
   }, 1000)
 
   // age out old logs
   Kb.useInterval(() => {
     setIncoming([])
-  }, 2000)
+  }, 5000)
 
   return (
     <Kb.Box2 direction="vertical" style={{minHeight: 22 * maxBuckets}} fullWidth={true}>
@@ -164,8 +202,8 @@ const LogStats = () => {
         Logs
       </Kb.Text>
       {buckets.map((b, i) => (
-        <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.stat}>
-          {b.label} {b.label && b.count > 1 ? b.count : ''}
+        <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.stat} lineClamp={1}>
+          {b.label && b.count > 1 ? b.count : ''} {b.label}
         </Kb.Text>
       ))}
     </Kb.Box2>
@@ -187,74 +225,91 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
     makeRadar(show)
   }
 
+  const [moreLogs, setMoreLogs] = React.useState(false)
+
+  if (moreLogs) {
+    return (
+      <>
+        <Kb.Box style={Styles.globalStyles.flexGrow} />
+        <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)}>
+          <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
+            <LogStats num={25} />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      </>
+    )
+  }
+
   return (
     <>
       <Kb.Box style={Styles.globalStyles.flexGrow} />
-      <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
-        {stats.processStats?.map((stat, i) => {
-          return (
-            <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
-              <Kb.Text type="BodyTinyBold" style={styles.stat}>
-                {processTypeString(stat.type)}
-              </Kb.Text>
-              <Kb.Text
-                style={Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity)])}
-                type="BodyTiny"
-              >{`CPU: ${stat.cpu}`}</Kb.Text>
-              <Kb.Text
-                style={Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity)])}
-                type="BodyTiny"
-              >{`Res: ${stat.resident}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stat.free}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stat.goheap}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stat.goheapsys}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stat.goreleased}`}</Kb.Text>
-              <Kb.Divider />
-              <Kb.Divider />
-            </Kb.Box2>
-          )
-        })}
-        <Kb.Divider />
-        <Kb.Text type="BodyTinyBold" style={styles.stat}>
-          Chat Bkg Activity
-        </Kb.Text>
-        <Kb.Text
-          style={Styles.collapseStyles([
-            styles.stat,
-            stats.convLoaderActive ? styles.statWarning : styles.statNormal,
-          ])}
-          type="BodyTiny"
-        >{`BkgLoaderActive: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
-        <Kb.Text
-          style={Styles.collapseStyles([
-            styles.stat,
-            stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
-          ])}
-          type="BodyTiny"
-        >{`IndexerSyncActive: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
-        <Kb.Divider />
-        <Kb.Text type="BodyTinyBold" style={styles.stat}>
-          LevelDB Compaction
-        </Kb.Text>
-        {stats.dbStats?.map((stat, i) => {
-          return (
-            <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
-              <Kb.Text
-                type="BodyTiny"
-                style={Styles.collapseStyles([
-                  styles.stat,
-                  stat.memCompActive || stat.tableCompActive ? styles.statWarning : styles.statNormal,
-                ])}
-              >
-                {`${dbTypeString(stat.type)}: ${yesNo(stat.memCompActive || stat.tableCompActive)}`}
-              </Kb.Text>
-            </Kb.Box2>
-          )
-        })}
-        <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
-        <LogStats />
-      </Kb.Box2>
+      <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)}>
+        <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
+          {stats.processStats?.map((stat, i) => {
+            return (
+              <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
+                <Kb.Text type="BodyTinyBold" style={styles.stat}>
+                  {processTypeString(stat.type)}
+                </Kb.Text>
+                <Kb.Text
+                  style={Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity)])}
+                  type="BodyTiny"
+                >{`CPU: ${stat.cpu}`}</Kb.Text>
+                <Kb.Text
+                  style={Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity)])}
+                  type="BodyTiny"
+                >{`Res: ${stat.resident}`}</Kb.Text>
+                <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text>
+                <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stat.free}`}</Kb.Text>
+                <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stat.goheap}`}</Kb.Text>
+                <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stat.goheapsys}`}</Kb.Text>
+                <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stat.goreleased}`}</Kb.Text>
+                <Kb.Divider />
+                <Kb.Divider />
+              </Kb.Box2>
+            )
+          })}
+          <Kb.Divider />
+          <Kb.Text type="BodyTinyBold" style={styles.stat}>
+            Chat Bkg Activity
+          </Kb.Text>
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.stat,
+              stats.convLoaderActive ? styles.statWarning : styles.statNormal,
+            ])}
+            type="BodyTiny"
+          >{`BkgLoaderActive: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.stat,
+              stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+            ])}
+            type="BodyTiny"
+          >{`IndexerSyncActive: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
+          <Kb.Divider />
+          <Kb.Text type="BodyTinyBold" style={styles.stat}>
+            LevelDB Compaction
+          </Kb.Text>
+          {stats.dbStats?.map((stat, i) => {
+            return (
+              <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
+                <Kb.Text
+                  type="BodyTiny"
+                  style={Styles.collapseStyles([
+                    styles.stat,
+                    stat.memCompActive || stat.tableCompActive ? styles.statWarning : styles.statNormal,
+                  ])}
+                >
+                  {`${dbTypeString(stat.type)}: ${yesNo(stat.memCompActive || stat.tableCompActive)}`}
+                </Kb.Text>
+              </Kb.Box2>
+            )
+          })}
+          <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
+          <LogStats />
+        </Kb.Box2>
+      </Kb.ClickableBox>
     </>
   )
 }
@@ -372,6 +427,9 @@ const styles = Styles.styleSheetCreate(() => ({
   stat: Styles.platformStyles({
     common: {
       color: Styles.globalColors.whiteOrGreenDark,
+    },
+    isElectron: {
+      wordBreak: 'break-all',
     },
     isMobile: {
       fontFamily: 'Courier',
