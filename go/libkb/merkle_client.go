@@ -32,6 +32,12 @@ const (
 	// about it otherwise), and that if we poll an honest server will tell us if
 	// we should update the root (which will override this threshold).
 	DefaultMerkleRootFreshness = 1 * time.Minute
+
+	// This value is smaller than the generic value (used mainly for users)
+	// because polling does not take into account updates to the hidden merkle
+	// tree. Therefore we need to update the merkle root every time. Fixing
+	// polling could allow to use a larger value here as well.
+	DefaultMerkleRootFreshnessTeams = 0
 )
 
 type NodeHash interface {
@@ -1942,7 +1948,6 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	if err != nil {
 		return nil, nil, nil, err
 	}
-
 	if keybase1.Seqno(resSeqno) == *currentRoot.Seqno() {
 		path.root = currentRoot
 	} else {
@@ -2041,7 +2046,7 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, proces
 		return nil, nil, nil, err
 	}
 
-	root, err := mc.FetchRootFromServer(m, DefaultMerkleRootFreshness)
+	root, err := mc.FetchRootFromServer(m, DefaultMerkleRootFreshnessTeams)
 	if err != nil {
 		return nil, nil, nil, err
 	}
