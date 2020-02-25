@@ -138,13 +138,6 @@ class InfoPanelMenu extends React.Component<Props> {
             <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
               # <Kb.Text type="BodyBold">{props.channelname}</Kb.Text>
             </Kb.Text>
-            <Kb.Meta
-              backgroundColor={Styles.globalColors.blueGrey}
-              color={Styles.globalColors.black_50}
-              icon="iconfont-people"
-              iconColor={Styles.globalColors.black_20}
-              title={props.participantsCount}
-            />
           </Kb.Box2>
         ),
       },
@@ -176,13 +169,6 @@ class InfoPanelMenu extends React.Component<Props> {
               <Kb.Avatar teamname={props.teamname} size={16} />
               <Kb.Text type="BodyBold">{props.teamname}</Kb.Text>
             </Kb.Box2>
-            <Kb.Meta
-              backgroundColor={Styles.globalColors.blueGrey}
-              color={Styles.globalColors.black_50}
-              icon="iconfont-people"
-              iconColor={Styles.globalColors.black_20}
-              title={props.memberCount}
-            />
           </Kb.Box2>
         ),
       },
@@ -204,7 +190,7 @@ class InfoPanelMenu extends React.Component<Props> {
             ? [{onClick: props.onJoinChannel, title: 'Join channel'}]
             : []),
           ...(!props.isSmallTeam && props.isInChannel && !isGeneralChannel && !props.hasHeader
-            ? [{danger: true, icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'}]
+            ? [{icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'}]
             : []),
           ...(!props.isSmallTeam && !props.hasHeader ? teamHeader : []),
           channelItem,
@@ -215,7 +201,7 @@ class InfoPanelMenu extends React.Component<Props> {
             title: 'Team info',
           },
           ...(props.canAddPeople ? addPeopleItems : []),
-          {danger: true, icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
+          {icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
         ]
     ).reduce<Kb.MenuItems>((arr, i) => {
       i && arr.push(i as Kb.MenuItem)

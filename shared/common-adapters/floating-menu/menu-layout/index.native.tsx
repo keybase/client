@@ -15,7 +15,6 @@ import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 type MenuRowProps = {
   centered?: boolean
   isHeader?: boolean
-  last: boolean
   newTag?: boolean | null
   index: number
   numItems: number
@@ -24,8 +23,7 @@ type MenuRowProps = {
   backgroundColor?: Styles.Color
 } & MenuItem
 
-const itemContainerHeight = 56
-const unWrappedContainerHeight = 42
+const itemContainerHeight = 48
 
 const MenuRow = (props: MenuRowProps) => (
   <NativeTouchableOpacity
@@ -37,38 +35,16 @@ const MenuRow = (props: MenuRowProps) => (
     style={Styles.collapseStyles([
       styles.itemContainer,
       !props.unWrapped && styles.itemContainerWrapped,
-      props.unWrapped && styles.itemContainerUnwrapped,
-      props.last && styles.itemContainerLast,
       props.backgroundColor && {backgroundColor: props.backgroundColor},
     ])}
   >
     {props.view || (
       <Box2 centerChildren={props.centered} direction="horizontal" fullWidth={true}>
-        <Box2
-          direction="horizontal"
-          fullHeight={true}
-          style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
-        >
-          {props.icon &&
-            (props.inProgress ? (
-              <ProgressIndicator />
-            ) : (
-              <>
-                <Icon
-                  color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_40}
-                  fontSize={16}
-                  style={props.iconStyle}
-                  type={props.icon}
-                />
-                {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
-              </>
-            ))}
-        </Box2>
-        <Box2 direction="horizontal">
+        <Box2 direction="horizontal" style={styles.flexOne}>
           <Box2 direction="vertical" fullHeight={true}>
             <Box2 direction="horizontal" fullWidth={true}>
               {props.decoration && <Box style={styles.flexOne} />}
-              <Text type="BodyBig" style={styleRowText(props)}>
+              <Text type="Body" style={styleRowText(props)}>
                 {props.title}
               </Text>
               {props.newTag && (
@@ -87,6 +63,26 @@ const MenuRow = (props: MenuRowProps) => (
               </Box2>
             )}
           </Box2>
+        </Box2>
+        <Box2
+          direction="horizontal"
+          fullHeight={true}
+          style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
+        >
+          {props.icon &&
+            (props.inProgress ? (
+              <ProgressIndicator />
+            ) : (
+              <>
+                <Icon
+                  color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
+                  fontSize={16}
+                  style={props.iconStyle}
+                  type={props.icon}
+                />
+                {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
+              </>
+            ))}
         </Box2>
       </Box2>
     )}
@@ -129,7 +125,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
         {beginningDivider && <Divider />}
         <ScrollView
           alwaysBounceVertical={false}
-          style={Styles.collapseStyles([styles.scrollView, {height}])}
+          style={styles.scrollView}
           contentContainerStyle={styles.menuGroup}
         >
           {menuItemsNoDividers.map((mi, idx) => (
@@ -137,7 +133,6 @@ const MenuLayout = (props: MenuLayoutProps) => {
               key={mi.title}
               {...mi}
               index={idx}
-              last={menuItemsNoDividers.length - 1 === idx}
               numItems={menuItemsNoDividers.length}
               onHidden={props.closeOnClick ? props.onHidden : undefined}
               textColor={props.textColor}
@@ -151,7 +146,6 @@ const MenuLayout = (props: MenuLayoutProps) => {
             centered={true}
             title={props.closeText || 'Close'}
             index={0}
-            last={false}
             numItems={1}
             onClick={props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
             onHidden={() => {}}
@@ -170,7 +164,7 @@ const styleRowText = (props: {
   disabled?: boolean
   textColor?: Styles.Color
 }) => {
-  const dangerColor = props.danger ? Styles.globalColors.redDark : Styles.globalColors.blueDark
+  const dangerColor = props.danger ? Styles.globalColors.redDark : Styles.globalColors.black
   const color = props.textColor || props.isHeader ? Styles.globalColors.white : dangerColor
   return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
@@ -200,8 +194,7 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.tiny,
       },
       iconContainer: {
-        paddingRight: Styles.globalMargins.small,
-        width: 32,
+        width: 16,
       },
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -210,13 +203,6 @@ const styles = Styles.styleSheetCreate(
         height: itemContainerHeight,
         justifyContent: 'center',
         position: 'relative',
-      },
-      itemContainerLast: {
-        height: 'auto',
-        paddingBottom: Styles.globalMargins.small,
-      },
-      itemContainerUnwrapped: {
-        height: unWrappedContainerHeight,
       },
       itemContainerWrapped: {
         paddingBottom: Styles.globalMargins.tiny,
