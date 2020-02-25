@@ -1,6 +1,7 @@
 import * as ChatGen from './chat2-gen'
 import * as Constants from '../constants/config'
 import * as Container from '../util/container'
+import * as CryptoTypes from '../'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
@@ -134,7 +135,22 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   return false
 }
 
+const handleFile = (state: Container.TypedState, action: DeeplinksGen.FilePayload) => {
+  let operation: CryptoTypes.Operations
+  const {path} = action.payload
+  if (path.endsWith('.encrypted.saltpack')) {
+    operation = 'decrypt'
+  } else if (path.endsWith('.signed.saltpack')) {
+    operation = 'verify'
+  } else {
+    console.warn('Received a filename with an unknown extension: ', path)
+    return
+  }
+  return DeeplinksGen.createSetInputThrottled({operation, type: 'file', value: new HiddenString(path)})
+}
+
 function* deeplinksSaga() {
+  yield* Saga.chainAction2(DeeplinksGen.handleFile, handleFile)
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
   yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
 }

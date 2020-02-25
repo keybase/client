@@ -11,8 +11,6 @@ import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
 import * as ConfigGen from '../../actions/config-gen'
-import * as CryptoGen from '../../actions/crypto-gen'
-import * as CryptoTypes from '../../constants/types/crypto'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
@@ -20,7 +18,6 @@ import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
-import HiddenString from '../../util/hidden-string'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 
 const {join} = KB.path
@@ -168,19 +165,7 @@ const willFinishLaunching = () => {
     }
   })
   Electron.app.on('open-file', (_, path) => {
-    let operation: CryptoTypes.Operations
-    if (path.endsWith('.encrypted.saltpack')) {
-      operation = 'decrypt'
-    } else if (path.endsWith('.signed.saltpack')) {
-      operation = 'verify'
-    } else {
-      console.warn('Received a filename with an unknown extension: ', path)
-      return
-    }
-
-    mainWindowDispatch(
-      CryptoGen.createSetInputThrottled({operation, type: 'file', value: new HiddenString(path)})
-    )
+    mainWindowDispatch(DeeplinksGen.createHandleFile({path}))
   })
 }
 
