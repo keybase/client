@@ -3520,3 +3520,13 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 	h.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, convID, types.InboxSourceDataSourceAll)
 	return nil
 }
+
+func (h *Server) GetLastActiveAtLocal(ctx context.Context, arg chat1.GetLastActiveAtLocalArg) (lastActiveAt gregor1.Time, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLastActiveAtLocal")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return 0, err
+	}
+	return h.G().TeamChannelSource.GetLastActiveAt(ctx, arg.TeamID, arg.Uid, h.remoteClient())
+}
