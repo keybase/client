@@ -537,10 +537,6 @@
           "name": "visibility"
         },
         {
-          "type": "int",
-          "name": "numParticipants"
-        },
-        {
           "type": {
             "type": "array",
             "items": "UIParticipant"

@@ -601,6 +601,7 @@ type JourneyCardManager interface {
 type ParticipantSource interface {
 	Get(ctx context.Context, conv RemoteConversation) ([]gregor1.UID, error)
 	GetNonblock(ctx context.Context, conv RemoteConversation) chan ParticipantResult
+	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 }
 
 type InternalError interface {

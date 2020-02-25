@@ -1573,7 +1573,6 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			conv.Conv.Metadata.Version = vers.ToConvVers()
 			newAllList := make([]gregor1.UID, 0, len(conv.Conv.Metadata.AllList))
-			conv.Conv.Metadata.NumAll--
 			for _, u := range conv.Conv.Metadata.AllList {
 				if !u.Eq(uid) {
 					newAllList = append(newAllList, u)
@@ -1632,7 +1631,6 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 						cp.Conv.Metadata.ResetList[resetIndex+1:]...)
 				}
 			} else {
-				cp.Conv.Metadata.NumAll++
 				// Double check this user isn't already in here
 				exists := false
 				for _, u := range cp.Conv.Metadata.AllList {
@@ -1654,7 +1652,6 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	for _, or := range othersRemoved {
 		if cp, ok := convMap[or.ConvID.ConvIDStr()]; ok {
-			cp.Conv.Metadata.NumAll--
 			newAllList := make([]gregor1.UID, 0, len(cp.Conv.Metadata.AllList))
 			for _, u := range cp.Conv.Metadata.AllList {
 				if !u.Eq(or.Uid) {

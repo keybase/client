@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -11,6 +12,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/sync/semaphore"
 )
 
 type partDiskStorage struct {
@@ -25,6 +28,7 @@ type CachingParticipantSource struct {
 	locktab     *libkb.LockTable
 	ri          func() chat1.RemoteInterface
 	encryptedDB *encrypteddb.EncryptedDB
+	sema        *semaphore.Weighted
 }
 
 var _ types.ParticipantSource = (*CachingParticipantSource)(nil)
@@ -42,6 +46,7 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 		locktab:      libkb.NewLockTable(),
 		ri:           ri,
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		sema:         semaphore.NewWeighted(20),
 	}
 }
 
@@ -115,4 +120,38 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, conv types.R
 		resCh <- types.ParticipantResult{Uids: partRes.Uids}
 	}(globals.BackgroundChatCtx(ctx, s.G()))
 	return resCh
+}
+
+func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) {
+	go func(ctx context.Context) {
+		s.sema.Acquire(ctx, 1)
+		defer s.sema.Release(1)
+
+		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			s.Debug(ctx, "GetWithNotifyNonblock: failed to get conv: %s", err)
+			return
+		}
+		ch := s.G().ParticipantsSource.GetNonblock(ctx, conv)
+		for r := range ch {
+			uids := r.Uids
+			kuids := make([]keybase1.UID, 0, len(uids))
+			participants := make([]chat1.ConversationLocalParticipant, 0, len(uids))
+			for _, uid := range uids {
+				kuids = append(kuids, keybase1.UID(uid.String()))
+			}
+			rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+				time.Minute, true)
+			if err != nil {
+				s.Debug(ctx, "GetWithNotifyNonblock: failed to map uids: %s", err)
+				continue
+			}
+			for _, row := range rows {
+				participants = append(participants, utils.UsernamePackageToParticipant(row))
+			}
+			s.G().NotifyRouter.HandleChatParticipantsInfo(ctx, convID,
+				utils.PresentConversationParticipantsLocal(ctx, participants))
+		}
+	}(globals.BackgroundChatCtx(ctx, s.G()))
 }

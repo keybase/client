@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatTypes from '../../constants/types/chat2'
+import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -17,17 +18,25 @@ import {memoize} from '../../util/memoize'
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 
 const getChannels = memoize(
-  (channelInfos: Map<string, Types.ChannelInfo>, searchText: string, teamSize: number) =>
+  (
+    channelInfos: Map<string, Types.ChannelInfo>,
+    participantMap: Map<ChatTypes.ConversationIDKey, ChatTypes.ParticipantInfo>,
+    searchText: string,
+    teamSize: number
+  ) =>
     [...channelInfos.entries()]
-      .map(([convID, info]) => ({
-        convID,
-        description: info.description,
-        hasAllMembers: info.numParticipants === teamSize,
-        mtimeHuman: formatTimeRelativeToNow(info.mtime),
-        name: info.channelname,
-        numParticipants: info.numParticipants,
-        selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
-      }))
+      .map(([convID, info]) => {
+        const numParticipants = (participantMap.get(convID) ?? ChatConstants.noParticipantInfo).all.length
+        return {
+          convID,
+          description: info.description,
+          hasAllMembers: numParticipants === teamSize,
+          mtimeHuman: formatTimeRelativeToNow(info.mtime),
+          name: info.channelname,
+          numParticipants,
+          selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
+        }
+      })
       .filter(conv => {
         if (!searchText) {
           return true // no search text means show all
@@ -111,6 +120,7 @@ const Wrapper = (p: Props) => {
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(TeamsGen.createGetChannels({teamID: _teamID}))
+    dispatch(TeamsGen.createGetMembers({teamID: _teamID}))
   }, [dispatch, _teamID])
 
   const prevOldChannelState = Container.usePrevious(oldChannelState)
@@ -161,8 +171,7 @@ export default Container.connect(
       yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
     const canCreateChannels = yourOperations.createChannel
 
-    const generalCh = [...channelInfos.values()].find(i => i.channelname === 'general')
-    const teamSize = generalCh ? generalCh.numParticipants : 0
+    const teamSize = state.teams.teamIDToMembers.get(teamID)?.size ?? 0
 
     const searchText = state.chat2.channelSearchText
     const isFiltered = !!searchText
@@ -173,7 +182,7 @@ export default Container.connect(
       _teamID: teamID,
       canCreateChannels,
       canEditChannels,
-      channels: getChannels(channelInfos, searchText, teamSize),
+      channels: getChannels(channelInfos, state.chat2.participantMap, searchText, teamSize),
       isFiltered,
       selectedChatID,
       teamname,

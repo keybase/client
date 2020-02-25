@@ -3325,27 +3325,26 @@ func (o ConversationPinnedMessage) DeepCopy() ConversationPinnedMessage {
 }
 
 type ConversationInfoLocal struct {
-	Id              ConversationID                 `codec:"id" json:"id"`
-	Triple          ConversationIDTriple           `codec:"triple" json:"triple"`
-	TlfName         string                         `codec:"tlfName" json:"tlfName"`
-	TopicName       string                         `codec:"topicName" json:"topicName"`
-	Headline        string                         `codec:"headline" json:"headline"`
-	SnippetMsg      *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
-	PinnedMsg       *ConversationPinnedMessage     `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
-	Draft           *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
-	Visibility      keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
-	IsDefaultConv   bool                           `codec:"isDefaultConv" json:"isDefaultConv"`
-	Status          ConversationStatus             `codec:"status" json:"status"`
-	MembersType     ConversationMembersType        `codec:"membersType" json:"membersType"`
-	MemberStatus    ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
-	TeamType        TeamType                       `codec:"teamType" json:"teamType"`
-	Existence       ConversationExistence          `codec:"existence" json:"existence"`
-	Version         ConversationVers               `codec:"version" json:"version"`
-	LocalVersion    LocalConversationVers          `codec:"localVersion" json:"localVersion"`
-	Participants    []ConversationLocalParticipant `codec:"participants" json:"participants"`
-	NumParticipants int                            `codec:"numParticipants" json:"numParticipants"`
-	FinalizeInfo    *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	ResetNames      []string                       `codec:"resetNames" json:"resetNames"`
+	Id            ConversationID                 `codec:"id" json:"id"`
+	Triple        ConversationIDTriple           `codec:"triple" json:"triple"`
+	TlfName       string                         `codec:"tlfName" json:"tlfName"`
+	TopicName     string                         `codec:"topicName" json:"topicName"`
+	Headline      string                         `codec:"headline" json:"headline"`
+	SnippetMsg    *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
+	PinnedMsg     *ConversationPinnedMessage     `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
+	Draft         *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
+	Visibility    keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	IsDefaultConv bool                           `codec:"isDefaultConv" json:"isDefaultConv"`
+	Status        ConversationStatus             `codec:"status" json:"status"`
+	MembersType   ConversationMembersType        `codec:"membersType" json:"membersType"`
+	MemberStatus  ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
+	TeamType      TeamType                       `codec:"teamType" json:"teamType"`
+	Existence     ConversationExistence          `codec:"existence" json:"existence"`
+	Version       ConversationVers               `codec:"version" json:"version"`
+	LocalVersion  LocalConversationVers          `codec:"localVersion" json:"localVersion"`
+	Participants  []ConversationLocalParticipant `codec:"participants" json:"participants"`
+	FinalizeInfo  *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ResetNames    []string                       `codec:"resetNames" json:"resetNames"`
 }
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
@@ -3396,7 +3395,6 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 			}
 			return ret
 		})(o.Participants),
-		NumParticipants: o.NumParticipants,
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

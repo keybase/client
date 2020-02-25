@@ -3516,32 +3516,6 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 	if err != nil {
 		return err
 	}
-	go func(ctx context.Context) {
-		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			h.Debug(ctx, "RefreshParticipants: failed to get conv: %s", err)
-			return
-		}
-		ch := h.G().ParticipantsSource.GetNonblock(ctx, conv)
-		for r := range ch {
-			uids := r.Uids
-			kuids := make([]keybase1.UID, 0, len(uids))
-			participants := make([]chat1.ConversationLocalParticipant, 0, len(uids))
-			for _, uid := range uids {
-				kuids = append(kuids, keybase1.UID(uid.String()))
-			}
-			rows, err := h.G().UIDMapper.MapUIDsToUsernamePackages(ctx, h.G(), kuids, time.Hour*24,
-				time.Minute, true)
-			if err != nil {
-				h.Debug(ctx, "RefreshParticipants: failed to map uids: %s", err)
-				continue
-			}
-			for _, row := range rows {
-				participants = append(participants, utils.UsernamePackageToParticipant(row))
-			}
-			h.G().NotifyRouter.HandleChatParticipantsInfo(ctx, convID,
-				utils.PresentConversationParticipantsLocal(ctx, participants))
-		}
-	}(globals.BackgroundChatCtx(ctx, h.G()))
+	h.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, convID)
 	return nil
 }

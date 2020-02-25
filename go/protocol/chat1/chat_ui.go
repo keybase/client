@@ -545,7 +545,6 @@ type InboxUIItem struct {
 	HeadlineDecorated string                        `codec:"headlineDecorated" json:"headlineDecorated"`
 	Draft             *string                       `codec:"draft,omitempty" json:"draft,omitempty"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
-	NumParticipants   int                           `codec:"numParticipants" json:"numParticipants"`
 	Participants      []UIParticipant               `codec:"participants" json:"participants"`
 	ResetParticipants []string                      `codec:"resetParticipants" json:"resetParticipants"`
 	Status            ConversationStatus            `codec:"status" json:"status"`
@@ -593,8 +592,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x)
 			return &tmp
 		})(o.Draft),
-		Visibility:      o.Visibility.DeepCopy(),
-		NumParticipants: o.NumParticipants,
+		Visibility: o.Visibility.DeepCopy(),
 		Participants: (func(x []UIParticipant) []UIParticipant {
 			if x == nil {
 				return nil
