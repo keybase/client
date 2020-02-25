@@ -58,6 +58,33 @@ const packagerOpts: any = {
     },
   },
   electronVersion: 0,
+  // macOS file association to saltpack files
+  extendInfo: {
+    CFBundleDocumentTypes: [
+      {
+        CFBundleTypeExtensions: ['saltpack'],
+        CFBundleTypeIconFile: 'electron.icns',
+        CFBundleTypeName: 'io.keybase.saltpack',
+        CFBundleTypeRole: 'Editor',
+        LSHandlerRank: 'Owner',
+        LSItemContentTypes: ['io.keybase.saltpack'],
+      },
+    ],
+    UTExportedTypeDeclarations: [
+      {
+        UTTypeConformsTo: ['public.data'],
+        UTTypeDescription: 'Saltpack file format',
+        UTTypeIconFile: 'electron.icns',
+        UTTypeIdentifier: 'io.keybase.saltpack',
+        UTTypeReferenceURL: 'https://saltpack.org',
+        UTTypeTagSpecification: {
+          'public.filename-extension': ['saltpack'],
+        },
+      },
+    ],
+  },
+  // Any paths placed here will be moved to the final bundle
+  extraResource: [],
   helperBundleId: 'keybase.ElectronHelper',
   icon: null,
   ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
@@ -89,9 +116,18 @@ function main() {
   })
 
   const icon = argv.icon
+  const saltpackIcon = argv.saltpackICon
 
   if (icon) {
     packagerOpts.icon = icon
+  }
+
+  if (saltpackIcon) {
+    packagerOpts.extraResource = [...packagerOpts.extraResource, saltpackIcon]
+  } else {
+    console.log(
+      `Missing 'saltpackIcon' from yarn package arguments. Need ${saltpackIcon} to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
+    )
   }
 
   // use the same version as the currently-installed electron
