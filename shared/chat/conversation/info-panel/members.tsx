@@ -8,6 +8,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import flags from '../../../util/feature-flags'
 import Participant from './participant'
+import * as Styles from '../../../styles'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -113,7 +114,7 @@ export default (props: Props) => {
                 </Kb.Banner>
               )
             } else if (item.key === spinnerItem) {
-              return <Kb.ProgressIndicator type="Large" />
+              return <Kb.ProgressIndicator type="Large" style={styles.membersSpinner} />
             } else {
               if (!('username' in item) || !item.username) {
                 return null
@@ -136,3 +137,10 @@ export default (props: Props) => {
     />
   )
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      membersSpinner: {marginTop: Styles.globalMargins.small},
+    } as const)
+)
