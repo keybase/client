@@ -4,6 +4,7 @@
 package chat
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
@@ -4611,7 +4612,7 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 		require.Equal(t, 2, len(getTLFRes.Convs))
 		require.Equal(t, globals.DefaultTeamTopic, getTLFRes.Convs[0].Channel)
 		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, getTLFRes.Convs[1].MemberStatus)
-		require.Equal(t, 2, len(getTLFRes.Convs[1].Participants))
+		require.Equal(t, 2, getTLFRes.Convs[1].NumParticipants)
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
@@ -4635,8 +4636,8 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 			} else {
 				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, getTLFRes.Convs[1].MemberStatus)
 			}
-			require.Equal(t, 1, len(getTLFRes.Convs[1].Participants))
-			require.Equal(t, users[0].Username, getTLFRes.Convs[1].Participants[0].Assertion)
+			t.Logf("checking num participants: i: %d uid: %s", i, user.Username)
+			require.Equal(t, 1, getTLFRes.Convs[1].NumParticipants)
 		}
 
 		// delete the channel make sure it's gone from both inboxes
@@ -6314,7 +6315,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
+		require.Equal(t, 4, iboxRes.Conversations[0].Info.NumParticipants)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
@@ -6430,7 +6431,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
+		require.Equal(t, 4, iboxRes.Conversations[0].Info.NumParticipants)
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -7914,27 +7915,21 @@ func TestTeamBotChannelMembership(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		expectedUsers := []string{users[0].Username, users[2].Username}
-		sort.Strings(expectedUsers)
-		for i, user := range users {
-			gilres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(), chat1.GetInboxAndUnboxLocalArg{
-				Query: &chat1.GetInboxLocalQuery{
-					ConvIDs: []chat1.ConversationID{convres.Conv.GetConvID()},
-				},
-				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-			})
+		expectedUsers := []gregor1.UID{users[0].User.GetUID().ToBytes(), users[2].User.GetUID().ToBytes()}
+		sort.Slice(expectedUsers, func(i, j int) bool {
+			return bytes.Compare(expectedUsers[i], expectedUsers[j]) < 0
+		})
+		for _, user := range users {
+			g := ctc.world.Tcs[user.Username].Context()
+			conv, err := utils.GetUnverifiedConv(tc.startCtx, g, user.GetUID().ToBytes(),
+				convres.Conv.GetConvID(), types.InboxSourceDataSourceAll)
 			require.NoError(t, err)
-			if i == 1 {
-				require.Len(t, gilres.Conversations, 0)
-				continue
-			}
-			require.Len(t, gilres.Conversations, 1)
-			var parts []string
-			for _, part := range gilres.Conversations[0].Info.Participants {
-				parts = append(parts, part.Username)
-			}
-			sort.Strings(parts)
-			require.Equal(t, expectedUsers, parts)
+			uids, err := g.ParticipantsSource.Get(context.TODO(), conv)
+			require.NoError(t, err)
+			sort.Slice(uids, func(i, j int) bool {
+				return bytes.Compare(expectedUsers[i], expectedUsers[j]) < 0
+			})
+			require.Equal(t, expectedUsers, uids)
 		}
 	})
 }
@@ -8037,6 +8032,7 @@ func TestChatSrvDefaultTeamChannels(t *testing.T) {
 		require.NoError(t, err)
 
 		tc := ctc.as(t, users[0])
+		_ = ctc.as(t, users[1])
 		topicName := "zjoinonsend"
 		convres, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
 			chat1.NewConversationLocalArg{
@@ -8083,23 +8079,21 @@ func TestChatSrvDefaultTeamChannels(t *testing.T) {
 		require.NoError(t, err)
 		pollForSeqno(2)
 
-		expectedUsers := []string{users[0].Username, users[1].Username}
-		sort.Strings(expectedUsers)
+		expectedUsers := []gregor1.UID{users[0].User.GetUID().ToBytes(), users[1].User.GetUID().ToBytes()}
+		sort.Slice(expectedUsers, func(i, j int) bool {
+			return bytes.Compare(expectedUsers[i], expectedUsers[j]) < 0
+		})
 		for _, user := range users {
-			gilres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(), chat1.GetInboxAndUnboxLocalArg{
-				Query: &chat1.GetInboxLocalQuery{
-					ConvIDs: []chat1.ConversationID{convres.Conv.GetConvID()},
-				},
-				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-			})
+			g := ctc.world.Tcs[user.Username].Context()
+			conv, err := utils.GetUnverifiedConv(tc.startCtx, g, user.GetUID().ToBytes(),
+				convres.Conv.GetConvID(), types.InboxSourceDataSourceAll)
 			require.NoError(t, err)
-			require.Len(t, gilres.Conversations, 1)
-			var parts []string
-			for _, part := range gilres.Conversations[0].Info.Participants {
-				parts = append(parts, part.Username)
-			}
-			sort.Strings(parts)
-			require.Equal(t, expectedUsers, parts)
+			uids, err := g.ParticipantsSource.Get(context.TODO(), conv)
+			require.NoError(t, err)
+			sort.Slice(uids, func(i, j int) bool {
+				return bytes.Compare(expectedUsers[i], expectedUsers[j]) < 0
+			})
+			require.Equal(t, expectedUsers, uids)
 		}
 	})
 }

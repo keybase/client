@@ -644,6 +644,10 @@
           "name": "activeList"
         },
         {
+          "type": "int",
+          "name": "numAll"
+        },
+        {
           "type": {
             "type": "array",
             "items": "gregor1.UID"

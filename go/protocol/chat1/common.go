@@ -865,6 +865,7 @@ type ConversationMetadata struct {
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
+	NumAll         int                       `codec:"numAll" json:"numAll"`
 	AllList        []gregor1.UID             `codec:"allList" json:"allList"`
 	ResetList      []gregor1.UID             `codec:"resetList" json:"resetList"`
 	IsDefaultConv  bool                      `codec:"d" json:"isDefaultConv"`
@@ -921,6 +922,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 			}
 			return ret
 		})(o.ActiveList),
+		NumAll: o.NumAll,
 		AllList: (func(x []gregor1.UID) []gregor1.UID {
 			if x == nil {
 				return nil

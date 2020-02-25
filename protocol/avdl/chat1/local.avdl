@@ -610,6 +610,7 @@ protocol local {
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<ConversationLocalParticipant> participants;
+    int numParticipants; //in case participants is empty (for TEAM chats), then we have the size
 
     // Only ever set for KBFS conversations
     union { null, ConversationFinalizeInfo } finalizeInfo;

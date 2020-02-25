@@ -145,6 +145,7 @@ protocol chatUi {
     string headlineDecorated;
     union { null, string } draft;
     keybase1.TLFVisibility visibility;
+    int numParticipants;
     array<UIParticipant> participants;
     array<string> resetParticipants;
     ConversationStatus status;

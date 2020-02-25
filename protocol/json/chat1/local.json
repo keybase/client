@@ -1897,6 +1897,10 @@
           "name": "participants"
         },
         {
+          "type": "int",
+          "name": "numParticipants"
+        },
+        {
           "type": [
             null,
             "ConversationFinalizeInfo"

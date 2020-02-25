@@ -268,7 +268,8 @@
     // *** Empty for TEAM chats. ***
     array<gregor1.UID> activeList;
 
-    array<gregor1.UID> allList;   // all of the users in the conversation
+    int numAll; // size of the allList. It can be skipped for TEAM chats, but we always want the size.
+    array<gregor1.UID> allList;   // all of the users in the conversation (can be skipped for TEAMS)
     array<gregor1.UID> resetList; // all of the reset users in the conversation (only for TEAM and IMPTEAM chats)
 
     @mpackkey("d")

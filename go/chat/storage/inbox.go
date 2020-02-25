@@ -1573,25 +1573,35 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			conv.Conv.Metadata.Version = vers.ToConvVers()
 			newAllList := make([]gregor1.UID, 0, len(conv.Conv.Metadata.AllList))
+			conv.Conv.Metadata.NumAll--
 			for _, u := range conv.Conv.Metadata.AllList {
 				if !u.Eq(uid) {
 					newAllList = append(newAllList, u)
 				}
 			}
-			conv.Conv.Metadata.AllList = newAllList
+			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+			default:
+				conv.Conv.Metadata.AllList = newAllList
+			}
 		} else if resetMap[conv.ConvIDStr] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			conv.Conv.Metadata.Version = vers.ToConvVers()
-			// Double check this user isn't already in here
-			exists := false
-			for _, u := range conv.Conv.Metadata.ResetList {
-				if u.Eq(uid) {
-					exists = true
-					break
+			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+				// do nothing
+			default:
+				// Double check this user isn't already in here
+				exists := false
+				for _, u := range conv.Conv.Metadata.ResetList {
+					if u.Eq(uid) {
+						exists = true
+						break
+					}
 				}
-			}
-			if !exists {
-				conv.Conv.Metadata.ResetList = append(conv.Conv.Metadata.ResetList, uid)
+				if !exists {
+					conv.Conv.Metadata.ResetList = append(conv.Conv.Metadata.ResetList, uid)
+				}
 			}
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
@@ -1615,9 +1625,14 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 				}
 			}
 			if isReset {
-				cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList[:resetIndex],
-					cp.Conv.Metadata.ResetList[resetIndex+1:]...)
+				switch cp.Conv.GetMembersType() {
+				case chat1.ConversationMembersType_TEAM:
+				default:
+					cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList[:resetIndex],
+						cp.Conv.Metadata.ResetList[resetIndex+1:]...)
+				}
 			} else {
+				cp.Conv.Metadata.NumAll++
 				// Double check this user isn't already in here
 				exists := false
 				for _, u := range cp.Conv.Metadata.AllList {
@@ -1627,7 +1642,11 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 					}
 				}
 				if !exists {
-					cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+					switch cp.Conv.GetMembersType() {
+					case chat1.ConversationMembersType_TEAM:
+					default:
+						cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+					}
 				}
 			}
 			cp.Conv.Metadata.Version = vers.ToConvVers()
@@ -1635,6 +1654,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	for _, or := range othersRemoved {
 		if cp, ok := convMap[or.ConvID.ConvIDStr()]; ok {
+			cp.Conv.Metadata.NumAll--
 			newAllList := make([]gregor1.UID, 0, len(cp.Conv.Metadata.AllList))
 			for _, u := range cp.Conv.Metadata.AllList {
 				if !u.Eq(or.Uid) {
@@ -1647,7 +1667,11 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	for _, or := range othersReset {
 		if cp, ok := convMap[or.ConvID.ConvIDStr()]; ok {
-			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
+			switch cp.Conv.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+			default:
+				cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
+			}
 			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
 	}

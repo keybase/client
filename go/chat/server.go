@@ -1702,11 +1702,12 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	tlfID := chat1.TLFID(arg.TeamID.ToBytes())
 
 	// fetch all conversations in the supplied team
-	inbox, err := h.G().InboxSource.ReadUnverified(ctx, myUID, types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
-		TlfID:        &tlfID,
-		MembersTypes: []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
-		TopicType:    &chatTopicType,
-	})
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, myUID, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			TlfID:        &tlfID,
+			MembersTypes: []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			TopicType:    &chatTopicType,
+		})
 	if err != nil {
 		return res, err
 	}
@@ -1714,7 +1715,11 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	// find a list of conversations that the provided uid is a member of
 	var memberConvs []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
-		for _, uid := range conv.Conv.Metadata.AllList {
+		uids, err := h.G().ParticipantsSource.Get(ctx, conv)
+		if err != nil {
+			return res, err
+		}
+		for _, uid := range uids {
 			if bytes.Equal(uid, arg.Uid) {
 				memberConvs = append(memberConvs, conv)
 				break
@@ -1723,7 +1728,8 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	}
 
 	// localize those conversations so we can get the topic name
-	convsLocal, _, err := h.G().InboxSource.Localize(ctx, myUID, memberConvs, types.ConversationLocalizerBlocking)
+	convsLocal, _, err := h.G().InboxSource.Localize(ctx, myUID, memberConvs,
+		types.ConversationLocalizerBlocking)
 	for _, conv := range convsLocal {
 		res.Channels = append(res.Channels, chat1.ChannelNameMention{
 			ConvID:    conv.GetConvID(),

@@ -37,6 +37,7 @@ export type ConversationMeta = {
   notificationsDesktop: NotificationsType
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
+  numParticipants: number
   offline: boolean
   pinnedMsg?: PinnedMessageInfo
   readMsgID: number
