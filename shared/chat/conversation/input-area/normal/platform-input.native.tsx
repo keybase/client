@@ -336,7 +336,7 @@ const Buttons = (p: ButtonsProps) => {
       <Kb.Box style={styles.explodingWrapper}>
         {isExploding ? (
           <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
-            <Kb.Text type="BodyTinyBold" negative={true}>
+            <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
               {formatDurationShort(explodingModeSeconds * 1000)}
             </Kb.Text>
           </Kb.Box2>
@@ -390,15 +390,18 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
         <AnimatedIcon
           onClick={expandInput}
           type="iconfont-arrow-full-up"
+          fontSize={18}
           style={{
             transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
           }}
+          color={Styles.globalColors.black_20}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
         <AnimatedIcon
           onClick={expandInput}
           type="iconfont-arrow-full-up"
+          fontSize={18}
           style={{
             transform: [
               {
@@ -408,6 +411,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
               },
             ],
           }}
+          color={Styles.globalColors.black_20}
         />
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -432,7 +436,8 @@ const styles = Styles.styleSheetCreate(
       },
       actionContainer: {
         flexShrink: 0,
-        marginRight: 8,
+        marginRight: Styles.globalMargins.tiny,
+        marginLeft: Styles.globalMargins.tiny,
         minHeight: 32,
       },
       actionText: {
@@ -469,12 +474,16 @@ const styles = Styles.styleSheetCreate(
       exploding: {
         backgroundColor: Styles.globalColors.black,
         borderRadius: Styles.globalMargins.mediumLarge / 2,
-        height: 24,
-        width: 24,
+        height: 28,
+        width: 28,
+      },
+      explodingText: {
+        fontSize: 11,
+        lineHeight: 16,
       },
       explodingWrapper: {
-        height: 24,
-        width: 24,
+        height: 30,
+        width: 30,
       },
       iconBottom: {
         bottom: 0,
@@ -482,10 +491,9 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
       },
       iconContainer: {
-        height: 32,
-        padding: Styles.globalMargins.xtiny,
+        height: 28,
         position: 'relative',
-        width: 32,
+        width: 28,
       },
       iconTop: {
         position: 'absolute',
