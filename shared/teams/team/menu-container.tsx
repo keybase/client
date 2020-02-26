@@ -27,7 +27,7 @@ const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
     canCreateSubteam: yourOperations.manageSubteams,
     canDeleteTeam: yourOperations.deleteTeam && teamDetails.subteams?.size === 0,
     canInvite: yourOperations.manageMembers,
-    canLeaveTeam: !Constants.isLastOwner(state, teamID),
+    canLeaveTeam: !Constants.isLastOwner(state, teamID) && role !== 'none',
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
     isBigTeam,
