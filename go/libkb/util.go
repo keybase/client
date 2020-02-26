@@ -1211,6 +1211,8 @@ func JsonwStringArray(a []string) *jsonw.Wrapper {
 	return aj
 }
 
+var throttleBatchClock clockwork.Clock = clockwork.NewRealClock()
+
 type throttleBatchEmpty struct{}
 
 func isEmptyThrottleData(arg interface{}) bool {
@@ -1230,7 +1232,7 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 	creation = func(arg interface{}) {
 		lock.Lock()
 		defer lock.Unlock()
-		elapsed := time.Since(lastCalled)
+		elapsed := throttleBatchClock.Since(lastCalled)
 		isEmpty := isEmptyThrottleData(arg)
 		if !isEmpty {
 			stored = batcher(stored, arg)
@@ -1240,12 +1242,12 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 			f(stored)
 			stored = reset()
 			hasStored = false
-			lastCalled = time.Now()
+			lastCalled = throttleBatchClock.Now()
 		} else if !scheduled && !isEmpty {
 			scheduled = true
 			go func() {
 				select {
-				case <-time.After(delay - elapsed):
+				case <-throttleBatchClock.After(delay - elapsed):
 					lock.Lock()
 					scheduled = false
 					lock.Unlock()
