@@ -306,7 +306,7 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
         sendChatNotification,
         teamID,
         users: users.map(({assertion, role}) => ({
-          assertionOrEmail: assertion,
+          assertion: assertion,
           role: RPCTypes.TeamRole[role],
         })),
       },

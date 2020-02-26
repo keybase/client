@@ -569,8 +569,8 @@ func (tx *AddMemberTx) ResolveUPKV2FromAssertion(m libkb.MetaContext, assertion 
 }
 
 // AddOrInviteMemberCandidate adds a member using AddMemberCandidate struct
-// that can be obtained by calling ResolveUPKV2FromAssertionOrEmail with
-// assertion string.
+// that can be obtained by calling ResolveUPKV2FromAssertion with assertion
+// string.
 func (tx *AddMemberTx) AddOrInviteMemberCandidate(ctx context.Context, candidate AddMemberCandidate, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
 	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
