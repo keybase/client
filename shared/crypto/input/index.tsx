@@ -74,7 +74,6 @@ export const TextInput = (props: TextProps) => {
   const onOpenFile = async () => {
     const options = {
       buttonLabel: 'Select',
-      properties: ['openFile'] as Array<OpenProperties>,
     }
     const filePaths = await showOpenDialog(options)
     if (!filePaths) return

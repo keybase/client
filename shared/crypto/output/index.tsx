@@ -264,9 +264,10 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
 
   const onOpenFile = async () => {
     const options = {
+      allowDirectories: true,
+      allowFiles: false,
       buttonLabel: 'Select',
       defaultPath: input,
-      properties: ['openDirectory'] as Array<OpenProperties>,
     }
     const filePaths = await showOpenDialog(options)
     if (!filePaths) return

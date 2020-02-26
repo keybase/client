@@ -22,22 +22,23 @@ type RequestIdleCallbackDeadline = {
   timeRemaining: () => number
 }
 
-type OpenProperties = 'openFile' | 'openDirectory' | 'multiSelections'
+type OpenDiaglogProperties = 'openFile' | 'openDirectory' | 'multiSelections'
 declare type KBElectronOpenDialogOptions = {
-  title?: string
-  defaultPath?: string
+  allowFiles?: boolean
+  allowDirectories?: boolean
+  allowMultiselect?: boolean
   buttonLabel?: string
-  properties: Array<OpenProperties>
+  defaultPath?: string
   message?: string
+  title?: string
 }
 
-type SaveProperties = 'showOverwriteConfirmation' // Linux only
+type SaveDialogProperties = 'showOverwriteConfirmation'
 declare type KBElectronSaveDialogOptions = {
   title?: string
   defaultPath?: string
   buttonLabel?: string
   message?: string
-  properties: Array<SaveProperties>
 }
 
 interface Window {

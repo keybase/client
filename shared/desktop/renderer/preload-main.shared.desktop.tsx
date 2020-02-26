@@ -69,15 +69,15 @@ const darwinCopyToChatTempUploadFile = isDarwin
       throw new Error('unsupported platform')
     }
 
-const openDialogPropertiesWhitelist = ['openFile', 'openDirectory', 'multiSelections']
-const saveDialogPropertiesWhitelist = ['showOverwriteConfirmation']
-
 // Expose native file picker to components.
 // Improved experience over HTML <input type='file' />
 const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   try {
-    const {title, message, buttonLabel, properties, defaultPath} = opts
-    const allowedProperties = properties.filter(p => openDialogPropertiesWhitelist.includes(p))
+    const {title, message, buttonLabel, allowDirectories, allowFiles, allowMultiselect, defaultPath} = opts
+    const allowedProperties: Array<OpenDiaglogProperties> = []
+    if (allowFiles !== false) allowedProperties.push('openFile')
+    if (allowDirectories) allowedProperties.push('openDirectory')
+    if (allowMultiselect) allowedProperties.push('multiSelections')
     const allowedOptions = {
       buttonLabel,
       defaultPath,
@@ -93,14 +93,15 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
     if (result.canceled) return
     return result.filePaths
   } catch (err) {
+    console.warn('Electron failed to launch showOpenDialog')
     return
   }
 }
 
 const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   try {
-    const {title, message, buttonLabel, properties, defaultPath} = opts
-    const allowedProperties = properties.filter(p => saveDialogPropertiesWhitelist.includes(p))
+    const {title, message, buttonLabel, defaultPath} = opts
+    const allowedProperties: Array<SaveDialogProperties> = ['showOverwriteConfirmation']
     const allowedOptions = {
       buttonLabel,
       defaultPath,
@@ -116,6 +117,7 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
     if (result.canceled) return
     return result.filePath
   } catch (err) {
+    console.warn('Electron failed to launch showSaveDialog')
     return
   }
 }
