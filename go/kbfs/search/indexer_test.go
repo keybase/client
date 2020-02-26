@@ -295,6 +295,7 @@ func makeDirTreesToIndex(
 }
 
 func TestFullIndexSyncedTlf(t *testing.T) {
+	t.Skip("skipping frequent flake TestFullIndexSyncedTlk until fixed.") // TODO: https://keybase.atlassian.net/browse/TRIAGE-2127
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
