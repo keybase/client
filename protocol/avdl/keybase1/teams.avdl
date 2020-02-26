@@ -100,6 +100,11 @@ protocol teams {
   @typedef("string")
   record TeamInviteID {}
 
+  // "max_uses" field of team invite. Value can be positive or -1, not 0.
+  // -1 means infinite number of uses.
+  @typedef("int")
+  record TeamInviteMaxUses {}
+
   record ReaderKeyMask {
     TeamApplication application;
     PerTeamKeyGeneration generation;
@@ -208,6 +213,11 @@ protocol teams {
   @typedef("string")
   record UserVersionPercentForm {}
 
+  record TeamUsedInvite {
+    TeamInviteID inviteID;
+    UserVersionPercentForm uv;
+  }
+
   record TeamChangeReq {
     array<UserVersion> owners;
     array<UserVersion> admins;
@@ -216,7 +226,13 @@ protocol teams {
     array<UserVersion> bots;
     map<UserVersion, TeamBotSettings> restrictedBots;
     array<UserVersion> none;
+    // If added UserVersion completes an invite, store the inviteID->UV mapping
+    // here.
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
+    // If added UserVersion uses a multi-use invite, store the inviteID->UV pair
+    // here. This only applies to multi-use invites (invites with max_uses field).
+    // Any other invite should use completedInvites.
+    array<TeamUsedInvite> usedInvites;
   }
 
   record TeamPlusApplicationKeys {
@@ -608,6 +624,8 @@ protocol teams {
     TeamInviteType type;
     TeamInviteName name;
     UserVersion inviter;
+    union { null, TeamInviteMaxUses } maxUses;
+    union { null, UnixTime } etime;
   }
 
   record AnnotatedTeamInvite {
@@ -714,6 +732,10 @@ protocol teams {
     // were obsoleted by a ChangeMembership link.
     map<TeamInviteID,TeamInvite> obsoleteInvites;
 
+    // Invite uses. If an invite can be used multiple times, usedInvite
+    // field is used, and this usage is saved here.
+    map<TeamInviteID,array<TeamUsedInviteLog>> usedInvites;
+
     // Whether this is an open team.
     boolean open;
     TeamRole openTeamJoinAs;
@@ -755,6 +777,12 @@ protocol teams {
     // The seqno at which the user became this role, and other important
     // details, like the last known MerkleRoot at that time.
     SignatureMetadata sigMeta;
+  }
+
+  record TeamUsedInviteLog {
+    UserVersion uv;
+    // index into TeamSigChainState.userLog[uv][]
+    int logPoint;
   }
 
   // A subteam got this name at this point in time.
