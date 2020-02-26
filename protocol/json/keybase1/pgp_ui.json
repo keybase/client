@@ -49,7 +49,7 @@
       ],
       "response": null
     },
-    "outputSignatureSuccessNonKeybase": {
+    "outputSignatureNonKeybase": {
       "request": [
         {
           "name": "sessionID",

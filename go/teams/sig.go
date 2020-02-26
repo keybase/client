@@ -302,7 +302,7 @@ func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 	return precheckLinksToPost(ctx, g, []libkb.SigMultiItem{sigMultiItem}, state, me)
 }
 
-func AppendChainLinkSig3(ctx context.Context, g *libkb.GlobalContext,
+func appendChainLinkSig3(ctx context.Context, g *libkb.GlobalContext,
 	sig libkb.Sig3, state *TeamSigChainState,
 	me keybase1.UserVersion) (err error) {
 
@@ -322,15 +322,22 @@ func AppendChainLinkSig3(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return err
 	}
-	mctx.Debug("AppendChainLinkSig3 success for %s", sig.Outer)
+	mctx.Debug("appendChainLinkSig3 success for %s", sig.Outer)
 	return nil
 }
 
 func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState,
 	me keybase1.UserVersion) (err error) {
+	_, err = precheckLinksToState(ctx, g, sigMultiItems, state, me)
+	return err
+}
 
-	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
+func precheckLinksToState(ctx context.Context, g *libkb.GlobalContext,
+	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState,
+	me keybase1.UserVersion) (newState *TeamSigChainState, err error) {
+
+	defer g.CTraceTimed(ctx, "precheckLinksToState", func() error { return err })()
 
 	isAdmin := true
 	if state != nil {
@@ -354,17 +361,17 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	for i, sigItem := range sigMultiItems {
 
 		if sigItem.Sig3 != nil {
-			err = AppendChainLinkSig3(ctx, g, *sigItem.Sig3, state, me)
+			err = appendChainLinkSig3(ctx, g, *sigItem.Sig3, state, me)
 			if err != nil {
-				g.Log.CDebugf(ctx, "precheckLinksToPost: link (sig3) %v/%v rejected: %v", i+1, len(sigMultiItems), err)
-				return NewPrecheckAppendError(err)
+				g.Log.CDebugf(ctx, "precheckLinksToState: link (sig3) %v/%v rejected: %v", i+1, len(sigMultiItems), err)
+				return nil, NewPrecheckAppendError(err)
 			}
 			continue
 		}
 
 		outerLink, err := libkb.DecodeOuterLinkV2(sigItem.Sig)
 		if err != nil {
-			return NewPrecheckStructuralError("unpack outer", err)
+			return nil, NewPrecheckStructuralError("unpack outer", err)
 		}
 
 		link1 := SCChainLink{
@@ -376,24 +383,24 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 		}
 		link2, err := unpackChainLink(&link1)
 		if err != nil {
-			return NewPrecheckStructuralError("unpack link", err)
+			return nil, NewPrecheckStructuralError("unpack link", err)
 		}
 
 		if link2.isStubbed() {
-			return NewPrecheckStructuralError("link missing inner", nil)
+			return nil, NewPrecheckStructuralError("link missing inner", nil)
 		}
 
 		newState, err := AppendChainLink(ctx, g, me, state, link2, &signer)
 		if err != nil {
 			if link2.inner != nil && link2.inner.Body.Team != nil && link2.inner.Body.Team.Members != nil {
-				g.Log.CDebugf(ctx, "precheckLinksToPost: link %v/%v rejected: %v", i+1, len(sigMultiItems), spew.Sprintf("%v", *link2.inner.Body.Team.Members))
+				g.Log.CDebugf(ctx, "precheckLinksToState: link %v/%v rejected: %v", i+1, len(sigMultiItems), spew.Sprintf("%v", *link2.inner.Body.Team.Members))
 			} else {
-				g.Log.CDebugf(ctx, "precheckLinksToPost: link %v/%v rejected", i+1, len(sigMultiItems))
+				g.Log.CDebugf(ctx, "precheckLinksToState: link %v/%v rejected", i+1, len(sigMultiItems))
 			}
-			return NewPrecheckAppendError(err)
+			return nil, NewPrecheckAppendError(err)
 		}
 		state = &newState
 	}
 
-	return nil
+	return state, nil
 }

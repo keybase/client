@@ -6,13 +6,13 @@ import * as Container from '../../../../../util/container'
 import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
-import * as Styles from '../../../../../styles'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamTypes from '../../../../../constants/types/teams'
 import {teamsTab} from '../../../../../constants/tabs'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
+import {renderWelcomeMessage} from './util'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
@@ -37,7 +37,8 @@ type Props = {
   onShowTeam: () => void
   onAuthorClick: () => void
   teamname: string
-  teamType: 'big' | 'small' | null
+  isBigTeam: boolean
+  welcomeMessage: RPCChatTypes.WelcomeMessageDisplay | null
 }
 
 const TeamJourneyContainer = (props: Props) => {
@@ -52,23 +53,17 @@ const TeamJourneyContainer = (props: Props) => {
       if (!props.cannotWrite) {
         actions.push('wave')
       }
-      if (props.teamType === 'big') {
+      if (props.isBigTeam) {
         actions.push({label: 'Browse channels', onClick: props.onBrowseChannels})
       }
       if (props.canShowcase) {
         actions.push({label: 'Publish team on your profile', onClick: props.onPublishTeam})
       }
-      textComponent = props.cannotWrite ? (
-        <Kb.Text type="BodySmall">
-          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-          the team!
-        </Kb.Text>
-      ) : (
-        <Kb.Text type="BodySmall">
-          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-          the team! Say hi to everyone and introduce yourself.
-        </Kb.Text>
-      )
+      if (props.welcomeMessage) {
+        textComponent = renderWelcomeMessage(props.welcomeMessage, props.cannotWrite)
+      } else {
+        textComponent = <Kb.ProgressIndicator />
+      }
       break
     case RPCChatTypes.JourneycardType.popularChannels:
       actions = props.otherChannelsForPopular.map(chan => ({
@@ -158,6 +153,7 @@ const TeamJourneyContainer = (props: Props) => {
       conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
       onDismiss={props.onDismiss}
+      mode="chat"
     />
   ) : null
 }
@@ -173,8 +169,9 @@ const TeamJourneyConnected = Container.connect(
       cannotWrite: cannotWrite,
       channelname,
       conversationIDKey,
-      teamType: TeamConstants.getTeamType(state, teamname),
+      isBigTeam: TeamConstants.isBigTeam(state, teamID),
       teamname,
+      welcomeMessage: TeamConstants.getTeamWelcomeMessageByID(state, teamID),
     }
   },
   dispatch => ({
@@ -203,7 +200,15 @@ const TeamJourneyConnected = Container.connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const {canShowcase, cannotWrite, channelname, conversationIDKey, teamname, teamType} = stateProps
+    const {
+      canShowcase,
+      cannotWrite,
+      channelname,
+      conversationIDKey,
+      teamname,
+      isBigTeam,
+      welcomeMessage,
+    } = stateProps
     // Take the top three channels with most recent activity.
     const joinableStatuses = new Set([
       // keep in sync with journey_card_manager.go
@@ -228,6 +233,7 @@ const TeamJourneyConnected = Container.connect(
       cannotWrite,
       channelname,
       conversationIDKey,
+      isBigTeam,
       loadTeamID: stateProps._teamID,
       message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
@@ -246,8 +252,8 @@ const TeamJourneyConnected = Container.connect(
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
       otherChannelsForNoAnswer,
       otherChannelsForPopular,
-      teamType,
       teamname,
+      welcomeMessage,
     }
   }
 )(TeamJourneyContainer)

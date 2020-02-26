@@ -1,6 +1,6 @@
 import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
-import {isIOS} from '../constants/platform'
+import {isIOS, isTablet} from '../constants/platform'
 import globalColors from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import * as Shared from './shared'
@@ -39,6 +39,8 @@ const util = {
     backgroundColor: globalColors.greyLight,
     height: 16,
   },
+  mediumWidth: isTablet ? 460 : '100%',
+  shortWidth: isTablet ? 240 : '100%',
 }
 
 export const desktopStyles = {

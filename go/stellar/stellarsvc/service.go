@@ -834,6 +834,9 @@ func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxUR
 		if err != nil {
 			return "", err
 		}
+
+		// need to bump the seqno:
+		txEnv.Tx.SeqNum++
 	}
 
 	// sign it

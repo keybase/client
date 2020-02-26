@@ -1,37 +1,42 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import Icon from './icon'
+import {Color} from '../styles'
 
 const Kb = {Icon}
 
 type Props = {
-  onCheck: ((newCheckedValue: boolean) => void) | null
+  onCheck?: (newCheckedValue: boolean) => void
   checked: boolean
   className?: string
   disabled?: boolean
   fontSize?: number
+  selectedColor?: Color
+  style?: Styles.StylesCrossPlatform
 }
 
 const CheckCircle = (props: Props) => {
-  const [checked, setChecked] = React.useState(props.checked)
-  const onClick = () => {
-    const newChecked = !checked
+  const onClick = (evt: React.BaseSyntheticEvent) => {
     if (props.onCheck) {
-      props.onCheck(newChecked)
+      !props.disabled && props.onCheck(!props.checked)
+      evt.preventDefault()
+      evt.stopPropagation()
     }
-    setChecked(newChecked)
   }
   return (
     <Kb.Icon
-      type={checked ? 'iconfont-success' : 'iconfont-circle'}
+      type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
       color={
-        !props.disabled && (checked || Styles.isMobile)
-          ? Styles.globalColors.blue
+        props.disabled
+          ? Styles.globalColors.black_10
+          : props.checked
+          ? props.selectedColor ?? Styles.globalColors.blue
           : Styles.globalColors.black_20
       }
-      onClick={props.disabled ? null : onClick}
+      onClick={onClick}
       fontSize={props.fontSize}
-      className={props.className}
+      className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
+      style={props.style}
     />
   )
 }

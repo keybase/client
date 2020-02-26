@@ -124,6 +124,9 @@ const ReportOptions = (props: ReportOptionsProps) => {
   )
 }
 
+// In order to have this play nicely with scrolling and keyboards, put all the stuff in a List.
+type Item = 'topStuff' | {username: string}
+
 class BlockModal extends React.PureComponent<Props, State> {
   state: State = {
     blockTeam: true,
@@ -324,6 +327,30 @@ class BlockModal extends React.PureComponent<Props, State> {
     const teamCheckboxDisabled = !!teamname && !this.props.otherUsernames?.length && !adderUsername
     const teamLabel = this.props.context === 'message-popup'
 
+    const topStuff = (
+      <>
+        {(!!teamname || !adderUsername) && (
+          <>
+            <CheckboxRow
+              text={`Leave and block ${teamname || 'this conversation'}`}
+              onCheck={this.setBlockTeam}
+              checked={this.state.blockTeam}
+              disabled={teamCheckboxDisabled}
+            />
+            <Kb.Divider />
+          </>
+        )}
+        {!!adderUsername && this.renderRowsForUsername(adderUsername, true, teamLabel)}
+        {!!this.props.otherUsernames?.length && (
+          <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
+            <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
+          </Kb.Box2>
+        )}
+      </>
+    )
+
+    var items: Array<Item> = ['topStuff']
+    this.props.otherUsernames?.forEach(username => items.push({username}))
     return (
       <Kb.Modal
         mode="Default"
@@ -340,35 +367,17 @@ class BlockModal extends React.PureComponent<Props, State> {
             />
           ),
         }}
+        noScrollView={true}
       >
-        {(!!teamname || !adderUsername) && (
-          <>
-            <CheckboxRow
-              text={`Leave and block ${teamname || 'this conversation'}`}
-              onCheck={this.setBlockTeam}
-              checked={this.state.blockTeam}
-              disabled={teamCheckboxDisabled}
-            />
-            <Kb.Divider />
-          </>
-        )}
-        {!!adderUsername && this.renderRowsForUsername(adderUsername, true, teamLabel)}
-        {!!this.props.otherUsernames?.length && (
-          <>
-            <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
-              <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
-            </Kb.Box2>
-            <Kb.List
-              items={this.props.otherUsernames}
-              renderItem={(idx, other) =>
-                this.renderRowsForUsername(other, idx + 1 === this.props.otherUsernames?.length)
-              }
-              style={
-                Styles.isMobile ? styles.grow : getListHeightStyle(this.props.otherUsernames?.length ?? 0)
-              }
-            />
-          </>
-        )}
+        <Kb.List
+          items={items}
+          renderItem={(idx: number, item: Item) =>
+            item === 'topStuff'
+              ? topStuff
+              : this.renderRowsForUsername(item.username, idx === this.props.otherUsernames?.length)
+          }
+          style={Styles.isMobile ? styles.grow : getListHeightStyle(this.props.otherUsernames?.length ?? 0)}
+        />
       </Kb.Modal>
     )
   }

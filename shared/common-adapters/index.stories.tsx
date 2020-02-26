@@ -24,6 +24,7 @@ import listItem from './list-item.stories'
 import listItem2 from './list-item2.stories'
 import markdown from './markdown/index.stories'
 import meta from './meta.stories'
+import mobilePopup from './mobile-popup.stories'
 import modal from './modal/index.stories'
 import nameWithIcon from './name-with-icon/index.stories'
 import newInput from './new-input.stories'
@@ -33,6 +34,7 @@ import popupDialog from './popup-dialog.stories'
 import proofBrokenBanner from './proof-broken-banner.stories'
 import radiobutton from './radio-button.stories'
 import reload from './reload.stories'
+import richbutton from './rich-button.stories'
 import saveIndicator from './save-indicator.stories'
 import searchFilter from './search-filter.stories'
 import sectionList from './section-list.stories'
@@ -72,6 +74,7 @@ const load = () => {
     listItem2,
     markdown,
     meta,
+    mobilePopup,
     modal,
     nameWithIcon,
     newInput,
@@ -82,6 +85,7 @@ const load = () => {
     proofBrokenBanner,
     radiobutton,
     reload,
+    richbutton,
     saveIndicator,
     searchFilter,
     sectionList,

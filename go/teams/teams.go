@@ -290,6 +290,10 @@ func (t *Team) UsersWithRoleOrAbove(role keybase1.TeamRole) ([]keybase1.UserVers
 	return t.chain().GetUsersWithRoleOrAbove(role)
 }
 
+func (t *Team) UserLastJoinTime(u keybase1.UserVersion) (time keybase1.Time, err error) {
+	return t.chain().GetUserLastJoinTime(u)
+}
+
 func (t *Team) Members() (keybase1.TeamMembers, error) {
 	var members keybase1.TeamMembers
 
@@ -756,12 +760,12 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 		// Load member first to check if their eldest_seqno has not changed.
 		// If it did, the member was nuked and we do not need to lease.
 		_, err := loadMember(ctx, t.G(), member.version, true)
-		if err != nil {
-			if _, reset := err.(libkb.AccountResetError); reset {
-				continue
-			} else {
-				return nil, err
-			}
+		switch err.(type) {
+		case nil:
+		case libkb.AccountResetError:
+			continue
+		default:
+			return nil, err
 		}
 
 		uids = append(uids, member.version.Uid)
@@ -1374,6 +1378,46 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 		Type: "seitan_invite_token",
 		Name: keybase1.TeamInviteName(encoded),
 		ID:   inviteID,
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return ikey, err
+	}
+
+	return ikey, err
+}
+
+func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v", t.Name(), role), func() error { return err })()
+
+	// Experimental code: we are figuring out how to do invite links.
+
+	ikey, err = GenerateIKeyV2()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
+	if err != nil {
+		return ikey, err
+	}
+
+	maxUses := keybase1.TeamInviteMaxUses(10)
+	invite := SCTeamInvite{
+		Type:    "seitan_invite_token",
+		Name:    keybase1.TeamInviteName(encoded),
+		ID:      inviteID,
+		MaxUses: &maxUses,
 	}
 
 	if err := t.postInvite(ctx, invite, role); err != nil {
@@ -2706,4 +2750,64 @@ func KeySummary(t Teamer) string {
 		return "Ø"
 	}
 	return fmt.Sprintf("{main:%s, hidden:%s}", t.MainChain().KeySummary(), t.HiddenChain().KeySummary())
+}
+
+type TeamInfo struct {
+	libkb.AppStatusEmbed
+	Name          string
+	InTeam        bool `json:"in_team"`
+	Open          bool
+	Description   string
+	PublicAdmins  []string `json:"public_admins"`
+	NumMembers    int      `json:"num_members"`
+	PublicMembers []struct {
+		Role     keybase1.TeamRole
+		UID      keybase1.UID
+		Username string
+		FullName string `json:"full_name"`
+	} `json:"public_members"`
+}
+
+func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info keybase1.UntrustedTeamInfo, err error) {
+	arg := libkb.APIArg{
+		Endpoint:    "team/mentiondesc",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"name":                libkb.S{Val: name.String()},
+			"include_all_members": libkb.B{Val: true}, // refers to members who showcased the team on their profile only
+		},
+	}
+
+	var resp TeamInfo
+	if err = mctx.G().API.GetDecode(mctx, arg, &resp); err != nil {
+		mctx.Debug("GetUntrustedTeamInfo: failed to get team info: %s", err)
+	}
+	if err != nil {
+		return info, err
+	}
+
+	teamName, err := keybase1.TeamNameFromString(resp.Name)
+	if err != nil {
+		return info, err
+	}
+
+	teamInfo := keybase1.UntrustedTeamInfo{
+		Name:         teamName,
+		Description:  resp.Description,
+		InTeam:       resp.InTeam,
+		NumMembers:   resp.NumMembers,
+		Open:         resp.Open,
+		PublicAdmins: resp.PublicAdmins,
+	}
+
+	for _, mem := range resp.PublicMembers {
+		teamInfo.PublicMembers = append(teamInfo.PublicMembers, keybase1.TeamMemberRole{
+			Uid:      mem.UID,
+			FullName: keybase1.FullName(mem.FullName),
+			Role:     mem.Role,
+			Username: mem.Username,
+		})
+	}
+
+	return teamInfo, nil
 }

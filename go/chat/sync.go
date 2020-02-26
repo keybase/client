@@ -43,7 +43,7 @@ type Syncer struct {
 func NewSyncer(g *globals.Context) *Syncer {
 	s := &Syncer{
 		Contextified:        globals.NewContextified(g),
-		DebugLabeler:        utils.NewDebugLabeler(g.GetLog(), "Syncer", false),
+		DebugLabeler:        utils.NewDebugLabeler(g.ExternalG(), "Syncer", false),
 		isConnected:         false,
 		clock:               clockwork.NewRealClock(),
 		shutdownCh:          make(chan struct{}),
@@ -452,13 +452,6 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		// Dispatch background jobs
 		for _, rc := range iboxSyncRes.FilteredConvs {
 			conv := rc.Conv
-			if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
-				// Any conversation with a delete in it needs to be checked for expunge
-				if s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID()) {
-					// This returning true means we scheduled a background job already
-					continue
-				}
-			}
 			if expunge, ok := expunges[conv.GetConvID().ConvIDStr()]; ok {
 				// Run expunges on the background loader
 				s.Debug(ctx, "Sync: queueing expunge background loader job: convID: %s", conv.GetConvID())

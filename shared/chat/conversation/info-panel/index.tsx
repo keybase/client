@@ -1,14 +1,18 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import flags from '../../../util/feature-flags'
-import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
+import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
+import {MaybeTeamRoleType} from 'constants/types/teams'
+import * as TeamConstants from '../../../constants/teams'
+import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
@@ -20,6 +24,7 @@ type InfoPanelProps = {
   selectedTab: Panel
   smallTeam: boolean
   teamname?: string
+  yourRole: MaybeTeamRoleType
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -31,12 +36,22 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   private isSelected = (s: Panel) => s === this.props.selectedTab
 
-  private getTabPanels = (): Array<Panel> => [
-    'members' as const,
-    'attachments' as const,
-    ...(flags.botUI ? ['bots' as const] : []),
-    ...(this.props.isPreview ? [] : ['settings' as const]),
-  ]
+  private getTabPanels = (): Array<Panel> => {
+    var showSettings = !this.props.isPreview
+    if (flags.teamsRedesign) {
+      showSettings =
+        !this.props.isPreview ||
+        TeamConstants.isAdmin(this.props.yourRole) ||
+        TeamConstants.isOwner(this.props.yourRole)
+    }
+
+    return [
+      'members' as const,
+      'attachments' as const,
+      ...(flags.botUI ? ['bots' as const] : []),
+      ...(showSettings ? ['settings' as const] : []),
+    ]
+  }
 
   private getTabs = () =>
     this.getTabPanels().map(p => {
@@ -83,8 +98,8 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           tabs={tabs}
           selected={selected}
           onSelect={this.onSelectTab}
-          style={styles.tabContainerStyle}
-          tabStyle={styles.tabStyle}
+          style={styles.tabContainer}
+          tabStyle={styles.tab}
         />
       </Kb.Box2>
     )
@@ -92,7 +107,8 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
   private commonSections = [
     {
-      data: ['header'],
+      data: [{key: 'header-item'}], // 'header' cannot be used as a key, RN uses that key.
+      key: 'header-section',
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
           {this.props.teamname && this.props.channelname ? (
@@ -126,6 +142,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         sectionList = (
           <SettingsList
             conversationIDKey={this.props.selectedConversationIDKey}
+            isPreview={this.props.isPreview}
             renderTabs={this.renderTabs}
             commonSections={this.commonSections}
           />
@@ -161,13 +178,32 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       default:
         sectionList = null
     }
-    return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-        {sectionList}
-      </Kb.Box2>
-    )
+    if (Styles.isTablet) {
+      // Use a View to make the left border.
+      return (
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          fullHeight={true}
+          style={styles.containerOuterTablet}
+        >
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.containerBorder}></Kb.Box2>
+          <Kb.Box2 direction="vertical" style={styles.container}>
+            {sectionList}
+          </Kb.Box2>
+        </Kb.Box2>
+      )
+    } else {
+      return (
+        <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+          {sectionList}
+        </Kb.Box2>
+      )
+    }
   }
 }
+
+const tabletContainerBorderSize = 1
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -177,10 +213,20 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           backgroundColor: Styles.globalColors.white,
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
-          width: 320,
+          width: infoPanelWidthElectron,
+        },
+        isTablet: {
+          paddingTop: Styles.globalMargins.small,
+          width: infoPanelWidthTablet,
         },
       }),
-      tabContainerStyle: Styles.platformStyles({
+      containerBorder: {backgroundColor: '#E5E5E5', width: tabletContainerBorderSize},
+      containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
+      tab: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+      },
+      tabContainer: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.white,
         },
@@ -190,10 +236,6 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'hidden',
         },
       }),
-      tabStyle: {
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-      },
       tabTextContainer: Styles.platformStyles({
         common: {
           justifyContent: 'center',
@@ -206,4 +248,8 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
+function HeaderSometimes<P>(WrappedComponent: React.ComponentType<P>) {
+  return Styles.isMobile && !ChatConstants.isSplit ? Kb.HeaderHoc(WrappedComponent) : WrappedComponent
+}
+
+export const InfoPanel = HeaderSometimes(_InfoPanel)

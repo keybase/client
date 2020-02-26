@@ -123,7 +123,7 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	i := &Inbox{
 		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
+		DebugLabeler:   utils.NewDebugLabeler(g.ExternalG(), "Inbox", false),
 		baseBox:        newBaseBox(g),
 		flushMode:      InboxFlushModeActive,
 		layoutNotifier: dummyInboxLayoutChangedNotifier{},
@@ -855,25 +855,29 @@ func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1
 }
 
 func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	text *string) (err Error) {
+	text *string) (modified bool, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
-			return nil
+			return false, nil
 		}
-		return err
+		return false, err
 	}
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
 		i.Debug(ctx, "MarkLocalRead: no conversation found: convID: %s", convID)
-		return nil
+		return false, nil
+	}
+	if text == nil && conv.LocalDraft == nil {
+		// don't do anything if we are clearing
+		return false, nil
 	}
 	conv.LocalDraft = text
 	conv.Conv.Metadata.LocalVersion++
-	return i.writeDiskInbox(ctx, uid, ibox)
+	return true, i.writeDiskInbox(ctx, uid, ibox)
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -1574,20 +1578,29 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 					newAllList = append(newAllList, u)
 				}
 			}
-			conv.Conv.Metadata.AllList = newAllList
+			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+			default:
+				conv.Conv.Metadata.AllList = newAllList
+			}
 		} else if resetMap[conv.ConvIDStr] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			conv.Conv.Metadata.Version = vers.ToConvVers()
-			// Double check this user isn't already in here
-			exists := false
-			for _, u := range conv.Conv.Metadata.ResetList {
-				if u.Eq(uid) {
-					exists = true
-					break
+			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+				// do nothing
+			default:
+				// Double check this user isn't already in here
+				exists := false
+				for _, u := range conv.Conv.Metadata.ResetList {
+					if u.Eq(uid) {
+						exists = true
+						break
+					}
 				}
-			}
-			if !exists {
-				conv.Conv.Metadata.ResetList = append(conv.Conv.Metadata.ResetList, uid)
+				if !exists {
+					conv.Conv.Metadata.ResetList = append(conv.Conv.Metadata.ResetList, uid)
+				}
 			}
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
@@ -1611,8 +1624,12 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 				}
 			}
 			if isReset {
-				cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList[:resetIndex],
-					cp.Conv.Metadata.ResetList[resetIndex+1:]...)
+				switch cp.Conv.GetMembersType() {
+				case chat1.ConversationMembersType_TEAM:
+				default:
+					cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList[:resetIndex],
+						cp.Conv.Metadata.ResetList[resetIndex+1:]...)
+				}
 			} else {
 				// Double check this user isn't already in here
 				exists := false
@@ -1623,7 +1640,11 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 					}
 				}
 				if !exists {
-					cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+					switch cp.Conv.GetMembersType() {
+					case chat1.ConversationMembersType_TEAM:
+					default:
+						cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+					}
 				}
 			}
 			cp.Conv.Metadata.Version = vers.ToConvVers()
@@ -1643,7 +1664,11 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	for _, or := range othersReset {
 		if cp, ok := convMap[or.ConvID.ConvIDStr()]; ok {
-			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
+			switch cp.Conv.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+			default:
+				cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
+			}
 			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
 	}

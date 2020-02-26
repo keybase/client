@@ -23,6 +23,7 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
+import * as Platform from '../../constants/platform'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import {NotifyPopup} from '../../native/notifications'
@@ -91,7 +92,7 @@ const inboxRefresh = (
     actions.push(Chat2Gen.createClearMessages())
   }
   const reselectMode =
-    state.chat2.inboxHasLoaded || Container.isMobile
+    state.chat2.inboxHasLoaded || Container.isPhone
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
@@ -206,27 +207,22 @@ const onGetInboxConvsUnboxed = (
     if (meta) {
       metas.push(meta)
     }
-    const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
-    ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
-      const {assertion, fullName, contactName, inConvName} = part
-      if (!infoMap.get(assertion) && fullName) {
-        added = true
-        usernameToFullname[assertion] = fullName
-      }
-      participantInfo.all.push(assertion)
-      if (inConvName) {
-        participantInfo.name.push(assertion)
-      }
-      if (contactName) {
-        participantInfo.contactName.set(assertion, contactName)
-      }
-    })
+    const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
+      inboxUIItem.participants ?? []
+    )
     if (participantInfo.all.length > 0) {
       participants.push({
         conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
         participants: participantInfo,
       })
     }
+    inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
+      const {assertion, fullName} = part
+      if (!infoMap.get(assertion) && fullName) {
+        added = true
+        usernameToFullname[assertion] = fullName
+      }
+    })
   })
   if (added) {
     actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
@@ -274,7 +270,7 @@ const maybeChangeSelectedConv = (
     !Constants.isValidConversationIDKey(selectedConversation) ||
     state.chat2.selectedConversation === reselectInfo.oldConvID
   ) {
-    if (Container.isMobile) {
+    if (Container.isPhone) {
       // on mobile just head back to the inbox if we have something selected
       if (Constants.isValidConversationIDKey(selectedConversation)) {
         logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
@@ -1639,14 +1635,14 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
     Saga.put(
       Chat2Gen.createInboxSearchOpenTeamsResults({
         results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
-          const {description, name, id, publicAdmins, memberCount, inTeam} = h
+          const {description, name, id, memberCount, inTeam} = h
           arr.push({
             description: description ?? '',
             id: Types.stringToConversationIDKey(id),
             inTeam,
             memberCount,
             name,
-            publicAdmins: publicAdmins ?? [],
+            publicAdmins: [],
           })
           return arr
         }, []),
@@ -1701,7 +1697,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults
               : Constants.inboxSearchMaxUnreadNameResults,
-          maxTeams: 3,
+          maxTeams: 10,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
@@ -1904,7 +1900,7 @@ const previewConversationTeam = async (
 ) => {
   const {conversationIDKey, teamname, reason} = action.payload
   if (conversationIDKey) {
-    if (reason === 'messageLink' || reason === 'teamMention') {
+    if (reason === 'messageLink' || reason === 'teamMention' || reason === 'channelHeader') {
       // Add preview channel to inbox
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
@@ -2179,10 +2175,15 @@ function* attachmentsUpload(
   logger: Saga.SagaLogger
 ) {
   const {conversationIDKey, paths, titles} = action.payload
+  let tlfName = action.payload.tlfName
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
-    logger.warn('Missing meta for attachment upload', conversationIDKey)
-    return
+    if (!tlfName) {
+      logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
+      return
+    }
+  } else {
+    tlfName = meta.tlfname
   }
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   // disable sending exploding messages if flag is false
@@ -2203,13 +2204,34 @@ function* attachmentsUpload(
           metadata: Buffer.from([]),
           outboxID: outboxIDs[i],
           title: titles[i],
-          tlfName: meta.tlfname,
+          tlfName: tlfName ?? '',
           visibility: RPCTypes.TLFVisibility.private,
         },
         clientPrev,
       })
     )
   )
+}
+
+const attachFromDragAndDrop = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttachFromDragAndDropPayload
+) => {
+  if (Platform.isDarwin) {
+    const paths = await Promise.all(
+      action.payload.paths.map(p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
+    )
+    return Chat2Gen.createAttachmentsUpload({
+      conversationIDKey: action.payload.conversationIDKey,
+      paths,
+      titles: action.payload.titles,
+    })
+  }
+  return Chat2Gen.createAttachmentsUpload({
+    conversationIDKey: action.payload.conversationIDKey,
+    paths: action.payload.paths,
+    titles: action.payload.titles,
+  })
 }
 
 // Tell service we're typing
@@ -2364,7 +2386,10 @@ const dismissJourneycard = (action: Chat2Gen.DismissJourneycardPayload, logger: 
 }
 
 // Get the full channel names/descs for a team if we don't already have them.
-function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectConversationPayload) {
+function* loadSuggestionData(
+  state: Container.TypedState,
+  action: Chat2Gen.ChannelSuggestionsTriggeredPayload
+) {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamID = meta.teamID
@@ -2372,10 +2397,10 @@ function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectC
   if (!meta.teamname) {
     return
   }
-  if (!TeamsConstants.hasChannelInfos(state, teamID)) {
-    yield Saga.delay(4000)
-    yield Saga.put(TeamsGen.createGetChannels({teamID}))
-  }
+  // This only happens when user enters '#' which isn't that often. If this
+  // becomes a problem, we can make a notification from service for when
+  // channels change, and skip the load here if nothing has changed yet.
+  yield Saga.put(TeamsGen.createGetChannels({teamID}))
 }
 
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
@@ -2402,8 +2427,8 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
   let replace = false
   const visible = Router2Constants.getVisibleScreen()
 
-  if (!Container.isMobile && visible && visible.routeName === 'chatRoot') {
-    // Don't append; we don't want to increase the size of the stack on desktop
+  if (Constants.isSplit && visible && visible.routeName === 'chatRoot') {
+    // Don't append; we don't want to increase the size of the stack with a split chat view.
     return
   }
 
@@ -2418,7 +2443,7 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
 
   return RouteTreeGen.createNavigateAppend({
     fromKey,
-    path: [{props: {conversationIDKey}, selected: Container.isMobile ? 'chatConversation' : 'chatRoot'}],
+    path: [{props: {conversationIDKey}, selected: Container.isPhone ? 'chatConversation' : 'chatRoot'}],
     replace,
   })
 }
@@ -2654,9 +2679,12 @@ const fetchConversationBio = async (
 }
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
-  await RPCChatTypes.localLeaveConversationLocalRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
+  await RPCChatTypes.localLeaveConversationLocalRpcPromise(
+    {
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    },
+    Constants.waitingKeyLeaveConversation
+  )
 }
 
 const muteConversation = async (action: Chat2Gen.MuteConversationPayload) => {
@@ -3604,7 +3632,7 @@ const refreshBotSettings = async (action: Chat2Gen.RefreshBotSettingsPayload, lo
 
 const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
-  if (Container.isMobile) {
+  if (Container.isPhone) {
     const visibleScreen = Router2Constants.getVisibleScreen()
     if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
       return show
@@ -3624,9 +3652,11 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
 
 function* chat2Saga() {
   // Platform specific actions
-  if (Container.isMobile) {
+  if (Container.isPhone) {
     // Push us into the conversation
     yield* Saga.chainAction2(Chat2Gen.selectConversation, mobileNavigateOnSelect)
+  }
+  if (Container.isMobile) {
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
       Chat2Gen.messageAttachmentNativeShare,
       mobileMessageAttachmentShare
@@ -3733,6 +3763,7 @@ function* chat2Saga() {
     attachmentDownload
   )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield* Saga.chainAction2(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)
@@ -3799,9 +3830,9 @@ function* chat2Saga() {
   yield* Saga.chainAction2(GregorGen.pushState, gregorPushState)
   yield* Saga.chainAction2(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 
-  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
-    Chat2Gen.selectConversation,
-    loadChannelInfos
+  yield* Saga.chainGenerator<Chat2Gen.ChannelSuggestionsTriggeredPayload>(
+    Chat2Gen.channelSuggestionsTriggered,
+    loadSuggestionData
   )
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)

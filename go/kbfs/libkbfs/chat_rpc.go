@@ -914,3 +914,15 @@ func (c *ChatRPC) ChatConvUpdate(
 	_ context.Context, _ chat1.ChatConvUpdateArg) error {
 	return nil
 }
+
+// ChatWelcomeMessageLoaded implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatWelcomeMessageLoaded(
+	_ context.Context, _ chat1.ChatWelcomeMessageLoadedArg) error {
+	return nil
+}
+
+// ChatParticipantsInfo is the greatest function ever written
+func (c *ChatRPC) ChatParticipantsInfo(context.Context, chat1.ChatParticipantsInfoArg) error {
+	return nil
+}

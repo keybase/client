@@ -855,6 +855,101 @@
       "name": "BotInfoHash",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "GetDefaultTeamChannelsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetDefaultTeamChannelsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetRecentJoinsRes",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numJoins"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RefreshParticipantsRemoteRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hashMatch"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "uids"
+        },
+        {
+          "type": "string",
+          "name": "hash"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetLastActiveAtRes",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "lastActiveAt"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1013,6 +1108,13 @@
             null,
             "ConversationID"
           ]
+        },
+        {
+          "name": "retentionPolicy",
+          "type": [
+            null,
+            "RetentionPolicy"
+          ]
         }
       ],
       "response": "NewConversationRemoteRes",
@@ -1127,6 +1229,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "participantsMode",
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncChatRes"
@@ -1168,6 +1274,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "participantsMode",
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncAllResult",
@@ -1310,10 +1420,6 @@
         },
         {
           "name": "summarizeMaxMsgs",
-          "type": "boolean"
-        },
-        {
-          "name": "useCache",
           "type": "boolean"
         }
       ],
@@ -1541,6 +1647,66 @@
         }
       ],
       "response": "GetBotInfoRes"
+    },
+    "getDefaultTeamChannels": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": "GetDefaultTeamChannelsRes"
+    },
+    "setDefaultTeamChannels": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "convs",
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          }
+        }
+      ],
+      "response": "SetDefaultTeamChannelsRes"
+    },
+    "getRecentJoins": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "GetRecentJoinsRes"
+    },
+    "refreshParticipantsRemote": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "hash",
+          "type": "string"
+        }
+      ],
+      "response": "RefreshParticipantsRemoteRes"
+    },
+    "getLastActiveAt": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "GetLastActiveAtRes"
     }
   },
   "namespace": "chat.1",

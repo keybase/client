@@ -143,6 +143,14 @@ func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID
 	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
 }
 
+func (h *TeamsHandler) GetUserSubteamMemberships(ctx context.Context, arg keybase1.GetUserSubteamMembershipsArg) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUserSubteamMemberships(%s, %s)", arg.TeamID, arg.Username), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetUserSubteamMemberships(mctx, arg.TeamID, arg.Username)
+}
+
 func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
 	if details.Settings.Open {
 		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)
@@ -233,14 +241,6 @@ func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybas
 	return teams.ListSubteamsRecursive(ctx, h.G().ExternalG(), arg.ParentTeamName, arg.ForceRepoll)
 }
 
-func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
-		return err
-	}
-	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
-}
-
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,username=%q,email=%q,phone=%q)", arg.TeamID, arg.Username, arg.Email, arg.Phone),
@@ -265,7 +265,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		assertion = assertionURL.String()
 	}
 
-	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, assertion, arg.Role, arg.BotSettings)
+	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, assertion, arg.Role, arg.BotSettings, arg.EmailInviteMessage)
 	if err != nil {
 		return res, err
 	}
@@ -310,6 +310,7 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 		TeamID:               arg.TeamID,
 		Users:                users,
 		SendChatNotification: arg.SendChatNotification,
+		EmailInviteMessage:   arg.EmailInviteMessage,
 	}
 	return h.TeamAddMembersMultiRole(ctx, arg2)
 }
@@ -332,7 +333,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		return res, err
 	}
 
-	added, notAdded, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
+	added, notAdded, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users, arg.EmailInviteMessage)
 	switch err := err.(type) {
 	case nil:
 	case teams.AddMembersError:
@@ -830,4 +831,11 @@ func (h *TeamsHandler) GetTeamName(ctx context.Context, teamID keybase1.TeamID) 
 func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRoleMapAndVersion, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return mctx.G().GetTeamRoleMapManager().Get(mctx, true /* retry on fail */)
+}
+
+func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.TeamName) (info keybase1.UntrustedTeamInfo, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUntrustedTeamInfo(%s)", name), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetUntrustedTeamInfo(mctx, name)
 }

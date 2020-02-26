@@ -760,20 +760,16 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 }
 
 type TyperInfo struct {
-	Uid        keybase1.UID          `codec:"uid" json:"uid"`
-	Username   string                `codec:"username" json:"username"`
-	DeviceID   keybase1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	DeviceName string                `codec:"deviceName" json:"deviceName"`
-	DeviceType keybase1.DeviceTypeV2 `codec:"deviceType" json:"deviceType"`
+	Uid      keybase1.UID      `codec:"uid" json:"uid"`
+	Username string            `codec:"username" json:"username"`
+	DeviceID keybase1.DeviceID `codec:"deviceID" json:"deviceID"`
 }
 
 func (o TyperInfo) DeepCopy() TyperInfo {
 	return TyperInfo{
-		Uid:        o.Uid.DeepCopy(),
-		Username:   o.Username,
-		DeviceID:   o.DeviceID.DeepCopy(),
-		DeviceName: o.DeviceName,
-		DeviceType: o.DeviceType.DeepCopy(),
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		DeviceID: o.DeviceID.DeepCopy(),
 	}
 }
 
@@ -1069,6 +1065,16 @@ type ChatConvUpdateArg struct {
 	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
+type ChatWelcomeMessageLoadedArg struct {
+	TeamID  keybase1.TeamID       `codec:"teamID" json:"teamID"`
+	Message WelcomeMessageDisplay `codec:"message" json:"message"`
+}
+
+type ChatParticipantsInfoArg struct {
+	ConvID       ConversationID  `codec:"convID" json:"convID"`
+	Participants []UIParticipant `codec:"participants" json:"participants"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -1093,6 +1099,8 @@ type NotifyChatInterface interface {
 	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
 	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
 	ChatConvUpdate(context.Context, ChatConvUpdateArg) error
+	ChatWelcomeMessageLoaded(context.Context, ChatWelcomeMessageLoadedArg) error
+	ChatParticipantsInfo(context.Context, ChatParticipantsInfoArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1444,6 +1452,36 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 					return
 				},
 			},
+			"ChatWelcomeMessageLoaded": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatWelcomeMessageLoadedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatWelcomeMessageLoadedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatWelcomeMessageLoadedArg)(nil), args)
+						return
+					}
+					err = i.ChatWelcomeMessageLoaded(ctx, typedArgs[0])
+					return
+				},
+			},
+			"ChatParticipantsInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatParticipantsInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatParticipantsInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatParticipantsInfoArg)(nil), args)
+						return
+					}
+					err = i.ChatParticipantsInfo(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1568,5 +1606,15 @@ func (c NotifyChatClient) ChatPromptUnfurl(ctx context.Context, __arg ChatPrompt
 
 func (c NotifyChatClient) ChatConvUpdate(ctx context.Context, __arg ChatConvUpdateArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatConvUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatWelcomeMessageLoaded(ctx context.Context, __arg ChatWelcomeMessageLoadedArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatWelcomeMessageLoaded", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatParticipantsInfo(ctx context.Context, __arg ChatParticipantsInfoArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatParticipantsInfo", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

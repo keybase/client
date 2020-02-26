@@ -1,6 +1,7 @@
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
+import UserCard from '../user-card'
 import {Props as InputProps} from '../../common-adapters/labeled-input'
 import Dropdown from './dropdown.native'
 import * as React from 'react'
@@ -48,7 +49,7 @@ class LoginRender extends React.Component<Props, State> {
               </Kb.Box>
             )}
             {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
-            <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
+            <UserCard username={this.props.selectedUser} outerStyle={styles.card} style={styles.cardInner}>
               <Dropdown
                 type="Username"
                 value={this.props.selectedUser}
@@ -92,9 +93,9 @@ class LoginRender extends React.Component<Props, State> {
               >
                 Problems logging in?
               </Kb.Text>
-            </Kb.UserCard>
+            </UserCard>
             <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} />
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{padding: Styles.globalMargins.medium}}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createAccountContainer}>
               <Kb.Button
                 fullWidth={true}
                 label="Create an account"
@@ -117,12 +118,19 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.medium,
         width: '100%',
       },
+      cardInner: Styles.platformStyles({
+        isTablet: {paddingBottom: 0},
+      }),
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         backgroundColor: Styles.globalColors.blueGrey,
         flex: 1,
       },
+      createAccountContainer: Styles.platformStyles({
+        common: {padding: Styles.globalMargins.medium},
+        isTablet: {maxWidth: 410, padding: Styles.globalMargins.small},
+      }),
       deviceNotSecureContainer: {
         alignSelf: 'stretch',
         backgroundColor: Styles.globalColors.yellow,

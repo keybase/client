@@ -22,6 +22,8 @@ export type PublicitySettings = {
   publicityTeam: boolean
 }
 
+export type ActivityLevel = 'active' | 'recently' | 'none'
+
 export type Teamname = string
 
 export type TeamProfileAddList = {
@@ -43,11 +45,10 @@ export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type ChannelInfo = {
   channelname: string
+  conversationIDKey: ConversationIDKey
   description: string
-  hasAllMembers?: boolean | null
   memberStatus: RPCChatTypes.ConversationMemberStatus
   mtime: number
-  numParticipants: number
 }
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
@@ -67,7 +68,7 @@ export type InviteInfo = {
   id: string
 }
 
-export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings'
+export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings' | 'channels'
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
@@ -79,6 +80,12 @@ export type EmailInviteError = {
 }
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
+
+export type JoinRequest = {
+  ctime: number
+  fullName: string
+  username: string
+}
 
 export type TeamMeta = {
   allowPromote: boolean // if members other than admins can showcase
@@ -96,7 +103,7 @@ export type TeamDetails = {
   settings: TeamSettings2
   invites: Set<InviteInfo>
   subteams: Set<TeamID>
-  requests: Set<string>
+  requests: Set<JoinRequest>
   description: string
 }
 
@@ -132,6 +139,7 @@ export type State = {
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string
   readonly errorInEditDescription: string
+  readonly errorInEditWelcomeMessage: string
   readonly errorInEmailInvite: EmailInviteError
   readonly errorInSettings: string
   readonly errorInTeamCreation: string
@@ -141,8 +149,10 @@ export type State = {
   readonly teamsWithChosenChannels: Set<Teamname>
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean
+  readonly selectedChannels: Map<TeamID, Set<string>>
+  readonly selectedMembers: Map<TeamID, Set<string>>
   readonly subteamFilter: string
-  readonly subteamsFiltered: Set<TeamID>
+  readonly subteamsFiltered: Set<TeamID> | undefined
   readonly teamAccessRequestsPending: Set<Teamname>
   readonly teamJoinSuccess: boolean
   readonly teamJoinSuccessOpen: boolean
@@ -156,6 +166,7 @@ export type State = {
   readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   readonly teamVersion: Map<TeamID, TeamVersion>
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
+  readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>

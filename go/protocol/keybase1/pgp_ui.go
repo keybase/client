@@ -22,7 +22,7 @@ type OutputSignatureSuccessArg struct {
 	Warnings    []string `codec:"warnings" json:"warnings"`
 }
 
-type OutputSignatureSuccessNonKeybaseArg struct {
+type OutputSignatureNonKeybaseArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	KeyID     string   `codec:"keyID" json:"keyID"`
 	SignedAt  Time     `codec:"signedAt" json:"signedAt"`
@@ -47,7 +47,7 @@ type FinishedArg struct {
 type PGPUiInterface interface {
 	OutputPGPWarning(context.Context, OutputPGPWarningArg) error
 	OutputSignatureSuccess(context.Context, OutputSignatureSuccessArg) error
-	OutputSignatureSuccessNonKeybase(context.Context, OutputSignatureSuccessNonKeybaseArg) error
+	OutputSignatureNonKeybase(context.Context, OutputSignatureNonKeybaseArg) error
 	KeyGenerated(context.Context, KeyGeneratedArg) error
 	ShouldPushPrivate(context.Context, ShouldPushPrivateArg) (bool, error)
 	Finished(context.Context, int) error
@@ -87,18 +87,18 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"outputSignatureSuccessNonKeybase": {
+			"outputSignatureNonKeybase": {
 				MakeArg: func() interface{} {
-					var ret [1]OutputSignatureSuccessNonKeybaseArg
+					var ret [1]OutputSignatureNonKeybaseArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]OutputSignatureSuccessNonKeybaseArg)
+					typedArgs, ok := args.(*[1]OutputSignatureNonKeybaseArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]OutputSignatureSuccessNonKeybaseArg)(nil), args)
+						err = rpc.NewTypeError((*[1]OutputSignatureNonKeybaseArg)(nil), args)
 						return
 					}
-					err = i.OutputSignatureSuccessNonKeybase(ctx, typedArgs[0])
+					err = i.OutputSignatureNonKeybase(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -165,8 +165,8 @@ func (c PGPUiClient) OutputSignatureSuccess(ctx context.Context, __arg OutputSig
 	return
 }
 
-func (c PGPUiClient) OutputSignatureSuccessNonKeybase(ctx context.Context, __arg OutputSignatureSuccessNonKeybaseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccessNonKeybase", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c PGPUiClient) OutputSignatureNonKeybase(ctx context.Context, __arg OutputSignatureNonKeybaseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureNonKeybase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

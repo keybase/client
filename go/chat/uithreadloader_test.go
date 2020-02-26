@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -101,6 +102,9 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
 	_, err = tc.Context().ConvSource.GetMessages(ctx, convFull.Conv, uid,
 		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, nil)
+	require.NoError(t, err)
+
+	_, err = tc.Context().ParticipantsSource.Get(ctx, uid, conv.Id, types.InboxSourceDataSourceAll)
 	require.NoError(t, err)
 
 	clock := clockwork.NewFakeClock()

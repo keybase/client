@@ -144,6 +144,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteMaxUses",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "ReaderKeyMask",
       "fields": [
         {
@@ -338,6 +344,13 @@
         {
           "type": "TeamMemberStatus",
           "name": "status"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "joinTime"
         }
       ]
     },
@@ -425,9 +438,85 @@
     },
     {
       "type": "record",
+      "name": "TeamMemberRole",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UntrustedTeamInfo",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        },
+        {
+          "type": "int",
+          "name": "numMembers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberRole"
+          },
+          "name": "publicMembers"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserVersionPercentForm",
       "fields": [],
       "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamUsedInvite",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        },
+        {
+          "type": "UserVersionPercentForm",
+          "name": "uv"
+        }
+      ]
     },
     {
       "type": "record",
@@ -490,6 +579,13 @@
             "keys": "TeamInviteID"
           },
           "name": "completedInvites"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamUsedInvite"
+          },
+          "name": "usedInvites"
         }
       ]
     },
@@ -1253,6 +1349,20 @@
         {
           "type": "UserVersion",
           "name": "inviter"
+        },
+        {
+          "type": [
+            null,
+            "TeamInviteMaxUses"
+          ],
+          "name": "maxUses"
+        },
+        {
+          "type": [
+            null,
+            "UnixTime"
+          ],
+          "name": "etime"
         }
       ]
     },
@@ -1499,6 +1609,17 @@
           "name": "obsoleteInvites"
         },
         {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamUsedInviteLog"
+            },
+            "keys": "TeamInviteID"
+          },
+          "name": "usedInvites"
+        },
+        {
           "type": "boolean",
           "name": "open"
         },
@@ -1577,6 +1698,20 @@
         {
           "type": "SignatureMetadata",
           "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamUsedInviteLog",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "int",
+          "name": "logPoint"
         }
       ]
     },
@@ -2488,6 +2623,14 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "UnixTime",
+          "name": "ctime"
         }
       ]
     },
@@ -3165,9 +3308,40 @@
           "name": "showcase"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedSubteamMemberDetails",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamMemberDetails",
+          "name": "details"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
     }
   ],
   "messages": {
+    "getUntrustedTeamInfo": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "UntrustedTeamInfo"
+    },
     "teamCreate": {
       "request": [
         {
@@ -3341,23 +3515,6 @@
         "items": "TeamIDAndName"
       }
     },
-    "teamChangeMembership": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "req",
-          "type": "TeamChangeReq"
-        }
-      ],
-      "response": null
-    },
     "teamAddMember": {
       "request": [
         {
@@ -3394,6 +3551,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMemberResult"
@@ -3429,6 +3593,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMembersResult"
@@ -3453,6 +3624,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMembersResult"
@@ -4203,6 +4381,22 @@
         }
       ],
       "response": "AnnotatedTeam"
+    },
+    "getUserSubteamMemberships": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "AnnotatedSubteamMemberDetails"
+      }
     }
   },
   "namespace": "keybase.1"

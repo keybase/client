@@ -2,13 +2,24 @@ import * as ChatGen from './chat2-gen'
 import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
+import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
+import * as TeamsGen from './teams-gen'
 import URL from 'url-parse'
 import logger from '../logger'
+
+const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
+  const initialTab = action === 'manage_settings' ? 'settings' : undefined
+  const addMembers = action === 'add_or_invite' ? true : undefined
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
+    TeamsGen.createShowTeamByName({addMembers, initialTab, teamname}),
+  ]
+}
 
 const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
@@ -65,6 +76,19 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
+    case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
+      if (parts.length >= 2) {
+        const teamName = parts[1]
+        if (teamName.length) {
+          const actionPart = parts[2]
+          const action =
+            actionPart === 'add_or_invite' || actionPart === 'manage_settings' ? actionPart : undefined
+          return handleTeamPageLink(teamName, action)
+        }
+      }
+      break
+    case 'incoming-share':
+      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
     default:
     // Fall through to the error return below.
   }
@@ -77,6 +101,13 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
 }
 
 const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
+  // If we're not logged in, trying to nav around the app as if we were will
+  // put people on broken screens -- instead just let people log in and retry.
+  if (!state.config.loggedIn) {
+    console.warn('Refusing to follow a deeplink when not logged in yet.')
+    return false
+  }
+
   if (action.payload.link.startsWith('web+stellar:')) {
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else if (action.payload.link.startsWith('keybase://')) {
@@ -100,6 +131,11 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
         RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
         ProfileGen.createShowUserProfile({username}),
       ]
+    }
+
+    const teamLink = Constants.urlToTeamDeepLink(url)
+    if (teamLink) {
+      return handleTeamPageLink(teamLink.teamName, teamLink.action)
     }
   }
   return false

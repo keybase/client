@@ -538,7 +538,7 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 		if err == nil {
 			for _, v := range apiRes {
 				s := v.Service
-				if s != nil && strings.ToLower(s.Username) == strings.ToLower(username) && string(s.ServiceName) == service {
+				if s != nil && strings.EqualFold(s.Username, username) && string(s.ServiceName) == service {
 					res.Service = s
 				}
 			}

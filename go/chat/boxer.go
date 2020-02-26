@@ -76,7 +76,7 @@ type Boxer struct {
 
 func NewBoxer(g *globals.Context) *Boxer {
 	return &Boxer{
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Boxer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Boxer", false),
 		hashV1:       hashSha256V1,
 		Contextified: globals.NewContextified(g),
 		clock:        clockwork.NewRealClock(),
@@ -1323,6 +1323,11 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 	case chat1.MessageType_SYSTEM:
 		atMentions, chanMention, channelNameMentions = utils.SystemMessageMentions(ctx, b.G(), uid,
 			body.System())
+	case chat1.MessageType_REACTION:
+		targetUID := body.Reaction().TargetUID
+		if targetUID != nil {
+			atMentions = []gregor1.UID{*targetUID}
+		}
 	default:
 		return nil, nil, nil, chanMention, nil
 	}

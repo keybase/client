@@ -9,12 +9,14 @@ export type Props = {
   isSearching: boolean
   onBack: () => void
   onEnsureSelection: () => void
-  onNewChat?: () => void
+  onNewChat?: (() => void) | null
   onSelectDown: () => void
   onSelectUp: () => void
   onSetFilter: (filter: string) => void
   onStartSearch: () => void
   onStopSearch: () => void
+  showNewChat: boolean
+  showSearch: boolean
   style?: Styles.StylesCrossPlatform
 }
 
@@ -94,20 +96,21 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     return (
       <Kb.Box2
         direction="horizontal"
-        centerChildren={true}
+        centerChildren={!Styles.isTablet}
         gap={Styles.isMobile ? 'small' : 'tiny'}
         style={Styles.collapseStyles([
           styles.containerNotFiltering,
+          Styles.isPhone ? null : Styles.isTablet && this.props.showSearch ? null : styles.whiteBg,
           !Styles.isMobile && styles.whiteBg,
           this.props.style,
         ])}
-        gapStart={true}
+        gapStart={this.props.showSearch}
         gapEnd={true}
         fullWidth={true}
       >
         {!Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
-        {searchInput}
-        {!this.props.isSearching && !!this.props.onNewChat && !Styles.isMobile && (
+        {this.props.showSearch && searchInput}
+        {!!this.props.onNewChat && !Styles.isPhone && (Styles.isTablet || !this.props.isSearching) && (
           <Kb.Box style={styles.rainbowBorder}>
             <Kb.WithTooltip position="top center" tooltip={`(${Platforms.shortcutSymbol}N)`}>
               <Kb.Button
@@ -128,29 +131,31 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       containerFiltering: Styles.platformStyles({
-        common: {position: 'relative'},
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          position: 'relative',
+        },
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
           ...Styles.padding(0, Styles.globalMargins.small),
-          backgroundColor: Styles.globalColors.blueGrey,
           height: 39,
         },
         isMobile: {
           ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
-          backgroundColor: Styles.globalColors.fastBlank,
           height: 48,
         },
+        isPhone: {backgroundColor: Styles.globalColors.fastBlank},
       }),
       containerNotFiltering: Styles.platformStyles({
         common: {
+          backgroundColor: Styles.globalColors.blueGrey,
           height: undefined,
           position: 'relative',
         },
         isElectron: {
           ...Styles.padding(0, Styles.globalMargins.xtiny),
-          backgroundColor: Styles.globalColors.blueGrey,
         },
-        isMobile: {
+        isPhone: {
           backgroundColor: Styles.globalColors.white,
         },
       }),

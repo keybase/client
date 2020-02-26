@@ -84,6 +84,7 @@ export type TypedActionsMap = {
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
+  'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
   'chat2:createConversation': chat2.CreateConversationPayload
@@ -135,6 +136,7 @@ export type TypedActionsMap = {
   'chat2:attachmentLoading': chat2.AttachmentLoadingPayload
   'chat2:attachmentDownloaded': chat2.AttachmentDownloadedPayload
   'chat2:attachmentsUpload': chat2.AttachmentsUploadPayload
+  'chat2:attachFromDragAndDrop': chat2.AttachFromDragAndDropPayload
   'chat2:attachmentUploading': chat2.AttachmentUploadingPayload
   'chat2:attachmentUploaded': chat2.AttachmentUploadedPayload
   'chat2:attachmentPasted': chat2.AttachmentPastedPayload
@@ -316,6 +318,7 @@ export type TypedActionsMap = {
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:runFileOperation': crypto.RunFileOperationPayload
   'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
   'crypto:saltpackDecrypt': crypto.SaltpackDecryptPayload
@@ -399,6 +402,8 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
   'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
+  'engine-gen:chat1NotifyChatChatWelcomeMessageLoaded': enginegen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
+  'engine-gen:chat1NotifyChatChatParticipantsInfo': enginegen.Chat1NotifyChatChatParticipantsInfoPayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -499,7 +504,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
   'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccess': enginegen.Keybase1PgpUiOutputSignatureSuccessPayload
-  'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase': enginegen.Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
+  'engine-gen:keybase1PgpUiOutputSignatureNonKeybase': enginegen.Keybase1PgpUiOutputSignatureNonKeybasePayload
   'engine-gen:keybase1PgpUiKeyGenerated': enginegen.Keybase1PgpUiKeyGeneratedPayload
   'engine-gen:keybase1PgpUiShouldPushPrivate': enginegen.Keybase1PgpUiShouldPushPrivatePayload
   'engine-gen:keybase1PgpUiFinished': enginegen.Keybase1PgpUiFinishedPayload
@@ -564,6 +569,7 @@ export type TypedActionsMap = {
   'fs:shareNative': fs.ShareNativePayload
   'fs:saveMedia': fs.SaveMediaPayload
   'fs:upload': fs.UploadPayload
+  'fs:uploadFromDragAndDrop': fs.UploadFromDragAndDropPayload
   'fs:uploadStarted': fs.UploadStartedPayload
   'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
   'fs:journalUpdate': fs.JournalUpdatePayload
@@ -600,15 +606,10 @@ export type TypedActionsMap = {
   'fs:setMoveOrCopySource': fs.SetMoveOrCopySourcePayload
   'fs:setDestinationPickerParentPath': fs.SetDestinationPickerParentPathPayload
   'fs:showMoveOrCopy': fs.ShowMoveOrCopyPayload
-  'fs:setIncomingShareLocalPath': fs.SetIncomingShareLocalPathPayload
+  'fs:setIncomingShareSource': fs.SetIncomingShareSourcePayload
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
-  'fs:initSendAttachmentToChat': fs.InitSendAttachmentToChatPayload
-  'fs:setSendAttachmentToChatConvID': fs.SetSendAttachmentToChatConvIDPayload
-  'fs:setSendAttachmentToChatFilter': fs.SetSendAttachmentToChatFilterPayload
-  'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
-  'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
@@ -896,6 +897,7 @@ export type TypedActionsMap = {
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
   'teams:getChannelInfo': teams.GetChannelInfoPayload
   'teams:getChannels': teams.GetChannelsPayload
+  'teams:setChannelSelected': teams.SetChannelSelectedPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:loadTeam': teams.LoadTeamPayload
@@ -904,6 +906,7 @@ export type TypedActionsMap = {
   'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
+  'teams:setMemberSelected': teams.SetMemberSelectedPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload
@@ -927,6 +930,7 @@ export type TypedActionsMap = {
   'teams:setMemberPublicity': teams.SetMemberPublicityPayload
   'teams:setPublicity': teams.SetPublicityPayload
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
+  'teams:setWelcomeMessageError': teams.SetWelcomeMessageErrorPayload
   'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
   'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
@@ -959,9 +963,14 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
+  'teams:setWelcomeMessage': teams.SetWelcomeMessagePayload
+  'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
+  'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
+  'teams:showTeamByName': teams.ShowTeamByNamePayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
+  'tracker2:updateUserReset': tracker2.UpdateUserResetPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
   'tracker2:closeTracker': tracker2.CloseTrackerPayload
   'tracker2:updateAssertion': tracker2.UpdateAssertionPayload

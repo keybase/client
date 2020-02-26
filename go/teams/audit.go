@@ -2,9 +2,7 @@ package teams
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"math/big"
 	"sort"
 	"sync"
 	"time"
@@ -127,10 +125,27 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) {
 // current one. headMerkleSeqno is is the Merkle Root claimed in the head of the team.
 // maxSeqno is the maximum seqno of the chainLinks passed; that is, the highest
 // Seqno for which chain[s] is defined.
-func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
+func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID,
+	hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno,
+	lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 
 	m = m.WithLogTag("AUDIT")
 	defer m.TraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
+	defer m.PerfTrace(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Audited team %s", id)
+		} else {
+			message = fmt.Sprintf("Failed auditing %s", id)
+		}
+		m.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_TEAMAUDIT,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
 
 	if id.IsPublic() != isPublic {
 		return NewBadPublicError(id, isPublic)
@@ -436,13 +451,9 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 }
 
 // randSeqno picks a random number in [lo,hi] inclusively.
-func randSeqno(lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
-	rangeBig := big.NewInt(int64(hi - lo + 1))
-	n, err := rand.Int(rand.Reader, rangeBig)
-	if err != nil {
-		return keybase1.Seqno(0), err
-	}
-	return keybase1.Seqno(n.Int64()) + lo, nil
+func randSeqno(m libkb.MetaContext, lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
+	s, err := m.G().GetRandom().RndRange(int64(lo), int64(hi))
+	return keybase1.Seqno(s), err
 }
 
 type probeTuple struct {
@@ -484,7 +495,7 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase
 	}
 	currentProbesWanted := n - len(probesToRetry)
 	for i := 0; i < currentProbesWanted; i++ {
-		x, err := randSeqno(left, right)
+		x, err := randSeqno(m, left, right)
 		if err != nil {
 			return nil, err
 		}

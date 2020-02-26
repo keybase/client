@@ -654,4 +654,15 @@ protocol SimpleFS {
 
   void simpleFSUserIn(string clientID);
   void simpleFSUserOut(string clientID);
+
+  record SimpleFSSearchHit {
+     string path;
+  }
+
+  record SimpleFSSearchResults {
+     array<SimpleFSSearchHit> hits;
+     int nextResult; // -1 if no more results
+  }
+
+  SimpleFSSearchResults simpleFSSearch(string query, int numResults, int startingFrom);
 }

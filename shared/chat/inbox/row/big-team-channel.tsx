@@ -23,7 +23,7 @@ const BigTeamChannel = (props: Props) => {
   const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
   const isSelected = Container.useSelector(
-    state => !Container.isMobile && Constants.getSelectedConversation(state) === conversationIDKey
+    state => !Container.isPhone && Constants.getSelectedConversation(state) === conversationIDKey
   )
 
   const onSelectConversation = () =>
@@ -166,14 +166,14 @@ const styles = Styles.styleSheetCreate(() => ({
   textError: {color: Styles.globalColors.redDark},
   textPlain: Styles.platformStyles({
     common: {color: Styles.globalColors.black_63},
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+    isPhone: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   textPlainBold: Styles.platformStyles({
     common: {
       color: Styles.globalColors.blackOrWhite,
       ...Styles.globalStyles.fontBold,
     },
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+    isPhone: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   textSelected: {color: Styles.globalColors.white},
   textSelectedBold: {

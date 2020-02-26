@@ -78,6 +78,16 @@ func (t *testTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gr
 	return res, nil
 }
 
+func (t *testTeamChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType) (gregor1.Time, error) {
+	return 0, fmt.Errorf("testTeamChannelSource.GetLastActiveForTLF not implemented")
+}
+
+func (t *testTeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID,
+	topicType chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error) {
+	return nil, fmt.Errorf("testTeamChannelSource.GetLastActiveForTeams not implemented")
+}
+
 func (t *testTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID,
 	teamID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error) {
 	return "", fmt.Errorf("testTeamChannelSource.GetChannelTopicName not implemented")
@@ -86,6 +96,22 @@ func (t *testTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gre
 func (t *testTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
 	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
 	return res, nil
+}
+
+func (t *testTeamChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error) {
+	return 0, nil
+}
+
+func (t *testTeamChannelSource) GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error) {
+	return 0, nil
+}
+
+func (t *testTeamChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
+	return nil
+}
+
+func (t *testTeamChannelSource) OnLogout(mctx libkb.MetaContext) error {
+	return nil
 }
 
 func TestParseChannelNameMentions(t *testing.T) {
@@ -893,7 +919,7 @@ func TestPresentConversationParticipantsLocal(t *testing.T) {
 			Username: "example@twitter",
 		},
 	}
-	res := presentConversationParticipantsLocal(context.TODO(), rawParticipants)
+	res := PresentConversationParticipantsLocal(context.TODO(), rawParticipants)
 
 	require.Equal(t, res[0].ContactName, &tofurkeyhq)
 	require.Equal(t, res[0].Type, chat1.UIParticipantType_EMAIL)

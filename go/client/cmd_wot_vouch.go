@@ -67,23 +67,28 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	}
 	via := ctx.String("verified-via")
 	if via != "" {
-		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToUpper(via)]
+		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToLower(via)]
 		if !ok {
 			return errors.New("invalid verified-via option")
 		}
 		c.confidence.UsernameVerifiedVia = viaType
 	}
-	c.confidence.VouchedBy = strings.Split(ctx.String("vouched-by"), ",")
+	vouchingUsernames := strings.Split(ctx.String("vouched-by"), ",")
+	var vouchers []keybase1.UID
+	for _, username := range vouchingUsernames {
+		uid := libkb.UsernameToUID(username)
+		vouchers = append(vouchers, uid)
+	}
+	c.confidence.VouchedBy = vouchers
 	c.confidence.Other = ctx.String("other")
-
 	return nil
 }
 
 func (c *cmdWotVouch) Run() error {
 	arg := keybase1.WotVouchCLIArg{
-		Assertion:    c.assertion,
-		Attestations: []string{c.message},
-		Confidence:   c.confidence,
+		Assertion:  c.assertion,
+		VouchTexts: []string{c.message},
+		Confidence: c.confidence,
 	}
 
 	cli, err := GetWebOfTrustClient(c.G())

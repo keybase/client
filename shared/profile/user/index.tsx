@@ -232,7 +232,6 @@ class FriendRow extends React.Component<FriendRowProps> {
   }
 
   render() {
-    console.warn('in render, usernames', this.props.usernames)
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
         {this.props.usernames.map(u => (

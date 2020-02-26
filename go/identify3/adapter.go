@@ -12,7 +12,7 @@ import (
 )
 
 // UIAdapter converts between the Identify2 UI that Identify2 engine expects, and the
-// Identify3UI interface that the frontend is soon to implement. It's going to maintain the
+// Identify3UI interface that the frontend implements. It's maintains the
 // state machine that was previously implemented in JS.
 type UIAdapter struct {
 	sync.Mutex

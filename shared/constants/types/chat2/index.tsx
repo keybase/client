@@ -2,7 +2,7 @@ import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCTypes from '../rpc-gen'
 import * as Common from './common'
 import * as Meta from './meta'
-import * as Message from './message'
+import * as _Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import * as Team from '../teams'
@@ -12,7 +12,7 @@ import {AmpTracker} from '../../../chat/audio/amptracker'
 export type QuoteInfo = {
   // Always positive and monotonically increasing.
   counter: number
-  ordinal: Message.Ordinal
+  ordinal: _Message.Ordinal
   sourceConversationIDKey: Common.ConversationIDKey
   targetConversationIDKey: Common.ConversationIDKey
 }
@@ -24,7 +24,7 @@ export type PaymentConfirmInfo = {
 
 // Static config data we use for various things
 export type StaticConfig = {
-  deletableByDeleteHistory: Set<Message.MessageType>
+  deletableByDeleteHistory: Set<_Message.MessageType>
   builtinCommands: {
     [K in RPCChatTypes.ConversationBuiltinCommandTyp]: Array<RPCChatTypes.ConversationCommand>
   }
@@ -37,7 +37,7 @@ export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
 
 export type ThreadSearchInfo = {
   status: ThreadSearchStatus
-  hits: Array<Message.Message>
+  hits: Array<_Message.Message>
   visible: boolean
 }
 
@@ -90,7 +90,7 @@ export type Focus = 'filter' | null
 export type CenterOrdinalHighlightMode = 'none' | 'flash' | 'always'
 
 export type CenterOrdinal = {
-  ordinal: Message.Ordinal
+  ordinal: _Message.Ordinal
   highlightMode: CenterOrdinalHighlightMode
 }
 
@@ -98,13 +98,13 @@ export type AttachmentViewStatus = 'loading' | 'success' | 'error'
 
 export type AttachmentViewInfo = {
   status: AttachmentViewStatus
-  messages: Array<Message.Message>
+  messages: Array<_Message.Message>
   last: boolean
 }
 
 export type AttachmentFullscreenSelection = {
   autoPlay: boolean
-  message: Message.Message
+  message: _Message.Message
 }
 
 export type CommandStatusInfo = {
@@ -171,15 +171,15 @@ export type CreateConversationError = {
 }
 
 export type ParticipantInfo = {
-  all: Array<string>
-  name: Array<string>
-  contactName: Map<string, string>
+  all: Array<string> // all member usernames, including bots
+  name: Array<string> // member usernames not including bots
+  contactName: Map<string, string> // member username -> contact name
 }
 
 export type State = {
   readonly accountsInfoMap: Map<
     Common.ConversationIDKey,
-    Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
+    Map<RPCChatTypes.MessageID, _Message.ChatRequestInfo | _Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
   readonly attachmentViewMap: Map<
     Common.ConversationIDKey,
@@ -195,7 +195,7 @@ export type State = {
     RPCChatTypes.UIBotCommandsUpdateStatusTyp
   >
   readonly botPublicCommands: Map<string, BotPublicCommands>
-  readonly botSearchResults?: BotSearchResults
+  readonly botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
   readonly botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   readonly botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | null>>
   readonly channelSearchText: string
@@ -205,7 +205,7 @@ export type State = {
   readonly createConversationError: CreateConversationError | null
   readonly dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   readonly draftMap: Map<Common.ConversationIDKey, string>
-  readonly editingMap: Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
+  readonly editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,
   readonly explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
   readonly explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   readonly featuredBotsMap: Map<string, RPCTypes.FeaturedBot>
@@ -228,20 +228,20 @@ export type State = {
   readonly lastCoord?: Coordinate
   readonly maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   readonly messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
-  readonly messageMap: Map<Common.ConversationIDKey, Map<Message.Ordinal, Message.Message>> // messages in a thread,
-  readonly messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
+  readonly messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,
+  readonly messageOrdinals: Map<Common.ConversationIDKey, Set<_Message.Ordinal>> // ordered ordinals in a thread,
   readonly metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   readonly moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   readonly mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   readonly orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   readonly participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   readonly paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
-  readonly paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
-  readonly pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
+  readonly paymentStatusMap: Map<Wallet.PaymentID, _Message.ChatPaymentInfo>
+  readonly pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   readonly prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
   readonly previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   readonly quote?: QuoteInfo // last quoted message,
-  readonly replyToMap: Map<Common.ConversationIDKey, Message.Ordinal>
+  readonly replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
   readonly selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
   readonly smallTeamsExpanded: boolean // if we're showing all small teams,
   readonly staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
@@ -252,7 +252,7 @@ export type State = {
   readonly threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
   readonly trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   readonly typingMap: Map<Common.ConversationIDKey, Set<string>> // who's typing currently,
-  readonly unfurlPromptMap: Map<Common.ConversationIDKey, Map<Message.MessageID, Set<string>>>
+  readonly unfurlPromptMap: Map<Common.ConversationIDKey, Map<_Message.MessageID, Set<string>>>
   readonly unreadMap: ConversationCountMap // how many unread messages there are,
   readonly unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
   readonly userReacjis: UserReacjis
@@ -264,11 +264,11 @@ export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID)
 export const keyToConversationID = (key: Common.ConversationIDKey): RPCChatTypes.ConversationID =>
   Buffer.from(Common.conversationIDKeyToString(key), 'hex')
 
-export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.OutboxID =>
-  Message.stringToOutboxID(outboxID.toString('hex'))
+export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): _Message.OutboxID =>
+  _Message.stringToOutboxID(outboxID.toString('hex'))
 
-export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
-  Buffer.from(Message.outboxIDToString(outboxID), 'hex')
+export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): RPCChatTypes.OutboxID =>
+  Buffer.from(_Message.outboxIDToString(outboxID), 'hex')
 
 // meta passthroughs
 export type ConversationMeta = Meta.ConversationMeta
@@ -278,45 +278,45 @@ export type NotificationsType = Meta.NotificationsType
 export type TeamType = Meta.TeamType
 
 // message passthroughs
-export type AttachmentType = Message.AttachmentType
-export type ChatPaymentInfo = Message.ChatPaymentInfo
-export type ChatRequestInfo = Message.ChatRequestInfo
-export type MessagesWithReactions = Message.MessagesWithReactions
-export type MentionsAt = Message.MentionsAt
-export type MentionsChannel = Message.MentionsChannel
-export type MentionsChannelName = Message.MentionsChannelName
-export type Message = Message.Message
-export type MessageAttachmentTransferState = Message.MessageAttachmentTransferState
-export type MessageAttachment = Message.MessageAttachment
-export type MessageExplodeDescription = Message.MessageExplodeDescription
-export type MessageID = Message.MessageID
-export type MessageRequestPayment = Message.MessageRequestPayment
-export type MessageSendPayment = Message.MessageSendPayment
-export type MessageSetChannelname = Message.MessageSetChannelname
-export type MessageSetDescription = Message.MessageSetDescription
-export type MessagePin = Message.MessagePin
-export type MessageSystemAddedToTeam = Message.MessageSystemAddedToTeam
-export type MessageSystemCreateTeam = Message.MessageSystemCreateTeam
-export type MessageSystemChangeRetention = Message.MessageSystemChangeRetention
-export type MessageSystemGitPush = Message.MessageSystemGitPush
-export type MessageSystemInviteAccepted = Message.MessageSystemInviteAccepted
-export type MessageSystemJoined = Message.MessageSystemJoined
-export type MessageSystemLeft = Message.MessageSystemLeft
-export type MessageSystemSBSResolved = Message.MessageSystemSBSResolved
-export type MessageSystemSimpleToComplex = Message.MessageSystemSimpleToComplex
-export type MessageSystemText = Message.MessageSystemText
-export type MessageSystemUsersAddedToConversation = Message.MessageSystemUsersAddedToConversation
-export type MessageSystemChangeAvatar = Message.MessageSystemChangeAvatar
-export type MessageSystemNewChannel = Message.MessageSystemNewChannel
-export type MessageJourneycard = Message.MessageJourneycard
-export type MessageText = Message.MessageText
-export type MessageType = Message.MessageType
-export type Ordinal = Message.Ordinal
-export type OutboxID = Message.OutboxID
-export type PathAndOutboxID = Message.PathAndOutboxID
-export type PreviewSpec = Message.PreviewSpec
-export type Reaction = Message.Reaction
-export type Reactions = Message.Reactions
+export type AttachmentType = _Message.AttachmentType
+export type ChatPaymentInfo = _Message.ChatPaymentInfo
+export type ChatRequestInfo = _Message.ChatRequestInfo
+export type MessagesWithReactions = _Message.MessagesWithReactions
+export type MentionsAt = _Message.MentionsAt
+export type MentionsChannel = _Message.MentionsChannel
+export type MentionsChannelName = _Message.MentionsChannelName
+export type Message = _Message.Message
+export type MessageAttachmentTransferState = _Message.MessageAttachmentTransferState
+export type MessageAttachment = _Message.MessageAttachment
+export type MessageExplodeDescription = _Message.MessageExplodeDescription
+export type MessageID = _Message.MessageID
+export type MessageRequestPayment = _Message.MessageRequestPayment
+export type MessageSendPayment = _Message.MessageSendPayment
+export type MessageSetChannelname = _Message.MessageSetChannelname
+export type MessageSetDescription = _Message.MessageSetDescription
+export type MessagePin = _Message.MessagePin
+export type MessageSystemAddedToTeam = _Message.MessageSystemAddedToTeam
+export type MessageSystemCreateTeam = _Message.MessageSystemCreateTeam
+export type MessageSystemChangeRetention = _Message.MessageSystemChangeRetention
+export type MessageSystemGitPush = _Message.MessageSystemGitPush
+export type MessageSystemInviteAccepted = _Message.MessageSystemInviteAccepted
+export type MessageSystemJoined = _Message.MessageSystemJoined
+export type MessageSystemLeft = _Message.MessageSystemLeft
+export type MessageSystemSBSResolved = _Message.MessageSystemSBSResolved
+export type MessageSystemSimpleToComplex = _Message.MessageSystemSimpleToComplex
+export type MessageSystemText = _Message.MessageSystemText
+export type MessageSystemUsersAddedToConversation = _Message.MessageSystemUsersAddedToConversation
+export type MessageSystemNewChannel = _Message.MessageSystemNewChannel
+export type MessageSystemChangeAvatar = _Message.MessageSystemChangeAvatar
+export type MessageJourneycard = _Message.MessageJourneycard
+export type MessageText = _Message.MessageText
+export type MessageType = _Message.MessageType
+export type Ordinal = _Message.Ordinal
+export type OutboxID = _Message.OutboxID
+export type PathAndOutboxID = _Message.PathAndOutboxID
+export type PreviewSpec = _Message.PreviewSpec
+export type Reaction = _Message.Reaction
+export type Reactions = _Message.Reactions
 
 // common passthroughs
 export type ConversationIDKey = Common.ConversationIDKey

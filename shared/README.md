@@ -13,10 +13,12 @@ If you really want to install Keybase, please return to the [top level Readme.md
 ## Keybase
 
 ### Install
+Run within the `shared/` directory.
 
 ```sh
-yarn install
+yarn modules
 ```
+Which is just an alias to run `yarn install --pure-lockfile --ignore-optional`. 
 
 ### Desktop
 
@@ -38,6 +40,7 @@ You can set environment variables for debugging:
 |---------|-------------|
 | KEYBASE_RUN_MODE | Run mode: prod, staging, devel |
 | NO_DASHBOARD | Don't show dashboard |
+| KEYBASE_DEVEL_USE_XDG | Force Keybase to use XDG paths, can fix service socket location issues on Linux |
 
 You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
 `$HOME/.cache/keybase/keybase.app.debug` on Linux, or

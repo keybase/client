@@ -12,11 +12,12 @@ import (
 )
 
 type CurrentStatus struct {
-	Configured     bool  `codec:"configured" json:"configured"`
-	Registered     bool  `codec:"registered" json:"registered"`
-	LoggedIn       bool  `codec:"loggedIn" json:"loggedIn"`
-	SessionIsValid bool  `codec:"sessionIsValid" json:"sessionIsValid"`
-	User           *User `codec:"user,omitempty" json:"user,omitempty"`
+	Configured     bool   `codec:"configured" json:"configured"`
+	Registered     bool   `codec:"registered" json:"registered"`
+	LoggedIn       bool   `codec:"loggedIn" json:"loggedIn"`
+	SessionIsValid bool   `codec:"sessionIsValid" json:"sessionIsValid"`
+	User           *User  `codec:"user,omitempty" json:"user,omitempty"`
+	DeviceName     string `codec:"deviceName" json:"deviceName"`
 }
 
 func (o CurrentStatus) DeepCopy() CurrentStatus {
@@ -32,6 +33,7 @@ func (o CurrentStatus) DeepCopy() CurrentStatus {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.User),
+		DeviceName: o.DeviceName,
 	}
 }
 
@@ -334,6 +336,7 @@ type KbServiceStatus struct {
 	Pid     string `codec:"pid" json:"pid"`
 	Log     string `codec:"log" json:"log"`
 	EkLog   string `codec:"ekLog" json:"ekLog"`
+	PerfLog string `codec:"perfLog" json:"perfLog"`
 }
 
 func (o KbServiceStatus) DeepCopy() KbServiceStatus {
@@ -343,6 +346,7 @@ func (o KbServiceStatus) DeepCopy() KbServiceStatus {
 		Pid:     o.Pid,
 		Log:     o.Log,
 		EkLog:   o.EkLog,
+		PerfLog: o.PerfLog,
 	}
 }
 
@@ -865,7 +869,8 @@ type IsKBFSRunningArg struct {
 }
 
 type GetNetworkStatsArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID  int           `codec:"sessionID" json:"sessionID"`
+	NetworkSrc NetworkSource `codec:"networkSrc" json:"networkSrc"`
 }
 
 type LogSendArg struct {
@@ -989,7 +994,7 @@ type ConfigInterface interface {
 	GetFullStatus(context.Context, int) (*FullStatus, error)
 	IsServiceRunning(context.Context, int) (bool, error)
 	IsKBFSRunning(context.Context, int) (bool, error)
-	GetNetworkStats(context.Context, int) ([]InstrumentationStat, error)
+	GetNetworkStats(context.Context, GetNetworkStatsArg) ([]InstrumentationStat, error)
 	LogSend(context.Context, LogSendArg) (LogSendID, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
@@ -1116,7 +1121,7 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetNetworkStatsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetNetworkStats(ctx, typedArgs[0].SessionID)
+					ret, err = i.GetNetworkStats(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1533,8 +1538,7 @@ func (c ConfigClient) IsKBFSRunning(ctx context.Context, sessionID int) (res boo
 	return
 }
 
-func (c ConfigClient) GetNetworkStats(ctx context.Context, sessionID int) (res []InstrumentationStat, err error) {
-	__arg := GetNetworkStatsArg{SessionID: sessionID}
+func (c ConfigClient) GetNetworkStats(ctx context.Context, __arg GetNetworkStatsArg) (res []InstrumentationStat, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getNetworkStats", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

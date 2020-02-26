@@ -270,11 +270,10 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	// Make standalone user without gregor, we want to handle seitan
 	// requests manually so we are sure that we get all 4 of them batched
 	// in one Handle call.
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+	ann := makeUserStandalone(t, tt, "ann", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
-	tt.users = append(tt.users, ann)
 
 	bee := tt.addUser("bee")
 	dan := tt.addUser("dan")

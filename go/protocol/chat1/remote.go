@@ -1251,6 +1251,118 @@ func (o BotInfoHash) DeepCopy() BotInfoHash {
 	})(o)
 }
 
+type GetDefaultTeamChannelsRes struct {
+	Convs     []ConversationID `codec:"convs" json:"convs"`
+	RateLimit *RateLimit       `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetDefaultTeamChannelsRes) DeepCopy() GetDefaultTeamChannelsRes {
+	return GetDefaultTeamChannelsRes{
+		Convs: (func(x []ConversationID) []ConversationID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Convs),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type SetDefaultTeamChannelsRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o SetDefaultTeamChannelsRes) DeepCopy() SetDefaultTeamChannelsRes {
+	return SetDefaultTeamChannelsRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type GetRecentJoinsRes struct {
+	NumJoins  int        `codec:"numJoins" json:"numJoins"`
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetRecentJoinsRes) DeepCopy() GetRecentJoinsRes {
+	return GetRecentJoinsRes{
+		NumJoins: o.NumJoins,
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type RefreshParticipantsRemoteRes struct {
+	HashMatch bool          `codec:"hashMatch" json:"hashMatch"`
+	Uids      []gregor1.UID `codec:"uids" json:"uids"`
+	Hash      string        `codec:"hash" json:"hash"`
+	RateLimit *RateLimit    `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o RefreshParticipantsRemoteRes) DeepCopy() RefreshParticipantsRemoteRes {
+	return RefreshParticipantsRemoteRes{
+		HashMatch: o.HashMatch,
+		Uids: (func(x []gregor1.UID) []gregor1.UID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]gregor1.UID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Uids),
+		Hash: o.Hash,
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type GetLastActiveAtRes struct {
+	LastActiveAt gregor1.Time `codec:"lastActiveAt" json:"lastActiveAt"`
+	RateLimit    *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetLastActiveAtRes) DeepCopy() GetLastActiveAtRes {
+	return GetLastActiveAtRes{
+		LastActiveAt: o.LastActiveAt.DeepCopy(),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -1294,6 +1406,7 @@ type NewConversationRemote2Arg struct {
 	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
 	TopicNameState   *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
 	MemberSourceConv *ConversationID         `codec:"memberSourceConv,omitempty" json:"memberSourceConv,omitempty"`
+	RetentionPolicy  *RetentionPolicy        `codec:"retentionPolicy,omitempty" json:"retentionPolicy,omitempty"`
 }
 
 type GetMessagesRemoteArg struct {
@@ -1334,20 +1447,22 @@ type SyncInboxArg struct {
 }
 
 type SyncChatArg struct {
-	Vers             InboxVers `codec:"vers" json:"vers"`
-	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	Vers             InboxVers             `codec:"vers" json:"vers"`
+	SummarizeMaxMsgs bool                  `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ParticipantsMode InboxParticipantsMode `codec:"participantsMode" json:"participantsMode"`
 }
 
 type SyncAllArg struct {
-	Uid              gregor1.UID          `codec:"uid" json:"uid"`
-	DeviceID         gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	Session          gregor1.SessionToken `codec:"session" json:"session"`
-	InboxVers        InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Ctime            gregor1.Time         `codec:"ctime" json:"ctime"`
-	Fresh            bool                 `codec:"fresh" json:"fresh"`
-	ProtVers         SyncAllProtVers      `codec:"protVers" json:"protVers"`
-	HostName         string               `codec:"hostName" json:"hostName"`
-	SummarizeMaxMsgs bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	Uid              gregor1.UID           `codec:"uid" json:"uid"`
+	DeviceID         gregor1.DeviceID      `codec:"deviceID" json:"deviceID"`
+	Session          gregor1.SessionToken  `codec:"session" json:"session"`
+	InboxVers        InboxVers             `codec:"inboxVers" json:"inboxVers"`
+	Ctime            gregor1.Time          `codec:"ctime" json:"ctime"`
+	Fresh            bool                  `codec:"fresh" json:"fresh"`
+	ProtVers         SyncAllProtVers       `codec:"protVers" json:"protVers"`
+	HostName         string                `codec:"hostName" json:"hostName"`
+	SummarizeMaxMsgs bool                  `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ParticipantsMode InboxParticipantsMode `codec:"participantsMode" json:"participantsMode"`
 }
 
 type TlfFinalizeArg struct {
@@ -1397,7 +1512,6 @@ type GetTLFConversationsArg struct {
 	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
 	TopicType        TopicType `codec:"topicType" json:"topicType"`
 	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
-	UseCache         bool      `codec:"useCache" json:"useCache"`
 }
 
 type SetAppNotificationSettingsArg struct {
@@ -1484,6 +1598,29 @@ type GetBotInfoArg struct {
 	ClientHashVers BotInfoHashVers `codec:"clientHashVers" json:"clientHashVers"`
 }
 
+type GetDefaultTeamChannelsArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
+type SetDefaultTeamChannelsArg struct {
+	TeamID keybase1.TeamID  `codec:"teamID" json:"teamID"`
+	Convs  []ConversationID `codec:"convs" json:"convs"`
+}
+
+type GetRecentJoinsArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type RefreshParticipantsRemoteArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Hash   string         `codec:"hash" json:"hash"`
+}
+
+type GetLastActiveAtArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1529,6 +1666,11 @@ type RemoteInterface interface {
 	AdvertiseBotCommands(context.Context, []RemoteBotCommandsAdvertisement) (AdvertiseBotCommandsRes, error)
 	ClearBotCommands(context.Context) (ClearBotCommandsRes, error)
 	GetBotInfo(context.Context, GetBotInfoArg) (GetBotInfoRes, error)
+	GetDefaultTeamChannels(context.Context, keybase1.TeamID) (GetDefaultTeamChannelsRes, error)
+	SetDefaultTeamChannels(context.Context, SetDefaultTeamChannelsArg) (SetDefaultTeamChannelsRes, error)
+	GetRecentJoins(context.Context, ConversationID) (GetRecentJoinsRes, error)
+	RefreshParticipantsRemote(context.Context, RefreshParticipantsRemoteArg) (RefreshParticipantsRemoteRes, error)
+	GetLastActiveAt(context.Context, GetLastActiveAtArg) (GetLastActiveAtRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -2180,6 +2322,81 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getDefaultTeamChannels": {
+				MakeArg: func() interface{} {
+					var ret [1]GetDefaultTeamChannelsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetDefaultTeamChannelsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetDefaultTeamChannelsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDefaultTeamChannels(ctx, typedArgs[0].TeamID)
+					return
+				},
+			},
+			"setDefaultTeamChannels": {
+				MakeArg: func() interface{} {
+					var ret [1]SetDefaultTeamChannelsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetDefaultTeamChannelsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetDefaultTeamChannelsArg)(nil), args)
+						return
+					}
+					ret, err = i.SetDefaultTeamChannels(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getRecentJoins": {
+				MakeArg: func() interface{} {
+					var ret [1]GetRecentJoinsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetRecentJoinsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetRecentJoinsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRecentJoins(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"refreshParticipantsRemote": {
+				MakeArg: func() interface{} {
+					var ret [1]RefreshParticipantsRemoteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RefreshParticipantsRemoteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RefreshParticipantsRemoteArg)(nil), args)
+						return
+					}
+					ret, err = i.RefreshParticipantsRemote(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getLastActiveAt": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveAtArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveAtArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveAtArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveAt(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2419,5 +2636,32 @@ func (c RemoteClient) ClearBotCommands(ctx context.Context) (res ClearBotCommand
 
 func (c RemoteClient) GetBotInfo(ctx context.Context, __arg GetBotInfoArg) (res GetBotInfoRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getBotInfo", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) GetDefaultTeamChannels(ctx context.Context, teamID keybase1.TeamID) (res GetDefaultTeamChannelsRes, err error) {
+	__arg := GetDefaultTeamChannelsArg{TeamID: teamID}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getDefaultTeamChannels", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) SetDefaultTeamChannels(ctx context.Context, __arg SetDefaultTeamChannelsArg) (res SetDefaultTeamChannelsRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setDefaultTeamChannels", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) GetRecentJoins(ctx context.Context, convID ConversationID) (res GetRecentJoinsRes, err error) {
+	__arg := GetRecentJoinsArg{ConvID: convID}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getRecentJoins", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) RefreshParticipantsRemote(ctx context.Context, __arg RefreshParticipantsRemoteArg) (res RefreshParticipantsRemoteRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.refreshParticipantsRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) GetLastActiveAt(ctx context.Context, __arg GetLastActiveAtArg) (res GetLastActiveAtRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getLastActiveAt", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

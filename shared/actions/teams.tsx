@@ -147,6 +147,34 @@ const leaveTeam = async (action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLog
 
 const leftTeam = () => RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
 
+const loadWelcomeMessage = async (action: TeamsGen.LoadWelcomeMessagePayload, logger: Saga.SagaLogger) => {
+  const {teamID} = action.payload
+  try {
+    const message = await RPCChatTypes.localGetWelcomeMessageRpcPromise(
+      {teamID},
+      Constants.loadWelcomeMessageWaitingKey(teamID)
+    )
+    return TeamsGen.createLoadedWelcomeMessage({message, teamID})
+  } catch (error) {
+    logger.error(error)
+    return TeamsGen.createSettingsError({error: error.desc})
+  }
+}
+
+const setWelcomeMessage = async (action: TeamsGen.SetWelcomeMessagePayload, logger: Saga.SagaLogger) => {
+  const {message, teamID} = action.payload
+  try {
+    await RPCChatTypes.localSetWelcomeMessageRpcPromise(
+      {message, teamID},
+      Constants.setWelcomeMessageWaitingKey(teamID)
+    )
+    return TeamsGen.createLoadWelcomeMessage({teamID})
+  } catch (error) {
+    logger.error(error)
+    return TeamsGen.createSetWelcomeMessageError({error: error.desc})
+  }
+}
+
 const getTeamRetentionPolicy = async (
   state: TypedState,
   action: TeamsGen.GetTeamRetentionPolicyPayload,
@@ -620,11 +648,10 @@ const getChannelInfo = async (
 
   const channelInfo = {
     channelname: meta.channelname,
+    conversationIDKey,
     description: meta.description,
-    hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
-    numParticipants: convs[0].participants?.length ?? 0,
   }
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamID})
@@ -657,11 +684,10 @@ const getChannels = async (
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
     channelInfos.set(convID, {
       channelname: conv.channel,
+      conversationIDKey: convID,
       description: conv.headline,
-      hasAllMembers: null,
       memberStatus: conv.memberStatus,
       mtime: conv.time,
-      numParticipants: (conv.participants || []).length,
     })
   })
 
@@ -1289,6 +1315,29 @@ function* teamBuildingSaga() {
   yield* Saga.chainAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
 }
 
+async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Saga.SagaLogger) {
+  const {teamname, initialTab, addMembers} = action.payload
+  let teamID: string
+  try {
+    teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
+  } catch (e) {
+    logger.info(`showTeamByName: team "${teamname}" cannot be loaded: ${e.toString()}`)
+    return null
+  }
+  return [
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {initialTab, teamID}, selected: 'team'}],
+    }),
+    ...(addMembers
+      ? [
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
+          }),
+        ]
+      : []),
+  ]
+}
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1365,6 +1414,11 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
+
+  yield* Saga.chainAction(TeamsGen.showTeamByName, showTeamByName)
+
+  yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
+  yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

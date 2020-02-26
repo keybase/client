@@ -1,0 +1,5 @@
+{
+  "assumeChangesOnlyAffectDirectDependencies": false,
+  "extends": "./tsconfig.base.json",
+  "include": ["./**/*"]
+}

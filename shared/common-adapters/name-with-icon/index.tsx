@@ -4,7 +4,7 @@ import Avatar, {AvatarSize} from '../avatar'
 import {Box} from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {IconType} from '../icon'
-import Text, {TextType, StylesTextCrossPlatform} from '../text'
+import Text, {TextType, StylesTextCrossPlatform, AllowedColors} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
@@ -17,7 +17,7 @@ export type NameWithIconProps = {
   botAlias?: string | React.ReactNode
   colorBroken?: boolean
   colorFollowing?: boolean
-  notFollowingColorOverride?: string
+  notFollowingColorOverride?: AllowedColors
   containerStyle?: Styles.StylesCrossPlatform
   editableIcon?: boolean
   hideFollowingOverlay?: boolean
@@ -60,7 +60,13 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     }
 
     const isAvatar = !!(this.props.username || this.props.teamname) && !this.props.icon
-    const commonHeight = Styles.isMobile ? 48 : 32
+    const commonHeight = Styles.isMobile
+      ? this.props.size === 'big'
+        ? 64
+        : 48
+      : this.props.size === 'big'
+      ? 48
+      : 32
     const BoxComponent = this.props.onClick ? ClickableBox : Box
     const adapterProps = getAdapterProps(this.props.size || 'default')
 
@@ -79,6 +85,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           teamname={this.props.teamname}
           style={Styles.collapseStyles([
             this.props.horizontal ? styles.hAvatarStyle : {},
+            this.props.horizontal && this.props.size === 'big' ? styles.hbAvatarStyle : {},
             this.props.avatarStyle,
           ])}
         />
@@ -90,7 +97,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           type={this.props.icon}
           style={
             this.props.horizontal
-              ? styles.hIconStyle
+              ? this.props.size === 'big'
+                ? styles.hbIconStyle
+                : styles.hIconStyle
               : {height: adapterProps.iconSize, width: adapterProps.iconSize}
           }
           fontSize={this.props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}
@@ -141,7 +150,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     )
     const botAlias = (
       <TextOrComponent
-        textType="BodySmall"
+        textType="Header"
         val={this.props.botAlias || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
@@ -163,7 +172,11 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       <BoxComponent
         onClick={this.props.onClick ? this._onClickWrapper : undefined}
         style={Styles.collapseStyles([
-          this.props.horizontal ? styles.hContainerStyle : styles.vContainerStyle,
+          this.props.horizontal
+            ? this.props.size === 'big'
+              ? styles.hbContainerStyle
+              : styles.hContainerStyle
+            : styles.vContainerStyle,
           this.props.containerStyle,
         ])}
       >
@@ -171,7 +184,11 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         <Box
           style={
             this.props.horizontal
-              ? Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, this.props.metaStyle])
+              ? Styles.collapseStyles([
+                  Styles.globalStyles.flexBoxColumn,
+                  styles.textContainer,
+                  this.props.metaStyle,
+                ])
               : Styles.collapseStyles([
                   Styles.globalStyles.flexBoxRow,
                   styles.metaStyle,
@@ -184,9 +201,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
                 ])
           }
         >
+          {botAlias}
           {usernameOrTitle}
           {metas}
-          {botAlias}
         </Box>
       </BoxComponent>
     )
@@ -223,11 +240,35 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
   },
-  hIconStyle: {
-    height: Styles.isMobile ? 48 : 32,
-    marginRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny,
-    width: Styles.isMobile ? 48 : 32,
+  hIconStyle: Styles.platformStyles({
+    isElectron: {
+      height: 32,
+      marginRight: Styles.globalMargins.tiny,
+      width: 32,
+    },
+    isMobile: {
+      height: 48,
+      marginRight: Styles.globalMargins.small,
+      width: 48,
+    },
+  }),
+  hbAvatarStyle: {
+    marginRight: Styles.globalMargins.small,
   },
+  hbContainerStyle: {
+    width: '100%',
+  },
+  hbIconStyle: Styles.platformStyles({
+    common: {marginRight: Styles.globalMargins.small},
+    isElectron: {
+      height: 48,
+      width: 48,
+    },
+    isMobile: {
+      height: 64,
+      width: 64,
+    },
+  }),
   metaStyle: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.flexBoxCenter,
@@ -246,6 +287,9 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 48,
     },
   }),
+  textContainer: {
+    flex: 1,
+  },
   vContainerStyle: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',

@@ -1,0 +1,18 @@
+@namespace("keybase.1")
+protocol incomingShare {
+  import idl "common.avdl";
+
+  enum IncomingShareType {
+    FILE_0,
+    TEXT_1,
+    IMAGE_2
+  }
+
+  record IncomingShareItem {
+    IncomingShareType type;
+    string payloadPath;
+    union {null, string} content;
+  }
+
+  array<IncomingShareItem> getIncomingShareItems();
+}

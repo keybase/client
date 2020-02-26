@@ -259,7 +259,7 @@ func TestTeamInviteSBSError(t *testing.T) {
 		assertionURL := assertionFromKV(t, key, value)
 		assertion := assertionURL.String()
 
-		_, err := teams.AddMemberByID(context.TODO(), ann.tc.G, teamID, assertion, keybase1.TeamRole_WRITER, nil)
+		_, err := teams.AddMemberByID(context.TODO(), ann.tc.G, teamID, assertion, keybase1.TeamRole_WRITER, nil, nil /* emailInviteMsg */)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error 602") // user cannot search for assertions
 	}

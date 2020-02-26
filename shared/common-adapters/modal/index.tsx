@@ -33,27 +33,39 @@ type FooterProps = {
 }
 
 type Props = {
+  allowOverflow?: boolean // desktop only
   banners?: React.ReactNode[]
   children: React.ReactNode
   header?: HeaderProps
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
-  mode: 'Default' | 'Wide'
+  mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
+  noScrollView?: boolean
+
+  // Desktop only popup overrides
+  popupStyleClose?: Styles.StylesCrossPlatform
+  popupStyleContainer?: Styles.StylesCrossPlatform
+  popupStyleCover?: Styles.StylesCrossPlatform
+  popupTabBarShim?: boolean
 }
 
 const ModalInner = (props: Props) => (
   <>
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
-    <Kb.ScrollView
-      alwaysBounceVertical={false}
-      style={styles.scroll}
-      contentContainerStyle={styles.scrollContentContainer}
-    >
-      {props.children}
-    </Kb.ScrollView>
+    {props.noScrollView ? (
+      props.children
+    ) : (
+      <Kb.ScrollView
+        alwaysBounceVertical={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContentContainer}
+      >
+        {props.children}
+      </Kb.ScrollView>
+    )}
     {!!props.footer && (
       <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
     )}
@@ -67,7 +79,14 @@ const Modal = (props: Props) =>
   ) : (
     <PopupDialog
       onClose={props.onClose}
-      styleClipContainer={props.mode === 'Default' ? styles.modeDefault : styles.modeWide}
+      styleClipContainer={Styles.collapseStyles([
+        clipContainerStyles[props.mode],
+        props.allowOverflow && styles.overflowVisible,
+      ])}
+      styleClose={props.popupStyleClose}
+      styleContainer={props.popupStyleContainer}
+      styleCover={props.popupStyleCover}
+      tabBarShim={props.popupTabBarShim}
     >
       <ModalInner {...props} />
     </PopupDialog>
@@ -265,6 +284,13 @@ const styles = Styles.styleSheetCreate(() => {
         width: 400,
       },
     }),
+    modeDefaultFullHeight: Styles.platformStyles({
+      isElectron: {
+        height: 560,
+        overflow: 'hidden',
+        width: 400,
+      },
+    }),
     modeWide: Styles.platformStyles({
       isElectron: {
         height: 400,
@@ -272,12 +298,29 @@ const styles = Styles.styleSheetCreate(() => {
         width: 560,
       },
     }),
+    overflowVisible: {overflow: 'visible'},
     scroll: Styles.platformStyles({
       isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
     }),
-    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
+    scrollContentContainer: Styles.platformStyles({
+      common: {
+        ...Styles.globalStyles.flexBoxColumn,
+        flexGrow: 1,
+        width: '100%',
+      },
+      isTablet: {
+        alignSelf: 'center',
+        maxWidth: 600,
+      },
+    }),
   }
 })
+
+const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
+  Default: styles.modeDefault,
+  DefaultFullHeight: styles.modeDefaultFullHeight,
+  Wide: styles.modeWide,
+}
 
 export default Modal
 export {Header}

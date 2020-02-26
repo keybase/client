@@ -29,6 +29,8 @@ func NewInitModeFromType(t InitModeType) InitMode {
 		return modeConstrained{modeDefault{}}
 	case InitMemoryLimited:
 		return modeMemoryLimited{modeConstrained{modeDefault{}}}
+	case InitTestSearch:
+		return modeTestSearch{modeDefault{}}
 	default:
 		panic(fmt.Sprintf("Unknown mode: %s", t))
 	}
@@ -185,6 +187,10 @@ func (md modeDefault) InitialDelayForBackgroundWork() time.Duration {
 
 func (md modeDefault) BackgroundWorkPeriod() time.Duration {
 	return 0
+}
+
+func (md modeDefault) IndexingEnabled() bool {
+	return false
 }
 
 func (md modeDefault) DbWriteBufferSize() int {
@@ -355,6 +361,10 @@ func (mm modeMinimal) InitialDelayForBackgroundWork() time.Duration {
 func (mm modeMinimal) BackgroundWorkPeriod() time.Duration {
 	// No background work
 	return math.MaxInt64
+}
+
+func (mm modeMinimal) IndexingEnabled() bool {
+	return false
 }
 
 func (mm modeMinimal) DbWriteBufferSize() int {
@@ -603,6 +613,14 @@ func (mml modeMemoryLimited) TLFEditHistoryEnabled() bool {
 
 func (mml modeMemoryLimited) DbWriteBufferSize() int {
 	return 1 * opt.KiB // 1 KB
+}
+
+type modeTestSearch struct {
+	InitMode
+}
+
+func (mts modeTestSearch) IndexingEnabled() bool {
+	return true
 }
 
 // Wrapper for tests.

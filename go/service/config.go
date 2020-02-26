@@ -187,10 +187,17 @@ func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bo
 	return kbfs != nil, nil
 }
 
-func (h ConfigHandler) GetNetworkStats(ctx context.Context, sessionID int) (res []keybase1.InstrumentationStat, err error) {
+func (h ConfigHandler) GetNetworkStats(ctx context.Context, arg keybase1.GetNetworkStatsArg) (res []keybase1.InstrumentationStat, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetNetworkStats", func() error { return err })()
-	return mctx.G().NetworkInstrumenterStorage.Stats()
+	switch arg.NetworkSrc {
+	case keybase1.NetworkSource_LOCAL:
+		return mctx.G().LocalNetworkInstrumenterStorage.Stats(ctx)
+	case keybase1.NetworkSource_REMOTE:
+		return mctx.G().RemoteNetworkInstrumenterStorage.Stats(ctx)
+	default:
+		return nil, fmt.Errorf("Unknown network source %d", arg.NetworkSrc)
+	}
 }
 
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
@@ -542,9 +549,9 @@ func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 		return err
 	}
 	if curValue {
-		<-h.svc.runtimeStats.Stop(ctx)
+		<-h.G().RuntimeStats.Stop(ctx)
 	} else {
-		h.svc.runtimeStats.Start(ctx)
+		h.G().RuntimeStats.Start(ctx)
 	}
 	return nil
 }

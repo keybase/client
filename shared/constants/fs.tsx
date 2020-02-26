@@ -1,8 +1,6 @@
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
-import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
 import * as Flow from '../util/flow'
 import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
@@ -204,14 +202,6 @@ export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   }
 }
 export const emptyError = makeError()
-
-export const emptySendAttachmentToChat: Types.SendAttachmentToChat = {
-  convID: ChatConstants.noConversationIDKey,
-  filter: '',
-  path: Types.stringToPath('/keybase'),
-  state: Types.SendAttachmentToChatState.None,
-  title: '',
-}
 
 export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
   downloadID: null,
@@ -761,11 +751,23 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
+export const getSharePathArrayDescription = (paths: Array<Types.LocalPath>): string => {
+  return !paths.length
+    ? '<empty>'
+    : paths.length === 1
+    ? Types.getPathName(paths[0])
+    : `${paths.length} items`
+}
+
 export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
   picker.source.type === Types.DestinationPickerSource.MoveOrCopy
     ? Types.getPathName(picker.source.path)
     : picker.source.type === Types.DestinationPickerSource.IncomingShare
-    ? Types.getLocalPathName(picker.source.localPath)
+    ? Array.isArray(picker.source.source)
+      ? getSharePathArrayDescription(
+          picker.source.source.map(({payloadPath}) => Types.getLocalPathName(payloadPath))
+        )
+      : picker.source.source
     : ''
 
 const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path): boolean => {
@@ -907,15 +909,6 @@ export const makeActionForOpenPathInFilesTab = (
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
-export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
-  FsGen.createInitSendAttachmentToChat({path}) as any,
-  putActionIfOnPathForNav1(
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {path}, selected: 'sendAttachmentToChat'}],
-    })
-  ),
-]
-
 export const getMainBannerType = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   overallSyncStatus: Types.OverallSyncStatus
@@ -1007,7 +1000,10 @@ export const hasSpecialFileElement = (path: Types.Path): boolean =>
 export const sfmiInfoLoaded = (settings: Types.Settings, driverStatus: Types.DriverStatus): boolean =>
   settings.loaded && driverStatus !== driverStatusUnknown
 
-export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
+export const erroredActionToMessage = (
+  action: any /*FsGen.Actions | EngineGen.Actions too complex*/,
+  error: string
+): string => {
   // We have FsError.expectedIfOffline now to take care of real offline
   // scenarios, but we still need to keep this timeout check here in case we
   // get a timeout error when we think we think we're online. In this case it's

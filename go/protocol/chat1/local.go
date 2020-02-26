@@ -1080,14 +1080,22 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 }
 
 type MessageReaction struct {
-	MessageID MessageID `codec:"m" json:"m"`
-	Body      string    `codec:"b" json:"b"`
+	MessageID MessageID    `codec:"m" json:"m"`
+	Body      string       `codec:"b" json:"b"`
+	TargetUID *gregor1.UID `codec:"t,omitempty" json:"t,omitempty"`
 }
 
 func (o MessageReaction) DeepCopy() MessageReaction {
 	return MessageReaction{
 		MessageID: o.MessageID.DeepCopy(),
 		Body:      o.Body,
+		TargetUID: (func(x *gregor1.UID) *gregor1.UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TargetUID),
 	}
 }
 
@@ -5191,6 +5199,40 @@ func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
 	}
 }
 
+type GetChannelMembershipsLocalRes struct {
+	Channels   []ChannelNameMention `codec:"channels" json:"channels"`
+	Offline    bool                 `codec:"offline" json:"offline"`
+	RateLimits []RateLimit          `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o GetChannelMembershipsLocalRes) DeepCopy() GetChannelMembershipsLocalRes {
+	return GetChannelMembershipsLocalRes{
+		Channels: (func(x []ChannelNameMention) []ChannelNameMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChannelNameMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Channels),
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type SetAppNotificationSettingsLocalRes struct {
 	Offline    bool        `codec:"offline" json:"offline"`
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
@@ -5358,6 +5400,34 @@ func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 			}
 			return ret
 		})(o.IdentifyFailures),
+	}
+}
+
+type SimpleSearchInboxConvNamesHit struct {
+	Name     string         `codec:"name" json:"name"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	IsTeam   bool           `codec:"isTeam" json:"isTeam"`
+	Parts    []string       `codec:"parts" json:"parts"`
+	TeamName string         `codec:"teamName" json:"teamName"`
+}
+
+func (o SimpleSearchInboxConvNamesHit) DeepCopy() SimpleSearchInboxConvNamesHit {
+	return SimpleSearchInboxConvNamesHit{
+		Name:   o.Name,
+		ConvID: o.ConvID.DeepCopy(),
+		IsTeam: o.IsTeam,
+		Parts: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Parts),
+		TeamName: o.TeamName,
 	}
 }
 
@@ -5957,6 +6027,76 @@ func (e SnippetDecoration) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type WelcomeMessageDisplay struct {
+	Set     bool   `codec:"set" json:"set"`
+	Display string `codec:"display" json:"display"`
+	Raw     string `codec:"raw" json:"raw"`
+}
+
+func (o WelcomeMessageDisplay) DeepCopy() WelcomeMessageDisplay {
+	return WelcomeMessageDisplay{
+		Set:     o.Set,
+		Display: o.Display,
+		Raw:     o.Raw,
+	}
+}
+
+type WelcomeMessage struct {
+	Set bool   `codec:"set" json:"set"`
+	Raw string `codec:"raw" json:"raw"`
+}
+
+func (o WelcomeMessage) DeepCopy() WelcomeMessage {
+	return WelcomeMessage{
+		Set: o.Set,
+		Raw: o.Raw,
+	}
+}
+
+type GetDefaultTeamChannelsLocalRes struct {
+	Convs     []InboxUIItem `codec:"convs" json:"convs"`
+	RateLimit *RateLimit    `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetDefaultTeamChannelsLocalRes) DeepCopy() GetDefaultTeamChannelsLocalRes {
+	return GetDefaultTeamChannelsLocalRes{
+		Convs: (func(x []InboxUIItem) []InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			ret := make([]InboxUIItem, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Convs),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type SetDefaultTeamChannelsLocalRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o SetDefaultTeamChannelsLocalRes) DeepCopy() SetDefaultTeamChannelsLocalRes {
+	return SetDefaultTeamChannelsLocalRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -6316,6 +6456,11 @@ type GetTLFConversationsLocalArg struct {
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
+type GetChannelMembershipsLocalArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+}
+
 type SetAppNotificationSettingsLocalArg struct {
 	ConvID      ConversationID                `codec:"convID" json:"convID"`
 	ChannelWide bool                          `codec:"channelWide" json:"channelWide"`
@@ -6387,6 +6532,10 @@ type SearchInboxArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type SimpleSearchInboxConvNamesArg struct {
+	Query string `codec:"query" json:"query"`
+}
+
 type CancelActiveSearchArg struct {
 }
 
@@ -6421,6 +6570,11 @@ type ToggleMessageCollapseArg struct {
 type BulkAddToConvArg struct {
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	Usernames []string       `codec:"usernames" json:"usernames"`
+}
+
+type BulkAddToManyConvsArg struct {
+	Conversations []ConversationID `codec:"conversations" json:"conversations"`
+	Usernames     []string         `codec:"usernames" json:"usernames"`
 }
 
 type PutReacjiSkinToneArg struct {
@@ -6529,6 +6683,44 @@ type DismissJourneycardArg struct {
 	CardType JourneycardType `codec:"cardType" json:"cardType"`
 }
 
+type SetWelcomeMessageArg struct {
+	TeamID  keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Message WelcomeMessage  `codec:"message" json:"message"`
+}
+
+type GetWelcomeMessageArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
+type GetDefaultTeamChannelsLocalArg struct {
+	TeamName string `codec:"teamName" json:"teamName"`
+}
+
+type SetDefaultTeamChannelsLocalArg struct {
+	TeamName string      `codec:"teamName" json:"teamName"`
+	Convs    []ConvIDStr `codec:"convs" json:"convs"`
+}
+
+type GetLastActiveForTLFArg struct {
+	TlfID TLFIDStr `codec:"tlfID" json:"tlfID"`
+}
+
+type GetLastActiveForTeamsArg struct {
+}
+
+type GetRecentJoinsLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type RefreshParticipantsArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type GetLastActiveAtLocalArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -6584,6 +6776,7 @@ type LocalInterface interface {
 	PreviewConversationByIDLocal(context.Context, ConversationID) (PreviewConversationLocalRes, error)
 	DeleteConversationLocal(context.Context, DeleteConversationLocalArg) (DeleteConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
+	GetChannelMembershipsLocal(context.Context, GetChannelMembershipsLocalArg) (GetChannelMembershipsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 	SetGlobalAppNotificationSettingsLocal(context.Context, map[string]bool) error
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
@@ -6598,6 +6791,7 @@ type LocalInterface interface {
 	SearchRegexp(context.Context, SearchRegexpArg) (SearchRegexpRes, error)
 	CancelActiveInboxSearch(context.Context) error
 	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
+	SimpleSearchInboxConvNames(context.Context, string) ([]SimpleSearchInboxConvNamesHit, error)
 	CancelActiveSearch(context.Context) error
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[ConvIDStr]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
@@ -6606,6 +6800,7 @@ type LocalInterface interface {
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
+	BulkAddToManyConvs(context.Context, BulkAddToManyConvsArg) error
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 	ResolveMaybeMention(context.Context, MaybeMention) error
 	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
@@ -6627,6 +6822,15 @@ type LocalInterface interface {
 	AddBotConvSearch(context.Context, string) ([]AddBotConvSearchHit, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
+	SetWelcomeMessage(context.Context, SetWelcomeMessageArg) error
+	GetWelcomeMessage(context.Context, keybase1.TeamID) (WelcomeMessageDisplay, error)
+	GetDefaultTeamChannelsLocal(context.Context, string) (GetDefaultTeamChannelsLocalRes, error)
+	SetDefaultTeamChannelsLocal(context.Context, SetDefaultTeamChannelsLocalArg) (SetDefaultTeamChannelsLocalRes, error)
+	GetLastActiveForTLF(context.Context, TLFIDStr) (LastActiveStatus, error)
+	GetLastActiveForTeams(context.Context) (map[TLFIDStr]LastActiveStatus, error)
+	GetRecentJoinsLocal(context.Context, ConversationID) (int, error)
+	RefreshParticipants(context.Context, ConversationID) error
+	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -7428,6 +7632,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getChannelMembershipsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetChannelMembershipsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetChannelMembershipsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetChannelMembershipsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetChannelMembershipsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"setAppNotificationSettingsLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]SetAppNotificationSettingsLocalArg
@@ -7623,6 +7842,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleSearchInboxConvNames": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleSearchInboxConvNamesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleSearchInboxConvNamesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleSearchInboxConvNamesArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleSearchInboxConvNames(ctx, typedArgs[0].Query)
+					return
+				},
+			},
 			"cancelActiveSearch": {
 				MakeArg: func() interface{} {
 					var ret [1]CancelActiveSearchArg
@@ -7725,6 +7959,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.BulkAddToConv(ctx, typedArgs[0])
+					return
+				},
+			},
+			"bulkAddToManyConvs": {
+				MakeArg: func() interface{} {
+					var ret [1]BulkAddToManyConvsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BulkAddToManyConvsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BulkAddToManyConvsArg)(nil), args)
+						return
+					}
+					err = i.BulkAddToManyConvs(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -8038,6 +8287,136 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setWelcomeMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]SetWelcomeMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetWelcomeMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetWelcomeMessageArg)(nil), args)
+						return
+					}
+					err = i.SetWelcomeMessage(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getWelcomeMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]GetWelcomeMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetWelcomeMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetWelcomeMessageArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWelcomeMessage(ctx, typedArgs[0].TeamID)
+					return
+				},
+			},
+			"getDefaultTeamChannelsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetDefaultTeamChannelsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetDefaultTeamChannelsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetDefaultTeamChannelsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDefaultTeamChannelsLocal(ctx, typedArgs[0].TeamName)
+					return
+				},
+			},
+			"setDefaultTeamChannelsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SetDefaultTeamChannelsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetDefaultTeamChannelsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetDefaultTeamChannelsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SetDefaultTeamChannelsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getLastActiveForTLF": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveForTLFArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveForTLFArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveForTLFArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveForTLF(ctx, typedArgs[0].TlfID)
+					return
+				},
+			},
+			"getLastActiveForTeams": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveForTeamsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetLastActiveForTeams(ctx)
+					return
+				},
+			},
+			"getRecentJoinsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetRecentJoinsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetRecentJoinsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetRecentJoinsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRecentJoinsLocal(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"refreshParticipants": {
+				MakeArg: func() interface{} {
+					var ret [1]RefreshParticipantsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RefreshParticipantsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RefreshParticipantsArg)(nil), args)
+						return
+					}
+					err = i.RefreshParticipants(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"getLastActiveAtLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveAtLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveAtLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveAtLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveAtLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -8326,6 +8705,11 @@ func (c LocalClient) GetTLFConversationsLocal(ctx context.Context, __arg GetTLFC
 	return
 }
 
+func (c LocalClient) GetChannelMembershipsLocal(ctx context.Context, __arg GetChannelMembershipsLocalArg) (res GetChannelMembershipsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getChannelMembershipsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c LocalClient) SetAppNotificationSettingsLocal(ctx context.Context, __arg SetAppNotificationSettingsLocalArg) (res SetAppNotificationSettingsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.setAppNotificationSettingsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
@@ -8399,6 +8783,12 @@ func (c LocalClient) SearchInbox(ctx context.Context, __arg SearchInboxArg) (res
 	return
 }
 
+func (c LocalClient) SimpleSearchInboxConvNames(ctx context.Context, query string) (res []SimpleSearchInboxConvNamesHit, err error) {
+	__arg := SimpleSearchInboxConvNamesArg{Query: query}
+	err = c.Cli.Call(ctx, "chat.1.local.simpleSearchInboxConvNames", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c LocalClient) CancelActiveSearch(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.cancelActiveSearch", []interface{}{CancelActiveSearchArg{}}, nil, 0*time.Millisecond)
 	return
@@ -8437,6 +8827,11 @@ func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMess
 
 func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) BulkAddToManyConvs(ctx context.Context, __arg BulkAddToManyConvsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToManyConvs", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -8550,5 +8945,55 @@ func (c LocalClient) TeamIDFromTLFName(ctx context.Context, __arg TeamIDFromTLFN
 
 func (c LocalClient) DismissJourneycard(ctx context.Context, __arg DismissJourneycardArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.dismissJourneycard", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) SetWelcomeMessage(ctx context.Context, __arg SetWelcomeMessageArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setWelcomeMessage", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res WelcomeMessageDisplay, err error) {
+	__arg := GetWelcomeMessageArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "chat.1.local.getWelcomeMessage", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetDefaultTeamChannelsLocal(ctx context.Context, teamName string) (res GetDefaultTeamChannelsLocalRes, err error) {
+	__arg := GetDefaultTeamChannelsLocalArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "chat.1.local.getDefaultTeamChannelsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) SetDefaultTeamChannelsLocal(ctx context.Context, __arg SetDefaultTeamChannelsLocalArg) (res SetDefaultTeamChannelsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setDefaultTeamChannelsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetLastActiveForTLF(ctx context.Context, tlfID TLFIDStr) (res LastActiveStatus, err error) {
+	__arg := GetLastActiveForTLFArg{TlfID: tlfID}
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTLF", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res map[TLFIDStr]LastActiveStatus, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTeams", []interface{}{GetLastActiveForTeamsArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetRecentJoinsLocal(ctx context.Context, convID ConversationID) (res int, err error) {
+	__arg := GetRecentJoinsLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.getRecentJoinsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RefreshParticipants(ctx context.Context, convID ConversationID) (err error) {
+	__arg := RefreshParticipantsArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.refreshParticipants", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActiveAtLocalArg) (res gregor1.Time, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -108,7 +108,7 @@ func FormatTime(tm time.Time) string {
 }
 
 func Cicmp(s1, s2 string) bool {
-	return strings.ToLower(s1) == strings.ToLower(s2)
+	return strings.EqualFold(s1, s2)
 }
 
 func TrimCicmp(s1, s2 string) bool {
@@ -332,6 +332,29 @@ func IsPossiblePhoneNumber(phone keybase1.PhoneNumber) error {
 	}
 	return nil
 }
+
+type Random interface {
+	// RndRange returns a uniformly random integer between low and high inclusive
+	RndRange(low, high int64) (res int64, err error)
+}
+
+// SecureRandom internally uses the cryptographically secure crypto/rand as a
+// source of randomness.
+type SecureRandom struct{}
+
+func (r *SecureRandom) RndRange(low, high int64) (res int64, err error) {
+	if low > high {
+		return 0, fmt.Errorf("SecureRandom error: [%v,%v] is not a valid range", low, high)
+	}
+	rangeBig := big.NewInt(high - low + 1)
+	big, err := rand.Int(rand.Reader, rangeBig)
+	if err != nil {
+		return 0, err
+	}
+	return low + big.Int64(), nil
+}
+
+var _ Random = (*SecureRandom)(nil)
 
 func RandBytes(length int) ([]byte, error) {
 	var n int
@@ -573,6 +596,9 @@ func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) 
 
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
 	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
+}
+func (g *GlobalContext) CPerfTrace(ctx context.Context, msg string, f func() error) func() {
+	return CTraceTimed(ctx, g.PerfLog, msg, f, g.Clock())
 }
 
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {

@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -240,8 +241,27 @@ func (c CorruptingMerkleClient) LookupLeafAtSeqnoForAudit(m libkb.MetaContext, l
 
 var _ libkb.MerkleClientInterface = CorruptingMerkleClient{}
 
+type MockRandom struct {
+	libkb.SecureRandom
+	nextOutputs []int64
+	t           *testing.T
+}
+
+func (m *MockRandom) RndRange(lo, hi int64) (int64, error) {
+	// pop and return the first output which is appropriate
+	for i, n := range m.nextOutputs {
+		if lo <= n && n <= hi {
+			m.nextOutputs = append(m.nextOutputs[0:i], m.nextOutputs[i+1:]...)
+			m.t.Logf("MockRandom: Output %v in range %v,%v (have %v left)", n, lo, hi, m.nextOutputs)
+			return n, nil
+		}
+	}
+	return 0, fmt.Errorf("MockRandom: output not found in range %v,%v (have %v left)", lo, hi, m.nextOutputs)
+}
+
+var _ libkb.Random = (*MockRandom)(nil)
+
 func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
-	t.Skip()
 	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
 
@@ -265,10 +285,9 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		return 1
 	}
 
-	setFastAudits := func(user int) {
-		// do a lot of probes so we're likely to find issues
+	setAudits := func(user int) {
 		m[user].G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
-			NumPostProbes:         40,
+			NumPostProbes:         3,
 			MerkleMovementTrigger: keybase1.Seqno(1),
 			RootFreshness:         time.Duration(1),
 			LRUSize:               500,
@@ -285,7 +304,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		require.Equal(t, hiddenSeqno, lastAudit(history).MaxHiddenSeqno)
 	}
 
-	setFastAudits(B)
+	setAudits(B)
 
 	// A adds B to the team
 	add(A, B)
@@ -298,15 +317,21 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 
 	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
 	require.NoError(t, err)
-	root := m[A].G().GetMerkleClient().LastRoot(m[A])
-	require.NotNil(t, root)
-	latestRootSeqno := *root.Seqno()
-	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
-	headMerkleSeqno := team.MainChain().Chain.HeadMerkle.Seqno
+
+	headMerkleSeqno := int64(team.MainChain().Chain.HeadMerkle.Seqno)
 	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
 
-	for i := headMerkleSeqno; i <= latestRootSeqno; i++ {
-		leaf, _, hiddenResp, err := m[B].G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m[B], teamID.AsUserOrTeam(), i, hidden.ProcessHiddenResponseFunc)
+	firstWithHiddenS, err := m[A].G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m[A])
+	require.NoError(t, err)
+	firstWithHidden := int64(firstWithHiddenS)
+	t.Logf("firstWithHidden: %v", firstWithHidden)
+	root := m[A].G().GetMerkleClient().LastRoot(m[A])
+	require.NotNil(t, root)
+	high := int64(*root.Seqno())
+	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
+
+	for i := headMerkleSeqno; i <= high; i++ {
+		leaf, _, hiddenResp, err := m[B].G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m[B], teamID.AsUserOrTeam(), keybase1.Seqno(i), hidden.ProcessHiddenResponseFunc)
 		require.NoError(t, err)
 		if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
 			t.Logf("Seqno %v Leaf %v Hidden %v", i, leaf.Private.Seqno, hiddenResp)
@@ -317,6 +342,8 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	}
 
 	merkle := m[B].G().GetMerkleClient()
+	rand := m[B].G().GetRandom()
+
 	corruptMerkle := CorruptingMerkleClient{
 		MerkleClientInterface: merkle,
 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
@@ -329,6 +356,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
 	auditor := m[B].G().GetTeamAuditor().(*Auditor)
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
@@ -337,6 +365,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	require.Contains(t, err.Error(), "team chain linkID mismatch")
 
 	// repeat a second time to ensure that a failed audit is not cached (and thus skipped the second time)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
 	require.IsType(t, AuditError{}, err)
@@ -354,6 +383,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -381,6 +411,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -409,6 +440,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -427,6 +459,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -445,6 +478,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -453,6 +487,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 
 	// with the original merkle client (i.e. when the server response is not altered), the audit should succeed
 	m[B].G().SetMerkleClient(merkle)
+	m[B].G().SetRandom(rand)
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.NoError(t, err)
 	assertAuditTo(B, 3, 2)

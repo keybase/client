@@ -28,6 +28,7 @@ const ChatPDF = (props: Props) => {
             </Kb.Box2>
           )}
           url={url}
+          pinnedURLMode={true}
           onError={err => setError(err)}
           style={styles.webViewContainer}
         />

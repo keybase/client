@@ -18,6 +18,7 @@ import {mapGetEnsureValue, mapEqual} from '../util/map'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
+  | EngineGen.Chat1NotifyChatChatParticipantsInfoPayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
 
@@ -75,7 +76,7 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
     draftState.featuredBotsLoaded = loaded
   },
   [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
-    draftState.botSearchResults = action.payload.results
+    draftState.botSearchResults.set(action.payload.query, action.payload.results)
   },
 }
 
@@ -1232,6 +1233,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     action.payload.participants.forEach(part => {
       draftState.participantMap.set(part.conversationIDKey, part.participants)
     })
+  },
+  [EngineGen.chat1NotifyChatChatParticipantsInfo]: (draftState, action) => {
+    const {convID, participants} = action.payload.params
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    if (participants) {
+      draftState.participantMap.set(
+        conversationIDKey,
+        Constants.uiParticipantsToParticipantInfo(participants)
+      )
+    }
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, initialTrustedLoad, removals} = action.payload

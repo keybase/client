@@ -103,8 +103,6 @@ type ConversationSource interface {
 		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
-	ClearFromDelete(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, deleteID chat1.MessageID) bool
 	EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error)
 
@@ -294,11 +292,17 @@ type MobileAppState interface {
 }
 
 type TeamChannelSource interface {
+	GetLastActiveForTLF(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) (gregor1.Time, error)
+	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error)
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)
 	GetChannelTopicName(ctx context.Context, uid gregor1.UID,
 		tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error)
+	GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error)
+	GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error)
+	OnLogout(libkb.MetaContext) error
+	OnDbNuke(libkb.MetaContext) error
 }
 
 type ActivityNotifier interface {
@@ -448,6 +452,11 @@ type StellarSender interface {
 	SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
 }
 
+type TeamConversationBackedStorage interface {
+	Put(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, name string, data interface{}) error
+	Get(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, name string, res interface{}) (bool, error)
+}
+
 type ConversationBackedStorage interface {
 	Put(ctx context.Context, uid gregor1.UID, name string, data interface{}) error
 	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
@@ -588,6 +597,15 @@ type JourneyCardManager interface {
 	SentMessage(context.Context, gregor1.UID, keybase1.TeamID, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
 	Dismiss(context.Context, gregor1.UID, keybase1.TeamID, chat1.ConversationID, chat1.JourneycardType)
 	OnDbNuke(libkb.MetaContext) error
+}
+
+type ParticipantSource interface {
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error)
+	GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
+	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp)
 }
 
 type InternalError interface {

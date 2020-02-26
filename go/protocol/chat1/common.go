@@ -627,6 +627,32 @@ func (o RateLimit) DeepCopy() RateLimit {
 	}
 }
 
+type InboxParticipantsMode int
+
+const (
+	InboxParticipantsMode_ALL        InboxParticipantsMode = 0
+	InboxParticipantsMode_SKIP_TEAMS InboxParticipantsMode = 1
+)
+
+func (o InboxParticipantsMode) DeepCopy() InboxParticipantsMode { return o }
+
+var InboxParticipantsModeMap = map[string]InboxParticipantsMode{
+	"ALL":        0,
+	"SKIP_TEAMS": 1,
+}
+
+var InboxParticipantsModeRevMap = map[InboxParticipantsMode]string{
+	0: "ALL",
+	1: "SKIP_TEAMS",
+}
+
+func (e InboxParticipantsMode) String() string {
+	if v, ok := InboxParticipantsModeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type GetInboxQuery struct {
 	ConvID            *ConversationID            `codec:"convID,omitempty" json:"convID,omitempty"`
 	TopicType         *TopicType                 `codec:"topicType,omitempty" json:"topicType,omitempty"`
@@ -645,6 +671,7 @@ type GetInboxQuery struct {
 	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
 	SummarizeMaxMsgs  bool                       `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ParticipantsMode  InboxParticipantsMode      `codec:"participantsMode" json:"participantsMode"`
 	SkipBgLoads       bool                       `codec:"skipBgLoads" json:"skipBgLoads"`
 	AllowUnseenQuery  bool                       `codec:"allowUnseenQuery" json:"allowUnseenQuery"`
 }
@@ -766,6 +793,7 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 		ReadOnly:          o.ReadOnly,
 		ComputeActiveList: o.ComputeActiveList,
 		SummarizeMaxMsgs:  o.SummarizeMaxMsgs,
+		ParticipantsMode:  o.ParticipantsMode.DeepCopy(),
 		SkipBgLoads:       o.SkipBgLoads,
 		AllowUnseenQuery:  o.AllowUnseenQuery,
 	}
@@ -2472,6 +2500,35 @@ func (o TeamMember) DeepCopy() TeamMember {
 		Role:   o.Role.DeepCopy(),
 		Status: o.Status.DeepCopy(),
 	}
+}
+
+type LastActiveStatus int
+
+const (
+	LastActiveStatus_NONE            LastActiveStatus = 0
+	LastActiveStatus_ACTIVE          LastActiveStatus = 1
+	LastActiveStatus_RECENTLY_ACTIVE LastActiveStatus = 2
+)
+
+func (o LastActiveStatus) DeepCopy() LastActiveStatus { return o }
+
+var LastActiveStatusMap = map[string]LastActiveStatus{
+	"NONE":            0,
+	"ACTIVE":          1,
+	"RECENTLY_ACTIVE": 2,
+}
+
+var LastActiveStatusRevMap = map[LastActiveStatus]string{
+	0: "NONE",
+	1: "ACTIVE",
+	2: "RECENTLY_ACTIVE",
+}
+
+func (e LastActiveStatus) String() string {
+	if v, ok := LastActiveStatusRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
 }
 
 type CommonInterface interface {

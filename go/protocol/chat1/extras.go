@@ -16,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -193,6 +194,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_PIN,
 	MessageType_HEADLINE,
 	MessageType_SYSTEM,
+	MessageType_FLIP,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -231,10 +233,8 @@ func IsSystemMsgDeletableByDelete(typ MessageSystemType) bool {
 var visibleMessageTypes = []MessageType{
 	MessageType_TEXT,
 	MessageType_ATTACHMENT,
-	// TODO TRIAGE-1738 Join and leave are visible but changing this list kicks off some other bugs around notifications (HOTPOT-1688).
-	// Scour the effects before changing this list.
-	// MessageType_JOIN,
-	// MessageType_LEAVE,
+	MessageType_JOIN,
+	MessageType_LEAVE,
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
@@ -243,8 +243,33 @@ var visibleMessageTypes = []MessageType{
 	MessageType_PIN,
 }
 
+// Visible chat messages appear visually as a message in the conv.
+// For counterexample REACTION and DELETE_HISTORY have visual effects but do not appear as a message.
 func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
+}
+
+var badgeableMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
+// Message types that cause badges.
+// JOIN and LEAVE are Visible but are too minute to badge.
+func BadgeableMessageTypes() []MessageType {
+	return badgeableMessageTypes
+}
+
+// A conversation is considered 'empty' unless it has one of these message types.
+// Used for filtering empty convs out of the the inbox.
+func NonEmptyConvMessageTypes() []MessageType {
+	return badgeableMessageTypes
 }
 
 var editableMessageTypesByEdit = []MessageType{
@@ -1726,6 +1751,10 @@ func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetChannelMembershipsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1743,7 +1772,7 @@ func (r *SearchInboxRes) SetOffline() {
 }
 
 func (t TyperInfo) String() string {
-	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
+	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceID)
 }
 
 func (o TLFConvOrdinal) Int() int {
@@ -2123,6 +2152,14 @@ func (r *GetTLFConversationsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *GetChannelMembershipsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetChannelMembershipsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *SetAppNotificationSettingsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2155,7 +2192,9 @@ func (r *GetInboxRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetInboxRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetInboxByTLFIDRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2166,7 +2205,9 @@ func (r *GetInboxByTLFIDRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetInboxByTLFIDRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetThreadRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2177,7 +2218,9 @@ func (r *GetThreadRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetThreadRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetConversationMetadataRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2188,7 +2231,9 @@ func (r *GetConversationMetadataRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetConversationMetadataRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *PostRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2199,7 +2244,9 @@ func (r *PostRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *PostRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *NewConversationRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2210,7 +2257,9 @@ func (r *NewConversationRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *NewConversationRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetMessagesRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2221,7 +2270,9 @@ func (r *GetMessagesRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetMessagesRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *MarkAsReadRes) GetRateLimit() (res []RateLimit) {
@@ -2232,7 +2283,9 @@ func (r *MarkAsReadRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *MarkAsReadRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *SetConversationStatusRes) GetRateLimit() (res []RateLimit) {
@@ -2243,7 +2296,9 @@ func (r *SetConversationStatusRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *SetConversationStatusRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetPublicConversationsRes) GetRateLimit() (res []RateLimit) {
@@ -2254,7 +2309,9 @@ func (r *GetPublicConversationsRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetPublicConversationsRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *JoinLeaveConversationRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2265,7 +2322,9 @@ func (r *JoinLeaveConversationRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *JoinLeaveConversationRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *DeleteConversationRemoteRes) GetRateLimit() (res []RateLimit) {
@@ -2276,7 +2335,9 @@ func (r *DeleteConversationRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *DeleteConversationRemoteRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetMessageBeforeRes) GetRateLimit() (res []RateLimit) {
@@ -2287,7 +2348,9 @@ func (r *GetMessageBeforeRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetMessageBeforeRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetTLFConversationsRes) GetRateLimit() (res []RateLimit) {
@@ -2298,7 +2361,9 @@ func (r *GetTLFConversationsRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetTLFConversationsRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *SetAppNotificationSettingsRes) GetRateLimit() (res []RateLimit) {
@@ -2309,7 +2374,9 @@ func (r *SetAppNotificationSettingsRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *SetAppNotificationSettingsRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
@@ -2320,7 +2387,9 @@ func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *LoadGalleryRes) GetRateLimit() []RateLimit {
@@ -2363,7 +2432,9 @@ func (r *ClearBotCommandsRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *ClearBotCommandsRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
@@ -2382,7 +2453,9 @@ func (r *AdvertiseBotCommandsRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *AdvertiseBotCommandsRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *GetBotInfoRes) GetRateLimit() (res []RateLimit) {
@@ -2393,7 +2466,9 @@ func (r *GetBotInfoRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *GetBotInfoRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimit = &rl[0]
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (r *NewConversationsLocalRes) GetRateLimit() (res []RateLimit) {
@@ -2402,6 +2477,32 @@ func (r *NewConversationsLocalRes) GetRateLimit() (res []RateLimit) {
 
 func (r *NewConversationsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
+}
+
+func (r *GetDefaultTeamChannelsLocalRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetDefaultTeamChannelsLocalRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
+func (r *SetDefaultTeamChannelsLocalRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *SetDefaultTeamChannelsLocalRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
 }
 
 func (i EphemeralPurgeInfo) String() string {
@@ -2663,6 +2764,17 @@ func (m MessageSystemBulkAddToConv) String() string {
 	return fmt.Sprintf(prefix, suffix)
 }
 
+func withDeterminer(s string) string {
+	r, size := utf8.DecodeRuneInString(s)
+	if size == 0 || r == utf8.RuneError {
+		return "a " + s
+	}
+	if strings.Contains("aeiou", string(r)) {
+		return "an " + s
+	}
+	return "a " + s
+}
+
 func (m MessageSystem) String() string {
 	typ, err := m.SystemType()
 	if err != nil {
@@ -2672,13 +2784,13 @@ func (m MessageSystem) String() string {
 	case MessageSystemType_ADDEDTOTEAM:
 		output := fmt.Sprintf("Added @%s to the team", m.Addedtoteam().Addee)
 		if role := m.Addedtoteam().Role; role != keybase1.TeamRole_NONE {
-			output += fmt.Sprintf(" as a %q", role.HumanString())
+			output += fmt.Sprintf(" as %v", withDeterminer(role.HumanString()))
 		}
 		return output
 	case MessageSystemType_INVITEADDEDTOTEAM:
 		var roleText string
 		if role := m.Inviteaddedtoteam().Role; role != keybase1.TeamRole_NONE {
-			roleText = fmt.Sprintf(" as a %q", role.HumanString())
+			roleText = fmt.Sprintf(" as %v", withDeterminer(role.HumanString()))
 		}
 		output := fmt.Sprintf("Added @%s to the team (invited by @%s%s)",
 			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter, roleText)

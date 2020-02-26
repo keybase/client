@@ -7,6 +7,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Constants from '../../../../constants/chat2'
+import LocationMap from '../../../location-map'
 import HiddenString from '../../../../util/hidden-string'
 import {clearWatchPosition, watchPositionForMap} from '../../../../actions/platform-specific'
 
@@ -128,7 +129,7 @@ const LocationPopup = (props: Props) => {
           <Kb.Button label="Open settings" onClick={onSettings} />
         </Kb.Box2>
       ) : (
-        <Kb.LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
+        <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
       )}
     </Kb.Modal>
   )

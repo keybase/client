@@ -54,6 +54,7 @@ export const chat1NotifyChatChatInboxSynced = 'engine-gen:chat1NotifyChatChatInb
 export const chat1NotifyChatChatJoinedConversation = 'engine-gen:chat1NotifyChatChatJoinedConversation'
 export const chat1NotifyChatChatKBFSToImpteamUpgrade = 'engine-gen:chat1NotifyChatChatKBFSToImpteamUpgrade'
 export const chat1NotifyChatChatLeftConversation = 'engine-gen:chat1NotifyChatChatLeftConversation'
+export const chat1NotifyChatChatParticipantsInfo = 'engine-gen:chat1NotifyChatChatParticipantsInfo'
 export const chat1NotifyChatChatPaymentInfo = 'engine-gen:chat1NotifyChatChatPaymentInfo'
 export const chat1NotifyChatChatPromptUnfurl = 'engine-gen:chat1NotifyChatChatPromptUnfurl'
 export const chat1NotifyChatChatRequestInfo = 'engine-gen:chat1NotifyChatChatRequestInfo'
@@ -66,6 +67,7 @@ export const chat1NotifyChatChatTLFFinalize = 'engine-gen:chat1NotifyChatChatTLF
 export const chat1NotifyChatChatTLFResolve = 'engine-gen:chat1NotifyChatChatTLFResolve'
 export const chat1NotifyChatChatThreadsStale = 'engine-gen:chat1NotifyChatChatThreadsStale'
 export const chat1NotifyChatChatTypingUpdate = 'engine-gen:chat1NotifyChatChatTypingUpdate'
+export const chat1NotifyChatChatWelcomeMessageLoaded = 'engine-gen:chat1NotifyChatChatWelcomeMessageLoaded'
 export const chat1NotifyChatNewChatActivity = 'engine-gen:chat1NotifyChatNewChatActivity'
 export const connected = 'engine-gen:connected'
 export const disconnected = 'engine-gen:disconnected'
@@ -184,9 +186,8 @@ export const keybase1NotifyUsersUserChanged = 'engine-gen:keybase1NotifyUsersUse
 export const keybase1PgpUiFinished = 'engine-gen:keybase1PgpUiFinished'
 export const keybase1PgpUiKeyGenerated = 'engine-gen:keybase1PgpUiKeyGenerated'
 export const keybase1PgpUiOutputPGPWarning = 'engine-gen:keybase1PgpUiOutputPGPWarning'
+export const keybase1PgpUiOutputSignatureNonKeybase = 'engine-gen:keybase1PgpUiOutputSignatureNonKeybase'
 export const keybase1PgpUiOutputSignatureSuccess = 'engine-gen:keybase1PgpUiOutputSignatureSuccess'
-export const keybase1PgpUiOutputSignatureSuccessNonKeybase =
-  'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase'
 export const keybase1PgpUiShouldPushPrivate = 'engine-gen:keybase1PgpUiShouldPushPrivate'
 export const keybase1ProveUiChecking = 'engine-gen:keybase1ProveUiChecking'
 export const keybase1ProveUiContinueChecking = 'engine-gen:keybase1ProveUiContinueChecking'
@@ -582,6 +583,11 @@ type _Chat1NotifyChatChatLeftConversationPayload = {
     sessionID: number
   }
 }
+type _Chat1NotifyChatChatParticipantsInfoPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam'] & {
+    sessionID: number
+  }
+}
 type _Chat1NotifyChatChatPaymentInfoPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {
     sessionID: number
@@ -639,6 +645,11 @@ type _Chat1NotifyChatChatThreadsStalePayload = {
 }
 type _Chat1NotifyChatChatTypingUpdatePayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatTypingUpdate']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Chat1NotifyChatChatWelcomeMessageLoadedPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {
     sessionID: number
   }
 }
@@ -1550,14 +1561,14 @@ type _Keybase1PgpUiOutputPGPWarningPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['outParam']) => void
   }
 }
-type _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {
+type _Keybase1PgpUiOutputSignatureNonKeybasePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['outParam']
+      param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['outParam']
     ) => void
   }
 }
@@ -2074,6 +2085,9 @@ export const createChat1NotifyChatChatKBFSToImpteamUpgrade = (
 export const createChat1NotifyChatChatLeftConversation = (
   payload: _Chat1NotifyChatChatLeftConversationPayload
 ): Chat1NotifyChatChatLeftConversationPayload => ({payload, type: chat1NotifyChatChatLeftConversation})
+export const createChat1NotifyChatChatParticipantsInfo = (
+  payload: _Chat1NotifyChatChatParticipantsInfoPayload
+): Chat1NotifyChatChatParticipantsInfoPayload => ({payload, type: chat1NotifyChatChatParticipantsInfo})
 export const createChat1NotifyChatChatPaymentInfo = (
   payload: _Chat1NotifyChatChatPaymentInfoPayload
 ): Chat1NotifyChatChatPaymentInfoPayload => ({payload, type: chat1NotifyChatChatPaymentInfo})
@@ -2110,6 +2124,12 @@ export const createChat1NotifyChatChatThreadsStale = (
 export const createChat1NotifyChatChatTypingUpdate = (
   payload: _Chat1NotifyChatChatTypingUpdatePayload
 ): Chat1NotifyChatChatTypingUpdatePayload => ({payload, type: chat1NotifyChatChatTypingUpdate})
+export const createChat1NotifyChatChatWelcomeMessageLoaded = (
+  payload: _Chat1NotifyChatChatWelcomeMessageLoadedPayload
+): Chat1NotifyChatChatWelcomeMessageLoadedPayload => ({
+  payload,
+  type: chat1NotifyChatChatWelcomeMessageLoaded,
+})
 export const createChat1NotifyChatNewChatActivity = (
   payload: _Chat1NotifyChatNewChatActivityPayload
 ): Chat1NotifyChatNewChatActivityPayload => ({payload, type: chat1NotifyChatNewChatActivity})
@@ -2504,15 +2524,12 @@ export const createKeybase1PgpUiKeyGenerated = (
 export const createKeybase1PgpUiOutputPGPWarning = (
   payload: _Keybase1PgpUiOutputPGPWarningPayload
 ): Keybase1PgpUiOutputPGPWarningPayload => ({payload, type: keybase1PgpUiOutputPGPWarning})
+export const createKeybase1PgpUiOutputSignatureNonKeybase = (
+  payload: _Keybase1PgpUiOutputSignatureNonKeybasePayload
+): Keybase1PgpUiOutputSignatureNonKeybasePayload => ({payload, type: keybase1PgpUiOutputSignatureNonKeybase})
 export const createKeybase1PgpUiOutputSignatureSuccess = (
   payload: _Keybase1PgpUiOutputSignatureSuccessPayload
 ): Keybase1PgpUiOutputSignatureSuccessPayload => ({payload, type: keybase1PgpUiOutputSignatureSuccess})
-export const createKeybase1PgpUiOutputSignatureSuccessNonKeybase = (
-  payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
-): Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload => ({
-  payload,
-  type: keybase1PgpUiOutputSignatureSuccessNonKeybase,
-})
 export const createKeybase1PgpUiShouldPushPrivate = (
   payload: _Keybase1PgpUiShouldPushPrivatePayload
 ): Keybase1PgpUiShouldPushPrivatePayload => ({payload, type: keybase1PgpUiShouldPushPrivate})
@@ -2851,6 +2868,10 @@ export type Chat1NotifyChatChatLeftConversationPayload = {
   readonly payload: _Chat1NotifyChatChatLeftConversationPayload
   readonly type: typeof chat1NotifyChatChatLeftConversation
 }
+export type Chat1NotifyChatChatParticipantsInfoPayload = {
+  readonly payload: _Chat1NotifyChatChatParticipantsInfoPayload
+  readonly type: typeof chat1NotifyChatChatParticipantsInfo
+}
 export type Chat1NotifyChatChatPaymentInfoPayload = {
   readonly payload: _Chat1NotifyChatChatPaymentInfoPayload
   readonly type: typeof chat1NotifyChatChatPaymentInfo
@@ -2898,6 +2919,10 @@ export type Chat1NotifyChatChatThreadsStalePayload = {
 export type Chat1NotifyChatChatTypingUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatTypingUpdatePayload
   readonly type: typeof chat1NotifyChatChatTypingUpdate
+}
+export type Chat1NotifyChatChatWelcomeMessageLoadedPayload = {
+  readonly payload: _Chat1NotifyChatChatWelcomeMessageLoadedPayload
+  readonly type: typeof chat1NotifyChatChatWelcomeMessageLoaded
 }
 export type Chat1NotifyChatNewChatActivityPayload = {
   readonly payload: _Chat1NotifyChatNewChatActivityPayload
@@ -3309,9 +3334,9 @@ export type Keybase1PgpUiOutputPGPWarningPayload = {
   readonly payload: _Keybase1PgpUiOutputPGPWarningPayload
   readonly type: typeof keybase1PgpUiOutputPGPWarning
 }
-export type Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
-  readonly payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
-  readonly type: typeof keybase1PgpUiOutputSignatureSuccessNonKeybase
+export type Keybase1PgpUiOutputSignatureNonKeybasePayload = {
+  readonly payload: _Keybase1PgpUiOutputSignatureNonKeybasePayload
+  readonly type: typeof keybase1PgpUiOutputSignatureNonKeybase
 }
 export type Keybase1PgpUiOutputSignatureSuccessPayload = {
   readonly payload: _Keybase1PgpUiOutputSignatureSuccessPayload
@@ -3538,6 +3563,7 @@ export type Actions =
   | Chat1NotifyChatChatJoinedConversationPayload
   | Chat1NotifyChatChatKBFSToImpteamUpgradePayload
   | Chat1NotifyChatChatLeftConversationPayload
+  | Chat1NotifyChatChatParticipantsInfoPayload
   | Chat1NotifyChatChatPaymentInfoPayload
   | Chat1NotifyChatChatPromptUnfurlPayload
   | Chat1NotifyChatChatRequestInfoPayload
@@ -3550,6 +3576,7 @@ export type Actions =
   | Chat1NotifyChatChatTLFResolvePayload
   | Chat1NotifyChatChatThreadsStalePayload
   | Chat1NotifyChatChatTypingUpdatePayload
+  | Chat1NotifyChatChatWelcomeMessageLoadedPayload
   | Chat1NotifyChatNewChatActivityPayload
   | ConnectedPayload
   | DisconnectedPayload
@@ -3654,7 +3681,7 @@ export type Actions =
   | Keybase1PgpUiFinishedPayload
   | Keybase1PgpUiKeyGeneratedPayload
   | Keybase1PgpUiOutputPGPWarningPayload
-  | Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
+  | Keybase1PgpUiOutputSignatureNonKeybasePayload
   | Keybase1PgpUiOutputSignatureSuccessPayload
   | Keybase1PgpUiShouldPushPrivatePayload
   | Keybase1ProveUiCheckingPayload

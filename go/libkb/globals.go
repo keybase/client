@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -30,6 +31,8 @@ import (
 	clockwork "github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
+
+var IsIPad bool // Set by bind's Init.
 
 type ShutdownHook func(mctx MetaContext) error
 
@@ -46,31 +49,33 @@ type DbNukeHook interface {
 }
 
 type GlobalContext struct {
-	Log                        logger.Logger         // Handles all logging
-	VDL                        *VDebugLog            // verbose debug log
-	GUILogFile                 *logger.LogFileWriter // GUI logs
-	Env                        *Env                  // Env variables, cmdline args & config
-	SKBKeyringMu               *sync.Mutex           // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings                   *Keyrings             // Gpg Keychains holding keys
-	perUserKeyringMu           *sync.Mutex
-	perUserKeyring             *PerUserKeyring             // Keyring holding per user keys
-	API                        API                         // How to make a REST call to the server
-	Resolver                   Resolver                    // cache of resolve results
-	NetworkInstrumenterStorage *DiskInstrumentationStorage // Instrument API/RPC calls
-	LocalDb                    *JSONLocalDb                // Local DB for cache
-	LocalChatDb                *JSONLocalDb                // Local DB for cache
-	MerkleClient               MerkleClientInterface       // client for querying server's merkle sig tree
-	XAPI                       ExternalAPI                 // for contacting Twitter, Github, etc.
-	Output                     io.Writer                   // where 'Stdout'-style output goes
-	DNSNSFetcher               DNSNameServerFetcher        // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
-	MobileNetState             *MobileNetState             // The kind of network connection for the currently running instance of the app
-	MobileAppState             *MobileAppState             // The state of focus for the currently running instance of the app
-	DesktopAppState            *DesktopAppState            // The state of focus for the currently running instance of the app
-	ChatHelper                 ChatHelper                  // conveniently send chat messages
-	RPCCanceler                *RPCCanceler                // register live RPCs so they can be cancelleed en masse
-	IdentifyDispatch           *IdentifyDispatch           // get notified of identify successes
-	Identify3State             *Identify3State             // keep track of Identify3 sessions
-	vidMu                      *sync.Mutex                 // protect VID
+	Log                              logger.Logger         // Handles all logging
+	PerfLog                          logger.Logger         // Handles all performance event logging
+	VDL                              *VDebugLog            // verbose debug log
+	GUILogFile                       *logger.LogFileWriter // GUI logs
+	Env                              *Env                  // Env variables, cmdline args & config
+	SKBKeyringMu                     *sync.Mutex           // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings                         *Keyrings             // Gpg Keychains holding keys
+	perUserKeyringMu                 *sync.Mutex
+	perUserKeyring                   *PerUserKeyring             // Keyring holding per user keys
+	API                              API                         // How to make a REST call to the server
+	Resolver                         Resolver                    // cache of resolve results
+	LocalNetworkInstrumenterStorage  *DiskInstrumentationStorage // Instrument Local RPC calls
+	RemoteNetworkInstrumenterStorage *DiskInstrumentationStorage // Instrument Remote API/RPC calls
+	LocalDb                          *JSONLocalDb                // Local DB for cache
+	LocalChatDb                      *JSONLocalDb                // Local DB for cache
+	MerkleClient                     MerkleClientInterface       // client for querying server's merkle sig tree
+	XAPI                             ExternalAPI                 // for contacting Twitter, Github, etc.
+	DNSNSFetcher                     DNSNameServerFetcher        // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	MobileNetState                   *MobileNetState             // The kind of network connection for the currently running instance of the app
+	MobileAppState                   *MobileAppState             // The state of focus for the currently running instance of the app
+	DesktopAppState                  *DesktopAppState            // The state of focus for the currently running instance of the app
+	ChatHelper                       ChatHelper                  // conveniently send chat messages
+	RPCCanceler                      *RPCCanceler                // register live RPCs so they can be cancelleed en masse
+	IdentifyDispatch                 *IdentifyDispatch           // get notified of identify successes
+	Identify3State                   *Identify3State             // keep track of Identify3 sessions
+	vidMu                            *sync.Mutex                 // protect VID
+	RuntimeStats                     RuntimeStats                // performance runtime stats
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -156,6 +161,10 @@ type GlobalContext struct {
 	// Options specified for testing only
 	TestOptions GlobalTestOptions
 
+	// Interface to get (cryptographically secure) randomness. Makes it easier
+	// to test randomized behaviors.
+	random Random
+
 	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
 	// But don't access its members directly. If you're going to be changing out the
 	// user (and resetting the ActiveDevice), then you should hold the switchUserMu
@@ -166,6 +175,7 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+	IsIPad          bool
 
 	SyncedContactList SyncedContactListProvider
 
@@ -180,6 +190,7 @@ type GlobalTestOptions struct {
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetPerfLog() logger.Logger                     { return g.PerfLog }
 func (g *GlobalContext) GetGUILogWriter() io.Writer                    { return g.GUILogFile }
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
@@ -195,6 +206,14 @@ func (g *GlobalContext) GetTeambotMemberKeyer() TeambotMemberKeyer     { return 
 func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 func (g *GlobalContext) GetAvatarLoader() AvatarLoaderSource           { return g.avatarLoader }
 
+func (g *GlobalContext) GetRandom() Random { return g.random }
+func (g *GlobalContext) SetRandom(r Random) {
+	if g.GetRunMode() != DevelRunMode {
+		panic("Random can only be altered in devel")
+	}
+	g.random = r
+}
+
 type LogGetter func() logger.Logger
 
 // Note: all these sync.Mutex fields are pointers so that the Clone funcs work.
@@ -202,6 +221,7 @@ func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	ret := &GlobalContext{
 		Log:                log,
+		PerfLog:            log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
@@ -223,6 +243,8 @@ func NewGlobalContext() *GlobalContext {
 		FeatureFlags:       NewFeatureFlagSet(),
 		switchedUsers:      make(map[NormalizedUsername]bool),
 		Pegboard:           NewPegboard(),
+		random:             &SecureRandom{},
+		RuntimeStats:       NewDummyRuntimeStats(),
 	}
 	return ret
 }
@@ -239,6 +261,17 @@ func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 func (g *GlobalContext) SetTeambotBotKeyer(keyer TeambotBotKeyer) { g.teambotBotKeyer = keyer }
 
 func (g *GlobalContext) SetTeambotMemberKeyer(keyer TeambotMemberKeyer) { g.teambotMemberKeyer = keyer }
+
+func (g *GlobalContext) initPerfLogFile() {
+	lfc := g.Env.GetLogFileConfig(g.Env.GetPerfLogFile())
+	lfc.SkipRedirectStdErr = true
+	lfw := logger.NewLogFileWriter(*lfc)
+	if err := lfw.Open(g.GetClock().Now()); err != nil {
+		g.Log.Debug("Unable to getLogger %v", err)
+		return
+	}
+	g.PerfLog = logger.NewInternalLogger(log.New(lfw, "", log.LstdFlags|log.Lshortfile))
+}
 
 func (g *GlobalContext) initGUILogFile() {
 	config := g.Env.GetLogFileConfig(g.Env.GetGUILogFile())
@@ -274,7 +307,8 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
 	g.GregorState = newNullGregorState()
-	g.NetworkInstrumenterStorage = NewDiskInstrumentationStorage(g)
+	g.LocalNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_LOCAL)
+	g.RemoteNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_REMOTE)
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -325,6 +359,7 @@ func (g *GlobalContext) simulateServiceRestart() {
 // ConfigureLogging should be given non-nil Usage if called by the main
 // service.
 func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
+	g.initPerfLogFile()
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 
@@ -340,7 +375,6 @@ func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 			return err
 		}
 	}
-	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 
 	shouldConfigureGUILog := true
@@ -778,6 +812,9 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 	// run this code twice.
 	g.shutdownOnce.Do(func() {
 		g.Log.Debug("GlobalContext#Shutdown(%p)\n", g)
+		if g.PerfLog != nil {
+			g.PerfLog.Debug("GlobalContext#Shutdown(%p)\n", g)
+		}
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
@@ -823,8 +860,12 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		}
 		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
-		if g.NetworkInstrumenterStorage != nil {
-			<-g.NetworkInstrumenterStorage.Stop()
+		if g.LocalNetworkInstrumenterStorage != nil {
+			<-g.LocalNetworkInstrumenterStorage.Stop(mctx.Ctx())
+		}
+
+		if g.RemoteNetworkInstrumenterStorage != nil {
+			<-g.RemoteNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		// shutdown the databases after the shutdown hooks run, we may want to
@@ -925,7 +966,6 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 			return err
 		}
 	}
-
 	if err = g.ConfigureExportedStreams(); err != nil {
 		return err
 	}
@@ -933,11 +973,13 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
-	g.NetworkInstrumenterStorage.Start()
+	g.LocalNetworkInstrumenterStorage.Start(context.TODO())
+	g.RemoteNetworkInstrumenterStorage.Start(context.TODO())
 
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err
 	}
+
 	if g.UI != nil {
 		if err = g.UI.Configure(); err != nil {
 			return err
@@ -945,14 +987,6 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	}
 
 	return g.ConfigureTimers()
-}
-
-func (g *GlobalContext) OutputString(s string) {
-	_, _ = g.Output.Write([]byte(s))
-}
-
-func (g *GlobalContext) OutputBytes(b []byte) {
-	_, _ = g.Output.Write(b)
 }
 
 func (g *GlobalContext) GetGpgClient() *GpgCLI {

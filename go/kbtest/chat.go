@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/stretchr/testify/require"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -113,7 +114,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		world.Users[u.Username] = u
 		world.Tcs[u.Username] = &tc
@@ -622,6 +623,16 @@ type dummyChannelSource struct{}
 
 var _ types.TeamChannelSource = (*dummyChannelSource)(nil)
 
+func (d dummyChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType) (gregor1.Time, error) {
+	return 0, nil
+}
+
+func (d dummyChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID,
+	topicType chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error) {
+	return nil, nil
+}
+
 func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
 	topicType chat1.TopicType) ([]chat1.ConversationLocal, error) {
 	return nil, nil
@@ -635,6 +646,22 @@ func (d dummyChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 func (d dummyChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
 	topicType chat1.TopicType, convID chat1.ConversationID) (string, error) {
 	return "", nil
+}
+
+func (d dummyChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error) {
+	return 0, nil
+}
+
+func (d dummyChannelSource) GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error) {
+	return 0, nil
+}
+
+func (d dummyChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
+	return nil
+}
+
+func (d dummyChannelSource) OnLogout(mctx libkb.MetaContext) error {
+	return nil
 }
 
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
@@ -990,8 +1017,29 @@ func (m *ChatRemoteMock) GetBotInfo(ctx context.Context, arg chat1.GetBotInfoArg
 	return res, errors.New("GetBotInfo not mocked")
 }
 
+func (m *ChatRemoteMock) GetDefaultTeamChannels(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetDefaultTeamChannelsRes, err error) {
+	return res, errors.New("GetDefaultTeamChannels not mocked")
+}
+
+func (m *ChatRemoteMock) SetDefaultTeamChannels(ctx context.Context, arg chat1.SetDefaultTeamChannelsArg) (res chat1.SetDefaultTeamChannelsRes, err error) {
+	return res, errors.New("SetDefaultTeamChannels not mocked")
+}
+
+func (m *ChatRemoteMock) GetRecentJoins(ctx context.Context, convID chat1.ConversationID) (res chat1.GetRecentJoinsRes, err error) {
+	return res, errors.New("GetRecentJoins not mocked")
+}
+
+func (m *ChatRemoteMock) GetLastActiveAt(ctx context.Context, arg chat1.GetLastActiveAtArg) (res chat1.GetLastActiveAtRes, err error) {
+	return res, errors.New("GetLastActiveAt not mocked")
+}
+
 func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res *keybase1.TeamID, err error) {
 	return res, errors.New("TeamIDOfConv not mocked")
+}
+
+func (m *ChatRemoteMock) RefreshParticipantsRemote(ctx context.Context,
+	arg chat1.RefreshParticipantsRemoteArg) (res chat1.RefreshParticipantsRemoteRes, err error) {
+	return res, errors.New("not implemented")
 }
 
 type NonblockInboxResult struct {
@@ -1450,20 +1498,21 @@ func (m *MockChatHelper) JourneycardDebugState(ctx context.Context, uid gregor1.
 
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
-	return chat1.ConversationLocal{}, nil
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
+	return chat1.ConversationLocal{}, false, nil
 }
 
 func (m *MockChatHelper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
-	return chat1.ConversationLocal{}, nil
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
+	return chat1.ConversationLocal{}, false, nil
 }
 
 func (m *MockChatHelper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
-	return chat1.ConversationLocal{}, nil
+	vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
+	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	return chat1.ConversationLocal{}, false, nil
 }
 
 func (m *MockChatHelper) JoinConversationByID(ctx context.Context, uid gregor1.UID,
@@ -1478,6 +1527,10 @@ func (m *MockChatHelper) JoinConversationByName(ctx context.Context, uid gregor1
 
 func (m *MockChatHelper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
 	return nil
+}
+
+func (m *MockChatHelper) InTeam(context.Context, gregor1.UID, keybase1.TeamID) (bool, error) {
+	return false, nil
 }
 
 func (m *MockChatHelper) convKey(name string, topicName *string) string {

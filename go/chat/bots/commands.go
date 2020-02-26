@@ -86,7 +86,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 	}
 	return &CachingBotCommandManager{
 		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "CachingBotCommandManager", false),
+		DebugLabeler:    utils.NewDebugLabeler(g.ExternalG(), "CachingBotCommandManager", false),
 		ri:              ri,
 		edb:             encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		commandUpdateCh: make(chan *commandUpdaterJob, 100),
@@ -144,15 +144,17 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 	}
 	switch param.Typ {
 	case chat1.BotCommandsAdvertisementTyp_PUBLIC:
-		return b.G().ChatHelper.NewConversation(ctx, b.uid, username, &commandsPublicTopicName,
+		res, _, err = b.G().ChatHelper.NewConversation(ctx, b.uid, username, &commandsPublicTopicName,
 			chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PUBLIC)
+		return res, err
 	case chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, chat1.BotCommandsAdvertisementTyp_TLFID_CONVS:
 		if param.TeamName == nil {
 			return res, errors.New("missing team name")
 		}
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
-		return b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
+		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
 			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
+		return res, err
 	default:
 		return res, errors.New("unknown bot advertisement typ")
 	}

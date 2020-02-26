@@ -123,8 +123,9 @@ public class MainActivity extends ReactActivity {
       createDummyFile(context);
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
+    boolean isIPad = false;
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
+      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion, isIPad);
 
   }
 
@@ -272,6 +273,24 @@ public class MainActivity extends ReactActivity {
       Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
       intent.removeExtra(Intent.EXTRA_STREAM);
 
+      String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+      intent.removeExtra(Intent.EXTRA_SUBJECT);
+
+      String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+      intent.removeExtra(Intent.EXTRA_TEXT);
+
+      StringBuilder sb = new StringBuilder();
+      if (subject != null) {
+        sb.append(subject);
+      }
+      if (subject!=null&&text!=null){
+        sb.append(" ");
+      }
+      if (text != null) {
+        sb.append(text);
+      }
+      String textPayload = sb.toString();
+
       // Closure like class so we can keep our emit logic together
       class Emit {
         private final ReactContext context;
@@ -289,8 +308,10 @@ public class MainActivity extends ReactActivity {
           } else if (uri != null) {
             String filePath = readFileFromUri(getReactContext(), uri);
             if (filePath != null) {
-              engine.setInitialShareData(filePath);
+              engine.setInitialShareFileUrl(filePath);
             }
+          } else if (textPayload.length() > 0){
+            engine.setInitialShareText(textPayload);
           }
 
           assert emitter != null;
@@ -306,6 +327,10 @@ public class MainActivity extends ReactActivity {
               args.putString("localPath", filePath);
               emitter.emit("onShareData", args);
             }
+          } else if (textPayload.length() > 0) {
+            WritableMap args = Arguments.createMap();
+            args.putString("text", textPayload);
+            emitter.emit("onShareData", args);
           }
         }
       }

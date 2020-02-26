@@ -128,6 +128,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       addMembers: {
+        alignSelf: undefined,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
       },

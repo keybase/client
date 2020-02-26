@@ -16,6 +16,7 @@ type CommonProps = {
   isEditing: boolean
   isExploding: boolean
   isSearching: boolean
+  maxInputArea?: number
   minWriterRole: TeamTypes.TeamRoleType
   onAttach: (paths: Array<string>) => void
   onCancelEditing: () => void
@@ -26,6 +27,7 @@ type CommonProps = {
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
+  onChannelSuggestionsTriggered: () => void
   prependText: string | null
   quoteCounter: number
   quoteText: string
@@ -54,6 +56,7 @@ export type InputProps = {
     teamname?: string
   }>
   suggestChannels: Array<string>
+  suggestChannelsLoading: boolean
   suggestAllChannels: Array<{
     teamname: string
     channelname: string

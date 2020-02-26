@@ -232,6 +232,9 @@ type folderBlockOps struct {
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
 
+	// While this channel is non-nil and non-closed, writes get blocked.
+	holdNewWritesCh <-chan struct{}
+
 	// nodeCache itself is goroutine-safe, but write/truncate must
 	// call PathFromNode() only under blockLock (see nodeCache
 	// comments in folder_branch_ops.go).
@@ -1521,6 +1524,7 @@ func (fbo *folderBlockOps) updateEntryLocked(ctx context.Context,
 		fbo.deferredDirUpdates = append(
 			fbo.deferredDirUpdates, func(lState *kbfssync.LockState) error {
 				file := fbo.nodeCache.PathFromNode(n)
+				de.BlockPointer = file.TailPointer()
 				return fbo.updateEntryLocked(
 					ctx, lState, kmd, file, de, includeDeleted)
 			})
@@ -1679,10 +1683,16 @@ func (fbo *folderBlockOps) GetDirtyFileBlockRefs(
 	return dirtyRefs
 }
 
-// GetDirtyDirBlockRefs returns a list of references of all known dirty
-// directories.
+// GetDirtyDirBlockRefs returns a list of references of all known
+// dirty directories.  Also returns a channel that, while it is open,
+// all future writes will be blocked until it is closed -- this lets
+// the caller ensure that the directory entries will remain stable
+// (not updated with new file sizes by the writes) until all of the
+// directory blocks have been safely copied.  The caller *must* close
+// this channel once they are done processing the dirty directory
+// blocks.
 func (fbo *folderBlockOps) GetDirtyDirBlockRefs(
-	lState *kbfssync.LockState) []data.BlockRef {
+	lState *kbfssync.LockState) ([]data.BlockRef, chan<- struct{}) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	var dirtyRefs []data.BlockRef
@@ -1693,7 +1703,9 @@ func (fbo *folderBlockOps) GetDirtyDirBlockRefs(
 		panic("GetDirtyDirBlockRefs() called twice")
 	}
 	fbo.dirtyDirsSyncing = true
-	return dirtyRefs
+	ch := make(chan struct{})
+	fbo.holdNewWritesCh = ch
+	return dirtyRefs, ch
 }
 
 // GetDirtyDirBlockRefsDone is called to indicate the caller is done
@@ -1704,6 +1716,7 @@ func (fbo *folderBlockOps) GetDirtyDirBlockRefsDone(
 	defer fbo.blockLock.Unlock(lState)
 	fbo.dirtyDirsSyncing = false
 	fbo.deferredDirUpdates = nil
+	fbo.holdNewWritesCh = nil
 }
 
 // getDirtyDirUnrefsLocked returns a list of block infos that need to be
@@ -2089,7 +2102,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 	}
 	if de.BlockPointer != file.TailPointer() {
 		fbo.log.CDebugf(ctx, "DirEntry and file tail pointer don't match: "+
-			"%v vs %v", de.BlockPointer, file.TailPointer())
+			"%v vs %v, parent=%s", de.BlockPointer, file.TailPointer(),
+			file.ParentPath().TailPointer())
 	}
 
 	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
@@ -2124,6 +2138,38 @@ func (fbo *folderBlockOps) writeDataLocked(
 	return latestWrite, dirtyPtrs, newlyDirtiedChildBytes, nil
 }
 
+func (fbo *folderBlockOps) holdWritesLocked(
+	ctx context.Context, lState *kbfssync.LockState) error {
+	fbo.blockLock.AssertLocked(lState)
+
+	// Loop until either the hold channel is nil, or it has been
+	// closed.  However, we can't hold the lock while we're waiting
+	// for it to close, as that will cause deadlocks.  So we need to
+	// verify that it's the _same_ channel that was closed after we
+	// re-take the lock; otherwise, we need to wait again on the new
+	// channel.
+	for fbo.holdNewWritesCh != nil {
+		ch := fbo.holdNewWritesCh
+		fbo.blockLock.Unlock(lState)
+		fbo.vlog.CLogf(ctx, libkb.VLog1, "Blocking write on hold channel")
+		select {
+		case <-ch:
+			fbo.blockLock.Lock(lState)
+			// If the channel hasn't changed since we checked it
+			// outside of the lock, we are good to proceed.
+			if ch == fbo.holdNewWritesCh {
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1, "Unblocking write on hold channel")
+				return nil
+			}
+		case <-ctx.Done():
+			fbo.blockLock.Lock(lState)
+			return ctx.Err()
+		}
+	}
+	return nil
+}
+
 // Write writes the given data to the given file. May block if there
 // is too much unflushed data; in that case, it will be unblocked by a
 // future sync.
@@ -2147,6 +2193,11 @@ func (fbo *folderBlockOps) Write(
 
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
+
+	err = fbo.holdWritesLocked(ctx, lState)
+	if err != nil {
+		return err
+	}
 
 	filePath, err := fbo.pathFromNodeForBlockWriteLocked(lState, file)
 	if err != nil {
@@ -2391,6 +2442,11 @@ func (fbo *folderBlockOps) Truncate(
 
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
+
+	err = fbo.holdWritesLocked(ctx, lState)
+	if err != nil {
+		return err
+	}
 
 	filePath, err := fbo.pathFromNodeForBlockWriteLocked(lState, file)
 	if err != nil {

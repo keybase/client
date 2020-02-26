@@ -22,7 +22,7 @@ type DevConversationBackedStorage struct {
 func NewDevConversationBackedStorage(g *globals.Context, ri func() chat1.RemoteInterface) *DevConversationBackedStorage {
 	return &DevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "DevConversationBackedStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConversationBackedStorage", false),
 		ri:           ri,
 	}
 }
@@ -38,7 +38,7 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return err
 	}
-	conv, err := NewConversation(ctx, s.G(), uid, username, &name, chat1.TopicType_DEV,
+	conv, _, err := NewConversation(ctx, s.G(), uid, username, &name, chat1.TopicType_DEV,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, s.ri,
 		NewConvFindExistingNormal)
 	if err != nil {

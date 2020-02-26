@@ -192,13 +192,15 @@ type Node interface {
 	// to indicate that the caller should pretend the entry exists,
 	// even if it really does not.  In the case of fake files, a
 	// non-nil `fi` can be returned and used by the caller to
-	// construct the dir entry for the file.  An implementation that
-	// wraps another `Node` (`inner`) must return
+	// construct the dir entry for the file.  It can also return the
+	// type `RealDir`, along with a non-zero `ptr`, to indicate a real
+	// directory corresponding to that pointer should be used.  An
+	// implementation that wraps another `Node` (`inner`) must return
 	// `inner.ShouldCreateMissedLookup()` if it decides not to return
 	// `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name data.PathPartString) (
 		shouldCreate bool, newCtx context.Context, et data.EntryType,
-		fi os.FileInfo, sympath data.PathPartString)
+		fi os.FileInfo, sympath data.PathPartString, ptr data.BlockPointer)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -2020,6 +2022,9 @@ type InitMode interface {
 	// BackgroundWorkPeriod indicates how long to wait between
 	// non-critical background work tasks.
 	BackgroundWorkPeriod() time.Duration
+	// IndexingEnabled indicates whether or not synced TLFs are
+	// indexed and searchable.
+	IndexingEnabled() bool
 
 	ldbutils.DbWriteBufferSizeGetter
 }
@@ -2554,12 +2559,14 @@ type blockPutStateCopiable interface {
 
 type fileBlockMap interface {
 	putTopBlock(
-		ctx context.Context, parentPtr data.BlockPointer, childName string,
-		topBlock *data.FileBlock) error
+		ctx context.Context, parentPtr data.BlockPointer,
+		childName data.PathPartString, topBlock *data.FileBlock) error
 	GetTopBlock(
-		ctx context.Context, parentPtr data.BlockPointer, childName string) (
-		*data.FileBlock, error)
-	getFilenames(ctx context.Context, parentPtr data.BlockPointer) ([]string, error)
+		ctx context.Context, parentPtr data.BlockPointer,
+		childName data.PathPartString) (*data.FileBlock, error)
+	getFilenames(
+		ctx context.Context, parentPtr data.BlockPointer) (
+		[]data.PathPartString, error)
 }
 
 type dirBlockMap interface {

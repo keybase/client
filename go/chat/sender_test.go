@@ -159,16 +159,6 @@ func (n *chatListener) consumeConvUpdate(t *testing.T) chat1.ConversationID {
 	}
 }
 
-func (n *chatListener) consumeThreadsStale(t *testing.T) []chat1.ConversationStaleUpdate {
-	select {
-	case x := <-n.threadsStale:
-		return x
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get threadsStale notification")
-		return nil
-	}
-}
-
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
 	return newConvTripleWithMembersType(ctx, t, tc, username, chat1.ConversationMembersType_IMPTEAMNATIVE)
 }
@@ -321,13 +311,14 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
-	g.JourneyCardManager = NewJourneyCardManager(g)
+	g.JourneyCardManager = NewJourneyCardManager(g, getRI)
 	g.BotCommandManager = types.DummyBotCommandManager{}
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = NewFlipManager(g, getRI)
 	g.CoinFlipManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
 	g.UIThreadLoader = NewUIThreadLoader(g)
+	g.ParticipantsSource = types.DummyParticipantSource{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
@@ -1035,10 +1026,11 @@ func TestKBFSFileEditSize(t *testing.T) {
 		uid := u.User.GetUID().ToBytes()
 		tlfName := u.Username
 		tc := userTc(t, world, u)
-		conv, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
+		conv, created, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
 			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
 			func() chat1.RemoteInterface { return ri }, NewConvFindExistingNormal)
 		require.NoError(t, err)
+		require.True(t, created)
 
 		body := strings.Repeat("M", 100000)
 		_, _, err = blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{

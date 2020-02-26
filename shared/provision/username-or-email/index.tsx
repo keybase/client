@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import UserCard from '../../login/user-card'
 import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
@@ -75,7 +76,7 @@ const Username = (props: Props) => {
         style={styles.fill}
         contentContainerStyle={styles.scrollContentContainer}
       >
-        <Kb.UserCard
+        <UserCard
           style={styles.card}
           avatarBackgroundStyle={styles.outerCardAvatar}
           outerStyle={styles.outerCard}
@@ -100,7 +101,7 @@ const Username = (props: Props) => {
               Forgot username?
             </Kb.Text>
           </Kb.Box2>
-        </Kb.UserCard>
+        </UserCard>
       </Kb.ScrollView>
     </SignupScreen>
   )
@@ -123,7 +124,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
-      fill: Styles.platformStyles({isMobile: {height: '100%', width: '100%'}}),
+      fill: Styles.platformStyles({
+        isMobile: {height: '100%', width: '100%'},
+        isTablet: {width: 410},
+      }),
       forgotUsername: {
         alignSelf: 'flex-end',
       },
@@ -140,17 +144,9 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {...Styles.padding(Styles.globalMargins.small)},
       }),
-      wrapper: Styles.platformStyles({
-        isElectron: {
-          width: 400,
-        },
-        isMobile: {
-          width: '100%',
-        },
-        isTablet: {
-          width: 460,
-        },
-      }),
+      wrapper: {
+        width: Styles.globalStyles.mediumWidth,
+      },
     } as const)
 )
 

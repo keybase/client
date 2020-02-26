@@ -1,157 +1,183 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
 import * as Kbfs from '../../common'
 import * as Styles from '../../../styles'
-import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import HiddenString from '../../../util/hidden-string'
-import ConversationList from './conversation-list/conversation-list-container'
-import ChooseConversation from './conversation-list/choose-conversation-container'
+import ConversationList from './conversation-list/conversation-list'
+import ChooseConversation from './conversation-list/choose-conversation'
 
-type Props = {
-  onCancel: () => void
-  onSetTitle: (title: string) => void
-  send?: () => void
-  path: Types.Path
-  sendAttachmentToChatState: Types.SendAttachmentToChatState
-  title: string
-}
+type Props = Container.RouteProps<{
+  path?: Types.Path
+  incomingShareItems?: Array<RPCTypes.IncomingShareItem>
+  url?: string
+}>
 
-const useConversationList = () => {
-  const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
-  const {filter} = sendAttachmentToChat
+const isChatText = (item: RPCTypes.IncomingShareItem): boolean =>
+  item.type === RPCTypes.IncomingShareType.text && !!item.content
+
+const MobileSendAttachmentToChat = (props: Props) => {
+  const incomingShareItems = Container.getRouteProps(props, 'incomingShareItems', undefined)
+  const url = Container.getRouteProps(props, 'url', undefined)
+  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
   const dispatch = Container.useDispatch()
-  const onSelect = (convID: ChatTypes.ConversationIDKey) => {
-    dispatch(FsGen.createSetSendAttachmentToChatConvID({convID}))
+  const username = Container.useSelector(state => state.config.username)
+
+  const pathsFromIncomingShare = incomingShareItems
+    // If it's a chat text, we fill it in the compose box instead of sending it
+    // as an attachment.
+    ?.filter(item => !isChatText(item))
+    ?.map(({payloadPath}) => payloadPath)
+  const pathsFromUrl = url ? [url] : []
+  const pathsFromPath = path ? [path] : []
+  const sendPaths = pathsFromIncomingShare || pathsFromUrl || pathsFromPath || []
+  const text =
+    incomingShareItems
+      ?.filter(isChatText)
+      ?.map(({content}) => content)
+      ?.join(' ') || ''
+
+  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, convName: string) => {
+    sendPaths.length &&
+      dispatch(
+        Chat2Gen.createAttachmentsUpload({
+          conversationIDKey,
+          paths: sendPaths.map(p => ({
+            outboxID: null,
+            path: p,
+          })),
+          titles: [''],
+          tlfName: `${username},${convName.split('#')[0]}`,
+        })
+      )
+    text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'files'}))
   }
-  const onDone = React.useCallback(() => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})), [
-    dispatch,
-  ])
-  const onSetFilter = React.useCallback(
-    (filter: string) => {
-      dispatch(FsGen.createSetSendAttachmentToChatFilter({filter}))
-      dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)}))
-    },
-    [dispatch]
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  return (
+    <Kb.Modal
+      noScrollView={true}
+      onClose={onCancel}
+      header={{
+        leftButton: (
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+            Cancel
+          </Kb.Text>
+        ),
+        title: Constants.getSharePathArrayDescription(sendPaths),
+      }}
+    >
+      <ConversationList {...props} onSelect={onSelect} />
+    </Kb.Modal>
   )
-  React.useEffect(() => onDone, [onDone])
+}
 
-  const layout = Container.useSelector(state => state.chat2.inboxLayout)
-
-  const filterEmpty = !filter
-
-  // force reload
-  React.useEffect(() => {
-    if (filterEmpty && layout) {
-      onSetFilter('')
-    }
-  }, [layout, onSetFilter, filterEmpty])
-
-  return {
-    filter,
-    onDone,
-    onSelect,
-    onSetFilter,
-    selected: sendAttachmentToChat.convID,
+const DesktopSendAttachmentToChat = (props: Props) => {
+  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
+  const [title, setTitle] = React.useState('')
+  const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
+  const [convName, setConvName] = React.useState('')
+  const username = Container.useSelector(state => state.config.username)
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createClearModals())
   }
+  const onSelect = (convID: ChatTypes.ConversationIDKey, convname: string) => {
+    setConversationIDKey(convID)
+    setConvName(convname)
+  }
+  const onSend = () => {
+    dispatch(
+      Chat2Gen.createAttachmentsUpload({
+        conversationIDKey,
+        paths: [{outboxID: null, path: Types.pathToString(path)}],
+        titles: [title],
+        tlfName: `${username},${convName.split('#')[0]}`,
+      })
+    )
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'files'}))
+    dispatch(Chat2Gen.createNavigateToThread())
+  }
+  return (
+    <DesktopSendAttachmentToChatRender
+      enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
+      convName={convName}
+      path={path}
+      title={title}
+      setTitle={setTitle}
+      onSend={onSend}
+      onSelect={onSelect}
+      onCancel={onCancel}
+    />
+  )
 }
 
-const ConnectedConversationList = (props: {customComponent?: React.ReactNode | null}) => {
-  const additionalProps = useConversationList()
-  return <ConversationList {...props} {...additionalProps} />
+type DesktopSendAttachmentToChatRenderProps = {
+  enabled: boolean
+  convName: string
+  path: Types.Path
+  title: string
+  setTitle: (title: string) => void
+  onSend: () => void
+  onCancel: () => void
+  onSelect: (convID: ChatTypes.ConversationIDKey, convName: string) => void
 }
 
-const MobileWithHeader = Kb.HeaderHoc(ConnectedConversationList)
-
-const MobileHeader = (props: Props) => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={mobileStyles.headerContainer}>
-    <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={props.onCancel}>
-      Cancel
-    </Kb.Text>
-    <Kb.Box2 direction="horizontal" style={mobileStyles.headerContent} fullWidth={true} centerChildren={true}>
-      <Kb.Text type="BodySemibold" style={mobileStyles.filename}>
-        {Types.getPathName(props.path)}
-      </Kb.Text>
-    </Kb.Box2>
-    <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={props.send}>
-      Send
-    </Kb.Text>
-  </Kb.Box2>
-)
-
-const DesktopConversationDropdown = (props: {dropdownButtonStyle?: Styles.StylesCrossPlatform | null}) => {
-  const additionalProps = useConversationList()
-  return <ChooseConversation {...props} {...additionalProps} />
-}
-
-const DesktopSendAttachmentToChat = (props: Props) => (
-  <>
-    <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
-        <Kb.Text type="Header">Attach in conversation</Kb.Text>
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={desktopStyles.belly} fullWidth={true}>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          fullWidth={true}
-          style={desktopStyles.pathItem}
-          gap="tiny"
-        >
-          <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
-          <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
+export const DesktopSendAttachmentToChatRender = (props: DesktopSendAttachmentToChatRenderProps) => {
+  return (
+    <>
+      <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
+        <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
+          <Kb.Text type="Header">Attach in conversation</Kb.Text>
         </Kb.Box2>
-        <DesktopConversationDropdown dropdownButtonStyle={desktopStyles.dropdown} />
-        <Kb.LabeledInput
-          placeholder="Title"
-          value={props.title}
-          style={desktopStyles.input}
-          onChangeText={props.onSetTitle}
-        />
+        <Kb.Box2 direction="vertical" style={desktopStyles.belly} fullWidth={true}>
+          <Kb.Box2
+            direction="vertical"
+            centerChildren={true}
+            fullWidth={true}
+            style={desktopStyles.pathItem}
+            gap="tiny"
+          >
+            <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
+            <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
+          </Kb.Box2>
+          <ChooseConversation
+            convName={props.convName}
+            dropdownButtonStyle={desktopStyles.dropdown}
+            onSelect={props.onSelect}
+          />
+          <Kb.LabeledInput
+            placeholder="Title"
+            value={props.title}
+            style={desktopStyles.input}
+            onChangeText={props.setTitle}
+          />
+        </Kb.Box2>
+        <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
+          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+          <Kb.Button label="Send in conversation" onClick={props.onSend} disabled={!props.enabled} />
+        </Kb.ButtonBar>
       </Kb.Box2>
-      <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
-        <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
-        <Kb.Button
-          label="Send in conversation"
-          onClick={props.send}
-          disabled={props.sendAttachmentToChatState !== Types.SendAttachmentToChatState.ReadyToSend}
-        />
-      </Kb.ButtonBar>
-    </Kb.Box2>
-  </>
-)
+    </>
+  )
+}
 
 const SendAttachmentToChat = Styles.isMobile
-  ? (props: Props) => <MobileWithHeader customComponent={<MobileHeader {...props} />} />
+  ? MobileSendAttachmentToChat
   : Kb.HeaderOrPopup(DesktopSendAttachmentToChat)
 
 export default SendAttachmentToChat
-
-const mobileStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      button: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
-      },
-      filename: {
-        textAlign: 'center',
-      },
-      headerContainer: {
-        minHeight: 44,
-      },
-      headerContent: {
-        flex: 1,
-        flexShrink: 1,
-        padding: Styles.globalMargins.xtiny,
-      },
-    } as const)
-)
 
 const desktopStyles = Styles.styleSheetCreate(
   () =>

@@ -1,3 +1,4 @@
+// TODO hookify, this hierarchy is very confusing
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
@@ -42,11 +43,13 @@ const matchesMarker = (
 }
 
 type AddSuggestorsProps = {
-  dataSources: {[K in string]: (filter: string) => {data: Array<any>; useSpaces: boolean}}
+  dataSources: {[K in string]: (filter: string) => {data: Array<any>; loading: boolean; useSpaces: boolean}}
   keyExtractors?: {[K in string]: (item: any) => string}
+  onChannelSuggestionsTriggered: () => void
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
+  suggestionSpinnerStyle?: Styles.StylesCrossPlatform
   suggestorToMarker: {[K in string]: string | RegExp}
   transformers: {
     [K in string]: (
@@ -66,6 +69,7 @@ type AddSuggestorsProps = {
 
 type AddSuggestorsState = {
   active?: string
+  expanded: boolean
   filter: string
   selected: number
 }
@@ -78,6 +82,7 @@ type SuggestorHooks = {
   onBlur: () => void
   onFocus: () => void
   onSelectionChange: (arg0: {start: number | null; end: number | null}) => void
+  onExpanded: (e: boolean) => void
 }
 
 export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
@@ -93,7 +98,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    state: AddSuggestorsState = {active: undefined, filter: '', selected: 0}
+    state: AddSuggestorsState = {active: undefined, expanded: false, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()
     _lastText?: string
@@ -103,6 +108,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     componentWillUnmount() {
       this._timeoutID && clearTimeout(this._timeoutID)
+    }
+
+    componentDidUpdate(_, prevState: AddSuggestorsState) {
+      if (prevState.active !== this.state.active && this.state.active === 'channels') {
+        this.props.onChannelSuggestionsTriggered()
+      }
     }
 
     _setAttachmentRef = (r: null | typeof WrappedComponent) => {
@@ -170,6 +181,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         }
         const {word} = cursorInfo
         const {active} = this.state
+
         if (active) {
           const activeMarker = this.props.suggestorToMarker[active]
           const matchInfo = matchesMarker(word, activeMarker)
@@ -330,12 +342,18 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         </Kb.ClickableBox>
       )
 
-    _getResults = (): {data: any[]; useSpaces: boolean} => {
+    _getResults = (): {data: any[]; loading: boolean; useSpaces: boolean} => {
       const {active} = this.state
-      return active ? this.props.dataSources[active](this.state.filter) : {data: [], useSpaces: false}
+      return active
+        ? this.props.dataSources[active](this.state.filter)
+        : {data: [], loading: false, useSpaces: false}
     }
 
     _getSelected = () => (this.state.active ? this._getResults().data[this.state.selected] : null)
+
+    _onExpanded = (expanded: boolean) => {
+      this.setState({expanded})
+    }
 
     render() {
       let overlay: React.ReactNode = null
@@ -343,20 +361,32 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._validateProps()
       }
       let suggestionsVisible = false
-      const results = this._getResults().data
-      if (results.length) {
+      const results = this._getResults()
+      if (results.data.length) {
         suggestionsVisible = true
         const active = this.state.active
         const content = (
-          <SuggestionList
-            style={this.props.suggestionListStyle}
-            items={results}
-            keyExtractor={
-              (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
-            }
-            renderItem={this._itemRenderer}
-            selectedIndex={this.state.selected}
-          />
+          <>
+            <SuggestionList
+              style={
+                this.state.expanded
+                  ? {bottom: 95, position: 'absolute', top: 95}
+                  : this.props.suggestionListStyle
+              }
+              items={results.data}
+              keyExtractor={
+                (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
+              }
+              renderItem={this._itemRenderer}
+              selectedIndex={this.state.selected}
+            />
+            {results.loading && (
+              <Kb.ProgressIndicator
+                type={Styles.isMobile ? undefined : 'Large'}
+                style={this.props.suggestionSpinnerStyle}
+              />
+            )}
+          </>
         )
         overlay = Styles.isMobile ? (
           <Kb.FloatingBox
@@ -407,6 +437,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             onChangeText={this._onChangeText}
             onKeyDown={this._onKeyDown}
             onSelectionChange={this._onSelectionChange}
+            onExpanded={this._onExpanded}
           />
         </>
       )

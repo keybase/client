@@ -152,7 +152,7 @@ func TestTopicNameRace(t *testing.T) {
 		for i := 0; i < attempts; i++ {
 			go func() {
 				ctx = globals.CtxAddLogTags(ctx, tc.Context())
-				conv, err := NewConversation(ctx, tc.Context(), uid, first.TlfName, &topicName,
+				conv, _, err := NewConversation(ctx, tc.Context(), uid, first.TlfName, &topicName,
 					chat1.TopicType_DEV, mt, keybase1.TLFVisibility_PRIVATE,
 					func() chat1.RemoteInterface { return ri }, NewConvFindExistingNormal)
 				retCh <- ncRes{convID: conv.GetConvID(), err: err}

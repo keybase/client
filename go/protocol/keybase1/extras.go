@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"sort"
@@ -703,7 +704,7 @@ func SigIDFromSlice(b []byte) (SigID, error) {
 	return SigIDFromBytes(x), nil
 }
 
-func (s SigID) toBytes() []byte {
+func (s SigID) ToBytes() []byte {
 	b, err := hex.DecodeString(string(s))
 	if err != nil {
 		return nil
@@ -712,8 +713,8 @@ func (s SigID) toBytes() []byte {
 }
 
 func (s SigID) Eq(t SigID) bool {
-	b := s.toBytes()
-	c := t.toBytes()
+	b := s.ToBytes()
+	c := t.ToBytes()
 	if b == nil || c == nil {
 		return false
 	}
@@ -734,11 +735,11 @@ func (s SigID) ToMapKey() SigIDMapKey {
 }
 
 func (s SigID) ToMediumID() string {
-	return encode(s.toBytes())
+	return encode(s.ToBytes())
 }
 
 func (s SigID) ToShortID() string {
-	return encode(s.toBytes()[0:SIG_SHORT_ID_BYTES])
+	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
 }
 
 func encode(b []byte) string {
@@ -2568,6 +2569,18 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 	return ParseUserVersion(UserVersionPercentForm(t.Name))
 }
 
+// TeamMaxUsesInfinite is a value for max_uses field which makes team invite
+// multiple use, with infinite number of uses.
+const TeamMaxUsesInfinite = -1
+
+func (e TeamInviteMaxUses) IsInfiniteUses() bool {
+	return e == TeamMaxUsesInfinite
+}
+
+func (e TeamInviteMaxUses) IsValid() bool {
+	return e > 0 || e == TeamMaxUsesInfinite
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
@@ -3438,6 +3451,27 @@ func (s TeamSigChainState) UserRole(user UserVersion) TeamRole {
 	return role
 }
 
+func (s TeamSigChainState) GetUserLastJoinTime(user UserVersion) (time Time, err error) {
+	if s.UserRole(user) == TeamRole_NONE {
+		return 0, fmt.Errorf("In GetUserLastJoinTime: User %s is not a member of team %v", user.Uid, s.Id)
+	}
+	// Look for the latest join event, i.e. the latest transition from a role NONE to a different valid one.
+	points := s.UserLog[user]
+	for i := len(points) - 1; i > -1; i-- {
+		if points[i].Role == TeamRole_NONE {
+			// this is the last time in the sigchain this user has role none
+			// (note that it cannot be the last link in the chain, otherwise the
+			// user would have role NONE), so the link after this one is the one
+			// where they joined the team last.
+			return points[i+1].SigMeta.Time, nil
+		}
+	}
+	// If the user never had role none, they joined at the time of their first
+	// UserLog entry (they need to have at least one, else again their role would be
+	// NONE).
+	return points[0].SigMeta.Time, nil
+}
+
 func (s TeamSigChainState) KeySummary() string {
 	var v []PerTeamKeyGeneration
 	for k := range s.PerTeamKeys {
@@ -3746,4 +3780,95 @@ func (x InstrumentationStat) AppendStat(y InstrumentationStat) InstrumentationSt
 	x.AvgDur = x.TotalDur / DurationMsec(x.NumCalls)
 	x.AvgSize = x.TotalSize / int64(x.NumCalls)
 	return x
+}
+
+func (e TeamSearchExport) Hash() string {
+	l := make([]TeamSearchItem, 0, len(e.Items))
+	for _, item := range e.Items {
+		l = append(l, item)
+	}
+	sort.Slice(l, func(i, j int) bool {
+		return l[i].Id.Less(l[j].Id)
+	})
+	hasher := sha256.New()
+	for _, team := range l {
+		log := math.Floor(math.Log10(float64(team.MemberCount)))
+		rounder := int(math.Pow(10, log))
+		value := (team.MemberCount / rounder) * rounder
+		hasher.Write(team.Id.ToBytes())
+		hasher.Write([]byte(fmt.Sprintf("%d", value)))
+	}
+	for _, id := range e.Suggested {
+		hasher.Write(id.ToBytes())
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+// web-of-trust
+const (
+	UsernameVerificationType_NONE       = ""
+	UsernameVerificationType_AUDIO      = "audio"
+	UsernameVerificationType_VIDEO      = "video"
+	UsernameVerificationType_EMAIL      = "email"
+	UsernameVerificationType_OTHER_CHAT = "other_chat"
+	UsernameVerificationType_IN_PERSON  = "in_person"
+)
+
+var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
+	"":           UsernameVerificationType_NONE,
+	"none":       UsernameVerificationType_NONE,
+	"audio":      UsernameVerificationType_AUDIO,
+	"video":      UsernameVerificationType_VIDEO,
+	"email":      UsernameVerificationType_EMAIL,
+	"other_chat": UsernameVerificationType_OTHER_CHAT,
+	"in_person":  UsernameVerificationType_IN_PERSON,
+}
+
+func (c Confidence) ToJsonw() *jsonw.Wrapper {
+	j := jsonw.NewDictionary()
+	if c.UsernameVerifiedVia != UsernameVerificationType_NONE {
+		_ = j.SetKey("username_verified_via", jsonw.NewString(string(c.UsernameVerifiedVia)))
+	}
+	if len(c.VouchedBy) > 0 {
+		vb := jsonw.NewArray(len(c.VouchedBy))
+		for i, uid := range c.VouchedBy {
+			_ = vb.SetIndex(i, jsonw.NewString(uid.String()))
+		}
+		_ = j.SetKey("vouched_by", vb)
+	}
+	if c.KnownOnKeybaseDays > 0 {
+		_ = j.SetKey("known_on_keybase_days", jsonw.NewInt(c.KnownOnKeybaseDays))
+	}
+	if c.Other != "" {
+		_ = j.SetKey("other", jsonw.NewString(c.Other))
+	}
+	return j
+}
+
+func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
+	if fsc.Mode != other.Mode {
+		return false
+	}
+	if len(fsc.Paths) != len(other.Paths) {
+		return false
+	}
+	for i, p := range fsc.Paths {
+		if p != other.Paths[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
+	size := len(t.Admins) + len(t.Bots) + len(t.Owners) + len(t.Writers) + len(t.Readers) +
+		len(t.RestrictedBots)
+	res = make([]TeamMemberDetails, 0, size)
+	return append(res,
+		append(t.Admins,
+			append(t.Bots,
+				append(t.Owners,
+					append(t.Readers,
+						append(t.RestrictedBots,
+							append(t.Writers)...)...)...)...)...)...)
 }

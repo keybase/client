@@ -1,9 +1,8 @@
-import {isMobile} from '../constants/platform'
-
 import ChatConversation from './conversation/container'
 import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import ChatRoot from './inbox/container'
 import ChatAddToChannel from './conversation/info-panel/add-to-channel/container'
+import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
 import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
 import ChatChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
@@ -23,8 +22,9 @@ import ChatInstallBot from './conversation/bot/install'
 import ChatInstallBotPick from './conversation/bot/team-picker'
 import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
-import AndroidChooseTarget from './android-choose-target'
 import ChatPDF from './pdf'
+import * as ChatConstants from '../constants/chat2'
+import flags from '../util/feature-flags'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -33,20 +33,22 @@ export const newRoutes = {
   },
   chatRoot: {
     getScreen: (): typeof ChatRoot =>
-      isMobile
-        ? require('./inbox/defer-loading').default
-        : require('./inbox-and-conversation-2.desktop').default,
+      ChatConstants.isSplit
+        ? require('./inbox-and-conversation-2').default
+        : require('./inbox/defer-loading').default,
   },
 }
 
 export const newModalRoutes = {
-  androidChooseTarget: {
-    getScreen: (): typeof AndroidChooseTarget => require('./android-choose-target').default,
-  },
-  chatAddToChannel: {
-    getScreen: (): typeof ChatAddToChannel =>
-      require('./conversation/info-panel/add-to-channel/container').default,
-  },
+  chatAddToChannel: flags.teamsRedesign
+    ? {
+        getScreen: (): typeof ChatAddToChannelNew =>
+          require('./conversation/info-panel/add-to-channel/index.new').default,
+      }
+    : {
+        getScreen: (): typeof ChatAddToChannel =>
+          require('./conversation/info-panel/add-to-channel/container').default,
+      },
   chatAttachmentFullscreen: {
     getScreen: (): typeof ChatAttachmentFullscreen =>
       // @ts-ignore TODO fix

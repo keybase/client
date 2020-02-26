@@ -40,9 +40,10 @@ type KeyServerConfig interface {
 
 // KeyServerLocal puts/gets key server halves in/from a local leveldb instance.
 type KeyServerLocal struct {
-	config KeyServerConfig
-	db     *leveldb.DB // kbfscrypto.TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
-	log    logger.Logger
+	config     KeyServerConfig
+	storCloser func() error
+	db         *leveldb.DB // kbfscrypto.TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
+	log        logger.Logger
 
 	shutdownLock *sync.RWMutex
 	shutdown     *bool
@@ -54,13 +55,20 @@ var _ KeyServer = (*KeyServerLocal)(nil)
 
 func newKeyServerLocal(
 	config KeyServerConfig, log logger.Logger, storage storage.Storage,
-	shutdownFunc func(logger.Logger)) (*KeyServerLocal, error) {
+	shutdownFunc func(logger.Logger)) (ks *KeyServerLocal, err error) {
+	defer func() {
+		if err != nil {
+			_ = storage.Close()
+		}
+	}()
+
 	db, err := leveldb.Open(storage, nil)
 	if err != nil {
 		return nil, err
 	}
 	kops := &KeyServerLocal{
-		config, db, log, &sync.RWMutex{}, new(bool), shutdownFunc}
+		config, storage.Close, db, log, &sync.RWMutex{}, new(bool),
+		shutdownFunc}
 	return kops, nil
 }
 
@@ -205,7 +213,8 @@ func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 func (ks *KeyServerLocal) CopyWithConfigAndLogger(
 	config KeyServerConfig, log logger.Logger) *KeyServerLocal {
 	return &KeyServerLocal{
-		config, ks.db, log, ks.shutdownLock, ks.shutdown, ks.shutdownFunc}
+		config, ks.storCloser, ks.db, log, ks.shutdownLock, ks.shutdown,
+		ks.shutdownFunc}
 }
 
 // Shutdown implements the KeyServer interface for KeyServerLocal.
@@ -218,7 +227,11 @@ func (ks *KeyServerLocal) Shutdown() {
 	*ks.shutdown = true
 
 	if ks.db != nil {
-		ks.db.Close()
+		_ = ks.db.Close()
+	}
+
+	if ks.storCloser != nil {
+		_ = ks.storCloser()
 	}
 
 	if ks.shutdownFunc != nil {

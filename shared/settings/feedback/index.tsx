@@ -90,8 +90,8 @@ class Feedback extends React.Component<Props, State> {
   render() {
     const {sending, sendError} = this.props
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
-        <Kb.ScrollView alwaysBounceVertical={false}>
+      <Kb.ScrollView alwaysBounceVertical={false}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
           {this.state.showSuccessBanner && (
             <Kb.Banner color="green">
               <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
@@ -137,9 +137,15 @@ class Feedback extends React.Component<Props, State> {
                 />
               </Kb.Box2>
             )}
-            <Kb.ButtonBar>
-              <Kb.Button fullWidth={true} label="Send" onClick={this._onSendFeedback} waiting={sending} />
-            </Kb.ButtonBar>
+            <Kb.Box2
+              alignSelf={this.props.loggedOut ? 'center' : 'flex-start'}
+              direction="horizontal"
+              gap="tiny"
+            >
+              <Kb.ButtonBar>
+                <Kb.Button label="Send" onClick={this._onSendFeedback} waiting={sending} fullWidth={true} />
+              </Kb.ButtonBar>
+            </Kb.Box2>
             {sendError && (
               <Kb.Box2 direction="vertical" gap="small">
                 <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
@@ -157,8 +163,8 @@ class Feedback extends React.Component<Props, State> {
               </Kb.Box2>
             )}
           </Kb.Box2>
-        </Kb.ScrollView>
-      </Kb.Box2>
+        </Kb.Box2>
+      </Kb.ScrollView>
     )
   }
 }
@@ -179,8 +185,17 @@ const styles = Styles.styleSheetCreate(
         isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
       }),
       mainBox: Styles.platformStyles({
-        common: {padding: Styles.globalMargins.small},
-        isElectron: {width: 368},
+        common: {
+          padding: Styles.globalMargins.small,
+        },
+        isElectron: {
+          maxWidth: 550,
+          width: '100%',
+        },
+        isTablet: {
+          maxWidth: Styles.globalStyles.mediumWidth,
+          width: '100%',
+        },
       }),
       outerStyle: {backgroundColor: Styles.globalColors.white},
       smallLabel: {color: Styles.globalColors.black},

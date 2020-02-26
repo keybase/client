@@ -146,7 +146,11 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
-    require('rn-fetch-blob').default.fs.unlink(filePath)
+    try {
+      require('rn-fetch-blob').default.fs.unlink(filePath)
+    } catch (_) {
+      logger.warn('failed to unlink')
+    }
   }
 }
 
@@ -322,6 +326,7 @@ function* loadStartupDetails() {
   let startupLink = ''
   let startupTab = undefined
   let startupSharePath = undefined
+  let startupShareText = undefined
 
   const routeStateTask = yield Saga._fork(async () => {
     try {
@@ -360,7 +365,8 @@ function* loadStartupDetails() {
     // Second priority, deep link
     startupLink = link
   } else if (share) {
-    startupSharePath = share
+    startupSharePath = share.fileUrl || undefined
+    startupShareText = share.text || undefined
   } else if (routeState) {
     // Last priority, saved from last session
     try {
@@ -381,6 +387,7 @@ function* loadStartupDetails() {
       startupFollowUser,
       startupLink,
       startupSharePath,
+      startupShareText,
       startupTab,
       startupWasFromPush,
     })

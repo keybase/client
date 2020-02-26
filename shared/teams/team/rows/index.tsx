@@ -1,4 +1,5 @@
 import * as Types from '../../../constants/types/teams'
+import * as ChatTypes from '../../../constants/types/chat2'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {isMobile} from '../../../constants/platform'
 import flags from '../../../util/feature-flags'
@@ -15,9 +16,13 @@ type MemberRow = {key: string; username: string; type: 'member'}
 type BotRow = {key: string; username: string; type: 'bot'} | {key: string; type: 'bot-add'}
 type InviteRow =
   | {key: string; label: string; type: 'invites-divider'}
-  | {key: string; username: string; type: 'invites-request'}
+  | {key: string; ctime: number; username: string; fullName: string; type: 'invites-request'}
   | {key: string; id: string; type: 'invites-invite'}
   | {key: string; type: 'invites-none'}
+type ChannelRow =
+  | {key: string; channel: Types.ChannelInfo; type: 'channel'; conversationIDKey: ChatTypes.ConversationIDKey}
+  | {key: string; type: 'channel-header'}
+  | {key: string; type: 'channel-footer'}
 type SubteamRow =
   | {key: string; type: 'subteam-intro'}
   | {key: string; type: 'subteam-add'}
@@ -27,15 +32,16 @@ type SubteamRow =
 type SettingsRow = {key: string; type: 'settings'}
 type LoadingRow = {key: string; type: 'loading'}
 export type Row =
-  | HeaderRow
-  | DividerRow
-  | TabsRow
-  | MemberRow
   | BotRow
+  | ChannelRow
+  | DividerRow
+  | HeaderRow
   | InviteRow
-  | SubteamRow
-  | SettingsRow
   | LoadingRow
+  | MemberRow
+  | SettingsRow
+  | SubteamRow
+  | TabsRow
 
 const makeRows = (
   meta: Types.TeamMeta,
@@ -44,6 +50,7 @@ const makeRows = (
   yourUsername: string,
   yourOperations: Types.TeamOperations,
   invitesCollapsed: Set<Types.TeamID>,
+  channelInfos?: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
   subteamsFiltered?: Set<Types.TeamID>
 ): Array<Row> => {
   const rows: Array<Row> = []
@@ -64,11 +71,15 @@ const makeRows = (
             })
           }
           rows.push(
-            ...[...details.requests].sort().map(username => ({
-              key: `invites-request:${username}`,
-              type: 'invites-request' as const,
-              username,
-            }))
+            ...[...details.requests].map(req => {
+              return {
+                ctime: req.ctime,
+                fullName: req.fullName,
+                key: `invites-request:${req.username}`,
+                type: 'invites-request' as const,
+                username: req.username,
+              }
+            })
           )
         }
         if (details.invites?.size) {
@@ -132,10 +143,12 @@ const makeRows = (
         empty = false
         rows.push({key: 'invites-divider:requests', label: 'Requests', type: 'invites-divider'})
         rows.push(
-          ...[...requests].sort().map(username => ({
-            key: `invites-request:${username}`,
+          ...[...requests].map(req => ({
+            ctime: req.ctime,
+            fullName: req.fullName,
+            key: `invites-request:${req.username}`,
             type: 'invites-request' as const,
-            username,
+            username: req.username,
           }))
         )
       }
@@ -189,6 +202,28 @@ const makeRows = (
     case 'settings':
       rows.push({key: 'settings', type: 'settings'})
       break
+    case 'channels': {
+      rows.push({key: 'channel-header', type: 'channel-header'})
+      let channels: Array<{channel: Types.ChannelInfo; conversationIDKey: ChatTypes.ConversationIDKey}> = []
+      channelInfos?.forEach((channel, conversationIDKey) => channels.push({channel, conversationIDKey}))
+      channels
+        .sort((a, b) =>
+          a.channel.channelname === 'general'
+            ? -1
+            : b.channel.channelname === 'general'
+            ? 1
+            : a.channel.channelname.localeCompare(b.channel.channelname)
+        )
+        .forEach(({channel, conversationIDKey}) =>
+          rows.push({
+            channel,
+            conversationIDKey,
+            key: `channel-${channel.channelname}`,
+            type: 'channel',
+          })
+        )
+      rows.push({key: 'channel-footer', type: 'channel-footer'})
+    }
   }
   return rows
 }

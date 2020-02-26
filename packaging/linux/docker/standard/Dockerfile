@@ -1,4 +1,4 @@
-FROM golang:1.13.3-stretch AS builder
+FROM golang:1.13.7-stretch AS builder
 
 ARG SOURCE_COMMIT=unknown
 
