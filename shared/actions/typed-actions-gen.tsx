@@ -887,6 +887,7 @@ export type TypedActionsMap = {
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'team-building:tbResetStore': teambuilding.TbResetStorePayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
+  'teams:channelSetMemberSelected': teams.ChannelSetMemberSelectedPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload

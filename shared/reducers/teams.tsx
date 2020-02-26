@@ -241,6 +241,23 @@ export default Container.makeReducer<
       }
     }
   },
+  [TeamsGen.channelSetMemberSelected]: (draftState, action) => {
+    const {conversationIDKey, username, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.channelSelectedMembers.delete(conversationIDKey)
+    } else {
+      const membersSelected = mapGetEnsureValue(
+        draftState.channelSelectedMembers,
+        conversationIDKey,
+        new Set()
+      )
+      if (selected) {
+        membersSelected.add(username)
+      } else {
+        membersSelected.delete(username)
+      }
+    }
+  },
   [TeamsGen.setTeamRoleMapLatestKnownVersion]: (draftState, action) => {
     draftState.teamRoleMap.latestKnownVersion = action.payload.version
   },

@@ -11,6 +11,13 @@
       "teams": "Array<string>",
       "user": "string"
     },
+    "channelSetMemberSelected": {
+      "_description": "Sets whether a member is selected on the team page",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "username": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
+    },
     "clearNavBadges": {},
     "createNewTeam": {
       "fromChat?": "boolean",

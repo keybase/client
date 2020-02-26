@@ -135,6 +135,7 @@ export type State = {
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
   readonly canPerform: Map<TeamID, TeamOperations>
+  readonly channelSelectedMembers: Map<ConversationIDKey, Set<string>>
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string

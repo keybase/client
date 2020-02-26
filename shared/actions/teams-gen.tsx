@@ -13,6 +13,7 @@ export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
 export const addUserToTeams = 'teams:addUserToTeams'
 export const addedToTeam = 'teams:addedToTeam'
+export const channelSetMemberSelected = 'teams:channelSetMemberSelected'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
@@ -109,6 +110,12 @@ type _AddUserToTeamsPayload = {
   readonly user: string
 }
 type _AddedToTeamPayload = {readonly error?: string; readonly fromTeamBuilder?: boolean}
+type _ChannelSetMemberSelectedPayload = {
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+  readonly username: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}
 type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
@@ -412,6 +419,12 @@ export const createSetChannelSelected = (payload: _SetChannelSelectedPayload): S
 /**
  * Sets whether a member is selected on the team page
  */
+export const createChannelSetMemberSelected = (
+  payload: _ChannelSetMemberSelectedPayload
+): ChannelSetMemberSelectedPayload => ({payload, type: channelSetMemberSelected})
+/**
+ * Sets whether a member is selected on the team page
+ */
 export const createTeamSetMemberSelected = (
   payload: _TeamSetMemberSelectedPayload
 ): TeamSetMemberSelectedPayload => ({payload, type: teamSetMemberSelected})
@@ -672,6 +685,10 @@ export type AddUserToTeamsPayload = {
   readonly type: typeof addUserToTeams
 }
 export type AddedToTeamPayload = {readonly payload: _AddedToTeamPayload; readonly type: typeof addedToTeam}
+export type ChannelSetMemberSelectedPayload = {
+  readonly payload: _ChannelSetMemberSelectedPayload
+  readonly type: typeof channelSetMemberSelected
+}
 export type CheckRequestedAccessPayload = {
   readonly payload: _CheckRequestedAccessPayload
   readonly type: typeof checkRequestedAccess
@@ -938,6 +955,7 @@ export type Actions =
   | AddToTeamPayload
   | AddUserToTeamsPayload
   | AddedToTeamPayload
+  | ChannelSetMemberSelectedPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
