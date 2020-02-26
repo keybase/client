@@ -300,6 +300,7 @@ type TeamChannelSource interface {
 	GetChannelTopicName(ctx context.Context, uid gregor1.UID,
 		tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error)
 	GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error)
+	GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error)
 	OnLogout(libkb.MetaContext) error
 	OnDbNuke(libkb.MetaContext) error
 }
@@ -599,9 +600,12 @@ type JourneyCardManager interface {
 }
 
 type ParticipantSource interface {
-	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]gregor1.UID, error)
-	GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan ParticipantResult
-	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error)
+	GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
+	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp)
 }
 
 type InternalError interface {

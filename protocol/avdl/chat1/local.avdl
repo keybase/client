@@ -1356,4 +1356,5 @@ protocol local {
   // queue up a refresh of participants, this will result in notifications to the UI with the data
   // from local and remote sources
   void refreshParticipants(ConversationID convID);
+  gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, gregor1.UID uid);
 }

@@ -416,4 +416,10 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   RefreshParticipantsRemoteRes refreshParticipantsRemote(ConversationID convID, string hash);
+
+  record GetLastActiveAtRes {
+    gregor1.Time lastActiveAt;
+    union { null, RateLimit } rateLimit;
+  }
+  GetLastActiveAtRes getLastActiveAt(keybase1.TeamID teamID, gregor1.UID uid);
 }

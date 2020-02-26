@@ -8,6 +8,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import flags from '../../../util/feature-flags'
 import Participant from './participant'
+import * as Styles from '../../../styles'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -77,6 +78,7 @@ export default (props: Props) => {
       fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
       isAdmin: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
       isOwner: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+      key: `user-${p}`,
       username: p,
     }))
     .sort((l, r) => {
@@ -93,8 +95,8 @@ export default (props: Props) => {
   const onShowProfile = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
 
   const sections = showSpinner
-    ? [spinnerItem]
-    : [...(showAuditingBanner ? [auditingBannerItem] : []), ...participantsItems]
+    ? [{key: spinnerItem}]
+    : [...(showAuditingBanner ? [{key: auditingBannerItem}] : []), ...participantsItems]
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
@@ -104,17 +106,17 @@ export default (props: Props) => {
         ...props.commonSections,
         {
           data: sections,
-          renderItem: ({index, item}: {index: number; item: any}) => {
-            if (item === auditingBannerItem) {
+          renderItem: ({index, item}: {index: number; item: Unpacked<typeof sections>}) => {
+            if (item.key === auditingBannerItem) {
               return (
                 <Kb.Banner color="grey" small={true}>
                   Auditing team members...
                 </Kb.Banner>
               )
-            } else if (item === spinnerItem) {
-              return <Kb.ProgressIndicator type="Large" />
+            } else if (item.key === spinnerItem) {
+              return <Kb.ProgressIndicator type="Large" style={styles.membersSpinner} />
             } else {
-              if (!item.username) {
+              if (!('username' in item) || !item.username) {
                 return null
               }
               return (
@@ -135,3 +137,10 @@ export default (props: Props) => {
     />
   )
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      membersSpinner: {marginTop: Styles.globalMargins.small},
+    } as const)
+)
