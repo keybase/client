@@ -631,7 +631,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       case 'chat2': {
         const rightButton = Styles.isMobile ? (
           <Kb.Button
-            label={ownProps.justContacts ? 'Add' : 'Start'}
+            label={this.props.justContacts ? 'Add' : 'Start'}
             onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
             small={true}
             type="Success"
