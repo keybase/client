@@ -714,12 +714,11 @@ export const annotatedInvitesToInviteInfo = (
       const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
       username = `${invite.name}@${sbs}`
     }
-    const {e164ToDisplay} = require('../util/phone-numbers')
     arr.push({
       email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
       id: invite.id,
       name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.name : '',
       role,
       username,
     })
