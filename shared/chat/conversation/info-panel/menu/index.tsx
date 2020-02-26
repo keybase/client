@@ -61,7 +61,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
       isMuted={props.isMuted}
       isSelected={false}
       participants={props.participants}
-      singleSize={32}
+      singleSize={Styles.isMobile ? 48 : 32}
     />
     <Kb.Box2 alignItems="flex-start" direction="vertical">
       <Kb.ConnectedUsernames
@@ -132,6 +132,7 @@ class InfoPanelMenu extends React.Component<Props> {
     ]
     const channelHeader = [
       {
+        title: 'channelHeader',
         unWrapped: true,
         view: (
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.channelHeader}>
@@ -157,6 +158,7 @@ class InfoPanelMenu extends React.Component<Props> {
         }
     const teamHeader = [
       {
+        title: 'teamHeader',
         unWrapped: true,
         view: (
           <Kb.Box2
@@ -187,7 +189,7 @@ class InfoPanelMenu extends React.Component<Props> {
           this.muteItem(),
           this.hideItem(),
           ...(!props.isSmallTeam && !props.isInChannel && !isGeneralChannel && !props.hasHeader
-            ? [{onClick: props.onJoinChannel, title: 'Join channel'}]
+            ? [{icon: 'iconfont-hash', onClick: props.onJoinChannel, title: 'Join channel'}]
             : []),
           ...(!props.isSmallTeam && props.isInChannel && !isGeneralChannel && !props.hasHeader
             ? [{icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'}]
@@ -197,16 +199,12 @@ class InfoPanelMenu extends React.Component<Props> {
           {
             icon: 'iconfont-people',
             onClick: props.onViewTeam,
-            style: {borderTopWidth: 0},
             title: 'Team info',
           },
           ...(props.canAddPeople ? addPeopleItems : []),
           {icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
         ]
-    ).reduce<Kb.MenuItems>((arr, i) => {
-      i && arr.push(i as Kb.MenuItem)
-      return arr
-    }, [])
+    ).flat()
 
     const header = {
       title: 'header',
@@ -321,7 +319,6 @@ const styles = Styles.styleSheetCreate(
       }),
       channelName: Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
-        isMobile: {height: 'auto'},
       }),
       headerContainer: Styles.platformStyles({
         isElectron: {
@@ -333,7 +330,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%', // don't expand if text is long
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small),
+          ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
           height: 64,
         },
       }),

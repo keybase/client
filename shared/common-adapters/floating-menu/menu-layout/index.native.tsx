@@ -9,7 +9,6 @@ import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
 import ProgressIndicator from '../../progress-indicator'
-import {isLargeScreen} from '../../../constants/platform'
 import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
@@ -95,15 +94,6 @@ const MenuLayout = (props: MenuLayoutProps) => {
     x ? x !== 'Divider' : false
   )
   const beginningDivider = props.items[0] === 'Divider'
-  // if we set it to numItems * itemContainerHeight exactly, the scrollview
-  // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
-  // Add 2px to compensate unless there's a single item with a subTitle, then, we need 16px
-  const height = Math.min(
-    menuItemsNoDividers.length * 56 +
-      (menuItemsNoDividers.length === 1 && !!menuItemsNoDividers[0].subTitle ? 16 : 2),
-    isLargeScreen ? 500 : 350
-  )
-
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
 
   return (
@@ -125,7 +115,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
         {beginningDivider && <Divider />}
         <ScrollView
           alwaysBounceVertical={false}
-          style={styles.scrollView}
+          style={Styles.collapseStyles([styles.scrollView, firstIsUnWrapped && styles.firstIsUnWrapped])}
           contentContainerStyle={styles.menuGroup}
         >
           {menuItemsNoDividers.map((mi, idx) => (
@@ -236,7 +226,7 @@ const styles = Styles.styleSheetCreate(
       scrollView: {
         flexGrow: 1,
         paddingBottom: Styles.globalMargins.tiny,
-        // paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
       },
     } as const)
 )
