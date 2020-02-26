@@ -1,25 +1,52 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as TeamsGen from '../../actions/teams-gen'
+import {TabKey as ChannelTabKey} from '../channel/tabs'
 import {pluralize} from '../../util/string'
 
-type SelectableTab = Extract<Types.TabKey, 'members' | 'channels'>
+type TeamSelectableTab = Extract<Types.TabKey, 'members' | 'channels'>
+type ChannelSelectableTab = Extract<ChannelTabKey, 'members'>
 
-type Props = {
-  selectedTab: SelectableTab
+type TeamActionsProps = {
   teamID: Types.TeamID
 }
+type TeamProps = TeamActionsProps & {
+  selectedTab: TeamSelectableTab
+  typ: 'team'
+}
 
-const getSelectedCount = (state: Container.TypedState, props: Props) => {
-  switch (props.selectedTab) {
+type ChannelActionsProps = {
+  conversationIDKey: ChatTypes.ConversationIDKey
+}
+type ChannelProps = ChannelActionsProps & {
+  selectedTab: ChannelSelectableTab
+  typ: 'channel'
+}
+
+type Props = TeamProps | ChannelProps
+
+const getTeamSelectedCount = (state: Container.TypedState, props: TeamProps) => {
+  const {selectedTab, teamID} = props
+  switch (selectedTab) {
     case 'channels':
-      return state.teams.teamSelectedChannels.get(props.teamID)?.size ?? 0
+      return state.teams.teamSelectedChannels.get(teamID)?.size ?? 0
     case 'members':
-      return state.teams.teamSelectedMembers.get(props.teamID)?.size ?? 0
+      return state.teams.teamSelectedMembers.get(teamID)?.size ?? 0
+    default:
+      return 0
+  }
+}
+
+const getChannelSelectedCount = (state: Container.TypedState, props: ChannelProps) => {
+  const {conversationIDKey, selectedTab} = props
+  switch (selectedTab) {
+    case 'members':
+      return state.teams.channelSelectedMembers.get(conversationIDKey)?.size ?? 0
     default:
       return 0
   }
@@ -27,45 +54,24 @@ const getSelectedCount = (state: Container.TypedState, props: Props) => {
 
 // In order for Selection Popup to show in a tab
 // the respective tab needs to be added to this map
-const tabThings: {[k in SelectableTab]: string} = {
+const teamSelectableTabNames: {[k in TeamSelectableTab]: string} = {
   channels: 'channel',
   members: 'member',
 }
+const channelSelectableTabNames: {[k in ChannelSelectableTab]: string} = {
+  members: 'member',
+}
 
-const SelectionPopup = (props: Props) => {
-  const selectedCount = Container.useSelector(state => getSelectedCount(state, props))
-  const dispatch = Container.useDispatch()
+type JointSelectionPopupProps = {
+  children: React.ReactNode
+  onUnselect: () => void
+  selectableTabName: string
+  selectedCount: number
+}
 
-  const onUnselect = () => {
-    switch (props.selectedTab) {
-      case 'channels':
-        dispatch(
-          TeamsGen.createSetChannelSelected({
-            channel: '',
-            clearAll: true,
-            selected: false,
-            teamID: props.teamID,
-          })
-        )
-        return
-      case 'members':
-        dispatch(
-          TeamsGen.createTeamSetMemberSelected({
-            clearAll: true,
-            selected: false,
-            teamID: props.teamID,
-            username: '',
-          })
-        )
-        return
-    }
-  }
-
-  const tabThing = tabThings[props.selectedTab]
-  const onSelectableTab = !!tabThing
-
-  const Actions = actionsComponent[props.selectedTab]
-
+const JointSelectionPopup = (props: JointSelectionPopupProps) => {
+  const {onUnselect, selectableTabName, selectedCount, children} = props
+  const onSelectableTab = !!selectableTabName
   return onSelectableTab && (!Styles.isMobile || !!selectedCount) ? (
     <Kb.Box2
       fullWidth={Styles.isMobile}
@@ -84,7 +90,7 @@ const SelectionPopup = (props: Props) => {
         </Kb.Text>
       )}
       <Kb.Text type="BodySmall">
-        {selectedCount} {pluralize(tabThing, selectedCount)} selected.{' '}
+        {selectedCount} {pluralize(selectableTabName, selectedCount)} selected.{' '}
         {!Styles.isMobile && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onUnselect}>
             Unselect
@@ -93,19 +99,96 @@ const SelectionPopup = (props: Props) => {
       </Kb.Text>
 
       {!Styles.isMobile && <Kb.BoxGrow />}
-
-      <Actions teamID={props.teamID} />
+      {children}
     </Kb.Box2>
   ) : null
 }
 
-type ActionsProps = {teamID: Types.TeamID}
+const TeamSelectionPopup = (props: TeamProps) => {
+  const {selectedTab, teamID} = props
+  const selectedCount = Container.useSelector(state => getTeamSelectedCount(state, props))
+  const dispatch = Container.useDispatch()
+
+  const onUnselect = () => {
+    switch (selectedTab) {
+      case 'channels':
+        dispatch(
+          TeamsGen.createSetChannelSelected({
+            channel: '',
+            clearAll: true,
+            selected: false,
+            teamID: teamID,
+          })
+        )
+        return
+      case 'members':
+        dispatch(
+          TeamsGen.createTeamSetMemberSelected({
+            clearAll: true,
+            selected: false,
+            teamID: teamID,
+            username: '',
+          })
+        )
+        return
+    }
+  }
+
+  const selectableTabName = teamSelectableTabNames[selectedTab]
+  const Actions = teamActionsComponent[selectedTab]
+  return (
+    <JointSelectionPopup
+      selectableTabName={selectableTabName}
+      selectedCount={selectedCount}
+      onUnselect={onUnselect}
+    >
+      <Actions teamID={teamID} />
+    </JointSelectionPopup>
+  )
+}
+
+const ChannelSelectionPopup = (props: ChannelProps) => {
+  const {conversationIDKey, selectedTab} = props
+  const selectedCount = Container.useSelector(state => getChannelSelectedCount(state, props))
+  const dispatch = Container.useDispatch()
+
+  const onUnselect = () => {
+    switch (selectedTab) {
+      case 'members':
+        dispatch(
+          TeamsGen.createChannelSetMemberSelected({
+            clearAll: true,
+            conversationIDKey,
+            selected: false,
+            username: '',
+          })
+        )
+        return
+    }
+  }
+
+  const selectableTabName = channelSelectableTabNames[selectedTab]
+
+  return (
+    <JointSelectionPopup
+      selectableTabName={selectableTabName}
+      selectedCount={selectedCount}
+      onUnselect={onUnselect}
+    >
+      <ChannelMembersActions conversationIDKey={conversationIDKey} />
+    </JointSelectionPopup>
+  )
+}
+
+const SelectionPopup = (props: Props) =>
+  props.typ == 'channel' ? <ChannelSelectionPopup {...props} /> : <TeamSelectionPopup {...props} />
+
 const ActionsWrapper = ({children}) => (
   <Kb.Box2 fullWidth={Styles.isMobile} direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
     {children}
   </Kb.Box2>
 )
-const MembersActions = ({teamID}: ActionsProps) => {
+const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const members = Container.useSelector(s => s.teams.teamSelectedMembers.get(teamID))
@@ -146,7 +229,7 @@ const MembersActions = ({teamID}: ActionsProps) => {
   )
 }
 
-const ChannelsActions = (_: ActionsProps) => {
+const TeamChannelsActions = (_: TeamActionsProps) => {
   // Channels tab functions
   const onDelete = () => {}
   return (
@@ -156,9 +239,11 @@ const ChannelsActions = (_: ActionsProps) => {
   )
 }
 
-const actionsComponent: {[k in SelectableTab]: React.ComponentType<ActionsProps>} = {
-  channels: ChannelsActions,
-  members: MembersActions,
+const ChannelMembersActions = (_: ChannelActionsProps) => null
+
+const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamActionsProps>} = {
+  channels: TeamChannelsActions,
+  members: TeamMembersActions,
 }
 
 const styles = Styles.styleSheetCreate(() => ({
