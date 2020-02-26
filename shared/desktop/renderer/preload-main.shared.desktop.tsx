@@ -74,10 +74,11 @@ const darwinCopyToChatTempUploadFile = isDarwin
 const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   try {
     const {title, message, buttonLabel, allowDirectories, allowFiles, allowMultiselect, defaultPath} = opts
-    const allowedProperties: Array<OpenDiaglogProperties> = []
-    if (allowFiles !== false) allowedProperties.push('openFile')
-    if (allowDirectories) allowedProperties.push('openDirectory')
-    if (allowMultiselect) allowedProperties.push('multiSelections')
+    const allowedProperties = [
+      ...(allowFiles ? ['openFile' as const] : []),
+      ...(allowDirectories ? ['openDirectory' as const] : []),
+      ...(allowMultiselect ? ['multiSelections' as const] : []),
+    ]
     const allowedOptions = {
       buttonLabel,
       defaultPath,
@@ -101,7 +102,7 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
 const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   try {
     const {title, message, buttonLabel, defaultPath} = opts
-    const allowedProperties: Array<SaveDialogProperties> = ['showOverwriteConfirmation']
+    const allowedProperties = ['showOverwriteConfirmation' as const]
     const allowedOptions = {
       buttonLabel,
       defaultPath,

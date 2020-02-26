@@ -22,7 +22,6 @@ type RequestIdleCallbackDeadline = {
   timeRemaining: () => number
 }
 
-type OpenDiaglogProperties = 'openFile' | 'openDirectory' | 'multiSelections'
 declare type KBElectronOpenDialogOptions = {
   allowFiles?: boolean
   allowDirectories?: boolean
@@ -33,7 +32,6 @@ declare type KBElectronOpenDialogOptions = {
   title?: string
 }
 
-type SaveDialogProperties = 'showOverwriteConfirmation'
 declare type KBElectronSaveDialogOptions = {
   title?: string
   defaultPath?: string
