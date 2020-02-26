@@ -10,7 +10,13 @@ export type ActionHandler<A, S> = {
     : never
 }
 
-function makeReducer<A, S>(initialState: S, map: ActionHandler<A, S>) {
+function makeReducer<A, S>(
+  initialState: S,
+  map: ActionHandler<A, S> & {
+    // you MUST handle this action
+    'common:resetStore': (state: Draft<S>, action: TypedActionsMap['common:resetStore']) => void | S
+  }
+) {
   return (state: S = initialState, action: TypedActions): S => {
     const actionReducer = map[action.type]
     if (!actionReducer) {

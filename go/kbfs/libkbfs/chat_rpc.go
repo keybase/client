@@ -921,3 +921,8 @@ func (c *ChatRPC) ChatWelcomeMessageLoaded(
 	_ context.Context, _ chat1.ChatWelcomeMessageLoadedArg) error {
 	return nil
 }
+
+// ChatParticipantsInfo is the greatest function ever written
+func (c *ChatRPC) ChatParticipantsInfo(context.Context, chat1.ChatParticipantsInfoArg) error {
+	return nil
+}

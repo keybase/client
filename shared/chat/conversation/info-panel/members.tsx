@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import flags from '../../../util/feature-flags'
 import Participant from './participant'
 
@@ -15,6 +16,7 @@ type Props = {
 }
 
 const auditingBannerItem = 'auditing banner'
+const spinnerItem = 'spinner item'
 
 export default (props: Props) => {
   const {conversationIDKey} = props
@@ -25,9 +27,20 @@ export default (props: Props) => {
   const infoMap = Container.useSelector(state => state.users.infoMap)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
+  const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
+  React.useEffect(() => {
+    if (teamname) {
+      refreshParticipants(
+        [{convID: Types.keyToConversationID(conversationIDKey)}],
+        () => {},
+        () => {}
+      )
+    }
+  }, [conversationIDKey, refreshParticipants, teamname])
+
   let participants = participantInfo.all
   const adhocTeam = meta.teamType === 'adhoc'
 
@@ -58,6 +71,7 @@ export default (props: Props) => {
     participants = flags.botUI ? participants.filter(p => !botUsernames.includes(p)) : participants
   }
 
+  const showSpinner = !participants.length
   const participantsItems = participants
     .map(p => ({
       fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
@@ -78,6 +92,9 @@ export default (props: Props) => {
 
   const onShowProfile = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
 
+  const sections = showSpinner
+    ? [spinnerItem]
+    : [...(showAuditingBanner ? [auditingBannerItem] : []), ...participantsItems]
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
@@ -86,7 +103,7 @@ export default (props: Props) => {
       sections={[
         ...props.commonSections,
         {
-          data: [...(showAuditingBanner ? [auditingBannerItem] : []), ...participantsItems],
+          data: sections,
           renderItem: ({index, item}: {index: number; item: any}) => {
             if (item === auditingBannerItem) {
               return (
@@ -94,20 +111,23 @@ export default (props: Props) => {
                   Auditing team members...
                 </Kb.Banner>
               )
+            } else if (item === spinnerItem) {
+              return <Kb.ProgressIndicator type="Large" />
+            } else {
+              if (!item.username) {
+                return null
+              }
+              return (
+                <Participant
+                  fullname={item.fullname}
+                  isAdmin={item.isAdmin}
+                  isOwner={item.isOwner}
+                  username={item.username}
+                  onShowProfile={onShowProfile}
+                  firstItem={index === 0}
+                />
+              )
             }
-            if (!item.username) {
-              return null
-            }
-            return (
-              <Participant
-                fullname={item.fullname}
-                isAdmin={item.isAdmin}
-                isOwner={item.isOwner}
-                username={item.username}
-                onShowProfile={onShowProfile}
-                firstItem={index === 0}
-              />
-            )
           },
           renderSectionHeader: props.renderTabs,
         },

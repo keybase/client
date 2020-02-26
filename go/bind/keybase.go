@@ -151,6 +151,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		guiLogFile = logFile + ".gui"
 		fmt.Printf("Go: Using guilog: %s\n", guiLogFile)
 	}
+	libkb.IsIPad = isIPad
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
 	oldProcs := runtime.GOMAXPROCS(0)
@@ -179,7 +180,6 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}
 	fmt.Printf("Go: Mobile OS version is: %q%v\n", mobileOsVersion, suffix)
 	kbCtx.MobileOsVersion = mobileOsVersion
-	kbCtx.IsIPad = isIPad
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))

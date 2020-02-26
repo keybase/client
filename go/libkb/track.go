@@ -424,7 +424,7 @@ func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localE
 		return nil, nil
 	}
 
-	cl := &ChainLink{Contextified: NewContextified(m.G()), unsigned: true}
+	cl := &ChainLink{Contextified: NewContextified(m.G())}
 	if err = cl.UnpackLocal(data); err != nil {
 		m.Debug("| unpack local failed -> %s", err)
 		return nil, err

@@ -2723,7 +2723,7 @@ export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: 
 export type CryptKey = {readonly KeyGeneration: Int; readonly Key: Bytes32}
 export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; readonly address: String; readonly sigID: SigID; readonly type: String; readonly family: String}
 export type CsrfToken = String
-export type CurrentStatus = {readonly configured: Boolean; readonly registered: Boolean; readonly loggedIn: Boolean; readonly sessionIsValid: Boolean; readonly user?: User | null}
+export type CurrentStatus = {readonly configured: Boolean; readonly registered: Boolean; readonly loggedIn: Boolean; readonly sessionIsValid: Boolean; readonly user?: User | null; readonly deviceName: String}
 export type DbKey = {readonly dbType: DbType; readonly objType: Int; readonly key: String}
 export type DbStats = {readonly type: DbType; readonly memCompActive: Boolean; readonly tableCompActive: Boolean}
 export type DbValue = Bytes
@@ -4106,7 +4106,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'
 // 'keybase.1.teams.teamListSubteamsRecursive'
-// 'keybase.1.teams.teamChangeMembership'
 // 'keybase.1.teams.teamAddMembers'
 // 'keybase.1.teams.teamRemoveMembers'
 // 'keybase.1.teams.teamEditMembers'

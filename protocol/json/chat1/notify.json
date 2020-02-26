@@ -974,6 +974,24 @@
       "response": null,
       "notify": "",
       "lint": "ignore"
+    },
+    "ChatParticipantsInfo": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "participants",
+          "type": {
+            "type": "array",
+            "items": "UIParticipant"
+          }
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

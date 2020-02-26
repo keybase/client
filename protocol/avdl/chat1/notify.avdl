@@ -253,4 +253,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatWelcomeMessageLoaded(keybase1.TeamID teamID, WelcomeMessageDisplay message);
+
+  @notify("")
+  @lint("ignore")
+  void ChatParticipantsInfo(ConversationID convID, array<UIParticipant> participants);
 }

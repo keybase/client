@@ -65,6 +65,7 @@
       "channelname?": "string",
       "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
       "reason": [
+        "'channelHeader'",
         "'manageView'",
         "'messageLink'",
         "'resetChatWithoutThem'",

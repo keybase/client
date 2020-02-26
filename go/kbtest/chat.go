@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/stretchr/testify/require"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -113,7 +114,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		world.Users[u.Username] = u
 		world.Tcs[u.Username] = &tc
@@ -651,6 +652,10 @@ func (d dummyChannelSource) GetRecentJoins(ctx context.Context, convID chat1.Con
 	return 0, nil
 }
 
+func (d dummyChannelSource) GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error) {
+	return 0, nil
+}
+
 func (d dummyChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
@@ -1024,8 +1029,17 @@ func (m *ChatRemoteMock) GetRecentJoins(ctx context.Context, convID chat1.Conver
 	return res, errors.New("GetRecentJoins not mocked")
 }
 
+func (m *ChatRemoteMock) GetLastActiveAt(ctx context.Context, arg chat1.GetLastActiveAtArg) (res chat1.GetLastActiveAtRes, err error) {
+	return res, errors.New("GetLastActiveAt not mocked")
+}
+
 func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res *keybase1.TeamID, err error) {
 	return res, errors.New("TeamIDOfConv not mocked")
+}
+
+func (m *ChatRemoteMock) RefreshParticipantsRemote(ctx context.Context,
+	arg chat1.RefreshParticipantsRemoteArg) (res chat1.RefreshParticipantsRemoteRes, err error) {
+	return res, errors.New("not implemented")
 }
 
 type NonblockInboxResult struct {

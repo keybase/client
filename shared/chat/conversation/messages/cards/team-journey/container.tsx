@@ -37,7 +37,7 @@ type Props = {
   onShowTeam: () => void
   onAuthorClick: () => void
   teamname: string
-  teamType: 'big' | 'small' | null
+  isBigTeam: boolean
   welcomeMessage: RPCChatTypes.WelcomeMessageDisplay | null
 }
 
@@ -53,7 +53,7 @@ const TeamJourneyContainer = (props: Props) => {
       if (!props.cannotWrite) {
         actions.push('wave')
       }
-      if (props.teamType === 'big') {
+      if (props.isBigTeam) {
         actions.push({label: 'Browse channels', onClick: props.onBrowseChannels})
       }
       if (props.canShowcase) {
@@ -169,7 +169,7 @@ const TeamJourneyConnected = Container.connect(
       cannotWrite: cannotWrite,
       channelname,
       conversationIDKey,
-      teamType: TeamConstants.getTeamType(state, teamname),
+      isBigTeam: TeamConstants.isBigTeam(state, teamID),
       teamname,
       welcomeMessage: TeamConstants.getTeamWelcomeMessageByID(state, teamID),
     }
@@ -206,7 +206,7 @@ const TeamJourneyConnected = Container.connect(
       channelname,
       conversationIDKey,
       teamname,
-      teamType,
+      isBigTeam,
       welcomeMessage,
     } = stateProps
     // Take the top three channels with most recent activity.
@@ -233,6 +233,7 @@ const TeamJourneyConnected = Container.connect(
       cannotWrite,
       channelname,
       conversationIDKey,
+      isBigTeam,
       loadTeamID: stateProps._teamID,
       message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
@@ -251,7 +252,6 @@ const TeamJourneyConnected = Container.connect(
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
       otherChannelsForNoAnswer,
       otherChannelsForPopular,
-      teamType,
       teamname,
       welcomeMessage,
     }

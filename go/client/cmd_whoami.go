@@ -4,6 +4,7 @@
 package client
 
 import (
+	"encoding/json"
 	"errors"
 
 	"golang.org/x/net/context"
@@ -25,13 +26,18 @@ func NewCmdWhoami(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "uid",
 				Usage: "Output the UID instead of the username",
 			},
+			cli.BoolFlag{
+				Name:  "j, json",
+				Usage: "Output as JSON",
+			},
 		},
 	}
 }
 
 type CmdWhoami struct {
 	libkb.Contextified
-	uid bool
+	uid  bool
+	json bool
 }
 
 func (c *CmdWhoami) ParseArgv(ctx *cli.Context) error {
@@ -39,6 +45,7 @@ func (c *CmdWhoami) ParseArgv(ctx *cli.Context) error {
 		return UnexpectedArgsError("whoami")
 	}
 	c.uid = ctx.Bool("uid")
+	c.json = ctx.Bool("json")
 	return nil
 }
 
@@ -52,18 +59,26 @@ func (c *CmdWhoami) Run() error {
 	if err != nil {
 		return err
 	}
+	if c.json {
+		b, err := json.MarshalIndent(status, "", "    ")
+		if err != nil {
+			return err
+		}
+		dui := c.G().UI.GetDumbOutputUI()
+		_, err = dui.Printf(string(b) + "\n")
+		return err
+	}
+
 	if !status.LoggedIn || status.User == nil {
 		return errors.New("logged out")
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	var msg string
 	if c.uid {
-		msg = string(status.User.Uid)
+		_, err = dui.Printf("%s\n", status.User.Uid)
 	} else {
-		msg = status.User.Username
+		_, err = dui.Printf("%s\n", status.User.Username)
 	}
-	dui.Printf("%s\n", msg)
-	return nil
+	return err
 }
 
 func (c *CmdWhoami) GetUsage() libkb.Usage {

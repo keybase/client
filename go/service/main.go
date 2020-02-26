@@ -526,6 +526,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri, chat.CreateNameInfoSource)
 	g.UIInboxLoader = chat.NewUIInboxLoader(g)
 	g.UIThreadLoader = chat.NewUIThreadLoader(g)
+	g.ParticipantsSource = chat.NewCachingParticipantSource(g, ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
