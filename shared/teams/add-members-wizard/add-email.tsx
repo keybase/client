@@ -77,7 +77,6 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
-      borderRadius: 4,
     },
     isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},

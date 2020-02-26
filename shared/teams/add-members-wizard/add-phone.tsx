@@ -12,19 +12,33 @@ type Props = {
 }
 
 const AddPhone = (props: Props) => {
-  const [invitees, setInvitees] = React.useState('')
+  const [phoneNumbers, setPhoneNumbers] = React.useState([{phoneNumber: '', valid: false}])
 
   // const dispatch = Container.useDispatch()
   // const nav = Container.useSafeNavigation()
   const onBack = () => null // dispatch(nav.safeNavigateUpPayload())
 
-  const disabled = invitees.length < 1
+  const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
+  const setPhoneNumber = (i: number, phoneNumber: string, valid: boolean) => {
+    const pn = phoneNumbers[i]
+    if (pn) {
+      pn.phoneNumber = phoneNumber
+      pn.valid = valid
+      setPhoneNumbers([...phoneNumbers])
+    }
+  }
+
+  const addPhoneNumber = () => {
+    phoneNumbers.push({phoneNumber: '', valid: false})
+    setPhoneNumbers([...phoneNumbers])
+  }
 
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, props.teamID).teamname)
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
 
   return (
     <Kb.Modal
+      mode="DefaultFullHeight"
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
@@ -44,8 +58,15 @@ const AddPhone = (props: Props) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
-        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
-          <PhoneInput defaultCountry={defaultCountry} />
+        <Kb.Box2 direction="vertical" gap="xsmall" fullWidth={true} alignItems="flex-start">
+          {phoneNumbers.map((pn, idx) => (
+            <PhoneInput
+              key={idx}
+              defaultCountry={defaultCountry}
+              onChangeNumber={(phoneNumber, valid) => setPhoneNumber(idx, phoneNumber, valid)}
+            />
+          ))}
+          <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
@@ -56,10 +77,9 @@ const styles = Styles.styleSheetCreate(() => ({
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
+      ...Styles.globalStyles.flexOne,
       backgroundColor: Styles.globalColors.blueGrey,
-      borderRadius: 4,
     },
-    isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
   container: {
