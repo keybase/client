@@ -5,29 +5,30 @@ import * as Constants from '../../constants/teams'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
 import {ModalTitle} from '../common'
+import PhoneInput from '../../signup/phone-number/phone-input'
 
 type Props = {
   teamID: Types.TeamID
-  errorMessage: string
 }
 
-const AddEmail = (props: Props) => {
+const AddPhone = (props: Props) => {
   const [invitees, setInvitees] = React.useState('')
 
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  // const dispatch = Container.useDispatch()
+  // const nav = Container.useSafeNavigation()
+  const onBack = () => null // dispatch(nav.safeNavigateUpPayload())
 
   const disabled = invitees.length < 1
 
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, props.teamID).teamname)
+  const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
 
   return (
     <Kb.Modal
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Email list" />,
+        title: <ModalTitle teamname={teamname} title="Phone list" />,
       }}
       allowOverflow={true}
       footer={{
@@ -41,32 +42,11 @@ const AddEmail = (props: Props) => {
         ),
       }}
     >
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={styles.body}
-        gap={Styles.isMobile ? 'tiny' : 'xsmall'}
-      >
-        <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
-          <Kb.LabeledInput
-            autoFocus={true}
-            error={!!props.errorMessage}
-            multiline={true}
-            onChangeText={text => setInvitees(text)}
-            placeholder="Email addresses"
-            hoverPlaceholder="Ex: daniel@domain.com, kim@domain.com, etc."
-            rowsMin={3}
-            rowsMax={8}
-            value={invitees}
-          />
-          {!!props.errorMessage && (
-            <Kb.Text type="BodySmall" style={styles.errorText}>
-              {props.errorMessage}
-            </Kb.Text>
-          )}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
+        <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
+        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
+          <PhoneInput defaultCountry={defaultCountry} />
         </Kb.Box2>
-        <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -85,7 +65,6 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.small,
   },
-  errorText: {color: Styles.globalColors.redDark},
   wordBreak: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
@@ -93,4 +72,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default AddEmail
+export default AddPhone
