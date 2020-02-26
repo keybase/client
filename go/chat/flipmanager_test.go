@@ -51,6 +51,7 @@ func assertNoFlip(t *testing.T, ui *kbtest.ChatUI) {
 }
 
 func TestFlipManagerStartFlip(t *testing.T) {
+	t.Skip("skipping flake. ticket to fix: https://keybase.atlassian.net/browse/TRIAGE-2130")
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
 			ctc := makeChatTestContext(t, "FlipManagerStartFlip", 3)
