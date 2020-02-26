@@ -309,13 +309,20 @@ const kbfsDbs = [
 ]
 
 const RuntimeStatsMobile = ({stats}: Props) => {
+  const [showLogs, setShowLogs] = React.useState(true)
   const processStat = stats.processStats?.[0]
   const coreCompaction = compactionActive(stats.dbStats, chatDbs)
   const kbfsCompaction = compactionActive(stats.dbStats, kbfsDbs)
   return (
     <>
-      <Kb.Box2 direction="vertical" style={styles.modalLogStats} gap="xtiny" pointerEvents="none">
-        <LogStats />
+      <Kb.Box2
+        direction="vertical"
+        style={showLogs ? styles.modalLogStats : styles.modalLogStatsHidden}
+        gap="xtiny"
+      >
+        <Kb.ClickableBox onClick={() => setShowLogs(s => !s)}>
+          <LogStats />
+        </Kb.ClickableBox>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
         {processStat && (
@@ -415,6 +422,13 @@ const styles = Styles.styleSheetCreate(() => ({
     right: 0,
     top: 20,
     width: 130,
+  },
+  modalLogStatsHidden: {
+    backgroundColor: 'yellow',
+    position: 'absolute',
+    right: 0,
+    top: 20,
+    width: 20,
   },
   radarContainer: Styles.platformStyles({
     isElectron: {
