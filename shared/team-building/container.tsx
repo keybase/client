@@ -55,6 +55,7 @@ type OwnProps = {
   showServiceResultCount: boolean
   teamID?: TeamTypes.TeamID
   title: string
+  justContacts: boolean
 }
 
 type LocalState = {
@@ -398,7 +399,8 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 export const sortAndSplitRecommendations = memoize(
   (
     results: Unpacked<typeof deriveSearchResults>,
-    showingContactsButton: boolean
+    showingContactsButton: boolean,
+    contactsOnly: boolean
   ): Array<SearchRecSection> | null => {
     if (!results) return null
 
@@ -422,6 +424,9 @@ export const sortAndSplitRecommendations = memoize(
     const recSectionIdx = sections.length - 1
     const numSectionIdx = recSectionIdx + 27
     results.forEach(rec => {
+      if (contactsOnly && !rec.contact) {
+        return
+      }
       if (!rec.contact) {
         sections[recSectionIdx].data.push(rec)
         return
@@ -522,7 +527,7 @@ const mergeProps = (
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
   const recommendationsSections = showRecs
-    ? sortAndSplitRecommendations(recommendations, showingContactsButton)
+    ? sortAndSplitRecommendations(recommendations, showingContactsButton, ownProps.justContacts)
     : null
   const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
 
@@ -605,7 +610,7 @@ const mergeProps = (
               : {
                   custom: (
                     <Button
-                      label="Start"
+                      label={ownProps.justContacts ? 'Add' : 'Start'}
                       mode="Primary"
                       onClick={dispatchProps.onFinishTeamBuilding}
                       small={true}
@@ -653,6 +658,7 @@ const mergeProps = (
     goButtonLabel: ownProps.goButtonLabel,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
+    justContacts: ownProps.justContacts,
     namespace: ownProps.namespace,
     onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
@@ -709,6 +715,7 @@ type RealOwnProps = Container.RouteProps<{
   teamID?: TeamTypes.TeamID
   filterServices?: Array<Types.ServiceIdWithContact>
   title: string
+  justContacts: boolean
 }>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
@@ -745,6 +752,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
         teamID={Container.getRouteProps(this.props, 'teamID', undefined)}
         filterServices={Container.getRouteProps(this.props, 'filterServices', undefined)}
+        justContacts={Container.getRouteProps(this.props, 'justContacts', false)}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}
