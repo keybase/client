@@ -1222,26 +1222,33 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 	reset func() interface{}, delay time.Duration) (func(interface{}), func()) {
 	var lock sync.Mutex
 	var lastCalled time.Time
-	var stored interface{}
 	var creation func(interface{})
+	hasStored := false
 	scheduled := false
+	stored := reset()
 	cancelCh := make(chan struct{})
 	creation = func(arg interface{}) {
 		lock.Lock()
 		defer lock.Unlock()
 		elapsed := time.Since(lastCalled)
-		if isEmptyThrottleData(arg) {
+		isEmpty := isEmptyThrottleData(arg)
+		if !isEmpty {
 			stored = batcher(stored, arg)
+			hasStored = true
 		}
-		if elapsed > delay {
+		if elapsed > delay && (!isEmpty || hasStored) {
 			f(stored)
 			stored = reset()
+			hasStored = false
 			lastCalled = time.Now()
-		} else if !scheduled {
+		} else if !scheduled && !isEmpty {
 			scheduled = true
 			go func() {
 				select {
 				case <-time.After(delay - elapsed):
+					lock.Lock()
+					scheduled = false
+					lock.Unlock()
 					creation(throttleBatchEmpty{})
 				case <-cancelCh:
 					return

@@ -170,6 +170,7 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 		s.sema.Acquire(ctx, 1)
 		defer s.sema.Release(1)
 
+		convIDStr := convID.ConvIDStr()
 		ch := s.G().ParticipantsSource.GetNonblock(ctx, uid, convID, dataSource)
 		for r := range ch {
 			uids := r.Uids
@@ -187,7 +188,9 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 			for _, row := range rows {
 				participants = append(participants, utils.UsernamePackageToParticipant(row))
 			}
-			s.notify(utils.PresentConversationParticipantsLocal(ctx, participants))
+			s.notify(map[chat1.ConvIDStr][]chat1.UIParticipant{
+				convIDStr: utils.PresentConversationParticipantsLocal(ctx, participants),
+			})
 		}
 	}(globals.BackgroundChatCtx(ctx, s.G()))
 }
