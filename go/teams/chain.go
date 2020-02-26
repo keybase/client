@@ -1096,6 +1096,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLog),
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
@@ -1277,8 +1278,15 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 
 		moveState()
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
-		t.completeInvites(&res.newState, team.CompletedInvites)
+
+		if err := t.completeInvites(&res.newState, team.CompletedInvites); err != nil {
+			return res, fmt.Errorf("illegal completed_invites: %s", err)
+		}
 		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
+
+		if err := t.useInvites(&res.newState, roleUpdates, team.UsedInvites); err != nil {
+			return res, fmt.Errorf("illegal used_invites: %s", err)
+		}
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -1478,6 +1486,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLog),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
@@ -1972,6 +1981,22 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 		if byName[key] {
 			return nil, nil, NewInviteError(fmt.Sprintf("Invite %s appears twice in invite set", key))
 		}
+		if res.MaxUses != nil {
+			if options.implicitTeam {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has max_uses in implicit team", id))
+			}
+			if !res.MaxUses.IsValid() {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid max_uses %d", id, *res.MaxUses))
+			}
+		}
+		if res.Etime != nil {
+			if options.implicitTeam {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime in implicit team", id))
+			}
+			if *res.Etime <= 0 {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid etime %d", id, *res.Etime))
+			}
+		}
 		byName[key] = true
 		byID[id] = true
 		additions[res.Role] = append(additions[res.Role], res)
@@ -2196,10 +2221,21 @@ func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 	}
 }
 
-func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) {
+func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) error {
 	for id := range completed {
+		invite, ok := stateToUpdate.inner.ActiveInvites[id]
+		if !ok {
+			// Invite doesn't exist - that's likely an error, but we've allowed
+			// this for so long that we have to prove that no team has done
+			// this in order to change this.
+			continue
+		}
+		if invite.MaxUses != nil {
+			return fmt.Errorf("`completed_invites` for an invite with `max_uses`: %s", id)
+		}
 		stateToUpdate.informCompletedInvite(id)
 	}
+	return nil
 }
 
 func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
@@ -2212,6 +2248,53 @@ func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 			stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
 		}
 	}
+}
+
+func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, used []SCMapInviteIDUVPair) error {
+	for _, pair := range used {
+		inviteID, err := pair.InviteID.TeamInviteID()
+		if err != nil {
+			return err
+		}
+		invite, ok := stateToUpdate.inner.ActiveInvites[inviteID]
+		if !ok {
+			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
+		}
+		if invite.MaxUses == nil {
+			return fmt.Errorf("`used_invites` for an invite that did not have `max_uses`: %s", inviteID)
+		}
+		maxUses := *invite.MaxUses
+		uses := len(stateToUpdate.inner.UsedInvites[inviteID])
+		if !maxUses.IsInfiniteUses() && uses >= int(maxUses) {
+			return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
+		}
+		uv, err := keybase1.ParseUserVersion(pair.UV)
+		if err != nil {
+			return err
+		}
+		var foundUV bool
+		for _, updatedUV := range roleUpdates[invite.Role] {
+			if uv.Eq(updatedUV) {
+				foundUV = true
+				break
+			}
+		}
+		if !foundUV {
+			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV, invite.Role.HumanString())
+		}
+		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
+		if logPoint < 0 {
+			// This check is redundant, but better to be safe here instead of
+			// storing wrong index to UserLog.
+			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
+		}
+		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],
+			keybase1.TeamUsedInviteLog{
+				Uv:       uv,
+				LogPoint: logPoint,
+			})
+	}
+	return nil
 }
 
 // Check that the subteam name is valid and kind of is a child of this chain.

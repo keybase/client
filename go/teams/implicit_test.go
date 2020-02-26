@@ -399,8 +399,7 @@ func TestImplicitInvalidLinks(t *testing.T) {
 	require.NoError(t, err)
 
 	RequirePrecheckError := func(err error) {
-		require.Error(t, err)
-		require.IsType(t, PrecheckAppendError{}, err)
+		requirePrecheckError(t, err)
 	}
 
 	{

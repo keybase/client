@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/stretchr/testify/require"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -113,7 +114,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		world.Users[u.Username] = u
 		world.Tcs[u.Username] = &tc
@@ -648,6 +649,10 @@ func (d dummyChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1
 }
 
 func (d dummyChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error) {
+	return 0, nil
+}
+
+func (d dummyChannelSource) GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error) {
 	return 0, nil
 }
 

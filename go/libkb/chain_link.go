@@ -230,7 +230,6 @@ type ChainLink struct {
 	highChainVerified bool
 	storedLocally     bool
 	revoked           bool
-	unsigned          bool
 	dirty             bool
 	revocationsCache  *[]keybase1.SigID
 	computedHighSkip  *HighSkip
