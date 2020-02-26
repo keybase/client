@@ -245,6 +245,10 @@ const (
 	StatusCode_SCTeambotKeyGenerationExists                StatusCode = 3800
 	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
 	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
+	StatusCode_SCNoKeyFound                                StatusCode = 4000
+	StatusCode_SCWrongType                                 StatusCode = 4001
+	StatusCode_SCBadFrame                                  StatusCode = 4002
+	StatusCode_SCInvalidFormat                             StatusCode = 4003
 	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
 )
 
@@ -485,6 +489,10 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeambotKeyGenerationExists":                3800,
 	"SCTeambotKeyOldBoxedGeneration":              3801,
 	"SCTeambotKeyBadGeneration":                   3802,
+	"SCNoKeyFound":                                4000,
+	"SCWrongType":                                 4001,
+	"SCBadFrame":                                  4002,
+	"SCInvalidFormat":                             4003,
 	"SCAirdropRegisterFailedMisc":                 4207,
 }
 
@@ -723,6 +731,10 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3800: "SCTeambotKeyGenerationExists",
 	3801: "SCTeambotKeyOldBoxedGeneration",
 	3802: "SCTeambotKeyBadGeneration",
+	4000: "SCNoKeyFound",
+	4001: "SCWrongType",
+	4002: "SCBadFrame",
+	4003: "SCInvalidFormat",
 	4207: "SCAirdropRegisterFailedMisc",
 }
 

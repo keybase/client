@@ -425,7 +425,6 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return UserDeletedError{Msg: s.Desc}
 	case SCDecryptionError:
 		ret := DecryptionError{}
-		ret.Cause = fmt.Errorf(s.Desc)
 		for _, field := range s.Fields {
 			if field.Key == "Cause" {
 				ret.Cause = fmt.Errorf(field.Value)
@@ -433,8 +432,39 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return ret
 	case SCSigCannotVerify:
-		ret := kbcrypto.VerificationError{}
-		ret.Cause = fmt.Errorf(s.Desc)
+		ret := VerificationError{}
+		for _, field := range s.Fields {
+			if field.Key == "Cause" {
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
+	case SCInvalidFormat:
+		ret := InvalidFormatError{}
+		for _, field := range s.Fields {
+			if field.Key == "Cause" {
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
+	case SCBadFrame:
+		ret := BadFrameError{}
+		for _, field := range s.Fields {
+			if field.Key == "Cause" {
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
+	case SCWrongType:
+		ret := WrongTypeError{}
+		for _, field := range s.Fields {
+			if field.Key == "Cause" {
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
+	case SCNoKeyFound:
+		ret := NoKeyFoundError{}
 		for _, field := range s.Fields {
 			if field.Key == "Cause" {
 				ret.Cause = fmt.Errorf(field.Value)
@@ -1967,13 +1997,22 @@ func (e UserDeletedError) ToStatus() keybase1.Status {
 
 func (e DecryptionError) ToStatus() keybase1.Status {
 	cause := e.Error()
-	desc := kbcrypto.CleanVerificationOrDecryptionErrorMsg(cause)
+	code, name := kbcrypto.ParseVerificationOrDecryptionErrorForStatusCode(cause, SCDecryptionError, "SC_DECRYPTION_ERROR")
 	return keybase1.Status{
-		Code: SCDecryptionError,
-		Name: "SC_DECRYPTION_ERROR",
-		Desc: desc, // more user-friendly description, if match found
+		Code: code,
+		Name: name,
 		Fields: []keybase1.StringKVPair{
 			{Key: "Cause", Value: cause}, // raw developer-friendly string
+		},
+	}
+}
+
+func (e VerificationError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCannotVerify,
+		Name: "SC_SIG_CANNOT_VERIFY",
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: e.Error()}, // raw developer-friendly string
 		},
 	}
 }

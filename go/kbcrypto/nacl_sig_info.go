@@ -54,10 +54,6 @@ func NewVerificationError(e error) VerificationError {
 	return VerificationError{Cause: e}
 }
 
-const (
-	SCSigCannotVerify = int(keybase1.StatusCode_SCSigCannotVerify)
-)
-
 func (e VerificationError) Error() string {
 	if e.Cause == nil {
 		return "Verification failed"
@@ -67,19 +63,15 @@ func (e VerificationError) Error() string {
 
 func (e VerificationError) ToStatus() keybase1.Status {
 	cause := ""
-	desc := ""
-
 	if e.Cause != nil {
 		cause = e.Cause.Error()
-		desc = CleanVerificationOrDecryptionErrorMsg(cause)
 	}
-
+	code, name := ParseVerificationOrDecryptionErrorForStatusCode(cause, SCSigCannotVerify, "SC_SIG_CANNOT_VERIFY")
 	return keybase1.Status{
-		Code: SCSigCannotVerify,
-		Name: "SC_SIG_CANNOT_VERIFY",
-		Desc: desc, // more user-friendly description, if match found
+		Code: code,
+		Name: name,
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: cause}, // raw developer-friendly string
+			{Key: "Cause", Value: cause},
 		},
 	}
 }

@@ -1472,6 +1472,7 @@ func (e NoDecryptionKeyError) Error() string {
 
 //=============================================================================
 
+// DecryptionError is the default decryption error
 type DecryptionError struct {
 	Cause error
 }
@@ -1481,6 +1482,76 @@ func (e DecryptionError) Error() string {
 		return "Decryption error"
 	}
 	return fmt.Sprintf("Decryption error: %v", e.Cause)
+}
+
+//=============================================================================
+
+// VerificationError is the default verification error
+type VerificationError struct {
+	Cause error
+}
+
+func (e VerificationError) Error() string {
+	if e.Cause == nil {
+		return "Verification error"
+	}
+	return fmt.Sprintf("Verification error: %v", e.Cause)
+}
+
+//=============================================================================
+
+// InvalidFormatError is a possible error returned by decryption or verification
+type InvalidFormatError struct {
+	Cause error
+}
+
+func (e InvalidFormatError) Error() string {
+	if e.Cause == nil {
+		return "InvalidFormat error"
+	}
+	return fmt.Sprintf("InvalidFormat error: %v", e.Cause)
+}
+
+//=========================================================================
+
+// BadFrameError is a possible error returned by decryption or verification
+type BadFrameError struct {
+	Cause error
+}
+
+func (e BadFrameError) Error() string {
+	if e.Cause == nil {
+		return "BadFrame error"
+	}
+	return fmt.Sprintf("BadFrame error: %v", e.Cause)
+}
+
+//=========================================================================
+
+// WrongTypeError is a possible error returned by decryption or verification
+type WrongTypeError struct {
+	Cause error
+}
+
+func (e WrongTypeError) Error() string {
+	if e.Cause == nil {
+		return "WrongType error"
+	}
+	return fmt.Sprintf("WrongType error: %v", e.Cause)
+}
+
+//=========================================================================
+
+// NoKeyFoundError is a possible error returned by decryption or verification
+type NoKeyFoundError struct {
+	Cause error
+}
+
+func (e NoKeyFoundError) Error() string {
+	if e.Cause == nil {
+		return "NoKeyFound error"
+	}
+	return fmt.Sprintf("NoKeyFound error: %v", e.Cause)
 }
 
 //=============================================================================

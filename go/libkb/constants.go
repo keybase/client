@@ -387,6 +387,10 @@ const (
 	SCTeamStorageWrongRevision                  = int(keybase1.StatusCode_SCTeamStorageWrongRevision)
 	SCTeamStorageBadGeneration                  = int(keybase1.StatusCode_SCTeamStorageBadGeneration)
 	SCTeamStorageNotFound                       = int(keybase1.StatusCode_SCTeamStorageNotFound)
+	SCNoKeyFound                                = int(keybase1.StatusCode_SCNoKeyFound)
+	SCWrongType                                 = int(keybase1.StatusCode_SCWrongType)
+	SCBadFrame                                  = int(keybase1.StatusCode_SCBadFrame)
+	SCInvalidFormat                             = int(keybase1.StatusCode_SCInvalidFormat)
 )
 
 const (

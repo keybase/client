@@ -236,6 +236,10 @@ protocol constants {
     SCTeambotKeyGenerationExists_3800,
     SCTeambotKeyOldBoxedGeneration_3801,
     SCTeambotKeyBadGeneration_3802,
+    SCNoKeyFound_4000,
+    SCWrongType_4001,
+    SCBadFrame_4002,
+    SCInvalidFormat_4003,
     SCAirdropRegisterFailedMisc_4207
   }
 }

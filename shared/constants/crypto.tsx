@@ -145,16 +145,19 @@ export const getStatusCodeMessage = (
   const addInput =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'encrypted file'
  
-  const invalidInputMessage = `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`
   const offlineMessage = `Cannot ${operation} offline.`
   const genericMessage = `Failed to ${operation} ${type}.`
 
   const statusCodeToMessage: any = {
-    [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
-    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}. ` + error.desc,
-    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}. ` + error.desc,
     [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
     [RPCTypes.StatusCode.scgeneric]: `${error.message.includes('API network error') ? offlineMessage : genericMessage}`,
+    [RPCTypes.StatusCode.scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
+    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}.`,
+    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}.`,
+    [RPCTypes.StatusCode.scnokeyfound]: "No suitable key found.",
+    [RPCTypes.StatusCode.scwrongtype]: "Wrong saltpack message type.",
+    [RPCTypes.StatusCode.scbadframe]: "Invalid Saltpack format.",  // TODO: can expose "cause" text for more detail
+    [RPCTypes.StatusCode.scinvalidformat]:"Invalid Saltpack format.",
   } as const
 
   return statusCodeToMessage[error.code] || genericMessage
