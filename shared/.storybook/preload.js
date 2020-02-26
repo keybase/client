@@ -12,8 +12,10 @@ global.KB = {
         return ''
       },
     },
-    openFile: async () => {},
-    saveFile: async () => {},
+    dialog: {
+      showOpenDialog: async () => {},
+      showSaveDialog: async () => {},
+    },
   },
   path: {
     basename: path.basename,

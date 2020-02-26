@@ -9,7 +9,7 @@ import * as Styles from '../../styles'
 import HiddenString from '../../util/hidden-string'
 
 const {electron} = KB
-const {openFile} = electron
+const {showOpenDialog} = electron.dialog
 
 type InputProps = {
   operation: Types.Operations
@@ -54,6 +54,7 @@ const operationToEmptyInputWidth = {
  *
  * Afte user enters text:
  *  - Multiline input
+ *  - Clear button
  */
 export const TextInput = (props: TextProps) => {
   const {value, operation, onChangeText, onSetFile} = props
@@ -70,18 +71,15 @@ export const TextInput = (props: TextProps) => {
     }
   }
 
-  const onFileSelected = (filePaths: Array<string> | undefined) => {
-    if (!filePaths) return
-    const path = filePaths[0]
-    onSetFile(path)
-  }
-
-  const onOpenFile = () => {
+  const onOpenFile = async () => {
     const options = {
       buttonLabel: 'Select',
       properties: ['openFile'] as Array<OpenProperties>,
     }
-    openFile(options).then(onFileSelected)
+    const filePaths = await showOpenDialog(options)
+    if (!filePaths) return
+    const path = filePaths[0]
+    onSetFile(path)
   }
 
   return (
@@ -116,7 +114,7 @@ export const TextInput = (props: TextProps) => {
             ref={inputRef}
           />
           {!value && (
-            <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={() => onOpenFile()}>
+            <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
               browse for one
             </Kb.Text>
           )}
@@ -177,14 +175,11 @@ export const Input = (props: InputProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
 
-  // Store
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
 
-  // State
   const [inputValue, setInputValue] = React.useState(input)
 
-  // Actions
   const onSetInput = (type: Types.InputTypes, newValue: string) => {
     dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
   }
@@ -220,10 +215,8 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
   const dispatch = Container.useDispatch()
 
-  // Store
   const inProgress = Container.useSelector(store => store.crypto[operation].inProgress)
 
-  // Actions
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))

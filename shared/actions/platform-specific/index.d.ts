@@ -1,4 +1,3 @@
-import {OpenDialogOptions, SaveDialogOptions, OpenDialogReturnValue, SaveDialogReturnValue} from 'electron'
 import * as Saga from '../../util/saga'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 

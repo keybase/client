@@ -69,11 +69,26 @@ const darwinCopyToChatTempUploadFile = isDarwin
       throw new Error('unsupported platform')
     }
 
+const openDialogPropertiesWhitelist = ['openFile', 'openDirectory', 'multiSelections']
+const saveDialogPropertiesWhitelist = ['showOverwriteConfirmation']
+
 // Expose native file picker to components.
 // Improved experience over HTML <input type='file' />
-const openFile = async (options: KBElectronOpenProperties) => {
+const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   try {
-    const result = await Electron.remote.dialog.showOpenDialog(Electron.remote.getCurrentWindow(), options)
+    const {title, message, buttonLabel, properties, defaultPath} = opts
+    const allowedProperties = properties.filter(p => openDialogPropertiesWhitelist.includes(p))
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const result = await Electron.remote.dialog.showOpenDialog(
+      Electron.remote.getCurrentWindow(),
+      allowedOptions
+    )
     if (!result) return
     if (result.canceled) return
     return result.filePaths
@@ -82,9 +97,21 @@ const openFile = async (options: KBElectronOpenProperties) => {
   }
 }
 
-const saveFile = async (options: KBElectronSaveProperties) => {
+const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   try {
-    const result = await Electron.remote.dialog.showSaveDialog(Electron.remote.getCurrentWindow(), options)
+    const {title, message, buttonLabel, properties, defaultPath} = opts
+    const allowedProperties = properties.filter(p => saveDialogPropertiesWhitelist.includes(p))
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const result = await Electron.remote.dialog.showSaveDialog(
+      Electron.remote.getCurrentWindow(),
+      allowedOptions
+    )
     if (!result) return
     if (result.canceled) return
     return result.filePath
@@ -99,8 +126,10 @@ target.KB = {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
     },
-    openFile,
-    saveFile,
+    dialog: {
+      showOpenDialog,
+      showSaveDialog,
+    },
   },
   kb: {
     darwinCopyToChatTempUploadFile,

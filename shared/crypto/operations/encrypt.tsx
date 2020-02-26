@@ -14,7 +14,6 @@ const operation = Constants.Operations.Encrypt
 const EncryptOptions = () => {
   const dispatch = Container.useDispatch()
 
-  // Store
   const hideIncludeSelf = Container.useSelector(state => state.crypto.encrypt.meta.hideIncludeSelf)
   const hasRecipients = Container.useSelector(state => state.crypto.encrypt.meta.hasRecipients)
   const hasSBS = Container.useSelector(state => state.crypto.encrypt.meta.hasSBS)
@@ -22,7 +21,6 @@ const EncryptOptions = () => {
   const sign = Container.useSelector(state => state.crypto.encrypt.options.sign)
   const inProgress = Container.useSelector(state => state.crypto.encrypt.inProgress)
 
-  // Actions
   const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
     const {newIncludeSelf, newSign} = opts
     dispatch(CryptoGen.createSetEncryptOptions({options: {includeSelf: newIncludeSelf, sign: newSign}}))

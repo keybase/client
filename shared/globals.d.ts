@@ -23,7 +23,7 @@ type RequestIdleCallbackDeadline = {
 }
 
 type OpenProperties = 'openFile' | 'openDirectory' | 'multiSelections'
-declare type KBElectronOpenProperties = {
+declare type KBElectronOpenDialogOptions = {
   title?: string
   defaultPath?: string
   buttonLabel?: string
@@ -32,7 +32,7 @@ declare type KBElectronOpenProperties = {
 }
 
 type SaveProperties = 'showOverwriteConfirmation' // Linux only
-declare type KBElectronSaveProperties = {
+declare type KBElectronSaveDialogOptions = {
   title?: string
   defaultPath?: string
   buttonLabel?: string
@@ -67,8 +67,10 @@ declare var KB: {
     app: {
       appPath: string
     }
-    openFile: (options: KBElectronOpenProperties) => Promise<Array<string> | undefined>
-    saveFile: (options: KBElectronSaveProperties) => Promise<string | undefined>
+    dialog: {
+      showOpenDialog: (options: KBElectronOpenDialogOptions) => Promise<Array<string> | undefined>
+      showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
+    }
   }
   kb: {
     darwinCopyToTmp: (p: string) => Promise<string>

@@ -11,11 +11,9 @@ const placeholder = 'Search people'
 const Recipients = () => {
   const dispatch = Container.useDispatch()
 
-  // Store
   const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
   const inProgress = Container.useSelector(state => state.crypto.encrypt.inProgress)
 
-  // Actions
   const onAddRecipients = () => {
     if (inProgress) return
     dispatch(appendEncryptRecipientsBuilder())

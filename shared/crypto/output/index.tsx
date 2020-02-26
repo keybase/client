@@ -14,7 +14,7 @@ import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
 
 const {electron} = KB
-const {openFile} = electron
+const {showOpenDialog} = electron.dialog
 
 type OutputProps = {
   operation: Types.Operations
@@ -44,10 +44,10 @@ const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  // Waiting
+
   const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
-  // Store
+
   const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
   const signedByUsername = Container.useSelector(state => state.crypto[operation].outputSenderUsername)
   const signedByFullname = Container.useSelector(state => state.crypto[operation].outputSenderFullname)
@@ -118,7 +118,6 @@ export const SignedSender = (props: SignedSenderProps) => {
 export const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
-  // Store
   const bytesTotal = Container.useSelector(state => state.crypto[operation].bytesTotal)
   const bytesComplete = Container.useSelector(state => state.crypto[operation].bytesComplete)
 
@@ -130,8 +129,6 @@ export const OutputProgress = (props: OutputProgressProps) => {
       <Kb.Text type="Body">{`${humanizeBytes(bytesComplete, 1)} / ${humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
     </Kb.Box2>
   ) : null
-
-  // return progress ? <Kb.ProgressBar ratio={progress} style={{width: '100%'}} /> : <Kb.Divider />
 }
 
 export const OutputInfoBanner = (props: OutputInfoProps) => {
@@ -151,11 +148,9 @@ export const OutputBar = (props: OutputBarProps) => {
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  // Waiting
   const waitingKey = Constants.getStringWaitingKey(props.operation)
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  // Store
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
@@ -164,7 +159,6 @@ export const OutputBar = (props: OutputBarProps) => {
   const signedByUsername = Container.useSelector(state => state.crypto[operation].outputSenderUsername)
   const actionsDisabled = waiting || !outputValid
 
-  // Actions
   const onShowInFinder = () => {
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
   }
@@ -188,7 +182,6 @@ export const OutputBar = (props: OutputBarProps) => {
     }
   }
 
-  // State, Refs, Timers
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
@@ -267,14 +260,18 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   const operationTitle = capitalize(operation)
   const dispatch = Container.useDispatch()
 
-  // Store
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
 
-  // Actions
-  const onRunFileOperation = (filePaths: Array<string> | undefined) => {
+  const onOpenFile = async () => {
+    const options = {
+      buttonLabel: 'Select',
+      defaultPath: input,
+      properties: ['openDirectory'] as Array<OpenProperties>,
+    }
+    const filePaths = await showOpenDialog(options)
     if (!filePaths) return
-
     const path = filePaths[0]
+
     const destinationDir = new Container.HiddenString(path)
     dispatch(
       CryptoGen.createRunFileOperation({
@@ -282,15 +279,6 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
         operation,
       })
     )
-  }
-
-  const onOpenFile = () => {
-    const options = {
-      buttonLabel: 'Select',
-      defaultPath: input,
-      properties: ['openDirectory'] as Array<OpenProperties>,
-    }
-    openFile(options).then(onRunFileOperation)
   }
 
   return (
@@ -307,7 +295,6 @@ const Output = (props: OutputProps) => {
   const textType = Constants.getOutputTextType(operation)
   const dispatch = Container.useDispatch()
 
-  // Store
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
   const inProgress = Container.useSelector(state => state.crypto[operation].inProgress)
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
@@ -315,17 +302,14 @@ const Output = (props: OutputProps) => {
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
 
-  // Actions
   const onShowInFinder = () => {
     if (!output) return
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
   }
 
-  // Waiting
   const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  // Styling
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
