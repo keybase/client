@@ -43,12 +43,14 @@ export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
+export const loadUploadStatus = 'fs:loadUploadStatus'
 export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
 export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
 export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
 export const loadedFileContext = 'fs:loadedFileContext'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
+export const loadedUploadStatus = 'fs:loadedUploadStatus'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
@@ -97,8 +99,6 @@ export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
 export const uploadFromDragAndDrop = 'fs:uploadFromDragAndDrop'
-export const uploadStarted = 'fs:uploadStarted'
-export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 export const userIn = 'fs:userIn'
@@ -159,6 +159,7 @@ type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
+type _LoadUploadStatusPayload = void
 type _LoadedAdditionalTlfPayload = {readonly tlf: Types.Tlf; readonly tlfPath: Types.Path}
 type _LoadedDownloadInfoPayload = {readonly downloadID: string; readonly info: Types.DownloadInfo}
 type _LoadedDownloadStatusPayload = {
@@ -168,6 +169,7 @@ type _LoadedDownloadStatusPayload = {
 type _LoadedFileContextPayload = {readonly path: Types.Path; readonly fileContext: Types.FileContext}
 type _LoadedFilesTabBadgePayload = {readonly badge: RPCTypes.FilesTabBadge}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
+type _LoadedUploadStatusPayload = {readonly uploadStates: Array<RPCTypes.UploadState>}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
 type _NewFolderRowPayload = {readonly parentPath: Types.Path}
@@ -232,13 +234,7 @@ type _TlfSyncConfigLoadedPayload = {
 type _UninstallKBFSConfirmPayload = void
 type _UnsubscribePayload = {readonly subscriptionID: string}
 type _UploadFromDragAndDropPayload = {readonly parentPath: Types.Path; readonly localPaths: Array<string>}
-type _UploadPayload = {
-  readonly parentPath: Types.Path
-  readonly localPath: string
-  readonly deleteSourceFile?: boolean
-}
-type _UploadStartedPayload = {readonly path: Types.Path}
-type _UploadWritingSuccessPayload = {readonly path: Types.Path}
+type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
 type _UserFileEditsLoadPayload = void
 type _UserFileEditsLoadedPayload = {readonly tlfUpdates: Types.UserTlfUpdates}
 type _UserInPayload = void
@@ -380,6 +376,10 @@ export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): Loa
   payload,
   type: loadTlfSyncConfig,
 })
+export const createLoadUploadStatus = (payload: _LoadUploadStatusPayload): LoadUploadStatusPayload => ({
+  payload,
+  type: loadUploadStatus,
+})
 export const createLoadedAdditionalTlf = (
   payload: _LoadedAdditionalTlfPayload
 ): LoadedAdditionalTlfPayload => ({payload, type: loadedAdditionalTlf})
@@ -400,6 +400,10 @@ export const createLoadedFilesTabBadge = (
 export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
   payload,
   type: loadedPathInfo,
+})
+export const createLoadedUploadStatus = (payload: _LoadedUploadStatusPayload): LoadedUploadStatusPayload => ({
+  payload,
+  type: loadedUploadStatus,
 })
 export const createMove = (payload: _MovePayload): MovePayload => ({payload, type: move})
 export const createNewFolderName = (payload: _NewFolderNamePayload): NewFolderNamePayload => ({
@@ -561,13 +565,6 @@ export const createUpload = (payload: _UploadPayload): UploadPayload => ({payloa
 export const createUploadFromDragAndDrop = (
   payload: _UploadFromDragAndDropPayload
 ): UploadFromDragAndDropPayload => ({payload, type: uploadFromDragAndDrop})
-export const createUploadStarted = (payload: _UploadStartedPayload): UploadStartedPayload => ({
-  payload,
-  type: uploadStarted,
-})
-export const createUploadWritingSuccess = (
-  payload: _UploadWritingSuccessPayload
-): UploadWritingSuccessPayload => ({payload, type: uploadWritingSuccess})
 export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload): UserFileEditsLoadPayload => ({
   payload,
   type: userFileEditsLoad,
@@ -705,6 +702,10 @@ export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: typeof loadTlfSyncConfig
 }
+export type LoadUploadStatusPayload = {
+  readonly payload: _LoadUploadStatusPayload
+  readonly type: typeof loadUploadStatus
+}
 export type LoadedAdditionalTlfPayload = {
   readonly payload: _LoadedAdditionalTlfPayload
   readonly type: typeof loadedAdditionalTlf
@@ -728,6 +729,10 @@ export type LoadedFilesTabBadgePayload = {
 export type LoadedPathInfoPayload = {
   readonly payload: _LoadedPathInfoPayload
   readonly type: typeof loadedPathInfo
+}
+export type LoadedUploadStatusPayload = {
+  readonly payload: _LoadedUploadStatusPayload
+  readonly type: typeof loadedUploadStatus
 }
 export type MovePayload = {readonly payload: _MovePayload; readonly type: typeof move}
 export type NewFolderNamePayload = {
@@ -900,14 +905,6 @@ export type UploadFromDragAndDropPayload = {
   readonly type: typeof uploadFromDragAndDrop
 }
 export type UploadPayload = {readonly payload: _UploadPayload; readonly type: typeof upload}
-export type UploadStartedPayload = {
-  readonly payload: _UploadStartedPayload
-  readonly type: typeof uploadStarted
-}
-export type UploadWritingSuccessPayload = {
-  readonly payload: _UploadWritingSuccessPayload
-  readonly type: typeof uploadWritingSuccess
-}
 export type UserFileEditsLoadPayload = {
   readonly payload: _UserFileEditsLoadPayload
   readonly type: typeof userFileEditsLoad
@@ -964,12 +961,14 @@ export type Actions =
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
+  | LoadUploadStatusPayload
   | LoadedAdditionalTlfPayload
   | LoadedDownloadInfoPayload
   | LoadedDownloadStatusPayload
   | LoadedFileContextPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
+  | LoadedUploadStatusPayload
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
@@ -1018,8 +1017,6 @@ export type Actions =
   | UnsubscribePayload
   | UploadFromDragAndDropPayload
   | UploadPayload
-  | UploadStartedPayload
-  | UploadWritingSuccessPayload
   | UserFileEditsLoadPayload
   | UserFileEditsLoadedPayload
   | UserInPayload

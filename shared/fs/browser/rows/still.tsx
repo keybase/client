@@ -11,7 +11,7 @@ type StillProps = StillCommonProps & {
   intentIfDownloading?: Types.DownloadIntent | null
   isEmpty: boolean
   type: Types.PathType
-  uploadErrorRetry?: () => void
+  uploadError?: string
   uploading: boolean
   writingToJournal: boolean
 }
@@ -52,12 +52,10 @@ const Still = (props: StillProps) => (
           />
         )}
       </Kb.Box2>
-      {props.uploadErrorRetry ? (
+      {props.uploadError ? (
         <Kb.Text type="BodySmallError">
-          Upload has failed.{' '}
-          <Kb.Text type="BodySmallError" onClick={props.uploadErrorRetry} underline={true}>
-            Retry
-          </Kb.Text>
+          Upload has failed:
+          {props.uploadError}
         </Kb.Text>
       ) : props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>

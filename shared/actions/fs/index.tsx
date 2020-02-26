@@ -411,49 +411,33 @@ const cancelDownload = (action: FsGen.CancelDownloadPayload) =>
 const dismissDownload = (action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
-function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
-  const {parentPath, localPath} = action.payload
-  const opID = Constants.makeUUID()
-  const path = Constants.getUploadedPath(parentPath, localPath)
-  const src = {PathType: RPCTypes.PathType.local, local: Types.getNormalizedLocalPath(localPath)} as const
-
-  yield Saga.put(FsGen.createUploadStarted({path}))
-
-  // TODO: confirm overwrites?
-  // TODO: what about directory merges?
-  yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
-    dest: Constants.pathToRPCPath(path),
-    opID,
-    src,
-  })
-
+const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
   try {
-    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
-    yield Saga.put(FsGen.createUploadWritingSuccess({path}))
+    await RPCTypes.SimpleFSSimpleFSStartUploadRpcPromise({
+      sourceLocalPath: action.payload.localPath,
+      targetParentPath: Constants.pathToRPCPath(action.payload.parentPath).kbfs,
+    })
+  } catch (err) {
+    makeUnretriableErrorHandler(action)(err)
+  }
+}
 
-    // TODO move this in go. Perhaps an upload manager in simplefs.
-    if (action.payload.deleteSourceFile) {
-      const opIDRemove = Constants.makeUUID()
-      yield RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
-        opID: opIDRemove,
-        path: src,
-        recursive: false,
-      })
-      yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: opIDRemove})
-    }
-  } catch (error) {
-    yield makeRetriableErrorHandler(action, path)(error).map(a => Saga.put(a))
+const loadUploadStatus = async (_: Container.TypedState, action: FsGen.LoadUploadStatusPayload) => {
+  try {
+    const uploadStates = await RPCTypes.SimpleFSSimpleFSGetUploadStatusRpcPromise()
+    return FsGen.createLoadedUploadStatus({uploadStates: uploadStates || []})
+  } catch (err) {
+    return makeUnretriableErrorHandler(action)(err)
   }
 }
 
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
   if (Platform.isDarwin) {
     const localPaths = await Promise.all(
-      action.payload.localPaths.map(localPath => KB.kb.darwinCopyToTmp(localPath))
+      action.payload.localPaths.map(localPath => KB.kb.darwinCopyToKBFSTempUploadFile(localPath))
     )
     return localPaths.map(localPath =>
       FsGen.createUpload({
-        deleteSourceFile: true,
         localPath,
         parentPath: action.payload.parentPath,
       })
@@ -461,7 +445,6 @@ const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.Uplo
   }
   return action.payload.localPaths.map(localPath =>
     FsGen.createUpload({
-      deleteSourceFile: false,
       localPath,
       parentPath: action.payload.parentPath,
     })
@@ -633,6 +616,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
                 Types.getPathName(state.fs.destinationPicker.source.path)
               )
             ),
+            exclCreateFile: true,
             opID: Constants.makeUUID() as string,
             src: Constants.pathToRPCPath(state.fs.destinationPicker.source.path),
           },
@@ -647,6 +631,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
                 // We use the local path name here since we only care about file name.
               )
             ),
+            exclCreateFile: true,
             opID: Constants.makeUUID() as string,
             src: {
               PathType: RPCTypes.PathType.local,
@@ -662,6 +647,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
               // We use the local path name here since we only care about file name.
             )
           ),
+          exclCreateFile: true,
           opID: Constants.makeUUID() as string,
           src: {
             PathType: RPCTypes.PathType.local,
@@ -903,6 +889,8 @@ const onNonPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyP
       return checkIfWeReConnectedToMDServerUpToNTimes(1)
     case RPCTypes.SubscriptionTopic.downloadStatus:
       return FsGen.createLoadDownloadStatus()
+    case RPCTypes.SubscriptionTopic.uploadStatus:
+      return FsGen.createLoadUploadStatus()
     case RPCTypes.SubscriptionTopic.filesTabBadge:
       return FsGen.createLoadFilesTabBadge()
     case RPCTypes.SubscriptionTopic.settings:
@@ -1009,40 +997,81 @@ const userOut = () =>
 
 let fsBadgeSubscriptionID: string = ''
 
-const subscribeAndLoadFsBadge = () => {
+const subscribeAndLoadFsBadge = (state: Container.TypedState) => {
   const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
   fsBadgeSubscriptionID = Constants.makeUUID()
-  return [
-    ...(oldFsBadgeSubscriptionID
-      ? [FsGen.createUnsubscribe({subscriptionID: oldFsBadgeSubscriptionID})]
-      : []),
-    FsGen.createSubscribeNonPath({
-      subscriptionID: fsBadgeSubscriptionID,
-      topic: RPCTypes.SubscriptionTopic.filesTabBadge,
-    }),
-    FsGen.createLoadFilesTabBadge(),
-  ]
+  return (
+    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+      ...(oldFsBadgeSubscriptionID
+        ? [FsGen.createUnsubscribe({subscriptionID: oldFsBadgeSubscriptionID})]
+        : []),
+      FsGen.createSubscribeNonPath({
+        subscriptionID: fsBadgeSubscriptionID,
+        topic: RPCTypes.SubscriptionTopic.filesTabBadge,
+      }),
+      FsGen.createLoadFilesTabBadge(),
+    ]
+  )
+}
+
+let uploadStatusSubscriptionID: string = ''
+const subscribeAndLoadUploadStatus = (state: Container.TypedState) => {
+  const oldUploadStatusSubscriptionID = uploadStatusSubscriptionID
+  uploadStatusSubscriptionID = Constants.makeUUID()
+  return (
+    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+      ...(oldUploadStatusSubscriptionID
+        ? [FsGen.createUnsubscribe({subscriptionID: oldUploadStatusSubscriptionID})]
+        : []),
+      FsGen.createSubscribeNonPath({
+        subscriptionID: uploadStatusSubscriptionID,
+        topic: RPCTypes.SubscriptionTopic.uploadStatus,
+      }),
+      FsGen.createLoadUploadStatus(),
+    ]
+  )
+}
+
+let journalStatusSubscriptionID: string = ''
+const subscribeAndLoadJournalStatus = (state: Container.TypedState) => {
+  const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
+  journalStatusSubscriptionID = Constants.makeUUID()
+  return (
+    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+      ...(oldJournalStatusSubscriptionID
+        ? [FsGen.createUnsubscribe({subscriptionID: oldJournalStatusSubscriptionID})]
+        : []),
+      FsGen.createSubscribeNonPath({
+        subscriptionID: journalStatusSubscriptionID,
+        topic: RPCTypes.SubscriptionTopic.journalStatus,
+      }),
+      FsGen.createPollJournalStatus(),
+    ]
+  )
 }
 
 let settingsSubscriptionID: string = ''
-const subscribeAndLoadSettings = () => {
+const subscribeAndLoadSettings = (state: Container.TypedState) => {
   const oldSettingsSubscriptionID = settingsSubscriptionID
   settingsSubscriptionID = Constants.makeUUID()
-  return [
-    ...(oldSettingsSubscriptionID
-      ? [FsGen.createUnsubscribe({subscriptionID: oldSettingsSubscriptionID})]
-      : []),
-    FsGen.createSubscribeNonPath({
-      subscriptionID: settingsSubscriptionID,
-      topic: RPCTypes.SubscriptionTopic.settings,
-    }),
-    FsGen.createLoadSettings(),
-  ]
+  return (
+    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+      ...(oldSettingsSubscriptionID
+        ? [FsGen.createUnsubscribe({subscriptionID: oldSettingsSubscriptionID})]
+        : []),
+      FsGen.createSubscribeNonPath({
+        subscriptionID: settingsSubscriptionID,
+        topic: RPCTypes.SubscriptionTopic.settings,
+      }),
+      FsGen.createLoadSettings(),
+    ]
+  )
 }
 
 function* fsSaga() {
-  yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
+  yield* Saga.chainAction2(FsGen.upload, upload)
   yield* Saga.chainAction2(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
+  yield* Saga.chainAction2(FsGen.loadUploadStatus, loadUploadStatus)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
   yield* Saga.chainAction2(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
@@ -1095,6 +1124,8 @@ function* fsSaga() {
   yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadFsBadge)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadSettings)
+  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadUploadStatus)
+  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadJournalStatus)
 
   yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
 

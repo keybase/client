@@ -18,11 +18,9 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
       _pathItemActionMenu: state.fs.pathItemActionMenu,
       _uploads: state.fs.uploads,
     }),
-    dispatch => ({_retry: dispatch}),
-    (stateProps, dispatchProps, {path, destinationPickerIndex}: OwnProps) => {
+    () => ({}),
+    (stateProps, _, {path, destinationPickerIndex}: OwnProps) => {
       const {_downloads, _pathItem, _pathItemActionMenu} = stateProps
-      const uploadRetriableAction = (stateProps._uploads.errors.get(path) || Constants.emptyError)
-        .retriableAction
       return {
         destinationPickerIndex,
         intentIfDownloading: Constants.getDownloadIntent(path, _downloads, _pathItemActionMenu),
@@ -32,9 +30,7 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
           !_pathItem.children.size,
         path,
         type: _pathItem.type,
-        uploadErrorRetry: uploadRetriableAction
-          ? () => dispatchProps._retry(uploadRetriableAction)
-          : undefined,
+        uploadError: stateProps._uploads.writingToJournal.get(path)?.error,
         uploading: stateProps._uploads.syncingPaths.has(path),
         writingToJournal: stateProps._uploads.writingToJournal.has(path),
       }
