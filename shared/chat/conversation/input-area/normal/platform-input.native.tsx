@@ -491,6 +491,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
       },
       iconContainer: {
+        marginRight: -4,
         height: 28,
         position: 'relative',
         width: 28,
