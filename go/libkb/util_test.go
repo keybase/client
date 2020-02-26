@@ -295,6 +295,7 @@ func TestThrottleBatch(t *testing.T) {
 	f(2)
 	noVal()
 	cancel()
+	time.Sleep(100 * time.Millisecond)
 	clock.Advance(300 * time.Millisecond)
 	noVal()
 }
