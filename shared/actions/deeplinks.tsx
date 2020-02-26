@@ -144,20 +144,7 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   return false
 }
 
-const handleSaltpackOpenFile = (
-  state: Container.TypedState,
-  action: DeeplinksGen.SaltpackFileOpenPayload
-) => {
-  // TODO inspect saltpack file type
-  // TODO determine if there are any conditions to block on
-  // TODO route to crypto tab
-  // TODO route to specific sub-route
-  // TODO pass fiel path arguments to sub-route
-  // TODO override existing operation store input
-  // TODO reset operation store output/errors, etc
-
-  logger.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> action', {action})
-  console.error('JRY actions/deeplinks -> handleSaltpackOpenFile -> action', {action})
+const handleSaltpackOpenFile = (action: DeeplinksGen.SaltpackFileOpenPayload) => {
   const path = action.payload.path
   let operation: CryptoTypes.Operations | null = null
   if (path.endsWith('.encrypted.saltpack')) {
@@ -183,7 +170,7 @@ const handleSaltpackOpenFile = (
 function* deeplinksSaga() {
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
   yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
-  yield* Saga.chainAction2(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
+  yield* Saga.chainAction(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
 }
 
 export default deeplinksSaga

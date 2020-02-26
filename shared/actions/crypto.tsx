@@ -4,6 +4,7 @@ import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
@@ -60,8 +61,11 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
 }
 
 const handleSaltpackOpenFile = (state: Container.TypedState, action: CryptoGen.OnSaltpackFileOpenPayload) => {
-  // TODO implement
-  return
+  const {operation} = action.payload
+  const tab = Constants.CryptoSubTabs[operation]
+  return RouteTreeGen.createNavigateAppend({
+    path: ['cryptoRoot', tab],
+  })
 }
 
 // more of a debounce to keep things simple

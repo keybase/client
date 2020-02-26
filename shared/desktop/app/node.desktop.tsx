@@ -185,7 +185,7 @@ const getStartupProcessArgs = () => {
   if (isRelevantDeepLink(arg)) {
     mainWindowDispatch(DeeplinksGen.createLink({link: arg}))
   } else if (isValidSaltpackFilePath(arg)) {
-    mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: saltpackFilePath}))
+    mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: arg}))
   }
 }
 
@@ -316,9 +316,7 @@ const plumbEvents = () => {
           mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
           startupURL = null
         } else if (saltpackFilePath) {
-          logger.error('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
-          console.error('JRY appStartedUp -> saltpackFilePath -> createSaltpackFileOpen', {saltpackFilePath})
-          mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path}))
+          mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: saltpackFilePath}))
           saltpackFilePath = null
         } else if (!isDarwin) {
           getStartupProcessArgs()

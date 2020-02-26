@@ -66,6 +66,13 @@ export const Tabs: Array<Types.Tab> = [
   },
 ]
 
+export const CryptoSubTabs: {[k in Types.Operations]: Types.CryptoSubTab} = {
+  decrypt: decryptTab,
+  encrypt: encryptTab,
+  sign: signTab,
+  verify: verifyTab,
+}
+
 export const Operations: {[key: string]: Types.Operations} = {
   Decrypt: 'decrypt',
   Encrypt: 'encrypt',
