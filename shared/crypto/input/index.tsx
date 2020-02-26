@@ -73,6 +73,7 @@ export const TextInput = (props: TextProps) => {
 
   const onOpenFile = async () => {
     const options = {
+      allowDirectories: true,
       buttonLabel: 'Select',
     }
     const filePaths = await showOpenDialog(options)
@@ -225,7 +226,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
         disabled={inProgress}
-        allowFolders={false}
+        allowFolders={true}
         fullHeight={true}
         fullWidth={true}
         onAttach={onAttach}
