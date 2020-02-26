@@ -426,7 +426,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 		tx := CreateAddMemberTx(t)
 		tx.EmailInviteMsg = emailInviteMsg
-		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertionOrEmail(ctx, username, role, botSettings)
+		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertion(ctx, username, role, botSettings)
 		if err != nil {
 			return err
 		}
@@ -507,7 +507,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 		var sweep []sweepEntry
 		for _, user := range users {
-			candidate, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+			candidate, err := tx.ResolveUPKV2FromAssertion(mctx, user.Assertion)
 			if err != nil {
 				return NewAddMembersError(candidate.Full, err)
 			}
@@ -542,7 +542,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 			})
 			if !uv.IsNil() {
 				sweep = append(sweep, sweepEntry{
-					Assertion: user.AssertionOrEmail,
+					Assertion: user.Assertion,
 					UV:        uv,
 				})
 			}
@@ -735,7 +735,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			res.Malformed = append(res.Malformed, email)
 			continue
 		}
-		toAdd = append(toAdd, keybase1.UserRolePair{AssertionOrEmail: a.String(), Role: role})
+		toAdd = append(toAdd, keybase1.UserRolePair{Assertion: a.String(), Role: role})
 	}
 
 	if len(toAdd) == 0 {
@@ -767,7 +767,7 @@ func EditMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Te
 	var failedToEdit []keybase1.UserRolePair
 
 	for _, userRolePair := range users {
-		err := EditMemberByID(ctx, g, teamID, userRolePair.AssertionOrEmail, userRolePair.Role, userRolePair.BotSettings)
+		err := EditMemberByID(ctx, g, teamID, userRolePair.Assertion, userRolePair.Role, userRolePair.BotSettings)
 		if err != nil {
 			failedToEdit = append(failedToEdit, userRolePair)
 			continue

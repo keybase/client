@@ -274,6 +274,9 @@ func (tx *AddMemberTx) findChangeReqForUV(uv keybase1.UserVersion) *keybase1.Tea
 // addMemberByUPKV2 is an internal method to add user once we have current
 // incarnation of UPAK. Public APIs are AddMemberByUV and AddMemberByUsername
 // that load UPAK and pass it to this function to continue membership changes.
+//
+// Return value `invite` is true if user was PUK-less and was added as
+// keybase-type invite.
 func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole,
 	botSettings *keybase1.TeamBotSettings) (invite bool, err error) {
 	team := tx.team
@@ -312,13 +315,11 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	}
 
 	if existingUV, err := team.UserVersionByUID(ctx, uv.Uid); err == nil {
-		// TODO: Might be able to collapse the two assertions together
-		// - the one above with team.IsMember and this one which
-		// checking Uid/Eldest.
+		// TODO: Might be able to collapse the two assertions together - the
+		// one above with team.IsMember and this one which checking Uid/Eldest.
 
-		// There is an edge case where user is in the middle of
-		// resetting (after reset, before provisioning) and has
-		// EldestSeqno=0.
+		// There is an edge case where user is in the middle of resetting
+		// (after reset, before provisioning) and has EldestSeqno=0.
 		if hasPUK && existingUV.EldestSeqno > uv.EldestSeqno {
 			return false, fmt.Errorf("newer version of user %s (uid:%s) already exists in the team %q (%v > %v)",
 				normalizedUsername, uv.Uid, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
@@ -496,6 +497,8 @@ func resolveServerTrustAssertion(mctx libkb.MetaContext, assertion string) (upak
 	return upak, true, nil
 }
 
+// AddMemberCandidate is created by ResolveUPKV2FromAssertion and should be
+// passed to AddOrInviteMemberCandidate.
 type AddMemberCandidate struct {
 	SourceAssertion string
 
@@ -512,7 +515,24 @@ type AddMemberCandidate struct {
 	// assertion was not compound. If it was, that person can't be added.
 }
 
-func (tx *AddMemberTx) ResolveUPKV2FromAssertionOrEmail(m libkb.MetaContext, assertion string) (ret AddMemberCandidate, err error) {
+// ResolveUPKV2FromAssertion creates an AddMemberCandidate struct by parsing
+// and attempting to resolve an assertion. This result can be then passed to
+// AddOrInviteMemberCandidate to queue adding that person in the transaction.
+// ResolveUPKV2FromAssertion itself does not modify the transaction.
+//
+// If your use case is:
+// - you have an assertion,
+// - that should be resolved,
+// - and based on the resolution it should either add it to the transaction or
+//   not,
+// this is the way to go.
+//
+// See documentation of AddOrInviteMemberByAssertion to find out what assertion
+// types are supported.
+//
+// AddOrInviteMemberByAssertion does the same thing internally, but you don't
+// get to check resolution result until after transaction is modified.
+func (tx *AddMemberTx) ResolveUPKV2FromAssertion(m libkb.MetaContext, assertion string) (ret AddMemberCandidate, err error) {
 	isServerTrustInvite, single, full, err := preprocessAssertion(m, assertion)
 	if err != nil {
 		return ret, err
@@ -604,7 +624,7 @@ func (tx *AddMemberTx) AddOrInviteMemberCandidate(ctx context.Context, candidate
 
 }
 
-// AddOrInviteMemberByAssertionOrEmail adds an assertion to the team. It can
+// AddOrInviteMemberByAssertion adds an assertion to the team. It can
 // handle three major cases:
 //
 //  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the
@@ -618,14 +638,14 @@ func (tx *AddMemberTx) AddOrInviteMemberCandidate(ctx context.Context, candidate
 // **Does** attempt to resolve the assertion, to distinguish between case (1),
 // case (2) and an error The return values (uv, username) can both be
 // zero-valued if the assertion is not a Keybase user.
-func (tx *AddMemberTx) AddOrInviteMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
+func (tx *AddMemberTx) AddOrInviteMemberByAssertion(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
 	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	m := team.MetaContext(ctx)
 
-	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByAssertion(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
 
-	candidate, err := tx.ResolveUPKV2FromAssertionOrEmail(m, assertion)
+	candidate, err := tx.ResolveUPKV2FromAssertion(m, assertion)
 	if err != nil {
 		return "", uv, false, err
 	}

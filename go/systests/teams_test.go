@@ -1663,13 +1663,13 @@ func TestBatchAddMembersCLI(t *testing.T) {
 
 	dodo.proveRooter()
 	users := []keybase1.UserRolePair{
-		{AssertionOrEmail: bob.username, Role: keybase1.TeamRole_ADMIN},
-		{AssertionOrEmail: ciara.username, Role: keybase1.TeamRole_WRITER},
-		{AssertionOrEmail: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
-		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
-		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
-		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
-		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
+		{Assertion: bob.username, Role: keybase1.TeamRole_ADMIN},
+		{Assertion: ciara.username, Role: keybase1.TeamRole_WRITER},
+		{Assertion: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
+		{Assertion: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
+		{Assertion: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
+		{Assertion: botua.username, Role: keybase1.TeamRole_BOT},
+		{Assertion: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
 	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.NoError(t, err)
@@ -1703,7 +1703,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 
 	// It should fail to combine assertions with email addresses
 	users = []keybase1.UserRolePair{
-		{AssertionOrEmail: "[job@gmail.com]@email+job33", Role: keybase1.TeamRole_READER},
+		{Assertion: "[job@gmail.com]@email+job33", Role: keybase1.TeamRole_READER},
 	}
 	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
@@ -1711,7 +1711,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
 	// It should also fail to combine invites with other assertions
 	users = []keybase1.UserRolePair{
-		{AssertionOrEmail: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
+		{Assertion: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
 	}
 	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
@@ -1745,7 +1745,7 @@ func TestBatchAddMembers(t *testing.T) {
 	makeUserRolePairs := func(v []string, role keybase1.TeamRole) []keybase1.UserRolePair {
 		var ret []keybase1.UserRolePair
 		for _, s := range v {
-			ret = append(ret, keybase1.UserRolePair{AssertionOrEmail: s, Role: role})
+			ret = append(ret, keybase1.UserRolePair{Assertion: s, Role: role})
 		}
 		return ret
 	}
