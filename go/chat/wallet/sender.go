@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -59,7 +60,8 @@ func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID c
 	for _, uid := range uids {
 		kuids = append(kuids, keybase1.UID(uid.String()))
 	}
-	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
+	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+		time.Minute, true)
 	if err != nil {
 		return res, err
 	}
