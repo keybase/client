@@ -288,6 +288,10 @@ func TestThrottleBatch(t *testing.T) {
 	clock.Advance(300 * time.Millisecond)
 	getVal(5)
 
+	clock.Advance(time.Hour)
+	f(2)
+	getVal(2)
+
 	f(2)
 	noVal()
 	cancel()

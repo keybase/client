@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -25,7 +24,6 @@ type partDiskStorage struct {
 type CachingParticipantSource struct {
 	globals.Contextified
 	utils.DebugLabeler
-	sync.Mutex
 
 	ri          func() chat1.RemoteInterface
 	encryptedDB *encrypteddb.EncryptedDB
