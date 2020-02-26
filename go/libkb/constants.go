@@ -781,3 +781,12 @@ const (
 	LoginAttemptOffline LoginAttempt = 1
 	LoginAttemptOnline  LoginAttempt = 2
 )
+
+const (
+	// Do not fetch the merkle root again if it was fetched within this
+	// threshold. Note that the server can always not tell us about a new root
+	// even if we set this threshold to a very short value (unless we learn
+	// about it otherwise), and that if we poll an honest server will tell us if
+	// we should update the root (which will override this threshold).
+	DefaultMerkleRootFreshness = 1 * time.Minute
+)
