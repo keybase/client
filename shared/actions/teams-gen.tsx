@@ -1,5 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
 import {RetentionPolicy} from '../constants/types/retention-policy'
@@ -36,6 +37,8 @@ export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
+export const loadWelcomeMessage = 'teams:loadWelcomeMessage'
+export const loadedWelcomeMessage = 'teams:loadedWelcomeMessage'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
@@ -45,9 +48,11 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
+export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setMemberPublicity = 'teams:setMemberPublicity'
+export const setMemberSelected = 'teams:setMemberSelected'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
@@ -73,6 +78,8 @@ export const setTeamVersion = 'teams:setTeamVersion'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const setWelcomeMessage = 'teams:setWelcomeMessage'
+export const setWelcomeMessageError = 'teams:setWelcomeMessageError'
 export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamCreated = 'teams:teamCreated'
@@ -166,6 +173,11 @@ type _LeaveTeamPayload = {
 }
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
 type _LoadTeamPayload = {readonly _subscribe?: boolean; readonly teamID: Types.TeamID}
+type _LoadWelcomeMessagePayload = {readonly teamID: Types.TeamID}
+type _LoadedWelcomeMessagePayload = {
+  readonly teamID: Types.TeamID
+  readonly message: RPCChatTypes.WelcomeMessageDisplay
+}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveParticipantPayload = {
@@ -187,9 +199,21 @@ type _SaveChannelMembershipPayload = {
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
+type _SetChannelSelectedPayload = {
+  readonly teamID: Types.TeamID
+  readonly channel: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
+type _SetMemberSelectedPayload = {
+  readonly teamID: Types.TeamID
+  readonly username: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
@@ -263,6 +287,11 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
+type _SetWelcomeMessageErrorPayload = {readonly error: string}
+type _SetWelcomeMessagePayload = {
+  readonly teamID: Types.TeamID
+  readonly message: RPCChatTypes.WelcomeMessage
+}
 type _SettingsErrorPayload = {readonly error: string}
 type _ShowTeamByNamePayload = {
   readonly teamname: string
@@ -334,6 +363,19 @@ export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): G
   type: getTeams,
 })
 /**
+ * Load welcome message for new team members
+ */
+export const createLoadWelcomeMessage = (payload: _LoadWelcomeMessagePayload): LoadWelcomeMessagePayload => ({
+  payload,
+  type: loadWelcomeMessage,
+})
+/**
+ * Loaded welcome message for new team members
+ */
+export const createLoadedWelcomeMessage = (
+  payload: _LoadedWelcomeMessagePayload
+): LoadedWelcomeMessagePayload => ({payload, type: loadedWelcomeMessage})
+/**
  * Rename a subteam
  */
 export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload => ({
@@ -348,11 +390,32 @@ export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSu
   type: setSubteamFilter,
 })
 /**
+ * Set welcome message for new team members
+ */
+export const createSetWelcomeMessage = (payload: _SetWelcomeMessagePayload): SetWelcomeMessagePayload => ({
+  payload,
+  type: setWelcomeMessage,
+})
+/**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
 export const createSaveTeamRetentionPolicy = (
   payload: _SaveTeamRetentionPolicyPayload
 ): SaveTeamRetentionPolicyPayload => ({payload, type: saveTeamRetentionPolicy})
+/**
+ * Sets whether a channel is selected on the team page
+ */
+export const createSetChannelSelected = (payload: _SetChannelSelectedPayload): SetChannelSelectedPayload => ({
+  payload,
+  type: setChannelSelected,
+})
+/**
+ * Sets whether a member is selected on the team page
+ */
+export const createSetMemberSelected = (payload: _SetMemberSelectedPayload): SetMemberSelectedPayload => ({
+  payload,
+  type: setMemberSelected,
+})
 /**
  * Stop listening for team details for this team
  */
@@ -563,6 +626,9 @@ export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload): SetUpda
   payload,
   type: setUpdatedTopic,
 })
+export const createSetWelcomeMessageError = (
+  payload: _SetWelcomeMessageErrorPayload
+): SetWelcomeMessageErrorPayload => ({payload, type: setWelcomeMessageError})
 export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErrorPayload => ({
   payload,
   type: settingsError,
@@ -679,6 +745,14 @@ export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
 export type LoadTeamPayload = {readonly payload: _LoadTeamPayload; readonly type: typeof loadTeam}
+export type LoadWelcomeMessagePayload = {
+  readonly payload: _LoadWelcomeMessagePayload
+  readonly type: typeof loadWelcomeMessage
+}
+export type LoadedWelcomeMessagePayload = {
+  readonly payload: _LoadedWelcomeMessagePayload
+  readonly type: typeof loadedWelcomeMessage
+}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
 export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
 export type RemoveParticipantPayload = {
@@ -706,6 +780,10 @@ export type SetChannelCreationErrorPayload = {
   readonly payload: _SetChannelCreationErrorPayload
   readonly type: typeof setChannelCreationError
 }
+export type SetChannelSelectedPayload = {
+  readonly payload: _SetChannelSelectedPayload
+  readonly type: typeof setChannelSelected
+}
 export type SetEditDescriptionErrorPayload = {
   readonly payload: _SetEditDescriptionErrorPayload
   readonly type: typeof setEditDescriptionError
@@ -717,6 +795,10 @@ export type SetEmailInviteErrorPayload = {
 export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
   readonly type: typeof setMemberPublicity
+}
+export type SetMemberSelectedPayload = {
+  readonly payload: _SetMemberSelectedPayload
+  readonly type: typeof setMemberSelected
 }
 export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: typeof setMembers}
 export type SetNewTeamInfoPayload = {
@@ -809,6 +891,14 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type SetWelcomeMessageErrorPayload = {
+  readonly payload: _SetWelcomeMessageErrorPayload
+  readonly type: typeof setWelcomeMessageError
+}
+export type SetWelcomeMessagePayload = {
+  readonly payload: _SetWelcomeMessagePayload
+  readonly type: typeof setWelcomeMessage
+}
 export type SettingsErrorPayload = {
   readonly payload: _SettingsErrorPayload
   readonly type: typeof settingsError
@@ -873,6 +963,8 @@ export type Actions =
   | LeaveTeamPayload
   | LeftTeamPayload
   | LoadTeamPayload
+  | LoadWelcomeMessagePayload
+  | LoadedWelcomeMessagePayload
   | ReAddToTeamPayload
   | RemoveMemberPayload
   | RemoveParticipantPayload
@@ -882,9 +974,11 @@ export type Actions =
   | SaveTeamRetentionPolicyPayload
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
+  | SetChannelSelectedPayload
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
   | SetMemberPublicityPayload
+  | SetMemberSelectedPayload
   | SetMembersPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload
@@ -910,6 +1004,8 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | SetWelcomeMessageErrorPayload
+  | SetWelcomeMessagePayload
   | SettingsErrorPayload
   | ShowTeamByNamePayload
   | TeamCreatedPayload

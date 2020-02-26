@@ -1,5 +1,6 @@
 {
   "prelude": [
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
@@ -49,6 +50,13 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamID": "Types.TeamID"
     },
+    "setChannelSelected": {
+      "_description": "Sets whether a channel is selected on the team page",
+      "teamID": "Types.TeamID",
+      "channel": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
+    },
     "getTeams": {
       "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
       "_subscribe?": "boolean",
@@ -80,6 +88,13 @@
     "setMembers": {
       "teamID": "Types.TeamID",
       "members": "Map<string, Types.MemberInfo>"
+    },
+    "setMemberSelected": {
+      "_description": "Sets whether a member is selected on the team page",
+      "teamID": "Types.TeamID",
+      "username": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
     },
     "getTeamProfileAddList": {
       "username": "string"
@@ -181,6 +196,9 @@
       "settings": "Types.PublicitySettings"
     },
     "setChannelCreationError": {
+      "error": "string"
+    },
+    "setWelcomeMessageError": {
       "error": "string"
     },
     "setEditDescriptionError": {
@@ -312,6 +330,20 @@
     "toggleInvitesCollapsed": {
       "_description": "Toggle whether invites are collapsed in the member list for this team",
       "teamID": "Types.TeamID"
+    },
+    "setWelcomeMessage": {
+      "_description": "Set welcome message for new team members",
+      "teamID": "Types.TeamID",
+      "message": "RPCChatTypes.WelcomeMessage"
+    },
+    "loadWelcomeMessage": {
+      "_description": "Load welcome message for new team members",
+      "teamID": "Types.TeamID"
+    },
+    "loadedWelcomeMessage": {
+      "_description": "Loaded welcome message for new team members",
+      "teamID": "Types.TeamID",
+      "message": "RPCChatTypes.WelcomeMessageDisplay"
     },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",

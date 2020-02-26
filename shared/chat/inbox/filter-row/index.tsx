@@ -100,6 +100,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         gap={Styles.isMobile ? 'small' : 'tiny'}
         style={Styles.collapseStyles([
           styles.containerNotFiltering,
+          Styles.isPhone ? null : Styles.isTablet && this.props.showSearch ? null : styles.whiteBg,
           !Styles.isMobile && styles.whiteBg,
           this.props.style,
         ])}
@@ -130,29 +131,31 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       containerFiltering: Styles.platformStyles({
-        common: {position: 'relative'},
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          position: 'relative',
+        },
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
           ...Styles.padding(0, Styles.globalMargins.small),
-          backgroundColor: Styles.globalColors.blueGrey,
           height: 39,
         },
         isMobile: {
           ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
-          backgroundColor: Styles.globalColors.fastBlank,
           height: 48,
         },
+        isPhone: {backgroundColor: Styles.globalColors.fastBlank},
       }),
       containerNotFiltering: Styles.platformStyles({
         common: {
+          backgroundColor: Styles.globalColors.blueGrey,
           height: undefined,
           position: 'relative',
         },
         isElectron: {
           ...Styles.padding(0, Styles.globalMargins.xtiny),
-          backgroundColor: Styles.globalColors.blueGrey,
         },
-        isMobile: {
+        isPhone: {
           backgroundColor: Styles.globalColors.white,
         },
       }),

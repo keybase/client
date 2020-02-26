@@ -2,6 +2,7 @@ import * as ChatGen from './chat2-gen'
 import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
+import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
@@ -86,6 +87,8 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
+    case 'incoming-share':
+      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
     default:
     // Fall through to the error return below.
   }
@@ -98,6 +101,13 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
 }
 
 const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
+  // If we're not logged in, trying to nav around the app as if we were will
+  // put people on broken screens -- instead just let people log in and retry.
+  if (!state.config.loggedIn) {
+    console.warn('Refusing to follow a deeplink when not logged in yet.')
+    return false
+  }
+
   if (action.payload.link.startsWith('web+stellar:')) {
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else if (action.payload.link.startsWith('keybase://')) {

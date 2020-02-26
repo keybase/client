@@ -3,6 +3,8 @@ import * as Sb from '../../../stories/storybook'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import {default as TeamMember, TeamMemberHeader} from './index.new'
+import AddToChannels from './add-to-channels'
+import {teamChannels} from '../../common/index.stories'
 
 const fakeTeamID = 'fakeTeamID'
 const subteamID1 = 'subteam1'
@@ -42,12 +44,15 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
       [subteamID1, Constants.makeTeamMeta({teamname: 'keybase_storybook.public'})],
       [subteamID2, Constants.makeTeamMeta({memberCount: 12, teamname: 'keybase_storybook.secret'})],
     ]),
+    teamIDToChannelInfos: new Map([[fakeTeamID, teamChannels]]),
   }
   draftState.config = {
     ...draftState.config,
     username: 'andonuts',
   }
 })
+
+const addToChannelsProps = Sb.createNavigator({teamID: fakeTeamID, usernames: ['andonuts']})
 
 const load = () =>
   Sb.storiesOf('Teams/Member', module)
@@ -56,5 +61,6 @@ const load = () =>
     .add('Header long name', () => <TeamMemberHeader teamID={fakeTeamID} username="paula" />)
     .add('Header self + no name', () => <TeamMemberHeader teamID={fakeTeamID} username="andonuts" />)
     .add('Rows', () => <TeamMember {...Sb.createNavigator({teamID: fakeTeamID, username: 'jeff'})} />)
+    .add('Add to channels', () => <AddToChannels {...addToChannelsProps} />)
 
 export default load

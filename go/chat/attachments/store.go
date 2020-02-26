@@ -12,10 +12,10 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/attachments/progress"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-crypto/ed25519"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
@@ -87,8 +87,8 @@ type streamCache struct {
 }
 
 type S3Store struct {
+	globals.Contextified
 	utils.DebugLabeler
-	libkb.Contextified
 
 	s3c   s3.Root
 	stash AttachmentStash
@@ -105,12 +105,12 @@ type S3Store struct {
 
 // NewS3Store creates a standard Store that uses a real
 // S3 connection.
-func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
+func NewS3Store(g *globals.Context, runtimeDir string) *S3Store {
 	return &S3Store{
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
-		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -118,14 +118,14 @@ func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte), g *libkb.GlobalContext) *S3Store {
+func NewStoreTesting(g *globals.Context, kt func(enc, sig []byte)) *S3Store {
 	return &S3Store{
-		DebugLabeler: utils.NewDebugLabeler(log, "Attachments.Store", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
 		keyTester:    kt,
 		testing:      true,
-		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -202,7 +202,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	// post to s3
 	length := enc.EncryptedLen(task.FileSize)
 	record := rpc.NewNetworkInstrumenter(a.G().RemoteNetworkInstrumenterStorage, "ChatAttachmentUpload")
-	defer func() { _ = record.RecordAndFinish(length) }()
+	defer func() { _ = record.RecordAndFinish(ctx, length) }()
 	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {
 		if err == ErrAbortOnPartMismatch && previous != nil {
@@ -312,9 +312,9 @@ type s3Seeker struct {
 	offset int64
 }
 
-func newS3Seeker(ctx context.Context, log logger.Logger, asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
+func newS3Seeker(ctx context.Context, g *globals.Context, asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
 	return &s3Seeker{
-		DebugLabeler: utils.NewDebugLabeler(log, "s3Seeker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "s3Seeker", false),
 		ctx:          ctx,
 		asset:        asset,
 		bucket:       bucket,
@@ -383,8 +383,8 @@ func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset 
 	}
 	// Make a ReadSeeker, and pass along the cache if we hit for the given path. We may get
 	// a bunch of these calls for a given playback session.
-	source := newS3Seeker(ctx, a.GetLog(), asset, b)
-	return signencrypt.NewDecodingReadSeeker(ctx, a.GetLog(), source, ptsize, &xencKey, &xverifyKey,
+	source := newS3Seeker(ctx, a.G(), asset, b)
+	return signencrypt.NewDecodingReadSeeker(ctx, a.G(), source, ptsize, &xencKey, &xverifyKey,
 		kbcrypto.SignaturePrefixChatAttachment, &nonce, a.getStreamerCache(asset)), nil
 }
 
@@ -434,7 +434,7 @@ func (a *S3Store) regionFromAsset(asset chat1.Asset) s3.Region {
 }
 
 func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
-	conn := a.s3c.New(a.G(), signer, region)
+	conn := a.s3c.New(a.G().ExternalG(), signer, region)
 	conn.SetAccessKey(accessKey)
 	return conn
 }

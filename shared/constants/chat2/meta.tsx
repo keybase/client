@@ -10,7 +10,7 @@ import {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
 import {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isMobile} from '../platform'
+import {isMobile, isPhone} from '../platform'
 import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {AllowedColors} from '../../common-adapters/text'
@@ -442,7 +442,7 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
 export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   const backgroundColor = isSelected
     ? globalColors.blue
-    : isMobile
+    : isPhone
     ? globalColors.fastBlank
     : globalColors.blueGrey
   const showBold = !isSelected && hasUnread

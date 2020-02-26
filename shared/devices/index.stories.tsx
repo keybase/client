@@ -1,5 +1,4 @@
 import * as React from 'react'
-import moment from 'moment'
 import * as Sb from '../stories/storybook'
 import {stringToDeviceID} from '../constants/types/devices'
 import DevicesReal from './container'
@@ -7,6 +6,7 @@ import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
 import paperKey from './paper-key/index.stories'
 import addDevice from './add-device/index.stories'
+import * as dateFns from 'date-fns'
 
 const idToType = i => {
   switch (i) {
@@ -32,12 +32,10 @@ const activeDevices = withNew => {
   return existingDevices
 }
 
-const secondAgo = moment()
-  .subtract(1, 'second')
-  .toDate()
-const fourHoursAgo = moment()
-  .subtract(4, 'hours')
-  .toDate()
+const now = new Date()
+const secondAgo = dateFns.sub(now, {seconds: 1})
+
+const fourHoursAgo = dateFns.sub(now, {hours: 4})
 
 const revokedDevices = withNew => {
   const existingDevices = [

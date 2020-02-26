@@ -166,8 +166,20 @@ func (u FailedAssertionError) Error() string {
 
 //=============================================================================
 
+type AssertionParseErrorReason int
+
+const (
+	AssertionParseErrorReasonGeneric      AssertionParseErrorReason = 0
+	AssertionParseErrorReasonUnexpectedOR AssertionParseErrorReason = 1
+)
+
 type AssertionParseError struct {
-	err string
+	err    string
+	reason AssertionParseErrorReason
+}
+
+func (e AssertionParseError) Reason() AssertionParseErrorReason {
+	return e.reason
 }
 
 func (e AssertionParseError) Error() string {
@@ -176,8 +188,19 @@ func (e AssertionParseError) Error() string {
 
 func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
 	return AssertionParseError{
-		err: fmt.Sprintf(s, a...),
+		reason: AssertionParseErrorReasonGeneric,
+		err:    fmt.Sprintf(s, a...),
 	}
+}
+func NewAssertionParseErrorWithReason(reason AssertionParseErrorReason, s string, a ...interface{}) AssertionParseError {
+	return AssertionParseError{
+		reason: reason,
+		err:    fmt.Sprintf(s, a...),
+	}
+}
+func IsAssertionParseErrorWithReason(err error, reason AssertionParseErrorReason) bool {
+	aerr, ok := err.(AssertionParseError)
+	return ok && aerr.reason == reason
 }
 
 //=============================================================================

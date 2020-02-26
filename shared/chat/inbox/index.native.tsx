@@ -282,11 +282,13 @@ const styles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           backgroundColor: Styles.globalColors.fastBlank,
-          flex: 1,
+          flexShrink: 1,
           position: 'relative',
         },
         isTablet: {
-          maxWidth: Styles.globalStyles.shortWidth,
+          backgroundColor: Styles.globalColors.blueGrey,
+          minWidth: 300,
+          width: '30%',
         },
       }),
       loadingContainer: {

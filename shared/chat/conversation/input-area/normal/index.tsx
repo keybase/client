@@ -117,6 +117,7 @@ const suggestorKeyExtractors = {
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const emojiDatasource = (filter: string) => ({
   data: emojiPrepass.test(filter) ? emojiIndex.search(filter) : [],
+  loading: false,
   useSpaces: false,
 })
 const emojiRenderer = (item: {colons: string}, selected: boolean) => (
@@ -351,7 +352,8 @@ class Input extends React.Component<InputProps, InputState> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
       // TODO: Ideally, we'd also stash and restore the selection.
-      if (!this.props.isSearching) {
+      // Bring up the keyboard as a result of switching convo, but only on phone, not tablet.
+      if (!this.props.isSearching && !Constants.isSplit) {
         this._inputFocus()
       }
     }
@@ -364,12 +366,17 @@ class Input extends React.Component<InputProps, InputState> {
       this.props.suggestAllChannels,
       filter
     ),
+    loading: false,
     useSpaces: false,
   })
 
   _getCommandSuggestions = (filter: string) => {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
-      return {data: [], useSpaces: true}
+      return {
+        data: [],
+        loading: false,
+        useSpaces: true,
+      }
     }
 
     const sel = this._input && this._input.getSelection()
@@ -382,7 +389,11 @@ class Input extends React.Component<InputProps, InputState> {
         (sel.start || 0) > this._maxCmdLength
       ) {
         // not at beginning of message
-        return {data: [], useSpaces: true}
+        return {
+          data: [],
+          loading: false,
+          useSpaces: true,
+        }
       }
     }
     const fil = filter.toLowerCase()
@@ -390,7 +401,11 @@ class Input extends React.Component<InputProps, InputState> {
       ? this.props.suggestBotCommands
       : this.props.suggestCommands
     ).filter(c => c.name.includes(fil))
-    return {data, useSpaces: true}
+    return {
+      data,
+      loading: false,
+      useSpaces: true,
+    }
   }
 
   _renderTeamSuggestion = (teamname: string, channelname: string | undefined, selected: boolean) => (
@@ -490,6 +505,7 @@ class Input extends React.Component<InputProps, InputState> {
     const fil = filter.toLowerCase()
     return {
       data: this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort(),
+      loading: this.props.suggestChannelsLoading,
       useSpaces: false,
     }
   }
@@ -601,11 +617,16 @@ class Input extends React.Component<InputProps, InputState> {
           maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
+          onChannelSuggestionsTriggered={this.props.onChannelSuggestionsTriggered}
           suggestionListStyle={Styles.collapseStyles([
             styles.suggestionList,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
           ])}
           suggestionOverlayStyle={styles.suggestionOverlay}
+          suggestionSpinnerStyle={Styles.collapseStyles([
+            styles.suggestionSpinnerStyle,
+            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
+          ])}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}
@@ -653,6 +674,19 @@ const styles = Styles.styleSheetCreate(
       }),
       suggestionOverlay: Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+      }),
+      suggestionSpinnerStyle: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+        },
+        isElectron: {
+          bottom: Styles.globalMargins.tiny,
+          right: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          bottom: Styles.globalMargins.small,
+          right: Styles.globalMargins.small,
+        },
       }),
     } as const)
 )

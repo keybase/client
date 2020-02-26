@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     }))
     const titles = paths.map(p => pathToInfo[p].title)
     dispatch(
-      Chat2Gen.createAttachmentsUpload({
+      Chat2Gen.createAttachFromDragAndDrop({
         conversationIDKey,
         paths: pathAndOutboxIDs,
         titles,

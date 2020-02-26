@@ -5,8 +5,10 @@ import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
+import TeamEditChannel from './channel/container'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
+import TeamEditWelcomeMessage from './edit-team-welcome-message'
 import TeamInviteByEmail from './invite-by-email/container'
 import TeamInviteByContact from './invite-by-contact/container'
 import TeamJoinTeamDialog from './join-team/container'
@@ -15,10 +17,14 @@ import TeamReallyLeaveTeam from './really-leave-team/container'
 import TeamReallyRemoveMember from './team/really-remove-member'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
+import TeamAddToChannels from './team/member/add-to-channels'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
   team: {getScreen: (): TeamScreenType => require('./team/container').default},
+  teamChannel: {
+    getScreen: (): typeof TeamEditChannel => require('./channel/container').default,
+  },
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
     : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
@@ -35,12 +41,18 @@ export const newModalRoutes = {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
   },
+  teamAddToChannels: {
+    getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
+  },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamAvatar: {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
   },
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description').default,
+  },
+  teamEditWelcomeMessage: {
+    getScreen: (): typeof TeamEditWelcomeMessage => require('./edit-team-welcome-message').default,
   },
   teamInviteByContact: {
     getScreen: (): typeof TeamInviteByContact => require('./invite-by-contact/container').default,

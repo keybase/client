@@ -482,6 +482,7 @@ func TestChatMessageMismatchMessageType(t *testing.T) {
 		defer tc.Cleanup()
 
 		world := NewChatMockWorld(t, "unbox", 4)
+		defer world.Cleanup()
 		u := world.GetUsers()[0]
 		tc = world.Tcs[u.Username]
 		uid := u.User.GetUID().ToBytes()
@@ -528,6 +529,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		defer tc.Cleanup()
 
 		world := NewChatMockWorld(t, "unbox", 4)
+		defer world.Cleanup()
 		u := world.GetUsers()[0]
 		tc = world.Tcs[u.Username]
 		uid := u.User.GetUID().ToBytes()
@@ -589,6 +591,7 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 		defer tc.Cleanup()
 
 		world := NewChatMockWorld(t, "unbox", 4)
+		defer world.Cleanup()
 		u := world.GetUsers()[0]
 		uid := u.User.GetUID().ToBytes()
 		tc = world.Tcs[u.Username]
@@ -845,6 +848,7 @@ func TestChatMessagePublic(t *testing.T) {
 		defer tc.Cleanup()
 
 		world := NewChatMockWorld(t, "unbox", 4)
+		defer world.Cleanup()
 		u := world.GetUsers()[0]
 		uid := u.User.GetUID().ToBytes()
 		tc = world.Tcs[u.Username]

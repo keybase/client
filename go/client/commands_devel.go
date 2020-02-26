@@ -66,15 +66,14 @@ func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalC
 }
 
 func getBuildSpecificLogCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
-	return []cli.Command{
-		NewCmdLogProfile(cl, g),
-	}
+	return []cli.Command{}
 }
 
 func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdSimpleFSUpgrade(cl, g),
 		NewCmdSimpleFSForceConflict(cl, g),
+		NewCmdSimpleFSSearch(cl, g),
 	}
 }
 

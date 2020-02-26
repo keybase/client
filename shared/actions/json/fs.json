@@ -63,7 +63,12 @@
     },
     "upload": {
       "parentPath": "Types.Path",
-      "localPath": "string"
+      "localPath": "string",
+      "deleteSourceFile?": "boolean"
+    },
+    "uploadFromDragAndDrop": {
+      "parentPath": "Types.Path",
+      "localPaths": "Array<string>"
     },
     "uploadStarted": {
       "path": "Types.Path"
@@ -170,8 +175,8 @@
       "path": "Types.Path"
     },
     "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
-    "setIncomingShareLocalPath": {
-      "localPath": "Types.LocalPath"
+    "setIncomingShareSource": {
+      "source": "Types.LocalPath | Array<RPCTypes.IncomingShareItem>"
     },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "move": {"destinationParentPath": "Types.Path"},

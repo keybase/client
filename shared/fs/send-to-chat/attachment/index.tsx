@@ -9,26 +9,55 @@ import * as ChatTypes from '../../../constants/types/chat2'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
+import HiddenString from '../../../util/hidden-string'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
-type Props = Container.RouteProps<{path?: Types.Path; url?: string}>
+type Props = Container.RouteProps<{
+  path?: Types.Path
+  incomingShareItems?: Array<RPCTypes.IncomingShareItem>
+  url?: string
+}>
+
+const isChatText = (item: RPCTypes.IncomingShareItem): boolean =>
+  item.type === RPCTypes.IncomingShareType.text && !!item.content
 
 const MobileSendAttachmentToChat = (props: Props) => {
-  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
+  const incomingShareItems = Container.getRouteProps(props, 'incomingShareItems', undefined)
   const url = Container.getRouteProps(props, 'url', undefined)
+  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
   const dispatch = Container.useDispatch()
   const username = Container.useSelector(state => state.config.username)
-  const sendPath = url ?? path
+
+  const pathsFromIncomingShare = incomingShareItems
+    // If it's a chat text, we fill it in the compose box instead of sending it
+    // as an attachment.
+    ?.filter(item => !isChatText(item))
+    ?.map(({payloadPath}) => payloadPath)
+  const pathsFromUrl = url ? [url] : []
+  const pathsFromPath = path ? [path] : []
+  const sendPaths = pathsFromIncomingShare || pathsFromUrl || pathsFromPath || []
+  const text =
+    incomingShareItems
+      ?.filter(isChatText)
+      ?.map(({content}) => content)
+      ?.join(' ') || ''
+
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, convName: string) => {
-    dispatch(
-      Chat2Gen.createAttachmentsUpload({
-        conversationIDKey,
-        paths: [{outboxID: null, path: Types.pathToString(sendPath)}],
-        titles: [''],
-        tlfName: `${username},${convName.split('#')[0]}`,
-      })
-    )
+    sendPaths.length &&
+      dispatch(
+        Chat2Gen.createAttachmentsUpload({
+          conversationIDKey,
+          paths: sendPaths.map(p => ({
+            outboxID: null,
+            path: p,
+          })),
+          titles: [''],
+          tlfName: `${username},${convName.split('#')[0]}`,
+        })
+      )
+    text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
     dispatch(RouteTreeGen.createClearModals())
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'files'}))
   }
@@ -37,6 +66,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
   }
   return (
     <Kb.Modal
+      noScrollView={true}
       onClose={onCancel}
       header={{
         leftButton: (
@@ -44,7 +74,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
             Cancel
           </Kb.Text>
         ),
-        title: Types.getPathName(path),
+        title: Constants.getSharePathArrayDescription(sendPaths),
       }}
     >
       <ConversationList {...props} onSelect={onSelect} />
@@ -62,9 +92,9 @@ const DesktopSendAttachmentToChat = (props: Props) => {
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
-  const onSelect = (convID: ChatTypes.ConversationIDKey, convName: string) => {
+  const onSelect = (convID: ChatTypes.ConversationIDKey, convname: string) => {
     setConversationIDKey(convID)
-    setConvName(convName)
+    setConvName(convname)
   }
   const onSend = () => {
     dispatch(

@@ -45,9 +45,10 @@ export const isAndroidNewerThanN = isAndroid && mobileOsVersionNumber >= 26
 export const shortcutSymbol = ''
 export const realDeviceName = Constants.deviceName ?? ''
 
+export const windowHeight = Dimensions.get('window').height
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
-export const isLargeScreen = Dimensions.get('window').height >= 667
+export const isLargeScreen = windowHeight >= 667
 
 const _dir = `${RNFB.fs.dirs.CacheDir}/Keybase`
 export const logFileDir = _dir

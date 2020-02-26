@@ -760,12 +760,12 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 		// Load member first to check if their eldest_seqno has not changed.
 		// If it did, the member was nuked and we do not need to lease.
 		_, err := loadMember(ctx, t.G(), member.version, true)
-		if err != nil {
-			if _, reset := err.(libkb.AccountResetError); reset {
-				continue
-			} else {
-				return nil, err
-			}
+		switch err.(type) {
+		case nil:
+		case libkb.AccountResetError:
+			continue
+		default:
+			return nil, err
 		}
 
 		uids = append(uids, member.version.Uid)
@@ -1378,6 +1378,46 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 		Type: "seitan_invite_token",
 		Name: keybase1.TeamInviteName(encoded),
 		ID:   inviteID,
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return ikey, err
+	}
+
+	return ikey, err
+}
+
+func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v", t.Name(), role), func() error { return err })()
+
+	// Experimental code: we are figuring out how to do invite links.
+
+	ikey, err = GenerateIKeyV2()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
+	if err != nil {
+		return ikey, err
+	}
+
+	maxUses := keybase1.TeamInviteMaxUses(10)
+	invite := SCTeamInvite{
+		Type:    "seitan_invite_token",
+		Name:    keybase1.TeamInviteName(encoded),
+		ID:      inviteID,
+		MaxUses: &maxUses,
 	}
 
 	if err := t.postInvite(ctx, invite, role); err != nil {

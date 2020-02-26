@@ -1,4 +1,5 @@
 import main from './main/index.stories'
+import common from './common/index.stories'
 import deleteTeam from './delete-team/index.stories'
 import editTeamDescription from './edit-team-description/index.stories'
 import settings from './team/settings-tab/index.stories'
@@ -11,9 +12,12 @@ import rename from './rename-team/index.stories'
 import create from './new-team/index.stories'
 import member from './team/member/index.stories'
 import teamRow from './main/team-row.stories'
+import newTeamWizard from './new-team/wizard/index.stories'
+import addMembersWizard from './add-members-wizard/index.stories'
 
 const load = () => {
   main()
+  common()
   deleteTeam()
   editTeamDescription()
   settings()
@@ -26,6 +30,8 @@ const load = () => {
   create()
   member()
   teamRow()
+  newTeamWizard()
+  addMembersWizard()
 }
 
 export default load

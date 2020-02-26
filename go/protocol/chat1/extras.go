@@ -16,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -193,6 +194,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_PIN,
 	MessageType_HEADLINE,
 	MessageType_SYSTEM,
+	MessageType_FLIP,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -231,10 +233,8 @@ func IsSystemMsgDeletableByDelete(typ MessageSystemType) bool {
 var visibleMessageTypes = []MessageType{
 	MessageType_TEXT,
 	MessageType_ATTACHMENT,
-	// TODO TRIAGE-1738 Join and leave are visible but changing this list kicks off some other bugs around notifications (HOTPOT-1688).
-	// Scour the effects before changing this list.
-	// MessageType_JOIN,
-	// MessageType_LEAVE,
+	MessageType_JOIN,
+	MessageType_LEAVE,
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
@@ -243,8 +243,33 @@ var visibleMessageTypes = []MessageType{
 	MessageType_PIN,
 }
 
+// Visible chat messages appear visually as a message in the conv.
+// For counterexample REACTION and DELETE_HISTORY have visual effects but do not appear as a message.
 func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
+}
+
+var badgeableMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
+// Message types that cause badges.
+// JOIN and LEAVE are Visible but are too minute to badge.
+func BadgeableMessageTypes() []MessageType {
+	return badgeableMessageTypes
+}
+
+// A conversation is considered 'empty' unless it has one of these message types.
+// Used for filtering empty convs out of the the inbox.
+func NonEmptyConvMessageTypes() []MessageType {
+	return badgeableMessageTypes
 }
 
 var editableMessageTypesByEdit = []MessageType{
@@ -2739,6 +2764,17 @@ func (m MessageSystemBulkAddToConv) String() string {
 	return fmt.Sprintf(prefix, suffix)
 }
 
+func withDeterminer(s string) string {
+	r, size := utf8.DecodeRuneInString(s)
+	if size == 0 || r == utf8.RuneError {
+		return "a " + s
+	}
+	if strings.Contains("aeiou", string(r)) {
+		return "an " + s
+	}
+	return "a " + s
+}
+
 func (m MessageSystem) String() string {
 	typ, err := m.SystemType()
 	if err != nil {
@@ -2748,13 +2784,13 @@ func (m MessageSystem) String() string {
 	case MessageSystemType_ADDEDTOTEAM:
 		output := fmt.Sprintf("Added @%s to the team", m.Addedtoteam().Addee)
 		if role := m.Addedtoteam().Role; role != keybase1.TeamRole_NONE {
-			output += fmt.Sprintf(" as a %q", role.HumanString())
+			output += fmt.Sprintf(" as %v", withDeterminer(role.HumanString()))
 		}
 		return output
 	case MessageSystemType_INVITEADDEDTOTEAM:
 		var roleText string
 		if role := m.Inviteaddedtoteam().Role; role != keybase1.TeamRole_NONE {
-			roleText = fmt.Sprintf(" as a %q", role.HumanString())
+			roleText = fmt.Sprintf(" as %v", withDeterminer(role.HumanString()))
 		}
 		output := fmt.Sprintf("Added @%s to the team (invited by @%s%s)",
 			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter, roleText)

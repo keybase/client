@@ -266,6 +266,9 @@ const (
 	// InitMemoryLimited is a mode where KBFS reads and writes data, but
 	// constrains its memory use even further.
 	InitMemoryLimited
+	// InitTestSearch is the same as the default mode, but with search
+	// enabled for synced TLFs.
+	InitTestSearch
 )
 
 func (im InitModeType) String() string {
@@ -280,6 +283,8 @@ func (im InitModeType) String() string {
 		return InitConstrainedString
 	case InitMemoryLimited:
 		return InitMemoryLimitedString
+	case InitTestSearch:
+		return InitTestSearchString
 	default:
 		return "unknown"
 	}

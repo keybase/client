@@ -17,7 +17,7 @@ export type MenuItem = {
   progressIndicator?: boolean
   style?: Object
   subTitle?: string
-  title: string // Only used as ID if view is provided for Header,
+  title: string // Used only as ID if view is provided for header
   view?: React.ReactNode // Required for header
 }
 

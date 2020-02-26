@@ -81,13 +81,6 @@ func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
 	return err
 }
 
-func (l *LoaderPackage) lastReaderPerTeamKeyLinkID() (ret keybase1.LinkID) {
-	if l.data == nil {
-		return ret
-	}
-	return l.data.LastReaderPerTeamKeyLinkID()
-}
-
 // IsStale returns true if we got a gregor hint from the server that there is a new link and we haven't
 // pulled it down yet from the server.
 func (l *LoaderPackage) IsStale() bool {

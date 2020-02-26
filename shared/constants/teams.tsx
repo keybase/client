@@ -2,6 +2,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {noConversationIDKey} from './types/chat2/common'
 import {getFullRoute} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
@@ -48,14 +49,15 @@ export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
+export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
+export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
+  conversationIDKey: noConversationIDKey,
   description: '',
-  hasAllMembers: null,
   memberStatus: RPCChatTypes.ConversationMemberStatus.active,
   mtime: 0,
-  numParticipants: 0,
 })
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
@@ -172,6 +174,7 @@ const emptyState: Types.State = {
   errorInAddToTeam: '',
   errorInChannelCreation: '',
   errorInEditDescription: '',
+  errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
   errorInTeamCreation: '',
@@ -182,6 +185,8 @@ const emptyState: Types.State = {
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  selectedChannels: new Map(),
+  selectedMembers: new Map(),
   subteamFilter: '',
   subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
@@ -471,7 +476,7 @@ export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.Team
 export const getTeamWelcomeMessageByID = (
   state: TypedState,
   teamID: Types.TeamID
-): Types.WelcomeMessage | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
+): RPCChatTypes.WelcomeMessageDisplay | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()
@@ -490,24 +495,14 @@ export const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types
   [...state.chat2.metaMap.values()].reduce((count, c) => (count += c.teamname === teamname ? 1 : 0), 0)
 
 /**
- * Gets whether the team is big or small for teams you are a member of
- */
-export const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
-  // TODO do not use metaMap here. It's likely this team has no convos in the metaMap.
-  const conv = [...state.chat2.metaMap.values()].find(c => c.teamname === teamname)
-  if (conv) {
-    if (conv.teamType === 'big' || conv.teamType === 'small') {
-      return conv.teamType
-    }
-  }
-  return null
-}
-
-/**
  * Returns true if the team is big and you're a member
  */
-export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  getTeamType(state, teamname) === 'big'
+export const isBigTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
+  const bigTeams = state.chat2.inboxLayout?.bigTeams
+  return (bigTeams || []).some(
+    v => v.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && v.label.id === teamID
+  )
+}
 
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,

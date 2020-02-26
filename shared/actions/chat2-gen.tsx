@@ -14,6 +14,7 @@ export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addBotMember = 'chat2:addBotMember'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
+export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
@@ -28,6 +29,7 @@ export const attemptAudioRecording = 'chat2:attemptAudioRecording'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
+export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearMessages = 'chat2:clearMessages'
@@ -203,6 +205,11 @@ type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly usernames: Array<string>
 }
+type _AttachFromDragAndDropPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly paths: Array<Types.PathAndOutboxID>
+  readonly titles: Array<string>
+}
 type _AttachmentDownloadPayload = {readonly message: Types.Message}
 type _AttachmentDownloadedPayload = {
   readonly message: Types.Message
@@ -254,6 +261,7 @@ type _BlockConversationPayload = {
   readonly reportUser: boolean
 }
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
+type _ChannelSuggestionsTriggeredPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearMessagesPayload = void
@@ -522,6 +530,7 @@ type _PreviewConversationPayload = {
   readonly channelname?: string
   readonly conversationIDKey?: Types.ConversationIDKey
   readonly reason:
+    | 'channelHeader'
     | 'manageView'
     | 'messageLink'
     | 'resetChatWithoutThem'
@@ -1414,6 +1423,9 @@ export const createSetLoadedBotPage = (payload: _SetLoadedBotPagePayload): SetLo
   payload,
   type: setLoadedBotPage,
 })
+export const createAttachFromDragAndDrop = (
+  payload: _AttachFromDragAndDropPayload
+): AttachFromDragAndDropPayload => ({payload, type: attachFromDragAndDrop})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
   payload,
   type: attachmentDownload,
@@ -1460,6 +1472,9 @@ export const createBlockConversation = (payload: _BlockConversationPayload): Blo
   payload,
   type: blockConversation,
 })
+export const createChannelSuggestionsTriggered = (
+  payload: _ChannelSuggestionsTriggeredPayload
+): ChannelSuggestionsTriggeredPayload => ({payload, type: channelSuggestionsTriggered})
 export const createClearMessages = (payload: _ClearMessagesPayload): ClearMessagesPayload => ({
   payload,
   type: clearMessages,
@@ -1699,6 +1714,10 @@ export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: typeof addUsersToChannel
 }
+export type AttachFromDragAndDropPayload = {
+  readonly payload: _AttachFromDragAndDropPayload
+  readonly type: typeof attachFromDragAndDrop
+}
 export type AttachmentDownloadPayload = {
   readonly payload: _AttachmentDownloadPayload
   readonly type: typeof attachmentDownload
@@ -1752,6 +1771,10 @@ export type BlockConversationPayload = {
   readonly type: typeof blockConversation
 }
 export type ChangeFocusPayload = {readonly payload: _ChangeFocusPayload; readonly type: typeof changeFocus}
+export type ChannelSuggestionsTriggeredPayload = {
+  readonly payload: _ChannelSuggestionsTriggeredPayload
+  readonly type: typeof channelSuggestionsTriggered
+}
 export type ClearAttachmentViewPayload = {
   readonly payload: _ClearAttachmentViewPayload
   readonly type: typeof clearAttachmentView
@@ -2311,6 +2334,7 @@ export type Actions =
   | AddBotMemberPayload
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
+  | AttachFromDragAndDropPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload
@@ -2325,6 +2349,7 @@ export type Actions =
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload
+  | ChannelSuggestionsTriggeredPayload
   | ClearAttachmentViewPayload
   | ClearCommandStatusInfoPayload
   | ClearMessagesPayload
