@@ -238,6 +238,7 @@ type Props = {
   defaultCountry?: string
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onEnterKeyDown?: () => void
+  onClear?: () => void
   style?: Styles.StylesCrossPlatform
 }
 
@@ -548,6 +549,9 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               maxLength={17}
               textContentType="telephoneNumber"
             />
+            {this.props.onClear && (
+              <Kb.Icon type="iconfont-remove" onClick={this.props.onClear} style={styles.clearIcon} />
+            )}
           </Kb.Box2>
         </Kb.Box2>
         <CountrySelector
@@ -567,6 +571,9 @@ const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      clearIcon: {
+        marginRight: Styles.globalMargins.tiny,
+      },
       container: Styles.platformStyles({
         isElectron: {
           backgroundColor: Styles.globalColors.white,
