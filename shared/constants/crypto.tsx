@@ -155,7 +155,7 @@ export const getStatusCodeMessage = (
     [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}.`,
     [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}.`,
     [RPCTypes.StatusCode.scnokeyfound]: "No suitable key found.",
-    [RPCTypes.StatusCode.scwrongtype]: "Wrong saltpack message type.",
+    [RPCTypes.StatusCode.scwrongtype]: "Wrong Saltpack message type.",
     [RPCTypes.StatusCode.scbadframe]: "Invalid Saltpack format.",  // TODO: can expose "cause" text for more detail
     [RPCTypes.StatusCode.scinvalidformat]:"Invalid Saltpack format.",
   } as const
