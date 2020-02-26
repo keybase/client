@@ -13,6 +13,7 @@ export const downloadSignedText = 'crypto:downloadSignedText'
 export const onOperationError = 'crypto:onOperationError'
 export const onOperationSuccess = 'crypto:onOperationSuccess'
 export const resetOperation = 'crypto:resetOperation'
+export const runFileOperation = 'crypto:runFileOperation'
 export const saltpackDecrypt = 'crypto:saltpackDecrypt'
 export const saltpackDone = 'crypto:saltpackDone'
 export const saltpackEncrypt = 'crypto:saltpackEncrypt'
@@ -43,13 +44,19 @@ type _OnOperationSuccessPayload = {
   readonly warningMessage?: HiddenString
 }
 type _ResetOperationPayload = {readonly operation: Types.Operations}
-type _SaltpackDecryptPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _RunFileOperationPayload = {readonly operation: Types.Operations; readonly destinationDir: HiddenString}
+type _SaltpackDecryptPayload = {
+  readonly input: HiddenString
+  readonly type: Types.InputTypes
+  readonly destinationDir?: HiddenString
+}
 type _SaltpackDonePayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackEncryptPayload = {
   readonly input: HiddenString
   readonly options: Types.EncryptOptions
   readonly recipients: Array<string>
   readonly type: Types.InputTypes
+  readonly destinationDir?: HiddenString
 }
 type _SaltpackProgressPayload = {
   readonly bytesComplete: number
@@ -57,9 +64,17 @@ type _SaltpackProgressPayload = {
   readonly filename: HiddenString
   readonly operation: Types.Operations
 }
-type _SaltpackSignPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SaltpackSignPayload = {
+  readonly input: HiddenString
+  readonly type: Types.InputTypes
+  readonly destinationDir?: HiddenString
+}
 type _SaltpackStartPayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
-type _SaltpackVerifyPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SaltpackVerifyPayload = {
+  readonly input: HiddenString
+  readonly type: Types.InputTypes
+  readonly destinationDir?: HiddenString
+}
 type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly hideIncludeSelf?: boolean}
 type _SetInputPayload = {
   readonly operation: Types.Operations
@@ -200,6 +215,10 @@ export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): Set
   payload,
   type: setEncryptOptions,
 })
+export const createRunFileOperation = (payload: _RunFileOperationPayload): RunFileOperationPayload => ({
+  payload,
+  type: runFileOperation,
+})
 
 // Action Payloads
 export type ClearInputPayload = {readonly payload: _ClearInputPayload; readonly type: typeof clearInput}
@@ -226,6 +245,10 @@ export type OnOperationSuccessPayload = {
 export type ResetOperationPayload = {
   readonly payload: _ResetOperationPayload
   readonly type: typeof resetOperation
+}
+export type RunFileOperationPayload = {
+  readonly payload: _RunFileOperationPayload
+  readonly type: typeof runFileOperation
 }
 export type SaltpackDecryptPayload = {
   readonly payload: _SaltpackDecryptPayload
@@ -273,6 +296,7 @@ export type Actions =
   | OnOperationErrorPayload
   | OnOperationSuccessPayload
   | ResetOperationPayload
+  | RunFileOperationPayload
   | SaltpackDecryptPayload
   | SaltpackDonePayload
   | SaltpackEncryptPayload

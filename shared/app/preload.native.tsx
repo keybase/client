@@ -16,6 +16,10 @@ global.KB = {
         return invalidPreload()
       },
     },
+    dialog: {
+      showOpenDialog: invalidPreload,
+      showSaveDialog: invalidPreload,
+    },
   },
   kb: {
     darwinCopyToChatTempUploadFile: () => invalidPreload(),
