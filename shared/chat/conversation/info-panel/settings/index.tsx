@@ -309,7 +309,8 @@ export default (p: Props) => {
       sections={[
         ...p.commonSections,
         {
-          data: ['tab'],
+          data: [{key: 'tab'}],
+          key: 'settings-panel',
           renderItem: () => (
             <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} key="settings" />
           ),

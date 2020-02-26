@@ -166,14 +166,14 @@ const styles = Styles.styleSheetCreate(() => ({
   textError: {color: Styles.globalColors.redDark},
   textPlain: Styles.platformStyles({
     common: {color: Styles.globalColors.black_63},
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+    isPhone: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   textPlainBold: Styles.platformStyles({
     common: {
       color: Styles.globalColors.blackOrWhite,
       ...Styles.globalStyles.fontBold,
     },
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+    isPhone: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   textSelected: {color: Styles.globalColors.white},
   textSelectedBold: {

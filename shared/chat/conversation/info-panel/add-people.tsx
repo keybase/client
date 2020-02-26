@@ -94,6 +94,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       addButtonContainer: {
+        alignSelf: undefined,
         marginBottom: Styles.globalMargins.small,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
