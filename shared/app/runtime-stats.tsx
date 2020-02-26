@@ -81,7 +81,9 @@ const LogStats = (props: {num?: number}) => {
   const {num} = props
   const maxBuckets = num ?? 5
 
-  const bucketsRef = React.useRef<Array<{count: number; label: string; updated: boolean}>>([])
+  const bucketsRef = React.useRef<Array<{count: number; label: string; labelFull: string; updated: boolean}>>(
+    []
+  )
   const [, setDoRender] = React.useState(0)
   const events = Container.useSelector(state => state.config.runtimeStats?.perfEvents)
   const lastEventsRef = React.useRef(new WeakSet<Array<RPCTypes.PerfEvent>>())
@@ -127,13 +129,15 @@ const LogStats = (props: {num?: number}) => {
     let newBuckets = bucketsRef.current.map(b => ({...b, updated: false}))
 
     // find existing or add new ones
-    incoming.forEach(i => {
+    incoming.forEach((i, idx) => {
       const existing = newBuckets.find(b => b.label === i)
+      const labelFull = events[idx]?.message ?? i
       if (existing) {
         existing.updated = true
         existing.count++
+        existing.labelFull += '\n' + labelFull
       } else {
-        newBuckets.push({count: 1, label: i, updated: true})
+        newBuckets.push({count: 1, label: i, labelFull, updated: true})
       }
     })
 
@@ -185,7 +189,13 @@ const LogStats = (props: {num?: number}) => {
         </Kb.Text>
       )}
       {bucketsRef.current.map((b, i) => (
-        <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.logStat} lineClamp={1}>
+        <Kb.Text
+          key={i}
+          type={b.updated ? 'BodyTinyBold' : 'BodyTiny'}
+          style={styles.logStat}
+          lineClamp={1}
+          title={b.labelFull}
+        >
           {b.label && b.count > 1 ? b.count : ''} {b.label}
         </Kb.Text>
       ))}
