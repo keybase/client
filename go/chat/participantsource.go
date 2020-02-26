@@ -25,10 +25,11 @@ type CachingParticipantSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	locktab     *libkb.LockTable
 	ri          func() chat1.RemoteInterface
 	encryptedDB *encrypteddb.EncryptedDB
 	sema        *semaphore.Weighted
+	locktab     *libkb.LockTable
+	notify      func(interface{})
 }
 
 var _ types.ParticipantSource = (*CachingParticipantSource)(nil)
@@ -40,6 +41,24 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
 	}
+	notify, notifyCancel := libkb.ThrottleBatch(func(batchedInt interface{}) {
+		batched, _ := batchedInt.(map[chat1.ConvIDStr][]chat1.UIParticipant)
+		g.NotifyRouter.HandleChatParticipantsInfo(context.Background(), batched)
+	}, func(batchedInt, singleInt interface{}) interface{} {
+		batched, _ := batchedInt.(map[chat1.ConvIDStr][]chat1.UIParticipant)
+		single, _ := singleInt.(map[chat1.ConvIDStr][]chat1.UIParticipant)
+		for convIDStr, parts := range single {
+			batched[convIDStr] = parts
+		}
+		return batched
+	}, func() interface{} {
+		return make(map[chat1.ConvIDStr][]chat1.UIParticipant)
+	},
+		200*time.Millisecond)
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
+		notifyCancel()
+		return nil
+	})
 	return &CachingParticipantSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "CachingParticipantSource", false),
@@ -47,6 +66,7 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 		ri:           ri,
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		sema:         semaphore.NewWeighted(20),
+		notify:       notify,
 	}
 }
 
@@ -148,6 +168,7 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 		s.sema.Acquire(ctx, 1)
 		defer s.sema.Release(1)
 
+		convIDStr := convID.ConvIDStr()
 		ch := s.G().ParticipantsSource.GetNonblock(ctx, uid, convID, dataSource)
 		for r := range ch {
 			uids := r.Uids
@@ -165,8 +186,9 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 			for _, row := range rows {
 				participants = append(participants, utils.UsernamePackageToParticipant(row))
 			}
-			s.G().NotifyRouter.HandleChatParticipantsInfo(ctx, convID,
-				utils.PresentConversationParticipantsLocal(ctx, participants))
+			s.notify(map[chat1.ConvIDStr][]chat1.UIParticipant{
+				convIDStr: utils.PresentConversationParticipantsLocal(ctx, participants),
+			})
 		}
 	}(globals.BackgroundChatCtx(ctx, s.G()))
 }
