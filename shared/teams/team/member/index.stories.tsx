@@ -39,12 +39,12 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
         },
       ],
     ]),
+    teamIDToChannelInfos: new Map([[fakeTeamID, teamChannels]]),
     teamMeta: new Map([
       [fakeTeamID, Constants.makeTeamMeta({teamname: 'keybase_storybook'})],
       [subteamID1, Constants.makeTeamMeta({teamname: 'keybase_storybook.public'})],
       [subteamID2, Constants.makeTeamMeta({memberCount: 12, teamname: 'keybase_storybook.secret'})],
     ]),
-    teamIDToChannelInfos: new Map([[fakeTeamID, teamChannels]]),
   }
   draftState.config = {
     ...draftState.config,
