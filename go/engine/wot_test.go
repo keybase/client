@@ -334,3 +334,57 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.Equal(t, 0, len(vouches))
 	t.Log("bob cannot see it")
 }
+
+func TestWebOfTrustSigBug(t *testing.T) {
+	tcAlice := SetupEngineTest(t, "wot")
+	tcBob := SetupEngineTest(t, "wot")
+	defer tcAlice.Cleanup()
+	defer tcBob.Cleanup()
+	alice := CreateAndSignupFakeUser(tcAlice, "wot")
+	bob := CreateAndSignupFakeUser(tcBob, "wot")
+	mctxA := NewMetaContextForTest(tcAlice)
+	mctxB := NewMetaContextForTest(tcBob)
+	t.Log("alice and bob exist")
+
+	sigVersion := libkb.GetDefaultSigVersion(tcAlice.G)
+	trackUser(tcBob, bob, alice.NormalizedUsername(), sigVersion)
+	trackUser(tcAlice, alice, bob.NormalizedUsername(), sigVersion)
+	err := bob.LoadUser(tcBob)
+	require.NoError(tcBob.T, err)
+	err = alice.LoadUser(tcAlice)
+	require.NoError(tcAlice.T, err)
+	t.Log("alice and bob follow each other")
+
+	// bob vouches for alice
+	firstVouch := "alice is wondibar but i don't have much confidence"
+	vouchTexts := []string{firstVouch}
+	argV := &WotVouchArg{
+		Vouchee:    alice.User.ToUserVersion(),
+		VouchTexts: vouchTexts,
+	}
+	engV := NewWotVouch(tcBob.G, argV)
+	err = RunEngine2(mctxB, engV)
+	require.NoError(t, err)
+
+	// alice rejects
+	vouches, err := libkb.FetchMyWot(mctxA)
+	require.NoError(t, err)
+	require.Len(t, vouches, 1)
+	bobVouch := vouches[0]
+	argR := &WotReactArg{
+		Voucher:  bob.User.ToUserVersion(),
+		Proof:    bobVouch.VouchProof,
+		Reaction: keybase1.WotReactionType_REJECT,
+	}
+	engR := NewWotReact(tcAlice.G, argR)
+	err = RunEngine2(mctxA, engR)
+	require.NoError(t, err)
+	t.Log("alice rejects it")
+	_, err = mctxA.G().LocalDb.Nuke()
+	require.NoError(t, err)
+
+	// bob vouches for alice
+	engV2 := NewWotVouch(tcBob.G, argV)
+	err = RunEngine2(mctxB, engV2)
+	require.NoError(t, err)
+}
