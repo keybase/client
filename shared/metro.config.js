@@ -15,6 +15,9 @@ module.exports = (async () => {
     resolver: {sourceExts},
   } = await getDefaultConfig()
 
+  // If we're in storybook mode, apply some mocks. The initial request from the RN app
+  // tells us whether we are in storybook mode or normal mode.
+  // The desktop equivalents of these mocks are in `shared/.storybook/webpack.config.js`.
   const mockingResolveRequest = (context, moduleName, platform) => {
     let newModuleName = moduleName
     if (moduleName === './storybook-index') {
@@ -25,7 +28,6 @@ module.exports = (async () => {
       storybook = false
       newModuleName = './index'
       console.log('Switching to normal mode')
-      // TODO: possibly need to bust some cache upon switching?
     }
     if (storybook) {
       newModuleName = newModuleName

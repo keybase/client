@@ -140,7 +140,13 @@ public class MainApplication extends Application implements ReactApplication {
         }
         @Override
         protected String getJSMainModuleName() {
-            return "index";
+            // This is a mildly hacky solution to mock out some code when we're in storybook mode.
+            // The code that handles this is in `shared/metro.config.js`.
+            if (BuildConfig.BUILD_TYPE == "storyBook") {
+                return "storybook-index";
+            } else {
+                return "normal-index";
+            }
         }
     };
 
