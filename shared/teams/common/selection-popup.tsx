@@ -17,7 +17,6 @@ type TeamActionsProps = {
 }
 type TeamProps = TeamActionsProps & {
   selectedTab: TeamSelectableTab
-  typ: 'team'
 }
 
 type ChannelActionsProps = {
@@ -25,10 +24,11 @@ type ChannelActionsProps = {
 }
 type ChannelProps = ChannelActionsProps & {
   selectedTab: ChannelSelectableTab
-  typ: 'channel'
 }
 
 type Props = TeamProps | ChannelProps
+
+const isChannel = (props: Props): props is ChannelProps => !!(props as ChannelProps).conversationIDKey
 
 const getTeamSelectedCount = (state: Container.TypedState, props: TeamProps) => {
   const {selectedTab, teamID} = props
@@ -181,7 +181,7 @@ const ChannelSelectionPopup = (props: ChannelProps) => {
 }
 
 const SelectionPopup = (props: Props) =>
-  props.typ == 'channel' ? <ChannelSelectionPopup {...props} /> : <TeamSelectionPopup {...props} />
+  isChannel(props) ? <ChannelSelectionPopup {...props} /> : <TeamSelectionPopup {...props} />
 
 const ActionsWrapper = ({children}) => (
   <Kb.Box2 fullWidth={Styles.isMobile} direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
