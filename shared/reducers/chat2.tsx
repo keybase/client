@@ -76,9 +76,7 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
     draftState.featuredBotsLoaded = loaded
   },
   [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
-    if (action.payload.results) {
-      draftState.botSearchResults.set(action.payload.query, action.payload.results)
-    }
+    draftState.botSearchResults.set(action.payload.query, action.payload.results)
   },
 }
 
