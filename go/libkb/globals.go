@@ -270,7 +270,7 @@ func (g *GlobalContext) initPerfLogFile() {
 		g.Log.Debug("Unable to getLogger %v", err)
 		return
 	}
-	g.PerfLog = logger.NewInternalLogger(log.New(lfw, "", log.LstdFlags|log.Lshortfile))
+	g.PerfLog = logger.NewInternalLogger(log.New(lfw, "", log.LstdFlags|log.Lmicroseconds|log.Lshortfile))
 }
 
 func (g *GlobalContext) initGUILogFile() {
