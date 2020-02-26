@@ -714,11 +714,11 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (res chat1.SetConversationStatusLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetConversationStatusLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("SetConversationStatusLocal: %v", arg.Status))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return chat1.SetConversationStatusLocalRes{}, err
+		return res, err
 	}
 	if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status); err != nil {
 		return res, err
