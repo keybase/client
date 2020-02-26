@@ -1223,12 +1223,14 @@ func isEmptyThrottleData(arg interface{}) bool {
 func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) interface{},
 	reset func() interface{}, delay time.Duration) (func(interface{}), func()) {
 	var lock sync.Mutex
+	var closeLock sync.Mutex
 	var lastCalled time.Time
 	var creation func(interface{})
 	hasStored := false
 	scheduled := false
 	stored := reset()
 	cancelCh := make(chan struct{})
+	closed := false
 	creation = func(arg interface{}) {
 		lock.Lock()
 		defer lock.Unlock()
@@ -1259,6 +1261,12 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 		}
 	}
 	return creation, func() {
+		closeLock.Lock()
+		defer closeLock.Unlock()
+		if closed {
+			return
+		}
+		closed = true
 		close(cancelCh)
 	}
 }
