@@ -4,6 +4,8 @@ import * as Styles from '../../styles'
 import Text from '../../common-adapters/text'
 import {useGetIDInfo} from './hooks'
 import {useInterval} from '../../common-adapters/use-timers'
+/** @jsx jsx */
+import {jsx, css} from '@emotion/core'
 
 const Kb = {
   Text,
@@ -23,26 +25,22 @@ type Props = {
 ///>
 //)
 
-const adjustSize = (o, width) => {
-  return {}
-}
-
 const Circle = (p: Props) => {
   const {username, size} = p
 
   //const {running, load, percentDone, color} = useGetIDInfo(username)
   // TEMP
-  const [percentDone, setPercentDone] = React.useState(0.25)
+  const [percentDone, setPercentDone] = React.useState(0)
 
   useInterval(() => {
     setPercentDone(p => {
-      let next = p + 0.005
+      let next = p + 0.1
       if (next >= 1) {
         next = 0
       }
       return next
     })
-  }, 20)
+  }, 1000)
 
   const color = 'green'
 
@@ -73,13 +71,12 @@ const Circle = (p: Props) => {
     transformOrigin: 'bottom center',
     width: styleSize,
     zIndex: 1000,
-  }
+  } as const
 
   // overlapping borderradius things fringes on the edges
   const coverStyle = {
     ...common,
     backgroundColor: twoColor,
-    transform: twoTransform,
   }
   const extra = 2
   coverStyle.width += extra * 2
@@ -102,7 +99,15 @@ const Circle = (p: Props) => {
   return (
     <>
       <div key="one" style={{...common, backgroundColor: oneColor, transform: oneTransform}} />
-      <div key="two" style={coverStyle} />
+      <div
+        key="two"
+        style={coverStyle}
+        css={css`
+          transition-duration: 1s;
+          transition-property: transform;
+          transform: ${twoTransform};
+        `}
+      />
       <div key="three" style={{...common, backgroundColor: threeColor, transform: threeTransform}} />
     </>
   )
