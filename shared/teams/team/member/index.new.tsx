@@ -10,6 +10,7 @@ import logger from '../../../logger'
 import {pluralize} from '../../../util/string'
 import {FloatingRolePicker} from '../../role-picker'
 import * as TeamsGen from '../../../actions/teams-gen'
+import {TeamDetailsSubscriber} from '../../subscriber'
 
 type Props = {
   teamID: Types.TeamID
@@ -44,22 +45,37 @@ const TeamMember = (props: OwnProps) => {
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )
+  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
   const sections = [
     {
       data: subteamsIn,
       key: 'section-subteams',
-      title: `${username} is in:`,
       renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
-        <SubteamInRow teamID={teamID} subteam={item} idx={index} username={username} />
+        <SubteamInRow
+          teamID={teamID}
+          subteam={item}
+          idx={index}
+          username={username}
+          expanded={expandedSet.has(item.teamname)}
+          setExpanded={newExpanded => {
+            if (newExpanded) {
+              expandedSet.add(item.teamname)
+            } else {
+              expandedSet.delete(item.teamname)
+            }
+            setExpandedSet(new Set([...expandedSet]))
+          }}
+        />
       ),
+      title: `${username} is in:`,
     },
     {
       data: subteamsNotIn,
       key: 'section-add-subteams',
-      title: `Add ${username} to:`,
       renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
         <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
       ),
+      title: `Add ${username} to:`,
     },
   ]
   return (
@@ -67,7 +83,7 @@ const TeamMember = (props: OwnProps) => {
       stickySectionHeadersEnabled={true}
       renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
       sections={sections}
-      keyExtractor={(item: Types.TeamMeta) => `member:${username}:${item.teamname}`}
+      keyExtractor={item => item.key ?? `member:${username}:${item.teamname}`}
     />
   )
 }
@@ -96,16 +112,24 @@ type SubteamNotInRowProps = {
   subteam: Types.TeamMeta
   idx: number
 }
+type SubteamInRowProps = SubteamNotInRowProps & {
+  expanded: boolean
+  setExpanded: (b: boolean) => void
+}
 const SubteamNotInRow = (props: SubteamNotInRowProps) => {
   const dispatch = Container.useDispatch()
   const onAdd = (role: Types.TeamRoleType) =>
     dispatch(
       TeamsGen.createAddToTeam({
         sendChatNotification: true,
-        teamID: props.teamID,
+        teamID: props.subteam.id,
         users: [{assertion: props.username, role}],
       })
     )
+
+  const disabledRoles = Container.useSelector(state =>
+    Constants.getDisabledReasonsForRolePicker(state, props.subteam.id, props.username)
+  )
 
   const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
   const [open, setOpen] = React.useState(false)
@@ -119,6 +143,7 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
       open={open}
       onCancel={() => setOpen(false)}
       selectedRole={role}
+      disabledRoles={disabledRoles}
     >
       <Kb.Button label="Add" onClick={() => setOpen(!open)} />
     </FloatingRolePicker>
@@ -131,12 +156,13 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
       <Kb.Text type="BodySmall">
         {memberCount.toLocaleString()} {pluralize('member', memberCount)}
       </Kb.Text>
+      <TeamDetailsSubscriber teamID={props.subteam.id} />
     </Kb.Box2>
   )
   const icon = <Kb.Avatar teamname={props.subteam.teamname} size={32} />
   return <Kb.ListItem2 icon={icon} body={body} action={action} firstItem={props.idx === 0} type="Large" />
 }
-const SubteamInRow = (props: SubteamNotInRowProps) => {
+const SubteamInRow = (props: SubteamInRowProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddToChannels = () =>
@@ -153,7 +179,7 @@ const SubteamInRow = (props: SubteamNotInRowProps) => {
   const onKickOut = () =>
     dispatch(TeamsGen.createRemoveMember({teamID: props.subteam.id, username: props.username}))
 
-  const [expanded, setExpanded] = React.useState(false)
+  const {expanded, setExpanded} = props
 
   const icon = (
     <Kb.Icon
