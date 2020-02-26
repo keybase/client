@@ -12,7 +12,7 @@ const Kb = {
 
 const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTouchableOpacity | Box, Props>(
   (props, ref) => {
-    const {feedback = true, onClick, onPressIn, onPressOut, onLongPress, onMagicTap} = props
+    const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
     const {style, activeOpacity, children, pointerEvents} = props
     if (onClick) {
       const clickStyle = Styles.collapseStyles([styles.box, style])
@@ -38,7 +38,6 @@ const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTou
             // @ts-ignore
             ref={ref}
             onPressIn={onPressIn}
-            onMagicTap={onMagicTap}
             onPressOut={onPressOut}
             style={clickStyle}
             onPress={onClick}
