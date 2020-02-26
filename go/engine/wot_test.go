@@ -335,6 +335,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	t.Log("bob cannot see it")
 }
 
+// perhaps revisit after Y2K-1494
 func TestWebOfTrustSigBug(t *testing.T) {
 	tcAlice := SetupEngineTest(t, "wot")
 	tcBob := SetupEngineTest(t, "wot")

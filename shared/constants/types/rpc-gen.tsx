@@ -4167,4 +4167,5 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.wot.wotVouch'
 // 'keybase.1.wot.wotVouchCLI'
 // 'keybase.1.wot.wotReact'
+// 'keybase.1.wot.wotReactCLI'
 // 'keybase.1.wot.wotListCLI'
