@@ -2569,6 +2569,18 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 	return ParseUserVersion(UserVersionPercentForm(t.Name))
 }
 
+// TeamMaxUsesInfinite is a value for max_uses field which makes team invite
+// multiple use, with infinite number of uses.
+const TeamMaxUsesInfinite = -1
+
+func (e TeamInviteMaxUses) IsInfiniteUses() bool {
+	return e == TeamMaxUsesInfinite
+}
+
+func (e TeamInviteMaxUses) IsValid() bool {
+	return e > 0 || e == TeamMaxUsesInfinite
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
@@ -3846,4 +3858,17 @@ func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
 		}
 	}
 	return true
+}
+
+func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
+	size := len(t.Admins) + len(t.Bots) + len(t.Owners) + len(t.Writers) + len(t.Readers) +
+		len(t.RestrictedBots)
+	res = make([]TeamMemberDetails, 0, size)
+	return append(res,
+		append(t.Admins,
+			append(t.Bots,
+				append(t.Owners,
+					append(t.Readers,
+						append(t.RestrictedBots,
+							append(t.Writers)...)...)...)...)...)...)
 }

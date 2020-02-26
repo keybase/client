@@ -111,8 +111,8 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 	return res
 }
 
-func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView, conv types.RemoteConversation) chat1.ThreadView {
-
+func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	tv chat1.ThreadView, dataSource types.InboxSourceDataSourceTyp) (res chat1.ThreadView, err error) {
 	// group JOIN/LEAVE messages
 	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
@@ -181,8 +181,14 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 
 			if activeMap == nil && len(usernames) > 0 {
 				activeMap = make(map[string]struct{})
-				for _, uid := range conv.Conv.Metadata.AllList {
-					activeMap[uid.String()] = struct{}{}
+				allList, err := t.G().ParticipantsSource.Get(ctx, uid, convID, dataSource)
+				if err == nil {
+					for _, uid := range allList {
+						activeMap[uid.String()] = struct{}{}
+					}
+				} else {
+					t.Debug(ctx, "groupGeneric: failed to form active map, could not get participants: %s",
+						err)
 				}
 			}
 
@@ -311,7 +317,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 		})
 
 	tv.Messages = newMsgs
-	return tv
+	return tv, nil
 }
 
 func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat1.ConversationID,
@@ -727,12 +733,12 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		var pthread *string
 		if resThread != nil {
-			conv, err := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+			*resThread, err = t.groupThreadView(ctx, uid, convID, *resThread,
+				types.InboxSourceDataSourceLocalOnly)
 			if err != nil {
-				t.Debug(ctx, "LoadNonblock: failed to GetUnverifiedConv localonly: %v", err)
+				t.Debug(ctx, "LoadNonblock: failed to group thread view: %v", err)
 				return
 			}
-			*resThread = t.groupThreadView(ctx, uid, *resThread, conv)
 			t.Debug(ctx, "LoadNonblock: sending cached response: messages: %d pager: %s",
 				len(resThread.Messages), resThread.Pagination)
 			localSentThread = resThread
@@ -786,11 +792,11 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		uilock.Lock()
 		defer uilock.Unlock()
 		var rthread chat1.ThreadView
-		rconv, fullErr = utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
+		remoteThread, fullErr = t.groupThreadView(ctx, uid, convID, remoteThread,
+			types.InboxSourceDataSourceAll)
 		if fullErr != nil {
 			return
 		}
-		remoteThread = t.groupThreadView(ctx, uid, remoteThread, rconv)
 		if rthread, fullErr =
 			t.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, cbmode); fullErr != nil {
 			return

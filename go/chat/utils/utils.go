@@ -709,7 +709,7 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 
 func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessageText,
-	getConvMembs func() ([]chat1.ConversationLocalParticipant, error),
+	getConvMembs func() ([]string, error),
 	debug *DebugLabeler) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions, getConvMembs)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
@@ -740,7 +740,7 @@ func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments [
 
 func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 	knownMentions []chat1.KnownUserMention,
-	getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (gregor1.UID, error) {
+	getConvMembs func() ([]string, error)) (gregor1.UID, error) {
 	nname := libkb.NewNormalizedUsername(name)
 	shouldLookup := false
 	for _, known := range knownMentions {
@@ -758,7 +758,7 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 			return nil, err
 		}
 		for _, memb := range membs {
-			if memb.Username == nname.String() {
+			if memb == nname.String() {
 				shouldLookup = true
 				break
 			}
@@ -775,7 +775,7 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 }
 
 func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
-	knownMentions []chat1.KnownUserMention, getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
+	knownMentions []chat1.KnownUserMention, getConvMembs func() ([]string, error)) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	matches := parseRegexpNames(ctx, body, atMentionRegExp)
 	chanRes = chat1.ChannelMention_NONE
 	for _, m := range matches {
@@ -1402,7 +1402,7 @@ func getParticipantType(username string) chat1.UIParticipantType {
 	return chat1.UIParticipantType_USER
 }
 
-func presentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+func PresentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
 	for _, p := range rawParticipants {
 		participantType := getParticipantType(p.Username)
 		participants = append(participants, chat1.UIParticipant{
@@ -1468,7 +1468,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	}
 	switch partMode {
 	case PresentParticipantsModeInclude:
-		res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
+		res.Participants = PresentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	default:
 	}
 	return res

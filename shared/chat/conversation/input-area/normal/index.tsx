@@ -352,7 +352,8 @@ class Input extends React.Component<InputProps, InputState> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
       // TODO: Ideally, we'd also stash and restore the selection.
-      if (!this.props.isSearching) {
+      // Bring up the keyboard as a result of switching convo, but only on phone, not tablet.
+      if (!this.props.isSearching && !Constants.isSplit) {
         this._inputFocus()
       }
     }

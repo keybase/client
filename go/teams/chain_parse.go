@@ -23,12 +23,16 @@ type SCTeamEntropy string
 
 func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFromString(string(s)) }
 
-// A (username, seqno) pair.
-// The username is adorned with "%n" at the end
-// where n is the seqno IF the seqno is not 1.
+// An (uid%eldest_seqno) pair.
+// The uid is adorned with "%n" at the end where n is the eldest seqno.
+// Just UID is fine as well (implicit %1), but marshaling will always add %1.
 type SCTeamMember keybase1.UserVersion
 
 type SCMapInviteIDToUV map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm
+type SCMapInviteIDUVPair struct {
+	InviteID SCTeamInviteID                  `json:"id"`
+	UV       keybase1.UserVersionPercentForm `json:"uv"`
+}
 
 type SCTeamSection struct {
 	ID               SCTeamID               `json:"id"`
@@ -40,6 +44,7 @@ type SCTeamSection struct {
 	Admin            *SCTeamAdmin           `json:"admin,omitempty"`
 	Invites          *SCTeamInvites         `json:"invites,omitempty"`
 	CompletedInvites SCMapInviteIDToUV      `json:"completed_invites,omitempty"`
+	UsedInvites      []SCMapInviteIDUVPair  `json:"used_invites,omitempty"`
 	Implicit         bool                   `json:"is_implicit,omitempty"`
 	Public           bool                   `json:"is_public,omitempty"`
 	Entropy          SCTeamEntropy          `json:"entropy,omitempty"`
@@ -69,9 +74,11 @@ type SCTeamInvites struct {
 }
 
 type SCTeamInvite struct {
-	Type string                  `json:"type"`
-	Name keybase1.TeamInviteName `json:"name"`
-	ID   SCTeamInviteID          `json:"id"`
+	Type    string                      `json:"type"`
+	Name    keybase1.TeamInviteName     `json:"name"`
+	ID      SCTeamInviteID              `json:"id"`
+	Etime   *keybase1.UnixTime          `json:"etime,omitempty"` // UnixTime
+	MaxUses *keybase1.TeamInviteMaxUses `json:"max_uses,omitempty"`
 }
 
 type SCTeamParent struct {
@@ -223,7 +230,7 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 
 type SCChainLinkPayload struct {
 	Body                SCPayloadBody                `json:"body,omitempty"`
-	Ctime               int                          `json:"ctime,omitempty"`
+	Ctime               int                          `json:"ctime,omitempty"` // UnixTime
 	ExpireIn            int                          `json:"expire_in,omitempty"`
 	Prev                *string                      `json:"prev,omitempty"`
 	SeqType             keybase1.SeqType             `json:"seq_type,omitempty"`
@@ -240,7 +247,7 @@ func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {
 }
 
 type SCMerkleRootSection struct {
-	Ctime    int               `json:"ctime"`
+	Ctime    int               `json:"ctime"` // UnixTime
 	Seqno    keybase1.Seqno    `json:"seqno"`
 	HashMeta keybase1.HashMeta `json:"hash_meta"`
 }
@@ -326,6 +333,8 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 		Type:    typ,
 		Name:    i.Name,
 		Inviter: inviter,
+		MaxUses: i.MaxUses,
+		Etime:   i.Etime,
 	}, nil
 }
 
