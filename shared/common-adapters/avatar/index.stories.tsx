@@ -115,7 +115,7 @@ const load = () => {
         size: 128,
       } as const
       return (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true} style={{margin: 28}}>
           <Kb.Avatar {...props} username="t_alice" />
           <Kb.Avatar {...props} username="t_bob" />
           <Kb.Avatar {...props} username="t_carol" />

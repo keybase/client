@@ -24,6 +24,7 @@ const Avatar = (props: Props) => {
       onClick={props.onClick}
       style={Styles.collapseStyles([props.style, props.onClick && styles.clickable])}
     >
+      {props.showFollowingStatus && <Circle size={props.size} username={props.username} />}
       {!props.skipBackground && (
         <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
       )}
@@ -72,7 +73,6 @@ const Avatar = (props: Props) => {
           style={props.isTeam ? (flags.teamsRedesign ? styles.editTeam : styles.editTeamOld) : styles.edit}
         />
       )}
-      {props.showFollowingStatus && <Circle size={props.size} username={props.username} />}
       {props.children}
     </div>
   )

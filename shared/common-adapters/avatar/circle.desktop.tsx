@@ -1,47 +1,109 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import Text from '../../common-adapters/text'
 import {useGetIDInfo} from './hooks'
+import {useInterval} from '../../common-adapters/use-timers'
+
+const Kb = {
+  Text,
+}
 
 type Props = {
   username: string
   size: number
 }
 
-const HalfCircle = ({size, style}) => (
-  <div
-    style={Styles.collapseStyles([
-      style,
-      {width: size, height: size / 2, borderTopLeftRadius: size / 2, borderTopRightRadius: size / 2},
-    ])}
-  />
-)
+//const HalfCircle = ({size, style}) => (
+//<div
+//style={Styles.collapseStyles([
+//style,
+//{width: size, height: size / 2, borderTopLeftRadius: size / 2, borderTopRightRadius: size / 2},
+//])}
+///>
+//)
+
+const adjustSize = (o, width) => {
+  return {}
+}
 
 const Circle = (p: Props) => {
   const {username, size} = p
 
-  const {running, load, percentDone, color} = useGetIDInfo(username)
+  //const {running, load, percentDone, color} = useGetIDInfo(username)
+  // TEMP
+  const [percentDone, setPercentDone] = React.useState(0.25)
+
+  useInterval(() => {
+    setPercentDone(p => {
+      let next = p + 0.005
+      if (next >= 1) {
+        next = 0
+      }
+      return next
+    })
+  }, 20)
+
+  const color = 'green'
+
+  const backgroundColor = 'white'
 
   if (!username) {
     return null
   }
 
+  const oneColor = color
+  const twoColor = backgroundColor
+  const threeColor = backgroundColor
+
+  const oneTransform = ''
+  const twoTransform = `rotate(${percentDone}turn)`
+  const threeTransform = 'rotate(0.5turn)'
+
+  const width = 6
+  const styleSize = size + width * 2
+
+  const common = {
+    borderTopLeftRadius: styleSize / 2,
+    borderTopRightRadius: styleSize / 2,
+    height: styleSize / 2,
+    marginLeft: -width,
+    marginTop: -width,
+    position: 'absolute',
+    transformOrigin: 'bottom center',
+    width: styleSize,
+    zIndex: 1000,
+  }
+
+  // overlapping borderradius things fringes on the edges
+  const coverStyle = {
+    ...common,
+    backgroundColor: twoColor,
+    transform: twoTransform,
+  }
+  const extra = 2
+  coverStyle.width += extra * 2
+  coverStyle.marginLeft -= extra
+  coverStyle.marginTop -= extra
+  coverStyle.height += extra
+
+  //<Kb.Text type="Body" style={{position: 'absolute'}}>
+  //{JSON.stringify(
+  //{
+  ////color,
+  ////load,
+  //percentDone,
+  ////running,
+  //},
+  //null,
+  //4
+  //)}
+  //</Kb.Text>
   return (
     <>
-      <Kb.Text type="Body" style={{position: 'absolute'}}>
-        {JSON.stringify(
-          {
-            color,
-            load,
-            percentDone,
-            running,
-          },
-          null,
-          4
-        )}
-      </Kb.Text>
-      <HalfCircle size={size} style={{position: 'absolute', backgroundColor: color}} />
+      <div key="one" style={{...common, backgroundColor: oneColor, transform: oneTransform}} />
+      <div key="two" style={coverStyle} />
+      <div key="three" style={{...common, backgroundColor: threeColor, transform: threeTransform}} />
     </>
   )
 
@@ -108,14 +170,14 @@ const Circle = (p: Props) => {
   // stroke="blue"
   // ></Kb.Svg.Circle>
   // </Kb.Svg.G>
-  return (
-    <Kb.Svg.Svg
-      height={size}
-      width={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={styles.container}
-    ></Kb.Svg.Svg>
-  )
+  //return (
+  //<Kb.Svg.Svg
+  //height={size}
+  //width={size}
+  //viewBox={`0 0 ${size} ${size}`}
+  //style={styles.container}
+  //></Kb.Svg.Svg>
+  //)
 }
 
 const styles = Styles.styleSheetCreate(() => ({
