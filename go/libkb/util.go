@@ -1211,18 +1211,26 @@ func JsonwStringArray(a []string) *jsonw.Wrapper {
 	return aj
 }
 
+type throttleBatchEmpty struct{}
+
+func isEmptyThrottleData(arg interface{}) bool {
+	_, ok := arg.(throttleBatchEmpty)
+	return ok
+}
+
 func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) interface{},
-	reset func() interface{}, delay time.Duration) func(interface{}) {
+	reset func() interface{}, delay time.Duration) (func(interface{}), func()) {
 	var lock sync.Mutex
 	var lastCalled time.Time
 	var stored interface{}
 	var creation func(interface{})
 	scheduled := false
+	cancelCh := make(chan struct{})
 	creation = func(arg interface{}) {
 		lock.Lock()
 		defer lock.Unlock()
 		elapsed := time.Since(lastCalled)
-		if arg != struct{}{} {
+		if isEmptyThrottleData(arg) {
 			stored = batcher(stored, arg)
 		}
 		if elapsed > delay {
@@ -1232,10 +1240,16 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 		} else if !scheduled {
 			scheduled = true
 			go func() {
-				time.Sleep(delay - elapsed)
-				creation(struct{}{})
+				select {
+				case <-time.After(delay - elapsed):
+					creation(throttleBatchEmpty{})
+				case <-cancelCh:
+					return
+				}
 			}()
 		}
 	}
-	return creation
+	return creation, func() {
+		close(cancelCh)
+	}
 }

@@ -978,10 +978,6 @@
     "ChatParticipantsInfo": {
       "request": [
         {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
           "name": "participants",
           "type": {
             "type": "map",
