@@ -7,7 +7,7 @@ import {StatusBar, View} from 'react-native'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
-import RuntimeStats from './runtime-stats/container'
+import RuntimeStats from './runtime-stats'
 
 type Props = {}
 

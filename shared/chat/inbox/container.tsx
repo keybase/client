@@ -73,17 +73,17 @@ let InboxWrapper = (props: Props) => {
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
 
   // temporary until nav 5
+  // @ts-ignore
+  const {isFocused} = props
+
   if (Container.isMobile) {
     // eslint-disable-next-line
     React.useEffect(() => {
-      if (Constants.isSplit) {
+      if (isFocused && Constants.isSplit) {
         dispatch(Chat2Gen.createTabSelected())
       }
       // eslint-disable-next-line
-    }, [
-      // @ts-ignore
-      props.isFocused,
-    ])
+    }, [isFocused])
   }
 
   React.useEffect(() => {
