@@ -22,6 +22,23 @@ type RequestIdleCallbackDeadline = {
   timeRemaining: () => number
 }
 
+declare type KBElectronOpenDialogOptions = {
+  allowFiles?: boolean
+  allowDirectories?: boolean
+  allowMultiselect?: boolean
+  buttonLabel?: string
+  defaultPath?: string
+  message?: string
+  title?: string
+}
+
+declare type KBElectronSaveDialogOptions = {
+  title?: string
+  defaultPath?: string
+  buttonLabel?: string
+  message?: string
+}
+
 interface Window {
   requestIdleCallback: (
     callback: (deadline: RequestIdleCallbackDeadline) => void,
@@ -48,6 +65,10 @@ declare var KB: {
   electron: {
     app: {
       appPath: string
+    }
+    dialog: {
+      showOpenDialog: (options: KBElectronOpenDialogOptions) => Promise<Array<string> | undefined>
+      showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
     }
   }
   kb: {

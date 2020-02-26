@@ -195,7 +195,7 @@ export type State = {
     RPCChatTypes.UIBotCommandsUpdateStatusTyp
   >
   readonly botPublicCommands: Map<string, BotPublicCommands>
-  readonly botSearchResults?: BotSearchResults
+  readonly botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
   readonly botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   readonly botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | null>>
   readonly channelSearchText: string

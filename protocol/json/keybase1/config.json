@@ -37,6 +37,10 @@
             "User"
           ],
           "name": "user"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
         }
       ]
     },

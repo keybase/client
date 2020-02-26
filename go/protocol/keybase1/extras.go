@@ -704,7 +704,7 @@ func SigIDFromSlice(b []byte) (SigID, error) {
 	return SigIDFromBytes(x), nil
 }
 
-func (s SigID) toBytes() []byte {
+func (s SigID) ToBytes() []byte {
 	b, err := hex.DecodeString(string(s))
 	if err != nil {
 		return nil
@@ -713,8 +713,8 @@ func (s SigID) toBytes() []byte {
 }
 
 func (s SigID) Eq(t SigID) bool {
-	b := s.toBytes()
-	c := t.toBytes()
+	b := s.ToBytes()
+	c := t.ToBytes()
 	if b == nil || c == nil {
 		return false
 	}
@@ -735,11 +735,11 @@ func (s SigID) ToMapKey() SigIDMapKey {
 }
 
 func (s SigID) ToMediumID() string {
-	return encode(s.toBytes())
+	return encode(s.ToBytes())
 }
 
 func (s SigID) ToShortID() string {
-	return encode(s.toBytes()[0:SIG_SHORT_ID_BYTES])
+	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
 }
 
 func encode(b []byte) string {
@@ -2569,6 +2569,18 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 	return ParseUserVersion(UserVersionPercentForm(t.Name))
 }
 
+// TeamMaxUsesInfinite is a value for max_uses field which makes team invite
+// multiple use, with infinite number of uses.
+const TeamMaxUsesInfinite = -1
+
+func (e TeamInviteMaxUses) IsInfiniteUses() bool {
+	return e == TeamMaxUsesInfinite
+}
+
+func (e TeamInviteMaxUses) IsValid() bool {
+	return e > 0 || e == TeamMaxUsesInfinite
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
@@ -3846,4 +3858,17 @@ func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
 		}
 	}
 	return true
+}
+
+func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
+	size := len(t.Admins) + len(t.Bots) + len(t.Owners) + len(t.Writers) + len(t.Readers) +
+		len(t.RestrictedBots)
+	res = make([]TeamMemberDetails, 0, size)
+	return append(res,
+		append(t.Admins,
+			append(t.Bots,
+				append(t.Owners,
+					append(t.Readers,
+						append(t.RestrictedBots,
+							append(t.Writers)...)...)...)...)...)...)
 }

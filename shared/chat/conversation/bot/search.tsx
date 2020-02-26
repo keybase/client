@@ -44,7 +44,7 @@ const SearchBotPopup = (props: Props) => {
     if (query.length > 0) {
       dispatch(BotsGen.createSearchFeaturedAndUsers({query}))
     } else {
-      dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({results: undefined}))
+      dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query, results: undefined}))
     }
   }, 200)
   const onSelect = (username: string) => {
@@ -66,12 +66,14 @@ const SearchBotPopup = (props: Props) => {
   }
   // lifecycle
   React.useEffect(() => {
-    dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({results: undefined}))
+    dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query: '', results: undefined}))
     dispatch(BotsGen.createGetFeaturedBots({}))
   }, [dispatch])
 
   const botData: Array<RPCTypes.FeaturedBot | string> =
-    lastQuery.length > 0 ? results?.bots.slice() ?? [] : Constants.getFeaturedSorted(featuredBotsMap)
+    lastQuery.length > 0
+      ? results?.get(lastQuery)?.bots.slice() ?? []
+      : Constants.getFeaturedSorted(featuredBotsMap)
   if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)
   }
@@ -93,7 +95,10 @@ const SearchBotPopup = (props: Props) => {
   }
   const userData = !lastQuery.length
     ? [userEmptyPlaceholder]
-    : results?.users.filter(u => !featuredBotsMap.get(u)).slice(0, 3) ?? []
+    : results
+        .get(lastQuery)
+        ?.users.filter(u => !featuredBotsMap.get(u))
+        .slice(0, 3) ?? []
   if (!userData.length && !waiting) {
     userData.push(resultEmptyPlaceholder)
   }

@@ -6712,6 +6712,15 @@ type GetRecentJoinsLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type RefreshParticipantsArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type GetLastActiveAtLocalArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -6820,6 +6829,8 @@ type LocalInterface interface {
 	GetLastActiveForTLF(context.Context, TLFIDStr) (LastActiveStatus, error)
 	GetLastActiveForTeams(context.Context) (map[TLFIDStr]LastActiveStatus, error)
 	GetRecentJoinsLocal(context.Context, ConversationID) (int, error)
+	RefreshParticipants(context.Context, ConversationID) error
+	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8376,6 +8387,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"refreshParticipants": {
+				MakeArg: func() interface{} {
+					var ret [1]RefreshParticipantsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RefreshParticipantsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RefreshParticipantsArg)(nil), args)
+						return
+					}
+					err = i.RefreshParticipants(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"getLastActiveAtLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveAtLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveAtLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveAtLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveAtLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -8943,5 +8984,16 @@ func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res map[TLFIDSt
 func (c LocalClient) GetRecentJoinsLocal(ctx context.Context, convID ConversationID) (res int, err error) {
 	__arg := GetRecentJoinsLocalArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.getRecentJoinsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RefreshParticipants(ctx context.Context, convID ConversationID) (err error) {
+	__arg := RefreshParticipantsArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.refreshParticipants", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActiveAtLocalArg) (res gregor1.Time, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

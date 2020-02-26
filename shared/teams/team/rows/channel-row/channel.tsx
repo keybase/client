@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/teams'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/teams'
+import * as ChatConstants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
@@ -24,6 +25,12 @@ const ChannelRow = (props: ChannelRowProps) => {
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel
 
+  const numParticipants = Container.useSelector(
+    state => ChatConstants.getParticipantInfo(state, conversationIDKey).all.length
+  )
+  const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const hasAllMembers = details.members.size === numParticipants
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSelect = (selected: boolean) => {
@@ -31,8 +38,9 @@ const ChannelRow = (props: ChannelRowProps) => {
   }
   const onEditChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
+  const onNavToChannel = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamChannel'}]}))
   const onDeleteChannel = () => dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
-
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}
@@ -42,9 +50,9 @@ const ChannelRow = (props: ChannelRowProps) => {
       selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
     />
   )
-  const membersText = channel.hasAllMembers
-    ? `All members (${channel.numParticipants.toLocaleString()})`
-    : `${channel.numParticipants.toLocaleString()} ${pluralize('member', channel.numParticipants)}`
+  const membersText = hasAllMembers
+    ? `All members (${numParticipants.toLocaleString()})`
+    : `${numParticipants.toLocaleString()} ${pluralize('member', numParticipants)}`
   const body = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text type="BodySemibold" lineClamp={1}>
@@ -112,7 +120,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       body={body}
       firstItem={isGeneral}
       style={selected ? styles.selected : undefined}
-      onClick={isGeneral ? undefined : () => onSelect(!selected)}
+      onClick={onNavToChannel}
     />
   )
 }

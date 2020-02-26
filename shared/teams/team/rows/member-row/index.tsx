@@ -75,9 +75,9 @@ export const TeamMemberRow = (props: Props) => {
     const teamID = props.teamID
 
     const dispatch = Container.useDispatch()
-    const selected = Container.useSelector(
-      state => !!state.teams.selectedMembers.get(teamID)?.has(props.username)
-    )
+    const selectedMembers = Container.useSelector(state => state.teams.selectedMembers.get(teamID))
+    const anySelected = !!selectedMembers?.size
+    const selected = !!selectedMembers?.has(props.username)
 
     const onSelect = (selected: boolean) => {
       dispatch(TeamsGen.createSetMemberSelected({selected, teamID, username: props.username}))
@@ -202,7 +202,7 @@ export const TeamMemberRow = (props: Props) => {
 
     return (
       <Kb.ListItem2
-        action={selected ? null : actions}
+        action={anySelected ? null : actions}
         onlyShowActionOnHover="fade"
         height={Styles.isMobile ? 90 : 64}
         icon={checkCircle}
@@ -212,7 +212,7 @@ export const TeamMemberRow = (props: Props) => {
         body={body}
         firstItem={isOwner}
         style={selected ? styles.selected : undefined}
-        onClick={() => onSelect(!selected)}
+        onClick={anySelected ? () => onSelect(!selected) : props.onClick}
       />
     )
   }

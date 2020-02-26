@@ -184,6 +184,9 @@
         "chat1NotifyChatChatWelcomeMessageLoaded": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {sessionID: number}"
         },
+        "chat1NotifyChatChatParticipantsInfo": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam'] & {sessionID: number}"
+        },
         "keybase1GpgUiWantToAddGPGKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['outParam']) => void}"
         },

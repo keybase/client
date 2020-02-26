@@ -8,6 +8,9 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import HiddenString from '../../util/hidden-string'
 
+const {electron} = KB
+const {showOpenDialog} = electron.dialog
+
 type InputProps = {
   operation: Types.Operations
 }
@@ -51,6 +54,7 @@ const operationToEmptyInputWidth = {
  *
  * Afte user enters text:
  *  - Multiline input
+ *  - Clear button
  */
 export const TextInput = (props: TextProps) => {
   const {value, operation, onChangeText, onSetFile} = props
@@ -67,25 +71,14 @@ export const TextInput = (props: TextProps) => {
     }
   }
 
-  // Handle native file browser via <input type='file' ... />
-  const filePickerRef = React.useRef<HTMLInputElement>(null)
-  const selectFile = () => {
-    const files = (filePickerRef && filePickerRef.current && filePickerRef.current.files) || []
-    const allPaths: Array<string> = files.length
-      ? Array.from(files)
-          .map((f: File) => f.path)
-          .filter(Boolean)
-      : ([] as any)
-    const path = allPaths.pop()
-    // Set input type to 'file' and value to 'path'
-    if (path) {
-      onSetFile(path)
+  const onOpenFile = async () => {
+    const options = {
+      buttonLabel: 'Select',
     }
-  }
-  const openFilePicker = () => {
-    if (filePickerRef && filePickerRef.current) {
-      filePickerRef.current.click()
-    }
+    const filePaths = await showOpenDialog(options)
+    if (!filePaths) return
+    const path = filePaths[0]
+    onSetFile(path)
   }
 
   return (
@@ -120,19 +113,9 @@ export const TextInput = (props: TextProps) => {
             ref={inputRef}
           />
           {!value && (
-            <>
-              <input
-                type="file"
-                accept="*"
-                ref={filePickerRef}
-                multiple={false}
-                onChange={selectFile}
-                style={styles.hidden}
-              />
-              <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
-                browse for one
-              </Kb.Text>
-            </>
+            <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
+              browse for one
+            </Kb.Text>
           )}
         </Kb.Box2>
       </Kb.Box2>
@@ -191,14 +174,11 @@ export const Input = (props: InputProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
 
-  // Store
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
 
-  // State
   const [inputValue, setInputValue] = React.useState(input)
 
-  // Actions
   const onSetInput = (type: Types.InputTypes, newValue: string) => {
     dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
   }
@@ -234,7 +214,8 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
   const dispatch = Container.useDispatch()
 
-  // Actions
+  const inProgress = Container.useSelector(store => store.crypto[operation].inProgress)
+
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
@@ -243,6 +224,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
+        disabled={inProgress}
         allowFolders={false}
         fullHeight={true}
         fullWidth={true}

@@ -5,7 +5,7 @@ import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 
-const BuildTeam = (_: {}) => {
+const BuildTeam = React.memo((_: {}) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
@@ -24,7 +24,7 @@ const BuildTeam = (_: {}) => {
       <Kb.Button fullWidth={true} label="Join a team" mode="Secondary" onClick={onJoinTeam} />
     </Kb.Box2>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
@@ -40,6 +40,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 0,
       width: '100%',
     },
+    isTablet: {backgroundColor: Styles.globalColors.transparent},
   }),
 }))
 
