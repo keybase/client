@@ -12,7 +12,7 @@ type Props = {
 }
 
 const AddPhone = (props: Props) => {
-  const [phoneNumbers, setPhoneNumbers] = React.useState([{phoneNumber: '', valid: false}])
+  const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
 
   // const dispatch = Container.useDispatch()
   // const nav = Container.useSafeNavigation()
@@ -29,10 +29,13 @@ const AddPhone = (props: Props) => {
   }
 
   const addPhoneNumber = () => {
-    phoneNumbers.push({phoneNumber: '', valid: false})
+    phoneNumbers.push({key: phoneNumbers[phoneNumbers.length - 1].key + 1, phoneNumber: '', valid: false})
     setPhoneNumbers([...phoneNumbers])
   }
-  const removePhoneNumber = (i: number) => setPhoneNumbers(phoneNumbers.splice(i, i))
+  const removePhoneNumber = (i: number) => {
+    phoneNumbers.splice(i, 1)
+    setPhoneNumbers([...phoneNumbers])
+  }
 
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, props.teamID).teamname)
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
@@ -60,9 +63,10 @@ const AddPhone = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="xsmall" fullWidth={true} alignItems="flex-start">
-          {phoneNumbers.map((_, idx) => (
+          {phoneNumbers.map((pn, idx) => (
             <PhoneInput
-              key={idx}
+              key={pn.key}
+              autoFocus={idx === 0}
               defaultCountry={defaultCountry}
               onChangeNumber={(phoneNumber, valid) => setPhoneNumber(idx, phoneNumber, valid)}
               onClear={() => removePhoneNumber(idx)}
