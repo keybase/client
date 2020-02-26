@@ -507,24 +507,29 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 		var sweep []sweepEntry
 		for _, user := range users {
-			upak, single, doInvite, assertion, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+			candidate, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
 			if err != nil {
-				return NewAddMembersError(assertion, err)
+				return NewAddMembersError(candidate.Full, err)
 			}
 
-			if _, ok := restrictedUsers[upak.Uid]; ok {
-				// skip users with contact setting restrictions
-				user := keybase1.User{Uid: upak.Uid, Username: libkb.NewNormalizedUsername(upak.Username).String()}
-				notAdded = append(notAdded, user)
-				continue
+			if upak := candidate.KeybaseUser; upak != nil {
+				if _, ok := restrictedUsers[upak.Uid]; ok {
+					// Skip users with contact setting restrictions.
+					user := keybase1.User{
+						Uid:      upak.Uid,
+						Username: libkb.NewNormalizedUsername(upak.Username).String(),
+					}
+					notAdded = append(notAdded, user)
+					continue
+				}
 			}
 
-			username, uv, invite, err := tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, user.AssertionOrEmail, user.Role, user.BotSettings)
+			username, uv, invite, err := tx.AddOrInviteMemberCandidate(ctx, candidate, user.Role, user.BotSettings)
 			if err != nil {
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return NewAddMembersError(assertion, err)
+				return NewAddMembersError(candidate.Full, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
@@ -542,6 +547,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 				})
 			}
 		}
+
 		// Try to mark completed any invites for the users' social assertions.
 		// This can be a time-intensive process since it involves checking proofs.
 		// It is limited to a few seconds and failure is non-fatal.
@@ -1402,7 +1408,7 @@ var errUserDeleted = errors.New("user is deleted")
 // Keybase user with PUK, `errInviteRequired` is returned.
 //
 // Returns `errInviteRequired` if given argument cannot be brought in as a
-// crypto member - so it is either a reset and not provisioned keybae user
+// crypto member - so it is either a reset and not provisioned Keybase user
 // (keybase-type invite is required), or a social assertion that does not
 // resolve to a user.
 //
