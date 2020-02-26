@@ -32,15 +32,12 @@ const tabThings: {[k in SelectableTab]: string} = {
   members: 'member',
 }
 
-// How much to bump the list height by when the selection popup is present on mobile
-const heightsMap = {
-  channels: {height: 70},
-  members: {height: 180},
-}
-
 const SelectionPopup = (props: Props) => {
   const selectedCount = Container.useSelector(state => getSelectedCount(state, props))
   const dispatch = Container.useDispatch()
+
+  // For boosting the list to scroll not behind the popup on mobile
+  const [height, setHeight] = React.useState(0)
 
   const onUnselect = () => {
     switch (props.selectedTab) {
@@ -85,6 +82,7 @@ const SelectionPopup = (props: Props) => {
       ])}
       gap={Styles.isMobile ? 'tiny' : undefined}
       className="selectionPopup"
+      onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Styles.isMobile && (
         <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onUnselect}>
@@ -107,7 +105,7 @@ const SelectionPopup = (props: Props) => {
   )
   return Styles.isMobile ? (
     <>
-      <Kb.Box style={heightsMap[props.selectedTab]} />
+      {<Kb.Box style={{height: height > 48 ? height - 48 : 0}} />}
       <Kb.FloatingBox>{popup}</Kb.FloatingBox>
     </>
   ) : (
