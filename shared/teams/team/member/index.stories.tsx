@@ -2,6 +2,8 @@ import React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {TeamMemberHeader} from './index.new'
 import {fakeTeamID, store} from '../../stories'
+import AddToChannels from './add-to-channels'
+const addToChannelsProps = Sb.createNavigator({teamID: fakeTeamID, usernames: ['andonuts']})
 
 const load = () =>
   Sb.storiesOf('Teams/Member', module)
@@ -9,5 +11,6 @@ const load = () =>
     .add('Header normal', () => <TeamMemberHeader teamID={fakeTeamID} username="jeff" />)
     .add('Header long name', () => <TeamMemberHeader teamID={fakeTeamID} username="paula" />)
     .add('Header self + no name', () => <TeamMemberHeader teamID={fakeTeamID} username="andonuts" />)
+    .add('Add to channels', () => <AddToChannels {...addToChannelsProps} />)
 
 export default load

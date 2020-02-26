@@ -45,9 +45,10 @@ type IndexedBlockDb struct {
 
 	// Protect the DB from being shutdown while they're being
 	// accessed, and mutable data.
-	lock    sync.RWMutex
-	blockDb *ldbutils.LevelDb // blockID -> index-related metadata
-	tlfDb   *ldbutils.LevelDb // tlfID+blockID -> nil (for cleanup when TLF is un-indexed)
+	lock            sync.RWMutex
+	blockDb         *ldbutils.LevelDb // blockID -> index-related metadata
+	bufferedBlockDb *ldbutils.LevelDb // in-memory buffer for block db
+	tlfDb           *ldbutils.LevelDb // tlfID+blockID -> nil (for cleanup when TLF is un-indexed)
 
 	docIDLock sync.Mutex
 	maxDocID  int64
@@ -68,6 +69,12 @@ func newIndexedBlockDbFromStorage(
 	closer := func() {
 		for _, c := range closers {
 			closeErr := c.Close()
+			if closeErr != nil {
+				log.Warning("Error closing leveldb or storage: %+v", closeErr)
+			}
+		}
+		if db != nil && db.bufferedBlockDb != nil {
+			closeErr := db.bufferedBlockDb.Close()
 			if closeErr != nil {
 				log.Warning("Error closing leveldb or storage: %+v", closeErr)
 			}
@@ -94,17 +101,24 @@ func newIndexedBlockDbFromStorage(
 	}
 	closers = append(closers, tlfDb)
 
+	bufferedBlockDb, err := ldbutils.OpenLevelDbWithOptions(
+		storage.NewMemStorage(), nil)
+	if err != nil {
+		return nil, err
+	}
+
 	db = &IndexedBlockDb{
-		config:      config,
-		hitMeter:    ldbutils.NewCountMeter(),
-		missMeter:   ldbutils.NewCountMeter(),
-		putMeter:    ldbutils.NewCountMeter(),
-		deleteMeter: ldbutils.NewCountMeter(),
-		log:         log,
-		blockDb:     blockDb,
-		tlfDb:       tlfDb,
-		shutdownCh:  make(chan struct{}),
-		closer:      closer,
+		config:          config,
+		hitMeter:        ldbutils.NewCountMeter(),
+		missMeter:       ldbutils.NewCountMeter(),
+		putMeter:        ldbutils.NewCountMeter(),
+		deleteMeter:     ldbutils.NewCountMeter(),
+		log:             log,
+		blockDb:         blockDb,
+		bufferedBlockDb: bufferedBlockDb,
+		tlfDb:           tlfDb,
+		shutdownCh:      make(chan struct{}),
+		closer:          closer,
 	}
 
 	err = db.loadMaxDocID()
@@ -117,7 +131,8 @@ func newIndexedBlockDbFromStorage(
 
 // newIndexedBlockDb creates a new *IndexedBlockDb with a
 // specified directory on the filesystem as storage.
-func newIndexedBlockDb(config libkbfs.Config, dirPath string) (db *IndexedBlockDb, err error) {
+func newIndexedBlockDb(config libkbfs.Config, dirPath string) (
+	db *IndexedBlockDb, err error) {
 	log := config.MakeLogger("IBD")
 	defer func() {
 		if err != nil {
@@ -242,11 +257,24 @@ func (db *IndexedBlockDb) getMetadataLocked(
 		missMeter = db.missMeter
 	}
 
-	metadataBytes, err := db.blockDb.GetWithMeter(
+	metadataBytes, err := db.bufferedBlockDb.GetWithMeter(
 		blockDbKey(ptr), hitMeter, missMeter)
-	if err != nil {
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+		metadataBytes = nil
+	default:
 		return blockMD{}, err
 	}
+
+	if metadataBytes == nil {
+		metadataBytes, err = db.blockDb.GetWithMeter(
+			blockDbKey(ptr), hitMeter, missMeter)
+		if err != nil {
+			return blockMD{}, err
+		}
+	}
+
 	err = db.config.Codec().Decode(metadataBytes, &metadata)
 	if err != nil {
 		return blockMD{}, err
@@ -306,6 +334,24 @@ func (db *IndexedBlockDb) Get(
 	return md.IndexVersion, md.DocID, md.DirDone, nil
 }
 
+func (db *IndexedBlockDb) putLocked(
+	ctx context.Context, blockDb *ldbutils.LevelDb, tlfID tlf.ID,
+	ptr data.BlockPointer, indexVersion uint64, docID string,
+	dirDone bool) error {
+	md := blockMD{
+		IndexVersion: indexVersion,
+		DocID:        docID,
+		DirDone:      dirDone,
+	}
+	encodedMetadata, err := db.config.Codec().Encode(&md)
+	if err != nil {
+		return err
+	}
+
+	return blockDb.PutWithMeter(
+		blockDbKey(ptr), encodedMetadata, db.putMeter)
+}
+
 // Put saves the version and doc ID for the given block.
 func (db *IndexedBlockDb) Put(
 	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
@@ -317,18 +363,8 @@ func (db *IndexedBlockDb) Put(
 		return err
 	}
 
-	md := blockMD{
-		IndexVersion: indexVersion,
-		DocID:        docID,
-		DirDone:      dirDone,
-	}
-	encodedMetadata, err := db.config.Codec().Encode(&md)
-	if err != nil {
-		return err
-	}
-
-	err = db.blockDb.PutWithMeter(
-		blockDbKey(ptr), encodedMetadata, db.putMeter)
+	err = db.putLocked(
+		ctx, db.blockDb, tlfID, ptr, indexVersion, docID, dirDone)
 	if err != nil {
 		return err
 	}
@@ -336,6 +372,53 @@ func (db *IndexedBlockDb) Put(
 	// Record the tlf+blockID, so we can iterate the blocks if we ever
 	// need to delete all the blocks associated with a TLF.
 	return db.tlfDb.Put(tlfKey(tlfID, ptr), []byte{}, nil)
+}
+
+// PutMemory saves the data to memory, and returns a function that
+// will flush it to disk when the caller is ready.
+func (db *IndexedBlockDb) PutMemory(
+	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
+	indexVersion uint64, docID string, dirDone bool) (
+	flushFn func() error, err error) {
+	db.lock.Lock()
+	defer db.lock.Unlock()
+
+	err = db.checkDbLocked(ctx, "IBD(PutMemory)")
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.putLocked(
+		ctx, db.bufferedBlockDb, tlfID, ptr, indexVersion, docID, dirDone)
+	if err != nil {
+		return nil, err
+	}
+
+	return func() error {
+		return db.Put(ctx, tlfID, ptr, indexVersion, docID, dirDone)
+	}, nil
+}
+
+// ClearMemory clears out the buffered puts from memory.
+func (db *IndexedBlockDb) ClearMemory() error {
+	db.lock.Lock()
+	defer db.lock.Unlock()
+
+	bufferedBlockDb, err := ldbutils.OpenLevelDbWithOptions(
+		storage.NewMemStorage(), nil)
+	if err != nil {
+		return err
+	}
+
+	if bufferedBlockDb != nil {
+		err := db.bufferedBlockDb.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	db.bufferedBlockDb = bufferedBlockDb
+	return nil
 }
 
 // Delete removes the metadata for the block pointer from the DB.

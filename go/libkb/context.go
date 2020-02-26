@@ -190,6 +190,13 @@ func (m MetaContext) WithLogTag(k string) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithLogTags(tags map[string]string) MetaContext {
+	for k, v := range tags {
+		m.ctx = WithLogTagWithValue(m.ctx, k, v)
+	}
+	return m
+}
+
 func (m MetaContext) WithTimeBuckets() (MetaContext, *profiling.TimeBuckets) {
 	ctx, tbs := m.G().CTimeBuckets(m.ctx)
 	m.ctx = ctx

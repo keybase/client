@@ -262,7 +262,7 @@ func ServerLookup(env *Env, mode RunMode) (string, error) {
 }
 
 type InstrumentedBody struct {
-	Contextified
+	MetaContextified
 	record *rpc.NetworkInstrumenter
 	body   io.ReadCloser
 	// track how large the body is
@@ -277,14 +277,14 @@ type InstrumentedBody struct {
 
 var _ io.ReadCloser = (*InstrumentedBody)(nil)
 
-func NewInstrumentedBody(g *GlobalContext, record *rpc.NetworkInstrumenter, body io.ReadCloser, uncompressed bool,
+func NewInstrumentedBody(mctx MetaContext, record *rpc.NetworkInstrumenter, body io.ReadCloser, uncompressed bool,
 	gzipGetter func(io.Writer) (*gzip.Writer, func())) *InstrumentedBody {
 	return &InstrumentedBody{
-		Contextified: NewContextified(g),
-		record:       record,
-		body:         body,
-		gzipGetter:   gzipGetter,
-		uncompressed: uncompressed,
+		MetaContextified: NewMetaContextified(mctx),
+		record:           record,
+		body:             body,
+		gzipGetter:       gzipGetter,
+		uncompressed:     uncompressed,
 	}
 }
 
@@ -310,19 +310,19 @@ func (b *InstrumentedBody) Close() (err error) {
 			writer, reclaim := b.gzipGetter(&buf)
 			defer reclaim()
 			if _, err = writer.Write(b.gzipBuf.Bytes()); err != nil {
-				b.G().Log.CDebugf(context.TODO(), "InstrumentedBody:unable to write gzip %v", err)
+				b.M().Debug("InstrumentedBody:unable to write gzip %v", err)
 				return
 			}
 			if err = writer.Close(); err != nil {
-				b.G().Log.CDebugf(context.TODO(), "InstrumentedBody:unable to close gzip %v", err)
+				b.M().Debug("InstrumentedBody:unable to close gzip %v", err)
 				return
 			}
 			b.record.IncrementSize(int64(buf.Len()))
 		} else {
 			b.record.IncrementSize(int64(b.n))
 		}
-		if err := b.record.Finish(); err != nil {
-			b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
+		if err := b.record.Finish(b.M().Ctx()); err != nil {
+			b.M().Debug("InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
 		}
 	}()
 	return b.body.Close()
@@ -359,15 +359,17 @@ func (i *InstrumentedRoundTripper) getGzipWriter(writer io.Writer) (*gzip.Writer
 }
 
 func (i *InstrumentedRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	tags := LogTagsFromString(req.Header.Get("X-Keybase-Log-Tags"))
+	mctx := NewMetaContextTODO(i.G()).WithLogTags(tags)
 	record := rpc.NewNetworkInstrumenter(i.G().RemoteNetworkInstrumenterStorage, i.tagger(req))
 	resp, err = i.RoundTripper.RoundTrip(req)
 	record.EndCall()
 	if err != nil {
-		if rerr := record.Finish(); rerr != nil {
-			i.G().Log.CDebugf(context.TODO(), "InstrumentedTransport: unable to instrument network request %s, %s", record, rerr)
+		if rerr := record.Finish(mctx.Ctx()); rerr != nil {
+			mctx.Debug("InstrumentedTransport: unable to instrument network request %s, %s", record, rerr)
 		}
 		return resp, err
 	}
-	resp.Body = NewInstrumentedBody(i.G(), record, resp.Body, resp.Uncompressed, i.getGzipWriter)
+	resp.Body = NewInstrumentedBody(mctx, record, resp.Body, resp.Uncompressed, i.getGzipWriter)
 	return resp, err
 }

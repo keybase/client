@@ -178,8 +178,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
               {this.props.botAlias ? (
                 <Kb.Box2 direction="horizontal">
+                  <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
+                    {this.props.botAlias}
+                  </Kb.Text>
                   <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    {this.props.botAlias} [
+                    &nbsp;[
                   </Kb.Text>
                   {username}
                   <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
@@ -711,6 +714,18 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: Styles.globalMargins.small},
         isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
+      botAlias: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+        },
+        isElectron: {
+          maxWidth: 240,
+          wordBreak: 'break-all',
+        },
+        isMobile: {
+          maxWidth: 120,
+        },
+      }),
       centeredOrdinal: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
       containerNoUsername: Styles.platformStyles({
@@ -831,15 +846,23 @@ const styles = Styles.styleSheetCreate(
           top: -8,
         },
       }),
-      timestamp: Styles.platformStyles({isElectron: {lineHeight: 19}}),
+      timestamp: Styles.platformStyles({
+        isElectron: {
+          flexShrink: 0,
+          lineHeight: 19,
+        },
+      }),
       timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
+          marginRight: 48,
           position: 'relative',
           top: -2,
         },
-        isMobile: {alignItems: 'center'},
+        isMobile: {
+          alignItems: 'center',
+        },
       }),
       usernameHighlighted: {color: Styles.globalColors.blackOrBlack},
     } as const)

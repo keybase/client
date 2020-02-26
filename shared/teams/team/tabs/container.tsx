@@ -24,7 +24,7 @@ export default Container.connect(
       _members,
       admin: yourOperations.manageMembers,
       error: state.teams.errorInAddToTeam,
-      isBig: Constants.isBigTeam(state, teamMeta.teamname),
+      isBig: Constants.isBigTeam(state, teamID),
       loading: anyWaiting(
         state,
         Constants.teamWaitingKey(teamMeta.teamname),

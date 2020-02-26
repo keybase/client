@@ -32,6 +32,8 @@ import (
 	context "golang.org/x/net/context"
 )
 
+var IsIPad bool // Set by bind's Init.
+
 type ShutdownHook func(mctx MetaContext) error
 
 type LoginHook interface {
@@ -173,6 +175,7 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+	IsIPad          bool
 
 	SyncedContactList SyncedContactListProvider
 
@@ -858,11 +861,11 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
 		if g.LocalNetworkInstrumenterStorage != nil {
-			<-g.LocalNetworkInstrumenterStorage.Stop()
+			<-g.LocalNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		if g.RemoteNetworkInstrumenterStorage != nil {
-			<-g.RemoteNetworkInstrumenterStorage.Stop()
+			<-g.RemoteNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		// shutdown the databases after the shutdown hooks run, we may want to
@@ -970,8 +973,8 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
-	g.LocalNetworkInstrumenterStorage.Start()
-	g.RemoteNetworkInstrumenterStorage.Start()
+	g.LocalNetworkInstrumenterStorage.Start(context.TODO())
+	g.RemoteNetworkInstrumenterStorage.Start(context.TODO())
 
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err

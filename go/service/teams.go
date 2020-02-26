@@ -241,14 +241,6 @@ func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybas
 	return teams.ListSubteamsRecursive(ctx, h.G().ExternalG(), arg.ParentTeamName, arg.ForceRepoll)
 }
 
-func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
-		return err
-	}
-	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
-}
-
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,username=%q,email=%q,phone=%q)", arg.TeamID, arg.Username, arg.Email, arg.Phone),

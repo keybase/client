@@ -62,10 +62,9 @@ export default connect(
     const {teamname} = Constants.getTeamMeta(state, teamID)
 
     return {
-      _notifLabel:
-        Constants.getTeamType(state, teamname) === 'big'
-          ? `Announce them in #general`
-          : `Announce them in team chat`,
+      _notifLabel: Constants.isBigTeam(state, teamID)
+        ? `Announce them in #general`
+        : `Announce them in team chat`,
       disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamID, username),
       fullName, // MemberRow has a special case for "You" but it's impossible to see your join req
       teamname,

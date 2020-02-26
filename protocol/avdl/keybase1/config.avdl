@@ -11,6 +11,7 @@ protocol config {
     boolean loggedIn;
     boolean sessionIsValid;
     union { null, User } user;
+    string deviceName;
   }
 
   CurrentStatus getCurrentStatus(int sessionID);
