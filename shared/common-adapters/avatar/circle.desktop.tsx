@@ -109,6 +109,9 @@ const Circle = (p: Props) => {
         `}
       />
       <div key="three" style={{...common, backgroundColor: threeColor, transform: threeTransform}} />
+      <Kb.Text type="Body" style={{position: 'absolute'}}>
+        {percentDone}
+      </Kb.Text>
     </>
   )
 
