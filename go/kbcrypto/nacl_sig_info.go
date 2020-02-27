@@ -71,7 +71,6 @@ func (e VerificationError) ToStatus() keybase1.Status {
 		Name: "SC_SIG_CANNOT_VERIFY",
 		Fields: []keybase1.StringKVPair{
 			{Key: "Cause", Value: cause},
-			{Key: "Code", Value: cause},
 		},
 	}
 }

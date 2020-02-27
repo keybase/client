@@ -17,6 +17,8 @@ type SaltpackVerifyContext interface {
 	GetLog() logger.Logger
 }
 
+// Wraps kbcrypto.Verification error with libkb.VerificationError. You should
+// expect a libkb.VerificationError if exposing the error to the GUI.
 func getVerificationErrorWithStatusCode(kberr *kbcrypto.VerificationError) (err VerificationError) {
 	err.Cause.Err = kberr.Cause
 	switch err.Cause.Err.(type) {
@@ -60,8 +62,7 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	}
 	if err != nil {
 		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
-		kberr := kbcrypto.NewVerificationError(err)
-		return kberr
+		return kbcrypto.NewVerificationError(err)
 	}
 
 	if checkSender != nil {
