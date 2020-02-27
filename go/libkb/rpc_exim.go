@@ -16,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -426,48 +425,26 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCDecryptionError:
 		ret := DecryptionError{}
 		for _, field := range s.Fields {
-			if field.Key == "Cause" {
-				ret.Cause = fmt.Errorf(field.Value)
+			switch field.Key {
+			case "Cause":
+				ret.Cause.Err = fmt.Errorf(field.Value)
+			case "Code":
+				if code, err := strconv.Atoi(field.Value); err == nil {
+					ret.Cause.StatusCode = code
+				}
 			}
 		}
 		return ret
 	case SCSigCannotVerify:
 		ret := VerificationError{}
 		for _, field := range s.Fields {
-			if field.Key == "Cause" {
-				ret.Cause = fmt.Errorf(field.Value)
-			}
-		}
-		return ret
-	case SCInvalidFormat:
-		ret := InvalidFormatError{}
-		for _, field := range s.Fields {
-			if field.Key == "Cause" {
-				ret.Cause = fmt.Errorf(field.Value)
-			}
-		}
-		return ret
-	case SCBadFrame:
-		ret := BadFrameError{}
-		for _, field := range s.Fields {
-			if field.Key == "Cause" {
-				ret.Cause = fmt.Errorf(field.Value)
-			}
-		}
-		return ret
-	case SCWrongType:
-		ret := WrongTypeError{}
-		for _, field := range s.Fields {
-			if field.Key == "Cause" {
-				ret.Cause = fmt.Errorf(field.Value)
-			}
-		}
-		return ret
-	case SCNoKeyFound:
-		ret := NoKeyFoundError{}
-		for _, field := range s.Fields {
-			if field.Key == "Cause" {
-				ret.Cause = fmt.Errorf(field.Value)
+			switch field.Key {
+			case "Cause":
+				ret.Cause.Err = fmt.Errorf(field.Value)
+			case "Code":
+				if code, err := strconv.Atoi(field.Value); err == nil {
+					ret.Cause.StatusCode = code
+				}
 			}
 		}
 		return ret
@@ -1996,23 +1973,25 @@ func (e UserDeletedError) ToStatus() keybase1.Status {
 }
 
 func (e DecryptionError) ToStatus() keybase1.Status {
-	cause := e.Error()
-	code, name := kbcrypto.ParseVerificationOrDecryptionErrorForStatusCode(cause, SCDecryptionError, "SC_DECRYPTION_ERROR")
+	cause := e.Cause.Err.Error()
 	return keybase1.Status{
-		Code: code,
-		Name: name,
+		Code: SCDecryptionError,
+		Name: "SC_DECRYPTION_ERROR",
 		Fields: []keybase1.StringKVPair{
 			{Key: "Cause", Value: cause}, // raw developer-friendly string
+			{Key: "Code", Value: strconv.Itoa(e.Cause.StatusCode)},
 		},
 	}
 }
 
 func (e VerificationError) ToStatus() keybase1.Status {
+	cause := e.Cause.Err.Error()
 	return keybase1.Status{
 		Code: SCSigCannotVerify,
 		Name: "SC_SIG_CANNOT_VERIFY",
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Error()}, // raw developer-friendly string
+			{Key: "Cause", Value: cause}, // raw developer-friendly string
+			{Key: "Code", Value: strconv.Itoa(e.Cause.StatusCode)},
 		},
 	}
 }

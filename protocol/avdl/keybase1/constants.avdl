@@ -63,6 +63,7 @@ protocol constants {
     SCKeyDuplicateUpdate_921,
     SCSibkeyAlreadyExists_922,
     SCDecryptionKeyNotFound_924,
+    SCVerificationKeyNotFound_925,
     SCKeyNoPGPEncryption_927,
     SCKeyNoNaClEncryption_928,
     SCKeySyncedPGPNotFound_929,
@@ -236,10 +237,9 @@ protocol constants {
     SCTeambotKeyGenerationExists_3800,
     SCTeambotKeyOldBoxedGeneration_3801,
     SCTeambotKeyBadGeneration_3802,
-    SCNoKeyFound_4000,
+    SCInvalidFormat_4000,
     SCWrongType_4001,
     SCBadFrame_4002,
-    SCInvalidFormat_4003,
     SCAirdropRegisterFailedMisc_4207
   }
 }

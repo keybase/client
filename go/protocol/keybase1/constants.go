@@ -72,6 +72,7 @@ const (
 	StatusCode_SCKeyDuplicateUpdate                        StatusCode = 921
 	StatusCode_SCSibkeyAlreadyExists                       StatusCode = 922
 	StatusCode_SCDecryptionKeyNotFound                     StatusCode = 924
+	StatusCode_SCVerificationKeyNotFound                   StatusCode = 925
 	StatusCode_SCKeyNoPGPEncryption                        StatusCode = 927
 	StatusCode_SCKeyNoNaClEncryption                       StatusCode = 928
 	StatusCode_SCKeySyncedPGPNotFound                      StatusCode = 929
@@ -245,10 +246,9 @@ const (
 	StatusCode_SCTeambotKeyGenerationExists                StatusCode = 3800
 	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
 	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
-	StatusCode_SCNoKeyFound                                StatusCode = 4000
+	StatusCode_SCInvalidFormat                             StatusCode = 4000
 	StatusCode_SCWrongType                                 StatusCode = 4001
 	StatusCode_SCBadFrame                                  StatusCode = 4002
-	StatusCode_SCInvalidFormat                             StatusCode = 4003
 	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
 )
 
@@ -316,6 +316,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCKeyDuplicateUpdate":        921,
 	"SCSibkeyAlreadyExists":       922,
 	"SCDecryptionKeyNotFound":     924,
+	"SCVerificationKeyNotFound":   925,
 	"SCKeyNoPGPEncryption":        927,
 	"SCKeyNoNaClEncryption":       928,
 	"SCKeySyncedPGPNotFound":      929,
@@ -489,10 +490,9 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeambotKeyGenerationExists":                3800,
 	"SCTeambotKeyOldBoxedGeneration":              3801,
 	"SCTeambotKeyBadGeneration":                   3802,
-	"SCNoKeyFound":                                4000,
+	"SCInvalidFormat":                             4000,
 	"SCWrongType":                                 4001,
 	"SCBadFrame":                                  4002,
-	"SCInvalidFormat":                             4003,
 	"SCAirdropRegisterFailedMisc":                 4207,
 }
 
@@ -558,6 +558,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	921:  "SCKeyDuplicateUpdate",
 	922:  "SCSibkeyAlreadyExists",
 	924:  "SCDecryptionKeyNotFound",
+	925:  "SCVerificationKeyNotFound",
 	927:  "SCKeyNoPGPEncryption",
 	928:  "SCKeyNoNaClEncryption",
 	929:  "SCKeySyncedPGPNotFound",
@@ -731,10 +732,9 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3800: "SCTeambotKeyGenerationExists",
 	3801: "SCTeambotKeyOldBoxedGeneration",
 	3802: "SCTeambotKeyBadGeneration",
-	4000: "SCNoKeyFound",
+	4000: "SCInvalidFormat",
 	4001: "SCWrongType",
 	4002: "SCBadFrame",
-	4003: "SCInvalidFormat",
 	4207: "SCAirdropRegisterFailedMisc",
 }
 

@@ -2318,6 +2318,7 @@ export enum StatusCode {
   sckeyduplicateupdate = 921,
   scsibkeyalreadyexists = 922,
   scdecryptionkeynotfound = 924,
+  scverificationkeynotfound = 925,
   sckeynopgpencryption = 927,
   sckeynonaclencryption = 928,
   sckeysyncedpgpnotfound = 929,
@@ -2491,10 +2492,9 @@ export enum StatusCode {
   scteambotkeygenerationexists = 3800,
   scteambotkeyoldboxedgeneration = 3801,
   scteambotkeybadgeneration = 3802,
-  scnokeyfound = 4000,
+  scinvalidformat = 4000,
   scwrongtype = 4001,
   scbadframe = 4002,
-  scinvalidformat = 4003,
   scairdropregisterfailedmisc = 4207,
 }
 

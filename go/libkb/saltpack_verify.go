@@ -17,7 +17,24 @@ type SaltpackVerifyContext interface {
 	GetLog() logger.Logger
 }
 
-func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
+func getVerificationErrorWithStatusCode(kberr kbcrypto.VerificationError) (err VerificationError) {
+	err.Cause.Err = kberr.Cause
+	switch err.Cause.Err.(type) {
+	case saltpack.ErrNoSenderKey:
+		err.Cause.StatusCode = SCDecryptionKeyNotFound
+	case saltpack.ErrWrongMessageType:
+		err.Cause.StatusCode = SCWrongType
+	}
+	return err
+}
+
+func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) (err error) {
+	defer func() {
+		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
+			err = getVerificationErrorWithStatusCode(kbErr)
+		}
+	}()
+
 	sc, newSource, err := ClassifyStream(source)
 	if err != nil {
 		return err
@@ -43,7 +60,8 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	}
 	if err != nil {
 		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
-		return kbcrypto.NewVerificationError(err)
+		kberr := kbcrypto.NewVerificationError(err)
+		return kberr
 	}
 
 	if checkSender != nil {
@@ -71,7 +89,13 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	return nil
 }
 
-func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) (err error) {
+	defer func() {
+		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
+			err = getVerificationErrorWithStatusCode(kbErr)
+		}
+	}()
+
 	sc, _, err := ClassifyStream(bytes.NewReader(signature))
 	if err != nil {
 		return err
