@@ -186,11 +186,11 @@ class InfoPanelMenu extends React.Component<Props> {
       (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
     const items: Kb.MenuItems = []
     if (isAdhoc) {
-      if (hideItem) {
-        items.push(hideItem as Kb.MenuItem)
-      }
       if (muteItem) {
         items.push(muteItem as Kb.MenuItem)
+      }
+      if (hideItem) {
+        items.push(hideItem as Kb.MenuItem)
       }
       items.push({
         danger: true,
@@ -202,11 +202,11 @@ class InfoPanelMenu extends React.Component<Props> {
       if (!props.isSmallTeam && !props.hasHeader) {
         items.push(channelHeader)
       }
-      if (hideItem) {
-        items.push(hideItem as Kb.MenuItem)
-      }
       if (muteItem) {
         items.push(muteItem as Kb.MenuItem)
+      }
+      if (hideItem) {
+        items.push(hideItem as Kb.MenuItem)
       }
       if (!props.isSmallTeam && !props.isInChannel && !isGeneralChannel && !props.hasHeader) {
         items.push({icon: 'iconfont-hash', onClick: props.onJoinChannel, title: 'Join channel'})
@@ -223,7 +223,7 @@ class InfoPanelMenu extends React.Component<Props> {
         title: 'Team info',
       })
       if (props.canAddPeople) {
-        items.concat(addPeopleItems)
+        addPeopleItems.forEach(item => items.push(item))
       }
       items.push({icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
     }
