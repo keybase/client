@@ -285,7 +285,7 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ButtonBar>
-        <Kb.Button mode="Primary" label={`${operationTitle}`} onClick={() => onOpenFile()} />
+        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={() => onOpenFile()} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )

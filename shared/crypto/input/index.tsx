@@ -40,11 +40,14 @@ type OperationBannerProps = {
   infoMessage?: string
 }
 
+// Tese magic numbers set the width of the single line `textarea` such that the
+// placeholder text is visible and pushes the "browse" button far enough to the
+// right to be exactly one empty character with from the end of the placeholder text
 const operationToEmptyInputWidth = {
-  [Constants.Operations.Encrypt]: 151,
-  [Constants.Operations.Decrypt]: 264,
-  [Constants.Operations.Sign]: 151,
-  [Constants.Operations.Verify]: 286,
+  [Constants.Operations.Encrypt]: 207,
+  [Constants.Operations.Decrypt]: 320,
+  [Constants.Operations.Sign]: 207,
+  [Constants.Operations.Verify]: 342,
 }
 
 /*
@@ -73,6 +76,7 @@ export const TextInput = (props: TextProps) => {
 
   const onOpenFile = async () => {
     const options = {
+      allowDirectories: true,
       buttonLabel: 'Select',
     }
     const filePaths = await showOpenDialog(options)
@@ -114,7 +118,7 @@ export const TextInput = (props: TextProps) => {
           />
           {!value && (
             <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
-              browse for one
+              browse
             </Kb.Text>
           )}
         </Kb.Box2>
@@ -225,7 +229,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
         disabled={inProgress}
-        allowFolders={false}
+        allowFolders={true}
         fullHeight={true}
         fullWidth={true}
         onAttach={onAttach}

@@ -74,10 +74,10 @@ export const Operations: {[key: string]: Types.Operations} = {
 }
 
 const operationToInputPlaceholder: {[k in Types.Operations]: string} = {
-  decrypt: 'Enter ciphertext, drop an encrypted file, or',
-  encrypt: 'Enter text, drop a file, or',
-  sign: 'Enter text, drop a file, or',
-  verify: 'Enter a signed message, drop a signed file, or',
+  decrypt: 'Enter ciphertext, drop an encrypted file or folder, or',
+  encrypt: 'Enter text, drop a file or folder, or',
+  sign: 'Enter text, drop a file or folder, or',
+  verify: 'Enter a signed message, drop a signed file or folder, or',
 }
 
 const operationToInputTextType: {[k in Types.Operations]: Types.TextType} = {

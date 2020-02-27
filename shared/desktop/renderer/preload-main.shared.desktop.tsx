@@ -75,7 +75,7 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   try {
     const {title, message, buttonLabel, allowDirectories, allowFiles, allowMultiselect, defaultPath} = opts
     const allowedProperties = [
-      ...(allowFiles ? ['openFile' as const] : []),
+      ...(allowFiles !== false ? ['openFile' as const] : []),
       ...(allowDirectories ? ['openDirectory' as const] : []),
       ...(allowMultiselect ? ['multiSelections' as const] : []),
     ]
