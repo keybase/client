@@ -542,6 +542,13 @@ type AddMemberCandidate struct {
 	// assertion was not compound. If it was, that person can't be added.
 }
 
+func (a AddMemberCandidate) DebugString() string {
+	if a.KeybaseUser != nil {
+		return fmt.Sprintf("User=%q, IsSingle=%t", a.KeybaseUser.Username, a.Single != nil)
+	}
+	return fmt.Sprintf("User=nil, IsSingle=%t", a.Single != nil)
+}
+
 // ResolveUPKV2FromAssertion creates an AddMemberCandidate struct by parsing
 // and attempting to resolve an assertion. This result can be then passed to
 // AddOrInviteMemberCandidate to queue adding that person in the transaction.
