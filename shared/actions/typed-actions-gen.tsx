@@ -887,6 +887,7 @@ export type TypedActionsMap = {
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'team-building:tbResetStore': teambuilding.TbResetStorePayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
+  'teams:channelSetMemberSelected': teams.ChannelSetMemberSelectedPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload
@@ -906,7 +907,7 @@ export type TypedActionsMap = {
   'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
-  'teams:setMemberSelected': teams.SetMemberSelectedPayload
+  'teams:teamSetMemberSelected': teams.TeamSetMemberSelectedPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload
