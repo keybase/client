@@ -237,7 +237,7 @@ const ProfileCard = ({
 type WithProfileCardPopupProps = {
   username: string
   children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
-  ellipsisStyle: Styles.StylesCrossPlatform
+  ellipsisStyle?: Styles.StylesCrossPlatform
 }
 
 export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithProfileCardPopupProps) => {
