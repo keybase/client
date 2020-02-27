@@ -59,7 +59,7 @@ const Circle = (p: Props) => {
   const innerRadius = 3
   // todo maybe change dynamically?
   const iconSize = 32
-  const containerRef = React.useRef<HTMLDivElement>()
+  const containerRef = React.useRef<HTMLDivElement>(null)
 
   useInterval(
     () => {
@@ -70,8 +70,6 @@ const Circle = (p: Props) => {
         let next = p + 0.1
         if (next >= 1) {
           next = 1
-          setColor(Styles.globalColors.green)
-          setIconOpacity(1)
         }
         if (next > 0.3 && color !== Styles.globalColors.red) {
           setColor(Styles.globalColors.red)
@@ -91,14 +89,16 @@ const Circle = (p: Props) => {
   const resetTimer = useTimeout(() => {
     setIconOpacity(0)
     setPercentDone(0)
+    setColor(Styles.globalColors.green)
     mockState.current = 'drawing'
 
     const div = containerRef.current
     if (div) {
+      div.style.transform = ''
       div.classList.remove('stopped')
       div.classList.remove('resetting')
     }
-  }, 2000)
+  }, 1000)
 
   //let stoppedAnimation = false
   //if (isDone && mockState.current === 'drawing') {
@@ -139,23 +139,24 @@ const Circle = (p: Props) => {
       return
     }
 
+    setIconOpacity(1)
     mockState.current = 'waiting'
 
     const matrix = getComputedStyle(div).transform
     if (matrix) {
-      const [, rot] = matrix
+      const [a, b] = matrix
         .split('(')[1]
         .split(')')[0]
         .split(',')
 
-      const angle = Math.round(Math.asin(parseFloat(rot)) * (180 / Math.PI))
+      const angle = Math.round(Math.atan2(b, a) * (180 / Math.PI))
       console.log('aaa angle', angle)
 
       div.classList.add('stopped')
       div.style.transform = `rotate(${angle}deg)`
       setTimeout(() => {
         div.classList.add('resetting')
-        div.style.transform = `rotate(${0}deg)`
+        div.style.transform = `rotate(${233}deg)`
       }, 1)
     }
     resetTimer()

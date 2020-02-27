@@ -125,10 +125,10 @@
 
 @keyframes circle{
   from {
-    transform: rotate(0deg);
+    transform: rotate(233deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(593deg);
   }
 }
 
