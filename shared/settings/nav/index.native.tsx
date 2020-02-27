@@ -60,7 +60,7 @@ function SettingsNav(props: Props) {
   const statsShown = Container.useSelector(state => !!state.config.runtimeStats)
 
   return (
-    <Kb.SectionList
+    <Kb.NativeSectionList
       keyboardShouldPersistTaps="handled"
       keyExtractor={(item, index) => item.text + index}
       renderItem={renderItem}

@@ -289,12 +289,15 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: 
   </Kb.Box2>
 )
 
+// TODO: the type of this is any
+// If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
+// a bunch of the native props.
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
-  sectionListRef = React.createRef<Kb.SectionList>()
+  sectionListRef = React.createRef<Kb.SectionList<any>>()
   componentDidMount = () => {
     this.props.fetchUserRecs()
   }

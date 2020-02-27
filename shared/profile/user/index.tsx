@@ -531,7 +531,6 @@ class User extends React.Component<Props, State> {
                         : this._renderOtherUsers,
                   },
                 ]}
-                style={styles.sectionList}
                 contentContainerStyle={styles.sectionListContentStyle}
               />
             )}

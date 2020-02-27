@@ -5,6 +5,7 @@ import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../
 import {isAndroid} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
 import {memoize} from '../../../../../util/memoize'
+import {Section as _Section} from '../../../../../common-adapters/section-list'
 
 // defer loading this until we need to, very expensive
 const _getData = memoize(() => {
@@ -14,9 +15,10 @@ const _getData = memoize(() => {
   return {categories, emojiIndex, emojiNameMap}
 })
 
+type EmojiCategory = {category: string; emojis: Array<Data.EmojiData>}
 const getData = memoize((topReacjis: Array<string>) => {
   const {categories, emojiIndex, emojiNameMap} = _getData()
-  const allCategories =
+  const allCategories: Array<EmojiCategory> =
     !!topReacjis && topReacjis.length
       ? [
           {
@@ -30,7 +32,7 @@ const getData = memoize((topReacjis: Array<string>) => {
   // SectionList data is mostly static, map categories here
   // and chunk data within component
   const emojiSections = allCategories.map(c => ({
-    category: c.category,
+    title: c.category,
     data: {emojis: c.emojis, key: ''},
     key: c.category,
   }))
@@ -69,14 +71,8 @@ const cacheSections = (width: number, sections: Array<Section>, topReacjis: Arra
   cachedTopReacjis = topReacjis
 }
 
-type Section = {
-  category: string
-  data: Array<{
-    emojis: Array<Data.EmojiData>
-    key: string
-  }>
-  key: string
-}
+type Item = {emojis: Array<Data.EmojiData>; key: string}
+type Section = _Section<Item, {title?: string}>
 
 type Props = {
   topReacjis: Array<string>
@@ -107,7 +103,7 @@ class EmojiPicker extends React.Component<Props, State> {
     let sections: Array<Section> = []
     const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
     sections = emojiSections.map(c => ({
-      category: c.category,
+      title: c.title,
       data: chunk(c.data.emojis, emojisPerLine).map((c: any, idx: number) => ({
         emojis: c,
         key: (c && c.length && c[0] && c[0].short_name) || String(idx),
@@ -164,9 +160,8 @@ class EmojiPicker extends React.Component<Props, State> {
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={true}
-        renderItem={(item: {index: number; emojis: Array<Data.EmojiData>; key: string}) => (
-          // @ts-ignore
-          <EmojiRow key={item.index} {...item} onChoose={this.props.onChoose} />
+        renderItem={({item, index}: {item: Item; index: number}) => (
+          <EmojiRow key={index} item={item} onChoose={this.props.onChoose} />
         )}
         renderSectionHeader={HeaderRow}
       />
@@ -202,7 +197,7 @@ const EmojiRender = ({
 
 const HeaderRow = ({section}: {section: Section}) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
-    <Text type="BodySmallSemibold">{section.category}</Text>
+    <Text type="BodySmallSemibold">{section.title}</Text>
   </Box2>
 )
 
