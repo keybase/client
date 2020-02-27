@@ -2557,7 +2557,7 @@ const mobileNavigateOnSelect = (
     logger.info(
       `mobileNavigateOnSelect: navigating to selected: selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
     )
-    return navigateToThreadRoute(state.chat2.selectedConversation, navKey)
+    return navigateToThreadRoute(conversationIDKey, navKey)
   } else if (
     conversationIDKey === Constants.pendingWaitingConversationIDKey ||
     conversationIDKey === Constants.pendingErrorConversationIDKey
