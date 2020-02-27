@@ -19,7 +19,7 @@ const RoleButton = (props: Props) => {
       type="BodySmallSemibold"
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
-          <Kb.Icon type={iconType} style={styles.icon} fontSize={Styles.isMobile ? 16 : 12} />
+          <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" />
           {capitalize(props.selectedRole)}
         </Kb.Box2>
       }
