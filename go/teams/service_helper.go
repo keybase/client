@@ -470,6 +470,30 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	return AddMemberByID(ctx, g, team.ID, username, role, botSettings, nil /* emailInviteMsg */)
 }
 
+// AddMemberErrorBehavior decides on what to do on errors when adding users.
+// Default is continuing on contact restriction errors.
+type AddMemberErrorBehavior int
+
+const (
+	// Skip members if we fail to add them because of contact restriction
+	// settings.
+	AddMemberContinueOnContactError AddMemberErrorBehavior = iota
+	// Skip members if we fail for other reasons that are not criticial.
+	// Example reason: email is already invited to the team.
+	AddMemberContinueOnNonCriticialError
+	// Fail on all errors. Produces an "add everyone or no one" AllMembers
+	// behavior.
+	AddMemberFailOnError
+)
+
+type AddMembersArg struct {
+	Users []keybase1.UserRolePair
+	// Welcome message in email invitations sent from the server. Only applies
+	// to email assertions. When nil, nothing is sent.
+	EmailInviteMsg *string
+	ErrorBehavior  AddMemberErrorBehavior
+}
+
 type AddMembersRes struct {
 	Invite   bool                     // Whether the membership addition was an invite.
 	Username libkb.NormalizedUsername // Resolved username. May be nil for social assertions.
@@ -481,12 +505,10 @@ type AddMembersRes struct {
 // will remove restricted users returned by the error, and retry once.
 // On success, returns a list where len(added) + len(noAdded) = len(assertions) and in
 // corresponding order, with restricted users having an empty AddMembersRes.
-//
-// @emailInviteMsg *string is an argument used as a welcome message in email invitations sent from the server
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair,
-	emailInviteMsg *string) (added []AddMembersRes, notAdded []keybase1.User, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
-	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
+func AddMembers(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	args AddMembersArg) (added []AddMembersRes, notAdded []keybase1.User, err error) {
+
+	tracer := mctx.TimeTracer("team.AddMembers", true)
 	defer tracer.Finish()
 
 	// restrictedUsers is nil initially, but if first attempt at adding members
@@ -495,10 +517,12 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 	var restrictedUsers contactRestrictedUsers
 
 	addNonRestrictedMembersFunc := func(ctx context.Context, _ int) error {
+		mctx := libkb.NewMetaContext(ctx, mctx.G())
+
 		added = []AddMembersRes{}
 		notAdded = []keybase1.User{}
 
-		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
+		team, err := GetForTeamManagementByTeamID(ctx, mctx.G(), teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
 		}
@@ -509,20 +533,20 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 
 		tx := CreateAddMemberTx(team)
-		tx.EmailInviteMsg = emailInviteMsg
+		tx.EmailInviteMsg = args.EmailInviteMsg
 
 		type sweepEntry struct {
 			Assertion string
 			UV        keybase1.UserVersion
 		}
 		var sweep []sweepEntry
-		for _, user := range users {
+		for _, user := range args.Users {
 			candidate, err := tx.ResolveUPKV2FromAssertion(mctx, user.Assertion)
 			if err != nil {
 				return NewAddMembersError(candidate.Full, err)
 			}
 
-			g.Log.CDebugf(ctx, "%q resolved to %s", user.Assertion, candidate.DebugString())
+			mctx.Debug("%q resolved to %s", user.Assertion, candidate.DebugString())
 
 			if restricted, kbUser := restrictedUsers.checkCandidate(candidate); restricted {
 				// Skip users with contact setting restrictions.
@@ -532,10 +556,19 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 
 			username, uv, invite, err := tx.AddOrInviteMemberCandidate(ctx, candidate, user.Role, user.BotSettings)
 			if err != nil {
-				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
+				switch err.(type) {
+				case AttemptedInviteSocialOwnerError, TransactionTaintedError:
 					return err
 				}
-				return NewAddMembersError(candidate.Full, err)
+
+				if args.ErrorBehavior == AddMemberContinueOnNonCriticialError {
+					mctx.Debug("Skipping assertion %q because AddOrInviteMemberCandidate failed with: %s",
+						user.Assertion, err)
+					notAdded = append(notAdded, user)
+					continue
+				} else {
+					return NewAddMembersError(candidate.Full, err)
+				}
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
@@ -560,20 +593,20 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
 		for _, x := range sweep {
 			if err := tx.CompleteSocialInvitesFor(timeoutCtx, x.UV, x.Assertion); err != nil {
-				g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor(%v, %v) -> %v", x.UV, x.Assertion, err)
+				mctx.Warning("Failed in CompleteSocialInvitesFor(%v, %v) -> %v", x.UV, x.Assertion, err)
 			}
 		}
 		timeoutCancel()
 
-		return tx.Post(libkb.NewMetaContext(ctx, g))
+		return tx.Post(mctx)
 	}
 
 	// try to add
-	err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc)
+	err = RetryIfPossible(mctx.Ctx(), mctx.G(), addNonRestrictedMembersFunc)
 	if blockError, ok := err.(libkb.TeamContactSettingsBlockError); ok {
 		mctx.Debug("AddMembers: initial attempt failed with contact settings error: %v", err)
 		uids := blockError.BlockedUIDs()
-		if len(uids) == len(users) {
+		if len(uids) == len(args.Users) {
 			// If all users can't be added, quit. Do this check before calling
 			// `unpackContactRestrictedUsers` to avoid allocating and setting
 			// up the uid set if we fall in this case.
@@ -582,7 +615,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 		restrictedUsers = unpackContactRestrictedUsers(blockError)
 		mctx.Debug("AddMembers: retrying without restricted users: %+v", blockError.BlockedUsernames())
-		err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc)
+		err = RetryIfPossible(mctx.Ctx(), mctx.G(), addNonRestrictedMembersFunc)
 	}
 
 	if err != nil {
@@ -741,7 +774,10 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 		return res, err
 	}
 
-	_, _, err = AddMembers(ctx, g, t.ID, toAdd, nil /* emailInviteMsg */)
+	_, _, err = AddMembers(mctx, t.ID, AddMembersArg{
+		Users:         toAdd,
+		ErrorBehavior: 1,
+	})
 	return res, err
 }
 

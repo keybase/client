@@ -342,7 +342,11 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		return res, err
 	}
 
-	added, notAdded, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users, arg.EmailInviteMessage)
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	added, notAdded, err := teams.AddMembers(mctx, arg.TeamID, teams.AddMembersArg{
+		Users:          arg.Users,
+		EmailInviteMsg: arg.EmailInviteMessage,
+	})
 	switch err := err.(type) {
 	case nil:
 	case teams.AddMembersError:
