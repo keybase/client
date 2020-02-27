@@ -134,7 +134,13 @@ class InfoPanelMenu extends React.Component<Props> {
       title: 'channelHeader',
       unWrapped: true,
       view: (
-        <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.channelHeader}>
+        <Kb.Box2
+          direction="horizontal"
+          fullHeight={true}
+          fullWidth={true}
+          key="channelHeader"
+          style={styles.channelHeader}
+        >
           <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
             # <Kb.Text type="BodyBold">{props.channelname}</Kb.Text>
           </Kb.Text>
@@ -162,6 +168,7 @@ class InfoPanelMenu extends React.Component<Props> {
           direction="horizontal"
           fullHeight={true}
           fullWidth={true}
+          key="teamHeader"
           style={Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
         >
           <Kb.Box2 direction="horizontal" gap="tiny">
