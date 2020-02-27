@@ -9,11 +9,26 @@ import (
 	"github.com/keybase/saltpack"
 )
 
+func getStatusCodeFromDecryptionError(err *DecryptionError) (code int) {
+	switch err.Cause.Err.(type) {
+	case saltpack.ErrNoSenderKey:
+		code = SCDecryptionKeyNotFound
+	case saltpack.ErrWrongMessageType:
+		code = SCWrongType
+	}
+	return code
+}
+
 func SaltpackDecrypt(m MetaContext, source io.Reader, sink io.WriteCloser,
 	decryptionKeyring saltpack.SigncryptKeyring,
 	checkSenderMki func(*saltpack.MessageKeyInfo) error,
 	checkSenderSigningKey func(saltpack.SigningPublicKey) error,
-	keyResolver saltpack.SymmetricKeyResolver) (*saltpack.MessageKeyInfo, error) {
+	keyResolver saltpack.SymmetricKeyResolver) (mki *saltpack.MessageKeyInfo, err error) {
+	defer func() {
+		if derr, ok := err.(DecryptionError); ok {
+			derr.Cause.StatusCode = getStatusCodeFromDecryptionError(&derr)
+		}
+	}()
 
 	sc, newSource, err := ClassifyStream(source)
 	if err != nil {

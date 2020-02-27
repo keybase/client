@@ -148,17 +148,27 @@ export const getStatusCodeMessage = (
   const offlineMessage = `Cannot ${operation} offline.`
   const genericMessage = `Failed to ${operation} ${type}.`
 
-  const statusCodeToMessage: any = {
+  var wrongTypeHelpText = ``
+  if (operation === Operations.Verify) {
+    wrongTypeHelpText = ` Did you mean to decrypt it instead?`
+  } else if (operation === Operations.Decrypt) {
+    wrongTypeHelpText = ` Did you mean to verify it instead?`
+  }
+
+  const causeStatusCode = (error.fields && error.fields[1].key === "Code") ? error.fields[1].value : RPCTypes.StatusCode.scgeneric 
+  const causeStatusCodeToMessage: any = {
+    [RPCTypes.StatusCode.scdecryptionkeynotfound]: ` No suitable key found.`,
+    [RPCTypes.StatusCode.scverificationkeynotfound]: `No suitable key found.`,
+    [RPCTypes.StatusCode.scwrongtype]: ` Unexpected message type.` + wrongTypeHelpText
+  } as const
+
+ const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
     [RPCTypes.StatusCode.scgeneric]: `${error.message.includes('API network error') ? offlineMessage : genericMessage}`,
     [RPCTypes.StatusCode.scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
-    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}.`,
-    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}.`,
-    [RPCTypes.StatusCode.scnokeyfound]: "No suitable key found.",
-    [RPCTypes.StatusCode.scwrongtype]: "Wrong Saltpack message type.",
-    [RPCTypes.StatusCode.scbadframe]: "Invalid Saltpack format.",  // TODO: can expose "cause" text for more detail
-    [RPCTypes.StatusCode.scinvalidformat]:"Invalid Saltpack format.",
-  } as const
+    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}.` + (causeStatusCodeToMessage[causeStatusCode] || ``),
+    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}.`+ (causeStatusCodeToMessage[causeStatusCode] || ``),
+    } as const
 
   return statusCodeToMessage[error.code] || genericMessage
 }

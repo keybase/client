@@ -17,7 +17,7 @@ type SaltpackVerifyContext interface {
 	GetLog() logger.Logger
 }
 
-func getVerificationErrorWithStatusCode(kberr kbcrypto.VerificationError) (err VerificationError) {
+func getVerificationErrorWithStatusCode(kberr *kbcrypto.VerificationError) (err VerificationError) {
 	err.Cause.Err = kberr.Cause
 	switch err.Cause.Err.(type) {
 	case saltpack.ErrNoSenderKey:
@@ -31,7 +31,7 @@ func getVerificationErrorWithStatusCode(kberr kbcrypto.VerificationError) (err V
 func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) (err error) {
 	defer func() {
 		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
-			err = getVerificationErrorWithStatusCode(kbErr)
+			err = getVerificationErrorWithStatusCode(&kbErr)
 		}
 	}()
 
@@ -92,7 +92,7 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) (err error) {
 	defer func() {
 		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
-			err = getVerificationErrorWithStatusCode(kbErr)
+			err = getVerificationErrorWithStatusCode(&kbErr)
 		}
 	}()
 
