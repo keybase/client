@@ -16,15 +16,6 @@ type Props = {
   size: number
 }
 
-//const HalfCircle = ({size, style}) => (
-//<div
-//style={Styles.collapseStyles([
-//style,
-//{width: size, height: size / 2, borderTopLeftRadius: size / 2, borderTopRightRadius: size / 2},
-//])}
-///>
-//)
-
 const Circle = (p: Props) => {
   const {username, size} = p
 
@@ -114,78 +105,6 @@ const Circle = (p: Props) => {
       </Kb.Text>
     </>
   )
-
-  // const half = size / 2
-  // const stroke = 4
-  // const halfStroke = stroke / 2
-
-  // <Kb.Svg.Circle
-  // cx={half}
-  // cy={half}
-  // r={half - halfStroke}
-  // stroke="blue"
-  // strokeWidth={stroke}
-  // fill="transparent"
-  // />
-  // d={`
-  // M ${half} ${half}
-  // m -${half}, 0
-  // a ${half},${half} 0 1,0 (${size}),0
-  // a ${half},${half} 0 1,0 -(${size}),0
-  // `}
-  // <Kb.Svg.Path
-  // d={`M ${size}, ${size}
-  // m -${size},-${half}
-  // a ${half},${half} 0 1,0 ${size},0
-  // a ${half},${half} 0 1,0 -${size},0
-  // `}
-  // stroke="blue"
-  // strokeWidth={stroke}
-  // fill="green"
-  // />
-  // <Kb.Svg.Circle
-  // cx={half}
-  // cy={half}
-  // r={half - halfStroke}
-  // strokeDasharray="30.81, 100"
-  // strokeDashoffset="0"
-  // strokeWidth={stroke}
-  // fill="green"
-  // />
-  // <Kb.Svg.G strokeWidth="11.25">
-  // <Kb.Svg.Circle
-  // cx={half}
-  // cy={half}
-  // r={half}
-  // strokeDasharray="30.851 100"
-  // strokeDashoffset="0"
-  // stroke="red"
-  // ></Kb.Svg.Circle>
-  // <Kb.Svg.Circle
-  // cx={half}
-  // cy={half}
-  // r={half}
-  // strokeDasharray="5.330 100"
-  // strokeDashoffset="-30.851"
-  // stroke="green"
-  // ></Kb.Svg.Circle>
-  // <Kb.Svg.Circle
-  // cx={half}
-  // cy={half}
-  // r={half}
-  // strokeDasharray="63.819 100"
-  // strokeDashoffset="-36.181"
-  // stroke="blue"
-  // ></Kb.Svg.Circle>
-  // </Kb.Svg.G>
-  //return (
-  //<Kb.Svg.Svg
-  //height={size}
-  //width={size}
-  //viewBox={`0 0 ${size} ${size}`}
-  //style={styles.container}
-  //></Kb.Svg.Svg>
-  //)
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -193,5 +112,192 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
   },
 }))
+
+// rn one
+//const Circle ({
+//const activeColor = 'green'
+//const passiveColor = 'grey'
+//const baseColor = 'red'
+//const radius = 128
+//const width = 128
+//const duration = 1
+//const initialValueInnerCircle = 0;
+//const timePerDegree = duration / 360;
+//const color1 = activeColor;
+//const color2 = done >= 50 ? activeColor : passiveColor;
+
+//const [done, setDone] = React.useState(0)
+//const initialValueHalfCircle = done >= 50 ? 0 : 180;
+
+//const [animatedValue1, setAnimatedValue1] = React.useState(initialValueHalfCircle)
+//const [animatedValue2,setAnimatedValue2] = React.useState(initialValueHalfCircle)
+//const [animatedValue3,setAnimatedValue3] = React.useState(initialValueInnerCircle)
+
+//useInterval(() => {
+//setDone(p => {
+//let next = p + 10
+//if (next >= 100) {
+//next = 0
+//}
+//return next
+//})
+//}, 1000)
+
+//const firstAnimation = () => {
+//setAnimatedValue1 (180);
+//setAnimatedValue2(180 + (done - 50) * 3.6);
+//setAnimatedValue3(timePerDegree * ((done - 50) * 3.6),)
+
+////return {
+////one: css`
+////transition-duration: 1s;
+////transition-property: transform;
+////transform: ${twoTransform};
+////` ,
+////two: ,
+////three:
+////}
+
+////Animated.parallel([
+////Animated.timing(animatedValue1, {
+////toValue: 180,
+////duration: 180 * timePerDegree,
+////useNativeDriver: true,
+////easing: Easing.linear
+////}),
+////Animated.timing(animatedValue2, {
+////toValue: 180 + (done - 50) * 3.6,
+////duration: (180 + (done - 50) * 3.6) * timePerDegree,
+////useNativeDriver: true,
+////easing: Easing.linear
+////}),
+////Animated.timing(animatedValue3, {
+////toValue: (done - 50) * 3.6,
+////delay: 180 * timePerDegree,
+////duration: timePerDegree * ((done - 50) * 3.6),
+////useNativeDriver: true,
+////easing: Easing.linear
+////})
+////]).start();
+//};
+
+//const secondAnimation = () => {
+////animatedValue1.setValue(initialValueHalfCircle);
+////animatedValue2.setValue(initialValueHalfCircle);
+////animatedValue3.setValue(initialValueInnerCircle);
+////Animated.timing(animatedValue2, {
+////toValue: 180 + done * 3.6,
+////duration: done * 3.6 * timePerDegree,
+////useNativeDriver: true,
+////easing: Easing.linear
+////}).start();
+//};
+
+//useEffect(() => {
+//if (done >= 50) {
+//firstAnimation();
+//} else {
+//secondAnimation();
+//}
+//}, [done]);
+
+//const renderHalf = (color: string, transforms = [], otherStyles = {}) => (
+//<div
+//style={[
+//styles.half,
+//{ backgroundColor: color, borderColor: color },
+//{ width: radius, height: radius * 2, borderRadius: radius },
+//{
+//transform: [
+//{ translateX: radius / 2 },
+//...transforms,
+//{ translateX: -radius / 2 },
+//{ scale: 1.004 }
+//]
+//},
+//otherStyles
+//]}
+//></div>
+//);
+
+////const rotate1 = animatedValue1.interpolate({
+////inputRange: [0, 1],
+////outputRange: ["0deg", "1deg"]
+////});
+////const rotate2 = animatedValue2.interpolate({
+////inputRange: [0, 1],
+////outputRange: ["0deg", "1deg"]
+////});
+
+////const rotate3 = animatedValue3.interpolate({
+////inputRange: [0, 1],
+////outputRange: ["0deg", "1deg"]
+////});
+
+////const elevation3 = animatedValue3.interpolate({
+////inputRange: [0, 1],
+////outputRange: [0, -1]
+////});
+//const rotate1 =`${animatedValue1}deg`
+//const rotate2 =`${animatedValue2}deg`
+//const rotate3 =`${animatedValue3}deg`
+//const elevation3 = animatedValue3 === 0 ? 1 : 0
+
+//return (
+//<div style={styles.container}>
+//<div
+//style={[
+//styles.outer,
+//{ backgroundColor: passiveColor },
+//{ borderRadius: radius, height: radius * 2, width: radius * 2 }
+//]}
+//>
+//{renderHalf(color1, [{ rotate: rotate1 }])}
+//{renderHalf(color2, [{ rotate: rotate2 }])}
+//{renderHalf(passiveColor, [{ rotate: rotate3 }], {
+//sIndex: elevation3
+//})}
+//<div
+//style={[
+//{
+//backgroundColor: baseColor,
+//width: 2 * radius - width,
+//height: 2 * radius - width,
+//borderRadius: radius,
+//elevation: 1000,
+//display: "flex",
+//justifyContent: "center",
+//alignItems: "center"
+//}
+//]}
+//>
+//{children}
+//</div>
+//</div>
+//</div>
+//);
+//};
+
+//const styles = Styles.styleSheetCreate(() => ({
+//container: {
+//flex: 1,
+//margin: 50,
+//backgroundColor: "#fff",
+//alignItems: "center",
+//justifyContent: "center"
+//},
+//outer: {
+//position: "relative",
+//justifyContent: "center",
+//alignItems: "center"
+//},
+//half: {
+//position: "absolute",
+//left: 0,
+//top: 0,
+//borderTopRightRadius: 0,
+//borderBottomRightRadius: 0
+//}
+//}))
 
 export default Circle
