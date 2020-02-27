@@ -169,7 +169,7 @@ func (b *BlockServerDisk) GetEncodedSizes(
 		err = translateToBlockServerError(err)
 	}()
 	b.log.CDebugf(ctx,
-		"BlockServerDisk.GetEncodedSize id=%s tlfID=%s context=%s",
+		"BlockServerDisk.GetEncodedSizes id=%s tlfID=%s context=%s",
 		ids, tlfID, contexts)
 	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
