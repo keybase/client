@@ -82,6 +82,13 @@
       "teamID": "Types.TeamID",
       "members": "Map<string, Types.MemberInfo>"
     },
+    "setMemberSelected": {
+      "_description": "Sets whether a member is selected on the team page",
+      "teamID": "Types.TeamID",
+      "username": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
+    },
     "getTeamProfileAddList": {
       "username": "string"
     },
@@ -182,6 +189,9 @@
       "settings": "Types.PublicitySettings"
     },
     "setChannelCreationError": {
+      "error": "string"
+    },
+    "setWelcomeMessageError": {
       "error": "string"
     },
     "setEditDescriptionError": {
@@ -314,6 +324,11 @@
       "_description": "Toggle whether invites are collapsed in the member list for this team",
       "teamID": "Types.TeamID"
     },
+    "setWelcomeMessage": {
+      "_description": "Set welcome message for new team members",
+      "teamID": "Types.TeamID",
+      "message": "RPCChatTypes.WelcomeMessage"
+    },
     "loadWelcomeMessage": {
       "_description": "Load welcome message for new team members",
       "teamID": "Types.TeamID"
@@ -321,7 +336,7 @@
     "loadedWelcomeMessage": {
       "_description": "Loaded welcome message for new team members",
       "teamID": "Types.TeamID",
-      "message": "RPCChatTypes.WelcomeMessage"
+      "message": "RPCChatTypes.WelcomeMessageDisplay"
     },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",

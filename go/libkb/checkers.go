@@ -84,10 +84,8 @@ var CheckDeviceName = Checker{
 		s = strings.Replace(s, "’", "'", -1) // curly quote #2
 		return s
 	},
-	Normalize: func(s string) string {
-		return normalizeDeviceName(s)
-	},
-	Hint: "between 3 and 64 characters long; use a-Z, 0-9, space, plus, underscore, dash and apostrophe",
+	Normalize: normalizeDeviceName,
+	Hint:      "between 3 and 64 characters long; use a-Z, 0-9, space, plus, underscore, dash and apostrophe",
 }
 
 func MakeCheckKex2SecretPhrase(g *GlobalContext) Checker {

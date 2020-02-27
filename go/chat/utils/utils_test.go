@@ -102,6 +102,10 @@ func (t *testTeamChannelSource) GetRecentJoins(ctx context.Context, convID chat1
 	return 0, nil
 }
 
+func (t *testTeamChannelSource) GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error) {
+	return 0, nil
+}
+
 func (t *testTeamChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
@@ -915,7 +919,7 @@ func TestPresentConversationParticipantsLocal(t *testing.T) {
 			Username: "example@twitter",
 		},
 	}
-	res := presentConversationParticipantsLocal(context.TODO(), rawParticipants)
+	res := PresentConversationParticipantsLocal(context.TODO(), rawParticipants)
 
 	require.Equal(t, res[0].ContactName, &tofurkeyhq)
 	require.Equal(t, res[0].Type, chat1.UIParticipantType_EMAIL)

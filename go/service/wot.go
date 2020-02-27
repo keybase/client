@@ -53,8 +53,24 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 	return engine.RunEngine2(mctx, eng)
 }
 
-func (h *WebOfTrustHandler) WotPending(ctx context.Context, sessionID int) (res []keybase1.PendingVouch, err error) {
+func (h *WebOfTrustHandler) WotListCLI(ctx context.Context, arg keybase1.WotListCLIArg) (res []keybase1.WotVouch, err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	return libkb.FetchPendingWotVouches(mctx)
+	if arg.Username == nil {
+		return libkb.FetchMyWot(mctx)
+	}
+	return libkb.FetchUserWot(mctx, *arg.Username)
+}
+
+func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactArg) error {
+	ctx = libkb.WithLogTag(ctx, "WOT")
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	earg := &engine.WotReactArg{
+		Voucher:  arg.Uv,
+		Proof:    arg.Proof,
+		Reaction: arg.Reaction,
+	}
+	eng := engine.NewWotReact(h.G(), earg)
+	return engine.RunEngine2(mctx, eng)
 }

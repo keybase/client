@@ -3,6 +3,14 @@
 protocol wot {
   import idl "common.avdl";
 
+  enum WotStatusType {
+    NONE_0,
+    PROPOSED_1,
+    ACCEPTED_2,
+    REJECTED_3,
+    REVOKED_4
+  }
+
   // none (""), audio, video, email, other_chat, in_person
   @typedef("string")
   record UsernameVerificationType {}
@@ -18,16 +26,24 @@ protocol wot {
     int knownOnKeybaseDays;
   }
 
-  record PendingVouch {
+  void wotVouch(int sessionID, UserVersion uv /* vouchee */, array<string> vouchTexts, Confidence confidence);
+  void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
+
+  enum WotReactionType {
+    ACCEPT_0,
+    REJECT_1
+  }
+  void wotReact(int sessionID, UserVersion uv /* voucher */, SigID proof, WotReactionType reaction);
+
+  record WotVouch {
+    WotStatusType status;
+    SigID vouchProof;
     UserVersion voucher;
-    SigID proof;
     array<string> vouchTexts;
+    Time vouchedAt;
     union { null, Confidence } confidence;
   }
 
-  array<PendingVouch> wotPending(int sessionID);
+  array<WotVouch> wotListCLI(int sessionID, union {null, string} username);
 
-  void wotVouch(int sessionID, UserVersion uv, array<string> vouchTexts, Confidence confidence);
-
-  void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
 }

@@ -6,7 +6,7 @@ import * as Platforms from '../../constants/platform'
 import * as FsConstants from '../../constants/fs'
 import * as Container from '../../util/container'
 import * as Kbfs from '../../fs/common'
-import RuntimeStats from '../../app/runtime-stats/container'
+import RuntimeStats from '../../app/runtime-stats'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
 import AccountSwitcher from '../account-switcher/container'
@@ -243,6 +243,7 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
 
   return (
     <Kb.ClickableBox
+      feedback={false}
       key={tab}
       onClick={() => onTabClick(tab)}
       onMouseOver={isCrypto ? () => setHovering(true) : undefined}

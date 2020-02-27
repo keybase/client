@@ -28,7 +28,6 @@ const (
 	PushMembershipUpdate    = "chat.membershipUpdate"
 	PushTLFFinalize         = "chat.tlffinalize"
 	PushTLFResolve          = "chat.tlfresolve"
-	PushTeamChannels        = "chat.teamchannels"
 	PushKBFSUpgrade         = "chat.kbfsupgrade"
 	PushConvRetention       = "chat.convretention"
 	PushTeamRetention       = "chat.teamretention"
@@ -310,6 +309,11 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 		Amount:   p.Amount,
 		Currency: p.Currency,
 	}
+}
+
+type ParticipantResult struct {
+	Uids []gregor1.UID
+	Err  error
 }
 
 type DummyAttachmentFetcher struct{}
@@ -702,3 +706,19 @@ func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID c
 func (d DummyUIThreadLoader) IsOffline(ctx context.Context) bool { return true }
 func (d DummyUIThreadLoader) Connected(ctx context.Context)      {}
 func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}
+
+type DummyParticipantSource struct{}
+
+func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
+	return nil, nil
+}
+func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) chan ParticipantResult {
+	ch := make(chan ParticipantResult)
+	close(ch)
+	return ch
+}
+func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
+}

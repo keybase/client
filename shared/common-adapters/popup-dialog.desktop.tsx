@@ -22,7 +22,7 @@ export function PopupDialog({
   styleContainer,
   styleClose,
   styleClipContainer,
-  tabBarShim,
+  tabBarShim, // Move out of the way the nav column.
   allowClipBubbling,
 }: Props) {
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)

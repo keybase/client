@@ -132,7 +132,7 @@ func (p *PGPFingerprint) Match(q string, exact bool) bool {
 		return false
 	}
 	if exact {
-		return strings.ToLower(p.String()) == strings.ToLower(q)
+		return strings.EqualFold(p.String(), q)
 	}
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
 }

@@ -253,7 +253,7 @@ func (c *ChatCLIUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearch
 	if width > 80 {
 		width = 80
 	}
-	fmt.Fprintf(w, fmt.Sprintf("%s\n", strings.Repeat("-", width)))
+	fmt.Fprintf(w, "%s\n", strings.Repeat("-", width))
 	return nil
 }
 
@@ -268,8 +268,7 @@ func (c *ChatCLIUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearc
 	} else {
 		searchText := fmt.Sprintf("Search complete. Found %d %s", numHits, c.simplePlural(numHits, "result"))
 		numConvs := arg.Res.NumConvs
-		searchText = fmt.Sprintf("%s in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
-		fmt.Fprintf(w, searchText)
+		fmt.Fprintf(w, "%s in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
 	}
 	if !arg.Res.Delegated {
 		percentIndexed := arg.Res.PercentIndexed

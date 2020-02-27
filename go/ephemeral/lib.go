@@ -508,7 +508,7 @@ func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.
 	err = teamEKRetryWrapper(mctx, func() error {
 		e.Lock()
 		defer e.Unlock()
-		ek, created, err = e.getOrCreateLatestTeamEKLocked(mctx, teamID)
+		ek, created, err = e.getOrCreateLatestTeamEKLocked(mctx, teamID, nil)
 		if err != nil {
 			return err
 		}
@@ -521,14 +521,13 @@ func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.
 	typ, err := ek.KeyType()
 	if err != nil {
 		return ek, false, err
-	}
-	if !typ.IsTeam() {
+	} else if !typ.IsTeam() {
 		return ek, false, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAM)
 	}
 	return ek, created, err
 }
 
-func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID keybase1.TeamID) (
+func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID keybase1.TeamID, forceCreateGen *keybase1.EkGeneration) (
 	ek keybase1.TeamEphemeralKey, created bool, err error) {
 	defer mctx.TraceTimed("getOrCreateLatestTeamEKLocked", func() error { return err })()
 
@@ -588,7 +587,7 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 				<-e.backgroundCreationTestCh
 			}
 
-			publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
+			publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot, nil)
 			// Grab the lock once we finish publishing so we do don't block
 			e.Lock()
 			defer e.Unlock()
@@ -608,7 +607,16 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 			}
 		}()
 	case teamEKNeeded:
-		publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
+		publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot, nil)
+		if err != nil {
+			return ek, false, err
+		}
+		latestGeneration = publishedMetadata.Generation
+	case forceCreateGen != nil && latestGeneration == *forceCreateGen:
+		// Teambot creation can request a new teamEK be force published. We
+		// only want to do this once so we make sure no on else has published
+		// before us and incremented the generation.
+		publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot, forceCreateGen)
 		if err != nil {
 			return ek, false, err
 		}
@@ -629,7 +637,7 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 // `generation` is also the current maxGeneration, create a new teamEK.
 func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (ek keybase1.TeamEphemeralKey, err error) {
-	mctx = mctx.WithLogTag("GLTEK")
+	mctx = mctx.WithLogTag("GTEK")
 	defer mctx.TraceTimed("GetTeamEK", func() error { return err })()
 
 	teamEKBoxStorage := mctx.G().GetTeamEKBoxStorage()
@@ -662,8 +670,7 @@ func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, genera
 	typ, err := ek.KeyType()
 	if err != nil {
 		return ek, err
-	}
-	if !typ.IsTeam() {
+	} else if !typ.IsTeam() {
 		return ek, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAM)
 	}
 	return ek, err
@@ -686,28 +693,34 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		created = false
 		ek, err = e.getLatestTeambotEK(mctx, teamID, botUID)
-		if err != nil {
-			if _, ok := err.(EphemeralKeyError); ok {
-				// Ping team members to generate the latest key for us
-				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
-					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
-				}
-				// See if we should downgrade this to a transient error. Since
-				// bot members get a key when added to the team this should
-				// only happen in a tight race before the key is created or if
-				// the TeamEK has been purged and we don't have a new one.
-				ekErr := err.(EphemeralKeyError)
-				if ekErr.AllowTransient() {
-					err = newTransientEphemeralKeyError(ekErr)
-				}
+		switch err := err.(type) {
+		case nil:
+		case EphemeralKeyError:
+			// Make sure we have a valid deviceEK, we may be in a oneshot
+			// configuration and be fighting with another bot for one.
+			if err2 := e.KeygenIfNeeded(mctx); err2 != nil {
+				return ek, false, err2
 			}
+			// Ping team members to generate the latest key for us
+			if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
+				mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+			}
+			// See if we should downgrade this to a transient error. Since
+			// bot members get a key when added to the team this should
+			// only happen in a tight race before the key is created or if
+			// the TeamEK has been purged and we don't have a new one.
+			if err.AllowTransient() {
+				err = newTransientEphemeralKeyError(err)
+			}
+			return ek, false, err
+		default:
 			return ek, false, err
 		}
 	} else { // we are a team member who needs the latest bot key, get or create that puppy.
 		err = teamEKRetryWrapper(mctx, func() error {
 			e.Lock()
 			defer e.Unlock()
-			ek, created, err = e.getOrCreateLatestTeambotEKLocked(mctx, teamID, botUID)
+			ek, created, err = e.getOrCreateLatestTeambotEKLocked(mctx, teamID, botUID, nil)
 			return err
 		})
 		if err != nil {
@@ -719,15 +732,46 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 	typ, err := ek.KeyType()
 	if err != nil {
 		return ek, false, err
+	} else if !typ.IsTeambot() {
+		return ek, false, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAMBOT)
 	}
-	if !typ.IsTeambot() {
+	return ek, created, err
+}
+
+func (e *EKLib) ForceCreateTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBotUID gregor1.UID,
+	forceCreateGen keybase1.EkGeneration) (ek keybase1.TeamEphemeralKey, created bool, err error) {
+	mctx = mctx.WithLogTag("FCTEK")
+	botUID, err := keybase1.UIDFromSlice(gBotUID.Bytes())
+	if err != nil {
+		return ek, false, err
+	}
+
+	// We are the bot, try to access our latest key
+	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
+		return ek, false, fmt.Errorf("Cannot force create as a bot member")
+	}
+	err = teamEKRetryWrapper(mctx, func() error {
+		e.Lock()
+		defer e.Unlock()
+		ek, created, err = e.getOrCreateLatestTeambotEKLocked(mctx, teamID, botUID, &forceCreateGen)
+		return err
+	})
+	if err != nil {
+		return ek, false, err
+	}
+
+	// sanity check key type
+	typ, err := ek.KeyType()
+	if err != nil {
+		return ek, false, err
+	} else if !typ.IsTeambot() {
 		return ek, false, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAMBOT)
 	}
 	return ek, created, err
 }
 
 func (e *EKLib) getOrCreateLatestTeambotEKLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	botUID keybase1.UID) (ek keybase1.TeamEphemeralKey, created bool, err error) {
+	botUID keybase1.UID, forceCreateGen *keybase1.EkGeneration) (ek keybase1.TeamEphemeralKey, created bool, err error) {
 	defer mctx.TraceTimed("getOrCreateLatestTeambotEKLocked", func() error { return err })()
 
 	// first check if we have the teamEK cached, in which case we can just
@@ -747,7 +791,7 @@ func (e *EKLib) getOrCreateLatestTeambotEKLocked(mctx libkb.MetaContext, teamID 
 	}
 
 	// get the latest teamEK to derive the latest teambotEK
-	teamEK, _, err := e.getOrCreateLatestTeamEKLocked(mctx, teamID)
+	teamEK, _, err := e.getOrCreateLatestTeamEKLocked(mctx, teamID, forceCreateGen)
 	if err != nil {
 		return ek, false, err
 	}
@@ -761,8 +805,7 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 	typ, err := teamEK.KeyType()
 	if err != nil {
 		return ek, false, err
-	}
-	if !typ.IsTeam() {
+	} else if !typ.IsTeam() {
 		return ek, false, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAM)
 	}
 
@@ -960,8 +1003,7 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 	typ, err := ek.KeyType()
 	if err != nil {
 		return ek, err
-	}
-	if !typ.IsTeambot() {
+	} else if !typ.IsTeambot() {
 		return ek, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAMBOT)
 	}
 	return ek, err
@@ -1068,8 +1110,7 @@ func (e *EKLib) BoxLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, 
 	typ, err := ek.KeyType()
 	if err != nil {
 		return nil, err
-	}
-	if !typ.IsTeam() {
+	} else if !typ.IsTeam() {
 		return nil, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAM)
 	}
 	teamEK := ek.Team()

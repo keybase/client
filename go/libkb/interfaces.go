@@ -65,6 +65,7 @@ type configGetter interface {
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
 	GetEKLogFile() string
+	GetPerfLogFile() string
 	GetGUILogFile() string
 	GetUseDefaultLogFile() (bool, bool)
 	GetUseRootConfigFile() (bool, bool)
@@ -873,7 +874,10 @@ type EKLib interface {
 
 	// Teambot ephemeral keys
 	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeamEphemeralKey, bool, error)
-	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration,
+		contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	ForceCreateTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
+		generation keybase1.EkGeneration) (keybase1.TeamEphemeralKey, bool, error)
 	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 	PurgeAllTeambotMetadataCaches(mctx MetaContext)
@@ -1165,4 +1169,10 @@ type AvatarLoaderSource interface {
 
 	StartBackgroundTasks(MetaContext)
 	StopBackgroundTasks(MetaContext)
+}
+
+type RuntimeStats interface {
+	Start(context.Context)
+	Stop(context.Context) chan struct{}
+	PushPerfEvent(keybase1.PerfEvent)
 }

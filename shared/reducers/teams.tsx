@@ -218,13 +218,26 @@ export default Container.makeReducer<
   [TeamsGen.setChannelSelected]: (draftState, action) => {
     const {teamID, channel, selected, clearAll} = action.payload
     if (clearAll) {
-      draftState.selectedChannels.set(teamID, new Set())
+      draftState.selectedChannels.delete(teamID)
     } else {
       const channelsSelected = mapGetEnsureValue(draftState.selectedChannels, teamID, new Set())
       if (selected) {
         channelsSelected.add(channel)
       } else {
         channelsSelected.delete(channel)
+      }
+    }
+  },
+  [TeamsGen.setMemberSelected]: (draftState, action) => {
+    const {teamID, username, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.selectedMembers.delete(teamID)
+    } else {
+      const membersSelected = mapGetEnsureValue(draftState.selectedMembers, teamID, new Set())
+      if (selected) {
+        membersSelected.add(username)
+      } else {
+        membersSelected.delete(username)
       }
     }
   },
@@ -271,9 +284,15 @@ export default Container.makeReducer<
     const {teamID, message} = action.payload
     draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
+  [TeamsGen.setWelcomeMessageError]: (draftState, action) => {
+    draftState.errorInEditWelcomeMessage = action.payload.error
+  },
+  [TeamsGen.setWelcomeMessage]: (draftState, _) => {
+    draftState.errorInEditWelcomeMessage = ''
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
-    draftState.teamIDToWelcomeMessage.set(teamID, {set: message.set, text: message.text})
+    draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,

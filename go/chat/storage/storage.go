@@ -76,7 +76,7 @@ func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
 		ephemeralTracker: newEphemeralTracker(g),
 		assetDeleter:     assetDeleter,
 		clock:            clockwork.NewRealClock(),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "Storage", false),
 	}
 }
 
@@ -745,7 +745,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 		}
 		delh := mvalid.MessageBody.Deletehistory()
 		de("found DeleteHistory: id:%v upto:%v", msgid, delh.Upto)
-		if delh.Upto <= 0 {
+		if delh.Upto == 0 {
 			de("skipping malformed delh")
 			continue
 		}

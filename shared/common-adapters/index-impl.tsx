@@ -112,9 +112,6 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get Header() {
-    return require('./header').default
-  },
   get HeaderHoc() {
     return require('./header-hoc').default
   },
@@ -168,9 +165,6 @@ module.exports = {
   },
   get LoadingLine() {
     return require('./loading-line').default
-  },
-  get LocationMap() {
-    return require('./location-map').default
   },
   get Markdown() {
     return require('./markdown').default
@@ -241,12 +235,6 @@ module.exports = {
   get ProofBrokenBanner() {
     return require('./proof-broken-banner').default
   },
-  get QRLines() {
-    return require('./qr-lines').default
-  },
-  get QRNotAuthorized() {
-    return require('./qr-not-authorized').default
-  },
   get RadioButton() {
     return require('./radio-button').default
   },
@@ -255,6 +243,9 @@ module.exports = {
   },
   get RequireImage() {
     return require('./image').RequireImage
+  },
+  get RichButton() {
+    return require('./rich-button').default
   },
   get RoundedBox() {
     return require('./rounded-box').default
@@ -306,9 +297,6 @@ module.exports = {
   },
   get Transition() {
     return require('./animated').Transition
-  },
-  get UserCard() {
-    return require('./user-card').default
   },
   get Video() {
     return require('./video').default

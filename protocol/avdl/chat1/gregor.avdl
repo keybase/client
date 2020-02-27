@@ -146,10 +146,6 @@ protocol gregor {
         array<ConversationUpdate> convUpdates;
     }
 
-    record TeamChannelUpdate {
-        TLFID teamID;
-    }
-
     record SetConvRetentionUpdate {
         InboxVers inboxVers;
         ConversationID convID;

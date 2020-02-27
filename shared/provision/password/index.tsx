@@ -5,6 +5,7 @@ import * as Kb from '../../common-adapters'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import {SignupScreen, errorBanner} from '../../signup/common'
 import {isMobile} from '../../constants/platform'
+import UserCard from '../../login/user-card'
 
 export type Props = {
   onSubmit: (password: string) => void
@@ -57,7 +58,7 @@ const Password = (props: Props) => {
         style={styles.fill}
         contentContainerStyle={styles.scrollContentContainer}
       >
-        <Kb.UserCard
+        <UserCard
           style={styles.card}
           username={props.username}
           avatarBackgroundStyle={styles.outerCardAvatar}
@@ -83,7 +84,7 @@ const Password = (props: Props) => {
               Forgot password?
             </Kb.Text>
           </Kb.Box2>
-        </Kb.UserCard>
+        </UserCard>
       </Kb.ScrollView>
     </SignupScreen>
   )

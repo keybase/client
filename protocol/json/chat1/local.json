@@ -3816,6 +3816,24 @@
     },
     {
       "type": "record",
+      "name": "WelcomeMessageDisplay",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "set"
+        },
+        {
+          "type": "string",
+          "name": "display"
+        },
+        {
+          "type": "string",
+          "name": "raw"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "WelcomeMessage",
       "fields": [
         {
@@ -3824,7 +3842,7 @@
         },
         {
           "type": "string",
-          "name": "text"
+          "name": "raw"
         }
       ]
     },
@@ -5658,7 +5676,7 @@
           "type": "keybase1.TeamID"
         }
       ],
-      "response": "WelcomeMessage"
+      "response": "WelcomeMessageDisplay"
     },
     "getDefaultTeamChannelsLocal": {
       "request": [
@@ -5710,6 +5728,28 @@
         }
       ],
       "response": "int"
+    },
+    "refreshParticipants": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "getLastActiveAtLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "gregor1.Time"
     }
   },
   "namespace": "chat.1"

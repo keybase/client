@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import DragHeader from '../desktop/remote/drag-header.desktop'
 import * as Styles from '../styles'
 import {_setDarkModePreference} from '../styles/dark-mode'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -56,7 +57,7 @@ class Pinentry extends React.Component<Props, State> {
         className={this.props.darkMode ? 'darkMode' : 'lightMode'}
         key={this.props.darkMode ? 'darkMode' : 'light'}
       >
-        <Kb.Header icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />
+        <DragHeader icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Kb.Text type="Body" center={true}>
             {this.props.prompt}

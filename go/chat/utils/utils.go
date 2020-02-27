@@ -493,21 +493,25 @@ func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gre
 }
 
 type DebugLabeler struct {
-	log     logger.Logger
+	libkb.Contextified
 	label   string
 	verbose bool
 }
 
-func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler {
+func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		log:     log.CloneWithAddedDepth(1),
-		label:   label,
-		verbose: verbose,
+		Contextified: libkb.NewContextified(g),
+		label:        label,
+		verbose:      verbose,
 	}
 }
 
 func (d DebugLabeler) GetLog() logger.Logger {
-	return d.log
+	return d.G().GetLog()
+}
+
+func (d DebugLabeler) GetPerfLog() logger.Logger {
+	return d.G().GetPerfLog()
 }
 
 func (d DebugLabeler) showVerbose() bool {
@@ -523,17 +527,25 @@ func (d DebugLabeler) showLog() bool {
 
 func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
 	if d.showLog() {
-		d.log.CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
+		d.G().GetLog().CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
 	}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetLog(), f, format, args...)
+}
+
+func (d DebugLabeler) PerfTrace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetPerfLog(), f, format, args...)
+}
+
+func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, f func() error, format string, args ...interface{}) func() {
 	if d.showLog() {
 		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
-		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
+		log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
+			log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
@@ -697,7 +709,7 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 
 func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessageText,
-	getConvMembs func() ([]chat1.ConversationLocalParticipant, error),
+	getConvMembs func() ([]string, error),
 	debug *DebugLabeler) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions, getConvMembs)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
@@ -728,7 +740,7 @@ func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments [
 
 func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 	knownMentions []chat1.KnownUserMention,
-	getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (gregor1.UID, error) {
+	getConvMembs func() ([]string, error)) (gregor1.UID, error) {
 	nname := libkb.NewNormalizedUsername(name)
 	shouldLookup := false
 	for _, known := range knownMentions {
@@ -746,7 +758,7 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 			return nil, err
 		}
 		for _, memb := range membs {
-			if memb.Username == nname.String() {
+			if memb == nname.String() {
 				shouldLookup = true
 				break
 			}
@@ -763,7 +775,7 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 }
 
 func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
-	knownMentions []chat1.KnownUserMention, getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
+	knownMentions []chat1.KnownUserMention, getConvMembs func() ([]string, error)) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	matches := parseRegexpNames(ctx, body, atMentionRegExp)
 	chanRes = chat1.ChannelMention_NONE
 	for _, m := range matches {
@@ -1390,7 +1402,7 @@ func getParticipantType(username string) chat1.UIParticipantType {
 	return chat1.UIParticipantType_USER
 }
 
-func presentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+func PresentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
 	for _, p := range rawParticipants {
 		participantType := getParticipantType(p.Username)
 		participants = append(participants, chat1.UIParticipant{
@@ -1456,7 +1468,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	}
 	switch partMode {
 	case PresentParticipantsModeInclude:
-		res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
+		res.Participants = PresentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	default:
 	}
 	return res
@@ -1720,6 +1732,20 @@ func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.Messag
 	return ""
 }
 
+func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
+	// escape before applying xforms
+	body = EscapeForDecorate(ctx, body)
+	body = EscapeShrugs(ctx, body)
+
+	// This needs to happen before (deep) links.
+	kbfsPaths := ParseKBFSPaths(ctx, body)
+	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
+
+	// Links
+	body = DecorateWithLinks(ctx, body)
+	return body
+}
+
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
@@ -1745,18 +1771,11 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 		return nil
 	}
 
-	// escape before applying xforms
-	body = EscapeForDecorate(ctx, body)
-	body = EscapeShrugs(ctx, body)
+	body = PresentDecoratedTextNoMentions(ctx, body)
 
-	// This needs to happen before (deep) links.
-	kbfsPaths := ParseKBFSPaths(ctx, body)
-	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
-
-	// Links
-	body = DecorateWithLinks(ctx, body)
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
 		msg.ChannelNameMentions)

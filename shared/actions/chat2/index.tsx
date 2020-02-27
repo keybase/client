@@ -23,6 +23,7 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
+import * as Platform from '../../constants/platform'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import {NotifyPopup} from '../../native/notifications'
@@ -206,27 +207,22 @@ const onGetInboxConvsUnboxed = (
     if (meta) {
       metas.push(meta)
     }
-    const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
-    ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
-      const {assertion, fullName, contactName, inConvName} = part
-      if (!infoMap.get(assertion) && fullName) {
-        added = true
-        usernameToFullname[assertion] = fullName
-      }
-      participantInfo.all.push(assertion)
-      if (inConvName) {
-        participantInfo.name.push(assertion)
-      }
-      if (contactName) {
-        participantInfo.contactName.set(assertion, contactName)
-      }
-    })
+    const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
+      inboxUIItem.participants ?? []
+    )
     if (participantInfo.all.length > 0) {
       participants.push({
         conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
         participants: participantInfo,
       })
     }
+    inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
+      const {assertion, fullName} = part
+      if (!infoMap.get(assertion) && fullName) {
+        added = true
+        usernameToFullname[assertion] = fullName
+      }
+    })
   })
   if (added) {
     actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
@@ -1904,7 +1900,7 @@ const previewConversationTeam = async (
 ) => {
   const {conversationIDKey, teamname, reason} = action.payload
   if (conversationIDKey) {
-    if (reason === 'messageLink' || reason === 'teamMention') {
+    if (reason === 'messageLink' || reason === 'teamMention' || reason === 'channelHeader') {
       // Add preview channel to inbox
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
@@ -2217,6 +2213,27 @@ function* attachmentsUpload(
   )
 }
 
+const attachFromDragAndDrop = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttachFromDragAndDropPayload
+) => {
+  if (Platform.isDarwin) {
+    const paths = await Promise.all(
+      action.payload.paths.map(p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
+    )
+    return Chat2Gen.createAttachmentsUpload({
+      conversationIDKey: action.payload.conversationIDKey,
+      paths,
+      titles: action.payload.titles,
+    })
+  }
+  return Chat2Gen.createAttachmentsUpload({
+    conversationIDKey: action.payload.conversationIDKey,
+    paths: action.payload.paths,
+    titles: action.payload.titles,
+  })
+}
+
 // Tell service we're typing
 const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
   const {conversationIDKey, typing} = action.payload
@@ -2410,8 +2427,8 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
   let replace = false
   const visible = Router2Constants.getVisibleScreen()
 
-  if (!Container.isPhone && visible && visible.routeName === 'chatRoot') {
-    // Don't append; we don't want to increase the size of the stack on desktop
+  if (Constants.isSplit && visible && visible.routeName === 'chatRoot') {
+    // Don't append; we don't want to increase the size of the stack with a split chat view.
     return
   }
 
@@ -3746,6 +3763,7 @@ function* chat2Saga() {
     attachmentDownload
   )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield* Saga.chainAction2(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)

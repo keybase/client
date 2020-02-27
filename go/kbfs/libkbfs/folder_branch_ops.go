@@ -281,7 +281,9 @@ type folderBranchOps struct {
 	latestMergedRevision kbfsmd.Revision
 	latestMergedUpdated  chan struct{}
 	// Has this folder ever been cleared?
-	hasBeenCleared bool
+	hasBeenCleared    bool
+	partialSyncRev    kbfsmd.Revision
+	partialSyncConfig keybase1.FolderSyncConfig
 
 	syncLock            kbfssync.LeveledRWMutex
 	markAndSweepTrigger chan<- struct{}
@@ -1121,10 +1123,20 @@ func (fbo *folderBranchOps) doPartialSync(
 	latestMerged ImmutableRootMetadata) (err error) {
 	startTime, timer := fbo.startOp(
 		ctx, "Starting partial sync at revision %d", latestMerged.Revision())
+	lState := makeFBOLockState()
 	defer func() {
 		fbo.endOp(
 			ctx, startTime, timer, "Partial sync at revision %d done: %+v",
 			latestMerged.Revision(), err)
+		if err != nil {
+			fbo.headLock.Lock(lState)
+			if fbo.partialSyncConfig.Equal(syncConfig) &&
+				fbo.partialSyncRev == latestMerged.Revision() {
+				fbo.partialSyncConfig = keybase1.FolderSyncConfig{}
+				fbo.partialSyncRev = kbfsmd.RevisionUninitialized
+			}
+			fbo.headLock.Unlock(lState)
+		}
 	}()
 
 	var parentSyncAction, pathSyncAction BlockRequestAction
@@ -1161,7 +1173,6 @@ func (fbo *folderBranchOps) doPartialSync(
 	}
 
 	chs := make(map[string]<-chan struct{}, len(syncConfig.Paths))
-	lState := makeFBOLockState()
 	// Look up and solo-sync each lead-up component of the path.
 pathLoop:
 	for _, p := range syncConfig.Paths {
@@ -1295,7 +1306,17 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 					"aborting partial sync", fbo.latestMergedRevision,
 				rmd.Revision())
 			return nil
+		} else if rmd.Revision() <= fbo.partialSyncRev &&
+			fbo.partialSyncConfig.Equal(syncConfig) {
+			fbo.vlog.CLogf(
+				partialSyncCtx, libkb.VLog1,
+				"Partial sync (mode=%s) already launched at revision %d; "+
+					"no need to run one for %d; aborting partial sync",
+				syncConfig.Mode, fbo.partialSyncConfig, rmd.Revision())
+			return nil
 		}
+		fbo.partialSyncConfig = syncConfig
+		fbo.partialSyncRev = rmd.Revision()
 		return fbo.latestMergedUpdated
 	}()
 	if updatedCh == nil {

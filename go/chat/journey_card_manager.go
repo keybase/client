@@ -39,7 +39,7 @@ func NewJourneyCardManager(g *globals.Context, ri func() chat1.RemoteInterface) 
 	return &JourneyCardManager{
 		Contextified: globals.NewContextified(g),
 		ri:           ri,
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "JourneyCardManager", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "JourneyCardManager", false),
 	}
 }
 
@@ -181,7 +181,7 @@ func NewJourneyCardManagerSingleUser(g *globals.Context, ri func() chat1.RemoteI
 	return &JourneyCardManagerSingleUser{
 		Contextified: globals.NewContextified(g),
 		ri:           ri,
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "JourneyCardManager", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "JourneyCardManager", false),
 		uid:          uid,
 		lru:          lru,
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
@@ -358,7 +358,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 				message, messageErr := getWelcomeMessage(ctx, cc.G(), cc.ri, cc.uid, teamID)
 				if messageErr != nil {
 					cc.Debug(ctx, "failed to get welcome message: %s", messageErr)
-					message = chat1.WelcomeMessage{Set: false}
+					message = chat1.WelcomeMessageDisplay{Set: false}
 				}
 				cc.G().ExternalG().NotifyRouter.HandleChatWelcomeMessageLoaded(ctx, teamID, message)
 			}(globals.BackgroundChatCtx(ctx, cc.G()))
@@ -868,7 +868,10 @@ func (cc *JourneyCardManagerSingleUser) SentMessage(ctx context.Context, teamID 
 }
 
 func (cc *JourneyCardManagerSingleUser) Dismiss(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, cardType chat1.JourneycardType) {
-	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
+	var err error
+	defer cc.G().CTrace(ctx, fmt.Sprintf("JourneyCardManagerSingleUser.Dismiss(cardType:%v, teamID:%v, convID:%v)",
+		cardType, teamID, convID.DbShortFormString()), func() error { return err })()
+	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
 		cc.Debug(ctx, "Dismiss storageLock error: %v", err)
 		return

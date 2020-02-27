@@ -408,6 +408,7 @@ const (
 	LinkTypePerUserKey        LinkType = "per_user_key"
 	LinkTypeWalletStellar     LinkType = "wallet.stellar"
 	LinkTypeWotVouch          LinkType = "wot.vouch"
+	LinkTypeWotReact          LinkType = "wot.react"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
@@ -597,6 +598,7 @@ const (
 const (
 	ServiceLogFileName = "keybase.service.log"
 	EKLogFileName      = "keybase.ek.log"
+	PerfLogFileName    = "keybase.perf.log"
 	KBFSLogFileName    = kbconst.KBFSLogFileName
 	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"

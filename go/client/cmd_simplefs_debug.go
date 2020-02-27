@@ -16,10 +16,10 @@ func NewCmdSimpleFSDebug(
 	return cli.Command{
 		Name:  "debug",
 		Usage: "Debug utilities",
-		Subcommands: append([]cli.Command{
+		Subcommands: []cli.Command{
 			NewCmdSimpleFSDebugDump(cl, g),
 			NewCmdSimpleFSDebugObfuscate(cl, g),
 			NewCmdSimpleFSDebugDeobfuscate(cl, g),
-		}),
+		},
 	}
 }

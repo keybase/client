@@ -11,6 +11,7 @@ protocol config {
     boolean loggedIn;
     boolean sessionIsValid;
     union { null, User } user;
+    string deviceName;
   }
 
   CurrentStatus getCurrentStatus(int sessionID);
@@ -102,6 +103,7 @@ protocol config {
     string pid;
     string log;
     string ekLog;
+    string perfLog;
   }
 
   record KBFSStatus {

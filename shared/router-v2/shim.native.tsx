@@ -17,17 +17,27 @@ const shimNewRoute = (Original: any) => {
 
     const body = <Original {...props} key={Styles.isDarkMode ? 'dark' : 'light'} />
 
+    // we try and determine the  offset based on seeing if the header exists
+    // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe
+    // but it works for now
     let headerHeight: number | undefined = undefined
     if (navigationOptions) {
       // explicitly passed a getter?
       if (navigationOptions.useHeaderHeight) {
         headerHeight = navigationOptions.useHeaderHeight()
+      } else if (
+        !navigationOptions.header &&
+        !navigationOptions.headerRight &&
+        !navigationOptions.headerLeft &&
+        !navigationOptions.title &&
+        !navigationOptions.headerTitle
+      ) {
+        // nothing
       } else {
-        // default sizes
-        if (Styles.isTablet) {
-          headerHeight = 68
-        } else {
+        if (Styles.isIPhoneX) {
           headerHeight = 88
+        } else {
+          headerHeight = 64
         }
       }
     }

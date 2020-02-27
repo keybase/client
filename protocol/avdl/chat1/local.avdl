@@ -1321,12 +1321,21 @@ protocol local {
     PINNED_MESSAGE_11
   }
 
+  record WelcomeMessageDisplay{
+    boolean set;
+    // display is text suitable for displaying in Kb.Markdown (e.g., it
+    // has KB-escaped URLs)
+    string display;
+    // raw is the raw user-input plaintext
+    string raw;
+  }
   record WelcomeMessage {
     boolean set;
-    string text;
+    // raw is the raw user-input plaintext
+    string raw;
   }
   void setWelcomeMessage(keybase1.TeamID teamID, WelcomeMessage message);
-  WelcomeMessage getWelcomeMessage(keybase1.TeamID teamID);
+  WelcomeMessageDisplay getWelcomeMessage(keybase1.TeamID teamID);
 
   record GetDefaultTeamChannelsLocalRes {
     array<InboxUIItem> convs;
@@ -1343,4 +1352,9 @@ protocol local {
   map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
 
   int getRecentJoinsLocal(ConversationID convID);
+
+  // queue up a refresh of participants, this will result in notifications to the UI with the data
+  // from local and remote sources
+  void refreshParticipants(ConversationID convID);
+  gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, gregor1.UID uid);
 }

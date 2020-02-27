@@ -968,7 +968,25 @@
         },
         {
           "name": "message",
-          "type": "WelcomeMessage"
+          "type": "WelcomeMessageDisplay"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatParticipantsInfo": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "participants",
+          "type": {
+            "type": "array",
+            "items": "UIParticipant"
+          }
         }
       ],
       "response": null,

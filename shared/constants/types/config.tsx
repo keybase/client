@@ -30,9 +30,15 @@ export type WindowState = {
 }
 
 export type State = {
-  androidShare?: {
-    url: string
-  }
+  androidShare?:
+    | {
+        type: RPCTypes.IncomingShareType.file
+        url: string
+      }
+    | {
+        type: RPCTypes.IncomingShareType.text
+        text: string
+      }
   appFocused: boolean
   appFocusedCount: number
   appOutOfDateMessage: string
