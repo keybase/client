@@ -358,6 +358,9 @@
     "getMemberSubteamDetails": {
       "teamID": "Types.TeamID",
       "username": "string"
+    },
+    "setMemberSubteamDetails": {
+      "memberships": "Map<string, Types.MemberInfoWithJoinTime>"
     }
   }
 }

@@ -668,6 +668,9 @@ export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
 export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
+export const getTeamMembership = (state: TypedState, member: Types.Member): Types.MemberInfo | null =>
+  state.teams.teamMemberToSubteams.get(teamMemberToString(member)) || null
+
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
 ): Map<Types.TeamID, Types.TeamMeta> => {
@@ -754,6 +757,20 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
       teamShowcased: t.showcase.isShowcased,
     },
     subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
+  }
+}
+
+export const subteamDetailsToMemberInfo = (
+  username: string,
+  t: RPCTypes.AnnotatedSubteamMemberDetails
+): Types.MemberInfoWithJoinTime => {
+  const maybeRole = teamRoleByEnum[t.role]
+  return {
+    fullName: t.details.fullName,
+    joinTime: t.details.joinTime || undefined,
+    status: rpcMemberStatusToStatus[t.details.status],
+    type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
+    username,
   }
 }
 

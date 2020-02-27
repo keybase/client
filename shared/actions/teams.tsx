@@ -1344,13 +1344,35 @@ async function getMemberSubteamDetails(
 ) {
   const {teamID, username} = action.payload
 
-  const x = await RPCTypes.teamsGetUserSubteamMembershipsRpcPromise({
-    teamID,
-    username,
+  let memberships: RPCTypes.AnnotatedSubteamMemberDetails[]
+  try {
+    const lookup = await RPCTypes.teamsGetUserSubteamMembershipsRpcPromise({
+      teamID,
+      username,
+    })
+    if (!lookup) {
+      logger.info(`getMemberSubteamDetails: retrieved no results for ${teamID}:${username}`)
+      return null
+    }
+    memberships = lookup
+  } catch (e) {
+    logger.info(`getMemberSubteamDetails: unable to get details for ${teamID}:${username}: ${e.toString()}`)
+    return null
+  }
+
+  const res = new Map<string, Types.MemberInfoWithJoinTime>()
+  for (const membership of memberships) {
+    res.set(
+      Constants.teamMemberToString({
+        teamID: membership.teamID,
+        username,
+      }),
+      Constants.subteamDetailsToMemberInfo(username, membership)
+    )
+  }
+  return TeamsGen.createSetMemberSubteamDetails({
+    memberships: res,
   })
-  logger.info(`getMemberSubteamDetails: ${JSON.stringify(x)}`)
-  console.log(x)
-  return null
 }
 
 const teamsSaga = function*() {

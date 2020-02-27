@@ -11,24 +11,35 @@ import {pluralize} from '../../../util/string'
 import {FloatingRolePicker} from '../../role-picker'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {TeamDetailsSubscriber} from '../../subscriber'
+import {formatTimeForAssertionPopup} from '../../../util/timestamp'
 
 type Props = {
   teamID: Types.TeamID
   username: string
 }
 type OwnProps = Container.RouteProps<Props>
+type MetaPlusMembership = {
+  teamMeta: Types.TeamMeta
+  memberInfo: Types.MemberInfo
+}
 
 // TODO: upon visiting this page, dispatch something to load the subteam data into the store for all these subteams
 const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
   const subteamsAll = Constants.getTeamDetails(state, teamID).subteams
   let subteamsNotIn: Array<Types.TeamMeta> = []
-  let subteamsIn: Array<Types.TeamMeta> = []
+  let subteamsIn: Array<MetaPlusMembership> = []
   subteamsAll.forEach(subteamID => {
-    const subteamDetails = Constants.getTeamDetails(state, subteamID)
     const subteamMeta = Constants.getTeamMeta(state, subteamID)
-    const memberInSubteam = subteamDetails.members.has(username)
-    if (memberInSubteam) {
-      subteamsIn.push(subteamMeta)
+    const subteamMembership = Constants.getTeamMembership(state, {
+      teamID: subteamID,
+      username,
+    })
+
+    if (subteamMembership) {
+      subteamsIn.push({
+        memberInfo: subteamMembership,
+        teamMeta: subteamMeta,
+      })
     } else {
       subteamsNotIn.push(subteamMeta)
     }
@@ -40,47 +51,44 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
 }
 
 const TeamMember = (props: OwnProps) => {
+  const dispatch = Container.useDispatch()
   const username = Container.getRouteProps(props, 'username', '')
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+
+  // Load up the memberships when the page is opened
+  const loaded = Container.useSelector(state =>
+    state.teams.teamMemberToSubteams.has(Constants.teamMemberToString({teamID, username}))
+  )
+  React.useEffect(() => {
+    if (loaded) {
+      return
+    }
+    dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
+  }, [dispatch, loaded, teamID, username])
+
+  // then process the teams
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )
-  const dispatch = Container.useDispatch()
-  const subteams = Container.useSelector(state =>
-    state.teams.teamMemberToSubteams.get(
-      Constants.teamMemberToString({
-        teamID,
-        username,
-      })
-    )
-  )
-  React.useEffect(() => {
-    if (!subteams) {
-      dispatch(
-        TeamsGen.createGetMemberSubteamDetails({
-          teamID,
-          username,
-        })
-      )
-    }
-  }, [dispatch, subteams, teamID, username])
+
   const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
   const sections = [
     {
       data: subteamsIn,
       key: 'section-subteams',
-      renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
+      renderItem: ({item, index}: {item: MetaPlusMembership; index: number}) => (
         <SubteamInRow
           teamID={teamID}
-          subteam={item}
+          subteam={item.teamMeta}
+          membership={item.memberInfo}
           idx={index}
           username={username}
-          expanded={expandedSet.has(item.teamname)}
+          expanded={expandedSet.has(item.teamMeta.teamname)}
           setExpanded={newExpanded => {
             if (newExpanded) {
-              expandedSet.add(item.teamname)
+              expandedSet.add(item.teamMeta.teamname)
             } else {
-              expandedSet.delete(item.teamname)
+              expandedSet.delete(item.teamMeta.teamname)
             }
             setExpandedSet(new Set([...expandedSet]))
           }}
@@ -132,6 +140,7 @@ type SubteamNotInRowProps = {
   idx: number
 }
 type SubteamInRowProps = SubteamNotInRowProps & {
+  membership: Types.MemberInfoWithJoinTime
   expanded: boolean
   setExpanded: (b: boolean) => void
 }
@@ -215,7 +224,10 @@ const SubteamInRow = (props: SubteamInRowProps) => {
         <Kb.Avatar teamname={props.subteam.teamname} size={32} />
         <Kb.Box2 direction="vertical" alignItems="flex-start">
           <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
-          <Kb.Text type="BodySmall">Joined Feb 1944 {/* TODO: where to get this data? */}</Kb.Text>
+          <Kb.Text type="BodySmall">
+            Joined{' '}
+            {props.membership.joinTime ? formatTimeForAssertionPopup(props.membership.joinTime) : 'this team'}
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
       {expanded && (

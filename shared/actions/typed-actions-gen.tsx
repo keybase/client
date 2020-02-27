@@ -968,6 +968,7 @@ export type TypedActionsMap = {
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
+  'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateUserReset': tracker2.UpdateUserResetPayload

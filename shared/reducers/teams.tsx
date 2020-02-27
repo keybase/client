@@ -290,6 +290,11 @@ export default Container.makeReducer<
   [TeamsGen.setWelcomeMessage]: (draftState, _) => {
     draftState.errorInEditWelcomeMessage = ''
   },
+  [TeamsGen.setMemberSubteamDetails]: (draftState, action) => {
+    action.payload.memberships.forEach((value, key) => {
+      draftState.teamMemberToSubteams.set(key, value)
+    })
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)

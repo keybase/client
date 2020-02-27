@@ -54,6 +54,7 @@ export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMemberSelected = 'teams:setMemberSelected'
+export const setMemberSubteamDetails = 'teams:setMemberSubteamDetails'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
@@ -216,6 +217,7 @@ type _SetMemberSelectedPayload = {
   readonly selected: boolean
   readonly clearAll?: boolean
 }
+type _SetMemberSubteamDetailsPayload = {readonly memberships: Map<string, Types.MemberInfoWithJoinTime>}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
@@ -545,6 +547,9 @@ export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload): S
   payload,
   type: setMemberPublicity,
 })
+export const createSetMemberSubteamDetails = (
+  payload: _SetMemberSubteamDetailsPayload
+): SetMemberSubteamDetailsPayload => ({payload, type: setMemberSubteamDetails})
 export const createSetMembers = (payload: _SetMembersPayload): SetMembersPayload => ({
   payload,
   type: setMembers,
@@ -809,6 +814,10 @@ export type SetMemberSelectedPayload = {
   readonly payload: _SetMemberSelectedPayload
   readonly type: typeof setMemberSelected
 }
+export type SetMemberSubteamDetailsPayload = {
+  readonly payload: _SetMemberSubteamDetailsPayload
+  readonly type: typeof setMemberSubteamDetails
+}
 export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: typeof setMembers}
 export type SetNewTeamInfoPayload = {
   readonly payload: _SetNewTeamInfoPayload
@@ -989,6 +998,7 @@ export type Actions =
   | SetEmailInviteErrorPayload
   | SetMemberPublicityPayload
   | SetMemberSelectedPayload
+  | SetMemberSubteamDetailsPayload
   | SetMembersPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload
