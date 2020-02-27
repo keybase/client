@@ -345,18 +345,21 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 	// goroutines may be operating on the data assuming they have the
 	// lock.
 	bops := fbo.config.BlockOps()
+	var sizes []uint32
+	var statuses []keybase1.BlockStatus
+	ptrs := []data.BlockPointer{ptr}
 	if rtype != data.BlockReadParallel && rtype != data.BlockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*kbfssync.LockState) {
-			size, status, err = bops.GetEncodedSize(ctx, kmd, ptr)
+			sizes, statuses, err = bops.GetEncodedSizes(ctx, kmd, ptrs)
 		})
 	} else {
-		size, status, err = bops.GetEncodedSize(ctx, kmd, ptr)
+		sizes, statuses, err = bops.GetEncodedSizes(ctx, kmd, ptrs)
 	}
 	if err != nil {
 		return 0, 0, err
 	}
 
-	return size, status, nil
+	return sizes[0], statuses[0], nil
 }
 
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
