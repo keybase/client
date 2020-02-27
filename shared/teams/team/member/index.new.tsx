@@ -268,7 +268,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
       position="bottom center"
       open={open}
     >
-      <InlineDropdown type="BodySmall" label={props.membership.type} onPress={() => setOpen(true)} />
+      <InlineDropdown type="Body" label={props.membership.type} onPress={() => setOpen(true)} />
     </FloatingRolePicker>
   )
 
