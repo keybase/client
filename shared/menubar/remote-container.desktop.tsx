@@ -83,7 +83,6 @@ export default () => {
       }}
       showInFinder={() => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))}
       updateNow={isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined}
-      waitForKbfsDaemon={throttle(() => dispatch(FsGen.createWaitForKbfsDaemon()), 1000 * 5)}
     />
   )
 }

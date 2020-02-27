@@ -102,6 +102,7 @@
         "SCGenericAPIError_1600",
         "SCAPINetworkError_1601",
         "SCTimeout_1602",
+        "SCKBFSClientTimeout_1603",
         "SCProofError_1701",
         "SCIdentificationExpired_1702",
         "SCSelfNotFound_1703",

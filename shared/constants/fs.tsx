@@ -233,7 +233,7 @@ export const defaultDriverStatus: Types.DriverStatus = isLinux
 
 export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
-  rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
+  rpcStatus: Types.KbfsDaemonRpcStatus.Waiting,
 }
 
 export const emptySettings: Types.Settings = {

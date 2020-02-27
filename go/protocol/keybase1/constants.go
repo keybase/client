@@ -107,6 +107,7 @@ const (
 	StatusCode_SCGenericAPIError                           StatusCode = 1600
 	StatusCode_SCAPINetworkError                           StatusCode = 1601
 	StatusCode_SCTimeout                                   StatusCode = 1602
+	StatusCode_SCKBFSClientTimeout                         StatusCode = 1603
 	StatusCode_SCProofError                                StatusCode = 1701
 	StatusCode_SCIdentificationExpired                     StatusCode = 1702
 	StatusCode_SCSelfNotFound                              StatusCode = 1703
@@ -349,6 +350,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCGenericAPIError":           1600,
 	"SCAPINetworkError":           1601,
 	"SCTimeout":                   1602,
+	"SCKBFSClientTimeout":         1603,
 	"SCProofError":                1701,
 	"SCIdentificationExpired":     1702,
 	"SCSelfNotFound":              1703,
@@ -589,6 +591,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1600: "SCGenericAPIError",
 	1601: "SCAPINetworkError",
 	1602: "SCTimeout",
+	1603: "SCKBFSClientTimeout",
 	1701: "SCProofError",
 	1702: "SCIdentificationExpired",
 	1703: "SCSelfNotFound",

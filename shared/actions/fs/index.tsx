@@ -521,6 +521,7 @@ function* pollJournalFlushStatusUntilDone() {
     // eslint-disable-next-line require-atomic-updates
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+    yield Saga.put(FsGen.createCheckKbfsDaemonRpcStatus())
   }
 }
 
@@ -692,28 +693,34 @@ const showMoveOrCopy = () =>
 
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
-let waitForKbfsDaemonOnFly = false
+let waitForKbfsDaemonInProgress = false
 const waitForKbfsDaemon = async () => {
-  if (waitForKbfsDaemonOnFly) {
+  if (waitForKbfsDaemonInProgress) {
     return
   }
-  waitForKbfsDaemonOnFly = true
+  waitForKbfsDaemonInProgress = true
   try {
-    const connected = await RPCTypes.configWaitForClientRpcPromise({
+    await RPCTypes.configWaitForClientRpcPromise({
       clientType: RPCTypes.ClientType.kbfs,
-      timeout: 20, // 20sec
+      timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
     })
-    // eslint-disable-next-line
-    waitForKbfsDaemonOnFly = false
-    return FsGen.createKbfsDaemonRpcStatusChanged({
-      rpcStatus: connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.WaitTimeout,
-    })
-  } catch (_) {
-    waitForKbfsDaemonOnFly = false
-    return FsGen.createKbfsDaemonRpcStatusChanged({
-      rpcStatus: Types.KbfsDaemonRpcStatus.WaitTimeout,
-    })
-  }
+  } catch (_) {}
+
+  waitForKbfsDaemonInProgress = false // eslint-disable-line require-atomic-updates
+  return FsGen.createCheckKbfsDaemonRpcStatus()
+}
+
+const checkKbfsDaemonRpcStatus = async (state: Container.TypedState) => {
+  const connected = await RPCTypes.configWaitForClientRpcPromise({
+    clientType: RPCTypes.ClientType.kbfs,
+    timeout: 0, // Don't wait; just check if it's there.
+  })
+  const newStatus = connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.Waiting
+  return [
+    state.fs.kbfsDaemonStatus.rpcStatus !== newStatus &&
+      FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: newStatus}),
+    newStatus === Types.KbfsDaemonRpcStatus.Waiting && FsGen.createWaitForKbfsDaemon(),
+  ]
 }
 
 const startManualCR = async (action: FsGen.StartManualConflictResolutionPayload) => {
@@ -735,7 +742,7 @@ const finishManualCR = async (action: FsGen.FinishManualConflictResolutionPayloa
 // until we get through. After each try we delay for 2s, so this should give us
 // e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
 // and we deserve a black bar.
-const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<Container.TypedActions> => {
+const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
   try {
     const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise()
     return FsGen.createKbfsDaemonOnlineStatusChanged({onlineStatus})
@@ -920,7 +927,7 @@ const loadPathInfo = async (action: FsGen.LoadPathInfoPayload) => {
   })
 }
 
-const loadDownloadInfo = async (action: FsGen.LoadDownloadInfoPayload) => {
+const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownloadInfoPayload) => {
   try {
     const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
       downloadID: action.payload.downloadID,
@@ -934,29 +941,33 @@ const loadDownloadInfo = async (action: FsGen.LoadDownloadInfoPayload) => {
         startTime: res.startTime,
       },
     })
-  } catch {
-    return undefined
+  } catch (error) {
+    return makeUnretriableErrorHandler(action)(error)
   }
 }
 
-const loadDownloadStatus = async () => {
-  const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
-  return FsGen.createLoadedDownloadStatus({
-    regularDownloads: res.regularDownloadIDs || [],
-    state: new Map(
-      (res.states || []).map(s => [
-        s.downloadID,
-        {
-          canceled: s.canceled,
-          done: s.done,
-          endEstimate: s.endEstimate,
-          error: s.error,
-          localPath: s.localPath,
-          progress: s.progress,
-        },
-      ])
-    ),
-  })
+const loadDownloadStatus = async (_: Container.TypedState, action: FsGen.LoadDownloadStatusPayload) => {
+  try {
+    const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
+    return FsGen.createLoadedDownloadStatus({
+      regularDownloads: res.regularDownloadIDs || [],
+      state: new Map(
+        (res.states || []).map(s => [
+          s.downloadID,
+          {
+            canceled: s.canceled,
+            done: s.done,
+            endEstimate: s.endEstimate,
+            error: s.error,
+            localPath: s.localPath,
+            progress: s.progress,
+          },
+        ])
+      ),
+    })
+  } catch (error) {
+    return makeUnretriableErrorHandler(action)(error)
+  }
 }
 
 const loadFileContext = async (action: FsGen.LoadFileContextPayload) => {
@@ -1049,9 +1060,10 @@ function* fsSaga() {
   yield* Saga.chainAction2([FsGen.move, FsGen.copy], moveOrCopy)
   yield* Saga.chainAction2([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   yield* Saga.chainAction2(
-    [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon, FsGen.userIn],
-    waitForKbfsDaemon
+    [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.userIn, FsGen.checkKbfsDaemonRpcStatus],
+    checkKbfsDaemonRpcStatus
   )
+  yield* Saga.chainAction2(FsGen.waitForKbfsDaemon, waitForKbfsDaemon)
   yield* Saga.chainAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
   yield* Saga.chainAction(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
   yield* Saga.chainAction2([FsGen.getOnlineStatus], getOnlineStatus)
@@ -1074,7 +1086,7 @@ function* fsSaga() {
   yield* Saga.chainAction(FsGen.cancelDownload, cancelDownload)
   yield* Saga.chainAction(FsGen.dismissDownload, dismissDownload)
   yield* Saga.chainAction2(FsGen.loadDownloadStatus, loadDownloadStatus)
-  yield* Saga.chainAction(FsGen.loadDownloadInfo, loadDownloadInfo)
+  yield* Saga.chainAction2(FsGen.loadDownloadInfo, loadDownloadInfo)
 
   yield* Saga.chainAction(FsGen.subscribePath, subscribePath)
   yield* Saga.chainAction(FsGen.subscribeNonPath, subscribeNonPath)

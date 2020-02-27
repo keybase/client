@@ -15,6 +15,9 @@ const expectedOfflineErrorCodes = [RPCTypes.StatusCode.scapinetworkerror, RPCTyp
 const makeErrorHandler = (action: TypedActions, path: Types.Path | null, retriable: boolean) => (
   error: any
 ): Array<TypedActions> => {
+  if (error?.code === RPCTypes.StatusCode.sckbfsclienttimeout) {
+    return [FsGen.createCheckKbfsDaemonRpcStatus()]
+  }
   const errorDesc = typeof error.desc === 'string' ? error.desc : ''
   if (path && errorDesc) {
     // TODO: KBFS-4143 add and use proper error code for all these
@@ -39,17 +42,6 @@ const makeErrorHandler = (action: TypedActions, path: Types.Path | null, retriab
       errorDesc.includes("Couldn't find local conflict handle for")
     ) {
       return [FsGen.createSetPathSoftError({path, softError: Types.SoftError.Nonexistent})]
-    }
-    if (errorDesc.includes('KBFS client not found.')) {
-      return [
-        FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: Types.KbfsDaemonRpcStatus.WaitTimeout}),
-        // We don't retry actions when re-connected, so just route user back
-        // to root in case they get confused by orphan loading state.
-        //
-        // Although this seems impossible to do for nav2 as things are just
-        // pushed on top of each other, so just don't do anything for now.
-        // Perhaps it's OK.
-      ]
     }
   }
   return [

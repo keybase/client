@@ -6,6 +6,7 @@ import * as Types from '../constants/types/fs'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
+export const checkKbfsDaemonRpcStatus = 'fs:checkKbfsDaemonRpcStatus'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
@@ -106,6 +107,7 @@ export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = {readonly downloadID: string}
+type _CheckKbfsDaemonRpcStatusPayload = void
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
 type _DeleteFilePayload = {readonly path: Types.Path}
@@ -248,6 +250,9 @@ export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDow
   payload,
   type: cancelDownload,
 })
+export const createCheckKbfsDaemonRpcStatus = (
+  payload: _CheckKbfsDaemonRpcStatusPayload
+): CheckKbfsDaemonRpcStatusPayload => ({payload, type: checkKbfsDaemonRpcStatus})
 export const createCommitEdit = (payload: _CommitEditPayload): CommitEditPayload => ({
   payload,
   type: commitEdit,
@@ -581,6 +586,10 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): Wai
 export type CancelDownloadPayload = {
   readonly payload: _CancelDownloadPayload
   readonly type: typeof cancelDownload
+}
+export type CheckKbfsDaemonRpcStatusPayload = {
+  readonly payload: _CheckKbfsDaemonRpcStatusPayload
+  readonly type: typeof checkKbfsDaemonRpcStatus
 }
 export type CommitEditPayload = {readonly payload: _CommitEditPayload; readonly type: typeof commitEdit}
 export type CopyPayload = {readonly payload: _CopyPayload; readonly type: typeof copy}
@@ -918,6 +927,7 @@ export type WaitForKbfsDaemonPayload = {
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
+  | CheckKbfsDaemonRpcStatusPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
