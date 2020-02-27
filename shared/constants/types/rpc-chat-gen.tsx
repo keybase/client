@@ -1189,6 +1189,7 @@ export type GetLastActiveAtRes = {readonly lastActiveAt: Gregor1.Time; readonly 
 export type GetMessageBeforeRes = {readonly msgID: MessageID; readonly rateLimit?: RateLimit | null}
 export type GetMessagesLocalRes = {readonly messages?: Array<MessageUnboxed> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetMessagesRemoteRes = {readonly msgs?: Array<MessageBoxed> | null; readonly rateLimit?: RateLimit | null}
+export type GetMutualTeamsLocalRes = {readonly teamIDs?: Array<Keybase1.TeamID> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetNextAttachmentMessageLocalRes = {readonly message?: UIMessage | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetPublicConversationsRes = {readonly conversations?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
 export type GetRecentJoinsRes = {readonly numJoins: Int; readonly rateLimit?: RateLimit | null}
@@ -1696,6 +1697,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.postFileAttachmentLocal'
 // 'chat.1.local.DownloadAttachmentLocal'
 // 'chat.1.local.joinConversationLocal'
+// 'chat.1.local.getMutualTeamsLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.putReacjiSkinTone'

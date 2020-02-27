@@ -2408,8 +2408,9 @@ function* loadSuggestionData(
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamID = meta.teamID
-  // If this is an impteam, there are no channel infos to load.
+  // If this is an impteam, try to refresh mutual team info
   if (!meta.teamname) {
+    // TODO: reload mutual team info
     return
   }
   // This only happens when user enters '#' which isn't that often. If this

@@ -3233,6 +3233,30 @@
     },
     {
       "type": "record",
+      "name": "GetMutualTeamsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TeamID"
+          },
+          "name": "teamIDs"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SetAppNotificationSettingsLocalRes",
       "fields": [
         {
@@ -5046,6 +5070,18 @@
         }
       ],
       "response": "GetChannelMembershipsLocalRes"
+    },
+    "getMutualTeamsLocal": {
+      "request": [
+        {
+          "name": "uids",
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          }
+        }
+      ],
+      "response": "GetMutualTeamsLocalRes"
     },
     "setAppNotificationSettingsLocal": {
       "request": [

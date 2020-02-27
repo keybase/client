@@ -2958,6 +2958,17 @@ func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.Conversa
 	return res, nil
 }
 
+func (h *Server) GetMutualTeamsLocal(ctx context.Context, arg chat1.GetMutualTeamsLocalArg) (res chat1.GetMutualTeamsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ListBotCommandsLocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+}
+
 func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res chat1.PinMessageRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)

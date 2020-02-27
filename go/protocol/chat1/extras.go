@@ -1772,6 +1772,10 @@ func (r *GetChannelMembershipsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetMutualTeamsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -2174,6 +2178,14 @@ func (r *GetChannelMembershipsLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetChannelMembershipsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetMutualTeamsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetMutualTeamsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

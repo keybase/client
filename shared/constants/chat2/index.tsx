@@ -47,6 +47,7 @@ export const makeState = (): Types.State => ({
   channelSearchText: '',
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
+  commonTeamMap: new Map(),
   containsLatestMessageMap: new Map(),
   createConversationError: null,
   dismissedInviteBannersMap: new Map(),

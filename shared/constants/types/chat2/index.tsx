@@ -202,6 +202,7 @@ export type State = {
   readonly channelSearchText: string
   readonly commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   readonly commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
+  readonly commonTeamMap: Map<Common.ConversationIDKey, Array<Team.TeamID>>
   readonly containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   readonly createConversationError: CreateConversationError | null
   readonly dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
