@@ -1,10 +1,4 @@
-import {useContext, useLayoutEffect, useRef, useCallback} from 'react'
-import {
-  NavigationContext,
-  NavigationScreenProp,
-  NavigationRoute,
-  NavigationEventCallback,
-} from '@react-navigation/core'
+import {NavigationEventCallback} from '@react-navigation/core'
 
 /**
  * Hooks for react-navigation
