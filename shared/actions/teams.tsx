@@ -1360,7 +1360,7 @@ async function getMemberSubteamDetails(
     return null
   }
 
-  const res = new Map<string, Types.MemberInfoWithJoinTime>()
+  const res = new Map<string, Types.MemberInfo>()
   for (const membership of memberships) {
     res.set(
       Constants.teamMemberToString({

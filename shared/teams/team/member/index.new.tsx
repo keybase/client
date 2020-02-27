@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import {InlineDropdown} from '../../../common-adapters/dropdown'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
@@ -25,10 +26,11 @@ type MetaPlusMembership = {
 
 // TODO: upon visiting this page, dispatch something to load the subteam data into the store for all these subteams
 const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
-  const subteamsAll = Constants.getTeamDetails(state, teamID).subteams
+  const subteamsAll = [...Constants.getTeamDetails(state, teamID).subteams.values()]
   let subteamsNotIn: Array<Types.TeamMeta> = []
   let subteamsIn: Array<MetaPlusMembership> = []
-  subteamsAll.forEach(subteamID => {
+  subteamsAll.unshift(teamID)
+  for (const subteamID of subteamsAll) {
     const subteamMeta = Constants.getTeamMeta(state, subteamID)
     const subteamMembership = Constants.getTeamMembership(state, {
       teamID: subteamID,
@@ -43,7 +45,7 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
     } else {
       subteamsNotIn.push(subteamMeta)
     }
-  })
+  }
   return {
     subteamsIn,
     subteamsNotIn,
@@ -71,7 +73,9 @@ const TeamMember = (props: OwnProps) => {
     getSubteamsInNotIn(state, teamID, username)
   )
 
-  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
+  const [expandedSet, setExpandedSet] = React.useState(
+    new Set<string>([teamID])
+  )
   const sections = [
     {
       data: subteamsIn,
@@ -83,12 +87,12 @@ const TeamMember = (props: OwnProps) => {
           membership={item.memberInfo}
           idx={index}
           username={username}
-          expanded={expandedSet.has(item.teamMeta.teamname)}
+          expanded={expandedSet.has(item.teamMeta.id)}
           setExpanded={newExpanded => {
             if (newExpanded) {
-              expandedSet.add(item.teamMeta.teamname)
+              expandedSet.add(item.teamMeta.id)
             } else {
-              expandedSet.delete(item.teamMeta.teamname)
+              expandedSet.delete(item.teamMeta.id)
             }
             setExpandedSet(new Set([...expandedSet]))
           }}
@@ -216,6 +220,9 @@ const SubteamInRow = (props: SubteamInRowProps) => {
     />
   )
 
+  const [role, setRole] = React.useState<Types.TeamRoleType>(props.membership.type)
+  const [open, setOpen] = React.useState(false)
+
   const channels = ['general', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'mmm']
   const channelsJoined = channels.join(', #')
   const body = (
@@ -252,9 +259,29 @@ const SubteamInRow = (props: SubteamInRowProps) => {
       )}
     </Kb.Box2>
   )
+  const action = (
+    <FloatingRolePicker
+      selectedRole={role}
+      onSelectRole={setRole}
+      onConfirm={x => console.log('confirmed', x)}
+      onCancel={() => setOpen(false)}
+      position="bottom center"
+      open={open}
+    >
+      <InlineDropdown type="BodySmall" label={props.membership.type} onPress={() => setOpen(true)} />
+    </FloatingRolePicker>
+  )
+
   const height = expanded ? (Styles.isMobile ? 208 : 140) : undefined
   return (
-    <Kb.ListItem2 statusIcon={icon} body={body} firstItem={props.idx === 0} type="Large" height={height} />
+    <Kb.ListItem2
+      statusIcon={icon}
+      body={body}
+      action={action}
+      firstItem={props.idx === 0}
+      type="Large"
+      height={height}
+    />
   )
 }
 
