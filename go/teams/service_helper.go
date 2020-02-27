@@ -1163,17 +1163,29 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamID keybase1.TeamID) error {
-	return RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
 
-		switch {
-		case t.chain().IsSubteam():
-			err = t.deleteSubteam(ctx, ui, attempt > 0 /* isRetry */)
-		default:
-			err = t.deleteRoot(ctx, ui, attempt > 0 /* isRetry */)
+		var confirmed bool
+		if t.chain().IsSubteam() {
+			confirmed, err = ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
+		} else {
+			confirmed, err = ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
+		}
+		if err != nil {
+			return err
+		}
+		if !confirmed {
+			return errors.New("team delete not confirmed")
+		}
+
+		if t.chain().IsSubteam() {
+			err = t.deleteSubteam(ctx, ui)
+		} else {
+			err = t.deleteRoot(ctx, ui)
 		}
 		if err != nil {
 			return err

@@ -996,7 +996,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 }
 
-func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface, isRetry bool) error {
+func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
 	m := t.MetaContext(ctx)
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -1013,16 +1013,6 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface, isR
 			Code: int(keybase1.StatusCode_SCTeamSelfNotOwner),
 			Name: "SELF_NOT_OWNER",
 			Desc: "You must be an owner to delete a team",
-		}
-	}
-
-	if !isRetry {
-		confirmed, err := ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
-		if err != nil {
-			return err
-		}
-		if !confirmed {
-			return errors.New("team delete not confirmed")
 		}
 	}
 
@@ -1062,7 +1052,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface, isR
 	return t.HintLatestSeqno(m, latestSeqno)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface, isRetry bool) error {
+func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
 
 	m := t.MetaContext(ctx)
 
@@ -1089,36 +1079,26 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface, 
 		return fmt.Errorf("failed to get admin permission from parent team; you must be an admin of a parent team to delete a subteam: %w", err)
 	}
 
-	if !isRetry {
-		confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
-		if err != nil {
-			return err
-		}
-		if !confirmed {
-			return errors.New("team delete not confirmed")
-		}
-	}
-
 	subteamName := SCTeamName(t.Data.Name.String())
 
 	entropy, err := makeSCTeamEntropy()
 	if err != nil {
 		return err
 	}
-	// ratchet, err := t.makeRatchet(ctx)
-	// if err != nil {
-	// 	return err
-	// }
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
 	parentSection := SCTeamSection{
 		ID: SCTeamID(parentTeam.ID),
 		Subteam: &SCSubteam{
 			ID:   SCTeamID(t.ID),
 			Name: subteamName, // weird this is required
 		},
-		Admin:   admin,
-		Public:  t.IsPublic(),
-		Entropy: entropy,
-		// Ratchets: ratchet.ToTeamSection(),
+		Admin:    admin,
+		Public:   t.IsPublic(),
+		Entropy:  entropy,
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -1152,7 +1132,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface, 
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigParent, sigSub}
-	// ratchet.AddToJSONPayload(payload)
+	ratchet.AddToJSONPayload(payload)
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
