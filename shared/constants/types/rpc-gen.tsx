@@ -2494,7 +2494,6 @@ export enum StatusCode {
   scteambotkeybadgeneration = 3802,
   scinvalidformat = 4000,
   scwrongtype = 4001,
-  scbadframe = 4002,
   scairdropregisterfailedmisc = 4207,
 }
 

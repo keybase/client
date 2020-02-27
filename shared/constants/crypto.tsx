@@ -159,15 +159,15 @@ export const getStatusCodeMessage = (
   const causeStatusCodeToMessage: any = {
     [RPCTypes.StatusCode.scdecryptionkeynotfound]: ` No suitable key found.`,
     [RPCTypes.StatusCode.scverificationkeynotfound]: `No suitable key found.`,
-    [RPCTypes.StatusCode.scwrongtype]: ` Unexpected message type.` + wrongTypeHelpText
+    [RPCTypes.StatusCode.scwrongtype]: ` Unexpected message type.` + wrongTypeHelpText,
   } as const
 
  const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
     [RPCTypes.StatusCode.scgeneric]: `${error.message.includes('API network error') ? offlineMessage : genericMessage}`,
     [RPCTypes.StatusCode.scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
-    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}.` + (causeStatusCodeToMessage[causeStatusCode] || ``),
-    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}.`+ (causeStatusCodeToMessage[causeStatusCode] || ``),
+    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}.` + `${error.message.includes('API network error') ? (` ` + offlineMessage) : (causeStatusCodeToMessage[causeStatusCode] || ``)}`,
+    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}.` + `${error.message.includes('API network error') ? (` ` + offlineMessage) : (causeStatusCodeToMessage[causeStatusCode] || ``)}`,
     } as const
 
   return statusCodeToMessage[error.code] || genericMessage

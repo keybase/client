@@ -239,7 +239,6 @@ protocol constants {
     SCTeambotKeyBadGeneration_3802,
     SCInvalidFormat_4000,
     SCWrongType_4001,
-    SCBadFrame_4002,
     SCAirdropRegisterFailedMisc_4207
   }
 }

@@ -248,7 +248,6 @@ const (
 	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
 	StatusCode_SCInvalidFormat                             StatusCode = 4000
 	StatusCode_SCWrongType                                 StatusCode = 4001
-	StatusCode_SCBadFrame                                  StatusCode = 4002
 	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
 )
 
@@ -492,7 +491,6 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeambotKeyBadGeneration":                   3802,
 	"SCInvalidFormat":                             4000,
 	"SCWrongType":                                 4001,
-	"SCBadFrame":                                  4002,
 	"SCAirdropRegisterFailedMisc":                 4207,
 }
 
@@ -734,7 +732,6 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3802: "SCTeambotKeyBadGeneration",
 	4000: "SCInvalidFormat",
 	4001: "SCWrongType",
-	4002: "SCBadFrame",
 	4207: "SCAirdropRegisterFailedMisc",
 }
 
