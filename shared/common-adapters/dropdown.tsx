@@ -112,14 +112,15 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
 }
 
 type InlineDropdownProps = {
-  label: string
+  label: React.ReactNode
   onPress: () => void
-  type: 'Body' | 'BodySmall'
+  type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+  style?: Styles.StylesCrossPlatform
 }
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
-    <Box2 direction="horizontal" key={props.label} style={styles.inlineSelected}>
+    <Box2 direction="horizontal" style={styles.inlineSelected}>
       <Text type={props.type}>{props.label}</Text>
     </Box2>
   )
@@ -131,7 +132,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
         e.stopPropagation && e.stopPropagation()
         props.onPress && props.onPress()
       }}
-      selectedBoxStyle={styles.inlineDropdownSelected}
+      selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, props.style])}
       selected={selected}
     />
   )
