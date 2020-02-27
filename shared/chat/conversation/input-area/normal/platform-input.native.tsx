@@ -498,7 +498,7 @@ const styles = Styles.styleSheetCreate(
       },
       iconTop: {
         position: 'absolute',
-        right: 1,
+        right: 0,
         top: 0,
       },
       input: Styles.platformStyles({
