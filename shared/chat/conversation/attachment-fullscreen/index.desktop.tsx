@@ -162,7 +162,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               </Kb.Text>
             )}
             {!this.props.progressLabel && this.props.onDownloadAttachment && this.isDownloadError() && (
-              <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
+              <Kb.Text type="BodySmall" style={styles.error} onClick={this.props.onDownloadAttachment}>
                 Failed to download.{' '}
                 <Kb.Text type="BodySmall" style={styles.retry} onClick={this.props.onDownloadAttachment}>
                   Retry
@@ -209,6 +209,9 @@ const styles = Styles.styleSheetCreate(
       contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
       contentsHidden: {display: 'none'},
       contentsZoom: Styles.platformStyles({isElectron: {display: 'block', flex: 1, overflow: 'auto'}}),
+      error: {
+        color: Styles.globalColors.redDark,
+      },
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
