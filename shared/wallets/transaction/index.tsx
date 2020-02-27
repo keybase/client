@@ -67,6 +67,7 @@ type CounterpartyTextProps = {
   counterpartyType: Types.CounterpartyType
   onShowProfile: (username: string) => void
   textType: 'Body' | 'BodySmall'
+  textTypeBold: 'BodyBold' | 'BodySmallBold'
   textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold'
   textTypeItalic: 'BodyItalic' | 'BodySmallItalic'
 }
@@ -86,7 +87,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={props.textTypeSemibold}
+          type={props.textTypeBold}
           underline={true}
           usernames={[props.counterparty]}
         />

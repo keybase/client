@@ -12,7 +12,7 @@ const connectedUsernamesProps = {
     fontWeight: 'normal',
   },
   onUsernameClicked: 'profile',
-  type: 'BodySemibold',
+  type: 'BodyBold',
   underline: true,
 } as const
 
