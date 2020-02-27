@@ -1212,6 +1212,7 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	return res, errors.New("GO AWAY, ITS BLACB BAR TIME")
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err

@@ -66,6 +66,7 @@ export default Container.connect(
 
     return {
       arrowColor,
+      downloadError: !!message.transferErrMsg,
       fileName: message.fileName,
       fullPath: message.fileURL,
       hasProgress,
