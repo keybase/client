@@ -41,9 +41,7 @@ export default namedConnect(
     onSelectDown: dispatchProps.onSelectDown,
     onSelectUp: dispatchProps.onSelectUp,
     showFilter: stateProps.showFilter,
-    // showNewChat: ownProps.showNewChat, // xxx
     showNewChat: ownProps.context == 'chat-header',
-    // showSearch: ownProps.showSearch, // xxx
     showSearch: ownProps.context == 'chat-header' ? !isTablet : isMobile,
     showStartNewChat: stateProps.showStartNewChat,
   }),
