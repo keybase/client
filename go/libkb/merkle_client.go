@@ -813,7 +813,28 @@ func (mc *MerkleClient) lookupLeafAndPath(m MetaContext, q HTTPArgs, root *Merkl
 
 // `isUser` is true for loading a user and false for loading a team.
 func (mc *MerkleClient) lookupLeafAndPathHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, root *MerkleRoot, opts MerkleOpts) (apiRes *APIRes, newRoot *MerkleRoot, err error) {
-	defer m.VTrace(VLog1, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
+	defer m.VTrace(VLog1, "MerkleClient#lookupLeafAndPathHelper", func() error { return err })()
+
+	apiRes, rootRefreshNeeded, err := mc.lookupLeafAndPathHelperOnce(m, q, sigHints, root, opts)
+
+	for rootRefreshNeeded {
+		m.Debug("Server suggested a root refresh is necessary")
+		root, err = mc.FetchRootFromServer(m, 0)
+		if err != nil {
+			return nil, nil, err
+		}
+		apiRes, rootRefreshNeeded, err = mc.lookupLeafAndPathHelperOnce(m, q, sigHints, root, opts)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return apiRes, root, err
+}
+
+// `isUser` is true for loading a user and false for loading a team.
+func (mc *MerkleClient) lookupLeafAndPathHelperOnce(m MetaContext, q HTTPArgs, sigHints *SigHints, root *MerkleRoot, opts MerkleOpts) (apiRes *APIRes, rootRefreshNeeded bool, err error) {
+	defer m.VTrace(VLog1, "MerkleClient#lookupLeafAndPathHelperOnce", func() error { return err })()
 
 	if !opts.NoServerPolling {
 		// Poll for 10s and ask for a race-free state.
@@ -847,36 +868,27 @@ func (mc *MerkleClient) lookupLeafAndPathHelper(m MetaContext, q HTTPArgs, sigHi
 	})
 
 	if err != nil {
-		return nil, nil, err
-	}
-
-	refreshRootAndRetry := func() (apiRes *APIRes, newRoot *MerkleRoot, err error) {
-		root, err = mc.FetchRootFromServer(m, 0)
-		if err != nil {
-			return nil, nil, err
-		}
-		return mc.lookupLeafAndPathHelper(m, q, sigHints, root, opts)
+		return nil, false, err
 	}
 
 	switch apiRes.AppStatus.Code {
 	case SCMerkleUpdateRoot:
 		// Server indicated that a refetch of the root is needed
-		return refreshRootAndRetry()
+		return nil, true, err
 	case SCOk:
 		err = assertRespSeqnoPrecedesCurrentRoot(apiRes, root)
 		if err != nil {
-			return nil, nil, err
+			return nil, false, err
 		}
 	// TRIAGE-2068
 	case SCNotFound:
 		err = NotFoundError{}
-		return nil, nil, err
+		return nil, false, err
 	case SCDeleted:
 		err = UserDeletedError{}
-		return nil, nil, err
+		return nil, false, err
 	}
-
-	return apiRes, root, err
+	return apiRes, false, err
 }
 
 func assertRespSeqnoPrecedesCurrentRoot(apiRes *APIRes, root *MerkleRoot) error {
