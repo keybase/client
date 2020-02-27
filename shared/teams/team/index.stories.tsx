@@ -21,7 +21,7 @@ const getRows = (selectedTab: Types.TabKey) =>
 const getProps = (selectedTab: Types.TabKey) => ({
   sections: [
     {data: [{key: 'header-inner', type: 'header' as const}], key: 'header'},
-    {data: getRows(selectedTab), header: {key: 'tabs', type: 'tabs'}, key: 'body'},
+    {data: getRows(selectedTab), header: {key: 'tabs', type: 'tabs' as const}, key: 'body'},
   ],
   selectedTab,
   setSelectedTab: Sb.action('setSelectedTab'),
@@ -29,8 +29,8 @@ const getProps = (selectedTab: Types.TabKey) => ({
 })
 
 const storeWithSelection = Container.produce(store, draftState => {
-  draftState.teams.selectedChannels = new Map([[teamID, new Set(['hellos', 'team-beasts'])]])
-  draftState.teams.selectedMembers = new Map([[teamID, new Set(['paula'])]])
+  draftState.teams.teamSelectedChannels = new Map([[teamID, new Set(['hellos', 'team-beasts'])]])
+  draftState.teams.teamSelectedMembers = new Map([[teamID, new Set(['paula'])]])
 })
 
 const load = () => {
