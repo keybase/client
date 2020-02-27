@@ -207,6 +207,7 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.red,
     borderRadius: Styles.borderRadius,
     padding: Styles.globalMargins.medium,
+    alignSelf: 'center',
   },
   grey: {color: Styles.globalColors.black_20},
   proof: {
