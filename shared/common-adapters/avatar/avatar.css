@@ -125,5 +125,5 @@
 
 .circle {
     transition-duration: 0.3s;
-    transition-property: transform;
+    transition-property: transform color;
 }

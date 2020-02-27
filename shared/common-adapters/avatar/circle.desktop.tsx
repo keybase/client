@@ -51,8 +51,9 @@ const Circle = (p: Props) => {
   //const {running, load, percentDone, color} = useGetIDInfo(username)
   // TEMP
   const [percentDone, setPercentDone] = React.useState(0.0)
-  const color = 'green'
+  const [color, setColor] = React.useState<string>(Styles.globalColors.green)
   const width = 6
+  const innerRadius = 3
 
   useInterval(
     () => {
@@ -60,6 +61,10 @@ const Circle = (p: Props) => {
         let next = p + 0.1
         if (next >= 1) {
           next = 0
+          setColor(Styles.globalColors.green)
+        }
+        if (next > 0.3 && color !== Styles.globalColors.red) {
+          setColor(Styles.globalColors.red)
         }
         return next
       })
@@ -84,7 +89,6 @@ const Circle = (p: Props) => {
   //4
   //)}
   //</Kb.Text>
-  const innerRadius = 3
   return (
     <div style={styles.container}>
       <HalfCircle
@@ -98,7 +102,7 @@ const Circle = (p: Props) => {
       <HalfCircle
         key="50-100"
         percentDone={Math.max(0, percentDone - 0.5)}
-        width={6}
+        width={width}
         size={size}
         style={Styles.collapseStyles([{marginBottom: -width}, styles.highStyle])}
         color={color}
@@ -107,15 +111,15 @@ const Circle = (p: Props) => {
         {percentDone}
       </Kb.Text>
       <div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '100%',
-          bottom: -innerRadius,
-          left: -innerRadius,
-          position: 'absolute',
-          right: -innerRadius,
-          top: -innerRadius,
-        }}
+        style={Styles.collapseStyles([
+          styles.innerCircle,
+          {
+            bottom: -innerRadius,
+            left: -innerRadius,
+            right: -innerRadius,
+            top: -innerRadius,
+          },
+        ])}
       />
     </div>
   )
@@ -130,6 +134,13 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   highStyle: Styles.platformStyles({
     isElectron: {transform: 'rotate(180deg)'},
+  }),
+  innerCircle: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.whiteOrWhite,
+      borderRadius: '100%',
+      position: 'absolute',
+    },
   }),
   lowStyle: {},
 }))
