@@ -38,6 +38,8 @@ const (
 	// numBlockSizeWorkersMax is the max number of workers to use when
 	// fetching a set of block sizes.
 	numBlockSizeWorkersMax = 50
+	// How many pointers to downgrade in a single block size call.
+	numBlockSizesPerChunk = 20
 	// truncateExtendCutoffPoint is the amount of data in extending
 	// truncate that will trigger the extending with a hole algorithm.
 	truncateExtendCutoffPoint = 128 * 1024
@@ -330,7 +332,7 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizesLocked(ctx context.Context,
 
 	defer func() {
 		fbo.vlog.CLogf(
-			ctx, libkb.VLog1, "GetEncodedSize ptrs=%v sizes=%d statuses=%s: "+
+			ctx, libkb.VLog1, "GetEncodedSizes ptrs=%v sizes=%d statuses=%s: "+
 				"%+v", ptrs, sizes, statuses, err)
 		// In certain testing situations, a block might be represented
 		// with a 0 size in our journal or be missing from our local
@@ -342,7 +344,7 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizesLocked(ctx context.Context,
 					ptr); cerr == nil {
 					fbo.vlog.CLogf(
 						ctx, libkb.VLog1,
-						"Fixing encoded size of %v with cached copy (%d)", ptr, block.GetEncodedSize())
+						"Fixing encoded size of %v with cached copy", ptr)
 					sizes[i] = block.GetEncodedSize()
 				}
 			}
@@ -530,46 +532,60 @@ func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
-	ptrCh := make(chan data.BlockPointer, len(ptrs))
+	ptrCh := make(chan []data.BlockPointer, len(ptrs))
 	sumCh := make(chan uint32, len(ptrs))
-	eg, groupCtx := errgroup.WithContext(ctx)
-	for _, ptr := range ptrs {
-		ptrCh <- ptr
+
+	numChunks := (len(ptrs) + numBlockSizesPerChunk - 1) /
+		numBlockSizesPerChunk
+	numWorkers := numBlockSizeWorkersMax
+	if numChunks < numWorkers {
+		numWorkers = numChunks
 	}
 
-	numWorkers := numBlockSizeWorkersMax
-	if len(ptrs) < numWorkers {
-		numWorkers = len(ptrs)
+	currChunk := make([]data.BlockPointer, 0, numBlockSizesPerChunk)
+	for _, ptr := range ptrs {
+		currChunk = append(currChunk, ptr)
+		if len(currChunk) == numBlockSizesPerChunk {
+			ptrCh <- currChunk
+			currChunk = make([]data.BlockPointer, 0, numBlockSizesPerChunk)
+		}
+	}
+	if len(currChunk) > 0 {
+		ptrCh <- currChunk
 	}
 
 	// If we don't care if something's live or not, there's no reason
 	// not to use the cached block.
 	assumeCacheIsLive := !onlyCountIfLive
-
+	eg, groupCtx := errgroup.WithContext(ctx)
 	for i := 0; i < numWorkers; i++ {
 		eg.Go(func() error {
-			for ptr := range ptrCh {
+			for ptrs := range ptrCh {
 				sizes, statuses, err := fbo.getCleanEncodedBlockSizesLocked(
-					groupCtx, nil, kmd, []data.BlockPointer{ptr}, branch,
+					groupCtx, nil, kmd, ptrs, branch,
 					data.BlockReadParallel, assumeCacheIsLive)
-				// TODO: we might be able to recover the size of the
-				// top-most block of a removed file using the merged
-				// directory entry, the same way we do in
-				// `folderBranchOps.unrefEntry`.
-				if isRecoverableBlockErrorForRemoval(err) &&
-					ignoreRecoverableForRemovalErrors[ptr] {
-					fbo.log.CDebugf(groupCtx, "Hit an ignorable, recoverable "+
-						"error for block %v: %v", ptr, err)
-					continue
-				}
-				if err != nil {
-					return err
-				}
+				for i, ptr := range ptrs {
+					// TODO: we might be able to recover the size of the
+					// top-most block of a removed file using the merged
+					// directory entry, the same way we do in
+					// `folderBranchOps.unrefEntry`.
+					if isRecoverableBlockErrorForRemoval(err) &&
+						ignoreRecoverableForRemovalErrors[ptr] {
+						fbo.log.CDebugf(
+							groupCtx, "Hit an ignorable, recoverable "+
+								"error for block %v: %v", ptr, err)
+						continue
+					}
+					if err != nil {
+						return err
+					}
 
-				if onlyCountIfLive && statuses[0] != keybase1.BlockStatus_LIVE {
-					sumCh <- 0
-				} else {
-					sumCh <- sizes[0]
+					if onlyCountIfLive &&
+						statuses[i] != keybase1.BlockStatus_LIVE {
+						sumCh <- 0
+					} else {
+						sumCh <- sizes[i]
+					}
 				}
 			}
 			return nil
