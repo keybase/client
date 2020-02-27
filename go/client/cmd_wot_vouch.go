@@ -61,6 +61,9 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	}
 	c.assertion = ctx.Args()[0]
 	c.message = ctx.String("message")
+	if len(c.message) == 0 {
+		return errors.New("vouch requires an attestation e.g. `-m \"Alice plays the banjo\"`")
+	}
 	kf := ctx.Int("known-for")
 	if kf > 0 {
 		c.confidence.KnownOnKeybaseDays = kf
