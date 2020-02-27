@@ -2066,7 +2066,7 @@ function* downloadAttachment(downloadToCache: boolean, message: Types.Message, l
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
     return rpcRes.filePath
   } catch (e) {
-    logger.error(`downloadAttachment error: ${e.message}`, logger)
+    logger.info(`downloadAttachment error: ${e.message}`, logger)
     yield Saga.put(
       Chat2Gen.createAttachmentDownloaded({error: e.message || 'Error downloading attachment', message})
     )
@@ -2636,8 +2636,8 @@ function* mobileMessageAttachmentSave(
   const fileName = yield* downloadAttachment(true, message, logger)
   if (!fileName) {
     // failed to download
-    logger.error('Downloading attachment failed')
-    throw new Error('Downloading attachment failed')
+    logger.info('Downloading attachment failed')
+    return
   }
   yield Saga.put(Chat2Gen.createAttachmentMobileSave({conversationIDKey, ordinal}))
   try {

@@ -17,6 +17,7 @@ type Props = {
   onCollapse: () => void
   onShowInFinder?: (e: React.BaseSyntheticEvent) => void
   onDoubleClick: () => void
+  onRetry: () => void
   path: string
   fullPath: string
   fileName: string
@@ -209,7 +210,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
                 {this.props.downloadError && (
                   <Kb.Text type="BodySmall" style={styles.downloadErrorLabel}>
-                    Failed to download
+                    Failed to download.{' '}
+                    <Kb.Text type="BodySmall" style={styles.retry} onClick={this.props.onRetry}>
+                      Retry
+                    </Kb.Text>
                   </Kb.Text>
                 )}
               </Kb.Box>
@@ -334,6 +338,10 @@ const styles = Styles.styleSheetCreate(
       progressLabel: {
         color: Styles.globalColors.black_50,
         marginRight: Styles.globalMargins.tiny,
+      },
+      retry: {
+        color: Styles.globalColors.redDark,
+        textDecorationLine: 'underline',
       },
       title: Styles.platformStyles({
         common: {
