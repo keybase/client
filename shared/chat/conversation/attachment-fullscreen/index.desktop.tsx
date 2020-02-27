@@ -47,6 +47,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
     cmd === 'left' && this.props.onPreviousAttachment()
     cmd === 'right' && this.props.onNextAttachment()
   }
+  private isDownloadError = () => !!this.props.message.transferErrMsg
 
   componentDidMount() {
     this.mounted = true
@@ -155,12 +156,12 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               </Kb.Text>
             )}
             {!!this.props.progressLabel && <Kb.ProgressBar ratio={this.props.progress} />}
-            {!this.props.progressLabel && this.props.onDownloadAttachment && !this.props.downloadError && (
+            {!this.props.progressLabel && this.props.onDownloadAttachment && !this.isDownloadError() && (
               <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
                 Download
               </Kb.Text>
             )}
-            {!this.props.progressLabel && this.props.onDownloadAttachment && this.props.downloadError && (
+            {!this.props.progressLabel && this.props.onDownloadAttachment && this.isDownloadError() && (
               <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
                 Failed to download.{' '}
                 <Kb.Text type="BodySmall" style={styles.retry} onClick={this.props.onDownloadAttachment}>

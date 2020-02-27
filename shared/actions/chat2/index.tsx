@@ -2097,7 +2097,15 @@ function* attachmentDownload(
 
 const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) =>
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {message: action.payload.message}, selected: 'chatAttachmentFullscreen'}],
+    path: [
+      {
+        props: {
+          conversationIDKey: action.payload.message.conversationIDKey,
+          ordinal: action.payload.message.ordinal,
+        },
+        selected: 'chatAttachmentFullscreen',
+      },
+    ],
   })
 
 // Handle an image pasted into a conversation
