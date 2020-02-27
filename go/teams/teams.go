@@ -996,7 +996,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 }
 
-func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
+func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface, isRetry bool) error {
 	m := t.MetaContext(ctx)
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -1016,12 +1016,14 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 		}
 	}
 
-	confirmed, err := ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
-	if err != nil {
-		return err
-	}
-	if !confirmed {
-		return errors.New("team delete not confirmed")
+	if !isRetry {
+		confirmed, err := ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
+		if err != nil {
+			return err
+		}
+		if !confirmed {
+			return errors.New("team delete not confirmed")
+		}
 	}
 
 	ratchet, err := t.makeRatchet(ctx)
@@ -1060,7 +1062,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	return t.HintLatestSeqno(m, latestSeqno)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
+func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface, isRetry bool) error {
 
 	m := t.MetaContext(ctx)
 
@@ -1087,12 +1089,14 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		return err
 	}
 
-	confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
-	if err != nil {
-		return err
-	}
-	if !confirmed {
-		return errors.New("team delete not confirmed")
+	if !isRetry {
+		confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
+		if err != nil {
+			return err
+		}
+		if !confirmed {
+			return errors.New("team delete not confirmed")
+		}
 	}
 
 	subteamName := SCTeamName(t.Data.Name.String())
