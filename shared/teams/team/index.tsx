@@ -19,7 +19,7 @@ export type Props = {
   setSelectedTab: (arg0: Types.TabKey) => void
 }
 
-const Team = props => {
+const Team = (props: Props) => {
   const renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'tabs':
@@ -63,6 +63,8 @@ const Team = props => {
   const onScroll = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
     : undefined
+  const selectionPopupTabName =
+    props.selectedTab === 'members' ? 'teamMembers' : props.selectedTab === 'channels' ? 'teamChannels' : ''
 
   return (
     <Kb.Box style={styles.container}>
@@ -79,7 +81,7 @@ const Team = props => {
         contentContainerStyle={styles.listContentContainer}
         onScroll={onScroll}
       />
-      <SelectionPopup selectedTab={props.selectedTab} teamID={props.teamID} />
+      <SelectionPopup selectedTab={selectionPopupTabName} teamID={props.teamID} />
     </Kb.Box>
   )
 }

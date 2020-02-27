@@ -6,11 +6,11 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as TeamsGen from '../../actions/teams-gen'
-import {TabKey as ChannelTabKey} from '../channel/tabs'
 import {pluralize} from '../../util/string'
 
-type TeamSelectableTab = Extract<Types.TabKey, 'members' | 'channels'>
-type ChannelSelectableTab = Extract<ChannelTabKey, 'members'>
+type UnselectableTab = string
+type TeamSelectableTab = 'teamMembers' | 'teamChannels'
+type ChannelSelectableTab = 'channelMembers'
 
 type TeamActionsProps = {
   teamID: Types.TeamID
@@ -26,40 +26,44 @@ type ChannelProps = ChannelActionsProps & {
   selectedTab: ChannelSelectableTab
 }
 
-type Props = TeamProps | ChannelProps
+type UnselectableProps = {
+  selectedTab: UnselectableTab
+} & Partial<TeamActionsProps> &
+  Partial<ChannelActionsProps>
 
-const isChannel = (props: Props): props is ChannelProps => !!(props as ChannelProps).conversationIDKey
+type Props = TeamProps | ChannelProps | UnselectableProps
+
+const isChannel = (props: Props): props is ChannelProps =>
+  ['channelMembers'].includes((props as ChannelProps).selectedTab)
+const isTeam = (props: Props): props is TeamProps =>
+  ['teamChannels', 'teamMembers'].includes((props as TeamProps).selectedTab)
 
 const getTeamSelectedCount = (state: Container.TypedState, props: TeamProps) => {
   const {selectedTab, teamID} = props
   switch (selectedTab) {
-    case 'channels':
+    case 'teamChannels':
       return state.teams.teamSelectedChannels.get(teamID)?.size ?? 0
-    case 'members':
+    case 'teamMembers':
       return state.teams.teamSelectedMembers.get(teamID)?.size ?? 0
-    default:
-      return 0
   }
 }
 
 const getChannelSelectedCount = (state: Container.TypedState, props: ChannelProps) => {
   const {conversationIDKey, selectedTab} = props
   switch (selectedTab) {
-    case 'members':
+    case 'channelMembers':
       return state.teams.channelSelectedMembers.get(conversationIDKey)?.size ?? 0
-    default:
-      return 0
   }
 }
 
 // In order for Selection Popup to show in a tab
 // the respective tab needs to be added to this map
 const teamSelectableTabNames: {[k in TeamSelectableTab]: string} = {
-  channels: 'channel',
-  members: 'member',
+  teamChannels: 'channel',
+  teamMembers: 'member',
 }
 const channelSelectableTabNames: {[k in ChannelSelectableTab]: string} = {
-  members: 'member',
+  channelMembers: 'member',
 }
 
 type JointSelectionPopupProps = {
@@ -111,7 +115,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
 
   const onUnselect = () => {
     switch (selectedTab) {
-      case 'channels':
+      case 'teamChannels':
         dispatch(
           TeamsGen.createSetChannelSelected({
             channel: '',
@@ -121,7 +125,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
           })
         )
         return
-      case 'members':
+      case 'teamMembers':
         dispatch(
           TeamsGen.createTeamSetMemberSelected({
             clearAll: true,
@@ -154,7 +158,7 @@ const ChannelSelectionPopup = (props: ChannelProps) => {
 
   const onUnselect = () => {
     switch (selectedTab) {
-      case 'members':
+      case 'channelMembers':
         dispatch(
           TeamsGen.createChannelSetMemberSelected({
             clearAll: true,
@@ -181,7 +185,11 @@ const ChannelSelectionPopup = (props: ChannelProps) => {
 }
 
 const SelectionPopup = (props: Props) =>
-  isChannel(props) ? <ChannelSelectionPopup {...props} /> : <TeamSelectionPopup {...props} />
+  isChannel(props) ? (
+    <ChannelSelectionPopup {...props} />
+  ) : isTeam(props) ? (
+    <TeamSelectionPopup {...props} />
+  ) : null
 
 const ActionsWrapper = ({children}) => (
   <Kb.Box2 fullWidth={Styles.isMobile} direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
@@ -242,8 +250,8 @@ const TeamChannelsActions = (_: TeamActionsProps) => {
 const ChannelMembersActions = (_: ChannelActionsProps) => null
 
 const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamActionsProps>} = {
-  channels: TeamChannelsActions,
-  members: TeamMembersActions,
+  teamChannels: TeamChannelsActions,
+  teamMembers: TeamMembersActions,
 }
 
 const styles = Styles.styleSheetCreate(() => ({
