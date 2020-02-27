@@ -122,3 +122,8 @@
 .darkMode .avatar-border {
   background: rgba(255, 255, 255, 0);
 }
+
+.circle {
+    transition-duration: 0.3s;
+    transition-property: transform;
+}

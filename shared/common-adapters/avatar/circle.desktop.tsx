@@ -4,8 +4,6 @@ import * as Styles from '../../styles'
 import Text from '../../common-adapters/text'
 import {useGetIDInfo} from './hooks'
 import {useInterval} from '../../common-adapters/use-timers'
-/** @jsx jsx */
-import {jsx, css} from '@emotion/core'
 
 const Kb = {
   Text,
@@ -16,65 +14,45 @@ type Props = {
   size: number
 }
 
-const HalfCircle = ({percentDone, size, style}) => {
-  const color = 'green'
-  const backgroundColor = 'white'
+// This renders a progress circle as two half circles with overflow hidden so we can animate
+//the values
 
-  const oneColor = color
-  const twoColor = backgroundColor
-  const threeColor = backgroundColor
-
-  const oneTransform = ''
-  const twoTransform = `rotate(${percentDone}turn)`
-  const threeTransform = 'rotate(0.5turn)'
-
-  const width = 6
+const HalfCircle = ({percentDone, size, style, color, width}) => {
+  const transform = `rotate(${180 + 360 * percentDone}deg)`
   const styleSize = size + width * 2
 
-  const common = {
+  const baseStyle = {
     borderTopLeftRadius: styleSize / 2,
     borderTopRightRadius: styleSize / 2,
     height: styleSize / 2,
-    marginLeft: -width,
-    marginTop: -width,
     position: 'absolute',
     transformOrigin: 'bottom center',
     width: styleSize,
-    //zIndex: 1000,
   } as const
 
-  // overlapping borderradius things fringes on the edges
-  const coverStyle = {
-    ...common,
-    backgroundColor: twoColor,
-  }
-  const extra = 2
-  coverStyle.width += extra * 2
-  coverStyle.marginLeft -= extra
-  coverStyle.marginTop -= extra
-  coverStyle.height += extra
   return (
-    <div style={style}>
-      <div key="one" style={{...common, backgroundColor: oneColor, transform: oneTransform}} />
-      <div
-        key="two"
-        style={coverStyle}
-        css={css`
-          transition-duration: 1s;
-          transition-property: transform;
-          transform: ${twoTransform};
-        `}
-      />
-      <div key="three" style={{...common, backgroundColor: threeColor, transform: threeTransform}} />
+    <div
+      style={{
+        ...baseStyle,
+        marginLeft: -width,
+        marginTop: -width,
+        overflow: 'hidden',
+        ...style,
+      }}
+    >
+      <div className="circle" style={{...baseStyle, backgroundColor: color, transform}} />
     </div>
   )
 }
+//transform: ${twoTransform};
 
 const Circle = (p: Props) => {
   const {username, size} = p
   //const {running, load, percentDone, color} = useGetIDInfo(username)
   // TEMP
-  const [percentDone, setPercentDone] = React.useState(0)
+  const [percentDone, setPercentDone] = React.useState(0.0)
+  const color = 'green'
+  const width = 6
 
   useInterval(
     () => {
@@ -87,7 +65,7 @@ const Circle = (p: Props) => {
       })
     },
     //null
-    username ? 1000 : null
+    username ? 500 : null
   )
 
   if (!username) {
@@ -106,18 +84,39 @@ const Circle = (p: Props) => {
   //4
   //)}
   //</Kb.Text>
+  const innerRadius = 3
   return (
     <div style={styles.container}>
-      <HalfCircle key="0-50" percentDone={Math.min(0.5, percentDone)} size={size} />
+      <HalfCircle
+        key="0-50"
+        percentDone={Math.min(0.5, percentDone)}
+        width={width}
+        size={size}
+        style={Styles.collapseStyles([{marginTop: -width}, styles.lowStyle])}
+        color={color}
+      />
       <HalfCircle
         key="50-100"
         percentDone={Math.max(0, percentDone - 0.5)}
+        width={6}
         size={size}
-        style={styles.lowerStyle}
+        style={Styles.collapseStyles([{marginBottom: -width}, styles.highStyle])}
+        color={color}
       />
       <Kb.Text type="Body" style={{position: 'absolute'}}>
         {percentDone}
       </Kb.Text>
+      <div
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '100%',
+          bottom: -innerRadius,
+          left: -innerRadius,
+          position: 'absolute',
+          right: -innerRadius,
+          top: -innerRadius,
+        }}
+      />
     </div>
   )
 }
@@ -127,13 +126,12 @@ const styles = Styles.styleSheetCreate(() => ({
     height: '100%',
     position: 'absolute',
     width: '100%',
+    //zIndex: 1,
   },
-  lowerStyle: Styles.platformStyles({
-    isElectron: {
-      height: '100%',
-      transform: 'rotate(180deg)',
-    },
+  highStyle: Styles.platformStyles({
+    isElectron: {transform: 'rotate(180deg)'},
   }),
+  lowStyle: {},
 }))
 
 // rn one
