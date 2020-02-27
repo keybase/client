@@ -30,6 +30,9 @@ const Connected = (props: OwnProps) => {
     previewHeight,
     imgMaxWidthRaw()
   )
+  const addToMessageMap = (message: Types.Message) => {
+    dispatch(Chat2Gen.createAddToMessageMap({message}))
+  }
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
 
@@ -50,6 +53,7 @@ const Connected = (props: OwnProps) => {
             const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
             if (goodMessage && goodMessage.type === 'attachment') {
               setAutoPlay(false)
+              addToMessageMap(goodMessage)
               setOrdinal(goodMessage.ordinal)
             }
           }

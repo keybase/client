@@ -253,6 +253,7 @@ export type TypedActionsMap = {
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
   'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
+  'chat2:addToMessageMap': chat2.AddToMessageMapPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

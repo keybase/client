@@ -2095,7 +2095,8 @@ function* attachmentDownload(
   yield Saga.callUntyped(downloadAttachment, false, message, logger)
 }
 
-const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) =>
+const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) => [
+  Chat2Gen.createAddToMessageMap({message: action.payload.message}),
   RouteTreeGen.createNavigateAppend({
     path: [
       {
@@ -2106,7 +2107,8 @@ const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload
         selected: 'chatAttachmentFullscreen',
       },
     ],
-  })
+  }),
+]
 
 // Handle an image pasted into a conversation
 const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
