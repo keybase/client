@@ -498,6 +498,15 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 			return err
 		}
 
+		if team.IsSubteam() {
+			// Do the "owner in subteam" check early before we do anything else.
+			for _, urp := range users {
+				if urp.Role == keybase1.TeamRole_OWNER {
+					return NewSubteamOwnersError()
+				}
+			}
+		}
+
 		tx := CreateAddMemberTx(team)
 		tx.EmailInviteMsg = emailInviteMsg
 
@@ -511,6 +520,8 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 			if err != nil {
 				return NewAddMembersError(candidate.Full, err)
 			}
+
+			g.Log.CDebugf(ctx, "%q resolved to %s", user.Assertion, candidate.DebugString())
 
 			if upak := candidate.KeybaseUser; upak != nil {
 				if _, ok := restrictedUsers[upak.Uid]; ok {
@@ -722,24 +733,26 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			continue
 		}
 
-		// api server side of this only accepts x.yy domain name:
+		// API server side of this only accepts x.yy domain name:
 		parts := strings.Split(addr.Address, ".")
 		if len(parts[len(parts)-1]) < 2 {
 			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q", teamname, email)
 			res.Malformed = append(res.Malformed, email)
 			continue
 		}
-		a, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
+
+		assertion, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
 		if parseErr != nil {
 			g.Log.CDebugf(ctx, "team %q: skipping malformed email %q; could not parse into assertion: %s", teamname, email, parseErr)
 			res.Malformed = append(res.Malformed, email)
 			continue
 		}
-		toAdd = append(toAdd, keybase1.UserRolePair{Assertion: a.String(), Role: role})
+		toAdd = append(toAdd, keybase1.UserRolePair{Assertion: assertion.String(), Role: role})
 	}
 
 	if len(toAdd) == 0 {
-		return res, err
+		// Nothing to do.
+		return res, nil
 	}
 
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
