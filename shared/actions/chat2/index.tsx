@@ -2555,7 +2555,7 @@ const mobileNavigateOnSelect = (
       return false // never nav if this is from a nav
     }
     logger.info(
-      `mobileNavigateOnSelect: navigating to selected: selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+      `mobileNavigateOnSelect: navigating to param: ${conversationIDKey} selected: ${state.chat2.selectedConversation}`
     )
     return navigateToThreadRoute(conversationIDKey, navKey)
   } else if (
