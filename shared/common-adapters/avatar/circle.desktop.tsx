@@ -16,30 +16,9 @@ type Props = {
   size: number
 }
 
-const Circle = (p: Props) => {
-  const {username, size} = p
-
-  //const {running, load, percentDone, color} = useGetIDInfo(username)
-  // TEMP
-  const [percentDone, setPercentDone] = React.useState(0)
-
-  useInterval(() => {
-    setPercentDone(p => {
-      let next = p + 0.1
-      if (next >= 1) {
-        next = 0
-      }
-      return next
-    })
-  }, 1000)
-
+const HalfCircle = ({percentDone, size, style}) => {
   const color = 'green'
-
   const backgroundColor = 'white'
-
-  if (!username) {
-    return null
-  }
 
   const oneColor = color
   const twoColor = backgroundColor
@@ -61,7 +40,7 @@ const Circle = (p: Props) => {
     position: 'absolute',
     transformOrigin: 'bottom center',
     width: styleSize,
-    zIndex: 1000,
+    //zIndex: 1000,
   } as const
 
   // overlapping borderradius things fringes on the edges
@@ -74,6 +53,46 @@ const Circle = (p: Props) => {
   coverStyle.marginLeft -= extra
   coverStyle.marginTop -= extra
   coverStyle.height += extra
+  return (
+    <div style={style}>
+      <div key="one" style={{...common, backgroundColor: oneColor, transform: oneTransform}} />
+      <div
+        key="two"
+        style={coverStyle}
+        css={css`
+          transition-duration: 1s;
+          transition-property: transform;
+          transform: ${twoTransform};
+        `}
+      />
+      <div key="three" style={{...common, backgroundColor: threeColor, transform: threeTransform}} />
+    </div>
+  )
+}
+
+const Circle = (p: Props) => {
+  const {username, size} = p
+  //const {running, load, percentDone, color} = useGetIDInfo(username)
+  // TEMP
+  const [percentDone, setPercentDone] = React.useState(0)
+
+  useInterval(
+    () => {
+      setPercentDone(p => {
+        let next = p + 0.1
+        if (next >= 1) {
+          next = 0
+        }
+        return next
+      })
+    },
+    //null
+    username ? 1000 : null
+  )
+
+  if (!username) {
+    return null
+  }
 
   //<Kb.Text type="Body" style={{position: 'absolute'}}>
   //{JSON.stringify(
@@ -88,29 +107,33 @@ const Circle = (p: Props) => {
   //)}
   //</Kb.Text>
   return (
-    <>
-      <div key="one" style={{...common, backgroundColor: oneColor, transform: oneTransform}} />
-      <div
-        key="two"
-        style={coverStyle}
-        css={css`
-          transition-duration: 1s;
-          transition-property: transform;
-          transform: ${twoTransform};
-        `}
+    <div style={styles.container}>
+      <HalfCircle key="0-50" percentDone={Math.min(0.5, percentDone)} size={size} />
+      <HalfCircle
+        key="50-100"
+        percentDone={Math.max(0, percentDone - 0.5)}
+        size={size}
+        style={styles.lowerStyle}
       />
-      <div key="three" style={{...common, backgroundColor: threeColor, transform: threeTransform}} />
       <Kb.Text type="Body" style={{position: 'absolute'}}>
         {percentDone}
       </Kb.Text>
-    </>
+    </div>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
+    height: '100%',
     position: 'absolute',
+    width: '100%',
   },
+  lowerStyle: Styles.platformStyles({
+    isElectron: {
+      height: '100%',
+      transform: 'rotate(180deg)',
+    },
+  }),
 }))
 
 // rn one
