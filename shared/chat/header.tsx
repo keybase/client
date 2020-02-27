@@ -216,16 +216,9 @@ const Header = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      actionIcons: Styles.platformStyles({
-        common: {
-          paddingBottom: Styles.globalMargins.tiny,
-        },
-        isTablet: {
-          flexGrow: 0,
-          flexShrink: 0,
-          minWidth: 200,
-        },
-      }),
+      actionIcons: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
       clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
       container: {
         flexGrow: 1,
@@ -256,10 +249,10 @@ const styles = Styles.styleSheetCreate(
       }),
       left: Styles.platformStyles({
         isElectron: {minWidth: 260},
-        isTablet: {minWidth: 180},
+        isTablet: {paddingLeft: Styles.globalMargins.small, width: '30%'},
       }),
       right: {
-        flexGrow: 1,
+        flex: 1,
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
       },
