@@ -6,7 +6,7 @@ const noop = () => {}
 // finishes after timing has passed since the start function is called. When
 // timer finishes, func is called.
 //
-// Input parameters are ignoerd except first time.
+// Input parameters are ignored except first time.
 //
 // The returned function can be called multiple times. If it's called before
 // the previous timer finished, the timer is extended. If it's called after the

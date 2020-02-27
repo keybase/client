@@ -1,11 +1,13 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
+//import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import Text from '../../common-adapters/text'
+import Icon from '../../common-adapters/icon'
 import {useGetIDInfo} from './hooks'
-import {useInterval} from '../../common-adapters/use-timers'
+import {useInterval, useTimeout} from '../../common-adapters/use-timers'
 
 const Kb = {
+  Icon,
   Text,
 }
 
@@ -40,7 +42,7 @@ const HalfCircle = ({percentDone, size, style, color, width}) => {
         ...style,
       }}
     >
-      <div className="circle" style={{...baseStyle, backgroundColor: color, transform}} />
+      <div className="halfCircle" style={{...baseStyle, backgroundColor: color, transform}} />
     </div>
   )
 }
@@ -52,16 +54,22 @@ const Circle = (p: Props) => {
   // TEMP
   const [percentDone, setPercentDone] = React.useState(0.0)
   const [color, setColor] = React.useState<string>(Styles.globalColors.green)
+  const [iconOpacity, setIconOpacity] = React.useState(0)
   const width = 6
   const innerRadius = 3
+  const containerRef = React.useRef<HTMLDivElement>()
 
   useInterval(
     () => {
       setPercentDone(p => {
+        if (p >= 1) {
+          return p
+        }
         let next = p + 0.1
         if (next >= 1) {
-          next = 0
+          next = 1
           setColor(Styles.globalColors.green)
+          setIconOpacity(1)
         }
         if (next > 0.3 && color !== Styles.globalColors.red) {
           setColor(Styles.globalColors.red)
@@ -70,12 +78,32 @@ const Circle = (p: Props) => {
       })
     },
     //null
-    username ? 500 : null
+    //username ? 500 : null
+    percentDone >= 1 ? undefined : 500
   )
 
-  if (!username) {
-    return null
-  }
+  const isDone = percentDone >= 1
+
+  const mockState = React.useRef<'drawing' | 'waiting'>('drawing')
+
+  const resetTimer = useTimeout(() => {
+    setIconOpacity(0)
+    setPercentDone(0)
+    mockState.current = 'drawing'
+
+    const div = containerRef.current
+    if (div) {
+      div.classList.remove('stopped')
+      div.classList.remove('resetting')
+    }
+  }, 2000)
+
+  //let stoppedAnimation = false
+  //if (isDone && mockState.current === 'drawing') {
+  //stoppedAnimation = true
+  //mockState.current = 'waiting'
+  //resetTimer()
+  //}
 
   //<Kb.Text type="Body" style={{position: 'absolute'}}>
   //{JSON.stringify(
@@ -89,8 +117,57 @@ const Circle = (p: Props) => {
   //4
   //)}
   //</Kb.Text>
+  // maybe not needed
+  //let stopStyle = {}
+
+  //// stop the animation smoothly
+  //if (percentDone >= 1) {
+  //stopStyle = {
+  //animationPlayState: 'paused',
+  //transform: 'rotate(0deg)',
+  //}
+  //}
+  //if (stoppedAnimation && containerRef.current) {
+  //containerRef.current.style.
+  //}
+
+  React.useEffect(() => {
+    const div = containerRef.current
+    if (!isDone || !div || mockState.current !== 'drawing') {
+      return
+    }
+
+    mockState.current = 'waiting'
+
+    const matrix = getComputedStyle(div).transform
+    if (matrix) {
+      const [, rot] = matrix
+        .split('(')[1]
+        .split(')')[0]
+        .split(',')
+
+      const angle = Math.round(Math.asin(parseFloat(rot)) * (180 / Math.PI))
+      console.log('aaa angle', angle)
+
+      div.classList.add('stopped')
+      div.style.transform = `rotate(${angle}deg)`
+      setTimeout(() => {
+        div.classList.add('resetting')
+        div.style.transform = `rotate(${0}deg)`
+      }, 1)
+    }
+    resetTimer()
+  }, [isDone, containerRef, resetTimer])
+
+  if (!username) {
+    return null
+  }
+
+  //<Kb.Text type="Body" style={{position: 'absolute'}}>
+  //{percentDone}
+  //</Kb.Text>
   return (
-    <div style={styles.container}>
+    <div style={styles.container} ref={containerRef} className="circle">
       <HalfCircle
         key="0-50"
         percentDone={Math.min(0.5, percentDone)}
@@ -107,9 +184,6 @@ const Circle = (p: Props) => {
         style={Styles.collapseStyles([{marginBottom: -width}, styles.highStyle])}
         color={color}
       />
-      <Kb.Text type="Body" style={{position: 'absolute'}}>
-        {percentDone}
-      </Kb.Text>
       <div
         style={Styles.collapseStyles([
           styles.innerCircle,
@@ -121,6 +195,7 @@ const Circle = (p: Props) => {
           },
         ])}
       />
+      <Kb.Icon type="iconfont-people" color={color} style={{opacity: iconOpacity}} className="circleIcon" />
     </div>
   )
 }

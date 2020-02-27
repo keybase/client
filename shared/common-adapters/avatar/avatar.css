@@ -123,7 +123,44 @@
   background: rgba(255, 255, 255, 0);
 }
 
+@keyframes circle{
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .circle {
+  //animation: circle 6s linear;
+  //animation-direction: reverse;
+  //animation: circle 3s linear forwards;
+  animation: circle 2s linear infinite;
+}
+.circle.stopped {
+  //transition-duration: 0.3s;
+  //transition-property: transform;
+  //animation-iteration-count: 1;
+  animation: none;
+  //transform: rotate(0deg);
+  //-webkit-animation-iteration-count: infinite;
+}
+.circle.resetting {
+  transition-duration: 1s;
+  transition-property: transform;
+}
+
+.circleIcon {
+    background-color: white;
+    left: -16px;
+    position: absolute;
+    top: 56px;
+    transition-duration: 0.3s;
+    transition-property: opacity;
+}
+
+.halfCircle {
     transition-duration: 0.3s;
     transition-property: transform color;
 }
