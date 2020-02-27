@@ -436,8 +436,8 @@ const styles = Styles.styleSheetCreate(
       },
       actionContainer: {
         flexShrink: 0,
-        marginRight: Styles.globalMargins.tiny,
         marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
         minHeight: 32,
       },
       actionText: {
@@ -491,8 +491,8 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
       },
       iconContainer: {
-        marginRight: -4,
         height: 28,
+        marginRight: -4,
         position: 'relative',
         width: 28,
       },
