@@ -76,7 +76,7 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
     draftState.featuredBotsLoaded = loaded
   },
   [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
-    draftState.botSearchResults = action.payload.results
+    draftState.botSearchResults.set(action.payload.query, action.payload.results)
   },
 }
 
@@ -1235,14 +1235,17 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [EngineGen.chat1NotifyChatChatParticipantsInfo]: (draftState, action) => {
-    const {convID, participants} = action.payload.params
-    const conversationIDKey = Types.conversationIDToKey(convID)
-    if (participants) {
-      draftState.participantMap.set(
-        conversationIDKey,
-        Constants.uiParticipantsToParticipantInfo(participants)
-      )
-    }
+    const {participants: participantMap} = action.payload.params
+    Object.keys(participantMap).forEach(convIDStr => {
+      const participants = participantMap[convIDStr]
+      const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
+      if (participants) {
+        draftState.participantMap.set(
+          conversationIDKey,
+          Constants.uiParticipantsToParticipantInfo(participants)
+        )
+      }
+    })
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, initialTrustedLoad, removals} = action.payload

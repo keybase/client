@@ -291,6 +291,7 @@ type SenderPrepareResult struct {
 	Boxed               chat1.MessageBoxed
 	EncryptionInfo      BoxerEncryptionInfo
 	PendingAssetDeletes []chat1.Asset
+	DeleteFlipConv      *chat1.ConversationID
 	AtMentions          []gregor1.UID
 	ChannelMention      chat1.ChannelMention
 	TopicNameState      *chat1.TopicNameState

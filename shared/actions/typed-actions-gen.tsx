@@ -318,6 +318,7 @@ export type TypedActionsMap = {
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:runFileOperation': crypto.RunFileOperationPayload
   'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
   'crypto:saltpackDecrypt': crypto.SaltpackDecryptPayload
@@ -886,6 +887,7 @@ export type TypedActionsMap = {
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'team-building:tbResetStore': teambuilding.TbResetStorePayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
+  'teams:channelSetMemberSelected': teams.ChannelSetMemberSelectedPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload
@@ -905,7 +907,7 @@ export type TypedActionsMap = {
   'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
-  'teams:setMemberSelected': teams.SetMemberSelectedPayload
+  'teams:teamSetMemberSelected': teams.TeamSetMemberSelectedPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload

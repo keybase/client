@@ -41,6 +41,7 @@ export const makeState = (): Types.State => ({
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
+  botSearchResults: new Map(),
   botSettings: new Map(),
   botTeamRoleInConvMap: new Map(),
   channelSearchText: '',

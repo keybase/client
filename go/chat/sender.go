@@ -255,43 +255,48 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 }
 
 // Get all messages to be deleted, and attachments to delete.
-// Returns (message, assetsToDelete, error)
+// Returns (message, assetsToDelete, flipConvToDelete, error)
 // If the entire conversation is cached locally, this will find all messages that should be deleted.
 // If the conversation is not cached, this relies on the server to get old messages, so the server
 // could omit messages. Those messages would then not be signed into the `Deletes` list. And their
 // associated attachment assets would be left undeleted.
 func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.MessagePlaintext, []chat1.Asset, error) {
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.MessagePlaintext, []chat1.Asset, *chat1.ConversationID, error) {
 
 	var pendingAssetDeletes []chat1.Asset
+	var deleteFlipConvID *chat1.ConversationID
 
 	// Make sure this is a valid delete message
 	if msg.ClientHeader.MessageType != chat1.MessageType_DELETE {
-		return msg, nil, nil
+		return msg, nil, nil, nil
 	}
 
 	deleteTargetID := msg.ClientHeader.Supersedes
 	if deleteTargetID == 0 {
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
+		return msg, nil, nil, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
 	}
 
 	// Get the one message to be deleted by ID.
 	deleteTarget, err := s.getMessage(ctx, uid, convID, deleteTargetID, false /* resolveSupersedes */)
 	if err != nil {
-		return msg, nil, err
+		return msg, nil, nil, err
 	}
-	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
+	switch deleteTarget.ClientHeader.MessageType {
+	case chat1.MessageType_REACTION:
 		// Don't do anything here for reactions/unfurls, they can't be edited
-		return msg, nil, nil
-	} else if deleteTarget.ClientHeader.MessageType == chat1.MessageType_SYSTEM {
+		return msg, nil, nil, nil
+	case chat1.MessageType_SYSTEM:
 		msgSys := deleteTarget.MessageBody.System()
 		typ, err := msgSys.SystemType()
 		if err != nil {
-			return msg, nil, err
+			return msg, nil, nil, err
 		}
 		if !chat1.IsSystemMsgDeletableByDelete(typ) {
-			return msg, nil, fmt.Errorf("%v is not deletable", typ)
+			return msg, nil, nil, fmt.Errorf("%v is not deletable", typ)
 		}
+	case chat1.MessageType_FLIP:
+		flipConvID := deleteTarget.MessageBody.Flip().FlipConvID
+		deleteFlipConvID = &flipConvID
 	}
 
 	// Delete all assets on the deleted message.
@@ -321,7 +326,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 				After:        &timeBeforeFirst,
 			}, nil)
 		if err != nil {
-			return msg, nil, err
+			return msg, nil, nil, err
 		}
 	}
 
@@ -368,7 +373,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	//       careful to preserve them here.
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
-	return msg, pendingAssetDeletes, nil
+	return msg, pendingAssetDeletes, deleteFlipConvID, nil
 }
 
 func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
@@ -744,6 +749,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Make sure our delete message gets everything it should
 	var pendingAssetDeletes []chat1.Asset
+	var deleteFlipConvID *chat1.ConversationID
 	if conv != nil {
 		convID := conv.GetConvID()
 		msg.ClientHeader.Conv = conv.Info.Triple
@@ -781,8 +787,8 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			return res, err
 		}
 
-		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
-		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
+		// Be careful not to shadow (msg, pendingAssetDeletes, deleteFlipConvID) with this assignment.
+		msg, pendingAssetDeletes, deleteFlipConvID, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
 		if err != nil {
 			s.Debug(ctx, "Prepare: error getting deleted edits: %s", err)
 			return res, err
@@ -884,6 +890,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		Boxed:               boxed,
 		EncryptionInfo:      encInfo,
 		PendingAssetDeletes: pendingAssetDeletes,
+		DeleteFlipConv:      deleteFlipConvID,
 		AtMentions:          atMentions,
 		ChannelMention:      chanMention,
 		TopicNameState:      topicNameState,
@@ -1081,15 +1088,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		}
 		boxed = &prepareRes.Boxed
 
-		// Delete assets associated with a delete operation.
-		// Logs instead of returning an error. Assets can be left undeleted.
-		if len(prepareRes.PendingAssetDeletes) > 0 {
-			err = s.deleteAssets(ctx, convID, prepareRes.PendingAssetDeletes)
-			if err != nil {
-				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err)
-			}
-		}
-
 		// Log some useful information about the message we are sending
 		obidstr := "(none)"
 		if boxed.ClientHeader.OutboxID != nil {
@@ -1144,6 +1142,22 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			}
 		}
 		boxed.ServerHeader = &plres.MsgHeader
+
+		// Delete assets associated with a delete operation.
+		// Logs instead of returning an error. Assets can be left undeleted.
+		if len(prepareRes.PendingAssetDeletes) > 0 {
+			err = s.deleteAssets(ctx, convID, prepareRes.PendingAssetDeletes)
+			if err != nil {
+				s.Debug(ctx, "Send: failure in deleteAssets: %s", err)
+			}
+		}
+
+		if prepareRes.DeleteFlipConv != nil {
+			_, err = s.getRi().DeleteConversation(ctx, *prepareRes.DeleteFlipConv)
+			if err != nil {
+				s.Debug(ctx, "Send: failure in DeleteConversation: %s", err)
+			}
+		}
 		break
 	}
 	if err != nil {

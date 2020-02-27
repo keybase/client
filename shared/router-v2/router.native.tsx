@@ -9,9 +9,6 @@ import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as FsConstants from '../constants/fs'
 import * as Container from '../util/container'
-import GlobalError from '../app/global-errors/container'
-import OutOfDate from '../app/out-of-date'
-import RuntimeStats from '../app/runtime-stats'
 import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -331,19 +328,11 @@ class RNApp extends React.PureComponent<Props> {
 
   render() {
     return (
-      <>
-        <Kb.NativeStatusBar
-          barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
-        />
-        <AppContainer
-          ref={this.setNav}
-          onNavigationStateChange={this.onNavigationStateChange}
-          {...this.hmrProps()}
-        />
-        <GlobalError />
-        <OutOfDate />
-        <RuntimeStats />
-      </>
+      <AppContainer
+        ref={this.setNav}
+        onNavigationStateChange={this.onNavigationStateChange}
+        {...this.hmrProps()}
+      />
     )
   }
 }
