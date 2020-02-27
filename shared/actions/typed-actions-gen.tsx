@@ -278,6 +278,7 @@ export type TypedActionsMap = {
   'config:globalError': config.GlobalErrorPayload
   'config:pushLoaded': config.PushLoadedPayload
   'config:setStartupDetails': config.SetStartupDetailsPayload
+  'config:setStartupFile': config.SetStartupFilePayload
   'config:setOpenAtLogin': config.SetOpenAtLoginPayload
   'config:setNotifySound': config.SetNotifySoundPayload
   'config:setDeletedSelf': config.SetDeletedSelfPayload

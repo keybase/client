@@ -1,5 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
+import HiddenString from '../util/hidden-string'
+
 // Constants
 export const resetStore = 'common:resetStore' // not a part of deeplinks but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'deeplinks:'
@@ -11,12 +13,12 @@ export const setKeybaseLinkError = 'deeplinks:setKeybaseLinkError'
 // Payload Types
 type _HandleKeybaseLinkPayload = {readonly link: string}
 type _LinkPayload = {readonly link: string}
-type _SaltpackFileOpenPayload = {readonly path: string}
+type _SaltpackFileOpenPayload = {readonly path: string | HiddenString}
 type _SetKeybaseLinkErrorPayload = {readonly error: string}
 
 // Action Creators
 /**
- * Fired after OS notifies Electron that an associated Saltpack file has been opened.
+ * Fired after OS notifies Electron that an associated Saltpack file has been opened. Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile.
  */
 export const createSaltpackFileOpen = (payload: _SaltpackFileOpenPayload): SaltpackFileOpenPayload => ({
   payload,

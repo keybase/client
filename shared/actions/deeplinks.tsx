@@ -2,6 +2,7 @@ import * as ChatGen from './chat2-gen'
 import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
+import * as ConfigGen from './config-gen'
 import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -144,8 +145,21 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   return false
 }
 
-const handleSaltpackOpenFile = (action: DeeplinksGen.SaltpackFileOpenPayload) => {
-  const path = action.payload.path
+const handleSaltpackOpenFile = (
+  state: Container.TypedState,
+  action: DeeplinksGen.SaltpackFileOpenPayload
+) => {
+  const path =
+    typeof action.payload.path === 'string' ? action.payload.path : action.payload.path.stringValue()
+
+  if (!state.config.loggedIn) {
+    console.warn(
+      'Tried to open a saltpack file before being logged in. Stashing the file path for after log in.'
+    )
+    return ConfigGen.createSetStartupFile({
+      startupFile: new Container.HiddenString(path),
+    })
+  }
   let operation: CryptoTypes.Operations | null = null
   if (path.endsWith('.encrypted.saltpack')) {
     operation = CrytoConstants.Operations.Decrypt
@@ -159,6 +173,10 @@ const handleSaltpackOpenFile = (action: DeeplinksGen.SaltpackFileOpenPayload) =>
   }
 
   return [
+    // Clear previously set startupFile so that subsequent startups/logins do not route to the crypto tab with a stale startupFile
+    ConfigGen.createSetStartupFile({
+      startupFile: new Container.HiddenString(''),
+    }),
     RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}),
     CryptoGen.createOnSaltpackFileOpen({
       operation,
@@ -170,7 +188,7 @@ const handleSaltpackOpenFile = (action: DeeplinksGen.SaltpackFileOpenPayload) =>
 function* deeplinksSaga() {
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
   yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
-  yield* Saga.chainAction(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
+  yield* Saga.chainAction2(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
 }
 
 export default deeplinksSaga

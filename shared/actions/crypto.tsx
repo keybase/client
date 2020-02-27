@@ -60,7 +60,7 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   return actions
 }
 
-const handleSaltpackOpenFile = (state: Container.TypedState, action: CryptoGen.OnSaltpackFileOpenPayload) => {
+const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackFileOpenPayload) => {
   const {operation} = action.payload
   const tab = Constants.CryptoSubTabs[operation]
   return RouteTreeGen.createNavigateAppend({
@@ -637,7 +637,7 @@ function* cryptoSaga() {
   yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
-  yield* Saga.chainAction2(CryptoGen.onSaltpackFileOpen, handleSaltpackOpenFile)
+  yield* Saga.chainAction(CryptoGen.onSaltpackFileOpen, handleSaltpackOpenFile)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)
