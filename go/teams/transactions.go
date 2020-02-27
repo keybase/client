@@ -26,9 +26,9 @@ type AddMemberTx struct {
 	team     *Team
 	payloads []txPayload
 
-	// Error state: if a transaction operator failed and tainted the
-	// transaction, do not allow post. We try to never get in a state when we
-	// modify a transaction and then realize there's an issue, but if this
+	// Error state: if a transaction operation failed and tainted the
+	// transaction, do not allow posting. We try to never get in a state when
+	// we modify a transaction and then realize there's an issue, but if this
 	// happens, make sure the tx can't be used further.
 	err error
 
@@ -455,11 +455,11 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole,
 	botSettings *keybase1.TeamBotSettings) (err error) {
 	team := tx.team
-	m := team.MetaContext(ctx)
+	mctx := team.MetaContext(ctx)
 
-	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
-	upak, err := engine.ResolveAndCheck(m, username, true /* useTracking */)
+	upak, err := engine.ResolveAndCheck(mctx, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
