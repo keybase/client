@@ -30,7 +30,7 @@ type AddMemberTx struct {
 	// transaction, do not allow post. We try to never get in a state when we
 	// modify a transaction and then realize there's an issue, but if this
 	// happens, make sure the tx can't be used further.
-	err *TransactionTaintedError
+	err error
 
 	// completedInvites is used to mark completed invites, so they are
 	// skipped in sweeping methods.
@@ -52,7 +52,7 @@ type TransactionTaintedError struct {
 	inner error
 }
 
-func (e *TransactionTaintedError) Error() string {
+func (e TransactionTaintedError) Error() string {
 	return fmt.Sprintf("Transaction is in error state: %s", e.inner)
 }
 
@@ -159,7 +159,7 @@ func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole
 	payload := tx.changeMembershipPayload(uv.Uid)
 	err := payload.AddUVWithRole(uv, role, botSettings)
 	if err != nil {
-		tx.err = &TransactionTaintedError{err}
+		tx.err = TransactionTaintedError{err}
 		err = tx.err
 	}
 	return err
@@ -172,7 +172,7 @@ func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
 	payload := tx.changeMembershipPayload(uv.Uid)
 	err := payload.AddUVWithRole(uv, role, nil /* botSettings */)
 	if err != nil {
-		tx.err = &TransactionTaintedError{err}
+		tx.err = TransactionTaintedError{err}
 		err = tx.err
 	}
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
@@ -220,7 +220,7 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 	case keybase1.TeamRole_OWNER:
 		payload.Owners = appendToInviteList(invite, payload.Owners)
 	default:
-		tx.err = &TransactionTaintedError{fmt.Errorf("invalid role for invite %v", role)}
+		tx.err = TransactionTaintedError{fmt.Errorf("invalid role for invite %v", role)}
 		return tx.err
 	}
 	return nil
@@ -895,7 +895,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	if tx.err != nil {
 		// AddMemberTx operation has irreversibly failed, potentially leaving
 		// tx in bad state. Do not post.
-		return fmt.Errorf("Transaction is in error state, can't Post: %s", tx.err.inner)
+		return tx.err
 	}
 
 	if len(tx.payloads) == 0 {
