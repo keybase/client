@@ -53,7 +53,7 @@ let Conversation = (p: SwitchProps) => {
     // eslint-disable-next-line
     React.useEffect(() => {
       if (isFocused) {
-        if (_storeConvoIDKey !== conversationIDKey) {
+        if (_storeConvoIDKey !== conversationIDKey && Constants.isValidConversationIDKey(conversationIDKey)) {
           dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'}))
         }
       } else {
