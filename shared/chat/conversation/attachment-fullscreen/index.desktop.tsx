@@ -155,9 +155,17 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               </Kb.Text>
             )}
             {!!this.props.progressLabel && <Kb.ProgressBar ratio={this.props.progress} />}
-            {!this.props.progressLabel && this.props.onDownloadAttachment && (
+            {!this.props.progressLabel && this.props.onDownloadAttachment && !this.props.downloadError && (
               <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
                 Download
+              </Kb.Text>
+            )}
+            {!this.props.progressLabel && this.props.onDownloadAttachment && this.props.downloadError && (
+              <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
+                Failed to download.{' '}
+                <Kb.Text type="BodySmall" style={styles.retry} onClick={this.props.onDownloadAttachment}>
+                  Retry
+                </Kb.Text>
               </Kb.Text>
             )}
             {this.props.onShowInFinder && (
@@ -226,6 +234,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
+      retry: {
+        color: Styles.globalColors.redDark,
+        textDecorationLine: 'underline',
+      },
       videoFit: Styles.platformStyles({
         isElectron: {
           cursor: 'normal',

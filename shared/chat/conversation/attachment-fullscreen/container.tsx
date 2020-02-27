@@ -20,7 +20,10 @@ const Connected = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
   const state = Container.useSelector(s => s)
   const message = m?.type === 'attachment' ? m : blankMessage
-  const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
+  const storeMessage = Constants.getMessage(state, m.conversationIDKey, m.ordinal)
+  const downloadError = storeMessage?.type === 'attachment' ? !!storeMessage.transferErrMsg : false
+  const transferProgress = storeMessage?.type === 'attachment' ? storeMessage.transferProgress : 0
+  const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath} = message
   const {conversationIDKey, id} = message
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,
@@ -84,6 +87,7 @@ const Connected = (props: OwnProps) => {
       progress={transferProgress}
       progressLabel={fileURL ? undefined : 'Loading'}
       title={message.decoratedText ? message.decoratedText.stringValue() : title}
+      downloadError={downloadError}
     />
   )
 }

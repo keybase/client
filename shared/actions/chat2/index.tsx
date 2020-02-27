@@ -2591,8 +2591,8 @@ function* mobileMessageAttachmentShare(
   }
   const filePath = yield* downloadAttachment(true, message, logger)
   if (!filePath) {
-    logger.error('Downloading attachment failed')
-    throw new Error('Downloading attachment failed')
+    logger.info('Downloading attachment failed')
+    return
   }
 
   if (isIOS && message.fileName.endsWith('.pdf')) {
