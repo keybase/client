@@ -120,7 +120,7 @@ func (c *Crypto) fastLoadKeyAtGeneration(ctx context.Context, teamSpec keybase1.
 	if n != 1 {
 		return key, fmt.Errorf("wrong number of keys back from FTL; wanted 1 but got %d", n)
 	}
-	if metadata.Gen > 0 && res.ApplicationKeys[0].KeyGeneration != keybase1.PerTeamKeyGeneration(metadata.Gen) {
+	if metadata.Gen > 0 && res.ApplicationKeys[0].KeyGeneration != metadata.Gen {
 		return key, fmt.Errorf("wrong generation back from FTL; wanted %d but got %d", metadata.Gen, res.ApplicationKeys[0].KeyGeneration)
 	}
 
