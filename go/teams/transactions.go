@@ -26,6 +26,12 @@ type AddMemberTx struct {
 	team     *Team
 	payloads []txPayload
 
+	// Error state: if a transaction operator failed and tainted the
+	// transaction, do not allow post. We try to never get in a state when we
+	// modify a transaction and then realize there's an issue, but if this
+	// happens, make sure the tx can't be used further.
+	err *TransactionTaintedError
+
 	// completedInvites is used to mark completed invites, so they are
 	// skipped in sweeping methods.
 	completedInvites map[keybase1.TeamInviteID]bool
@@ -42,6 +48,16 @@ type AddMemberTx struct {
 
 	// EmailInviteMsg is used for sending a welcome message in email invites
 	EmailInviteMsg *string
+}
+
+// TransactionTaintedError is used for unrecoverable error where we fail to add
+// a member and irreversibly break the transaction while doing so.
+type TransactionTaintedError struct {
+	inner error
+}
+
+func (e *TransactionTaintedError) Error() string {
+	return fmt.Sprintf("Transaction is in error state: %s", e.inner)
 }
 
 type txPayloadTag int
@@ -147,6 +163,10 @@ func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole
 	// and not NONE.
 	payload := tx.changeMembershipPayload(uv.Uid)
 	err := payload.AddUVWithRole(uv, role, botSettings)
+	if err != nil {
+		tx.err = &TransactionTaintedError{err}
+		err = tx.err
+	}
 	return err
 }
 
@@ -156,6 +176,10 @@ func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
 	// exists. Role is not RESTRICTEDBOT as botSettings are set to nil.
 	payload := tx.changeMembershipPayload(uv.Uid)
 	err := payload.AddUVWithRole(uv, role, nil /* botSettings */)
+	if err != nil {
+		tx.err = &TransactionTaintedError{err}
+		err = tx.err
+	}
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
 	return err
 }
@@ -201,7 +225,8 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 	case keybase1.TeamRole_OWNER:
 		payload.Owners = appendToInviteList(invite, payload.Owners)
 	default:
-		return fmt.Errorf("invalid role for invite %v", role)
+		tx.err = &TransactionTaintedError{fmt.Errorf("invalid role for invite %v", role)}
+		return tx.err
 	}
 	return nil
 }
@@ -882,7 +907,6 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 
 	tx.sweepKeybaseInvites(uv.Uid)
 	tx.sweepCryptoMembersOlderThan(uv)
-
 	if err := tx.addMemberAndCompleteInvite(uv, role, invitee.InviteID); err != nil {
 		return err
 	}
@@ -894,6 +918,13 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	g := team.G()
 
 	defer g.CTrace(mctx.Ctx(), "AddMemberTx.Post", func() error { return err })()
+
+	if tx.err != nil {
+		// AddMemberTx operation has irreversibly failed, potentially leaving
+		// tx in bad state. Do not post.
+		return fmt.Errorf("Transaction is in error state, can't Post: %s", tx.err.inner)
+	}
+
 	if len(tx.payloads) == 0 {
 		return errors.New("there are no signatures to post")
 	}
