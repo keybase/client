@@ -44,11 +44,13 @@ type AddMemberTx struct {
 	EmailInviteMsg *string
 }
 
-type txPayloadTag string
+type txPayloadTag int
 
-const txPayloadTagCryptomembers txPayloadTag = "cryptomembers" // -> *keybase1.TeamChangeReq
-const txPayloadTagInviteSocial txPayloadTag = "invitesocial"   // -> *SCTeamInvites
-const txPayloadTagInviteKeybase txPayloadTag = "invitekeybase" // -> *SCTeamInvites
+const (
+	txPayloadTagCryptomembers txPayloadTag = iota
+	txPayloadTagInviteSocial
+	txPayloadTagInviteKeybase
+)
 
 type txPayload struct {
 	Tag txPayloadTag
@@ -977,7 +979,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			section.Entropy = entropy
 			sections = append(sections, section)
 		default:
-			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %s", p.Tag)
+			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %v", p.Tag)
 		}
 	}
 
@@ -1066,7 +1068,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 			linkType = libkb.LinkTypeInvite
 		default:
-			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %s", tx.payloads[i].Tag)
+			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %v", tx.payloads[i].Tag)
 		}
 
 		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, linkType,
