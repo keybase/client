@@ -429,17 +429,17 @@ func (b *BlockServerRemote) GetEncodedSizes(
 	contexts []kbfsblock.Context) (
 	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
 	ctx = rpc.WithFireNow(ctx)
-	b.log.LazyTrace(ctx, "BServer: GetEncodedSize %s", ids)
+	b.log.LazyTrace(ctx, "BServer: GetEncodedSizes %s", ids)
 	defer func() {
 		b.log.LazyTrace(
-			ctx, "BServer: GetEncodedSize %s done (err=%v)", ids, err)
+			ctx, "BServer: GetEncodedSizes %s done (err=%v)", ids, err)
 		if err != nil {
 			b.deferLog.CWarningf(
-				ctx, "GetEncodedSize ids=%s tlf=%s contexts=%s err=%v",
+				ctx, "GetEncodedSizes ids=%s tlf=%s contexts=%s err=%v",
 				ids, tlfID, contexts, err)
 		} else {
 			b.deferLog.CDebugf(
-				ctx, "GetEncodedSize ids=%s tlf=%s contexts=%s "+
+				ctx, "GetEncodedSizes ids=%s tlf=%s contexts=%s "+
 					"szs=%d statuses=%s",
 				ids, tlfID, contexts, sizes, statuses)
 		}
