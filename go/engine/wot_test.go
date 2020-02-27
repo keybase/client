@@ -388,4 +388,10 @@ func TestWebOfTrustSigBug(t *testing.T) {
 	engV2 := NewWotVouch(tcBob.G, argV)
 	err = RunEngine2(mctxB, engV2)
 	require.NoError(t, err)
+
+	// this attestation is correctly recognized as proposed
+	vouches, err = libkb.FetchMyWot(mctxA)
+	require.NoError(t, err)
+	bobVouch = vouches[0]
+	require.Equal(t, bobVouch.Status, keybase1.WotStatusType_PROPOSED)
 }
