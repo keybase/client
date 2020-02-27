@@ -133,18 +133,10 @@
 }
 
 .circle {
-  //animation: circle 6s linear;
-  //animation-direction: reverse;
-  //animation: circle 3s linear forwards;
   animation: circle 2s linear infinite;
 }
 .circle.stopped {
-  //transition-duration: 0.3s;
-  //transition-property: transform;
-  //animation-iteration-count: 1;
   animation: none;
-  //transform: rotate(0deg);
-  //-webkit-animation-iteration-count: infinite;
 }
 .circle.resetting {
   transition-duration: 1s;
@@ -153,9 +145,7 @@
 
 .circleIcon {
     background-color: white;
-    left: -16px;
     position: absolute;
-    top: 56px;
     transition-duration: 0.3s;
     transition-property: opacity;
 }

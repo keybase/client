@@ -57,6 +57,8 @@ const Circle = (p: Props) => {
   const [iconOpacity, setIconOpacity] = React.useState(0)
   const width = 6
   const innerRadius = 3
+  // todo maybe change dynamically?
+  const iconSize = 32
   const containerRef = React.useRef<HTMLDivElement>()
 
   useInterval(
@@ -195,7 +197,16 @@ const Circle = (p: Props) => {
           },
         ])}
       />
-      <Kb.Icon type="iconfont-people" color={color} style={{opacity: iconOpacity}} className="circleIcon" />
+      <Kb.Icon
+        type="iconfont-people"
+        color={color}
+        style={{
+          left: -iconSize / 2,
+          opacity: iconOpacity,
+          top: size / 2 - iconSize / 2,
+        }}
+        className="circleIcon"
+      />
     </div>
   )
 }
