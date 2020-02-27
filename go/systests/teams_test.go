@@ -1667,24 +1667,25 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		{Assertion: ciara.username, Role: keybase1.TeamRole_WRITER},
 		{Assertion: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
 		{Assertion: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
+		{Assertion: john.username + "@keybase", Role: keybase1.TeamRole_READER},
 		{Assertion: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
 		{Assertion: botua.username, Role: keybase1.TeamRole_BOT},
 		{Assertion: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
 	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.NoError(t, err)
-	require.Equal(t, 6, len(added))
-	require.Equal(t, 1, len(notAdded))
+	require.Len(t, added, 7)
+	require.Len(t, notAdded, 1)
 
 	team := alice.loadTeamByID(teamID, true /* admin */)
 	members, err := team.Members()
 	require.NoError(t, err)
-	require.Equal(t, members.Owners, []keybase1.UserVersion{{Uid: alice.uid, EldestSeqno: 1}})
-	require.Equal(t, members.Admins, []keybase1.UserVersion{{Uid: bob.uid, EldestSeqno: 1}})
-	require.Equal(t, members.Writers, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}})
+	require.Equal(t, []keybase1.UserVersion{{Uid: alice.uid, EldestSeqno: 1}}, members.Owners)
+	require.Equal(t, []keybase1.UserVersion{{Uid: bob.uid, EldestSeqno: 1}}, members.Admins)
+	require.Equal(t, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}}, members.Writers)
 	require.Len(t, members.Readers, 0)
-	require.Equal(t, members.Bots, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}})
-	require.Equal(t, members.RestrictedBots, []keybase1.UserVersion{{Uid: restrictedBotua.uid, EldestSeqno: 1}})
+	require.Equal(t, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}}, members.Bots)
+	require.Equal(t, []keybase1.UserVersion{{Uid: restrictedBotua.uid, EldestSeqno: 1}}, members.RestrictedBots)
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))
 	for _, invite := range invites {
@@ -1695,6 +1696,9 @@ func TestBatchAddMembersCLI(t *testing.T) {
 			require.Equal(t, invite.Role, keybase1.TeamRole_ADMIN)
 		case keybase1.TeamInviteCategory_EMAIL:
 			require.Equal(t, invite.Name, keybase1.TeamInviteName("rob@gmail.com"))
+			require.Equal(t, invite.Role, keybase1.TeamRole_READER)
+		case keybase1.TeamInviteCategory_KEYBASE:
+			require.Equal(t, invite.Name, keybase1.TeamInviteName(john.userVersion().PercentForm()))
 			require.Equal(t, invite.Role, keybase1.TeamRole_READER)
 		default:
 			require.FailNowf(t, "unexpected invite type", "%v", spew.Sdump(invite))
@@ -1817,6 +1821,30 @@ func TestBatchAddMembers(t *testing.T) {
 		}
 	}
 	require.Equal(t, 2, sbsCount, "sbs count")
+}
+
+func TestAddCompoundAssertion(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	teamID, _ := alice.createTeam2()
+
+	bob.proveRooter()
+
+	assertion := fmt.Sprintf("%s@uid+%s@rooter", bob.uid, bob.username)
+
+	users := []keybase1.UserRolePair{
+		{Assertion: assertion, Role: keybase1.TeamRole_WRITER},
+	}
+	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+	require.Len(t, notAdded, 0)
+	require.Len(t, added, 1)
+	require.False(t, added[0].Invite)
+	require.EqualValues(t, bob.username, added[0].Username)
 }
 
 func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {
