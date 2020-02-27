@@ -116,7 +116,7 @@ class InfoPanelMenu extends React.Component<Props> {
   render() {
     const props = this.props
     const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
-    const addPeopleItems = [
+    const addPeopleItems: Kb.MenuItems = [
       {
         icon: 'iconfont-mention',
         onClick: props.onAddPeople,
@@ -130,20 +130,18 @@ class InfoPanelMenu extends React.Component<Props> {
         title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
       },
     ]
-    const channelHeader = [
-      {
-        title: 'channelHeader',
-        unWrapped: true,
-        view: (
-          <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.channelHeader}>
-            <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
-              # <Kb.Text type="BodyBold">{props.channelname}</Kb.Text>
-            </Kb.Text>
-          </Kb.Box2>
-        ),
-      },
-    ]
-    const channelItem = props.isSmallTeam
+    const channelHeader: Kb.MenuItem = {
+      title: 'channelHeader',
+      unWrapped: true,
+      view: (
+        <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.channelHeader}>
+          <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
+            # <Kb.Text type="BodyBold">{props.channelname}</Kb.Text>
+          </Kb.Text>
+        </Kb.Box2>
+      ),
+    }
+    const channelItem: Kb.MenuItem = props.isSmallTeam
       ? {
           icon: 'iconfont-hash',
           onClick: props.onManageChannels,
@@ -156,55 +154,72 @@ class InfoPanelMenu extends React.Component<Props> {
           onClick: props.onManageChannels,
           title: props.manageChannelsTitle,
         }
-    const teamHeader = [
-      {
-        title: 'teamHeader',
-        unWrapped: true,
-        view: (
-          <Kb.Box2
-            direction="horizontal"
-            fullHeight={true}
-            fullWidth={true}
-            style={Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
-          >
-            <Kb.Box2 direction="horizontal" gap="tiny">
-              <Kb.Avatar teamname={props.teamname} size={16} />
-              <Kb.Text type="BodyBold">{props.teamname}</Kb.Text>
-            </Kb.Box2>
+    const teamHeader: Kb.MenuItem = {
+      title: 'teamHeader',
+      unWrapped: true,
+      view: (
+        <Kb.Box2
+          direction="horizontal"
+          fullHeight={true}
+          fullWidth={true}
+          style={Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
+        >
+          <Kb.Box2 direction="horizontal" gap="tiny">
+            <Kb.Avatar teamname={props.teamname} size={16} />
+            <Kb.Text type="BodyBold">{props.teamname}</Kb.Text>
           </Kb.Box2>
-        ),
-      },
-    ]
+        </Kb.Box2>
+      ),
+    }
+
+    const hideItem = this.hideItem()
+    const muteItem = this.muteItem()
 
     const isAdhoc =
       (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
-    const items: Kb.MenuItems = (isAdhoc
-      ? [
-          this.muteItem(),
-          this.hideItem(),
-          {danger: true, icon: 'iconfont-block-user', onClick: props.onBlockConv, title: 'Block'},
-        ]
-      : [
-          ...(!props.isSmallTeam && !props.hasHeader ? channelHeader : []),
-          this.muteItem(),
-          this.hideItem(),
-          ...(!props.isSmallTeam && !props.isInChannel && !isGeneralChannel && !props.hasHeader
-            ? [{icon: 'iconfont-hash', onClick: props.onJoinChannel, title: 'Join channel'}]
-            : []),
-          ...(!props.isSmallTeam && props.isInChannel && !isGeneralChannel && !props.hasHeader
-            ? [{icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'}]
-            : []),
-          ...(!props.isSmallTeam && !props.hasHeader ? teamHeader : []),
-          channelItem,
-          {
-            icon: 'iconfont-people',
-            onClick: props.onViewTeam,
-            title: 'Team info',
-          },
-          ...(props.canAddPeople ? addPeopleItems : []),
-          {icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
-        ]
-    ).flat()
+    const items: Kb.MenuItems = []
+    if (isAdhoc) {
+      if (hideItem) {
+        items.push(hideItem as Kb.MenuItem)
+      }
+      if (muteItem) {
+        items.push(muteItem as Kb.MenuItem)
+      }
+      items.push({
+        danger: true,
+        icon: 'iconfont-block-user',
+        onClick: props.onBlockConv,
+        title: 'Block',
+      })
+    } else {
+      if (!props.isSmallTeam && !props.hasHeader) {
+        items.push(channelHeader)
+      }
+      if (hideItem) {
+        items.push(hideItem as Kb.MenuItem)
+      }
+      if (muteItem) {
+        items.push(muteItem as Kb.MenuItem)
+      }
+      if (!props.isSmallTeam && !props.isInChannel && !isGeneralChannel && !props.hasHeader) {
+        items.push({icon: 'iconfont-hash', onClick: props.onJoinChannel, title: 'Join channel'})
+      }
+      if (!props.isSmallTeam && props.isInChannel && !isGeneralChannel && !props.hasHeader) {
+        items.push({icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'})
+      }
+      if (!props.isSmallTeam && !props.hasHeader) {
+        items.push(teamHeader)
+      }
+      items.push(channelItem, {
+        icon: 'iconfont-people',
+        onClick: props.onViewTeam,
+        title: 'Team info',
+      })
+      if (props.canAddPeople) {
+        items.concat(addPeopleItems)
+      }
+      items.push({icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
+    }
 
     const header = {
       title: 'header',
