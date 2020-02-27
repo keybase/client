@@ -1163,7 +1163,6 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamID keybase1.TeamID) error {
-	// This retry can cause multiple confirmation popups for the user
 	return RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {

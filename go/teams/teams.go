@@ -1081,12 +1081,12 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface, 
 		ForceRepoll: true,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load parent team; you must be an admin of a parent team to delete a subteam: %w", err)
 	}
 
 	admin, err := parentTeam.getAdminPermission(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get admin permission from parent team; you must be an admin of a parent team to delete a subteam: %w", err)
 	}
 
 	if !isRetry {
@@ -1105,20 +1105,20 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface, 
 	if err != nil {
 		return err
 	}
-	ratchet, err := t.makeRatchet(ctx)
-	if err != nil {
-		return err
-	}
+	// ratchet, err := t.makeRatchet(ctx)
+	// if err != nil {
+	// 	return err
+	// }
 	parentSection := SCTeamSection{
 		ID: SCTeamID(parentTeam.ID),
 		Subteam: &SCSubteam{
 			ID:   SCTeamID(t.ID),
 			Name: subteamName, // weird this is required
 		},
-		Admin:    admin,
-		Public:   t.IsPublic(),
-		Entropy:  entropy,
-		Ratchets: ratchet.ToTeamSection(),
+		Admin:   admin,
+		Public:  t.IsPublic(),
+		Entropy: entropy,
+		// Ratchets: ratchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -1152,7 +1152,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface, 
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigParent, sigSub}
-	ratchet.AddToJSONPayload(payload)
+	// ratchet.AddToJSONPayload(payload)
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
