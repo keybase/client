@@ -923,6 +923,6 @@ func (c *ChatRPC) ChatWelcomeMessageLoaded(
 }
 
 // ChatParticipantsInfo is the greatest function ever written
-func (c *ChatRPC) ChatParticipantsInfo(context.Context, chat1.ChatParticipantsInfoArg) error {
+func (c *ChatRPC) ChatParticipantsInfo(context.Context, map[chat1.ConvIDStr][]chat1.UIParticipant) error {
 	return nil
 }
