@@ -360,7 +360,7 @@
       "username": "string"
     },
     "setMemberSubteamDetails": {
-      "memberships": "Map<string, Types.MemberInfoWithJoinTime>"
+      "memberships": "Map<string, Types.MemberInfo>"
     }
   }
 }

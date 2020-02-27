@@ -217,7 +217,7 @@ type _SetMemberSelectedPayload = {
   readonly selected: boolean
   readonly clearAll?: boolean
 }
-type _SetMemberSubteamDetailsPayload = {readonly memberships: Map<string, Types.MemberInfoWithJoinTime>}
+type _SetMemberSubteamDetailsPayload = {readonly memberships: Map<string, Types.MemberInfo>}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>

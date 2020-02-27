@@ -11,7 +11,7 @@ import {pluralize} from '../../../util/string'
 import {FloatingRolePicker} from '../../role-picker'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {TeamDetailsSubscriber} from '../../subscriber'
-import {formatTimeForAssertionPopup} from '../../../util/timestamp'
+import {formatTimeForTeamMember} from '../../../util/timestamp'
 
 type Props = {
   teamID: Types.TeamID
@@ -140,7 +140,7 @@ type SubteamNotInRowProps = {
   idx: number
 }
 type SubteamInRowProps = SubteamNotInRowProps & {
-  membership: Types.MemberInfoWithJoinTime
+  membership: Types.MemberInfo
   expanded: boolean
   setExpanded: (b: boolean) => void
 }
@@ -226,7 +226,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
           <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
           <Kb.Text type="BodySmall">
             Joined{' '}
-            {props.membership.joinTime ? formatTimeForAssertionPopup(props.membership.joinTime) : 'this team'}
+            {props.membership.joinTime ? formatTimeForTeamMember(props.membership.joinTime) : 'this team'}
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
@@ -330,7 +330,9 @@ export const TeamMemberHeader = (props: Props) => {
                     {member.fullName}
                   </Kb.Text>
                 )}
-                <Kb.Text type="BodySmall">Joined 1m ago{/* TODO Y2K-1378 */}</Kb.Text>
+                <Kb.Text type="BodySmall">
+                  Joined {member.joinTime ? formatTimeForTeamMember(member.joinTime) : 'this team'}
+                </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
             {!Styles.isMobile && buttons}

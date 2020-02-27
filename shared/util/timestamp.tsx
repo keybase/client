@@ -166,6 +166,10 @@ export function formatTimeRelativeToNow(time: number): string {
   return dateFns.formatDistanceToNow(new Date(time), {addSuffix: true})
 }
 
+export function formatTimeForTeamMember(time: number): string {
+  return dateFns.format(new Date(time), 'MMM yyyy')
+}
+
 export function daysToLabel(days: number): string {
   let label = `${days} day`
   if (days !== 1) {

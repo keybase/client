@@ -84,11 +84,12 @@ export const rpcDetailsToMemberInfos = (
     const key = typeToKey[type]
     // @ts-ignore
     const members: Array<RPCTypes.TeamMemberDetails> = (allRoleMembers[key] || []) as any
-    members.forEach(({fullName, status, username}) => {
+    members.forEach(({fullName, joinTime, status, username}) => {
       infos.push([
         username,
         {
           fullName,
+          joinTime: joinTime || undefined,
           status: rpcMemberStatusToStatus[status],
           type,
           username,
@@ -740,6 +741,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
     const maybeRole = teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
+      joinTime: member.details.joinTime || undefined,
       status: rpcMemberStatusToStatus[status],
       type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
       username,
@@ -763,7 +765,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
 export const subteamDetailsToMemberInfo = (
   username: string,
   t: RPCTypes.AnnotatedSubteamMemberDetails
-): Types.MemberInfoWithJoinTime => {
+): Types.MemberInfo => {
   const maybeRole = teamRoleByEnum[t.role]
   return {
     fullName: t.details.fullName,
