@@ -16,7 +16,7 @@ const RoleButton = (props: Props) => {
 
   return (
     <InlineDropdown
-      type="BodySmall"
+      type="BodySmallSemibold"
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
           <Kb.Icon type={iconType} style={styles.icon} fontSize={Styles.isMobile ? 16 : 12} />
@@ -42,10 +42,8 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   icon: {
     alignSelf: 'center',
-    marginBottom: Styles.globalMargins.tiny,
     marginLeft: 0,
     marginRight: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.tiny,
   },
   label: {
     marginLeft: Styles.globalMargins.xtiny,
