@@ -204,10 +204,10 @@ const styles = Styles.styleSheetCreate(() => ({
   blue: {color: Styles.globalColors.blueDark},
   center: {alignSelf: 'center'},
   error: {
+    alignSelf: 'center',
     backgroundColor: Styles.globalColors.red,
     borderRadius: Styles.borderRadius,
     padding: Styles.globalMargins.medium,
-    alignSelf: 'center',
   },
   grey: {color: Styles.globalColors.black_20},
   proof: {
