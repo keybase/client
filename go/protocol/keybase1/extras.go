@@ -2763,6 +2763,13 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 	req.CompletedInvites[inviteID] = uv
 }
 
+func (req *TeamChangeReq) UseInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
+	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{
+		InviteID: inviteID,
+		Uv:       uv,
+	})
+}
+
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
 	ret = append(ret, req.RestrictedBotUVs()...)
 	ret = append(ret, req.Bots...)

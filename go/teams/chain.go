@@ -2262,8 +2262,6 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			return err
 		}
 
-		// TODO: Need to do these checks on invite inflation :(
-
 		invite, foundInvite := stateToUpdate.inner.ActiveInvites[inviteID]
 		if foundInvite {
 			// We found the invite, check if current invite usage is valid.
