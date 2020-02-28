@@ -18,6 +18,5 @@ func NewCmdKVStore(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Usage:        "Manage a simple cleartext key to encrypted value store",
 		ArgumentHelp: "[arguments...]",
 		Subcommands:  subcommands,
-		Unlisted:     true,
 	}
 }
