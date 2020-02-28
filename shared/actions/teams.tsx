@@ -392,15 +392,15 @@ const uploadAvatar = async (action: TeamsGen.UploadTeamAvatarPayload, logger: Sa
   }
 }
 
-const editMembership = async (action: TeamsGen.EditMembershipPayload) => {
-  const {teamname, username, role} = action.payload
+const editMembership = async (state: TypedState, action: TeamsGen.EditMembershipPayload) => {
+  const {teamID, username, role} = action.payload
   await RPCTypes.teamsTeamEditMemberRpcPromise(
     {
-      name: teamname,
+      name: Constants.getTeamNameFromID(state, teamID) ?? '',
       role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
       username,
     },
-    Constants.teamWaitingKey(teamname)
+    [Constants.teamWaitingKeyByID(teamID, state), Constants.editMembershipWaitingKey(teamID, username)]
   )
 }
 
@@ -1346,10 +1346,13 @@ async function getMemberSubteamDetails(
 
   let memberships: RPCTypes.AnnotatedSubteamMemberDetails[]
   try {
-    const lookup = await RPCTypes.teamsGetUserSubteamMembershipsRpcPromise({
-      teamID,
-      username,
-    })
+    const lookup = await RPCTypes.teamsGetUserSubteamMembershipsRpcPromise(
+      {
+        teamID,
+        username,
+      },
+      Constants.loadSubteamMembershipsWaitingKey(teamID, username)
+    )
     if (!lookup) {
       logger.info(`getMemberSubteamDetails: retrieved no results for ${teamID}:${username}`)
       return null
@@ -1403,7 +1406,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.ignoreRequest, ignoreRequest)
   yield* Saga.chainAction2(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
-  yield* Saga.chainAction(TeamsGen.editMembership, editMembership)
+  yield* Saga.chainAction2(TeamsGen.editMembership, editMembership)
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
   yield* Saga.chainGenerator<TeamsGen.RemovePendingInvitePayload>(
     TeamsGen.removePendingInvite,

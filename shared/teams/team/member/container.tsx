@@ -37,8 +37,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onChat: (username: string) => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   },
-  _onEditRole: (teamname: string, username: string, role: Types.TeamRoleType) =>
-    dispatch(TeamsGen.createEditMembership({role, teamname, username})),
+  _onEditRole: (teamID: Types.TeamID, username: string, role: Types.TeamRoleType) =>
+    dispatch(TeamsGen.createEditMembership({role, teamID, username})),
   _onRemoveMember: (teamID: Types.TeamID, username: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -125,7 +125,7 @@ export default Container.connect(
       onBack: dispatchProps.onBack,
       onChat: () => dispatchProps._onChat(stateProps._username),
       onEditRole: (role: Types.TeamRoleType) =>
-        dispatchProps._onEditRole(stateProps.teamname, user.username, role),
+        dispatchProps._onEditRole(stateProps.teamID, user.username, role),
       onOpenProfile: dispatchProps.onOpenProfile,
       onRemoveMember: () => {
         if (stateProps._username === stateProps._you) {

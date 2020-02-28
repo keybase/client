@@ -11,6 +11,7 @@ export type Props = {
   selectedRole: TeamRoleType
   onClick: () => void
   style?: Styles.StylesCrossPlatform
+  loading?: boolean
 }
 
 const RoleButton = (props: Props) => {
@@ -28,6 +29,7 @@ const RoleButton = (props: Props) => {
       }
       onPress={props.onClick}
       style={Styles.collapseStyles([styles.button, props.style])}
+      loading={props.loading}
     />
   )
 }

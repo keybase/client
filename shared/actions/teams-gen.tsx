@@ -146,7 +146,7 @@ type _DeleteChannelInfoPayload = {
 }
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly username: string
   readonly role: Types.TeamRoleType
 }

@@ -176,7 +176,7 @@
       "teamname": "string"
     },
     "editMembership": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "username": "string",
       "role": "Types.TeamRoleType"
     },

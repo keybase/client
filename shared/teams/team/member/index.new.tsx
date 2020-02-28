@@ -55,13 +55,13 @@ const TeamMember = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
   const username = Container.getRouteProps(props, 'username', '')
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const loading = Container.useAnyWaiting(Constants.loadSubteamMembershipsWaitingKey(teamID, username))
 
   // Load up the memberships when the page is opened
   React.useEffect(() => {
     dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // then process the teams
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )
@@ -69,6 +69,21 @@ const TeamMember = (props: OwnProps) => {
   const [expandedSet, setExpandedSet] = React.useState(
     new Set<string>([teamID])
   )
+
+  if (loading) {
+    return (
+      <Kb.Box2
+        direction="horizontal"
+        fullHeight={true}
+        fullWidth={true}
+        centerChildren={true}
+        alignItems="center"
+      >
+        <Kb.ProgressIndicator type="Huge" />
+      </Kb.Box2>
+    )
+  }
+
   const sections = [
     ...(subteamsIn.length > 0
       ? [
@@ -224,13 +239,14 @@ const SubteamInRow = (props: SubteamInRowProps) => {
   const [role, setRole] = React.useState<Types.TeamRoleType>(props.membership.type)
   const [open, setOpen] = React.useState(false)
   const onChangeRole = (role: Types.TeamRoleType) => {
-    dispatch(
-      TeamsGen.createEditMembership({role, teamname: props.subteam.teamname, username: props.username})
-    )
+    dispatch(TeamsGen.createEditMembership({role, teamID: props.subteam.id, username: props.username}))
     setOpen(false)
   }
   const disabledRoles = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, props.subteam.id, props.username)
+  )
+  const changingRole = Container.useAnyWaiting(
+    Constants.editMembershipWaitingKey(props.subteam.id, props.username)
   )
 
   const channels = ['general', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'mmm']
@@ -287,6 +303,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
     >
       <RoleButton
         containerStyle={styles.roleButtonContainer}
+        loading={changingRole}
         onClick={() => setOpen(true)}
         selectedRole={props.membership.type}
       />

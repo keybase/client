@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
+import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Overlay from './overlay'
@@ -17,12 +18,15 @@ type DropdownButtonProps = {
   setAttachmentRef?: (arg0: React.Component<any> | null) => void
   toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
+  loading?: boolean
 }
 const noTheme = {}
 export const DropdownButton = (props: DropdownButtonProps) => (
   <ClickableBox onClick={!props.disabled ? props.toggleOpen : undefined} style={props.style}>
     <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef} theme={noTheme}>
-      <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
+      <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>
+        {props.loading ? <ProgressIndicator type="Small" /> : props.selected}
+      </Box>
       <Icon
         type="iconfont-caret-down"
         inheritColor={true}
@@ -117,6 +121,7 @@ type InlineDropdownProps = {
   onPress: () => void
   type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
   style?: Styles.StylesCrossPlatform
+  loading?: boolean
 }
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
@@ -128,6 +133,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
   return (
     <DropdownButton
       inline={true}
+      loading={props.loading}
       style={Styles.collapseStyles([styles.inlineDropdown, props.containerStyle])}
       toggleOpen={e => {
         e.stopPropagation && e.stopPropagation()
