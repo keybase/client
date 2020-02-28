@@ -9,7 +9,9 @@ import (
 func newCmdWebOfTrust(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	// please keep sorted
 	subcommands := []cli.Command{
+		newCmdWotAccept(cl, g),
 		newCmdWotList(cl, g),
+		newCmdWotReject(cl, g),
 		newCmdWotVouch(cl, g),
 	}
 	return cli.Command{
