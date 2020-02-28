@@ -57,13 +57,9 @@ const TeamMember = (props: OwnProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
 
   // Load up the memberships when the page is opened
-  const loaded = Container.useSelector(state => !!Constants.getTeamMembership(state, teamID, username))
   React.useEffect(() => {
-    if (loaded) {
-      return
-    }
     dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
-  }, [dispatch, loaded, teamID, username])
+  }, [])
 
   // then process the teams
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
@@ -74,37 +70,45 @@ const TeamMember = (props: OwnProps) => {
     new Set<string>([teamID])
   )
   const sections = [
-    {
-      data: subteamsIn,
-      key: 'section-subteams',
-      renderItem: ({item, index}: {item: MetaPlusMembership; index: number}) => (
-        <SubteamInRow
-          teamID={teamID}
-          subteam={item.teamMeta}
-          membership={item.memberInfo}
-          idx={index}
-          username={username}
-          expanded={expandedSet.has(item.teamMeta.id)}
-          setExpanded={newExpanded => {
-            if (newExpanded) {
-              expandedSet.add(item.teamMeta.id)
-            } else {
-              expandedSet.delete(item.teamMeta.id)
-            }
-            setExpandedSet(new Set([...expandedSet]))
-          }}
-        />
-      ),
-      title: `${username} is in:`,
-    },
-    {
-      data: subteamsNotIn,
-      key: 'section-add-subteams',
-      renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
-        <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
-      ),
-      title: `Add ${username} to:`,
-    },
+    ...(subteamsIn.length > 0
+      ? [
+          {
+            data: subteamsIn,
+            key: 'section-subteams',
+            renderItem: ({item, index}: {item: MetaPlusMembership; index: number}) => (
+              <SubteamInRow
+                teamID={teamID}
+                subteam={item.teamMeta}
+                membership={item.memberInfo}
+                idx={index}
+                username={username}
+                expanded={expandedSet.has(item.teamMeta.id)}
+                setExpanded={newExpanded => {
+                  if (newExpanded) {
+                    expandedSet.add(item.teamMeta.id)
+                  } else {
+                    expandedSet.delete(item.teamMeta.id)
+                  }
+                  setExpandedSet(new Set([...expandedSet]))
+                }}
+              />
+            ),
+            title: `${username} is in:`,
+          },
+        ]
+      : []),
+    ...(subteamsNotIn.length > 0
+      ? [
+          {
+            data: subteamsNotIn,
+            key: 'section-add-subteams',
+            renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
+              <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
+            ),
+            title: `Add ${username} to:`,
+          },
+        ]
+      : []),
   ]
   return (
     <Kb.SectionList
