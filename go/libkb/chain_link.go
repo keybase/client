@@ -1286,7 +1286,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 
 	var key GenericKey
 	var verifyKID keybase1.KID
-	var sigID keybase1.SigID
+	var sigResult SigVerifyResult
 
 	if c.IsStubbed() {
 		return ChainLinkError{"cannot verify signature -- none available; is this a stubbed out link?"}
@@ -1315,10 +1315,10 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 		return err
 	}
 
-	if sigID, err = key.VerifyString(c.G().Log, c.unpacked.sig, sigPayload); err != nil {
+	if sigResult, err = key.VerifyString(c.G().Log, c.unpacked.sig, sigPayload); err != nil {
 		return BadSigError{err.Error()}
 	}
-	c.unpacked.sigID = sigID
+	c.unpacked.sigID = sigResult.SigID
 
 	return nil
 }

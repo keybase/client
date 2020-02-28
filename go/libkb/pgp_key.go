@@ -6,6 +6,7 @@ package libkb
 import (
 	"bufio"
 	"bytes"
+	"crypto"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -773,31 +774,35 @@ func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, 
 	return
 }
 
-func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, res SigVerifyResult, err error) {
 	var ps *ParsedSig
 	if ps, err = PGPOpenSig(sig); err != nil {
-		return
+		return nil, SigVerifyResult{}, err
 	} else if err = ps.Verify(k); err != nil {
 		ctx.Debug("Failing key----------\n%s", k.ArmoredPublicKey)
 		ctx.Debug("Failing sig----------\n%s", sig)
-		return
+		return nil, SigVerifyResult{}, err
 	}
 	msg = ps.LiteralData
-	id = ps.ID()
-	return
+	res.SigID = ps.ID()
+	// TODO: Check for weak digests properly
+	if ps.MD.Signature.Hash == crypto.SHA1 {
+		res.WeakDigest = &ps.MD.Signature.Hash
+	}
+	return msg, res, nil
 }
 
-func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
-	extractedMsg, resID, err := k.VerifyStringAndExtract(ctx, sig)
+func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (res SigVerifyResult, err error) {
+	fmt.Printf("PGPKeyBundle::VerifyString: %s\n%s\n%s\n", k.Entity.PrimaryKey.KeyIdString(), sig, string(msg))
+	extractedMsg, res, err := k.VerifyStringAndExtract(ctx, sig)
 	if err != nil {
-		return
+		return SigVerifyResult{}, err
 	}
 	if !FastByteArrayEq(extractedMsg, msg) {
 		err = BadSigError{"wrong payload"}
-		return
+		return SigVerifyResult{}, err
 	}
-	id = resID
-	return
+	return res, nil
 }
 
 func IsPGPAlgo(algo kbcrypto.AlgoType) bool {

@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"crypto"
 	"strings"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -17,6 +18,18 @@ type VerifyContext interface {
 type RawPublicKey []byte
 type RawPrivateKey []byte
 
+// SigVerifyResult is a return type for Verify* family of functions in
+// GenericKey and its implementations.
+type SigVerifyResult struct {
+	// Signature ID derived from the signature being verified.
+	SigID keybase1.SigID
+
+	// If the signature has a weak digest, return crypto.Hash here. As of
+	// Feb 2020 this is only used for PGP signatures if SHA1 or MD5 hash
+	// is encountered.
+	WeakDigest *crypto.Hash
+}
+
 type GenericKey interface {
 	GetKID() keybase1.KID
 	GetBinaryKID() keybase1.BinaryKID
@@ -26,14 +39,15 @@ type GenericKey interface {
 	// itself) and return it, along with a derived ID.
 	SignToString(msg []byte) (sig string, id keybase1.SigID, err error)
 
-	// Verify that the given signature is valid and extracts the
-	// embedded message from it. Also returns the signature ID.
-	VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error)
+	// VerifyStringAndExtract verifies that the given signature is valid and
+	// extracts the embedded message from it. Returns SigVerifyResult, which
+	// has to include SigID and might include weak digest info.
+	VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, res SigVerifyResult, err error)
 
-	// Verify that the given signature is valid and that its
-	// embedded message matches the given one. Also returns the
-	// signature ID.
-	VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error)
+	// VerifyString verifies that the given signature is valid and that its
+	// embedded message matches the given one. Returns SigVerifyResult, which
+	// has to include SigID and might include weak digest info.
+	VerifyString(ctx VerifyContext, sig string, msg []byte) (res SigVerifyResult, err error)
 
 	// Encrypt to an ASCII armored encryption; optionally include a sender's
 	// (private) key so that we can provably see who sent the message.
