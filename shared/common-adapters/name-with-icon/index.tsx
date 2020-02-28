@@ -310,14 +310,14 @@ const getAdapterProps = (
         iconSize: 48,
         metaMargin: 6,
         metaOneType: 'BodySmall',
-        titleType: 'BodyTinySemibold',
+        titleType: 'BodyTinyBold',
       }
     case 'small':
       return {
         iconSize: 48,
         metaMargin: Styles.globalMargins.tiny,
         metaOneType: 'BodySmall',
-        titleType: 'BodySemibold',
+        titleType: 'BodyBold',
       }
     case 'big':
       return {
