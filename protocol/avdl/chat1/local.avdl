@@ -1078,7 +1078,7 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits;
   }
-  GetMutualTeamsLocalRes getMutualTeamsLocal(array<gregor1.UID> uids);
+  GetMutualTeamsLocalRes getMutualTeamsLocal(array<string> usernames);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.

@@ -6497,7 +6497,7 @@ type GetChannelMembershipsLocalArg struct {
 }
 
 type GetMutualTeamsLocalArg struct {
-	Uids []gregor1.UID `codec:"uids" json:"uids"`
+	Usernames []string `codec:"usernames" json:"usernames"`
 }
 
 type SetAppNotificationSettingsLocalArg struct {
@@ -6816,7 +6816,7 @@ type LocalInterface interface {
 	DeleteConversationLocal(context.Context, DeleteConversationLocalArg) (DeleteConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 	GetChannelMembershipsLocal(context.Context, GetChannelMembershipsLocalArg) (GetChannelMembershipsLocalRes, error)
-	GetMutualTeamsLocal(context.Context, []gregor1.UID) (GetMutualTeamsLocalRes, error)
+	GetMutualTeamsLocal(context.Context, []string) (GetMutualTeamsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 	SetGlobalAppNotificationSettingsLocal(context.Context, map[string]bool) error
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
@@ -7698,7 +7698,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetMutualTeamsLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetMutualTeamsLocal(ctx, typedArgs[0].Uids)
+					ret, err = i.GetMutualTeamsLocal(ctx, typedArgs[0].Usernames)
 					return
 				},
 			},
@@ -8765,8 +8765,8 @@ func (c LocalClient) GetChannelMembershipsLocal(ctx context.Context, __arg GetCh
 	return
 }
 
-func (c LocalClient) GetMutualTeamsLocal(ctx context.Context, uids []gregor1.UID) (res GetMutualTeamsLocalRes, err error) {
-	__arg := GetMutualTeamsLocalArg{Uids: uids}
+func (c LocalClient) GetMutualTeamsLocal(ctx context.Context, usernames []string) (res GetMutualTeamsLocalRes, err error) {
+	__arg := GetMutualTeamsLocalArg{Usernames: usernames}
 	err = c.Cli.Call(ctx, "chat.1.local.getMutualTeamsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

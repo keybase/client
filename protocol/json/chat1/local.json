@@ -5074,10 +5074,10 @@
     "getMutualTeamsLocal": {
       "request": [
         {
-          "name": "uids",
+          "name": "usernames",
           "type": {
             "type": "array",
-            "items": "gregor1.UID"
+            "items": "string"
           }
         }
       ],

@@ -2419,6 +2419,17 @@ function* loadSuggestionData(
   yield Saga.put(TeamsGen.createGetChannels({teamID}))
 }
 
+const refreshMutualTeamsInConv = async (
+  state: Container.TypedState,
+  action: Chat2Gen.RefreshMutualTeamsInConvPayload
+) => {
+  const {conversationIDKey} = action.payload
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
+  const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise({usernames: otherParticipants})
+  return Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []})
+}
+
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
 
 // Helpers to nav you to the right place
@@ -3856,6 +3867,8 @@ function* chat2Saga() {
     Chat2Gen.channelSuggestionsTriggered,
     loadSuggestionData
   )
+
+  yield* Saga.chainAction2(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
   yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)

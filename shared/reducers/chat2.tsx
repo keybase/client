@@ -1236,6 +1236,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.staticConfigLoaded]: (draftState, action) => {
     draftState.staticConfig = action.payload.staticConfig
   },
+  [Chat2Gen.loadedMutualTeams]: (draftState, action) => {
+    const {conversationIDKey, teamIDs} = action.payload
+    const {mutualTeamMap} = draftState
+    mutualTeamMap.set(conversationIDKey, teamIDs)
+  },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
       draftState.participantMap.set(part.conversationIDKey, part.participants)

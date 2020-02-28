@@ -2958,15 +2958,71 @@ func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.Conversa
 	return res, nil
 }
 
-func (h *Server) GetMutualTeamsLocal(ctx context.Context, arg chat1.GetMutualTeamsLocalArg) (res chat1.GetMutualTeamsLocalRes, err error) {
+func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (res chat1.GetMutualTeamsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "ListBotCommandsLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
+
+	var providedUIDs []keybase1.UID
+	for _, username := range usernames {
+		providedUIDs = append(providedUIDs, libkb.GetUIDByUsername(h.G().GlobalContext, username))
+	}
+
+	// get all the default channels for all the teams you're in
+	chatTopic := chat1.TopicType_CHAT
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			TopicName:        &globals.DefaultTeamTopic,
+			TopicType:        &chatTopic,
+			AllowUnseenQuery: true,
+		})
+	if err != nil {
+		return res, err
+	}
+	fmt.Printf("conversations matched: %d\n", len(inbox.ConvsUnverified))
+
+	// loop through convs
+	for _, conv := range inbox.ConvsUnverified {
+		userPresent := make(map[keybase1.UID]bool)
+		for _, uid := range providedUIDs {
+			userPresent[keybase1.UID(uid.String())] = false
+		}
+		members, err := h.G().ParticipantsSource.Get(ctx, uid, conv.GetConvID(),
+			types.InboxSourceDataSourceAll)
+		if err != nil {
+			return res, err
+		}
+		for _, uid := range members {
+			if _, exists := userPresent[keybase1.UID(uid.String())]; exists {
+				// if we see a user in a team that we're looking for, mark that in the userPresent map
+				userPresent[keybase1.UID(uid.String())] = true
+			}
+		}
+
+		allOK := true
+		for _, inTeam := range userPresent {
+			if !inTeam {
+				allOK = false
+				break
+			}
+		}
+
+		if allOK {
+			teamID, _, err := h.teamIDFromConvID(ctx, uid, conv.GetConvID())
+			if err != nil {
+				return res, err
+			}
+			res.TeamIDs = append(res.TeamIDs, teamID)
+		}
+
+	}
+	return res, err
 }
 
 func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res chat1.PinMessageRes, err error) {

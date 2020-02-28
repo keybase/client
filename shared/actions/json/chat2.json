@@ -928,6 +928,14 @@
     },
     "addToMessageMap": {
       "message": "Types.Message"
+    },
+    "refreshMutualTeamsInConv": {
+      "_description": "Refresh loaded mutual teams for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadedMutualTeams": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "teamIDs": "Array<TeamsTypes.TeamID>"
     }
   }
 }
