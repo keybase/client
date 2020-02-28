@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Platform from '../constants/platform'
 import {encryptTab} from '../constants/crypto'
 import {displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
@@ -33,9 +34,38 @@ export const VersionTitle = ({title}: {title: string}) => (
   </Kb.Box2>
 )
 
-export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
+export const Current = ({seen}: VersionProps) => {
   return (
     <Version>
+    <NewFeatureRow
+      image="release-5.2.0-crypto"
+      noSeparator={true}
+      seen={seen}
+    >
+      Keybase for iPad is here!
+      {' '}
+      <Kb.Emoji
+        allowFontScaling={true}
+        size={Styles.globalMargins.small}
+        emojiName=":sparkles:"
+      />
+      {' '}
+      Download it from the App Store.
+    </NewFeatureRow>
+    <NewFeatureRow
+      image="release-5.2.0-crypto"
+      seen={seen}
+    >
+      You can now search for open teams using chat search in Chat.
+    </NewFeatureRow>
+    </Version>
+  )
+}
+
+export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
+  return (
+    <Version>
+      <VersionTitle title="Last release" />
       <NewFeatureRow
         image="release-5.2.0-crypto"
         noSeparator={true}
@@ -47,7 +77,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         seen={seen}
       >
         Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).
-        {` `}
+        {' '}
         <Kb.Emoji
           allowFontScaling={true}
           size={Styles.globalMargins.small}
@@ -69,23 +99,15 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
   )
 }
 
-export const Last = ({seen}: VersionProps) => {
-  return (
-    <Version>
-      <VersionTitle title="Last release" />
-      <NewFeatureRow noSeparator={true} seen={seen} image="release-5.1.0-blocking">
-        We heard you. You can now block and report spammers from the chat conversation or from people's
-        profiles.
-      </NewFeatureRow>
-    </Version>
-  )
-}
-
 export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
       <VersionTitle title="Previous releases" />
-      <NewFeatureRow noSeparator={true} seen={seen} image="release-4.7.0-fast-user-switching">
+      <NewFeatureRow noSeparator={true} seen={seen} image="release-5.1.0-blocking">
+        We heard you. You can now block and report spammers from the chat conversation or from people's
+        profiles.
+      </NewFeatureRow>
+      <NewFeatureRow seen={seen} image="release-4.7.0-fast-user-switching">
         You can now quickly switch between all your signed in accounts from the user menu.
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image="release-4.8.0-file-sync">
