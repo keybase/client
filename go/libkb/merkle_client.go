@@ -811,25 +811,27 @@ func (mc *MerkleClient) lookupLeafAndPath(m MetaContext, q HTTPArgs, root *Merkl
 	return vp, apiRes, nil
 }
 
-// `isUser` is true for loading a user and false for loading a team.
+// `MerkleOpts.isUser` is true for loading a user and false for loading a team.
 func (mc *MerkleClient) lookupLeafAndPathHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, root *MerkleRoot, opts MerkleOpts) (apiRes *APIRes, newRoot *MerkleRoot, err error) {
 	defer m.VTrace(VLog1, "MerkleClient#lookupLeafAndPathHelper", func() error { return err })()
 
-	apiRes, rootRefreshNeeded, err := mc.lookupLeafAndPathHelperOnce(m, q, sigHints, root, opts)
+	for i := 0; i < 5; i++ {
+		apiRes, rootRefreshNeeded, err := mc.lookupLeafAndPathHelperOnce(m, q, sigHints, root, opts)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !rootRefreshNeeded {
+			return apiRes, root, err
+		}
 
-	for rootRefreshNeeded {
 		m.Debug("Server suggested a root refresh is necessary")
 		root, err = mc.FetchRootFromServer(m, 0)
 		if err != nil {
 			return nil, nil, err
 		}
-		apiRes, rootRefreshNeeded, err = mc.lookupLeafAndPathHelperOnce(m, q, sigHints, root, opts)
-		if err != nil {
-			return nil, nil, err
-		}
 	}
 
-	return apiRes, root, err
+	return nil, nil, fmt.Errorf("Too many server requests to refresh the merkle root")
 }
 
 // `isUser` is true for loading a user and false for loading a team.
@@ -874,7 +876,7 @@ func (mc *MerkleClient) lookupLeafAndPathHelperOnce(m MetaContext, q HTTPArgs, s
 	switch apiRes.AppStatus.Code {
 	case SCMerkleUpdateRoot:
 		// Server indicated that a refetch of the root is needed
-		return nil, true, err
+		return nil, true, nil
 	case SCOk:
 		err = assertRespSeqnoPrecedesCurrentRoot(apiRes, root)
 		if err != nil {
@@ -882,13 +884,11 @@ func (mc *MerkleClient) lookupLeafAndPathHelperOnce(m MetaContext, q HTTPArgs, s
 		}
 	// TRIAGE-2068
 	case SCNotFound:
-		err = NotFoundError{}
-		return nil, false, err
+		return nil, false, NotFoundError{}
 	case SCDeleted:
-		err = UserDeletedError{}
-		return nil, false, err
+		return nil, false, UserDeletedError{}
 	}
-	return apiRes, false, err
+	return apiRes, false, nil
 }
 
 func assertRespSeqnoPrecedesCurrentRoot(apiRes *APIRes, root *MerkleRoot) error {
