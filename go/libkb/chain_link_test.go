@@ -16,7 +16,7 @@ func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
 	packedBytes, err := packed.Marshal()
 	require.NoError(tc.T, err)
 	unpacked := NewChainLink(tc.G, nil, linkServer.id)
-	err = unpacked.Unpack(m, true, uid, packedBytes)
+	err = unpacked.unpackFromLocalStorage(m, uid, packedBytes)
 	require.NoError(tc.T, err)
 	repacked, err := unpacked.Pack()
 	require.NoError(tc.T, err)
