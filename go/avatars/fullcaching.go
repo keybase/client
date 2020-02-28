@@ -95,65 +95,31 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		staleThreshold: staleThreshold,
 		simpleSource:   NewSimpleSource(),
 	}
+	batcher := func(intBatched interface{}, intSingle interface{}) interface{} {
+		reqs, _ := intBatched.([]remoteFetchArg)
+		single, _ := intSingle.(remoteFetchArg)
+		return append(reqs, single)
+	}
+	reset := func() interface{} {
+		return []remoteFetchArg{}
+	}
+	actor := func(loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) func(interface{}) {
+		return func(intBatched interface{}) {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			s.makeRemoteFetchRequests(reqs, loadFn)
+		}
+	}
 	usersMissBatch, _ := libkb.ThrottleBatch(
-		func(intBatched interface{}) {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadUsers)
-		},
-		func(intBatched interface{}, intSingle interface{}) interface{} {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			single, _ := intSingle.(remoteFetchArg)
-			return append(reqs, single)
-		},
-		func() interface{} {
-			return []remoteFetchArg{}
-		},
-		100*time.Millisecond, false,
+		actor(s.simpleSource.LoadUsers), batcher, reset, 100*time.Millisecond, false,
 	)
 	teamsMissBatch, _ := libkb.ThrottleBatch(
-		func(intBatched interface{}) {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadTeams)
-		},
-		func(intBatched interface{}, intSingle interface{}) interface{} {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			single, _ := intSingle.(remoteFetchArg)
-			return append(reqs, single)
-		},
-		func() interface{} {
-			return []remoteFetchArg{}
-		},
-		100*time.Millisecond, false,
+		actor(s.simpleSource.LoadTeams), batcher, reset, 100*time.Millisecond, false,
 	)
 	usersStaleBatch, _ := libkb.ThrottleBatch(
-		func(intBatched interface{}) {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadUsers)
-		},
-		func(intBatched interface{}, intSingle interface{}) interface{} {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			single, _ := intSingle.(remoteFetchArg)
-			return append(reqs, single)
-		},
-		func() interface{} {
-			return []remoteFetchArg{}
-		},
-		2000*time.Millisecond, false,
+		actor(s.simpleSource.LoadUsers), batcher, reset, 2000*time.Millisecond, false,
 	)
 	teamsStaleBatch, _ := libkb.ThrottleBatch(
-		func(intBatched interface{}) {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadTeams)
-		},
-		func(intBatched interface{}, intSingle interface{}) interface{} {
-			reqs, _ := intBatched.([]remoteFetchArg)
-			single, _ := intSingle.(remoteFetchArg)
-			return append(reqs, single)
-		},
-		func() interface{} {
-			return []remoteFetchArg{}
-		},
-		2000*time.Millisecond, false,
+		actor(s.simpleSource.LoadTeams), batcher, reset, 2000*time.Millisecond, false,
 	)
 	s.usersMissBatch = usersMissBatch
 	s.teamsMissBatch = teamsMissBatch
