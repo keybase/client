@@ -122,7 +122,7 @@ const getContentDescription = (props: Props) => {
 }
 
 const ChooseTarget = (props: Props) => {
-  const [useOriginal, setUseOriginal] = React.useState(true)
+  const [useOriginal, setUseOriginal] = React.useState(false)
   const {onChat, onKBFS} = props
   return !props.items.length ? (
     <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
