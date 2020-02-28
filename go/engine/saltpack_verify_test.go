@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/saltpack"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,9 +86,8 @@ func TestSaltpackVerifyErrors(t *testing.T) {
 	err = RunEngine2(m, veng)
 	require.Error(t, err)
 	require.IsType(t, libkb.VerificationError{}, err)
-	// TODO (mmou): uncomment after saltpack is updated
-	/*if err, ok := err.(libkb.VerificationError); ok {
+	if err, ok := err.(libkb.VerificationError); ok {
 		require.IsType(t, saltpack.ErrWrongMessageType{}, err.Cause.Err)
 		require.IsType(t, libkb.SCWrongType, err.Cause.StatusCode)
-	}*/
+	}
 }

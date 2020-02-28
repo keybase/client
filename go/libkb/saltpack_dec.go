@@ -11,6 +11,8 @@ import (
 
 func getStatusCodeFromDecryptionError(err *DecryptionError) (code int) {
 	switch err.Cause.Err.(type) {
+	case APINetError:
+		code = SCAPINetworkError
 	case saltpack.ErrNoSenderKey:
 		code = SCDecryptionKeyNotFound
 	case saltpack.ErrWrongMessageType:

@@ -150,9 +150,9 @@ export const getStatusCodeMessage = (
 
   var wrongTypeHelpText = ``
   if (operation === Operations.Verify) {
-    wrongTypeHelpText = ` Did you mean to decrypt it instead?` // just a guess. could get specific expected type from Cause with more effort
+    wrongTypeHelpText = ` Did you mean to decrypt it instead?` // just a guess. currently the Cause string is not set (see go/libkb/saltpack_verify.go)
   } else if (operation === Operations.Decrypt) {
-    wrongTypeHelpText = ` Did you mean to verify it instead?` // just a guess
+    wrongTypeHelpText = ` Did you mean to verify it instead?` // just a guess. could get specific expected type from Cause with more effort
   }
 
   const causeGenericMessage = `Cannot ${operation} ${type === 'text' ? 'message' : 'file'}.`
