@@ -42,7 +42,8 @@ func TestMerkleClientLookups(t *testing.T) {
 	require.True(t, *root.Seqno() < *newRoot.Seqno())
 
 	// Now, let's generate an unrelated merkle tree change to check that polling does not update the root when it's not needed
-	tc2.Logout()
+	err = tc2.Logout()
+	require.NoError(t, err)
 	_, err = kbtest.CreateAndSignupFakeUser("mer", tc2.G)
 	require.NoError(t, err)
 	// this user creation should have caused the root of the merkle tree to advance
