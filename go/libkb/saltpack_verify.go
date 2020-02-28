@@ -52,12 +52,11 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	}
 
 	if sc.Type != CryptoMessageTypeAttachedSignature {
-		// TODO: If/when saltpack repo updates WrongMessageType to have public
-		// fields, set to
-		//    Wanted: saltpack.MessageType(CryptoMessageTypeAttachedSignature),
-		//    Received: saltpack.MessageType(sc.Type.()).
-		// Currently the fields are not used.
-		return kbcrypto.NewVerificationError(saltpack.ErrWrongMessageType{})
+		return kbcrypto.NewVerificationError(
+			saltpack.ErrWrongMessageType{
+				Wanted:   saltpack.MessageType(CryptoMessageTypeAttachedSignature),
+				Received: saltpack.MessageType(sc.Type),
+			})
 	}
 
 	source = newSource

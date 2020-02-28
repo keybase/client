@@ -145,32 +145,30 @@ export const getStatusCodeMessage = (
   const addInput =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'encrypted file'
  
-  const offlineMessage = `Cannot ${operation} offline.`
+  const offlineMessage = `You are offline.`
   const genericMessage = `Failed to ${operation} ${type}.`
 
   var wrongTypeHelpText = ``
   if (operation === Operations.Verify) {
-    wrongTypeHelpText = ` Did you mean to decrypt it instead?` // just a guess. currently the Cause string is not set (see go/libkb/saltpack_verify.go)
+    wrongTypeHelpText = ` Did you mean to decrypt it?` // just a guess. could get specific expected type from Cause with more effort.
   } else if (operation === Operations.Decrypt) {
-    wrongTypeHelpText = ` Did you mean to verify it instead?` // just a guess. could get specific expected type from Cause with more effort
+    wrongTypeHelpText = ` Did you mean to verify it?` // just a guess.
   }
 
-  const causeGenericMessage = `Cannot ${operation} ${type === 'text' ? 'message' : 'file'}.`
-  //const isOffline = error.message.includes('API network error') || (error.fields && error.fields[9].key === "")
   const causeStatusCode = (error.fields && error.fields[1].key === "Code") ? error.fields[1].value : RPCTypes.StatusCode.scgeneric 
   const causeStatusCodeToMessage: any = {
     [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
-    [RPCTypes.StatusCode.scdecryptionkeynotfound]: causeGenericMessage + ` No suitable key found.`,
-    [RPCTypes.StatusCode.scverificationkeynotfound]: causeGenericMessage + `No suitable key found.`,
-    [RPCTypes.StatusCode.scwrongtype]: causeGenericMessage + ` Unexpected message type.` + wrongTypeHelpText,
+    [RPCTypes.StatusCode.scdecryptionkeynotfound]: `Your message couldn't be decrypted, because no suitable key was found.`,
+    [RPCTypes.StatusCode.scverificationkeynotfound]: `Your message couldn't be verified, because no suitable key was found.`,
+    [RPCTypes.StatusCode.scwrongcryptomsgtype]: `This Saltpack format is unexpected.` + wrongTypeHelpText,
   } as const
 
   const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
     [RPCTypes.StatusCode.scgeneric]: `${error.message.includes('API network error') ? offlineMessage : genericMessage}`,
     [RPCTypes.StatusCode.scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
-    [RPCTypes.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || ``,
-    [RPCTypes.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || ``,
+    [RPCTypes.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
+    [RPCTypes.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
     } as const
 
   return statusCodeToMessage[error.code] || genericMessage
