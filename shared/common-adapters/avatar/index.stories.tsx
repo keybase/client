@@ -2,6 +2,7 @@ import Avatar, {AvatarSize} from '.'
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
+import * as Styles from '../../styles'
 import * as Constants from '../../constants/tracker2'
 import Text from '../text'
 import Box, {Box2} from '../box'
@@ -117,12 +118,16 @@ const load = () => {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true} style={{margin: 28}}>
           <Kb.Avatar {...props} username="t_alice" />
+          <Kb.Box2
+            alignSelf="flex-start"
+            direction="vertical"
+            style={{backgroundColor: Styles.globalColors.red, padding: 50}}
+          >
+            <Kb.Avatar {...props} username="t_alice" />
+          </Kb.Box2>
+          <Kb.Avatar {...props} username="t_bob" size={64} />
         </Kb.Box2>
       )
-
-      //<Kb.Avatar {...props} username="t_bob" />
-      //<Kb.Avatar {...props} username="t_carol" />
-      //<Kb.Avatar {...props} username="t_bad" />
     })
 }
 
