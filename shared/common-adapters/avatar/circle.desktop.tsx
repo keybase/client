@@ -73,7 +73,7 @@ const Circle = (props: Props) => {
   // TEMP
   const [percentDone, setPercentDone] = React.useState(0.2)
   const [color, setColor] = React.useState<string>(Styles.globalColors.green)
-  const [iconOpacity, setIconOpacity] = React.useState(1)
+  const [iconOpacity, setIconOpacity] = React.useState(0)
   const width = 6
   const innerRadius = 3
 
@@ -103,7 +103,7 @@ const Circle = (props: Props) => {
   const mockState = React.useRef<'drawing' | 'waiting'>('drawing')
 
   const resetTimer = useTimeout(() => {
-    //setIconOpacity(0)
+    setIconOpacity(0)
     setPercentDone(0)
     setColor(Styles.globalColors.green)
     mockState.current = 'drawing'
