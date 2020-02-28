@@ -98,7 +98,7 @@ const Circle = (p: Props) => {
       div.classList.remove('stopped')
       div.classList.remove('resetting')
     }
-  }, 1000)
+  }, 2000)
 
   //let stoppedAnimation = false
   //if (isDone && mockState.current === 'drawing') {
