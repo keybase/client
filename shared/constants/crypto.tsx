@@ -150,24 +150,27 @@ export const getStatusCodeMessage = (
 
   var wrongTypeHelpText = ``
   if (operation === Operations.Verify) {
-    wrongTypeHelpText = ` Did you mean to decrypt it instead?`
+    wrongTypeHelpText = ` Did you mean to decrypt it instead?` // just a guess. could get specific expected type from Cause with more effort
   } else if (operation === Operations.Decrypt) {
-    wrongTypeHelpText = ` Did you mean to verify it instead?`
+    wrongTypeHelpText = ` Did you mean to verify it instead?` // just a guess
   }
 
+  const causeGenericMessage = `Cannot ${operation} ${type === 'text' ? 'message' : 'file'}.`
+  //const isOffline = error.message.includes('API network error') || (error.fields && error.fields[9].key === "")
   const causeStatusCode = (error.fields && error.fields[1].key === "Code") ? error.fields[1].value : RPCTypes.StatusCode.scgeneric 
   const causeStatusCodeToMessage: any = {
-    [RPCTypes.StatusCode.scdecryptionkeynotfound]: ` No suitable key found.`,
-    [RPCTypes.StatusCode.scverificationkeynotfound]: `No suitable key found.`,
-    [RPCTypes.StatusCode.scwrongtype]: ` Unexpected message type.` + wrongTypeHelpText,
+    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
+    [RPCTypes.StatusCode.scdecryptionkeynotfound]: causeGenericMessage + ` No suitable key found.`,
+    [RPCTypes.StatusCode.scverificationkeynotfound]: causeGenericMessage + `No suitable key found.`,
+    [RPCTypes.StatusCode.scwrongtype]: causeGenericMessage + ` Unexpected message type.` + wrongTypeHelpText,
   } as const
 
- const statusCodeToMessage: any = {
+  const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
     [RPCTypes.StatusCode.scgeneric]: `${error.message.includes('API network error') ? offlineMessage : genericMessage}`,
     [RPCTypes.StatusCode.scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
-    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}.` + `${error.message.includes('API network error') ? (` ` + offlineMessage) : (causeStatusCodeToMessage[causeStatusCode] || ``)}`,
-    [RPCTypes.StatusCode.scdecryptionerror]: `Cannot decrypt ${type === 'text' ? 'message' : 'file'}.` + `${error.message.includes('API network error') ? (` ` + offlineMessage) : (causeStatusCodeToMessage[causeStatusCode] || ``)}`,
+    [RPCTypes.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || ``,
+    [RPCTypes.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || ``,
     } as const
 
   return statusCodeToMessage[error.code] || genericMessage

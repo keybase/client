@@ -22,6 +22,8 @@ type SaltpackVerifyContext interface {
 func getVerificationErrorWithStatusCode(kberr *kbcrypto.VerificationError) (err VerificationError) {
 	err.Cause.Err = kberr.Cause
 	switch err.Cause.Err.(type) {
+	case APINetError:
+		err.Cause.StatusCode = SCAPINetworkError
 	case saltpack.ErrNoSenderKey:
 		err.Cause.StatusCode = SCDecryptionKeyNotFound
 	case saltpack.ErrWrongMessageType:

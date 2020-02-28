@@ -221,6 +221,8 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 
 	if decErr, ok := err.(libkb.DecryptionError); ok {
 		switch decErr.Cause.Err.(type) {
+		case libkb.APINetError:
+			decErr.Cause.StatusCode = libkb.SCAPINetworkError
 		case saltpack.ErrNoSenderKey:
 			decErr.Cause.StatusCode = libkb.SCDecryptionKeyNotFound
 		case saltpack.ErrWrongMessageType:
