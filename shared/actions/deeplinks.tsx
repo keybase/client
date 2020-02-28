@@ -178,7 +178,7 @@ const handleSaltpackOpenFile = (
       startupFile: new Container.HiddenString(''),
     }),
     RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}),
-    CryptoGen.createOnSaltpackFileOpen({
+    CryptoGen.createOnSaltpackOpenFile({
       operation,
       path: new Container.HiddenString(path),
     }),

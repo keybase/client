@@ -316,7 +316,7 @@ export type TypedActionsMap = {
   'crypto:setInput': crypto.SetInputPayload
   'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
-  'crypto:onSaltpackFileOpen': crypto.OnSaltpackFileOpenPayload
+  'crypto:onSaltpackOpenFile': crypto.OnSaltpackOpenFilePayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload

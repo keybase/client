@@ -12,7 +12,7 @@ export const downloadEncryptedText = 'crypto:downloadEncryptedText'
 export const downloadSignedText = 'crypto:downloadSignedText'
 export const onOperationError = 'crypto:onOperationError'
 export const onOperationSuccess = 'crypto:onOperationSuccess'
-export const onSaltpackFileOpen = 'crypto:onSaltpackFileOpen'
+export const onSaltpackOpenFile = 'crypto:onSaltpackOpenFile'
 export const resetOperation = 'crypto:resetOperation'
 export const runFileOperation = 'crypto:runFileOperation'
 export const saltpackDecrypt = 'crypto:saltpackDecrypt'
@@ -44,7 +44,7 @@ type _OnOperationSuccessPayload = {
   readonly warning?: boolean
   readonly warningMessage?: HiddenString
 }
-type _OnSaltpackFileOpenPayload = {readonly operation: Types.Operations; readonly path: HiddenString}
+type _OnSaltpackOpenFilePayload = {readonly operation: Types.Operations; readonly path: HiddenString}
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _RunFileOperationPayload = {readonly operation: Types.Operations; readonly destinationDir: HiddenString}
 type _SaltpackDecryptPayload = {
@@ -220,9 +220,9 @@ export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): Set
 /**
  * User opened a saltpack file on from their file browser. Notified by OS and deeplinks
  */
-export const createOnSaltpackFileOpen = (payload: _OnSaltpackFileOpenPayload): OnSaltpackFileOpenPayload => ({
+export const createOnSaltpackOpenFile = (payload: _OnSaltpackOpenFilePayload): OnSaltpackOpenFilePayload => ({
   payload,
-  type: onSaltpackFileOpen,
+  type: onSaltpackOpenFile,
 })
 export const createRunFileOperation = (payload: _RunFileOperationPayload): RunFileOperationPayload => ({
   payload,
@@ -251,9 +251,9 @@ export type OnOperationSuccessPayload = {
   readonly payload: _OnOperationSuccessPayload
   readonly type: typeof onOperationSuccess
 }
-export type OnSaltpackFileOpenPayload = {
-  readonly payload: _OnSaltpackFileOpenPayload
-  readonly type: typeof onSaltpackFileOpen
+export type OnSaltpackOpenFilePayload = {
+  readonly payload: _OnSaltpackOpenFilePayload
+  readonly type: typeof onSaltpackOpenFile
 }
 export type ResetOperationPayload = {
   readonly payload: _ResetOperationPayload
@@ -308,7 +308,7 @@ export type Actions =
   | DownloadSignedTextPayload
   | OnOperationErrorPayload
   | OnOperationSuccessPayload
-  | OnSaltpackFileOpenPayload
+  | OnSaltpackOpenFilePayload
   | ResetOperationPayload
   | RunFileOperationPayload
   | SaltpackDecryptPayload

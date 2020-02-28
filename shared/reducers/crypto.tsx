@@ -174,7 +174,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.inProgress = false
     op.outputStatus = 'pending'
   },
-  [CryptoGen.onSaltpackFileOpen]: (draftState, action) => {
+  [CryptoGen.onSaltpackOpenFile]: (draftState, action) => {
     const {operation, path} = action.payload
     const op = draftState[operation]
     const {inProgress} = op

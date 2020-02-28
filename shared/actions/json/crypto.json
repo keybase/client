@@ -41,7 +41,7 @@
       "options": "Types.EncryptOptions",
       "hideIncludeSelf?": "boolean"
     },
-    "onSaltpackFileOpen": {
+    "onSaltpackOpenFile": {
       "_description": "User opened a saltpack file on from their file browser. Notified by OS and deeplinks",
       "operation": "Types.Operations",
       "path": "HiddenString"
