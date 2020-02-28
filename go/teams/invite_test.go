@@ -725,3 +725,8 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	// this would be the wrong log point: testUV did not accept invite at that point
 	require.Equal(t, 0, state.inner.UsedInvites[inviteID][0].LogPoint)
 }
+
+func TestTeamPlayerStubbedMultipleUseInvites(t *testing.T) {
+	team, _ := runUnitFromFilename(t, "used_stubbed_invites.json")
+	_ = team
+}

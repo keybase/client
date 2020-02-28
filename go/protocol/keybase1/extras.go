@@ -3480,6 +3480,15 @@ func (s TeamSigChainState) KeySummary() string {
 	return fmt.Sprintf("{maxPTK:%d, ptk:%v}", s.MaxPerTeamKeyGeneration, v)
 }
 
+func (s TeamSigChainState) HasAnyStubbedLinks() bool {
+	for _, v := range s.StubbedLinks {
+		if v {
+			return true
+		}
+	}
+	return false
+}
+
 func (h *HiddenTeamChain) IsStale() bool {
 	if h == nil {
 		return false
