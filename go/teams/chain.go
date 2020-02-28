@@ -2225,9 +2225,11 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 	for id := range completed {
 		invite, ok := stateToUpdate.inner.ActiveInvites[id]
 		if !ok {
-			// Invite doesn't exist - that's likely an error, but we've allowed
-			// this for so long that we have to prove that no team has done
-			// this in order to change this.
+			// Invite doesn't exist or we don't know about it because invite
+			// links were stubbed. We could do a similar check here that we do
+			// in teamSigchainPlayer.useInvites, but we haven't been doing it
+			// in the past, so we might have links with issues like that in the
+			// wild.
 			continue
 		}
 		if invite.MaxUses != nil {
