@@ -2286,6 +2286,7 @@ export enum StatusCode {
   scidentifiesfailed = 295,
   scnospaceondevice = 297,
   scmerkleclienterror = 299,
+  scmerkleupdateroot = 300,
   scbademail = 472,
   scratelimit = 602,
   scbadsignupusernametaken = 701,
