@@ -66,7 +66,8 @@ func TestTeamInviteStubbing(t *testing.T) {
 	require.NoError(t, err)
 
 	changeReq := keybase1.TeamChangeReq{}
-	changeReq.AddUVWithRole(user2.GetUserVersion(), keybase1.TeamRole_READER, nil /* botSettings */)
+	err = changeReq.AddUVWithRole(user2.GetUserVersion(), keybase1.TeamRole_READER, nil /* botSettings */)
+	require.NoError(t, err)
 	changeReq.UseInviteID(keybase1.TeamInviteID(scInvite.ID), user2.GetUserVersion().PercentForm())
 	err = teamObj.ChangeMembershipWithOptions(context.TODO(), changeReq, ChangeMembershipOptions{})
 	require.NoError(t, err)
