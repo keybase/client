@@ -6,7 +6,7 @@ import * as Types from '../../constants/types/tracker2'
 const assertionColorToTextColor = (c: Types.AssertionColor) => {
   switch (c) {
     case 'blue':
-      return Styles.globalColors.blueDark
+      return Styles.globalColors.blue
     case 'red':
       return Styles.globalColors.redDark
     case 'black':
@@ -26,6 +26,7 @@ export const useGetIDInfo = (
   username: string
 ): {
   color: ReturnType<typeof assertionColorToTextColor>
+  following: boolean
   load: () => void
   percentDone: number
   running: boolean
@@ -33,12 +34,15 @@ export const useGetIDInfo = (
   const [running, setRunning] = React.useState(false)
 
   const details = Container.useSelector(state => state.tracker2.usernameToDetails.get(username))
+  const following = Container.useSelector(state => state.config.following.has(username))
   const m: Map<string, Types.Assertion> = details?.assertions ?? new Map()
   const entries = [...m.entries()]
 
   let total = 0
   let finished = 0
-  let ac = 'gray' as Types.AssertionColor
+  const startColor = (following ? 'green' : 'blue') as Types.AssertionColor
+  let ac = startColor
+
   entries.forEach(([_a, d]) => {
     total++
     switch (d.state) {
@@ -63,12 +67,6 @@ export const useGetIDInfo = (
     }
   })
 
-  if (finished === total) {
-    if (ac !== 'red') {
-      ac = 'green'
-    }
-  }
-
   const percentDone = total > 0 ? finished / total : 0
 
   const load = () => {
@@ -76,5 +74,19 @@ export const useGetIDInfo = (
     setRunning(true)
   }
 
-  return {color: assertionColorToTextColor(ac), load, percentDone, running}
+  // allow it to change immediately?
+  //const finalColor = ac
+
+  let finalColor = ac
+
+  switch (details?.state) {
+    case 'valid':
+      finalColor = startColor
+      break
+    case 'broken':
+      finalColor = 'red'
+      break
+  }
+
+  return {color: assertionColorToTextColor(finalColor), load, percentDone, running, following}
 }

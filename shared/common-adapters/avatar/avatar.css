@@ -173,6 +173,12 @@
     position: absolute;
 }
 
+.halfCircleContainer {
+    transition-duration: 0.3s;
+    transition-delay: 0.5s;
+    transition-property: opacity;
+}
+
 .halfCircle {
     transition-duration: 0.3s;
     transition-property: transform color;

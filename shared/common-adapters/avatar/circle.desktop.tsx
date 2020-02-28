@@ -50,7 +50,7 @@ const HalfCircle = (props: HalfCircleProps) => {
 
   return (
     <div
-      className={className}
+      className={Styles.classNames(className, 'halfCircleContainer')}
       style={{
         ...baseStyle,
         overflow: 'hidden',
@@ -67,15 +67,9 @@ const sizeToIconStyles = new Map([
   [128, {bottom: 1, right: 12}],
 ])
 
-const Circle = (props: Props) => {
-  const {username, size} = props
-  //const {running, load, percentDone, color} = useGetIDInfo(username)
-  // TEMP
-  const [percentDone, setPercentDone] = React.useState(0.2)
+const useStory = (username: string) => {
+  const [percentDone, setPercentDone] = React.useState(0)
   const [color, setColor] = React.useState<string>(Styles.globalColors.green)
-  const [iconOpacity, setIconOpacity] = React.useState(0)
-  const width = 6
-  const innerRadius = 3
 
   useInterval(
     () => {
@@ -93,17 +87,14 @@ const Circle = (props: Props) => {
         return next
       })
     },
-    //null
-    //username ? 500 : null
     percentDone >= 1 ? undefined : 500
   )
 
-  const isDone = percentDone >= 1
-
   const mockState = React.useRef<'drawing' | 'waiting'>('drawing')
 
+  const isDone = percentDone >= 1
+
   const resetTimer = useTimeout(() => {
-    setIconOpacity(0)
     setPercentDone(0)
     setColor(Styles.globalColors.green)
     mockState.current = 'drawing'
@@ -114,10 +105,25 @@ const Circle = (props: Props) => {
       return
     }
 
-    setIconOpacity(1)
     mockState.current = 'waiting'
     resetTimer()
   }, [isDone, resetTimer])
+
+  return {
+    color,
+    following: username !== 't_notFollowing',
+    percentDone,
+  }
+}
+
+const getDataHook = __STORYBOOK__ ? useStory : useGetIDInfo
+
+const Circle = (props: Props) => {
+  const {username, size} = props
+  const {percentDone, color, following} = getDataHook(username)
+  const width = 6
+  const innerRadius = 3
+  const isDone = percentDone >= 1
 
   if (!username) {
     return null
@@ -152,7 +158,7 @@ const Circle = (props: Props) => {
           percentDone={Math.min(0.5, percentDone)}
           width={width}
           size={size}
-          style={{zIndex: CircleZindex.lowerHalf}}
+          style={{opacity: isDone && !following ? 0 : 1, zIndex: CircleZindex.lowerHalf}}
           color={color}
         />
         <HalfCircle
@@ -161,7 +167,11 @@ const Circle = (props: Props) => {
           width={width}
           size={size}
           className="higherCircle"
-          style={{marginBottom: -width, zIndex: CircleZindex.upperHalf}}
+          style={{
+            marginBottom: -width,
+            opacity: isDone && !following ? 0 : 1,
+            zIndex: CircleZindex.upperHalf,
+          }}
           color={color}
         />
         <div
@@ -178,7 +188,7 @@ const Circle = (props: Props) => {
       <Kb.Icon
         type="iconfont-people"
         color={color}
-        style={{opacity: iconOpacity, ...sizeToIconStyles.get(size)}}
+        style={{opacity: isDone && following ? 1 : 0, ...sizeToIconStyles.get(size)}}
         className="circleIcon"
       />
     </>
