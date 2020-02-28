@@ -16,11 +16,12 @@ export const dividerHeight = (showingButton: boolean) => {
   }
 }
 
-export const getRowHeight = (type: string, showingDividerButton: boolean) => {
-  if (type === 'bigTeamsLabel') {
-    return bigHeaderHeight
-  }
+type rowType = 'bigTeamsLabel' | 'bigHeader' | 'big' | 'small' | 'divider'
+
+export const getRowHeight = (type: rowType, showingDividerButton: boolean) => {
   switch (type) {
+    case 'bigTeamsLabel':
+      return bigHeaderHeight
     case 'bigHeader':
       return bigHeaderHeight
     case 'big':
