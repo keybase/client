@@ -290,7 +290,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   textBold: {
-    fontWeight: 700,
+    fontWeight: '700',
   },
   textContainer: {
     flex: 1,
