@@ -922,6 +922,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "cardType": "RPCChatTypes.JourneycardType",
       "ordinal": "Types.Ordinal"
+    },
+    "addToMessageMap": {
+      "message": "Types.Message"
     }
   }
 }

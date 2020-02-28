@@ -2066,7 +2066,7 @@ function* downloadAttachment(downloadToCache: boolean, message: Types.Message, l
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
     return rpcRes.filePath
   } catch (e) {
-    logger.error(`downloadAttachment error: ${e.message}`, logger)
+    logger.info(`downloadAttachment error: ${e.message}`, logger)
     yield Saga.put(
       Chat2Gen.createAttachmentDownloaded({error: e.message || 'Error downloading attachment', message})
     )
@@ -2095,10 +2095,20 @@ function* attachmentDownload(
   yield Saga.callUntyped(downloadAttachment, false, message, logger)
 }
 
-const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) =>
+const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) => [
+  Chat2Gen.createAddToMessageMap({message: action.payload.message}),
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {message: action.payload.message}, selected: 'chatAttachmentFullscreen'}],
-  })
+    path: [
+      {
+        props: {
+          conversationIDKey: action.payload.message.conversationIDKey,
+          ordinal: action.payload.message.ordinal,
+        },
+        selected: 'chatAttachmentFullscreen',
+      },
+    ],
+  }),
+]
 
 // Handle an image pasted into a conversation
 const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
@@ -2591,8 +2601,8 @@ function* mobileMessageAttachmentShare(
   }
   const filePath = yield* downloadAttachment(true, message, logger)
   if (!filePath) {
-    logger.error('Downloading attachment failed')
-    throw new Error('Downloading attachment failed')
+    logger.info('Downloading attachment failed')
+    return
   }
 
   if (isIOS && message.fileName.endsWith('.pdf')) {
@@ -2636,8 +2646,8 @@ function* mobileMessageAttachmentSave(
   const fileName = yield* downloadAttachment(true, message, logger)
   if (!fileName) {
     // failed to download
-    logger.error('Downloading attachment failed')
-    throw new Error('Downloading attachment failed')
+    logger.info('Downloading attachment failed')
+    return
   }
   yield Saga.put(Chat2Gen.createAttachmentMobileSave({conversationIDKey, ordinal}))
   try {
