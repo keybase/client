@@ -113,7 +113,7 @@ const isRelevantDeepLink = (x: string) => {
 }
 
 const isValidSaltpackFilePath = (p: string) => {
-  const valid = p.endsWith('.encrypted.saltpack') || p.endsWith('.siged.saltpack')
+  const valid = p.endsWith('.encrypted.saltpack') || p.endsWith('.signed.saltpack')
   if (!valid) {
     logger.warn(
       'Received Electron open-file event with a file not ending in either ".encrypted.saltpack" or ".signed.saltpack".'
