@@ -23,7 +23,7 @@ const UnknownMentionPopup = (props: PopupProps) => {
     title: 'header',
     view: (
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer} gapStart={true}>
-        <Kb.Text type="BodySemibold">User or Team</Kb.Text>
+        <Kb.Text type="BodySemibold">User or team?</Kb.Text>
         <Kb.Text type="BodySmall">
           {props.text} could be either a user or team. You can find out with a quick request to Keybase.
         </Kb.Text>
@@ -75,14 +75,14 @@ class UnknownMention extends React.Component<Props, State> {
     const content = (
       <Kb.Text
         ref={this._mentionRef}
-        type="Body"
+        type="BodySemibold"
         className={Styles.classNames({'hover-underline': !Styles.isMobile})}
         allowFontScaling={this.props.allowFontScaling}
         style={Styles.collapseStyles([this.props.style, styles.text])}
         onClick={this._onMouseOver}
       >
         <Kb.Text
-          type="Body"
+          type="BodySemibold"
           allowFontScaling={this.props.allowFontScaling}
           style={Styles.collapseStyles([this.props.style, styles.text])}
         >
