@@ -440,6 +440,10 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
 }
 
+func IsSnippetChatMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.SnippetChatMessageTypes())
+}
+
 func IsBadgeableMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.BadgeableMessageTypes())
 }
@@ -944,6 +948,10 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 	conv := rc.Conv
 	var summaries []chat1.MessageSummary
 	for _, typ := range chat1.VisibleChatMessageTypes() {
+		switch typ {
+		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+			continue
+		}
 		summary, err := conv.GetMaxMessage(typ)
 		if err == nil {
 			summaries = append(summaries, summary)
