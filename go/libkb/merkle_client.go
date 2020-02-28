@@ -669,7 +669,7 @@ func (mc *MerkleClient) FetchRootFromServer(m MetaContext, freshness time.Durati
 	checkFreshness := func() (ok bool, root *MerkleRoot) {
 		root = mc.LastRoot(m)
 		if root != nil && freshness > 0 && now.Sub(root.fetched) < freshness {
-			m.VLogf(VLog0, "freshness=%d, and was current enough, so returning non-nil previously fetched root", freshness)
+			m.VLogf(VLog0, "freshness=%s, and was current enough, so returning non-nil previously fetched root", freshness)
 			return true, root
 		}
 		return false, root
