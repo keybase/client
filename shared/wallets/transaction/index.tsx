@@ -68,8 +68,8 @@ type CounterpartyTextProps = {
   onShowProfile: (username: string) => void
   textType: 'Body' | 'BodySmall'
   textTypeBold: 'BodyBold' | 'BodySmallBold'
-  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold'
   textTypeItalic: 'BodyItalic' | 'BodySmallItalic'
+  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold'
 }
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
@@ -133,6 +133,7 @@ type DetailProps = {
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : undefined
+  const textTypeBold = props.large ? 'BodyBold' : 'BodySmallBold'
   const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
@@ -167,7 +168,7 @@ const Detail = (props: DetailProps) => {
     // non-native asset
     amount = (
       <>
-        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+        <Text selectable={props.selectableText} type={textType}>
           {props.amountUser}
         </Text>{' '}
         <Text selectable={props.selectableText} type={textType}>
@@ -179,7 +180,7 @@ const Detail = (props: DetailProps) => {
     // purely, strictly lumens
     amount = (
       <>
-        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+        <Text selectable={props.selectableText} type={textType}>
           {props.amountUser}
         </Text>
       </>
@@ -189,7 +190,7 @@ const Detail = (props: DetailProps) => {
     amount = (
       <>
         Lumens worth{' '}
-        <Text selectable={true} type={textTypeExtrabold}>
+        <Text selectable={true} type={textType}>
           {props.amountUser}
         </Text>
       </>
@@ -202,15 +203,13 @@ const Detail = (props: DetailProps) => {
       counterpartyType={props.counterpartyType}
       onShowProfile={props.onShowProfile}
       textType={textType}
-      textTypeSemibold={textTypeSemibold}
       textTypeItalic={textTypeItalic}
+      textTypeSemibold={textTypeSemibold}
+      textTypeBold={textTypeBold}
     />
   )
   const approxWorth = props.approxWorth ? (
-    <Text type={textType}>
-      {' '}
-      (approximately <Text type={textTypeExtrabold}>{props.approxWorth}</Text>)
-    </Text>
+    <Text type={textType}> (approximately {props.approxWorth})</Text>
   ) : (
     ''
   )

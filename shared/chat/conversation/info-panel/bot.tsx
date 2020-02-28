@@ -316,7 +316,7 @@ export default (props: Props) => {
         if (item === addBotButton) {
           return (
             <Kb.Button
-              mode="Primary"
+              mode="Secondary"
               type="Default"
               label="Add a bot"
               style={styles.addBot}

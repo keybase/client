@@ -129,7 +129,10 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorFollowing={this.props.colorFollowing}
         colorYou={this.props.notFollowingColorOverride || true}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
-        style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
+        style={Styles.collapseStyles([
+          styles.textBold,
+          this.props.size === 'smaller' ? {} : styles.fullWidthText,
+        ])}
         withProfileCardPopup={this.props.withProfileCardPopup}
       />
     )
@@ -286,6 +289,9 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 48,
     },
   }),
+  textBold: {
+    fontWeight: 700,
+  },
   textContainer: {
     flex: 1,
   },
@@ -310,14 +316,14 @@ const getAdapterProps = (
         iconSize: 48,
         metaMargin: 6,
         metaOneType: 'BodySmall',
-        titleType: 'BodyTinyBold',
+        titleType: 'BodyTinySemibold',
       }
     case 'small':
       return {
         iconSize: 48,
         metaMargin: Styles.globalMargins.tiny,
         metaOneType: 'BodySmall',
-        titleType: 'BodyBold',
+        titleType: 'BodySemibold',
       }
     case 'big':
       return {

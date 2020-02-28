@@ -79,7 +79,7 @@ const UsernameText = (props: Props) => {
         userStyle = Styles.collapseStyles([
           userStyle,
           props.style,
-          props.type.startsWith('BodyBold') && styles.kerning,
+          props.type.startsWith('Body') && styles.kerning,
         ])
 
         // Make sure onClick is undefined when _onUsernameClicked is, so
@@ -88,7 +88,7 @@ const UsernameText = (props: Props) => {
         const _onUsernameClicked = props.onUsernameClicked
         const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
         const renderText = (onLongPress?: () => void) => (
-          <Text type="BodyBold" key={u.username}>
+          <Text type="Body" key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle} underlineNever={true}>
                 {'and '}
