@@ -58,7 +58,7 @@ const BigTeamChannel = (props: Props) => {
 
   return (
     <Kb.ClickableBox onClick={onSelectConversation} style={styles.container}>
-      <Kb.Box style={styles.rowContainer}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
@@ -113,7 +113,7 @@ const BigTeamChannel = (props: Props) => {
             {hasBadge && <Kb.Box style={styles.unread} />}
           </Kb.Box>
         </Kb.Box2>
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
@@ -139,7 +139,9 @@ const styles = Styles.styleSheetCreate(() => ({
     isTablet: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
+      height: '80%',
       paddingLeft: Styles.globalMargins.tiny,
+      marginLeft: 48,
     },
   }),
   channelHash: {color: Styles.globalColors.black_20},
@@ -159,13 +161,12 @@ const styles = Styles.styleSheetCreate(() => ({
   muted: {marginLeft: Styles.globalMargins.xtiny},
   rowContainer: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'stretch',
-      height: '100%',
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: 0,
     },
     isElectron: Styles.desktopStyles.clickable,
+    isTablet: {alignItems: 'center'},
   }),
   selectedChannelBackground: {backgroundColor: Styles.globalColors.blue},
   textError: {color: Styles.globalColors.redDark},
