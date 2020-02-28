@@ -8,7 +8,7 @@ import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox from '.'
 import {isPhone} from '../../constants/platform'
 import {
-  Props as _Props,
+  Props,
   RowItemSmall,
   RowItemBig,
   RowItemBigHeader,
@@ -18,6 +18,8 @@ import {
 } from '.'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
+// @ts-ignore
+import {withNavigationFocus} from '@react-navigation/core'
 
 type OwnProps = {
   navKey: string
@@ -66,68 +68,54 @@ const makeSmallRows = (
   })
 }
 
-type Props = {
-  _hasLoadedTrusted: boolean
-  _onInitialLoad: (array: Array<Types.ConversationIDKey>) => void
-  _refreshInbox: () => void
-  _canRefreshOnMount: boolean
-  _onBecomeVisible: () => void
-} & _Props
+let InboxWrapper = (props: Props) => {
+  const dispatch = Container.useDispatch()
+  const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
 
-export class InboxWrapper extends React.PureComponent<Props> {
-  static navigationOptions = {
-    header: undefined,
-    headerRight: <HeaderNewChatButton />,
-    headerTitle: () => (
-      <Kb.Text type="BodyBig" lineClamp={1}>
-        {' '}
-        Chats{' '}
-      </Kb.Text>
-    ),
-    title: 'Chats',
+  // temporary until nav 5
+  // @ts-ignore
+  const {isFocused} = props
+
+  if (Container.isMobile) {
+    // eslint-disable-next-line
+    React.useEffect(() => {
+      if (isFocused && Constants.isSplit) {
+        dispatch(Chat2Gen.createTabSelected())
+      }
+      // eslint-disable-next-line
+    }, [isFocused])
   }
 
-  _onDidFocus = () => {
-    this.props._onBecomeVisible()
-  }
-
-  componentDidMount() {
+  React.useEffect(() => {
     if (!Container.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
-      this.props._onBecomeVisible()
+      dispatch(Chat2Gen.createTabSelected())
     }
-    if (this.props._canRefreshOnMount) {
-      this.props._refreshInbox()
+    if (!inboxHasLoaded) {
+      dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'}))
     }
-    if (!this.props._hasLoadedTrusted && this.props.rows.length) {
-      const toUnbox = this.props.rows.slice(0, 20).reduce<Array<Types.ConversationIDKey>>((arr, row) => {
-        if (row.type === 'small') {
-          arr.push(row.conversationIDKey)
-        }
-        return arr
-      }, [])
-      if (toUnbox.length) {
-        this.props._onInitialLoad(toUnbox)
-      }
-    }
-  }
+    // we actually only want to run this once, likely we should dispatch a 'inbox saw first'
+    // eslint-disable-next-line
+  }, [])
 
-  render() {
-    const {
-      _hasLoadedTrusted,
-      _refreshInbox,
-      _onInitialLoad,
-      _canRefreshOnMount,
-      _onBecomeVisible,
-      ...rest
-    } = this.props
-    return (
-      <>
-        {Container.isMobile && <Kb.NavigationEvents onDidFocus={this._onDidFocus} />}
-        <Inbox {...rest} />
-      </>
-    )
-  }
+  return <Inbox {...props} />
+}
+
+// temporary until nav 5
+if (Container.isMobile) {
+  InboxWrapper = withNavigationFocus(InboxWrapper)
+}
+
+// @ts-ignore
+InboxWrapper.navigationOptions = {
+  header: undefined,
+  headerRight: <HeaderNewChatButton />,
+  headerTitle: () => (
+    <Kb.Text type="BodyBig" lineClamp={1}>
+      {' '}
+      Chats{' '}
+    </Kb.Text>
+  ),
 }
 
 const Connected = Container.namedConnect(
@@ -143,7 +131,6 @@ const Connected = Container.namedConnect(
       : false
     return {
       _badgeMap: state.chat2.badgeMap,
-      _canRefreshOnMount: neverLoaded,
       _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
       _inboxLayout: inboxLayout,
       _selectedConversationIDKey: state.chat2.selectedConversation,
@@ -156,15 +143,7 @@ const Connected = Container.namedConnect(
     }
   },
   dispatch => ({
-    _onBecomeVisible: () => {
-      if (Constants.isSplit) {
-        dispatch(Chat2Gen.createTabSelected())
-      }
-    },
     // a hack to have it check for marked as read when we mount as the focus events don't fire always
-    _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
-      dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
-    _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
     onNewChat: () => dispatch(appendNewChatBuilder()),
     onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
       dispatch(
@@ -227,11 +206,6 @@ const Connected = Container.namedConnect(
     }
 
     return {
-      _canRefreshOnMount: stateProps._canRefreshOnMount,
-      _hasLoadedTrusted: stateProps._hasLoadedTrusted,
-      _onBecomeVisible: dispatchProps._onBecomeVisible,
-      _onInitialLoad: dispatchProps._onInitialLoad,
-      _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
       hasBigTeams,
       inboxNumSmallRows: stateProps.inboxNumSmallRows,

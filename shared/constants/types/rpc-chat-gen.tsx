@@ -76,7 +76,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.NotifyChat.ChatParticipantsInfo': {
-    inParam: {readonly convID: ConversationID; readonly participants?: Array<UIParticipant> | null}
+    inParam: {readonly participants: {[key: string]: Array<UIParticipant> | null}}
     outParam: void
   }
   'chat.1.NotifyChat.ChatPaymentInfo': {

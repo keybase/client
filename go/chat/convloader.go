@@ -362,7 +362,7 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}) error
 		return true
 	}
 	// On mobile fresh start, apply the foreground wait
-	if b.G().GetAppType() == libkb.MobileAppType {
+	if b.G().IsMobileAppType() {
 		b.Debug(bgctx, "loop: delaying startup since on mobile")
 		b.clock.Sleep(b.resumeWait)
 	}

@@ -81,7 +81,9 @@ const LogStats = (props: {num?: number}) => {
   const {num} = props
   const maxBuckets = num ?? 5
 
-  const bucketsRef = React.useRef<Array<{count: number; label: string; updated: boolean}>>([])
+  const bucketsRef = React.useRef<Array<{count: number; label: string; labelFull: string; updated: boolean}>>(
+    []
+  )
   const [, setDoRender] = React.useState(0)
   const events = Container.useSelector(state => state.config.runtimeStats?.perfEvents)
   const lastEventsRef = React.useRef(new WeakSet<Array<RPCTypes.PerfEvent>>())
@@ -127,13 +129,15 @@ const LogStats = (props: {num?: number}) => {
     let newBuckets = bucketsRef.current.map(b => ({...b, updated: false}))
 
     // find existing or add new ones
-    incoming.forEach(i => {
+    incoming.forEach((i, idx) => {
       const existing = newBuckets.find(b => b.label === i)
+      const labelFull = events[idx]?.message ?? i
       if (existing) {
         existing.updated = true
         existing.count++
+        existing.labelFull += '\n' + labelFull
       } else {
-        newBuckets.push({count: 1, label: i, updated: true})
+        newBuckets.push({count: 1, label: i, labelFull, updated: true})
       }
     })
 
@@ -185,7 +189,13 @@ const LogStats = (props: {num?: number}) => {
         </Kb.Text>
       )}
       {bucketsRef.current.map((b, i) => (
-        <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.logStat} lineClamp={1}>
+        <Kb.Text
+          key={i}
+          type={b.updated ? 'BodyTinyBold' : 'BodyTiny'}
+          style={styles.logStat}
+          lineClamp={1}
+          title={b.labelFull}
+        >
           {b.label && b.count > 1 ? b.count : ''} {b.label}
         </Kb.Text>
       ))}
@@ -210,87 +220,86 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
 
   const [moreLogs, setMoreLogs] = React.useState(false)
 
-  if (moreLogs) {
-    return (
-      <>
-        <Kb.Box style={Styles.globalStyles.flexGrow} />
-        <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)}>
-          <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
-            <LogStats num={25} />
-          </Kb.Box2>
-        </Kb.ClickableBox>
-      </>
-    )
-  }
-
   return (
     <>
       <Kb.Box style={Styles.globalStyles.flexGrow} />
       <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)}>
         <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
-          {stats.processStats?.map((stat, i) => {
-            return (
-              <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
-                <Kb.Text type="BodyTinyBold" style={styles.stat}>
-                  {processTypeString(stat.type)}
-                </Kb.Text>
-                <Kb.Text
-                  style={Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity)])}
-                  type="BodyTiny"
-                >{`CPU: ${stat.cpu}`}</Kb.Text>
-                <Kb.Text
-                  style={Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity)])}
-                  type="BodyTiny"
-                >{`Res: ${stat.resident}`}</Kb.Text>
-                <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text>
-                <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stat.free}`}</Kb.Text>
-                <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stat.goheap}`}</Kb.Text>
-                <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stat.goheapsys}`}</Kb.Text>
-                <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stat.goreleased}`}</Kb.Text>
-                <Kb.Divider />
-                <Kb.Divider />
-              </Kb.Box2>
-            )
-          })}
-          <Kb.Divider />
-          <Kb.Text type="BodyTinyBold" style={styles.stat}>
-            Chat Bkg Activity
-          </Kb.Text>
-          <Kb.Text
-            style={Styles.collapseStyles([
-              styles.stat,
-              stats.convLoaderActive ? styles.statWarning : styles.statNormal,
-            ])}
-            type="BodyTiny"
-          >{`BkgLoaderActive: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
-          <Kb.Text
-            style={Styles.collapseStyles([
-              styles.stat,
-              stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
-            ])}
-            type="BodyTiny"
-          >{`IndexerSyncActive: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
-          <Kb.Divider />
-          <Kb.Text type="BodyTinyBold" style={styles.stat}>
-            LevelDB Compaction
-          </Kb.Text>
-          {stats.dbStats?.map((stat, i) => {
-            return (
-              <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
-                <Kb.Text
-                  type="BodyTiny"
-                  style={Styles.collapseStyles([
-                    styles.stat,
-                    stat.memCompActive || stat.tableCompActive ? styles.statWarning : styles.statNormal,
-                  ])}
-                >
-                  {`${dbTypeString(stat.type)}: ${yesNo(stat.memCompActive || stat.tableCompActive)}`}
-                </Kb.Text>
-              </Kb.Box2>
-            )
-          })}
-          <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
-          <LogStats />
+          {!moreLogs &&
+            stats.processStats?.map((stat, i) => {
+              return (
+                <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
+                  <Kb.Text type="BodyTinyBold" style={styles.stat}>
+                    {processTypeString(stat.type)}
+                  </Kb.Text>
+                  <Kb.Text
+                    style={Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity)])}
+                    type="BodyTiny"
+                  >{`CPU: ${stat.cpu}`}</Kb.Text>
+                  <Kb.Text
+                    style={Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity)])}
+                    type="BodyTiny"
+                  >{`Res: ${stat.resident}`}</Kb.Text>
+                  <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text>
+                  <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stat.free}`}</Kb.Text>
+                  <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stat.goheap}`}</Kb.Text>
+                  <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stat.goheapsys}`}</Kb.Text>
+                  <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stat.goreleased}`}</Kb.Text>
+                  <Kb.Divider />
+                  <Kb.Divider />
+                </Kb.Box2>
+              )
+            })}
+          {!moreLogs && <Kb.Divider />}
+          {!moreLogs && (
+            <Kb.Text type="BodyTinyBold" style={styles.stat}>
+              Chat Bkg Activity
+            </Kb.Text>
+          )}
+          {!moreLogs && (
+            <Kb.Text
+              style={Styles.collapseStyles([
+                styles.stat,
+                stats.convLoaderActive ? styles.statWarning : styles.statNormal,
+              ])}
+              type="BodyTiny"
+            >{`BkgLoaderActive: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
+          )}
+          {!moreLogs && (
+            <Kb.Text
+              style={Styles.collapseStyles([
+                styles.stat,
+                stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+              ])}
+              type="BodyTiny"
+            >{`IndexerSyncActive: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
+          )}
+          {!moreLogs && <Kb.Divider />}
+          {!moreLogs && (
+            <Kb.Text type="BodyTinyBold" style={styles.stat}>
+              LevelDB Compaction
+            </Kb.Text>
+          )}
+          {!moreLogs &&
+            stats.dbStats?.map((stat, i) => {
+              return (
+                <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
+                  <Kb.Text
+                    type="BodyTiny"
+                    style={Styles.collapseStyles([
+                      styles.stat,
+                      stat.memCompActive || stat.tableCompActive ? styles.statWarning : styles.statNormal,
+                    ])}
+                  >
+                    {`${dbTypeString(stat.type)}: ${yesNo(stat.memCompActive || stat.tableCompActive)}`}
+                  </Kb.Text>
+                </Kb.Box2>
+              )
+            })}
+          {!moreLogs && (
+            <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
+          )}
+          <LogStats num={moreLogs ? 25 : 5} />
         </Kb.Box2>
       </Kb.ClickableBox>
     </>
@@ -309,13 +318,20 @@ const kbfsDbs = [
 ]
 
 const RuntimeStatsMobile = ({stats}: Props) => {
+  const [showLogs, setShowLogs] = React.useState(true)
   const processStat = stats.processStats?.[0]
   const coreCompaction = compactionActive(stats.dbStats, chatDbs)
   const kbfsCompaction = compactionActive(stats.dbStats, kbfsDbs)
   return (
     <>
-      <Kb.Box2 direction="vertical" style={styles.modalLogStats} gap="xtiny" pointerEvents="none">
-        <LogStats />
+      <Kb.Box2
+        direction="vertical"
+        style={showLogs ? styles.modalLogStats : styles.modalLogStatsHidden}
+        gap="xtiny"
+      >
+        <Kb.ClickableBox onClick={() => setShowLogs(s => !s)}>
+          <LogStats />
+        </Kb.ClickableBox>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
         {processStat && (
@@ -415,6 +431,13 @@ const styles = Styles.styleSheetCreate(() => ({
     right: 0,
     top: 20,
     width: 130,
+  },
+  modalLogStatsHidden: {
+    backgroundColor: 'yellow',
+    position: 'absolute',
+    right: 0,
+    top: 20,
+    width: 20,
   },
   radarContainer: Styles.platformStyles({
     isElectron: {

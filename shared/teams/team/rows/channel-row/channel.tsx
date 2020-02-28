@@ -20,7 +20,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const isGeneral = channel.channelname === 'general'
 
   const selected = Container.useSelector(
-    state => !!state.teams.selectedChannels.get(teamID)?.has(channel.channelname)
+    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.channelname)
   )
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel

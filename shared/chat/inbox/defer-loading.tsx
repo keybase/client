@@ -1,21 +1,20 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import Inbox from './container'
 
-type Props = Container.RouteProps<{}>
+// temp before nav 5
+// @ts-ignore
+import {withNavigationFocus} from '@react-navigation/core'
+
+type Props = Container.RouteProps<{}> & {isFocused: boolean}
 
 // keep track of this even on unmount, else if you background / foreground you'll lose it
 let _everFocused = false
-const Deferred = (props: Props) => {
-  const navKey = props.navigation.state.key
-  const [everFocused, _setEverFocused] = React.useState(_everFocused)
-  const setEverFocused = React.useCallback(() => {
-    _everFocused = true
-    _setEverFocused(_everFocused)
-  }, [_setEverFocused])
-  return everFocused ? <Inbox navKey={navKey} /> : <Kb.NavigationEvents onWillFocus={setEverFocused} />
-}
+
+const Deferred = withNavigationFocus((props: Props) => {
+  _everFocused = _everFocused || props.isFocused
+  return _everFocused ? <Inbox navKey={props.navigation.state.key} /> : null
+})
 
 // @ts-ignore TS doesn't understand hoisting
 Deferred.navigationOptions = Inbox.navigationOptions

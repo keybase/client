@@ -218,9 +218,9 @@ export default Container.makeReducer<
   [TeamsGen.setChannelSelected]: (draftState, action) => {
     const {teamID, channel, selected, clearAll} = action.payload
     if (clearAll) {
-      draftState.selectedChannels.delete(teamID)
+      draftState.teamSelectedChannels.delete(teamID)
     } else {
-      const channelsSelected = mapGetEnsureValue(draftState.selectedChannels, teamID, new Set())
+      const channelsSelected = mapGetEnsureValue(draftState.teamSelectedChannels, teamID, new Set())
       if (selected) {
         channelsSelected.add(channel)
       } else {
@@ -228,12 +228,29 @@ export default Container.makeReducer<
       }
     }
   },
-  [TeamsGen.setMemberSelected]: (draftState, action) => {
+  [TeamsGen.teamSetMemberSelected]: (draftState, action) => {
     const {teamID, username, selected, clearAll} = action.payload
     if (clearAll) {
-      draftState.selectedMembers.delete(teamID)
+      draftState.teamSelectedMembers.delete(teamID)
     } else {
-      const membersSelected = mapGetEnsureValue(draftState.selectedMembers, teamID, new Set())
+      const membersSelected = mapGetEnsureValue(draftState.teamSelectedMembers, teamID, new Set())
+      if (selected) {
+        membersSelected.add(username)
+      } else {
+        membersSelected.delete(username)
+      }
+    }
+  },
+  [TeamsGen.channelSetMemberSelected]: (draftState, action) => {
+    const {conversationIDKey, username, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.channelSelectedMembers.delete(conversationIDKey)
+    } else {
+      const membersSelected = mapGetEnsureValue(
+        draftState.channelSelectedMembers,
+        conversationIDKey,
+        new Set()
+      )
       if (selected) {
         membersSelected.add(username)
       } else {

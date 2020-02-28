@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
-import HeaderArea from '../header-area/container.native'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import * as Kb from '../../../common-adapters'
@@ -66,14 +65,7 @@ const Conversation = React.memo((props: Props) => {
     <Kb.Box style={styles.innerContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {props.threadLoadedOffline && <Offline />}
-        {Styles.isTablet ? (
-          innerComponent
-        ) : (
-          <>
-            <HeaderArea conversationIDKey={props.conversationIDKey} />
-            {innerComponent}
-          </>
-        )}
+        {innerComponent}
       </Kb.Box2>
       <GatewayDest name="convOverlay" component={Kb.Box} />
     </Kb.Box>

@@ -1,54 +1,69 @@
 import * as React from 'react'
-import {Props} from './clickable-box'
+import * as Styles from '../styles'
 import Box from './box'
 import {NativeTouchableOpacity, NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import {collapseStyles} from '../styles'
+import {Props} from './clickable-box'
 
-class ClickableBox extends React.Component<Props> {
-  render() {
-    const props = this.props
-    const {feedback = true} = props
-    if (props.onClick) {
-      const clickStyle = collapseStyles([boxStyle, props.style])
+const Kb = {
+  Box,
+  NativeTouchableOpacity,
+  NativeTouchableWithoutFeedback,
+}
+
+const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTouchableOpacity | Box, Props>(
+  (props, ref) => {
+    const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
+    const {style, activeOpacity, children, pointerEvents} = props
+    if (onClick) {
+      const clickStyle = Styles.collapseStyles([styles.box, style])
       if (feedback) {
         return (
-          <NativeTouchableOpacity
-            disabled={!props.onClick}
-            onPress={props.onClick}
-            onPressIn={props.onPressIn}
-            onPressOut={props.onPressOut}
-            onLongPress={props.onLongPress}
+          <Kb.NativeTouchableOpacity
+            // @ts-ignore
+            ref={ref}
+            disabled={!onClick}
+            onPress={onClick}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
+            onLongPress={onLongPress}
             style={clickStyle}
-            activeOpacity={this.props.activeOpacity ?? 0.7}
+            activeOpacity={activeOpacity ?? 0.7}
           >
-            {props.children}
-          </NativeTouchableOpacity>
+            {children}
+          </Kb.NativeTouchableOpacity>
         )
       } else {
         return (
-          <NativeTouchableWithoutFeedback
-            onPressIn={props.onPressIn}
-            onPressOut={props.onPressOut}
+          <Kb.NativeTouchableWithoutFeedback
+            // @ts-ignore
+            ref={ref}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
             style={clickStyle}
-            onPress={props.onClick}
-            onLongPress={props.onLongPress}
+            onPress={onClick}
+            onLongPress={onLongPress}
           >
-            {props.children}
-          </NativeTouchableWithoutFeedback>
+            {children}
+          </Kb.NativeTouchableWithoutFeedback>
         )
       }
     } else {
+      if (__DEV__) {
+        if (onPressIn || onPressOut || onLongPress) {
+          console.warn("Passed onPress*/on*Press with no onPress, which isn't supported on the native side")
+        }
+      }
       return (
-        <Box style={props.style} pointerEvents={props.pointerEvents}>
-          {props.children}
-        </Box>
+        <Kb.Box style={style} pointerEvents={pointerEvents} ref={ref}>
+          {children}
+        </Kb.Box>
       )
     }
   }
-}
+)
 
-const boxStyle = {
-  borderRadius: 3,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  box: {borderRadius: 3},
+}))
 
 export default ClickableBox
