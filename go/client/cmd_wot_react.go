@@ -27,7 +27,8 @@ func newCmdWotAccept(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "accept", c)
 		},
-		Flags: flags,
+		Flags:    flags,
+		Unlisted: true,
 	}
 }
 
@@ -79,7 +80,8 @@ func newCmdWotReject(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "reject", c)
 		},
-		Flags: flags,
+		Flags:    flags,
+		Unlisted: true,
 	}
 }
 
