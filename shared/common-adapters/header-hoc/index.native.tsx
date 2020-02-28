@@ -48,6 +48,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 
     const header = (
       <Box
+        onLayout={e => console.log('aaa', e.nativeEvent.layout)}
         style={Styles.collapseStyles([
           styles.header,
           this.props.borderless && styles.borderless,
