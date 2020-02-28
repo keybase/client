@@ -31,7 +31,11 @@ const SectionDivider = (props: Props) => {
         props.label
       )}
       {collapsible && (
-        <Kb.Icon sizeType="Tiny" type={props.collapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'} />
+        <Kb.Icon
+          sizeType="Tiny"
+          style={styles.caret}
+          type={props.collapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+        />
       )}
       {props.showSpinner && <Kb.ProgressIndicator style={styles.progress} />}
     </Kb.Box2>
@@ -48,6 +52,9 @@ const height = Styles.isMobile ? 40 : 32
 SectionDivider.height = height
 
 const styles = Styles.styleSheetCreate(() => ({
+  caret: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
   container: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
