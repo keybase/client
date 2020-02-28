@@ -49,7 +49,7 @@ func PGPOpenSig(armored string) (ps *ParsedSig, err error) {
 // OpenSig takes an armored PGP or Keybase signature and opens
 // the armor.  It will return the body of the signature, the
 // sigID of the body, or an error if it didn't work out.
-func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
+func OpenSig(armored string) (ret []byte, id keybase1.SigIDBase, err error) {
 	if isPGPBundle(armored) {
 		var ps *ParsedSig
 		if ps, err = PGPOpenSig(armored); err == nil {
@@ -67,7 +67,7 @@ func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
 // SigExtractPayloadAndKID extracts the payload and KID of the key that
 // was supposedly used to sign this message. A KID will only be returned
 // for KB messages, and not for PGP messages
-func SigExtractPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigID, err error) {
+func SigExtractPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigIDBase, err error) {
 	if isPGPBundle(armored) {
 		payload, sigID, err = SigExtractPGPPayload(armored)
 	} else {
@@ -76,14 +76,14 @@ func SigExtractPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, 
 	return payload, kid, sigID, err
 }
 
-func SigAssertPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
+func SigAssertPayload(armored string, expected []byte) (sigID keybase1.SigIDBase, err error) {
 	if isPGPBundle(armored) {
 		return SigAssertPGPPayload(armored, expected)
 	}
 	return SigAssertKbPayload(armored, expected)
 }
 
-func SigAssertPGPPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
+func SigAssertPGPPayload(armored string, expected []byte) (sigID keybase1.SigIDBase, err error) {
 	var ps *ParsedSig
 	ps, err = PGPOpenSig(armored)
 	if err != nil {
@@ -97,7 +97,7 @@ func SigAssertPGPPayload(armored string, expected []byte) (sigID keybase1.SigID,
 	return
 }
 
-func SigExtractPGPPayload(armored string) (payload []byte, sigID keybase1.SigID, err error) {
+func SigExtractPGPPayload(armored string) (payload []byte, sigID keybase1.SigIDBase, err error) {
 	var ps *ParsedSig
 	ps, err = PGPOpenSig(armored)
 	if err != nil {
@@ -177,7 +177,7 @@ func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
 	return nil
 }
 
-func (ps *ParsedSig) ID() keybase1.SigID {
+func (ps *ParsedSig) ID() keybase1.SigIDBase {
 	return kbcrypto.ComputeSigIDFromSigBody(ps.SigBody)
 }
 

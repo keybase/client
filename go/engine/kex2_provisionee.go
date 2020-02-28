@@ -389,7 +389,7 @@ func (e *Kex2Provisionee) decodeSig(sig []byte) (*decodedSig, error) {
 		return nil, err
 	}
 	res := decodedSig{
-		sigID:  kbcrypto.ComputeSigIDFromSigBody(body),
+		sigID:  kbcrypto.ComputeSigIDFromSigBody(body).ToSigIDLegacy(),
 		linkID: libkb.ComputeLinkID(naclSig.Payload),
 	}
 	res.seqno, err = jw.AtKey("seqno").GetInt()
@@ -565,7 +565,7 @@ func (e *Kex2Provisionee) dhKeyProof(m libkb.MetaContext, dh libkb.GenericKey, e
 		return "", "", err
 	}
 
-	return dhSig, dhSigID, nil
+	return dhSig, dhSigID.ToSigIDLegacy(), nil
 
 }
 

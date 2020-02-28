@@ -741,7 +741,7 @@ func (u *User) WotReactProof(m MetaContext, signingKey GenericKey, sigVersion Si
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
-func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
+func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigIDBase, lid LinkID, err error) {
 	var tmp []byte
 	if tmp, err = jw.Marshal(); err != nil {
 		return
@@ -765,10 +765,14 @@ func MakeSig(
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
 	me *User,
 	sigVersion SigVersion) (sig string, sigID keybase1.SigID, linkID LinkID, err error) {
+
 	switch sigVersion {
 	case KeybaseSignatureV1:
-		sig, sigID, err = signingKey.SignToString(innerLinkJSON)
+		var sigIDBase keybase1.SigIDBase
+		sig, sigIDBase, err = signingKey.SignToString(innerLinkJSON)
 		linkID = ComputeLinkID(innerLinkJSON)
+		params := keybase1.SigIDSuffixParametersFromTypeAndVersion(string(v1LinkType), keybase1.SigVersion(sigVersion))
+		sigID = sigIDBase.ToSigID(params)
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
@@ -1091,7 +1095,7 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 	}
 
 	// Update the user locally
-	me.SigChainBump(linkID, sigID, false)
+	me.SigChainBump(linkID, sigID.ToSigIDLegacy(), false)
 	err = me.localDelegatePerUserKey(keybase1.PerUserKey{
 		Gen:         int(generation),
 		Seqno:       me.GetSigChainLastKnownSeqno(),

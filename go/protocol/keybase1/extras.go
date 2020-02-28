@@ -742,6 +742,85 @@ func (s SigID) ToShortID() string {
 	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
 }
 
+type SigIDBase string
+
+func SigIDBaseFromBytes(b [SIG_ID_LEN]byte) SigIDBase {
+	s := hex.EncodeToString(b[:])
+	return SigIDBase(s)
+}
+
+func SigIDBaseFromSlice(b []byte) (SigIDBase, error) {
+	var buf [32]byte
+	if len(b) != len(buf) {
+		return "", errors.New("need a SHA256 hash, got something the wrong length")
+	}
+	copy(buf[:], b[:])
+	return SigIDBaseFromBytes(buf), nil
+}
+
+func SigIDBaseFromString(s string) (SigIDBase, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return "", err
+	}
+	return SigIDBaseFromSlice(b)
+}
+
+func (s SigIDBase) EqSigID(t SigID) bool {
+	return string(s) == string(t[0:64])
+}
+
+type SigIDSuffixParameters struct {
+	IsUserSig       bool       // true for user, false for team
+	IsWalletStellar bool       // exceptional sig type for backwards compatibility
+	SigVersion      SigVersion // 1,2 or 3 supported now
+}
+
+func SigIDSuffixParametersFromTypeAndVersion(typ string, vers SigVersion) SigIDSuffixParameters {
+	return SigIDSuffixParameters{
+		IsUserSig:       !strings.HasPrefix(typ, "teams."),
+		IsWalletStellar: (typ == "wallet.stellar"),
+		SigVersion:      vers,
+	}
+}
+
+func (s SigIDSuffixParameters) String() string {
+	if s.IsWalletStellar && s.SigVersion == 2 {
+		return "22"
+	}
+	if s.IsUserSig {
+		return "0f"
+	}
+	switch s.SigVersion {
+	case 2:
+		return "22"
+	case 3:
+		return "38"
+	default:
+		return "0f"
+	}
+}
+
+func (s SigIDBase) ToSigID(p SigIDSuffixParameters) SigID {
+	return SigID(string(s) + p.String())
+}
+
+func (s SigIDBase) ToSigIDLegacy() SigID {
+	return s.ToSigID(SigIDSuffixParameters{IsUserSig: true, IsWalletStellar: false, SigVersion: 1})
+}
+
+func (s SigIDBase) Eq(t SigIDBase) bool {
+	return string(s) == string(t)
+}
+
+func (s SigIDBase) ToBytes() []byte {
+	x, err := hex.DecodeString(string(s))
+	if err != nil {
+		return nil
+	}
+	return x
+}
+
 func encode(b []byte) string {
 	return strings.TrimRight(base64.URLEncoding.EncodeToString(b), "=")
 }

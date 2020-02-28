@@ -1244,7 +1244,8 @@ func (c *ChainLink) verifyPayloadV1() error {
 	if err != nil {
 		return err
 	}
-	c.markPayloadVerified(sigid)
+	params := keybase1.SigIDSuffixParametersFromTypeAndVersion(c.unpacked.typ, keybase1.SigVersion(1))
+	c.markPayloadVerified(sigid.ToSigID(params))
 	return nil
 }
 
@@ -1283,10 +1284,10 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 }
 
 func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
-
 	var key GenericKey
 	var verifyKID keybase1.KID
-	var sigID keybase1.SigID
+	var sigIDBase keybase1.SigIDBase
+	var params keybase1.SigIDSuffixParameters
 
 	if c.IsStubbed() {
 		return ChainLinkError{"cannot verify signature -- none available; is this a stubbed out link?"}
@@ -1315,10 +1316,11 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 		return err
 	}
 
-	if sigID, err = key.VerifyString(c.G().Log, c.unpacked.sig, sigPayload); err != nil {
+	if sigIDBase, err = key.VerifyString(c.G().Log, c.unpacked.sig, sigPayload); err != nil {
 		return BadSigError{err.Error()}
 	}
-	c.unpacked.sigID = sigID
+	params = keybase1.SigIDSuffixParametersFromTypeAndVersion(c.unpacked.typ, keybase1.SigVersion(c.unpacked.sigVersion))
+	c.unpacked.sigID = sigIDBase.ToSigID(params)
 
 	return nil
 }

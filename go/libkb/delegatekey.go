@@ -202,10 +202,12 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 
 func (d *Delegator) SignAndPost(m MetaContext, proof *ProofMetadataRes) (err error) {
 	d.proof = proof
-	if d.sig, d.sigID, d.linkID, err = SignJSON(proof.J, d.GetSigningKey()); err != nil {
+	var sigIDBase keybase1.SigIDBase
+	if d.sig, sigIDBase, d.linkID, err = SignJSON(proof.J, d.GetSigningKey()); err != nil {
 		m.Debug("| Failure in SignJson()")
 		return err
 	}
+	d.sigID = sigIDBase.ToSigIDLegacy()
 	if err = d.post(m); err != nil {
 		m.Debug("| Failure in post()")
 		return err
