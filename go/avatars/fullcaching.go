@@ -58,7 +58,15 @@ type populateArg struct {
 	url    keybase1.AvatarUrl
 }
 
+type remoteFetchArg struct {
+	names   []string
+	formats []keybase1.AvatarFormat
+	cb      chan keybase1.LoadAvatarsRes
+	errCb   chan error
+}
+
 type FullCachingSource struct {
+	libkb.Contextified
 	diskLRU              *lru.DiskLRU
 	diskLRUCleanerCancel context.CancelFunc
 	staleThreshold       time.Duration
@@ -68,6 +76,11 @@ type FullCachingSource struct {
 
 	prepareDirs sync.Once
 
+	usersMissBatch  func(interface{})
+	teamsMissBatch  func(interface{})
+	usersStaleBatch func(interface{})
+	teamsStaleBatch func(interface{})
+
 	// testing
 	populateSuccessCh chan struct{}
 	tempDir           string
@@ -75,11 +88,126 @@ type FullCachingSource struct {
 
 var _ libkb.AvatarLoaderSource = (*FullCachingSource)(nil)
 
-func NewFullCachingSource(staleThreshold time.Duration, size int) *FullCachingSource {
-	return &FullCachingSource{
+func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, size int) *FullCachingSource {
+	s := &FullCachingSource{
+		Contextified:   libkb.NewContextified(g),
 		diskLRU:        lru.NewDiskLRU("avatars", 1, size),
 		staleThreshold: staleThreshold,
 		simpleSource:   NewSimpleSource(),
+	}
+	usersMissBatch, _ := libkb.ThrottleBatch(
+		func(intBatched interface{}) {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadUsers)
+		},
+		func(intBatched interface{}, intSingle interface{}) interface{} {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			single, _ := intSingle.(remoteFetchArg)
+			return append(reqs, single)
+		},
+		func() interface{} {
+			return []remoteFetchArg{}
+		},
+		100*time.Millisecond,
+	)
+	teamsMissBatch, _ := libkb.ThrottleBatch(
+		func(intBatched interface{}) {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadTeams)
+		},
+		func(intBatched interface{}, intSingle interface{}) interface{} {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			single, _ := intSingle.(remoteFetchArg)
+			return append(reqs, single)
+		},
+		func() interface{} {
+			return []remoteFetchArg{}
+		},
+		100*time.Millisecond,
+	)
+	usersStaleBatch, _ := libkb.ThrottleBatch(
+		func(intBatched interface{}) {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadUsers)
+		},
+		func(intBatched interface{}, intSingle interface{}) interface{} {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			single, _ := intSingle.(remoteFetchArg)
+			return append(reqs, single)
+		},
+		func() interface{} {
+			return []remoteFetchArg{}
+		},
+		2000*time.Millisecond,
+	)
+	teamsStaleBatch, _ := libkb.ThrottleBatch(
+		func(intBatched interface{}) {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			s.makeRemoteFetchRequests(reqs, s.simpleSource.LoadTeams)
+		},
+		func(intBatched interface{}, intSingle interface{}) interface{} {
+			reqs, _ := intBatched.([]remoteFetchArg)
+			single, _ := intSingle.(remoteFetchArg)
+			return append(reqs, single)
+		},
+		func() interface{} {
+			return []remoteFetchArg{}
+		},
+		2000*time.Millisecond,
+	)
+	s.usersMissBatch = usersMissBatch
+	s.teamsMissBatch = teamsMissBatch
+	s.usersStaleBatch = usersStaleBatch
+	s.teamsStaleBatch = teamsStaleBatch
+	return s
+}
+
+func (c *FullCachingSource) makeRemoteFetchRequests(reqs []remoteFetchArg,
+	loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) {
+	mctx := libkb.NewMetaContextBackground(c.G())
+	namesSet := make(map[string]bool)
+	formatsSet := make(map[keybase1.AvatarFormat]bool)
+	for _, req := range reqs {
+		for _, name := range req.names {
+			namesSet[name] = true
+		}
+		for _, format := range req.formats {
+			formatsSet[format] = true
+		}
+	}
+	genErrors := func(err error) {
+		for _, req := range reqs {
+			req.errCb <- err
+		}
+	}
+	extractRes := func(req remoteFetchArg, ires keybase1.LoadAvatarsRes) (res keybase1.LoadAvatarsRes) {
+		for _, name := range req.names {
+			iformats, ok := ires.Picmap[name]
+			if !ok {
+				continue
+			}
+			for _, format := range req.formats {
+				res.Picmap[name][format] = iformats[format]
+			}
+		}
+		return res
+	}
+	names := make([]string, 0, len(namesSet))
+	formats := make([]keybase1.AvatarFormat, 0, len(formatsSet))
+	for name := range namesSet {
+		names = append(names, name)
+	}
+	for format := range formatsSet {
+		formats = append(formats, format)
+	}
+	c.debug(mctx, "makeRemoteFetchRequests: names: %d formats: %d", len(names), len(formats))
+	res, err := loadFn(mctx, names, formats)
+	if err != nil {
+		genErrors(err)
+		return
+	}
+	for _, req := range reqs {
+		req.cb <- extractRes(req, res)
 	}
 }
 
@@ -325,7 +453,7 @@ func (c *FullCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.Lo
 }
 
 func (c *FullCachingSource) loadNames(m libkb.MetaContext, names []string, formats []keybase1.AvatarFormat,
-	remoteFetch func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) (res keybase1.LoadAvatarsRes, err error) {
+	users bool) (res keybase1.LoadAvatarsRes, err error) {
 	loadSpec, err := c.specLoad(m, names, formats)
 	if err != nil {
 		return res, err
@@ -346,7 +474,24 @@ func (c *FullCachingSource) loadNames(m libkb.MetaContext, names []string, forma
 	// Go get the misses
 	missNames, missFormats := loadSpec.missDetails()
 	if len(missNames) > 0 {
-		loadRes, err := remoteFetch(m, missNames, missFormats)
+		var loadRes keybase1.LoadAvatarsRes
+		cb := make(chan keybase1.LoadAvatarsRes, 1)
+		errCb := make(chan error, 1)
+		arg := remoteFetchArg{
+			names:   missNames,
+			formats: missFormats,
+			cb:      cb,
+			errCb:   errCb,
+		}
+		if users {
+			c.usersMissBatch(arg)
+		} else {
+			c.teamsMissBatch(arg)
+		}
+		select {
+		case loadRes = <-cb:
+		case err = <-errCb:
+		}
 		if err == nil {
 			c.mergeRes(&res, loadRes)
 			c.dispatchPopulateFromRes(m, loadRes)
@@ -361,7 +506,24 @@ func (c *FullCachingSource) loadNames(m libkb.MetaContext, names []string, forma
 			m := m.BackgroundWithLogTags()
 			c.debug(m, "loadNames: spawning stale background load: names: %d",
 				len(staleNames))
-			loadRes, err := remoteFetch(m, staleNames, staleFormats)
+			var loadRes keybase1.LoadAvatarsRes
+			cb := make(chan keybase1.LoadAvatarsRes, 1)
+			errCb := make(chan error, 1)
+			arg := remoteFetchArg{
+				names:   staleNames,
+				formats: staleFormats,
+				cb:      cb,
+				errCb:   errCb,
+			}
+			if users {
+				c.usersStaleBatch(arg)
+			} else {
+				c.teamsStaleBatch(arg)
+			}
+			select {
+			case loadRes = <-cb:
+			case err = <-errCb:
+			}
 			if err == nil {
 				c.dispatchPopulateFromRes(m, loadRes)
 			} else {
@@ -391,12 +553,12 @@ func (c *FullCachingSource) clearName(m libkb.MetaContext, name string, formats 
 
 func (c *FullCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer m.TraceTimed("FullCachingSource.LoadUsers", func() error { return err })()
-	return c.loadNames(m, usernames, formats, c.simpleSource.LoadUsers)
+	return c.loadNames(m, usernames, formats, true)
 }
 
 func (c *FullCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer m.TraceTimed("FullCachingSource.LoadTeams", func() error { return err })()
-	return c.loadNames(m, teams, formats, c.simpleSource.LoadTeams)
+	return c.loadNames(m, teams, formats, false)
 }
 
 func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
