@@ -133,16 +133,17 @@
 }
 
 .circle {
-    background-color: white;
-    border-radius: 100%;
-    animation: circle 2s linear infinite;
-    height: 100%;
     position: absolute;
-    width: 100%;
-    //margin-left: -6px;
-    //margin-right: -6px;
-    //margin-top: -6px;
-    //margin-bottom: -6px;
+    border-radius: 100%;
+}
+
+.circleBackground {
+    background-color: white;
+    position: absolute;
+    border-radius: 100%;
+}
+.darkMode .circleBackground {
+    background-color: black;
 }
 .circle.stopped {
     animation: none;
@@ -159,10 +160,8 @@
 .circleIcon {
     background-color: white;
     border-radius: 100%;
-    bottom: 1px;
     padding: 2px;
     position: absolute;
-    right: 12px;
     transition-duration: 0.2s;
     transition-property: opacity;
     z-index: 1;

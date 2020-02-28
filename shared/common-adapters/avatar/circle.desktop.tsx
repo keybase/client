@@ -5,6 +5,7 @@ import Text from '../../common-adapters/text'
 import Icon from '../../common-adapters/icon'
 import {useGetIDInfo} from './hooks'
 import {useInterval, useTimeout} from '../../common-adapters/use-timers'
+import {AvatarSize} from 'common-adapters/avatar/render'
 
 const Kb = {
   Icon,
@@ -13,20 +14,26 @@ const Kb = {
 
 type Props = {
   username: string
-  size: number
+  size: AvatarSize
 }
 
 type HalfCircleProps = {
   percentDone: number
-  size: number
+  size: AvatarSize
   style: Styles._StylesDesktop
   color: string
   width: number
   className?: string
 }
 
-// This renders a progress circle as two half circles with overflow hidden so we can animate the values
+enum CircleZindex {
+  background,
+  lowerHalf,
+  upperHalf,
+  inner,
+}
 
+// This renders a progress circle as two half circles with overflow hidden so we can animate the values
 const HalfCircle = (props: HalfCircleProps) => {
   const {percentDone, size, style, color, width, className} = props
   const transform = `rotate(${180 + 360 * percentDone}deg)`
@@ -46,8 +53,6 @@ const HalfCircle = (props: HalfCircleProps) => {
       className={className}
       style={{
         ...baseStyle,
-        marginLeft: -width,
-        marginTop: -width,
         overflow: 'hidden',
         ...style,
       }}
@@ -56,7 +61,11 @@ const HalfCircle = (props: HalfCircleProps) => {
     </div>
   )
 }
-//transform: ${twoTransform};
+
+const sizeToIconStyles = new Map([
+  [64, {bottom: 0, right: 0}],
+  [128, {bottom: 1, right: 12}],
+])
 
 const Circle = (props: Props) => {
   const {username, size} = props
@@ -64,13 +73,12 @@ const Circle = (props: Props) => {
   // TEMP
   const [percentDone, setPercentDone] = React.useState(0.2)
   const [color, setColor] = React.useState<string>(Styles.globalColors.green)
-  const [iconOpacity, setIconOpacity] = React.useState(0)
+  const [iconOpacity, setIconOpacity] = React.useState(1)
   const width = 6
   const innerRadius = 3
 
   useInterval(
     () => {
-      //return
       setPercentDone(p => {
         if (p >= 1) {
           return p
@@ -95,7 +103,7 @@ const Circle = (props: Props) => {
   const mockState = React.useRef<'drawing' | 'waiting'>('drawing')
 
   const resetTimer = useTimeout(() => {
-    setIconOpacity(0)
+    //setIconOpacity(0)
     setPercentDone(0)
     setColor(Styles.globalColors.green)
     mockState.current = 'drawing'
@@ -121,13 +129,30 @@ const Circle = (props: Props) => {
           circle: true,
           stopped: isDone,
         })}
+        style={{
+          height: 2 * width + size,
+          marginLeft: -width,
+          marginTop: -width,
+          width: 2 * width + size,
+          zIndex: CircleZindex.background,
+        }}
       >
+        <div
+          className="circleBackground"
+          style={{
+            // extra padding so we don't overlap
+            height: 2 * width + size - 2,
+            left: 1,
+            top: 1,
+            width: 2 * width + size - 2,
+          }}
+        />
         <HalfCircle
           key="0-50"
           percentDone={Math.min(0.5, percentDone)}
           width={width}
           size={size}
-          style={{marginTop: -width}}
+          style={{zIndex: CircleZindex.lowerHalf}}
           color={color}
         />
         <HalfCircle
@@ -136,20 +161,26 @@ const Circle = (props: Props) => {
           width={width}
           size={size}
           className="higherCircle"
-          style={{marginBottom: -width}}
+          style={{marginBottom: -width, zIndex: CircleZindex.upperHalf}}
           color={color}
         />
         <div
           className="innerCircle"
           style={{
-            bottom: -innerRadius,
-            left: -innerRadius,
-            right: -innerRadius,
-            top: -innerRadius,
+            bottom: innerRadius,
+            left: innerRadius,
+            right: innerRadius,
+            top: innerRadius,
+            zIndex: CircleZindex.inner,
           }}
         />
       </div>
-      <Kb.Icon type="iconfont-people" color={color} style={{opacity: iconOpacity}} className="circleIcon" />
+      <Kb.Icon
+        type="iconfont-people"
+        color={color}
+        style={{opacity: iconOpacity, ...sizeToIconStyles.get(size)}}
+        className="circleIcon"
+      />
     </>
   )
 }

@@ -118,11 +118,17 @@ const load = () => {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true} style={{margin: 28}}>
           <Kb.Avatar {...props} username="t_alice" />
-          <Kb.Box2
-            alignSelf="flex-start"
-            direction="vertical"
-            style={{backgroundColor: Styles.globalColors.red, padding: 50}}
-          >
+          <Kb.Box2 alignSelf="flex-start" direction="vertical" style={{padding: 50, position: 'relative'}}>
+            <Kb.Box2
+              direction="vertical"
+              style={{
+                backgroundColor: Styles.globalColors.red,
+                height: '50%',
+                position: 'absolute',
+                top: 0,
+                width: '100%',
+              }}
+            />
             <Kb.Avatar {...props} username="t_alice" />
           </Kb.Box2>
           <Kb.Avatar {...props} username="t_bob" size={64} />
