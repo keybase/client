@@ -126,22 +126,22 @@ const styles = Styles.styleSheetCreate(() => ({
       marginLeft: Styles.globalMargins.large,
       paddingRight: Styles.globalMargins.tiny,
     },
-    isPhone: {
-      ...Styles.globalStyles.fillAbsolute,
-      flex: 1,
-      paddingLeft: Styles.globalMargins.small,
-    },
     isElectron: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
       paddingLeft: Styles.globalMargins.tiny,
     },
+    isPhone: {
+      ...Styles.globalStyles.fillAbsolute,
+      flex: 1,
+      paddingLeft: Styles.globalMargins.small,
+    },
     isTablet: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
       height: '80%',
-      paddingLeft: Styles.globalMargins.tiny,
       marginLeft: 48,
+      paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   channelHash: {color: Styles.globalColors.black_20},
