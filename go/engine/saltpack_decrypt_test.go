@@ -583,6 +583,6 @@ func TestSaltpackDecryptErrors(t *testing.T) {
 	require.IsType(t, libkb.DecryptionError{}, err)
 	if err, ok := err.(libkb.DecryptionError); ok {
 		require.IsType(t, saltpack.ErrWrongMessageType{}, err.Cause.Err)
-		require.Equal(t, libkb.SCWrongType, err.Cause.StatusCode)
+		require.Equal(t, libkb.SCWrongCryptoMsgType, err.Cause.StatusCode)
 	}
 }

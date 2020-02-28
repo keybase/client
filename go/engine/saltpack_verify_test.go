@@ -88,6 +88,6 @@ func TestSaltpackVerifyErrors(t *testing.T) {
 	require.IsType(t, libkb.VerificationError{}, err)
 	if err, ok := err.(libkb.VerificationError); ok {
 		require.IsType(t, saltpack.ErrWrongMessageType{}, err.Cause.Err)
-		require.IsType(t, libkb.SCWrongType, err.Cause.StatusCode)
+		require.IsType(t, libkb.SCWrongCryptoMsgType, err.Cause.StatusCode)
 	}
 }

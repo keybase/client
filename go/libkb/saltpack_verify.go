@@ -27,7 +27,7 @@ func getVerificationErrorWithStatusCode(kberr *kbcrypto.VerificationError) (err 
 	case saltpack.ErrNoSenderKey:
 		err.Cause.StatusCode = SCDecryptionKeyNotFound
 	case saltpack.ErrWrongMessageType:
-		err.Cause.StatusCode = SCWrongType
+		err.Cause.StatusCode = SCWrongCryptoMsgType
 	}
 	return err
 }

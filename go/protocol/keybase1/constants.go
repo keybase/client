@@ -36,6 +36,7 @@ const (
 	StatusCode_SCWrongCryptoFormat                         StatusCode = 279
 	StatusCode_SCDecryptionError                           StatusCode = 280
 	StatusCode_SCInvalidAddress                            StatusCode = 281
+	StatusCode_SCWrongCryptoMsgType                        StatusCode = 282
 	StatusCode_SCNoSession                                 StatusCode = 283
 	StatusCode_SCAccountReset                              StatusCode = 290
 	StatusCode_SCIdentifiesFailed                          StatusCode = 295
@@ -246,8 +247,6 @@ const (
 	StatusCode_SCTeambotKeyGenerationExists                StatusCode = 3800
 	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
 	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
-	StatusCode_SCInvalidFormat                             StatusCode = 4000
-	StatusCode_SCWrongType                                 StatusCode = 4001
 	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
 )
 
@@ -279,6 +278,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCWrongCryptoFormat":         279,
 	"SCDecryptionError":           280,
 	"SCInvalidAddress":            281,
+	"SCWrongCryptoMsgType":        282,
 	"SCNoSession":                 283,
 	"SCAccountReset":              290,
 	"SCIdentifiesFailed":          295,
@@ -489,8 +489,6 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeambotKeyGenerationExists":                3800,
 	"SCTeambotKeyOldBoxedGeneration":              3801,
 	"SCTeambotKeyBadGeneration":                   3802,
-	"SCInvalidFormat":                             4000,
-	"SCWrongType":                                 4001,
 	"SCAirdropRegisterFailedMisc":                 4207,
 }
 
@@ -520,6 +518,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	279:  "SCWrongCryptoFormat",
 	280:  "SCDecryptionError",
 	281:  "SCInvalidAddress",
+	282:  "SCWrongCryptoMsgType",
 	283:  "SCNoSession",
 	290:  "SCAccountReset",
 	295:  "SCIdentifiesFailed",
@@ -730,8 +729,6 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3800: "SCTeambotKeyGenerationExists",
 	3801: "SCTeambotKeyOldBoxedGeneration",
 	3802: "SCTeambotKeyBadGeneration",
-	4000: "SCInvalidFormat",
-	4001: "SCWrongType",
 	4207: "SCAirdropRegisterFailedMisc",
 }
 

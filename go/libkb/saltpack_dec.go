@@ -16,7 +16,7 @@ func getStatusCodeFromDecryptionError(err *DecryptionError) (code int) {
 	case saltpack.ErrNoSenderKey:
 		code = SCDecryptionKeyNotFound
 	case saltpack.ErrWrongMessageType:
-		code = SCWrongType
+		code = SCWrongCryptoMsgType
 	}
 	return code
 }

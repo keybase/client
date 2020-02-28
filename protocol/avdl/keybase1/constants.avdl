@@ -27,6 +27,7 @@ protocol constants {
     SCWrongCryptoFormat_279,
     SCDecryptionError_280,
     SCInvalidAddress_281,
+    SCWrongCryptoMsgType_282,
     SCNoSession_283,
     SCAccountReset_290,
     SCIdentifiesFailed_295,
@@ -237,8 +238,6 @@ protocol constants {
     SCTeambotKeyGenerationExists_3800,
     SCTeambotKeyOldBoxedGeneration_3801,
     SCTeambotKeyBadGeneration_3802,
-    SCInvalidFormat_4000,
-    SCWrongType_4001,
     SCAirdropRegisterFailedMisc_4207
   }
 }

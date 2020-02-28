@@ -313,6 +313,7 @@ const (
 	SCWrongCryptoFormat                         = int(keybase1.StatusCode_SCWrongCryptoFormat)
 	SCGPGUnavailable                            = int(keybase1.StatusCode_SCGPGUnavailable)
 	SCDecryptionError                           = int(keybase1.StatusCode_SCDecryptionError)
+	SCWrongCryptoMsgType                        = int(keybase1.StatusCode_SCWrongCryptoMsgType)
 	SCChatInternal                              = int(keybase1.StatusCode_SCChatInternal)
 	SCChatRateLimit                             = int(keybase1.StatusCode_SCChatRateLimit)
 	SCChatConvExists                            = int(keybase1.StatusCode_SCChatConvExists)
@@ -388,8 +389,6 @@ const (
 	SCTeamStorageWrongRevision                  = int(keybase1.StatusCode_SCTeamStorageWrongRevision)
 	SCTeamStorageBadGeneration                  = int(keybase1.StatusCode_SCTeamStorageBadGeneration)
 	SCTeamStorageNotFound                       = int(keybase1.StatusCode_SCTeamStorageNotFound)
-	SCWrongType                                 = int(keybase1.StatusCode_SCWrongType)
-	SCInvalidFormat                             = int(keybase1.StatusCode_SCInvalidFormat)
 )
 
 const (
