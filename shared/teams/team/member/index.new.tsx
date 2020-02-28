@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {InlineDropdown} from '../../../common-adapters/dropdown'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
@@ -10,6 +9,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import logger from '../../../logger'
 import {pluralize} from '../../../util/string'
 import {FloatingRolePicker} from '../../role-picker'
+import RoleButton from '../../role-button'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {TeamDetailsSubscriber} from '../../subscriber'
 import {formatTimeForTeamMember} from '../../../util/timestamp'
@@ -20,6 +20,7 @@ type Props = {
 }
 type OwnProps = Container.RouteProps<Props>
 type MetaPlusMembership = {
+  key: string
   teamMeta: Types.TeamMeta
   memberInfo: Types.MemberInfo
 }
@@ -32,13 +33,11 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
   subteamsAll.unshift(teamID)
   for (const subteamID of subteamsAll) {
     const subteamMeta = Constants.getTeamMeta(state, subteamID)
-    const subteamMembership = Constants.getTeamMembership(state, {
-      teamID: subteamID,
-      username,
-    })
+    const subteamMembership = Constants.getTeamMembership(state, subteamID, username)
 
     if (subteamMembership) {
       subteamsIn.push({
+        key: `member:${username}:${subteamMeta.teamname}`,
         memberInfo: subteamMembership,
         teamMeta: subteamMeta,
       })
@@ -58,9 +57,7 @@ const TeamMember = (props: OwnProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
 
   // Load up the memberships when the page is opened
-  const loaded = Container.useSelector(state =>
-    state.teams.teamMemberToSubteams.has(Constants.teamMemberToString({teamID, username}))
-  )
+  const loaded = Container.useSelector(state => !!Constants.getTeamMembership(state, teamID, username))
   React.useEffect(() => {
     if (loaded) {
       return
@@ -222,6 +219,15 @@ const SubteamInRow = (props: SubteamInRowProps) => {
 
   const [role, setRole] = React.useState<Types.TeamRoleType>(props.membership.type)
   const [open, setOpen] = React.useState(false)
+  const onChangeRole = (role: Types.TeamRoleType) => {
+    dispatch(
+      TeamsGen.createEditMembership({role, teamname: props.subteam.teamname, username: props.username})
+    )
+    setOpen(false)
+  }
+  const disabledRoles = Container.useSelector(state =>
+    Constants.getDisabledReasonsForRolePicker(state, props.subteam.id, props.username)
+  )
 
   const channels = ['general', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'mmm']
   const channelsJoined = channels.join(', #')
@@ -253,22 +259,33 @@ const SubteamInRow = (props: SubteamInRowProps) => {
       {expanded && (
         <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
           <Kb.Button mode="Secondary" onClick={onAddToChannels} label="Add to Channels" />
-          {/* TODO: icon on this button */}
-          <Kb.Button mode="Secondary" type="Danger" onClick={onKickOut} label="Kick out" />
+          <Kb.Button
+            mode="Secondary"
+            icon="iconfont-block"
+            type="Danger"
+            onClick={onKickOut}
+            label="Kick out"
+          />
         </Kb.Box2>
       )}
+      <TeamDetailsSubscriber teamID={props.subteam.id} />
     </Kb.Box2>
   )
   const action = (
     <FloatingRolePicker
       selectedRole={role}
       onSelectRole={setRole}
-      onConfirm={x => console.log('confirmed', x)}
+      onConfirm={onChangeRole}
       onCancel={() => setOpen(false)}
-      position="bottom center"
+      position="bottom left"
       open={open}
+      disabledRoles={disabledRoles}
     >
-      <InlineDropdown type="Body" label={props.membership.type} onPress={() => setOpen(true)} />
+      <RoleButton
+        containerStyle={styles.roleButtonContainer}
+        onClick={() => setOpen(true)}
+        selectedRole={props.membership.type}
+      />
     </FloatingRolePicker>
   )
 
@@ -433,6 +450,9 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   listItem: {
     marginLeft: Styles.globalMargins.tiny,
+  },
+  roleButtonContainer: {
+    paddingRight: 0,
   },
 }))
 

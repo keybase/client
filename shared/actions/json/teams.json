@@ -367,7 +367,8 @@
       "username": "string"
     },
     "setMemberSubteamDetails": {
-      "memberships": "Map<string, Types.MemberInfo>"
+      "username": "string",
+      "memberships": "Map<Types.TeamID, Types.MemberInfo>"
     }
   }
 }

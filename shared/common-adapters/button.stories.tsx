@@ -53,6 +53,13 @@ const load = () => {
             </Text>
             <Button {...commonProps} type={t} label="Primary" mode="Primary" />
             <Button {...commonProps} type={t} label="Secondary" mode="Secondary" />
+            <Button
+              {...commonProps}
+              type={t}
+              icon="iconfont-block"
+              label="Secondary with icon"
+              mode="Secondary"
+            />
           </Wrapper>
         ))}
         <Wrapper>

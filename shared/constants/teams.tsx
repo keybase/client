@@ -670,8 +670,11 @@ export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
 export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
-export const getTeamMembership = (state: TypedState, member: Types.Member): Types.MemberInfo | null =>
-  state.teams.teamMemberToSubteams.get(teamMemberToString(member)) || null
+export const getTeamMembership = (
+  state: TypedState,
+  teamID: Types.TeamID,
+  username: string
+): Types.MemberInfo | null => state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
 
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
@@ -842,5 +845,3 @@ export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: T
         latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
       }
     : newVersion
-
-export const teamMemberToString = (member: Types.Member): string => `${member.teamID}:${member.username}`

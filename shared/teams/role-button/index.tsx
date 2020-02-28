@@ -7,8 +7,10 @@ import {roleIconMap} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 
 export type Props = {
+  containerStyle?: Styles.StylesCrossPlatform
   selectedRole: TeamRoleType
   onClick: () => void
+  style?: Styles.StylesCrossPlatform
 }
 
 const RoleButton = (props: Props) => {
@@ -16,6 +18,7 @@ const RoleButton = (props: Props) => {
 
   return (
     <InlineDropdown
+      containerStyle={props.containerStyle}
       type="BodySmallSemibold"
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
@@ -24,16 +27,19 @@ const RoleButton = (props: Props) => {
         </Kb.Box2>
       }
       onPress={props.onClick}
-      style={styles.button}
+      style={Styles.collapseStyles([styles.button, props.style])}
     />
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
+    common: {
+      marginRight: 0,
+    },
     isElectron: {
       minHeight: 26,
-      minWidth: 80,
+      minWidth: 82,
     },
     isMobile: {
       minHeight: 30,

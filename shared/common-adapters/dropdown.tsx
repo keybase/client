@@ -112,6 +112,7 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
 }
 
 type InlineDropdownProps = {
+  containerStyle?: Styles.StylesCrossPlatform
   label: React.ReactNode
   onPress: () => void
   type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
@@ -127,7 +128,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
   return (
     <DropdownButton
       inline={true}
-      style={styles.inlineDropdown}
+      style={Styles.collapseStyles([styles.inlineDropdown, props.containerStyle])}
       toggleOpen={e => {
         e.stopPropagation && e.stopPropagation()
         props.onPress && props.onPress()

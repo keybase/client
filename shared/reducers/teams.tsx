@@ -85,6 +85,7 @@ export default Container.makeReducer<
   [TeamsGen.teamLoaded]: (draftState, action) => {
     const {teamID, details} = action.payload
     draftState.teamDetails.set(teamID, details)
+    draftState.teamMemberToSubteams.set(teamID, details.members)
   },
   [TeamsGen.setTeamVersion]: (draftState, action) => {
     const {teamID, version} = action.payload
@@ -308,8 +309,11 @@ export default Container.makeReducer<
     draftState.errorInEditWelcomeMessage = ''
   },
   [TeamsGen.setMemberSubteamDetails]: (draftState, action) => {
-    action.payload.memberships.forEach((value, key) => {
-      draftState.teamMemberToSubteams.set(key, value)
+    action.payload.memberships.forEach((info, teamID) => {
+      if (!draftState.teamMemberToSubteams.has(teamID)) {
+        draftState.teamMemberToSubteams.set(teamID, new Map())
+      }
+      draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
     })
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {

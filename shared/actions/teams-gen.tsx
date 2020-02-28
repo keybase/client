@@ -218,7 +218,10 @@ type _SetChannelSelectedPayload = {
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
-type _SetMemberSubteamDetailsPayload = {readonly memberships: Map<string, Types.MemberInfo>}
+type _SetMemberSubteamDetailsPayload = {
+  readonly username: string
+  readonly memberships: Map<Types.TeamID, Types.MemberInfo>
+}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>

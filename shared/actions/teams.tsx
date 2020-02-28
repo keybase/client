@@ -1362,16 +1362,11 @@ async function getMemberSubteamDetails(
 
   const res = new Map<string, Types.MemberInfo>()
   for (const membership of memberships) {
-    res.set(
-      Constants.teamMemberToString({
-        teamID: membership.teamID,
-        username,
-      }),
-      Constants.subteamDetailsToMemberInfo(username, membership)
-    )
+    res.set(membership.teamID, Constants.subteamDetailsToMemberInfo(username, membership))
   }
   return TeamsGen.createSetMemberSubteamDetails({
     memberships: res,
+    username,
   })
 }
 

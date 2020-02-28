@@ -33,6 +33,13 @@ type WithIconProps =
       icon: IconType
       iconColor?: Styles.Color
       tooltip: string
+      label?: never
+    }
+  | {
+      icon: IconType
+      iconColor?: Styles.Color
+      tooltip?: never
+      label: string
     }
 
 // Either type or backgroundColor must be set
@@ -90,7 +97,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
     containerStyle = Styles.collapseStyles([containerStyle, styles.small])
   }
 
-  if (props.icon) {
+  if (props.icon && !props.label) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.icon])
   }
 
@@ -172,7 +179,19 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
         ])}
       >
         {!props.waiting && props.children}
-        <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Box2 direction={props.icon && props.label ? 'horizontal' : 'vertical'} centerChildren={true}>
+          {!!props.icon && (
+            <Kb.Icon
+              type={props.icon}
+              color={props.iconColor}
+              sizeType="Default"
+              style={Styles.collapseStyles([
+                labelStyle,
+                !!props.label && styles.iconWithLabel,
+                props.labelStyle,
+              ])}
+            />
+          )}
           {!!props.label && (
             <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, props.labelStyle])}>
               {props.label}
@@ -185,14 +204,6 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
             >
               {props.subLabel}
             </Kb.Text>
-          )}
-          {!!props.icon && (
-            <Kb.Icon
-              type={props.icon}
-              color={props.iconColor}
-              sizeType="Default"
-              style={Styles.collapseStyles([labelStyle, props.labelStyle])}
-            />
           )}
         </Kb.Box2>
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
@@ -260,6 +271,9 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
     paddingRight: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
     width: regularHeight,
+  },
+  iconWithLabel: {
+    paddingRight: Styles.globalMargins.xtiny,
   },
   labelContainer: Styles.platformStyles({
     common: {height: '100%', position: 'relative'},

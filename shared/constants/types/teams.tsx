@@ -132,11 +132,6 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
-export type Member = {
-  teamID: TeamID
-  username: string
-}
-
 export type State = {
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
@@ -175,7 +170,7 @@ export type State = {
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
   readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
-  readonly teamMemberToSubteams: Map<string, MemberInfo>
+  readonly teamMemberToSubteams: Map<TeamID, Map<string, MemberInfo>>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   readonly teamnames: Set<Teamname> // TODO remove
