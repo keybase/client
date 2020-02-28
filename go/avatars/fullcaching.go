@@ -108,7 +108,7 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		func() interface{} {
 			return []remoteFetchArg{}
 		},
-		100*time.Millisecond,
+		100*time.Millisecond, false,
 	)
 	teamsMissBatch, _ := libkb.ThrottleBatch(
 		func(intBatched interface{}) {
@@ -123,7 +123,7 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		func() interface{} {
 			return []remoteFetchArg{}
 		},
-		100*time.Millisecond,
+		100*time.Millisecond, false,
 	)
 	usersStaleBatch, _ := libkb.ThrottleBatch(
 		func(intBatched interface{}) {
@@ -138,7 +138,7 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		func() interface{} {
 			return []remoteFetchArg{}
 		},
-		2000*time.Millisecond,
+		2000*time.Millisecond, false,
 	)
 	teamsStaleBatch, _ := libkb.ThrottleBatch(
 		func(intBatched interface{}) {
@@ -153,7 +153,7 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		func() interface{} {
 			return []remoteFetchArg{}
 		},
-		2000*time.Millisecond,
+		2000*time.Millisecond, false,
 	)
 	s.usersMissBatch = usersMissBatch
 	s.teamsMissBatch = teamsMissBatch
@@ -181,10 +181,14 @@ func (c *FullCachingSource) makeRemoteFetchRequests(reqs []remoteFetchArg,
 		}
 	}
 	extractRes := func(req remoteFetchArg, ires keybase1.LoadAvatarsRes) (res keybase1.LoadAvatarsRes) {
+		res.Picmap = make(map[string]map[keybase1.AvatarFormat]keybase1.AvatarUrl)
 		for _, name := range req.names {
 			iformats, ok := ires.Picmap[name]
 			if !ok {
 				continue
+			}
+			if _, ok := res.Picmap[name]; !ok {
+				res.Picmap[name] = make(map[keybase1.AvatarFormat]keybase1.AvatarUrl)
 			}
 			for _, format := range req.formats {
 				res.Picmap[name][format] = iformats[format]

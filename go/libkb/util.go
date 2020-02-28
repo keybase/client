@@ -1221,7 +1221,7 @@ func isEmptyThrottleData(arg interface{}) bool {
 }
 
 func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) interface{},
-	reset func() interface{}, delay time.Duration) (func(interface{}), func()) {
+	reset func() interface{}, delay time.Duration, leadingFire bool) (func(interface{}), func()) {
 	var lock sync.Mutex
 	var closeLock sync.Mutex
 	var lastCalled time.Time
@@ -1236,11 +1236,12 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 		defer lock.Unlock()
 		elapsed := throttleBatchClock.Since(lastCalled)
 		isEmpty := isEmptyThrottleData(arg)
+		leading := leadingFire || hasStored
 		if !isEmpty {
 			stored = batcher(stored, arg)
 			hasStored = true
 		}
-		if elapsed > delay && (!isEmpty || hasStored) {
+		if elapsed > delay && (!isEmpty || hasStored) && leading {
 			f(stored)
 			stored = reset()
 			hasStored = false
