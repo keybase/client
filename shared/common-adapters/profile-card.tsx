@@ -195,6 +195,7 @@ const ProfileCard = ({
         metaStyle={styles.connectedNameWithIconMetaStyle}
         metaTwo={userDetails.fullname || ''}
         withProfileCardPopup={false}
+        showFollowingStatus={true}
       />
       {userDetails.state === 'checking' ? (
         <Kb.ProgressIndicator type="Large" />
