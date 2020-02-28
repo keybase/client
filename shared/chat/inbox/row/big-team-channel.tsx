@@ -62,7 +62,7 @@ const BigTeamChannel = (props: Props) => {
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
-          fullWidth={!Styles.isMobile}
+          fullWidth={!Styles.isPhone}
           style={Styles.collapseStyles([
             styles.channelBackground,
             isSelected && styles.selectedChannelBackground,
@@ -97,7 +97,7 @@ const BigTeamChannel = (props: Props) => {
               color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
               style={styles.muted}
               type={
-                Styles.isMobile ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
+                Styles.isPhone ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
               }
             />
           )}
@@ -126,15 +126,20 @@ const styles = Styles.styleSheetCreate(() => ({
       marginLeft: Styles.globalMargins.large,
       paddingRight: Styles.globalMargins.tiny,
     },
+    isPhone: {
+      ...Styles.globalStyles.fillAbsolute,
+      flex: 1,
+      paddingLeft: Styles.globalMargins.small,
+    },
     isElectron: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
       paddingLeft: Styles.globalMargins.tiny,
     },
-    isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
-      flex: 1,
-      paddingLeft: Styles.globalMargins.small,
+    isTablet: {
+      borderBottomLeftRadius: 3,
+      borderTopLeftRadius: 3,
+      paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   channelHash: {color: Styles.globalColors.black_20},
