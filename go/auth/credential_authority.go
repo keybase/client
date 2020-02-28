@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
@@ -78,6 +79,7 @@ func (ci cleanItem) String() string {
 // method that runs its own goRoutine, so many items, aside from the two channels,
 // are off-limits to the main thread.
 type user struct {
+	lock      sync.RWMutex
 	uid       keybase1.UID
 	username  libkb.NormalizedUsername
 	sibkeys   map[keybase1.KID]struct{}
@@ -86,12 +88,12 @@ type user struct {
 	isDeleted bool
 	ctime     time.Time
 	ca        *CredentialAuthority
-	checkCh   chan checkArg
-	stopCh    chan struct{}
 }
 
 // String implements the stringer interface for user.
-func (u user) String() string {
+func (u *user) String() string {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
 	return fmt.Sprintf("{uid: %s, username: %s, sibkeys: %v, subkeys: %v, isOK: %v, ctime: %s, isDeleted: %v}",
 		u.uid, u.username, u.sibkeys, u.subkeys, u.isOK, u.ctime, u.isDeleted)
 }
@@ -106,10 +108,7 @@ func newUser(uid keybase1.UID, ca *CredentialAuthority) *user {
 		sibkeys: make(map[keybase1.KID]struct{}),
 		subkeys: make(map[keybase1.KID]struct{}),
 		ca:      ca,
-		checkCh: make(chan checkArg),
-		stopCh:  make(chan struct{}),
 	}
-	go ret.run()
 	return ret
 }
 
@@ -256,17 +255,20 @@ func (v *CredentialAuthority) runLoop() {
 		case ca := <-v.checkCh:
 			v.log.Debug("Checking %s", ca)
 			u := v.makeUser(ca.uid)
-			go u.sendCheck(ca)
+			go u.check(ca)
 		case uid := <-v.invalidateCh:
 			if uw := v.users[uid]; uw != nil {
 				v.log.Debug("Invalidating %s", uw)
 				delete(v.users, uid)
-				go uw.u.sendStop()
+				v.eng.Evicted(uid)
 			}
 		case ci := <-v.cleanItemCh:
 			v.cleanSchedule = append(v.cleanSchedule, ci)
 		}
 		v.clean()
+	}
+	for uid := range v.users {
+		v.eng.Evicted(uid)
 	}
 }
 
@@ -287,7 +289,7 @@ func (v *CredentialAuthority) clean() {
 		if uw := v.users[e.uid]; uw != nil && !uw.atime.After(e.ctime) {
 			v.log.Debug("Cleaning %s, clean entry: %s", uw, e)
 			delete(v.users, e.uid)
-			go uw.u.sendStop()
+			v.eng.Evicted(e.uid)
 		}
 	}
 	v.cleanSchedule = nil
@@ -307,46 +309,28 @@ func (v *CredentialAuthority) makeUser(uid keybase1.UID) *user {
 	return uw.u
 }
 
-// sendCheck sends a message to the user object that it should check the given
-// user.
-func (u *user) sendCheck(ca checkArg) {
-	u.checkCh <- ca
-}
-
-// sendStop sends a message to a user object that it has been evicted, and
-// therefore, that it should stop whatever it's doing and just exit its
-// go routine.
-func (u *user) sendStop() {
-	u.stopCh <- struct{}{}
-}
-
-// Each user object has its own run() routine. It handles requests for checks,
-// requests to stop, or requests to shutdown.
-func (u *user) run() {
-	done := false
-	for !done {
-		select {
-		case ca := <-u.checkCh:
-			u.check(ca)
-		case <-u.stopCh:
-			u.ca.log.Debug("Stopping user loop for %s", u)
-			done = true
-		case <-u.ca.shutdownCh:
-			done = true
-		}
-	}
-	u.ca.eng.Evicted(u.uid)
-}
-
 // Now return this CA's idea of what time Now is.
-func (u user) Now() time.Time { return u.ca.eng.Now() }
+func (u *user) Now() time.Time { return u.ca.eng.Now() }
 
 // repopulate is intended to repopulate our representation of the user with the
 // server's up-to-date notion of what the user looks like. If our version is recent
 // enough, this is a no-op.  If not, we'll go to the server and send the main loop
 // a "Cleanup" event to eventually clean us out.
 func (u *user) repopulate() error {
-	if u.isPopulated() {
+	u.lock.RLock()
+	alreadyPopulated := u.isPopulatedRLocked()
+	u.lock.RUnlock()
+	if alreadyPopulated {
+		return nil
+	}
+
+	u.lock.Lock()
+
+	// Check again in case another goroutine has already filled this before
+	// we took the write lock.
+	alreadyPopulated = u.isPopulatedRLocked()
+	defer u.lock.Unlock()
+	if alreadyPopulated {
 		return nil
 	}
 
@@ -379,8 +363,40 @@ func (u *user) repopulate() error {
 
 // isPopulated returned true if this user is populated and current enough to
 // trust.
-func (u *user) isPopulated() bool {
+func (u *user) isPopulatedRLocked() bool {
 	return u.isOK && u.Now().Sub(u.ctime) <= userTimeout
+}
+
+func (u *user) checkAfterPopulatedRLocked(ca checkArg) (err error) {
+	if !ca.loadDeleted && u.isDeleted {
+		return ErrUserDeleted
+	}
+
+	if ca.username != nil {
+		if err = u.checkUsernameRLocked(*ca.username); err != nil {
+			return err
+		}
+	}
+
+	if ca.kid != nil {
+		if err = u.checkKeyRLocked(*ca.kid); err != nil {
+			return err
+		}
+	}
+
+	if ca.sibkeys != nil {
+		if err = u.compareSibkeysRLocked(ca.sibkeys); err != nil {
+			return err
+		}
+	}
+
+	if ca.subkeys != nil {
+		if err = u.compareSubkeysRLocked(ca.subkeys); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // check that a user matches the given username and has the given key as one of
@@ -397,34 +413,10 @@ func (u *user) check(ca checkArg) {
 		return
 	}
 
-	if !ca.loadDeleted && u.isDeleted {
-		err = ErrUserDeleted
-		return
-	}
+	u.lock.RLock()
+	defer u.lock.RUnlock()
 
-	if ca.username != nil {
-		if err = u.checkUsername(*ca.username); err != nil {
-			return
-		}
-	}
-
-	if ca.kid != nil {
-		if err = u.checkKey(*ca.kid); err != nil {
-			return
-		}
-	}
-
-	if ca.sibkeys != nil {
-		if err = u.compareSibkeys(ca.sibkeys); err != nil {
-			return
-		}
-	}
-
-	if ca.subkeys != nil {
-		if err = u.compareSubkeys(ca.subkeys); err != nil {
-			return
-		}
-	}
+	err = u.checkAfterPopulatedRLocked(ca)
 }
 
 // getUserFromServer runs the UserKeyAPIer GetUser() API call while paying
@@ -439,8 +431,8 @@ func (v *CredentialAuthority) getUserFromServer(uid keybase1.UID) (
 	return un, sibkeys, subkeys, deleted, err
 }
 
-// checkUsername checks that a username is a match for this user.
-func (u *user) checkUsername(un libkb.NormalizedUsername) error {
+// checkUsernameRLocked checks that a username is a match for this user.
+func (u *user) checkUsernameRLocked(un libkb.NormalizedUsername) error {
 	var err error
 	if !u.username.Eq(un) {
 		err = BadUsernameError{u.username, un}
@@ -448,13 +440,13 @@ func (u *user) checkUsername(un libkb.NormalizedUsername) error {
 	return err
 }
 
-// compareSibkeys returns true if the passed set of sibkeys is equal.
-func (u *user) compareSibkeys(sibkeys []keybase1.KID) error {
+// compareSibkeysRLocked returns true if the passed set of sibkeys is equal.
+func (u *user) compareSibkeysRLocked(sibkeys []keybase1.KID) error {
 	return compareKeys(sibkeys, u.sibkeys)
 }
 
-// compareSubkeys returns true if the passed set of subkeys is equal.
-func (u *user) compareSubkeys(subkeys []keybase1.KID) error {
+// compareSubkeysRLocked returns true if the passed set of subkeys is equal.
+func (u *user) compareSubkeysRLocked(subkeys []keybase1.KID) error {
 	return compareKeys(subkeys, u.subkeys)
 }
 
@@ -471,8 +463,8 @@ func compareKeys(keys []keybase1.KID, expected map[keybase1.KID]struct{}) error 
 	return nil
 }
 
-// checkKey checks that the given key is still valid for this user.
-func (u *user) checkKey(kid keybase1.KID) error {
+// checkKeyRLocked checks that the given key is still valid for this user.
+func (u *user) checkKeyRLocked(kid keybase1.KID) error {
 	var err error
 	if _, ok := u.sibkeys[kid]; !ok {
 		if _, ok := u.subkeys[kid]; !ok {
