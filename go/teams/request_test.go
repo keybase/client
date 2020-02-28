@@ -98,6 +98,11 @@ func TestAccessRequestIgnore(t *testing.T) {
 	_, err = RequestAccess(context.Background(), tc.G, teamName)
 	require.NoError(t, err)
 
+	// Set no caching mode. If we change our full name and ask UidMapper about
+	// it quickly, we might still be getting the old version because of pubsub
+	// delay.
+	tc.G.UIDMapper.SetTestingNoCachingMode(true)
+
 	// Change full name
 	fullName, err := libkb.RandString("test", 5)
 	require.NoError(t, err)
@@ -110,10 +115,6 @@ func TestAccessRequestIgnore(t *testing.T) {
 	err = tc.Logout()
 	require.NoError(t, err)
 	err = owner.Login(tc.G)
-	require.NoError(t, err)
-
-	// Clear UIDMapper cache because user1 changes full name.
-	err = tc.G.UIDMapper.ClearUIDFullName(context.Background(), tc.G, u1.User.GetUID())
 	require.NoError(t, err)
 
 	reqs, err := ListRequests(context.Background(), tc.G, nil)
