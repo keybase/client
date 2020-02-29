@@ -164,7 +164,7 @@ const VanillaTabNavigator = createBottomTabNavigator(
     backBehavior: 'none',
     defaultNavigationOptions: ({navigation}) => {
       const routeName = navigation.state.index && navigation.state.routes[navigation.state.index].routeName
-      const tabBarVisible = true //routeName !== 'chatConversation'
+      const tabBarVisible = routeName !== 'chatConversation'
 
       return {
         tabBarButtonComponent: navigation.state.routeName === 'blank' ? BlankScreen : TabBarIconContainer,

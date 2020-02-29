@@ -52,20 +52,19 @@ const shimNewRoute = (Original: any) => {
       </Kb.KeyboardAvoidingView>
     )
 
+    return keyboardBody
     // don't make safe areas
-    if (navigationOptions && navigationOptions.underNotch) {
-      return keyboardBody
-    }
+    // if (navigationOptions && navigationOptions.underNotch) {
+    // return keyboardBody
+    // }
 
-    const safeKeyboardBody = (
-      <Kb.NativeSafeAreaView
-        style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
-      >
-        {keyboardBody}
-      </Kb.NativeSafeAreaView>
-    )
+    // const safeKeyboardBody = (
+    // <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+    // {keyboardBody}
+    // </Kb.SafeAreaView>
+    // )
 
-    return safeKeyboardBody
+    // return safeKeyboardBody
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
   return ShimmedNew
