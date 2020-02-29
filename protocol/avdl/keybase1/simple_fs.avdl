@@ -194,14 +194,14 @@ protocol SimpleFS {
     OpID opID;
     Path src;
     Path dest;
-    boolean exclCreateFile;
+    boolean overwriteExistingFiles;
   }
 
   record MoveArgs {
     OpID opID;
     Path src;
     Path dest;
-    boolean exclCreateFile;
+    boolean overwriteExistingFiles;
   }
 
   record GetRevisionsArgs {
@@ -272,11 +272,8 @@ protocol SimpleFS {
 
   /**
    Begin copy of file or directory.
-
-   If exclCreateFile is set, the destination file will be created with the
-   O_EXCL flag, meaning it will fail if file already exists.
    */
-  void simpleFSCopy(OpID opID, Path src, Path dest, boolean exclCreateFile);
+  void simpleFSCopy(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
 
   /**
@@ -287,20 +284,15 @@ protocol SimpleFS {
   /**
    Begin recursive copy of directory 
 
-   If exclCreateFile is set, the destination file will be created with the
-   O_EXCL flag, meaning it will fail if file already exists.
-   
-   Note that this applies to files only. If dest is a directory that already
-   exists, they will get merged. But if any file under the same name exists in
-   the dst directory being merged into, this still protects them from being
-   overwritten.
+   overwriteExistingFiles controls whether an existing file will be overwritten. It
+   doesn't control dir behaviors.
    */
-  void simpleFSCopyRecursive(OpID opID, Path src, Path dest, boolean exclCreateFile);
+  void simpleFSCopyRecursive(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
   /**
    Begin move of file or directory, from/to KBFS only
    */
-  void simpleFSMove(OpID opID, Path src, Path dest, boolean exclCreateFile);
+  void simpleFSMove(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
   /**
    Rename file or directory, KBFS side only

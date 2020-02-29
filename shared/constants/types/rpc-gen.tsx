@@ -268,7 +268,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly exclCreateFile: Boolean}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSDismissDownload': {
@@ -332,7 +332,7 @@ export type MessageTypes = {
     outParam: String
   }
   'keybase.1.SimpleFS.simpleFSMove': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly exclCreateFile: Boolean}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSOpen': {
@@ -2755,7 +2755,7 @@ export type Contact = {readonly name: String; readonly components?: Array<Contac
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type ContactListResolutionResult = {readonly newlyResolved?: Array<ProcessedContact> | null; readonly resolved?: Array<ProcessedContact> | null}
 export type ContactSettings = {readonly version?: Int | null; readonly allowFolloweeDegrees: Int; readonly allowGoodTeams: Boolean; readonly enabled: Boolean; readonly teams?: Array<TeamContactSettings> | null}
-export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly exclCreateFile: Boolean}
+export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
 export type CryptKey = {readonly KeyGeneration: Int; readonly Key: Bytes32}
 export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; readonly address: String; readonly sigID: SigID; readonly type: String; readonly family: String}
 export type CsrfToken = String
@@ -2966,7 +2966,7 @@ export type MerkleStoreKitHash = String
 export type MerkleStoreSupportedVersion = Int
 export type MerkleTreeLocation = {readonly leaf: UserOrTeamID; readonly loc: SigChainLocation}
 export type MetadataResponse = {readonly folderID: String; readonly mdBlocks?: Array<MDBlock> | null}
-export type MoveArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly exclCreateFile: Boolean}
+export type MoveArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
 export type NaclDHKeyPrivate = string | null
 export type NaclDHKeyPublic = string | null
 export type NaclSigningKeyPrivate = string | null

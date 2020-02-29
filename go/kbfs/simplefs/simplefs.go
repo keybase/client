@@ -1246,7 +1246,7 @@ func (k *SimpleFS) doCopyFromSource(
 	ctx context.Context, opID keybase1.OpID,
 	srcFS billy.Filesystem, srcFI os.FileInfo,
 	dstPath keybase1.Path, dstFS billy.Filesystem,
-	finalDstElem string, exclCreateFile bool) (err error) {
+	finalDstElem string, overwriteExistingFiles bool) (err error) {
 	defer func() {
 		if err == nil {
 			k.updateReadProgress(opID, 0, 1)
@@ -1264,9 +1264,9 @@ func (k *SimpleFS) doCopyFromSource(
 	}
 	defer src.Close()
 
-	mode := os.O_RDWR | os.O_CREATE | os.O_TRUNC
-	if exclCreateFile {
-		mode = os.O_RDWR | os.O_CREATE | os.O_EXCL
+	mode := os.O_RDWR | os.O_CREATE | os.O_EXCL
+	if overwriteExistingFiles {
+		mode = os.O_RDWR | os.O_CREATE | os.O_TRUNC
 	}
 	dst, err := dstFS.OpenFile(finalDstElem, mode, 0600)
 	if err != nil {
@@ -1293,7 +1293,7 @@ func (k *SimpleFS) doCopyFromSource(
 
 func (k *SimpleFS) doCopy(
 	ctx context.Context, opID keybase1.OpID,
-	srcPath, destPath keybase1.Path, exclCreateFile bool) (err error) {
+	srcPath, destPath keybase1.Path, overwriteExistingFiles bool) (err error) {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
@@ -1316,7 +1316,7 @@ func (k *SimpleFS) doCopy(
 	}
 
 	return k.doCopyFromSource(ctx, opID,
-		srcFS, srcFI, destPath, destFS, finalDestElem, exclCreateFile)
+		srcFS, srcFI, destPath, destFS, finalDestElem, overwriteExistingFiles)
 }
 
 // SimpleFSCopy - Begin copy of file or directory
@@ -1326,7 +1326,7 @@ func (k *SimpleFS) SimpleFSCopy(
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
-			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest, arg.ExclCreateFile)
+			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 		})
 }
 
@@ -1373,7 +1373,7 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 }
 
 func (k *SimpleFS) doCopyRecursive(ctx context.Context,
-	opID keybase1.OpID, src, dest keybase1.Path, exclCreateFile bool) error {
+	opID keybase1.OpID, src, dest keybase1.Path, overwriteExistingFiles bool) error {
 	// Get the full byte/file count.
 	srcFS, finalSrcElem, err := k.getFSIfExists(ctx, src)
 	if err != nil {
@@ -1396,7 +1396,7 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 		k.setProgressTotals(opID, bytes, files+1)
 	} else {
 		// No need for recursive.
-		return k.doCopy(ctx, opID, src, dest, exclCreateFile)
+		return k.doCopy(ctx, opID, src, dest, overwriteExistingFiles)
 	}
 
 	destFS, finalDestElem, err := k.getFS(ctx, dest)
@@ -1428,7 +1428,7 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 
 		err = k.doCopyFromSource(
 			ctx, opID, node.srcFS, srcFI, node.dest, node.destFS,
-			node.destFinalElem, exclCreateFile)
+			node.destFinalElem, overwriteExistingFiles)
 		if err != nil {
 			return err
 		}
@@ -1472,7 +1472,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
-			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.ExclCreateFile)
+			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 		})
 }
 
@@ -1576,7 +1576,7 @@ func (k *SimpleFS) SimpleFSMove(
 				return fs.Rename(srcPath, destPath)
 			}
 
-			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.ExclCreateFile)
+			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 			if err != nil {
 				return err
 			}

@@ -155,19 +155,18 @@ renameLoop:
 
 		// First check with stat. This should cover most cases, and is
 		// the last resort for avoiding merging directories where we
-		// don't get something like excl for free.
+		// don't get something like O_CREATE for free.
 		if _, err = m.k.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
 			Path: keybase1.NewPathWithKbfs(dstPath),
 		}); err == nil {
 			continue renameLoop
 		}
 
-		// Still use O_EXCL when copying, to avoid overwriting.
 		err = m.k.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
-			OpID:           opid,
-			Src:            keybase1.NewPathWithLocal(sourceLocalPath),
-			Dest:           keybase1.NewPathWithKbfs(dstPath),
-			ExclCreateFile: true,
+			OpID:                   opid,
+			Src:                    keybase1.NewPathWithLocal(sourceLocalPath),
+			Dest:                   keybase1.NewPathWithKbfs(dstPath),
+			OverwriteExistingFiles: false,
 		})
 		switch errors.Cause(err) {
 		case os.ErrExist:

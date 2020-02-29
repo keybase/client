@@ -449,7 +449,7 @@
         },
         {
           "type": "boolean",
-          "name": "exclCreateFile"
+          "name": "overwriteExistingFiles"
         }
       ]
     },
@@ -471,7 +471,7 @@
         },
         {
           "type": "boolean",
-          "name": "exclCreateFile"
+          "name": "overwriteExistingFiles"
         }
       ]
     },
@@ -1141,12 +1141,12 @@
           "type": "Path"
         },
         {
-          "name": "exclCreateFile",
+          "name": "overwriteExistingFiles",
           "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin copy of file or directory.\n\n   If exclCreateFile is set, the destination file will be created with the\n   O_EXCL flag, meaning it will fail if file already exists."
+      "doc": "Begin copy of file or directory."
     },
     "simpleFSSymlink": {
       "request": [
@@ -1177,12 +1177,12 @@
           "type": "Path"
         },
         {
-          "name": "exclCreateFile",
+          "name": "overwriteExistingFiles",
           "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin recursive copy of directory \n\n   If exclCreateFile is set, the destination file will be created with the\n   O_EXCL flag, meaning it will fail if file already exists.\n   \n   Note that this applies to files only. If dest is a directory that already\n   exists, they will get merged. But if any file under the same name exists in\n   the dst directory being merged into, this still protects them from being\n   overwritten."
+      "doc": "Begin recursive copy of directory \n\n   overwriteExistingFiles controls whether an existing file will be overwritten. It\n   doesn't control dir behaviors."
     },
     "simpleFSMove": {
       "request": [
@@ -1199,7 +1199,7 @@
           "type": "Path"
         },
         {
-          "name": "exclCreateFile",
+          "name": "overwriteExistingFiles",
           "type": "boolean"
         }
       ],

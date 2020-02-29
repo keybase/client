@@ -747,34 +747,34 @@ func (o WriteArgs) DeepCopy() WriteArgs {
 }
 
 type CopyArgs struct {
-	OpID           OpID `codec:"opID" json:"opID"`
-	Src            Path `codec:"src" json:"src"`
-	Dest           Path `codec:"dest" json:"dest"`
-	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 func (o CopyArgs) DeepCopy() CopyArgs {
 	return CopyArgs{
-		OpID:           o.OpID.DeepCopy(),
-		Src:            o.Src.DeepCopy(),
-		Dest:           o.Dest.DeepCopy(),
-		ExclCreateFile: o.ExclCreateFile,
+		OpID:                   o.OpID.DeepCopy(),
+		Src:                    o.Src.DeepCopy(),
+		Dest:                   o.Dest.DeepCopy(),
+		OverwriteExistingFiles: o.OverwriteExistingFiles,
 	}
 }
 
 type MoveArgs struct {
-	OpID           OpID `codec:"opID" json:"opID"`
-	Src            Path `codec:"src" json:"src"`
-	Dest           Path `codec:"dest" json:"dest"`
-	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 func (o MoveArgs) DeepCopy() MoveArgs {
 	return MoveArgs{
-		OpID:           o.OpID.DeepCopy(),
-		Src:            o.Src.DeepCopy(),
-		Dest:           o.Dest.DeepCopy(),
-		ExclCreateFile: o.ExclCreateFile,
+		OpID:                   o.OpID.DeepCopy(),
+		Src:                    o.Src.DeepCopy(),
+		Dest:                   o.Dest.DeepCopy(),
+		OverwriteExistingFiles: o.OverwriteExistingFiles,
 	}
 }
 
@@ -1695,10 +1695,10 @@ type SimpleFSReadListArg struct {
 }
 
 type SimpleFSCopyArg struct {
-	OpID           OpID `codec:"opID" json:"opID"`
-	Src            Path `codec:"src" json:"src"`
-	Dest           Path `codec:"dest" json:"dest"`
-	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 type SimpleFSSymlinkArg struct {
@@ -1707,17 +1707,17 @@ type SimpleFSSymlinkArg struct {
 }
 
 type SimpleFSCopyRecursiveArg struct {
-	OpID           OpID `codec:"opID" json:"opID"`
-	Src            Path `codec:"src" json:"src"`
-	Dest           Path `codec:"dest" json:"dest"`
-	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 type SimpleFSMoveArg struct {
-	OpID           OpID `codec:"opID" json:"opID"`
-	Src            Path `codec:"src" json:"src"`
-	Dest           Path `codec:"dest" json:"dest"`
-	ExclCreateFile bool `codec:"exclCreateFile" json:"exclCreateFile"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 type SimpleFSRenameArg struct {
@@ -1993,21 +1993,13 @@ type SimpleFSInterface interface {
 	// to get more entries.
 	SimpleFSReadList(context.Context, OpID) (SimpleFSListResult, error)
 	// Begin copy of file or directory.
-	//
-	// If exclCreateFile is set, the destination file will be created with the
-	// O_EXCL flag, meaning it will fail if file already exists.
 	SimpleFSCopy(context.Context, SimpleFSCopyArg) error
 	// Make a symlink of file or directory
 	SimpleFSSymlink(context.Context, SimpleFSSymlinkArg) error
 	// Begin recursive copy of directory
 	//
-	// If exclCreateFile is set, the destination file will be created with the
-	// O_EXCL flag, meaning it will fail if file already exists.
-	//
-	// Note that this applies to files only. If dest is a directory that already
-	// exists, they will get merged. But if any file under the same name exists in
-	// the dst directory being merged into, this still protects them from being
-	// overwritten.
+	// overwriteExistingFiles controls whether an existing file will be overwritten. It
+	// doesn't control dir behaviors.
 	SimpleFSCopyRecursive(context.Context, SimpleFSCopyRecursiveArg) error
 	// Begin move of file or directory, from/to KBFS only
 	SimpleFSMove(context.Context, SimpleFSMoveArg) error
@@ -3105,9 +3097,6 @@ func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res Si
 }
 
 // Begin copy of file or directory.
-//
-// If exclCreateFile is set, the destination file will be created with the
-// O_EXCL flag, meaning it will fail if file already exists.
 func (c SimpleFSClient) SimpleFSCopy(ctx context.Context, __arg SimpleFSCopyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopy", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
@@ -3121,13 +3110,8 @@ func (c SimpleFSClient) SimpleFSSymlink(ctx context.Context, __arg SimpleFSSymli
 
 // Begin recursive copy of directory
 //
-// If exclCreateFile is set, the destination file will be created with the
-// O_EXCL flag, meaning it will fail if file already exists.
-//
-// Note that this applies to files only. If dest is a directory that already
-// exists, they will get merged. But if any file under the same name exists in
-// the dst directory being merged into, this still protects them from being
-// overwritten.
+// overwriteExistingFiles controls whether an existing file will be overwritten. It
+// doesn't control dir behaviors.
 func (c SimpleFSClient) SimpleFSCopyRecursive(ctx context.Context, __arg SimpleFSCopyRecursiveArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopyRecursive", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return

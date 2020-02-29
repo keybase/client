@@ -269,7 +269,7 @@ const load = () =>
             type={Types.PathType.File}
             writingToJournal={false}
             uploading={false}
-            uploadErrorRetry={Sb.action('uploadErrorRetry')}
+            uploadError="upload error blahblah"
           />
         </WrapRow>
         <WrapRow key="download-normal">
