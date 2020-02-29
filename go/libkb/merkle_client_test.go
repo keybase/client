@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -132,4 +133,53 @@ func TestComputeExpectedRootSkips(t *testing.T) {
 			t.Fatalf("Failed on input (%d), expected %v, got %v.", test.root, test.expected, got)
 		}
 	}
+}
+
+func TestFetchRootFromServer(t *testing.T) {
+	tc := SetupTest(t, "MerkleClient", 0)
+	defer tc.Cleanup()
+
+	mc := tc.G.GetMerkleClient()
+
+	root, err := mc.FetchRootFromServer(NewMetaContextForTest(tc), 0)
+	require.NoError(t, err)
+	require.NotNil(t, root)
+
+	origAPI := tc.G.API
+
+	// Ensure these calls do not go to the server but still succeed (by switching the api interface)
+	tc.G.API = &ErrorMockAPI{}
+
+	rootNew, err := mc.FetchRootFromServer(NewMetaContextForTest(tc), 30*time.Second)
+	require.NoError(t, err)
+	require.Equal(t, *root, *rootNew)
+
+	rootNew, err = mc.FetchRootFromServerByMinSeqno(NewMetaContextForTest(tc), *root.Seqno())
+	require.NoError(t, err)
+	require.Equal(t, *root, *rootNew)
+
+	rootNew, err = mc.FetchRootFromServerByMinSeqno(NewMetaContextForTest(tc), *root.Seqno()-3)
+	require.NoError(t, err)
+	require.Equal(t, *root, *rootNew)
+
+	// These calls should instead result in api calls to the server and fail
+	rootNew, err = mc.FetchRootFromServer(NewMetaContextForTest(tc), 0)
+	require.Error(t, err)
+	require.Equal(t, errMockAPI, err)
+	require.Nil(t, rootNew)
+
+	rootNew, err = mc.FetchRootFromServer(NewMetaContextForTest(tc), 1*time.Nanosecond)
+	require.Error(t, err)
+	require.Equal(t, errMockAPI, err)
+	require.Nil(t, rootNew)
+
+	rootNew, err = mc.FetchRootFromServerByMinSeqno(NewMetaContextForTest(tc), *root.Seqno()+3)
+	require.Error(t, err)
+	require.Equal(t, errMockAPI, err)
+	require.Nil(t, rootNew)
+
+	// if we put the api back, the call should succeed again
+	tc.G.API = origAPI
+	_, err = mc.FetchRootFromServerByMinSeqno(NewMetaContextForTest(tc), 0)
+	require.NoError(t, err)
 }

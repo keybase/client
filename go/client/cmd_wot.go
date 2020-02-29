@@ -17,6 +17,7 @@ func newCmdWebOfTrust(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 	return cli.Command{
 		Name:         "wot",
 		Usage:        "Web of Trust",
+		Unlisted:     true,
 		ArgumentHelp: "[arguments...]",
 		Subcommands:  subcommands,
 	}

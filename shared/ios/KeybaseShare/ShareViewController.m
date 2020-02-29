@@ -9,6 +9,7 @@
 #import "ShareViewController.h"
 #import "keybase/keybase.h"
 #import "Pusher.h"
+#import "MediaUtils.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <AVFoundation/AVFoundation.h>
 #import "Fs.h"
@@ -148,18 +149,27 @@ const BOOL isSimulator = NO;
   return [incomingShareFolderURL URLByAppendingPathComponent:@"manifest.json"];
 }
 
-- (void)appendManifestType:(NSString*)type payloadFileURL:(NSURL*) payloadFileURL {
+- (void)appendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL {
   [self.manifest addObject: @{
     @"type": type,
-    @"payloadPath":[payloadFileURL absoluteURL].path,
+    @"originalPath":[originalFileURL absoluteURL].path,
   }];
 }
 
-- (void)appendManifestType:(NSString*)type payloadFileURL:(NSURL*) payloadFileURL content:(NSString*)content {
+- (void)appendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL content:(NSString*)content {
   [self.manifest addObject: @{
     @"type": type,
-    @"payloadPath":[payloadFileURL absoluteURL].path,
+    @"originalPath":[originalFileURL absoluteURL].path,
     @"content": content,
+  }];
+}
+
+- (void)appendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL scaledFileURL:(NSURL*)scaledFileURL thumbnailFileURL:(NSURL*)thumbnailFileURL {
+  [self.manifest addObject: @{
+    @"type": type,
+    @"originalPath":[originalFileURL absoluteURL].path,
+    @"scaledPath":[scaledFileURL absoluteURL].path,
+    @"thumbnailPath":[thumbnailFileURL absoluteURL].path,
   }];
 }
 
@@ -182,27 +192,44 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     NSLog(@"handleText: load error: %@", error);
     return;
   }
-  NSURL * payloadFileURL = [self getPayloadURLFromExt:@"txt"];
-  [text writeToURL:payloadFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
+  NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
+  [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
   if (error != nil){
     NSLog(@"handleText: unable to write payload file: %@", error);
     return;
   }
   if (text.length < TEXT_LENGTH_THRESHOLD) {
-    [self appendManifestType:@"text" payloadFileURL:payloadFileURL content:text];
+    [self appendManifestType:@"text" originalFileURL:originalFileURL content:text];
   } else {
-    [self appendManifestType:@"text" payloadFileURL:payloadFileURL];
+    [self appendManifestType:@"text" originalFileURL:originalFileURL];
   }
 }
 
 - (void) handleData:(NSData *)data type:(NSString *)type ext:(NSString *)ext {
-  NSURL * payloadFileURL = [self getPayloadURLFromExt:ext];
-  BOOL OK = [data writeToURL:payloadFileURL atomically:true];
+  NSURL * originalFileURL = [self getPayloadURLFromExt:ext];
+  BOOL OK = [data writeToURL:originalFileURL atomically:true];
   if (!OK){
     NSLog(@"handleData: unable to write payload file");
     return;
   }
-  [self appendManifestType:type payloadFileURL:payloadFileURL];
+  [self appendManifestType:type originalFileURL:originalFileURL];
+}
+
+- (void) handleAndMaybeCompleteMediaFile:(NSURL *)url isVideo:(BOOL)isVideo lastItem:(BOOL)lastItem {
+  ProcessMediaCompletion completion = ^(NSError * error, NSURL * scaled, NSURL * thumbnail) {
+    if (error != nil) {
+      NSLog(@"fileHandler: prcessVideoFromOriginal error: %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
+    }
+    [self appendManifestType: isVideo ? @"video" : @"image" originalFileURL:url scaledFileURL:scaled thumbnailFileURL:thumbnail];
+    [self maybeCompleteRequest:lastItem];
+  };
+  if (isVideo) {
+    [MediaUtils processVideoFromOriginal:url completion:completion];
+  } else {
+    [MediaUtils processImageFromOriginal:url completion:completion];
+  }
 }
 
 // processItem will invokve the correct function on the Go side for the given attachment type.
@@ -229,17 +256,25 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       return;
     }
     NSData * imageData = UIImageJPEGRepresentation(image, .85);
-    [self handleData:imageData type:@"image" ext:@"jpg"];
-    [self maybeCompleteRequest:lastItem];
+    NSURL * originalFileURL = [self getPayloadURLFromExt:@"jpg"];
+    BOOL OK = [imageData writeToURL:originalFileURL atomically:true];
+    if (!OK){
+      NSLog(@"handleData: unable to write payload file");
+      return;
+    }
+    [self handleAndMaybeCompleteMediaFile:originalFileURL isVideo:false lastItem:lastItem];
   };
   
   // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
   // will inspect the arguments that we have given, and will attempt to give us the attachment
   // in this form. For files, we always want a file URL, and so that is what we pass in.
   NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
+    BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
+    BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
+
     // Check for no URL (it might have not been possible for the OS to give us one)
     if (url == nil) {
-      if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
+      if (hasImage) {
         // Try to handle with our imageHandler function
         [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
       } else {
@@ -259,8 +294,16 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       [self maybeCompleteRequest:lastItem];
       return;
     }
-    [self appendManifestType:@"file" payloadFileURL:filePayloadURL];
-    [self maybeCompleteRequest:lastItem];
+    
+    
+    if (hasVideo) {
+      [self handleAndMaybeCompleteMediaFile:filePayloadURL isVideo:true lastItem:lastItem];
+    } else if (hasImage) {
+      [self handleAndMaybeCompleteMediaFile:filePayloadURL isVideo:false lastItem:lastItem];
+    } else {
+      [self appendManifestType: @"file" originalFileURL:filePayloadURL];
+      [self maybeCompleteRequest:lastItem];
+    }
   };
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {

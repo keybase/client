@@ -389,8 +389,8 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected err type %T, but got %T", libkb.DecryptionError{}, err)
 	}
-	if _, ok = decErr.Cause.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause)
+	if _, ok = decErr.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause.Err)
 	}
 
 	Logout(tc)
