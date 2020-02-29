@@ -36,6 +36,7 @@ const (
 	StatusCode_SCWrongCryptoFormat                         StatusCode = 279
 	StatusCode_SCDecryptionError                           StatusCode = 280
 	StatusCode_SCInvalidAddress                            StatusCode = 281
+	StatusCode_SCWrongCryptoMsgType                        StatusCode = 282
 	StatusCode_SCNoSession                                 StatusCode = 283
 	StatusCode_SCAccountReset                              StatusCode = 290
 	StatusCode_SCIdentifiesFailed                          StatusCode = 295
@@ -72,6 +73,7 @@ const (
 	StatusCode_SCKeyDuplicateUpdate                        StatusCode = 921
 	StatusCode_SCSibkeyAlreadyExists                       StatusCode = 922
 	StatusCode_SCDecryptionKeyNotFound                     StatusCode = 924
+	StatusCode_SCVerificationKeyNotFound                   StatusCode = 925
 	StatusCode_SCKeyNoPGPEncryption                        StatusCode = 927
 	StatusCode_SCKeyNoNaClEncryption                       StatusCode = 928
 	StatusCode_SCKeySyncedPGPNotFound                      StatusCode = 929
@@ -276,6 +278,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCWrongCryptoFormat":         279,
 	"SCDecryptionError":           280,
 	"SCInvalidAddress":            281,
+	"SCWrongCryptoMsgType":        282,
 	"SCNoSession":                 283,
 	"SCAccountReset":              290,
 	"SCIdentifiesFailed":          295,
@@ -312,6 +315,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCKeyDuplicateUpdate":        921,
 	"SCSibkeyAlreadyExists":       922,
 	"SCDecryptionKeyNotFound":     924,
+	"SCVerificationKeyNotFound":   925,
 	"SCKeyNoPGPEncryption":        927,
 	"SCKeyNoNaClEncryption":       928,
 	"SCKeySyncedPGPNotFound":      929,
@@ -514,6 +518,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	279:  "SCWrongCryptoFormat",
 	280:  "SCDecryptionError",
 	281:  "SCInvalidAddress",
+	282:  "SCWrongCryptoMsgType",
 	283:  "SCNoSession",
 	290:  "SCAccountReset",
 	295:  "SCIdentifiesFailed",
@@ -550,6 +555,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	921:  "SCKeyDuplicateUpdate",
 	922:  "SCSibkeyAlreadyExists",
 	924:  "SCDecryptionKeyNotFound",
+	925:  "SCVerificationKeyNotFound",
 	927:  "SCKeyNoPGPEncryption",
 	928:  "SCKeyNoNaClEncryption",
 	929:  "SCKeySyncedPGPNotFound",
