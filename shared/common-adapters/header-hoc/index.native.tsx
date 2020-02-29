@@ -48,7 +48,6 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 
     const header = (
       <Box
-        onLayout={e => console.log('aaa', e.nativeEvent.layout)}
         style={Styles.collapseStyles([
           styles.header,
           this.props.borderless && styles.borderless,
@@ -108,11 +107,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       </Box>
     )
 
-    if (Styles.isAndroid) {
-      return header
-    }
-    return <Box style={{paddingTop: 20}}>{header}</Box>
-    //return !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
+    return !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
   }
 }
 

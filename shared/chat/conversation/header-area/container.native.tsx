@@ -38,7 +38,7 @@ const HeaderBranch = (props: Props & {progress: any}) => {
   //outputRange: [0, 1, 0],
   //})
 
-  return <Kb.NativeAnimated.View style={{minHeight: 64, opacity}}>{header}</Kb.NativeAnimated.View>
+  return <Kb.NativeAnimated.View style={{opacity}}>{header}</Kb.NativeAnimated.View>
 }
 
 export default Container.connect(
