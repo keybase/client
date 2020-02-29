@@ -100,8 +100,6 @@ Conversation.navigationOptions = {
   header: undefined,
   headerLeft: null,
   headerTitle: () => <HeaderArea />,
-  headerTitleContainerStyle: {width: '100%', left: 0, right: 0},
-  headerTitleStyle: {marginHorizontal: 0},
 }
 
 const ConversationMemoed = React.memo(Conversation)
