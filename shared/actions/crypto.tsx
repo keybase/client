@@ -4,6 +4,7 @@ import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
@@ -59,12 +60,12 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   return actions
 }
 
-function* teamBuildingSaga() {
-  yield* commonTeamBuildingSaga('crypto')
-
-  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
-  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
-  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => {
+  const {operation} = action.payload
+  const tab = Constants.CryptoSubTabs[operation]
+  return RouteTreeGen.createNavigateAppend({
+    path: ['cryptoRoot', tab],
+  })
 }
 
 // more of a debounce to keep things simple
@@ -610,6 +611,14 @@ const downloadSignedText = async (state: TypedState) => {
   })
 }
 
+function* teamBuildingSaga() {
+  yield* commonTeamBuildingSaga('crypto')
+
+  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
+  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
+  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+}
+
 function* cryptoSaga() {
   yield* Saga.chainAction2(CryptoGen.downloadEncryptedText, downloadEncryptedText)
   yield* Saga.chainAction2(CryptoGen.downloadSignedText, downloadSignedText)
@@ -628,6 +637,7 @@ function* cryptoSaga() {
   yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
+  yield* Saga.chainAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)

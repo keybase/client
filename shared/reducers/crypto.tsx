@@ -21,7 +21,7 @@ const operationGuard = (operation: Types.Operations, action: CryptoGen.Actions) 
   return true
 }
 
-const resetFileOutput = (op: Types.CommonState) => {
+const resetOutput = (op: Types.CommonState) => {
   op.output = new HiddenString('')
   op.outputStatus = undefined
   op.outputType = undefined
@@ -91,7 +91,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     // Reset output when file input changes
     // Prompt for destination dir
     if (inputType === 'file') {
-      resetFileOutput(op)
+      resetOutput(op)
     }
 
     // Output no longer valid since recipients have changed
@@ -123,7 +123,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     // Reset output when file input changes
     // Prompt for destination dir
     if (inputType === 'file') {
-      resetFileOutput(encrypt)
+      resetOutput(encrypt)
     }
 
     // Output no longer valid since options have changed
@@ -152,7 +152,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     // Reset output when file input changes
     // Prompt for destination dir
     if (inputType === 'file') {
-      resetFileOutput(op)
+      resetOutput(op)
     }
   },
   [CryptoGen.runFileOperation]: (draftState, action) => {
@@ -173,6 +173,21 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.bytesTotal = 0
     op.inProgress = false
     op.outputStatus = 'pending'
+  },
+  [CryptoGen.onSaltpackOpenFile]: (draftState, action) => {
+    const {operation, path} = action.payload
+    const op = draftState[operation]
+    const {inProgress} = op
+
+    // Bail on setting operation input if another file RPC is in progress
+    if (inProgress) return
+    if (!path.stringValue()) return
+
+    resetOutput(op)
+    op.input = path
+    op.inputType = 'file'
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
     const {
