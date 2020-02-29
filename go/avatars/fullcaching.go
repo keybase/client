@@ -2,6 +2,7 @@ package avatars
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,9 +18,10 @@ import (
 )
 
 type avatarLoadPair struct {
-	name   string
-	format keybase1.AvatarFormat
-	path   string
+	name      string
+	format    keybase1.AvatarFormat
+	path      string
+	remoteURL *string
 }
 
 type avatarLoadSpec struct {
@@ -52,6 +54,15 @@ func (a avatarLoadSpec) staleDetails() ([]string, []keybase1.AvatarFormat) {
 	return a.details(a.stales)
 }
 
+func (a avatarLoadSpec) staleKnownURL(name string, format keybase1.AvatarFormat) *string {
+	for _, stale := range a.stales {
+		if stale.name == name && stale.format == format {
+			return stale.remoteURL
+		}
+	}
+	return nil
+}
+
 type populateArg struct {
 	name   string
 	format keybase1.AvatarFormat
@@ -63,6 +74,15 @@ type remoteFetchArg struct {
 	formats []keybase1.AvatarFormat
 	cb      chan keybase1.LoadAvatarsRes
 	errCb   chan error
+}
+
+type lruEntry struct {
+	Path string
+	URL  *string
+}
+
+func (l lruEntry) GetPath() string {
+	return l.Path
 }
 
 type FullCachingSource struct {
@@ -228,11 +248,23 @@ func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 	}
 }
 
+func (c *FullCachingSource) processLRUHit(entry lru.DiskLRUEntry) (res lruEntry) {
+	var ok bool
+	if _, ok = entry.Value.(map[string]interface{}); ok {
+		jstr, _ := json.Marshal(entry.Value)
+		json.Unmarshal(jstr, &res)
+		return res
+	}
+	path, _ := entry.Value.(string)
+	res.Path = path
+	return res
+}
+
 func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, formats []keybase1.AvatarFormat) (res avatarLoadSpec, err error) {
 	for _, name := range names {
 		for _, format := range formats {
 			key := c.avatarKey(name, format)
-			found, entry, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
+			found, ientry, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 			if err != nil {
 				return res, err
 			}
@@ -242,8 +274,12 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 			}
 
 			// If we found something in the index, let's make sure we have it on the disk as well.
+			entry := c.processLRUHit(ientry)
+			found = found && len(entry.GetPath()) > 0
 			if found {
-				lp.path = c.normalizeFilenameFromCache(m, entry.Value.(string))
+				c.debug(m, "specLoad: path: %s", entry.Path)
+				lp.path = c.normalizeFilenameFromCache(m, entry.Path)
+				lp.remoteURL = entry.URL
 				var file *os.File
 				if file, err = os.Open(lp.path); err != nil {
 					c.debug(m, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
@@ -257,7 +293,7 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 				}
 			}
 			if found {
-				if c.isStale(m, entry) {
+				if c.isStale(m, ientry) {
 					res.stales = append(res.stales, lp)
 				} else {
 					res.hits = append(res.hits, lp)
@@ -330,7 +366,8 @@ func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.Read
 
 func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntry) {
 	if ent != nil {
-		file := c.normalizeFilenameFromCache(m, ent.Value.(string))
+		lentry := c.processLRUHit(*ent)
+		file := c.normalizeFilenameFromCache(m, lentry.GetPath())
 		if err := os.Remove(file); err != nil {
 			c.debug(m, "removeFile: failed to remove: file: %s err: %s", file, err)
 		} else {
@@ -344,12 +381,14 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
-		resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), arg.url.String(), "FullCachingSource: Avatar")
+		url := arg.url.String()
+		resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), url, "FullCachingSource: Avatar")
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 			continue
 		}
 		// Find any previous path we stored this image at on the disk
+		var previousEntry lruEntry
 		var previousPath string
 		key := c.avatarKey(arg.name, arg.format)
 		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
@@ -362,7 +401,10 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 			continue
 		}
 		if found {
-			previousPath = c.normalizeFilenameFromCache(m, ent.Value.(string))
+			previousEntry = c.processLRUHit(ent)
+			if len(previousEntry.Path) > 0 {
+				previousPath = c.normalizeFilenameFromCache(m, previousEntry.Path)
+			}
 		}
 
 		// Save to disk
@@ -375,7 +417,12 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 			c.debug(m, "populateCacheWorker: failed to write to disk: %s", err)
 			continue
 		}
-		evicted, err := c.diskLRU.Put(m.Ctx(), m.G(), key, path)
+		v := lruEntry{
+			Path: path,
+			URL:  &url,
+		}
+		c.debug(m, "populateCacheWorker: storing: %v", v)
+		evicted, err := c.diskLRU.Put(m.Ctx(), m.G(), key, v)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to put into LRU: %s", err)
 			continue
@@ -389,14 +436,21 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 	}
 }
 
-func (c *FullCachingSource) dispatchPopulateFromRes(m libkb.MetaContext, res keybase1.LoadAvatarsRes) {
+func (c *FullCachingSource) dispatchPopulateFromRes(m libkb.MetaContext, res keybase1.LoadAvatarsRes,
+	spec avatarLoadSpec) {
 	for name, rec := range res.Picmap {
 		for format, url := range rec {
 			if url != "" {
-				c.populateCacheCh <- populateArg{
-					name:   name,
-					format: format,
-					url:    url,
+				knownURL := spec.staleKnownURL(name, format)
+				if knownURL == nil || *knownURL != url.String() {
+					c.populateCacheCh <- populateArg{
+						name:   name,
+						format: format,
+						url:    url,
+					}
+				} else {
+					c.debug(m, "dispatchPopulateFromRes: skipping name: %s format: %s, stale known", name,
+						format)
 				}
 			}
 		}
@@ -464,7 +518,7 @@ func (c *FullCachingSource) loadNames(m libkb.MetaContext, names []string, forma
 		}
 		if err == nil {
 			c.mergeRes(&res, loadRes)
-			c.dispatchPopulateFromRes(m, loadRes)
+			c.dispatchPopulateFromRes(m, loadRes, loadSpec)
 		} else {
 			c.debug(m, "loadNames: failed to load server miss reqs: %s", err)
 		}
@@ -495,7 +549,7 @@ func (c *FullCachingSource) loadNames(m libkb.MetaContext, names []string, forma
 			case err = <-errCb:
 			}
 			if err == nil {
-				c.dispatchPopulateFromRes(m, loadRes)
+				c.dispatchPopulateFromRes(m, loadRes, loadSpec)
 			} else {
 				c.debug(m, "loadNames: failed to load server stale reqs: %s", err)
 			}

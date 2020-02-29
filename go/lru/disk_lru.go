@@ -13,6 +13,10 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type Pathable interface {
+	GetPath() string
+}
+
 type DiskLRUEntry struct {
 	Key          string
 	Value        interface{}
@@ -433,6 +437,16 @@ func (d *DiskLRU) CleanOutOfSync(mctx libkb.MetaContext, cacheDir string) error 
 	return err
 }
 
+func (d *DiskLRU) getPath(entry DiskLRUEntry) (res string, ok bool) {
+	if res, ok = entry.Value.(string); ok {
+		return res, ok
+	}
+	if pathable, ok := entry.Value.(Pathable); ok {
+		return pathable.GetPath(), true
+	}
+	return "", false
+}
+
 func (d *DiskLRU) cleanOutOfSync(mctx libkb.MetaContext, cacheDir string, batchSize int) (completed bool, err error) {
 	defer mctx.TraceTimed("cleanOutOfSync", func() error { return err })()
 	d.Lock()
@@ -448,7 +462,7 @@ func (d *DiskLRU) cleanOutOfSync(mctx libkb.MetaContext, cacheDir string, batchS
 		return false, err
 	}
 	for _, entry := range allVals {
-		path, ok := entry.Value.(string)
+		path, ok := d.getPath(entry)
 		if !ok {
 			continue
 		}
