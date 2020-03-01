@@ -759,14 +759,9 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text *string) error {
-	modified, err := s.createInbox().Draft(ctx, uid, convID, text)
+	_, err := s.createInbox().Draft(ctx, uid, convID, text)
 	if err != nil {
 		return err
-	}
-	if modified && text == nil {
-		s.Debug(ctx, "Draft: flushing inbox on clear")
-		// if we cleared the draft, force an inbox flush
-		s.forceFlush(ctx)
 	}
 	return nil
 }
