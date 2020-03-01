@@ -481,7 +481,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
     }
 
     // A saltpack file open
-    if (state.config.startupFile) {
+    if (state.config.startupFile.stringValue() && Platform.isElectron) {
       logger.info('Saltpack file open after log in')
       return DeeplinksGen.createSaltpackFileOpen({
         path: state.config.startupFile,
