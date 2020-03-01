@@ -2,6 +2,7 @@ package lru
 
 import (
 	"container/list"
+	json "encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -13,8 +14,8 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type Pathable interface {
-	GetPath() string
+type Pathable struct {
+	Path string
 }
 
 type DiskLRUEntry struct {
@@ -441,8 +442,11 @@ func (d *DiskLRU) getPath(entry DiskLRUEntry) (res string, ok bool) {
 	if res, ok = entry.Value.(string); ok {
 		return res, ok
 	}
-	if pathable, ok := entry.Value.(Pathable); ok {
-		return pathable.GetPath(), true
+	if _, ok = entry.Value.(map[string]interface{}); ok {
+		var pathable Pathable
+		jstr, _ := json.Marshal(entry.Value)
+		json.Unmarshal(jstr, &pathable)
+		return pathable.Path, true
 	}
 	return "", false
 }
