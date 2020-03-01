@@ -657,14 +657,17 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
           dest: Constants.pathToRPCPath(
             Types.pathConcat(
               action.payload.destinationParentPath,
-              Types.getLocalPathName(item.payloadPath)
+              Types.getLocalPathName(item.originalPath)
               // We use the local path name here since we only care about file name.
             )
           ),
           opID: Constants.makeUUID() as string,
           src: {
             PathType: RPCTypes.PathType.local,
-            local: item.payloadPath,
+            // @ts-ignore
+            local: state.fs.destinationPicker.source.useOriginal
+              ? item.originalPath
+              : item.scaledPath || item.originalPath,
           } as RPCTypes.Path,
         }))
 
@@ -674,7 +677,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
         ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise
         : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise
     await Promise.all(params.map(p => rpc(p)))
-    await Promise.allSettled(params.map(({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
+    await Promise.all(params.map(({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
     return null
     // We get source/dest paths from state rather than action, so we can't
     // just retry it. If we do want retry in the future we can include those

@@ -279,6 +279,7 @@ export type TypedActionsMap = {
   'config:globalError': config.GlobalErrorPayload
   'config:pushLoaded': config.PushLoadedPayload
   'config:setStartupDetails': config.SetStartupDetailsPayload
+  'config:setStartupFile': config.SetStartupFilePayload
   'config:setOpenAtLogin': config.SetOpenAtLoginPayload
   'config:setNotifySound': config.SetNotifySoundPayload
   'config:setDeletedSelf': config.SetDeletedSelfPayload
@@ -316,6 +317,7 @@ export type TypedActionsMap = {
   'crypto:setInput': crypto.SetInputPayload
   'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
+  'crypto:onSaltpackOpenFile': crypto.OnSaltpackOpenFilePayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
@@ -329,6 +331,7 @@ export type TypedActionsMap = {
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
+  'deeplinks:saltpackFileOpen': deeplinks.SaltpackFileOpenPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
   'dev:updateDebugConfig': dev.UpdateDebugConfigPayload
   'dev:debugCount': dev.DebugCountPayload

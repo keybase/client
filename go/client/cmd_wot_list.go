@@ -29,7 +29,8 @@ func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "list", c)
 		},
-		Flags: []cli.Flag{},
+		Flags:    []cli.Flag{},
+		Unlisted: true,
 	}
 }
 

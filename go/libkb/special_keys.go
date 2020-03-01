@@ -4,6 +4,8 @@
 package libkb
 
 import (
+	"sync"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -11,6 +13,8 @@ import (
 // its Merkle Root.
 type SpecialKeyRing struct {
 	Contextified
+
+	sync.Mutex
 
 	// Cache of keys that are used in verifying the root
 	keys map[keybase1.KID]GenericKey
@@ -65,7 +69,8 @@ func LoadPGPKeyFromLocalDB(k keybase1.KID, g *GlobalContext) (*PGPKeyBundle, err
 // found in memory or on disk (in the case of PGP), then it will attempt
 // to fetch the key from the keybase server.
 func (sk *SpecialKeyRing) Load(m MetaContext, kid keybase1.KID) (GenericKey, error) {
-
+	sk.Lock()
+	defer sk.Unlock()
 	m.Debug("+ SpecialKeyRing.Load(%s)", kid)
 
 	if !sk.IsValidKID(kid) {

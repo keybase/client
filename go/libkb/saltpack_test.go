@@ -116,6 +116,6 @@ func TestSaltpackEncDec(t *testing.T) {
 			strings.NewReader(ciphertext), &buf, keyring, nil, nil, saltpackkeystest.NewMockPseudonymResolver(t))
 		// An unauthorized receiver trying to decrypt should receive an error
 		decError := err.(DecryptionError)
-		require.Equal(t, decError.Cause, saltpack.ErrNoDecryptionKey)
+		require.Equal(t, decError.Cause.Err, saltpack.ErrNoDecryptionKey)
 	}
 }

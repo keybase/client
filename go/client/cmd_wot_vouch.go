@@ -51,7 +51,8 @@ func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "vouch", c)
 		},
-		Flags: flags,
+		Flags:    flags,
+		Unlisted: true,
 	}
 }
 
