@@ -275,9 +275,7 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 
 			// If we found something in the index, let's make sure we have it on the disk as well.
 			entry := c.processLRUHit(ientry)
-			found = found && len(entry.GetPath()) > 0
 			if found {
-				c.debug(m, "specLoad: path: %s", entry.Path)
 				lp.path = c.normalizeFilenameFromCache(m, entry.Path)
 				lp.remoteURL = entry.URL
 				var file *os.File
@@ -402,9 +400,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		}
 		if found {
 			previousEntry = c.processLRUHit(ent)
-			if len(previousEntry.Path) > 0 {
-				previousPath = c.normalizeFilenameFromCache(m, previousEntry.Path)
-			}
+			previousPath = c.normalizeFilenameFromCache(m, previousEntry.Path)
 		}
 
 		// Save to disk
@@ -421,7 +417,6 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 			Path: path,
 			URL:  &url,
 		}
-		c.debug(m, "populateCacheWorker: storing: %v", v)
 		evicted, err := c.diskLRU.Put(m.Ctx(), m.G(), key, v)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to put into LRU: %s", err)
