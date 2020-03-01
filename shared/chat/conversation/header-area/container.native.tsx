@@ -122,7 +122,12 @@ const Connected = Container.connect(
 )(HeaderBranch)
 
 const GrabConvoID = ({navigation}) => {
-  return <Connected conversationIDKey={navigation.getParam('conversationIDKey', null)} progress={null} />
+  return (
+    <Connected
+      conversationIDKey={navigation.getParam('conversationIDKey', Constants.noConversationIDKey)}
+      progress={null}
+    />
+  )
 }
 const ConnectedWrapper = withNavigation(GrabConvoID)
 
