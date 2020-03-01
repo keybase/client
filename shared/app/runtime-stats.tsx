@@ -222,7 +222,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
 
   return (
     <>
-      <Kb.BoxGrow direction="vertical" style={Styles.desktopStyles.scrollable}>
+      <Kb.BoxGrow style={styles.boxGrow}>
         <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)}>
           <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
             {!moreLogs &&
@@ -405,6 +405,11 @@ const RuntimeStats = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  boxGrow: Styles.platformStyles({
+    isElectron: {
+      overflow: 'auto',
+    },
+  }),
   container: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.blackOrBlack},
     isElectron: {
