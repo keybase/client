@@ -144,7 +144,7 @@ const VanillaTabNavigator = createBottomTabNavigator(
         transitionConfig: () => ({
           containerStyle: {
             get backgroundColor() {
-              return 'red' // Styles.globalColors.white
+              return Styles.globalColors.white
             },
           },
           transitionSpec: {
