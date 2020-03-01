@@ -450,7 +450,7 @@ func (d *DiskLRU) getPath(entry DiskLRUEntry) (res string, ok bool) {
 		if len(path) == 0 {
 			return "", false
 		}
-		return pathable.Path, true
+		return path, true
 	}
 	return "", false
 }
