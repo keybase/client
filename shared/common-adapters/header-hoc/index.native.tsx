@@ -107,7 +107,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       </Box>
     )
 
-    return header // !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
+    return header
   }
 }
 
