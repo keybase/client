@@ -101,14 +101,15 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
 	_, err = tc.Context().ConvSource.GetMessages(ctx, convFull.Conv, uid,
-		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, nil)
+		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, nil, nil)
 	require.NoError(t, err)
 
 	_, err = tc.Context().ParticipantsSource.Get(ctx, uid, conv.Id, types.InboxSourceDataSourceAll)
 	require.NoError(t, err)
 
 	clock := clockwork.NewFakeClock()
-	uil := NewUIThreadLoader(tc.Context())
+	ri := ctc.as(t, users[0]).ri
+	uil := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 	uil.cachedThreadDelay = nil
 	uil.remoteThreadDelay = &timeout
 	uil.resolveThreadDelay = &timeout
@@ -117,7 +118,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	cb := make(chan error, 1)
 	go func() {
 		cb <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
-			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil, nil)
 	}()
 	select {
 	case res := <-chatUI.ThreadCb:
@@ -204,7 +205,8 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	require.IsType(t, storage.MissError{}, err)
 
 	clock := clockwork.NewFakeClock()
-	uil := NewUIThreadLoader(tc.Context())
+	ri := ctc.as(t, users[0]).ri
+	uil := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 	uil.cachedThreadDelay = &timeout
 	uil.resolveThreadDelay = &timeout
 	uil.validatedDelay = 0
@@ -212,7 +214,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	cb := make(chan error, 1)
 	go func() {
 		cb <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
-			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil, nil)
 	}()
 	select {
 	case res := <-chatUI.ThreadCb:
@@ -262,7 +264,8 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	}))
 
 	clock := clockwork.NewFakeClock()
-	uil := NewUIThreadLoader(tc.Context())
+	ri := ctc.as(t, users[0]).ri
+	uil := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 	rtd := 10 * time.Second
 	uil.cachedThreadDelay = nil
 	uil.remoteThreadDelay = &rtd
@@ -272,7 +275,7 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	cb := make(chan error, 1)
 	go func() {
 		cb <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
-			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil, nil)
 	}()
 	select {
 	case res := <-chatUI.ThreadCb:
@@ -330,7 +333,7 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 	uil.resolveThreadDelay = nil
 	go func() {
 		cb <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
-			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil, nil)
 	}()
 	select {
 	case res := <-chatUI.ThreadCb:
@@ -379,7 +382,8 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 	}))
 
 	clock := clockwork.NewFakeClock()
-	uil := NewUIThreadLoader(tc.Context())
+	ri := ctc.as(t, users[0]).ri
+	uil := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 	rtd := 1 * time.Second
 	uil.cachedThreadDelay = nil
 	uil.remoteThreadDelay = &rtd
@@ -390,11 +394,11 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 	cb2 := make(chan error, 1)
 	go func() {
 		cb <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
-			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil, nil)
 	}()
 	go func() {
 		cb2 <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
-			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil, nil)
 	}()
 	time.Sleep(time.Second)
 	errors := 0

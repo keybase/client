@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"sort"
@@ -18,7 +19,13 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/keybase/go-codec/codec"
 )
+
+type activeConvLoad struct {
+	cancel context.CancelFunc
+	reason chat1.GetThreadReason
+}
 
 type UIThreadLoader struct {
 	globals.Contextified
@@ -31,9 +38,10 @@ type UIThreadLoader struct {
 	offlineMu      sync.Mutex
 	offline        bool
 	connectedCh    chan struct{}
+	ri             func() chat1.RemoteInterface
 
 	activeConvLoadsMu sync.Mutex
-	activeConvLoads   map[chat1.ConvIDStr]context.CancelFunc
+	activeConvLoads   map[chat1.ConvIDStr]activeConvLoad
 
 	// testing
 	cachedThreadDelay  *time.Duration
@@ -41,7 +49,7 @@ type UIThreadLoader struct {
 	resolveThreadDelay *time.Duration
 }
 
-func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
+func NewUIThreadLoader(g *globals.Context, ri func() chat1.RemoteInterface) *UIThreadLoader {
 	cacheDelay := 10 * time.Millisecond
 	return &UIThreadLoader{
 		offline:           false,
@@ -51,8 +59,9 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 		clock:             clockwork.NewRealClock(),
 		validatedDelay:    100 * time.Millisecond,
 		cachedThreadDelay: &cacheDelay,
-		activeConvLoads:   make(map[chat1.ConvIDStr]context.CancelFunc),
+		activeConvLoads:   make(map[chat1.ConvIDStr]activeConvLoad),
 		connectedCh:       make(chan struct{}),
+		ri:                ri,
 	}
 }
 
@@ -563,15 +572,24 @@ func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
 	return false
 }
 
-func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.ConversationID) (context.Context, context.CancelFunc) {
+func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.ConversationID,
+	reason chat1.GetThreadReason) (context.Context, context.CancelFunc) {
 	t.activeConvLoadsMu.Lock()
 	defer t.activeConvLoadsMu.Unlock()
 	convIDStr := convID.ConvIDStr()
-	if cancel, ok := t.activeConvLoads[convIDStr]; ok {
-		cancel()
+	if convLoad, ok := t.activeConvLoads[convIDStr]; ok {
+		if convLoad.reason != chat1.GetThreadReason_PUSH {
+			// we only cancel an outstanding load if it isn't from a push. The reason for this
+			// is that the push calls may come with remote message data from the push notification
+			// itself, and we don't want to replace that call with one that will not have that info.
+			convLoad.cancel()
+		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	t.activeConvLoads[convIDStr] = cancel
+	t.activeConvLoads[convIDStr] = activeConvLoad{
+		cancel: cancel,
+		reason: reason,
+	}
 	return ctx, cancel
 }
 
@@ -602,9 +620,76 @@ func (t *UIThreadLoader) waitForOnline(ctx context.Context) (err error) {
 	return nil
 }
 
+type knownRemoteInterface struct {
+	chat1.RemoteInterface
+	knownMap map[chat1.MessageID]chat1.MessageBoxed
+}
+
+func newKnownRemoteInterface(ri chat1.RemoteInterface, knownMap map[chat1.MessageID]chat1.MessageBoxed) *knownRemoteInterface {
+	return &knownRemoteInterface{
+		knownMap:        knownMap,
+		RemoteInterface: ri,
+	}
+}
+
+func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.GetMessagesRemoteArg) (res chat1.GetMessagesRemoteRes, err error) {
+	foundMap := make(map[chat1.MessageID]bool)
+	for _, msgID := range arg.MessageIDs {
+		if msgBoxed, ok := i.knownMap[msgID]; ok {
+			foundMap[msgID] = true
+			res.Msgs = append(res.Msgs, msgBoxed)
+		}
+	}
+	var remoteFetch []chat1.MessageID
+	for _, msgID := range arg.MessageIDs {
+		if !foundMap[msgID] {
+			remoteFetch = append(remoteFetch, msgID)
+		}
+	}
+	if len(remoteFetch) == 0 {
+		return res, nil
+	}
+	remoteRes, err := i.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+		ConversationID: arg.ConversationID,
+		MessageIDs:     remoteFetch,
+		ThreadReason:   arg.ThreadReason,
+	})
+	if err != nil {
+		return res, err
+	}
+	for _, msgBoxed := range remoteRes.Msgs {
+		res.Msgs = append(res.Msgs, msgBoxed)
+	}
+	res.RateLimit = remoteRes.RateLimit
+	return res, nil
+}
+
+func (t *UIThreadLoader) makeRi(ctx context.Context, knownRemotes []string) func() chat1.RemoteInterface {
+	knownMap := make(map[chat1.MessageID]chat1.MessageBoxed)
+	for _, knownRemote := range knownRemotes {
+		// Parse the message payload
+		bMsg, err := base64.StdEncoding.DecodeString(knownRemote)
+		if err != nil {
+			t.Debug(ctx, "makeRi: invalid message payload (skipping): %s", err)
+			continue
+		}
+		var msgBoxed chat1.MessageBoxed
+		mh := codec.MsgpackHandle{WriteExt: true}
+		if err = codec.NewDecoderBytes(bMsg, &mh).Decode(&msgBoxed); err != nil {
+			t.Debug(ctx, "makeRi: ifailed to msgpack decode payload (skipping): %s", err)
+			continue
+		}
+		knownMap[msgBoxed.GetMessageID()] = msgBoxed
+	}
+	return func() chat1.RemoteInterface {
+		return newKnownRemoteInterface(t.ri(), knownMap)
+	}
+}
+
 func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
-	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) (err error) {
+	cbmode chat1.GetThreadNonblockCbMode, knownRemotes []string, query *chat1.GetThreadQuery,
+	uipagination *chat1.UIPagination) (err error) {
 	var pagination, resultPagination *chat1.Pagination
 	var fullErr error
 	defer t.Trace(ctx, func() error { return err }, "LoadNonblock")()
@@ -636,7 +721,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	// single flight per conv since the UI blasts this (only for first page)
 	outerCancel := func() {}
 	if pagination.FirstPage() {
-		ctx, outerCancel = t.singleFlightConv(ctx, convID)
+		ctx, outerCancel = t.singleFlightConv(ctx, convID, reason)
 	}
 	defer outerCancel()
 
@@ -780,7 +865,8 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		if fullErr = t.waitForOnline(ctx); fullErr != nil {
 			return
 		}
-		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
+		customRi := t.makeRi(ctx, knownRemotes)
+		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, customRi, query, pagination)
 		setDisplayedStatus(cancelUIStatus)
 		if fullErr != nil {
 			t.Debug(ctx, "LoadNonblock: error running Pull, returning error: %s", fullErr)
@@ -917,7 +1003,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 }
 
 func (t *UIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err error) {
+	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err error) {
 	defer t.Trace(ctx, func() error { return err }, "Load")()
 	// Xlate pager control into pagination if given
 	if query != nil && query.MessageIDControl != nil {
@@ -925,5 +1011,6 @@ func (t *UIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1
 			*query.MessageIDControl)
 	}
 	// Get messages from the source
-	return t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
+	ri := t.makeRi(ctx, knownRemotes)
+	return t.G().ConvSource.Pull(ctx, convID, uid, reason, ri, query, pagination)
 }

@@ -541,7 +541,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
-		msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, idx.uid, missingIDs, &reason)
+		msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, idx.uid, missingIDs, &reason, nil)
 		if err != nil {
 			if utils.IsPermanentErr(err) {
 				return 0, err
@@ -570,7 +570,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				Pivot: &i,
 				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
 			}, nil)
-			tv, err := idx.G().ConvSource.Pull(ctx, convID, idx.uid, reason, query, pagination)
+			tv, err := idx.G().ConvSource.Pull(ctx, convID, idx.uid, reason, nil, query, pagination)
 			if err != nil {
 				if utils.IsPermanentErr(err) {
 					return 0, err

@@ -392,7 +392,7 @@ export type MessageTypes = {
     outParam: GetThreadLocalRes
   }
   'chat.1.local.getThreadNonblock': {
-    inParam: {readonly conversationID: ConversationID; readonly cbMode: GetThreadNonblockCbMode; readonly reason: GetThreadReason; readonly pgmode: GetThreadNonblockPgMode; readonly query?: GetThreadQuery | null; readonly pagination?: UIPagination | null; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    inParam: {readonly conversationID: ConversationID; readonly cbMode: GetThreadNonblockCbMode; readonly reason: GetThreadReason; readonly pgmode: GetThreadNonblockPgMode; readonly query?: GetThreadQuery | null; readonly knownRemotes?: Array<String> | null; readonly pagination?: UIPagination | null; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: NonblockFetchRes
   }
   'chat.1.local.getUnfurlSettings': {

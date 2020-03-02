@@ -615,6 +615,7 @@ type _SelectConversationPayload = {
     | 'addedToChannel'
     | 'teamMention'
   readonly navKey?: string
+  readonly pushBody?: string
 }
 type _SendAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
