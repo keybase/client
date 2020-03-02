@@ -117,7 +117,7 @@ func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, conv type
 
 func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo,
 	msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
-	defer f.Trace(ctx, func() error { return err }, "Fill")()
+	defer f.Trace(ctx, func() error { return err }, "Fill: %s", conv.GetConvID())()
 	// Gather up the message IDs we need
 	repliedToMsgIDsLocal := newFillerReplyMsgs(f.localFetcher)
 	repliedToMsgIDsRemote := newFillerReplyMsgs(f.G().ConvSource.GetMessages)

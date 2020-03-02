@@ -99,8 +99,8 @@ type ErrRepeatedKey []byte
 // ErrWrongMessageType is produced if one packet tag was expected, but a packet
 // of another tag was found.
 type ErrWrongMessageType struct {
-	wanted   MessageType
-	received MessageType
+	Wanted   MessageType
+	Received MessageType
 }
 
 // ErrBadVersion is returned if a packet of an unsupported version is found.
@@ -126,7 +126,7 @@ func (e ErrNoSenderKey) Error() string {
 	return "no sender key found for message"
 }
 func (e ErrWrongMessageType) Error() string {
-	return fmt.Sprintf("Wrong saltpack message type: wanted %s, but got %s instead", e.wanted, e.received)
+	return fmt.Sprintf("Wrong saltpack message type: wanted %s, but got %s instead", e.Wanted, e.Received)
 }
 func (e ErrBadVersion) Error() string {
 	return fmt.Sprintf("Unsupported version (%s)", e.received)

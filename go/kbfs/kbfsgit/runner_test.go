@@ -236,13 +236,17 @@ func testPush(ctx context.Context, t *testing.T, config libkbfs.Config,
 		"ok %s\n\n", "user1")
 }
 
-func testListAndGetHeadsWithName(ctx context.Context, t *testing.T,
-	config libkbfs.Config, gitDir string, expectedRefs []string,
-	tlfName string) (heads []string) {
+func testListAndGetHeadsWithNameWithPush(
+	ctx context.Context, t *testing.T, config libkbfs.Config, gitDir string,
+	expectedRefs []string, tlfName string, forPush bool) (heads []string) {
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		_, _ = inputWriter.Write([]byte("list\n\n"))
+		p := ""
+		if forPush {
+			p = " for-push"
+		}
+		_, _ = inputWriter.Write([]byte(fmt.Sprintf("list%s\n\n", p)))
 	}()
 
 	var output bytes.Buffer
@@ -271,6 +275,13 @@ func testListAndGetHeadsWithName(ctx context.Context, t *testing.T,
 		heads = append(heads, head)
 	}
 	return heads
+}
+
+func testListAndGetHeadsWithName(ctx context.Context, t *testing.T,
+	config libkbfs.Config, gitDir string, expectedRefs []string,
+	tlfName string) (heads []string) {
+	return testListAndGetHeadsWithNameWithPush(
+		ctx, t, config, gitDir, expectedRefs, tlfName, false)
 }
 
 func testListAndGetHeads(ctx context.Context, t *testing.T,
@@ -369,6 +380,30 @@ func TestRunnerPushClone(t *testing.T) {
 func TestRunnerPushFetchWithBranch(t *testing.T) {
 	t.Skip("KBFS-3589: currently flaking")
 	testRunnerPushFetch(t, false, true)
+}
+
+func TestRunnerListForPush(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git1)
+
+	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
+	testPush(ctx, t, config, git1, "refs/heads/master:refs/heads/master")
+
+	// Make sure we don't list symbolic references (see KBFS-1970).
+	_ = testListAndGetHeadsWithNameWithPush(
+		ctx, t, config, git1, []string{"refs/heads/master"}, "user1", true)
 }
 
 func TestRunnerDeleteBranch(t *testing.T) {

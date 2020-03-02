@@ -93,25 +93,56 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd libkey.KeyMetadata,
 	return err
 }
 
-// GetEncodedSize implements the BlockOps interface for
+// GetEncodedSizes implements the BlockOps interface for
 // BlockOpsStandard.
-func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata,
-	blockPtr data.BlockPointer) (uint32, keybase1.BlockStatus, error) {
+func (b *BlockOpsStandard) GetEncodedSizes(
+	ctx context.Context, kmd libkey.KeyMetadata,
+	blockPtrs []data.BlockPointer) (
+	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
 	// Check the journal explicitly first, so we don't get stuck in
 	// the block-fetching queue.
-	if journalBServer, ok := b.config.BlockServer().(journalBlockServer); ok {
-		size, found, err := journalBServer.getBlockSizeFromJournal(
-			ctx, kmd.TlfID(), blockPtr.ID)
-		if err != nil {
-			return 0, 0, err
+
+	var ids []kbfsblock.ID
+	var contexts []kbfsblock.Context
+	var indices []int
+	sizes = make([]uint32, len(blockPtrs))
+	statuses = make([]keybase1.BlockStatus, len(blockPtrs))
+
+	for i, blockPtr := range blockPtrs {
+		if journalBServer, ok := b.config.BlockServer().(journalBlockServer); ok {
+			size, found, err := journalBServer.getBlockSizeFromJournal(
+				ctx, kmd.TlfID(), blockPtr.ID)
+			if err != nil {
+				return nil, nil, err
+			}
+			if found && size > 0 {
+				sizes[i] = size
+				statuses[i] = keybase1.BlockStatus_LIVE
+				continue
+			}
 		}
-		if found && size > 0 {
-			return size, keybase1.BlockStatus_LIVE, nil
-		}
+
+		// Not in journal.
+		ids = append(ids, blockPtr.ID)
+		contexts = append(contexts, blockPtr.Context)
+		indices = append(indices, i)
 	}
 
-	return b.config.BlockServer().GetEncodedSize(
-		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.Context)
+	if len(ids) == 0 {
+		return sizes, statuses, nil
+	}
+
+	servSizes, servStatuses, err := b.config.BlockServer().GetEncodedSizes(
+		ctx, kmd.TlfID(), ids, contexts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for i, j := range indices {
+		sizes[j] = servSizes[i]
+		statuses[j] = servStatuses[i]
+	}
+	return sizes, statuses, nil
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.

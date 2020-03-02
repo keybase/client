@@ -142,6 +142,9 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       }
     }
   },
+  [ConfigGen.setStartupFile]: (draftState, action) => {
+    draftState.startupFile = action.payload.startupFile
+  },
   [ConfigGen.pushLoaded]: (draftState, action) => {
     draftState.pushLoaded = action.payload.pushLoaded
   },

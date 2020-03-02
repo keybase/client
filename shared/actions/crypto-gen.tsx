@@ -12,6 +12,7 @@ export const downloadEncryptedText = 'crypto:downloadEncryptedText'
 export const downloadSignedText = 'crypto:downloadSignedText'
 export const onOperationError = 'crypto:onOperationError'
 export const onOperationSuccess = 'crypto:onOperationSuccess'
+export const onSaltpackOpenFile = 'crypto:onSaltpackOpenFile'
 export const resetOperation = 'crypto:resetOperation'
 export const runFileOperation = 'crypto:runFileOperation'
 export const saltpackDecrypt = 'crypto:saltpackDecrypt'
@@ -43,6 +44,7 @@ type _OnOperationSuccessPayload = {
   readonly warning?: boolean
   readonly warningMessage?: HiddenString
 }
+type _OnSaltpackOpenFilePayload = {readonly operation: Types.Operations; readonly path: HiddenString}
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _RunFileOperationPayload = {readonly operation: Types.Operations; readonly destinationDir: HiddenString}
 type _SaltpackDecryptPayload = {
@@ -215,6 +217,13 @@ export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): Set
   payload,
   type: setEncryptOptions,
 })
+/**
+ * User opened a saltpack file on from their file browser. Notified by OS and deeplinks
+ */
+export const createOnSaltpackOpenFile = (payload: _OnSaltpackOpenFilePayload): OnSaltpackOpenFilePayload => ({
+  payload,
+  type: onSaltpackOpenFile,
+})
 export const createRunFileOperation = (payload: _RunFileOperationPayload): RunFileOperationPayload => ({
   payload,
   type: runFileOperation,
@@ -241,6 +250,10 @@ export type OnOperationErrorPayload = {
 export type OnOperationSuccessPayload = {
   readonly payload: _OnOperationSuccessPayload
   readonly type: typeof onOperationSuccess
+}
+export type OnSaltpackOpenFilePayload = {
+  readonly payload: _OnSaltpackOpenFilePayload
+  readonly type: typeof onSaltpackOpenFile
 }
 export type ResetOperationPayload = {
   readonly payload: _ResetOperationPayload
@@ -295,6 +308,7 @@ export type Actions =
   | DownloadSignedTextPayload
   | OnOperationErrorPayload
   | OnOperationSuccessPayload
+  | OnSaltpackOpenFilePayload
   | ResetOperationPayload
   | RunFileOperationPayload
   | SaltpackDecryptPayload

@@ -46,6 +46,10 @@ const (
 	InitMemoryLimitedString = "memoryLimited"
 	// InitTestSearchString is for when KBFS will index synced TLFs.
 	InitTestSearchString = "testSearch"
+	// InitSingleOpWithQRString is for when KBFS will only be used for
+	// a single logical operation (e.g., as a git remote helper), with
+	// QR enabled.
+	InitSingleOpWithQRString = "singleOpQR"
 )
 
 // CtxInitTagKey is the type used for unique context tags for KBFS init.
@@ -658,6 +662,9 @@ func getInitMode(
 	case InitTestSearchString:
 		log.CDebugf(ctx, "Initializing in testSearch mode")
 		mode = InitTestSearch
+	case InitSingleOpWithQRString:
+		log.CDebugf(ctx, "Initializing in singleOpWithQR mode")
+		mode = InitSingleOpWithQR
 	default:
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
@@ -876,7 +883,7 @@ func doInit(
 	// (e.g., during a git pull), because KBFS might be running in
 	// constrained mode and the cache remote proxy wouldn't be
 	// available (which is fine).
-	doSendWarnings := config.Mode().Type() != InitSingleOp
+	doSendWarnings := !config.Mode().IsSingleOp()
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)

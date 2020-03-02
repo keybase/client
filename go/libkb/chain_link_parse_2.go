@@ -152,7 +152,7 @@ func importServerTrustFields(m MetaContext, tmp *ChainLinkUnpacked, data []byte,
 	return nil
 }
 
-func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
+func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 
 	sig2Stubbed := jsonGetString(data, "s2")
 	if sig2Stubbed != "" {
