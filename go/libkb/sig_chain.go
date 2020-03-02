@@ -378,8 +378,8 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 }
 
 func (sc *SigChain) VerifyChain(mctx MetaContext, uid keybase1.UID) (err error) {
-	defer mctx.TraceTimed("SigChain#VerifyChain", func() error { return err })()
-	defer mctx.PerfTrace("SigChain#VerifyChain", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), func() error { return err })()
+	defer mctx.PerfTrace(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), func() error { return err })()
 	start := time.Now()
 	defer func() {
 		var message string
