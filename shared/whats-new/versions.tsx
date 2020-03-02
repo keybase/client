@@ -37,27 +37,15 @@ export const VersionTitle = ({title}: {title: string}) => (
 export const Current = ({seen}: VersionProps) => {
   return (
     <Version>
-    <NewFeatureRow
-      image="release-5.2.0-crypto"
-      noSeparator={true}
-      seen={seen}
-    >
-      Keybase for iPad is here!
-      {' '}
-      <Kb.Emoji
-        allowFontScaling={true}
-        size={Styles.globalMargins.small}
-        emojiName=":sparkles:"
-      />
-      {' '}
-      Download it from the App Store.
-    </NewFeatureRow>
-    <NewFeatureRow
-      image="release-5.2.0-crypto"
-      seen={seen}
-    >
-      You can now search for open teams using chat search in Chat.
-    </NewFeatureRow>
+      <NewFeatureRow image="release-5.3.0-ipad" noSeparator={true} seen={seen}>
+        Keybase for iPad is here!{' '}
+        <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" /> Download
+        it from the App Store.
+      </NewFeatureRow>
+      <NewFeatureRow image="release-5.3.0-open-teams" seen={seen}>
+        You can now search for open teams using chat search
+        {Platform.isElectron ? (Platform.isDarwin ? ` (⌘K)` : ` (ctrl-K)`) : null} in Chat.
+      </NewFeatureRow>
     </Version>
   )
 }
@@ -76,8 +64,7 @@ export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
         primaryButtonText={Styles.isMobile ? '' : 'Try it'}
         seen={seen}
       >
-        Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).
-        {' '}
+        Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).{' '}
         <Kb.Emoji
           allowFontScaling={true}
           size={Styles.globalMargins.small}
