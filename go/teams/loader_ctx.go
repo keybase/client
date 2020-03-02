@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -83,15 +84,29 @@ func (r *rawTeam) GetHiddenChain() []sig3.ExportJSON {
 	return r.HiddenChain
 }
 
-func (r *rawTeam) unpackLinks(ctx context.Context) ([]*ChainLinkUnpacked, error) {
+func (r *rawTeam) unpackLinks(mctx libkb.MetaContext) (links []*ChainLinkUnpacked, err error) {
 	if r == nil {
 		return nil, nil
 	}
-	parsedLinks, err := r.parseLinks(ctx)
+	defer mctx.PerfTrace(fmt.Sprintf("TeamLoad: unpackLinks(%v, %d)", r.ID, len(r.Chain)), func() error { return err })()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Unpacking links %d for %s", len(r.Chain), r.ID)
+		} else {
+			message = fmt.Sprintf("Failed to unpack links for %s", r.ID)
+		}
+		mctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_TEAMCHAIN,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
+	parsedLinks, err := r.parseLinks(mctx.Ctx())
 	if err != nil {
 		return nil, err
 	}
-	var links []*ChainLinkUnpacked
 	for _, pLink := range parsedLinks {
 		pLink2 := pLink
 		link, err := unpackChainLink(&pLink2)

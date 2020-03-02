@@ -2022,6 +2022,8 @@ export enum PerfEventType {
   network = 0,
   teamboxaudit = 1,
   teamaudit = 2,
+  userchain = 3,
+  teamchain = 4,
 }
 
 export enum PrefetchStatus {
