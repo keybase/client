@@ -23,11 +23,6 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
-type activeConvLoad struct {
-	cancel context.CancelFunc
-	reason chat1.GetThreadReason
-}
-
 type UIThreadLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -662,9 +657,7 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 	if err != nil {
 		return res, err
 	}
-	for _, msgBoxed := range remoteRes.Msgs {
-		res.Msgs = append(res.Msgs, msgBoxed)
-	}
+	res.Msgs = append(res.Msgs, remoteRes.Msgs...)
 	res.RateLimit = remoteRes.RateLimit
 	return res, nil
 }
