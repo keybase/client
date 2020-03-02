@@ -136,7 +136,6 @@ const Detail = (props: DetailProps) => {
   const textTypeBold = props.large ? 'BodyBold' : 'BodySmallBold'
   const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
-  const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
