@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
 import * as T from './index.d'
+import * as RowTypes from './row/types.d'
 import * as Types from '../../constants/types/chat2'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team'
@@ -109,7 +110,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     )
   }
 
-  _askForUnboxing = (rows: Array<T.RowItem>) => {
+  _askForUnboxing = (rows: Array<RowItem>) => {
     const toUnbox = rows.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
       if (r.type === 'small' && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
@@ -176,7 +177,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  _onScrollUnbox = debounce((data: {viewableItems: Array<{item: T.RowItem}>}) => {
+  _onScrollUnbox = debounce((data: {viewableItems: Array<{item: RowItem}>}) => {
     const {viewableItems} = data
     const item = viewableItems?.[0]
     if (item && Object.prototype.hasOwnProperty.call(item, 'index')) {
@@ -186,11 +187,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
 
   _maxVisible = Math.ceil(Kb.NativeDimensions.get('window').height / 64)
 
-  _setRef = (r: Kb.NativeFlatList<T.RowItem> | null) => {
+  _setRef = (r: Kb.NativeFlatList<RowItem> | null) => {
     this._list = r
   }
 
-  _getItemLayout = (data: null | Array<T.RowItem>, index: number) => {
+  _getItemLayout = (data: null | Array<RowItem>, index: number) => {
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
@@ -310,5 +311,5 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Inbox
-export type RowItem = T.RowItem
-export type RowItemSmall = T.RowItemSmall
+export type RowItem = RowTypes.RowItem
+export type RowItemSmall = RowTypes.RowItemSmall

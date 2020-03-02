@@ -5,7 +5,7 @@ import * as Sb from '../../stories/storybook'
 import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
-import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider, RowItemTeamBuilder} from './index'
+import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider, RowItemTeamBuilder} from './row/types.d'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 /*

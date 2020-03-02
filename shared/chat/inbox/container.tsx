@@ -7,15 +7,15 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox from '.'
 import {isPhone} from '../../constants/platform'
+import {Props} from '.'
 import {
-  Props,
   RowItemSmall,
   RowItemBig,
   RowItemBigHeader,
   RowItemDivider,
   RowItemTeamBuilder,
   RowItem,
-} from '.'
+} from './row/types.d'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 // @ts-ignore
