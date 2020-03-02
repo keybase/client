@@ -412,6 +412,10 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
   if (!state.config.startupDetailsLoaded) {
     return
   }
+  // bail if not bootstrapped
+  if (state.config.daemonHandshakeState !== 'done') {
+    return
+  }
 
   return routeToInitialScreen(state)
 }
@@ -467,6 +471,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
+          skipNav: true,
         }),
       ]
     }
