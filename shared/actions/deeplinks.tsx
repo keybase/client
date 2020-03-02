@@ -13,6 +13,7 @@ import * as TeamsGen from './teams-gen'
 import * as CryptoGen from '../actions/crypto-gen'
 import * as CryptoTypes from '../constants/types/crypto'
 import * as CrytoConstants from '../constants/crypto'
+import {validTeamname, validTeamnamePart} from '../constants/teamname'
 import URL from 'url-parse'
 import logger from '../logger'
 
@@ -25,9 +26,13 @@ const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_
   ]
 }
 
+const handleShowUserProfileLink = (username: string) => {
+  return [RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}), ProfileGen.createShowUserProfile({username})]
+}
+
 const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
-    "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
+    "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
   const parts = action.payload.link.split('/')
   // List guaranteed to contain at least one elem.
   switch (parts[0]) {
@@ -37,6 +42,13 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
           parts.length === 4 && parts[3] ? ProfileGen.createUpdateUsername({username: parts[3]}) : null,
           ProfileGen.createAddProof({platform: parts[2], reason: 'appLink'}),
         ]
+      } else if (parts[1] === 'show' && parts.length === 3) {
+        // Username is basically a team name part, we can use the same logic to
+        // validate deep link.
+        const username = parts[2]
+        if (username.length && validTeamnamePart(username)) {
+          return handleShowUserProfileLink(username)
+        }
       }
       break
     // Fall-through
@@ -83,7 +95,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
     case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
       if (parts.length >= 2) {
         const teamName = parts[1]
-        if (teamName.length) {
+        if (teamName.length && validTeamname(teamName)) {
           const actionPart = parts[2]
           const action =
             actionPart === 'add_or_invite' || actionPart === 'manage_settings' ? actionPart : undefined
@@ -131,10 +143,7 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
         RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
       ]
     } else if (username && username !== 'app') {
-      return [
-        RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
-        ProfileGen.createShowUserProfile({username}),
-      ]
+      return handleShowUserProfileLink(username)
     }
 
     const teamLink = Constants.urlToTeamDeepLink(url)
