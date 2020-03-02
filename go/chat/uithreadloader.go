@@ -42,7 +42,7 @@ type UIThreadLoader struct {
 	ri             func() chat1.RemoteInterface
 
 	activeConvLoadsMu sync.Mutex
-	activeConvLoads   map[chat1.ConvIDStr]activeConvLoad
+	activeConvLoads   map[chat1.ConvIDStr]context.CancelFunc
 
 	// testing
 	cachedThreadDelay  *time.Duration
@@ -60,7 +60,7 @@ func NewUIThreadLoader(g *globals.Context, ri func() chat1.RemoteInterface) *UIT
 		clock:             clockwork.NewRealClock(),
 		validatedDelay:    100 * time.Millisecond,
 		cachedThreadDelay: &cacheDelay,
-		activeConvLoads:   make(map[chat1.ConvIDStr]activeConvLoad),
+		activeConvLoads:   make(map[chat1.ConvIDStr]context.CancelFunc),
 		connectedCh:       make(chan struct{}),
 		ri:                ri,
 	}
@@ -573,24 +573,24 @@ func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
 	return false
 }
 
+func (t *UIThreadLoader) noopCancel() {}
+
 func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.ConversationID,
 	reason chat1.GetThreadReason) (context.Context, context.CancelFunc) {
 	t.activeConvLoadsMu.Lock()
 	defer t.activeConvLoadsMu.Unlock()
 	convIDStr := convID.ConvIDStr()
-	if convLoad, ok := t.activeConvLoads[convIDStr]; ok {
-		if convLoad.reason != chat1.GetThreadReason_PUSH {
-			// we only cancel an outstanding load if it isn't from a push. The reason for this
-			// is that the push calls may come with remote message data from the push notification
-			// itself, and we don't want to replace that call with one that will not have that info.
-			convLoad.cancel()
-		}
+	if cancel, ok := t.activeConvLoads[convIDStr]; ok {
+		cancel()
+	}
+	if reason == chat1.GetThreadReason_PUSH {
+		// we only cancel an outstanding load if it isn't from a push. The reason for this
+		// is that the push calls may come with remote message data from the push notification
+		// itself, and we don't want to replace that call with one that will not have that info.
+		return ctx, t.noopCancel
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	t.activeConvLoads[convIDStr] = activeConvLoad{
-		cancel: cancel,
-		reason: reason,
-	}
+	t.activeConvLoads[convIDStr] = cancel
 	return ctx, cancel
 }
 
