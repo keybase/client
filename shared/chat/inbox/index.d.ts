@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {ConversationIDKey} from '../../constants/types/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import {RowItem} from './row/types'
+import {RowItem} from '../../constants/types/chat2/rowitem'
 
 export type Props = {
   allowShowFloatingButton: boolean

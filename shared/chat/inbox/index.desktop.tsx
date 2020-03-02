@@ -2,7 +2,6 @@ import * as Constants from '../../constants/chat2'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as T from './index.d'
-import * as T2 from './row/types.d'
 import * as Types from '../../constants/types/chat2'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import BigTeamsDivider from './row/big-teams-divider/container'
@@ -518,7 +517,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export type RowItem = T2.RowItem
-export type RowItemSmall = T2.RowItemSmall
-export type RowItemBig = T2.RowItemBig
 export default Inbox

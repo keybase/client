@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
 import * as T from './index.d'
-import * as RowTypes from './row/types.d'
+import {RowItem} from '../../constants/types/chat2/rowitem'
 import * as Types from '../../constants/types/chat2'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team'
@@ -311,5 +311,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Inbox
-export type RowItem = RowTypes.RowItem
-export type RowItemSmall = RowTypes.RowItemSmall

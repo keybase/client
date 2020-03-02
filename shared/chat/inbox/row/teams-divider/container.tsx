@@ -2,7 +2,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
-import {RowItem} from '../..'
+import {RowItem} from '../../../../constants/types/chat2/rowitem'
 import {TeamsDivider} from '.'
 import {memoize} from '../../../../util/memoize'
 

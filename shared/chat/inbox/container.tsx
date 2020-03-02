@@ -15,7 +15,7 @@ import {
   RowItemDivider,
   RowItemTeamBuilder,
   RowItem,
-} from './row/types.d'
+} from '../../constants/types/chat2/rowitem'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 // @ts-ignore

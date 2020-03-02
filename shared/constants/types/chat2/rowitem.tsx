@@ -1,3 +1,5 @@
+// Chat inbox row items
+
 import {ConversationIDKey} from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
