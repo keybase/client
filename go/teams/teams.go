@@ -996,7 +996,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 }
 
-func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
+func (t *Team) deleteRoot(ctx context.Context) error {
 	m := t.MetaContext(ctx)
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -1052,8 +1052,8 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	return t.HintLatestSeqno(m, latestSeqno)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
-
+func (t *Team) deleteSubteam(ctx context.Context) error {
+	return fmt.Errorf("delerr")
 	m := t.MetaContext(ctx)
 
 	// subteam delete consists of two links:
