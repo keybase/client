@@ -1676,6 +1676,10 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, added, 7)
 	require.Len(t, notAdded, 1)
+	require.Equal(t, keybase1.User{
+		Uid:      ciara.uid,
+		Username: ciara.username,
+	}, notAdded[0])
 
 	team := alice.loadTeamByID(teamID, true /* admin */)
 	members, err := team.Members()

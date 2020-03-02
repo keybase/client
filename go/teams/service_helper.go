@@ -488,7 +488,11 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 
-	restrictedUsers := make(map[keybase1.UID]bool)
+	// restrictedUsers is nil initially, but if first attempt at adding members
+	// results in "contact settings block error", restrictedUsers becomes a set
+	// of blocked uids.
+	var restrictedUsers contactRestrictedUsers
+
 	addNonRestrictedMembersFunc := func(ctx context.Context, _ int) error {
 		added = []AddMembersRes{}
 		notAdded = []keybase1.User{}
@@ -523,16 +527,10 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 
 			g.Log.CDebugf(ctx, "%q resolved to %s", user.Assertion, candidate.DebugString())
 
-			if upak := candidate.KeybaseUser; upak != nil {
-				if _, ok := restrictedUsers[upak.Uid]; ok {
-					// Skip users with contact setting restrictions.
-					user := keybase1.User{
-						Uid:      upak.Uid,
-						Username: libkb.NewNormalizedUsername(upak.Username).String(),
-					}
-					notAdded = append(notAdded, user)
-					continue
-				}
+			if restricted, kbUser := restrictedUsers.checkCandidate(candidate); restricted {
+				// Skip users with contact setting restrictions.
+				notAdded = append(notAdded, kbUser)
+				continue
 			}
 
 			username, uv, invite, err := tx.AddOrInviteMemberCandidate(ctx, candidate, user.Role, user.BotSettings)
@@ -579,14 +577,13 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		mctx.Debug("AddMembers: initial attempt failed with contact settings error: %v", err)
 		uids := blockError.BlockedUIDs()
 		if len(uids) == len(users) {
-			// if all users can't be added, quit
+			// If all users can't be added, quit. Do this check before calling
+			// `unpackContactRestrictedUsers` to avoid allocating and setting
+			// up the uid set if we fall in this case.
 			mctx.Debug("AddMembers: initial attempt failed and all users were restricted from being added. Not retrying.")
 			return nil, nil, err
 		}
-		// retry add
-		for _, uid := range uids {
-			restrictedUsers[uid] = true
-		}
+		restrictedUsers = unpackContactRestrictedUsers(blockError)
 		mctx.Debug("AddMembers: retrying without restricted users: %+v", blockError.BlockedUsernames())
 		err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc)
 	}
