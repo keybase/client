@@ -43,6 +43,7 @@
         "'addedToChannel'", // just added people to this channel
         "'teamMention'" // from team mention
       ],
+      "skipNav?": "boolean",
       "navKey?": "string",
       "pushBody?": "string"
     },

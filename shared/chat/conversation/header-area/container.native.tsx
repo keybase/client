@@ -9,6 +9,7 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
 import {getFullname} from '../../../constants/users'
 import * as Tabs from '../../../constants/tabs'
+import {withNavigation} from 'react-navigation'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -38,10 +39,10 @@ const HeaderBranch = (props: Props & {progress: any}) => {
   //outputRange: [0, 1, 0],
   //})
 
-  return <Kb.NativeAnimated.View style={{opacity}}>{header}</Kb.NativeAnimated.View>
+  return <Kb.NativeAnimated.View style={{opacity, width: '100%'}}>{header}</Kb.NativeAnimated.View>
 }
 
-export default Container.connect(
+const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey} = ownProps
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -119,3 +120,15 @@ export default Container.connect(
     }
   }
 )(HeaderBranch)
+
+const GrabConvoID = ({navigation}) => {
+  return (
+    <Connected
+      conversationIDKey={navigation.getParam('conversationIDKey', Constants.noConversationIDKey)}
+      progress={null}
+    />
+  )
+}
+const ConnectedWrapper = withNavigation(GrabConvoID)
+
+export default () => <ConnectedWrapper />

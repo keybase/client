@@ -21,10 +21,12 @@ const shimNewRoute = (Original: any) => {
     // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe
     // but it works for now
     let headerHeight: number | undefined = undefined
+    let usesNav2Header = false
     if (navigationOptions) {
       // explicitly passed a getter?
       if (navigationOptions.useHeaderHeight) {
         headerHeight = navigationOptions.useHeaderHeight()
+        usesNav2Header = true
       } else if (
         !navigationOptions.header &&
         !navigationOptions.headerRight &&
@@ -34,6 +36,7 @@ const shimNewRoute = (Original: any) => {
       ) {
         // nothing
       } else {
+        usesNav2Header = true
         if (Styles.isIPhoneX) {
           headerHeight = 88
         } else {
@@ -53,16 +56,14 @@ const shimNewRoute = (Original: any) => {
     )
 
     // don't make safe areas
-    if (navigationOptions && navigationOptions.underNotch) {
+    if (navigationOptions?.underNotch || usesNav2Header) {
       return keyboardBody
     }
 
     const safeKeyboardBody = (
-      <Kb.NativeSafeAreaView
-        style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
-      >
+      <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
         {keyboardBody}
-      </Kb.NativeSafeAreaView>
+      </Kb.SafeAreaView>
     )
 
     return safeKeyboardBody

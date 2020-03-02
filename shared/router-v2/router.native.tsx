@@ -142,6 +142,11 @@ const VanillaTabNavigator = createBottomTabNavigator(
         initialRouteName: tabRoots[tab],
         initialRouteParams: undefined,
         transitionConfig: () => ({
+          containerStyle: {
+            get backgroundColor() {
+              return Styles.globalColors.white
+            },
+          },
           transitionSpec: {
             // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
             duration: 250,
