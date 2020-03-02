@@ -19,10 +19,7 @@ import logger from '../logger'
 const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
   const initialTab = action === 'manage_settings' ? 'settings' : undefined
   const addMembers = action === 'add_or_invite' ? true : undefined
-  return [
-    RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
-    TeamsGen.createShowTeamByName({addMembers, initialTab, teamname}),
-  ]
+  return [TeamsGen.createShowTeamByName({addMembers, initialTab, teamname})]
 }
 
 const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
