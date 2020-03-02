@@ -23,6 +23,18 @@ autorestart_enabled() {
   keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-autorestart &> /dev/null
 }
 
+# Make the mountpoint if it doesn't already exist by this point.
+make_mountpoint() {
+  local_is_redirector_enabled="$1"
+  if [ -n "$local_is_redirector_enabled" ]; then
+    if ! mountpoint "$rootmount" &> /dev/null; then
+      mkdir -p "$rootmount"
+      chown root:root "$rootmount"
+      chmod 755 "$rootmount"
+    fi
+  fi
+}
+
 systemd_exec_as() {
     user=$1
     shift
@@ -260,14 +272,4 @@ elif [ -d "$rootmount" ] ; then
     fi
 fi
 
-# Make the mountpoint if it doesn't already exist by this point.
-make_mountpoint() {
-  if [ -n "$is_redirector_enabled" ]; then
-    if ! mountpoint "$rootmount" &> /dev/null; then
-      mkdir -p "$rootmount"
-      chown root:root "$rootmount"
-      chmod 755 "$rootmount"
-    fi
-  fi
-}
-make_mountpoint
+make_mountpoint "$is_redirector_enabled"
