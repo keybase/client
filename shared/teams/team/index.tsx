@@ -77,7 +77,7 @@ const Team = (props: Props) => {
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={props.sections}
-        style={Styles.collapseStyles([styles.list, flags.teamsRedesign && styles.listTeamsRedesign])}
+        style={styles.list}
         contentContainerStyle={styles.listContentContainer}
         onScroll={onScroll}
       />
@@ -143,9 +143,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
-    },
+    isMobile: flags.teamsRedesign ? {marginTop: 40} : Styles.globalStyles.fillAbsolute,
   }),
   listContentContainer: Styles.platformStyles({
     isMobile: {
@@ -153,7 +151,6 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  listTeamsRedesign: Styles.platformStyles({isMobile: {top: 40}}),
   smallHeader: {
     ...Styles.padding(0, Styles.globalMargins.xlarge),
   },
