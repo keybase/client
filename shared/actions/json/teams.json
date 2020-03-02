@@ -354,6 +354,9 @@
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
+    },
+    "setTeamWizardTeamType": {
+      "teamType": "Types.TeamWizardTeamType"
     }
   }
 }

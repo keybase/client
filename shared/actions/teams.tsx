@@ -1338,6 +1338,9 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
+const setTeamWizardTeamType = () =>
+  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1419,6 +1422,8 @@ const teamsSaga = function*() {
 
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
   yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
+
+  yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

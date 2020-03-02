@@ -131,6 +131,16 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
+export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'
+export type NewTeamWizardState = {
+  teamType: TeamWizardTeamType
+  teamNameTaken: boolean
+  name: string
+  description: string
+  open: boolean
+  showcase: boolean
+}
+
 export type State = {
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
@@ -176,4 +186,5 @@ export type State = {
   readonly newTeams: Set<TeamID>
   readonly newTeamRequests: Map<TeamID, number>
   readonly teamBuilding: TeamBuildingSubState
+  readonly newTeamWizard: NewTeamWizardState
 }

@@ -75,6 +75,7 @@ export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnown
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamVersion = 'teams:setTeamVersion'
+export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
@@ -276,6 +277,7 @@ type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
+type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
 type _SetUpdatedChannelNamePayload = {
   readonly teamID: Types.TeamID
@@ -616,6 +618,9 @@ export const createSetTeamVersion = (payload: _SetTeamVersionPayload): SetTeamVe
   payload,
   type: setTeamVersion,
 })
+export const createSetTeamWizardTeamType = (
+  payload: _SetTeamWizardTeamTypePayload
+): SetTeamWizardTeamTypePayload => ({payload, type: setTeamWizardTeamType})
 export const createSetTeamsWithChosenChannels = (
   payload: _SetTeamsWithChosenChannelsPayload
 ): SetTeamsWithChosenChannelsPayload => ({payload, type: setTeamsWithChosenChannels})
@@ -879,6 +884,10 @@ export type SetTeamVersionPayload = {
   readonly payload: _SetTeamVersionPayload
   readonly type: typeof setTeamVersion
 }
+export type SetTeamWizardTeamTypePayload = {
+  readonly payload: _SetTeamWizardTeamTypePayload
+  readonly type: typeof setTeamWizardTeamType
+}
 export type SetTeamsWithChosenChannelsPayload = {
   readonly payload: _SetTeamsWithChosenChannelsPayload
   readonly type: typeof setTeamsWithChosenChannels
@@ -1001,6 +1010,7 @@ export type Actions =
   | SetTeamSawChatBannerPayload
   | SetTeamSawSubteamsBannerPayload
   | SetTeamVersionPayload
+  | SetTeamWizardTeamTypePayload
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload

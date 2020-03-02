@@ -10,8 +10,8 @@ export type _Props = {
   containerStyle?: Styles.StylesCrossPlatform
   decoration?: React.ReactNode
   error?: boolean
-  hoverPlaceholder?: string
-  placeholder: string
+  hoverPlaceholder?: string // placeholder while there is no text; if this is set then props.placholder is used as a label only.
+  placeholder: string // placeholder while unselected, label while selected
 }
 
 export type Props = PropsWithInput<_Props>

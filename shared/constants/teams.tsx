@@ -182,6 +182,7 @@ const emptyState: Types.State = {
   errorInTeamJoin: '',
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
+  newTeamWizard: {description: '', name: '', open: false, showcase: false, teamType: 'other'},
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
