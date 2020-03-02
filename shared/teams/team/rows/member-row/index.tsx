@@ -53,7 +53,7 @@ export const TeamMemberRow = (props: Props) => {
   }
   if (props.fullName && active) {
     fullNameLabel = (
-      <Kb.Text style={styles.fullNameLabel} type="BodySmall">
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {props.fullName} •
       </Kb.Text>
     )
