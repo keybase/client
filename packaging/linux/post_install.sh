@@ -23,7 +23,6 @@ autorestart_enabled() {
   keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-autorestart &> /dev/null
 }
 
-# Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint() {
   local_is_redirector_enabled="$1"
   if [ -n "$local_is_redirector_enabled" ]; then
@@ -272,4 +271,5 @@ elif [ -d "$rootmount" ] ; then
     fi
 fi
 
+# Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint "$is_redirector_enabled"
