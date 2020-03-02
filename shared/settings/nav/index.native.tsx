@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
 import {keybaseFM} from '../../constants/whats-new'
-import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isPhone, styleSheetCreate} from '../../styles'
 import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
@@ -42,12 +42,16 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
-            {
-              badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
-              icon: 'iconfont-nav-wallets',
-              onClick: () => props.onTabChange(Constants.walletsTab),
-              text: 'Wallet',
-            },
+            ...(isPhone
+              ? [
+                  {
+                    badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
+                    icon: 'iconfont-nav-wallets',
+                    onClick: () => props.onTabChange(Constants.walletsTab),
+                    text: 'Wallet',
+                  },
+                ]
+              : []),
             {
               iconComponent: WhatsNewIcon,
               onClick: () => props.onTabChange(Constants.whatsNewTab),
