@@ -99,6 +99,7 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
     return
   }
   return BotsGen.createSetSearchFeaturedAndUsersResults({
+    query,
     results: {
       bots: botRes?.bots ?? [],
       users: (userRes ?? []).reduce<Array<string>>((l, r) => {

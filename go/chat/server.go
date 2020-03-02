@@ -172,6 +172,11 @@ func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.Conversa
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	defer h.Trace(ctx, func() error { return err }, "RequestInboxUnbox")()
+	defer h.PerfTrace(ctx, func() error { return err }, "RequestInboxUnbox")()
+	for _, convID := range convIDs {
+		h.GetPerfLog().CDebugf(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
+		h.Debug(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
+	}
 	if err := h.G().UIInboxLoader.UpdateConvs(ctx, convIDs); err != nil {
 		h.Debug(ctx, "RequestInboxUnbox: failed to update convs: %s", err)
 	}
@@ -714,11 +719,11 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (res chat1.SetConversationStatusLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetConversationStatusLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("SetConversationStatusLocal: %v", arg.Status))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return chat1.SetConversationStatusLocalRes{}, err
+		return res, err
 	}
 	if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status); err != nil {
 		return res, err

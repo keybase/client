@@ -234,7 +234,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader showNewChat={false} showSearch={Styles.isMobile} />
+    const HeadComponent = <ChatInboxHeader context="inbox-header" />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>

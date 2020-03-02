@@ -2,6 +2,7 @@ import * as ChatGen from './chat2-gen'
 import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
+import * as ConfigGen from './config-gen'
 import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -9,6 +10,9 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
+import * as CryptoGen from '../actions/crypto-gen'
+import * as CryptoTypes from '../constants/types/crypto'
+import * as CrytoConstants from '../constants/crypto'
 import URL from 'url-parse'
 import logger from '../logger'
 
@@ -141,9 +145,50 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   return false
 }
 
+const handleSaltpackOpenFile = (
+  state: Container.TypedState,
+  action: DeeplinksGen.SaltpackFileOpenPayload
+) => {
+  const path =
+    typeof action.payload.path === 'string' ? action.payload.path : action.payload.path.stringValue()
+
+  if (!state.config.loggedIn) {
+    console.warn(
+      'Tried to open a saltpack file before being logged in. Stashing the file path for after log in.'
+    )
+    return ConfigGen.createSetStartupFile({
+      startupFile: new Container.HiddenString(path),
+    })
+  }
+  let operation: CryptoTypes.Operations | null = null
+  if (path.endsWith('.encrypted.saltpack')) {
+    operation = CrytoConstants.Operations.Decrypt
+  } else if (path.endsWith('.signed.saltpack')) {
+    operation = CrytoConstants.Operations.Verify
+  } else {
+    logger.warn(
+      'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
+    )
+    return
+  }
+
+  return [
+    // Clear previously set startupFile so that subsequent startups/logins do not route to the crypto tab with a stale startupFile
+    ConfigGen.createSetStartupFile({
+      startupFile: new Container.HiddenString(''),
+    }),
+    RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}),
+    CryptoGen.createOnSaltpackOpenFile({
+      operation,
+      path: new Container.HiddenString(path),
+    }),
+  ]
+}
+
 function* deeplinksSaga() {
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
   yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
+  yield* Saga.chainAction2(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
 }
 
 export default deeplinksSaga

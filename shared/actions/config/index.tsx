@@ -1,14 +1,16 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
+import * as Flow from '../../util/flow'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
-import * as Flow from '../../util/flow'
 import * as SettingsGen from '../settings-gen'
 import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
+import * as RouteTreeGen from '../route-tree-gen'
+import * as DeeplinksGen from '../deeplinks-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
@@ -16,7 +18,6 @@ import * as SettingsConstants from '../../constants/settings'
 import * as LoginConstants from '../../constants/login'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
-import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as Platform from '../../constants/platform'
@@ -477,6 +478,14 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
+    }
+
+    // A saltpack file open
+    if (state.config.startupFile.stringValue() && Platform.isElectron) {
+      logger.info('Saltpack file open after log in')
+      return DeeplinksGen.createSaltpackFileOpen({
+        path: state.config.startupFile,
+      })
     }
 
     // A deep link

@@ -54,10 +54,6 @@ func NewVerificationError(e error) VerificationError {
 	return VerificationError{Cause: e}
 }
 
-const (
-	SCSigCannotVerify = int(keybase1.StatusCode_SCSigCannotVerify)
-)
-
 func (e VerificationError) Error() string {
 	if e.Cause == nil {
 		return "Verification failed"

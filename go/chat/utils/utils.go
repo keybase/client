@@ -2951,3 +2951,24 @@ func ToLastActiveStatus(mtime gregor1.Time) chat1.LastActiveStatus {
 		return chat1.LastActiveStatus_NONE
 	}
 }
+
+func GetConvParticipantUsernames(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (parts []string, err error) {
+	uids, err := g.ParticipantsSource.Get(ctx, uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return parts, err
+	}
+	kuids := make([]keybase1.UID, 0, len(uids))
+	for _, uid := range uids {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	rows, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, kuids, 0, 0, false)
+	if err != nil {
+		return parts, err
+	}
+	parts = make([]string, 0, len(rows))
+	for _, row := range rows {
+		parts = append(parts, row.NormalizedUsername.String())
+	}
+	return parts, nil
+}

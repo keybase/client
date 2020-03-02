@@ -8,7 +8,7 @@ import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
 import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
-import SelectionPopup from './selection-popup'
+import SelectionPopup from '../common/selection-popup'
 import flags from '../../util/feature-flags'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
@@ -19,7 +19,7 @@ export type Props = {
   setSelectedTab: (arg0: Types.TabKey) => void
 }
 
-const Team = props => {
+const Team = (props: Props) => {
   const renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'tabs':
@@ -63,6 +63,8 @@ const Team = props => {
   const onScroll = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
     : undefined
+  const selectionPopupTabName =
+    props.selectedTab === 'members' ? 'teamMembers' : props.selectedTab === 'channels' ? 'teamChannels' : ''
 
   return (
     <Kb.Box style={styles.container}>
@@ -75,11 +77,11 @@ const Team = props => {
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={props.sections}
-        style={Styles.collapseStyles([styles.list, flags.teamsRedesign && styles.listTeamsRedesign])}
+        style={styles.list}
         contentContainerStyle={styles.listContentContainer}
         onScroll={onScroll}
       />
-      <SelectionPopup selectedTab={props.selectedTab} teamID={props.teamID} />
+      <SelectionPopup selectedTab={selectionPopupTabName} teamID={props.teamID} />
     </Kb.Box>
   )
 }
@@ -141,9 +143,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
-    },
+    isMobile: flags.teamsRedesign ? {marginTop: 40} : Styles.globalStyles.fillAbsolute,
   }),
   listContentContainer: Styles.platformStyles({
     isMobile: {
@@ -151,7 +151,6 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  listTeamsRedesign: Styles.platformStyles({isMobile: {top: 40}}),
   smallHeader: {
     ...Styles.padding(0, Styles.globalMargins.xlarge),
   },
