@@ -967,7 +967,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	if role == keybase1.TeamRole_NONE {
 		_, err := t.getAdminPermission(ctx)
 		switch err.(type) {
-		case nil, AdminPermissionRequiredError:
+		case nil, *AdminPermissionRequiredError:
 			return NewImplicitAdminCannotLeaveError()
 		}
 	}
@@ -1053,7 +1053,6 @@ func (t *Team) deleteRoot(ctx context.Context) error {
 }
 
 func (t *Team) deleteSubteam(ctx context.Context) error {
-	return fmt.Errorf("delerr")
 	m := t.MetaContext(ctx)
 
 	// subteam delete consists of two links:
@@ -1070,13 +1069,21 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 		Public:      t.IsPublic(),
 		ForceRepoll: true,
 	})
-	if err != nil {
+	switch {
+	case err == nil:
+	case IsTeamReadError(err):
 		return fmt.Errorf("failed to load parent team; you must be an admin of a parent team to delete a subteam: %w", err)
+	default:
+		return fmt.Errorf("failed to load parent team: %w", err)
 	}
 
 	admin, err := parentTeam.getAdminPermission(ctx)
-	if err != nil {
+	switch err.(type) {
+	case nil:
+	case *AdminPermissionRequiredError:
 		return fmt.Errorf("failed to get admin permission from parent team; you must be an admin of a parent team to delete a subteam: %w", err)
+	default:
+		return fmt.Errorf("failed to get admin permission from parent team: %w", err)
 	}
 
 	subteamName := SCTeamName(t.Data.Name.String())
