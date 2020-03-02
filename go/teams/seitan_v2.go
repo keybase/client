@@ -47,7 +47,7 @@ func ParseSeitanVersion(s string) (version SeitanVersion, err error) {
 }
 
 func GenerateIKeyV2() (ikey SeitanIKeyV2, err error) {
-	str, err := generateIKey(seitanEncodedIKeyV2PlusOffset)
+	str, err := generateIKey(SeitanEncodedIKeyLength, seitanEncodedIKeyV2PlusOffset)
 	if err != nil {
 		return ikey, err
 	}

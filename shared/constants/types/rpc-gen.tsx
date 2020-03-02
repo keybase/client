@@ -1368,7 +1368,7 @@ export type MessageTypes = {
     outParam: TeamCreateResult
   }
   'keybase.1.teams.teamCreateSeitanTokenV2': {
-    inParam: {readonly name: String; readonly role: TeamRole; readonly label: SeitanKeyLabel}
+    inParam: {readonly teamname: String; readonly role: TeamRole; readonly label: SeitanKeyLabel}
     outParam: SeitanIKeyV2
   }
   'keybase.1.teams.teamDelete': {
@@ -2235,10 +2235,12 @@ export enum SaltpackSenderType {
 export enum SeitanKeyAndLabelVersion {
   v1 = 1,
   v2 = 2,
+  invitelink = 3,
 }
 
 export enum SeitanKeyLabelType {
   sms = 1,
+  generic = 2,
 }
 
 export enum SeqType {
@@ -3053,11 +3055,14 @@ export type SecretKeys = {readonly signing: NaclSigningKeyPrivate; readonly encr
 export type SecretResponse = {readonly secret: Bytes; readonly phrase: String}
 export type SeitanAKey = String
 export type SeitanIKey = String
+export type SeitanIKeyInvitelink = String
 export type SeitanIKeyV2 = String
-export type SeitanKeyAndLabel = {v: SeitanKeyAndLabelVersion.v1; v1: SeitanKeyAndLabelVersion1} | {v: SeitanKeyAndLabelVersion.v2; v2: SeitanKeyAndLabelVersion2}
+export type SeitanKeyAndLabel = {v: SeitanKeyAndLabelVersion.v1; v1: SeitanKeyAndLabelVersion1} | {v: SeitanKeyAndLabelVersion.v2; v2: SeitanKeyAndLabelVersion2} | {v: SeitanKeyAndLabelVersion.invitelink; invitelink: SeitanKeyAndLabelInvitelink}
+export type SeitanKeyAndLabelInvitelink = {readonly k: SeitanIKeyInvitelink; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion1 = {readonly i: SeitanIKey; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion2 = {readonly k: SeitanPubKey; readonly l: SeitanKeyLabel}
-export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms}
+export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms} | {t: SeitanKeyLabelType.generic; generic: SeitanKeyLabelGeneric}
+export type SeitanKeyLabelGeneric = {readonly l: String}
 export type SeitanKeyLabelSms = {readonly f: String; readonly n: String}
 export type SeitanPubKey = String
 export type SelectKeyRes = {readonly keyID: String; readonly doSecretPush: Boolean}
@@ -4135,6 +4140,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamRequestAccess'
 // 'keybase.1.teams.teamTree'
 // 'keybase.1.teams.teamCreateSeitanToken'
+// 'keybase.1.teams.teamCreateSeitanInvitelink'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'
 // 'keybase.1.teams.loadTeamPlusApplicationKeys'

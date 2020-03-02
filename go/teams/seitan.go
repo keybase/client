@@ -56,7 +56,7 @@ type SeitanPKey struct {
 	EncryptedKeyAndLabel []byte // keybase1.SeitanKeyAndLabel MsgPacked and encrypted
 }
 
-func generateIKey(plusOffset int) (str string, err error) {
+func generateIKey(length int, plusOffset int) (str string, err error) {
 
 	alphabet := []byte(KBase30EncodeStd)
 	randEncodingByte := func() (byte, error) {
@@ -74,7 +74,7 @@ func generateIKey(plusOffset int) (str string, err error) {
 	}
 
 	var buf []byte
-	for i := 0; i < SeitanEncodedIKeyLength; i++ {
+	for i := 0; i < length; i++ {
 		if i == plusOffset {
 			buf = append(buf, '+')
 		} else {
@@ -89,17 +89,17 @@ func generateIKey(plusOffset int) (str string, err error) {
 }
 
 func GenerateIKey() (ikey SeitanIKey, err error) {
-	str, err := generateIKey(seitanEncodedIKeyPlusOffset)
+	str, err := generateIKey(SeitanEncodedIKeyLength, seitanEncodedIKeyPlusOffset)
 	if err != nil {
 		return ikey, err
 	}
 	return SeitanIKey(str), err
 }
 
-var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
+var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,28}`)
 
 // Returns the string that might be the token, and whether the content looked like a token paste.
-func ParseSeitanTokenFromPaste(token string) (string, bool) {
+func ParseSeitanTokenFromPaste(token string) (parsed string, isSeitany bool) {
 	// If the person pasted the whole seitan SMS message in, then let's parse out the token
 	if strings.Contains(token, "token: ") {
 		m := tokenPasteRegexp.FindStringSubmatch(token)
@@ -119,7 +119,7 @@ func ParseSeitanTokenFromPaste(token string) (string, bool) {
 // with '+' character at position 5 can be "Invite Key". Alphabet is
 // not checked, as it is only a hint for token generation and it can
 // change over time, but we assume that token length stays the same.
-func ParseIKeyFromString(token string) (ikey SeitanIKey, err error) {
+func parseIKeyFromString(version SeitanVersion, token string) (ikeyStr string, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
