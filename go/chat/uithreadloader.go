@@ -664,8 +664,10 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 
 func (t *UIThreadLoader) makeRi(ctx context.Context, knownRemotes []string) func() chat1.RemoteInterface {
 	if len(knownRemotes) == 0 {
+		t.Debug(ctx, "makeRi: no known remotes")
 		return t.ri
 	}
+	t.Debug(ctx, "makeRi: creating new interface with %d known remotes", len(knownRemotes))
 	knownMap := make(map[chat1.MessageID]chat1.MessageBoxed)
 	for _, knownRemote := range knownRemotes {
 		// Parse the message payload
