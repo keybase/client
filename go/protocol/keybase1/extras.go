@@ -4014,3 +4014,14 @@ func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
 func (t SeitanIKeyInvitelink) String() string {
 	return string(t)
 }
+
+// UserRolePairsHaveOwner check if a list of UserRolePair has user with role
+// OWNER.
+func UserRolePairsHaveOwner(users []UserRolePair) bool {
+	for _, urp := range users {
+		if urp.Role == TeamRole_OWNER {
+			return true
+		}
+	}
+	return false
+}
