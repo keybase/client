@@ -2556,7 +2556,13 @@ const mobileNavigateOnSelect = (
   action: Chat2Gen.SelectConversationPayload,
   logger: Saga.SagaLogger
 ) => {
-  const {conversationIDKey, navKey, reason} = action.payload
+  const {conversationIDKey, navKey, reason, skipNav} = action.payload
+  if (skipNav) {
+    logger.info(
+      `mobileNavigateOnSelect: skipNav passed selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+    )
+    return
+  }
   if (Constants.isValidConversationIDKey(conversationIDKey)) {
     if (reason === 'focused') {
       logger.info(

@@ -614,6 +614,7 @@ type _SelectConversationPayload = {
     | 'teamChat'
     | 'addedToChannel'
     | 'teamMention'
+  readonly skipNav?: boolean
   readonly navKey?: string
 }
 type _SendAudioRecordingPayload = {
