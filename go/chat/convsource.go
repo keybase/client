@@ -492,7 +492,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	// Add to the local storage
-	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
+	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}, chat1.GetThreadReason_GENERAL); err != nil {
 		return decmsg, continuousUpdate, err
 	}
 	if msg.ClientHeader.Sender.Eq(uid) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
@@ -518,7 +518,7 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-	if err = s.mergeMaybeNotify(ctx, convID, uid, msgs); err != nil {
+	if err = s.mergeMaybeNotify(ctx, convID, uid, msgs, chat1.GetThreadReason_PUSH); err != nil {
 		return err
 	}
 	return nil
@@ -667,7 +667,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
-	if err = s.mergeMaybeNotify(ctx, convID, uid, thread.Messages); err != nil {
+	if err = s.mergeMaybeNotify(ctx, convID, uid, thread.Messages, reason); err != nil {
 		s.Debug(ctx, "Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
@@ -845,8 +845,12 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 			rmsgsTab[rmsg.GetMessageID()] = rmsg
 		}
 
+		reason := chat1.GetThreadReason_GENERAL
+		if threadReason != nil {
+			reason = *threadReason
+		}
 		// Write out messages
-		if err := s.mergeMaybeNotify(ctx, convID, uid, rmsgsUnboxed); err != nil {
+		if err := s.mergeMaybeNotify(ctx, convID, uid, rmsgsUnboxed, reason); err != nil {
 			return nil, err
 		}
 	}
@@ -905,7 +909,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	}
 	if len(merges) > 0 {
 		sort.Sort(utils.ByMsgUnboxedMsgID(merges))
-		if err := s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
+		if err := s.mergeMaybeNotify(ctx, convID, uid, merges, chat1.GetThreadReason_GENERAL); err != nil {
 			return res, err
 		}
 	}
@@ -1075,7 +1079,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 
 // Merge with storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, reason chat1.GetThreadReason) error {
 	switch globals.CtxUnboxMode(ctx) {
 	case types.UnboxModeFull:
 		s.Debug(ctx, "mergeMaybeNotify: full mode, merging %d messages", len(msgs))
@@ -1089,6 +1093,12 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	if err != nil {
 		return err
 	}
+
+	// skip frontend notifications during background loads
+	if reason == chat1.GetThreadReason_BACKGROUNDCONVLOAD {
+		return nil
+	}
+
 	var unfurlTargets []chat1.MessageUnboxed
 	for _, r := range mergeRes.UnfurlTargets {
 		if r.IsMapDelete {
