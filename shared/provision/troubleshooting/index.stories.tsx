@@ -1,24 +1,25 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Troubleshooting from '.'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/provision'
 
-const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
-  draftState.provision = {
-    ...Constants.makeState(),
-    codePageOtherDevice: {
-      deviceNumberOfType: 3,
-      id: '1',
-      name: 'My laptop',
-      type: 'desktop',
-    },
-  }
-})
+const store = Sb.createStoreWithCommon()
 
 const load = () => {
   Sb.storiesOf('Provision', module)
-    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.provision = {
+          ...Constants.makeState(),
+          codePageOtherDevice: {
+            deviceNumberOfType: 3,
+            id: '1',
+            name: 'My laptop',
+            type: 'desktop',
+          },
+        }
+      })
+    )
     .add('Troubleshooting', () => (
       <Troubleshooting mode="QR" onCancel={Sb.action('cancel')} otherDeviceType="desktop" />
     ))
