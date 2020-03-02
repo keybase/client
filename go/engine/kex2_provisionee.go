@@ -527,7 +527,7 @@ func makeKeyArgs(sigID keybase1.SigID, sig []byte, delType libkb.DelegationType,
 		return nil, err
 	}
 	args := libkb.HTTPArgs{
-		"sig_id_base":     libkb.S{Val: sigID.ToString(false)},
+		"sig_id_base":     libkb.S{Val: sigID.StripSuffix().String()},
 		"sig_id_short":    libkb.S{Val: sigID.ToShortID()},
 		"sig":             libkb.S{Val: string(sig)},
 		"type":            libkb.S{Val: string(delType)},

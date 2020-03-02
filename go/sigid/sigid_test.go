@@ -17,7 +17,7 @@ func testOne(t *testing.T, sig string, sigID string) {
 	require.NoError(t, err)
 	version, err := jsonparserw.GetString(payload, "client", "version")
 	require.NoError(t, err)
-	expectedSigID, err := keybase1.SigIDFromString(sigID, true)
+	expectedSigID, err := keybase1.SigIDFromString(sigID)
 	require.NoError(t, err)
 	_, computedSigID, err := ComputeSigBodyAndID(&si, name, version)
 	require.NoError(t, err)

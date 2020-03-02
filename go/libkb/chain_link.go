@@ -515,13 +515,13 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		return nil
 	}
 	if s, err := jsonparserw.GetString(payload, "body", "revoke", "sig_id"); err == nil {
-		if sigID, err := keybase1.SigIDFromString(s, true); err == nil {
+		if sigID, err := keybase1.SigIDFromString(s); err == nil {
 			ret = append(ret, sigID)
 		}
 	}
 
 	_, _ = jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-		if s, err := keybase1.SigIDFromString(string(value), true); err == nil {
+		if s, err := keybase1.SigIDFromString(string(value)); err == nil {
 			ret = append(ret, s)
 		}
 	}, "body", "revoke", "sig_ids")
@@ -954,7 +954,7 @@ func (c *ChainLink) unpackFromLocalStorage(m MetaContext, selfUID keybase1.UID, 
 	if err != nil {
 		return err
 	}
-	c.unpacked.sigID, err = keybase1.SigIDFromString(s, true)
+	c.unpacked.sigID, err = keybase1.SigIDFromString(s)
 	if err != nil {
 		return err
 	}
@@ -1543,7 +1543,7 @@ func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 	return &MerkleTriple{
 		Seqno:  c.GetSeqno(),
 		LinkID: c.id,
-		SigID:  c.GetSigID(),
+		SigID:  c.GetSigID().StripSuffix(),
 	}
 }
 

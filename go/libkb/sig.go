@@ -17,12 +17,20 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func GetSigID(w *jsonw.Wrapper, suffix bool) (keybase1.SigID, error) {
+func GetSigID(w *jsonw.Wrapper) (keybase1.SigID, error) {
 	s, err := w.GetString()
 	if err != nil {
 		return "", err
 	}
-	return keybase1.SigIDFromString(s, suffix)
+	return keybase1.SigIDFromString(s)
+}
+
+func GetSigIDBase(w *jsonw.Wrapper) (keybase1.SigIDBase, error) {
+	s, err := w.GetString()
+	if err != nil {
+		return "", err
+	}
+	return keybase1.SigIDBaseFromString(s)
 }
 
 type ParsedSig struct {
