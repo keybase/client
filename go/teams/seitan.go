@@ -39,8 +39,9 @@ const base30BitMask = byte(0x1f)
 type SeitanVersion uint
 
 const (
-	SeitanVersion1 SeitanVersion = 1
-	SeitanVersion2 SeitanVersion = 2
+	SeitanVersion1          SeitanVersion = 1
+	SeitanVersion2          SeitanVersion = 2
+	SeitanVersionInvitelink SeitanVersion = 3
 )
 
 // "Invite Key"
@@ -119,7 +120,7 @@ func ParseSeitanTokenFromPaste(token string) (parsed string, isSeitany bool) {
 // with '+' character at position 5 can be "Invite Key". Alphabet is
 // not checked, as it is only a hint for token generation and it can
 // change over time, but we assume that token length stays the same.
-func parseIKeyFromString(version SeitanVersion, token string) (ikeyStr string, err error) {
+func ParseIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
@@ -270,7 +271,7 @@ func (pkey SeitanPKey) DecryptKeyAndLabel(ctx context.Context, team *Team) (ret 
 // "Acceptance Key"
 type SeitanAKey []byte
 
-func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
+func GenerateAcceptanceKey(sikey []byte, uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
 	type AKeyPayload struct {
 		Stage       string         `codec:"stage" json:"stage"`
 		UID         keybase1.UID   `codec:"uid" json:"uid"`

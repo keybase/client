@@ -2111,7 +2111,7 @@
       "fields": [
         {
           "type": "SeitanIKeyInvitelink",
-          "name": "k"
+          "name": "i"
         },
         {
           "type": "SeitanKeyLabel",

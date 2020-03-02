@@ -1273,7 +1273,7 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	}
 
 	unixNow := time.Now().Unix()
-	_, encoded, err := sikey.GenerateAcceptanceKey(uv.Uid, uv.EldestSeqno, unixNow)
+	_, encoded, err := GenerateAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, unixNow)
 	if err != nil {
 		return err
 	}

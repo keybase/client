@@ -1,6 +1,12 @@
 package teams
 
 import (
+	"context"
+	cryptorand "crypto/rand"
+	"fmt"
+	"strings"
+
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -15,183 +21,59 @@ func GenerateSeitanIKeyInvitelink() (ikey keybase1.SeitanIKeyInvitelink, err err
 	return keybase1.SeitanIKeyInvitelink(str), nil
 }
 
-// func ParseIKeyFromString(token string) (ikey SeitanIKey, err error) {
-// 	if len(token) != SeitanEncodedIKeyLength {
-// 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
-// 	}
-// 	if token[seitanEncodedIKeyPlusOffset] != '+' {
-// 		return ikey, fmt.Errorf("invalid token format: expected %dth character to be '+'", seitanEncodedIKeyPlusOffset+1)
-// 	}
+func ParseIKeyInvitelinkFromString(token string) (ikey keybase1.SeitanIKeyInvitelink, err error) {
+	if len(token) != SeitanInvitelinkEncodedIKeyLength {
+		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
+	}
 
-// 	return SeitanIKey(strings.ToLower(token)), nil
-// }
+	return keybase1.SeitanIKeyInvitelink(strings.ToLower(token)), nil
+}
 
-// func (ikey SeitanIKey) String() string {
-// 	return strings.ToLower(string(ikey))
-// }
+type SeitanSIKeyInvitelink [SeitanScryptKeylen]byte
 
-// const (
-// 	SeitanScryptCost   = 1 << 10
-// 	SeitanScryptR      = 8
-// 	SeitanScryptP      = 1
-// 	SeitanScryptKeylen = 32
-// )
+func GenerateSIKeyInvitelink(ikey keybase1.SeitanIKeyInvitelink) (sikey SeitanSIKeyInvitelink, err error) {
+	buf, err := generateSIKey(ikey.String())
+	if err != nil {
+		return sikey, err
+	}
+	copy(sikey[:], buf)
+	return sikey, nil
+}
 
-// // "Stretched Invite Key"
-// type SeitanSIKey [SeitanScryptKeylen]byte
+func (sikey SeitanSIKeyInvitelink) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
+	payload, err := msgpack.Encode(NewSeitanInviteIDPayload(SeitanVersionInvitelink))
+	if err != nil {
+		return id, err
+	}
+	return generateTeamInviteID(sikey[:], payload)
+}
 
-// func generateSIKey(s string) (buf []byte, err error) {
-// 	buf, err = scrypt.Key([]byte(s), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
-// 	return buf, err
-// }
+func generatePackedEncryptedKeyWithSecretKeyInvitelink(ikey keybase1.SeitanIKeyInvitelink,
+	secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce,
+	label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
+	var keyAndLabel keybase1.SeitanKeyAndLabelInvitelink
+	keyAndLabel.I = ikey
+	keyAndLabel.L = label
 
-// func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
-// 	buf, err := generateSIKey(ikey.String())
-// 	if err != nil {
-// 		return sikey, err
-// 	}
-// 	copy(sikey[:], buf)
-// 	return sikey, nil
-// }
+	packedKeyAndLabel, err := msgpack.Encode(keybase1.NewSeitanKeyAndLabelWithInvitelink(keyAndLabel))
+	if err != nil {
+		return pkey, encoded, err
+	}
+	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, SeitanVersionInvitelink)
+}
 
-// func generateTeamInviteID(secretKey []byte, payload []byte) (id SCTeamInviteID, err error) {
-// 	mac := hmac.New(sha512.New, secretKey)
-// 	_, err = mac.Write(payload)
-// 	if err != nil {
-// 		return id, err
-// 	}
+func GeneratePackedEncryptedKeyInvitelink(ctx context.Context, ikey keybase1.SeitanIKeyInvitelink,
+	team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
+	appKey, err := team.SeitanInviteTokenKeyLatest(ctx)
+	if err != nil {
+		return pkey, encoded, err
+	}
 
-// 	out := mac.Sum(nil)
-// 	out = out[0:15]
-// 	out = append(out, libkb.InviteIDTag)
-// 	id = SCTeamInviteID(hex.EncodeToString(out))
-// 	return id, nil
+	var nonce keybase1.BoxNonce
+	if _, err = cryptorand.Read(nonce[:]); err != nil {
+		return pkey, encoded, err
+	}
 
-// }
-
-// func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
-// 	type InviteStagePayload struct {
-// 		Stage string `codec:"stage" json:"stage"`
-// 	}
-
-// 	payload, err := msgpack.Encode(InviteStagePayload{Stage: "invite_id"})
-// 	if err != nil {
-// 		return id, err
-// 	}
-// 	return generateTeamInviteID(sikey[:], payload)
-// }
-
-// func packAndEncryptKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, packedKeyAndLabel []byte, version SeitanVersion) (pkey SeitanPKey, encoded string, err error) {
-// 	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
-// 	var naclNonce [libkb.NaclDHNonceSize]byte = nonce
-// 	encryptedKeyAndLabel := secretbox.Seal(nil, packedKeyAndLabel, &naclNonce, &encKey)
-
-// 	pkey = SeitanPKey{
-// 		Version:              version,
-// 		TeamKeyGeneration:    gen,
-// 		RandomNonce:          nonce,
-// 		EncryptedKeyAndLabel: encryptedKeyAndLabel,
-// 	}
-
-// 	packed, err := msgpack.Encode(pkey)
-// 	if err != nil {
-// 		return pkey, encoded, err
-// 	}
-
-// 	encoded = base64.StdEncoding.EncodeToString(packed)
-// 	return pkey, encoded, nil
-// }
-
-// func (ikey SeitanIKey) generatePackedEncryptedKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
-// 	var keyAndLabel keybase1.SeitanKeyAndLabelVersion1
-// 	keyAndLabel.I = keybase1.SeitanIKey(ikey)
-// 	keyAndLabel.L = label
-
-// 	packedKeyAndLabel, err := msgpack.Encode(keybase1.NewSeitanKeyAndLabelWithV1(keyAndLabel))
-// 	if err != nil {
-// 		return pkey, encoded, err
-// 	}
-// 	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, SeitanVersion1)
-// }
-
-// func (ikey SeitanIKey) GeneratePackedEncryptedKey(ctx context.Context, team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
-// 	appKey, err := team.SeitanInviteTokenKeyLatest(ctx)
-// 	if err != nil {
-// 		return pkey, encoded, err
-// 	}
-
-// 	var nonce keybase1.BoxNonce
-// 	if _, err = rand.Read(nonce[:]); err != nil {
-// 		return pkey, encoded, err
-// 	}
-
-// 	return ikey.generatePackedEncryptedKeyWithSecretKey(appKey.Key, appKey.KeyGeneration, nonce, label)
-// }
-
-// func SeitanDecodePKey(base64Buffer string) (pkey SeitanPKey, err error) {
-// 	packed, err := base64.StdEncoding.DecodeString(base64Buffer)
-// 	if err != nil {
-// 		return pkey, err
-// 	}
-
-// 	err = msgpack.Decode(&pkey, packed)
-// 	return pkey, err
-// }
-
-// func (pkey SeitanPKey) decryptKeyAndLabelWithSecretKey(secretKey keybase1.Bytes32) (ret keybase1.SeitanKeyAndLabel, err error) {
-// 	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
-// 	var naclNonce [libkb.NaclDHNonceSize]byte = pkey.RandomNonce
-// 	plain, ok := secretbox.Open(nil, pkey.EncryptedKeyAndLabel, &naclNonce, &encKey)
-// 	if !ok {
-// 		return ret, errors.New("failed to decrypt seitan plain")
-// 	}
-
-// 	err = msgpack.Decode(&ret, plain)
-// 	if err != nil {
-// 		return ret, err
-// 	}
-
-// 	return ret, nil
-// }
-
-// func (pkey SeitanPKey) DecryptKeyAndLabel(ctx context.Context, team *Team) (ret keybase1.SeitanKeyAndLabel, err error) {
-// 	appKey, err := team.SeitanInviteTokenKeyAtGeneration(ctx, pkey.TeamKeyGeneration)
-// 	if err != nil {
-// 		return ret, err
-// 	}
-
-// 	return pkey.decryptKeyAndLabelWithSecretKey(appKey.Key)
-// }
-
-// // "Acceptance Key"
-// type SeitanAKey []byte
-
-// func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
-// 	type AKeyPayload struct {
-// 		Stage       string         `codec:"stage" json:"stage"`
-// 		UID         keybase1.UID   `codec:"uid" json:"uid"`
-// 		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
-// 		CTime       int64          `codec:"ctime" json:"ctime"`
-// 	}
-
-// 	payload, err := msgpack.Encode(AKeyPayload{
-// 		Stage:       "accept",
-// 		UID:         uid,
-// 		EldestSeqno: eldestSeqno,
-// 		CTime:       unixTime,
-// 	})
-// 	if err != nil {
-// 		return akey, encoded, err
-// 	}
-
-// 	mac := hmac.New(sha512.New, sikey[:])
-// 	_, err = mac.Write(payload)
-// 	if err != nil {
-// 		return akey, encoded, err
-// 	}
-
-// 	out := mac.Sum(nil)
-// 	akey = out[:32]
-// 	encoded = base64.StdEncoding.EncodeToString(akey)
-// 	return akey, encoded, nil
-// }
+	return generatePackedEncryptedKeyWithSecretKeyInvitelink(ikey, appKey.Key,
+		appKey.KeyGeneration, nonce, label)
+}

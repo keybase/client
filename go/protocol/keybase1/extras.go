@@ -3991,3 +3991,7 @@ func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
 						append(t.RestrictedBots,
 							append(t.Writers)...)...)...)...)...)...)
 }
+
+func (t SeitanIKeyInvitelink) String() string {
+	return string(t)
+}

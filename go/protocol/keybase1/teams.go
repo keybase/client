@@ -2564,13 +2564,13 @@ func (o SeitanKeyAndLabelVersion2) DeepCopy() SeitanKeyAndLabelVersion2 {
 }
 
 type SeitanKeyAndLabelInvitelink struct {
-	K SeitanIKeyInvitelink `codec:"k" json:"k"`
+	I SeitanIKeyInvitelink `codec:"i" json:"i"`
 	L SeitanKeyLabel       `codec:"l" json:"l"`
 }
 
 func (o SeitanKeyAndLabelInvitelink) DeepCopy() SeitanKeyAndLabelInvitelink {
 	return SeitanKeyAndLabelInvitelink{
-		K: o.K.DeepCopy(),
+		I: o.I.DeepCopy(),
 		L: o.L.DeepCopy(),
 	}
 }

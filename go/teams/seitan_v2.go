@@ -86,16 +86,18 @@ func (ikey SeitanIKeyV2) GenerateSIKey() (sikey SeitanSIKeyV2, err error) {
 	return sikey, nil
 }
 
-func (sikey SeitanSIKeyV2) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
-	type InviteStagePayload struct {
-		Stage   string        `codec:"stage" json:"stage"`
-		Version SeitanVersion `codec:"version" json:"version"`
-	}
+type SeitanVersionedInviteStagePayload struct {
+	Stage   string        `codec:"stage" json:"stage"`
+	Version SeitanVersion `codec:"version" json:"version"`
+}
 
-	payload, err := msgpack.Encode(InviteStagePayload{
-		Stage:   "invite_id",
-		Version: SeitanVersion2,
-	})
+func NewSeitanInviteIDPayload(version SeitanVersion) SeitanVersionedInviteStagePayload {
+	return SeitanVersionedInviteStagePayload{Stage: "invite_id", Version: version}
+}
+
+func (sikey SeitanSIKeyV2) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
+
+	payload, err := msgpack.Encode(NewSeitanInviteIDPayload(SeitanVersion2))
 	if err != nil {
 		return id, err
 	}

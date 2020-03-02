@@ -948,7 +948,7 @@ protocol teams {
   }
 
   record SeitanKeyAndLabelInvitelink {
-    SeitanIKeyInvitelink k;
+    SeitanIKeyInvitelink i;
     SeitanKeyLabel l;
   }
 

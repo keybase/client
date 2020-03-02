@@ -701,7 +701,7 @@ func handleSeitanSingleV1(key keybase1.SeitanIKey, invite keybase1.TeamInvite, s
 		return errors.New("invite ID mismatch (seitan)")
 	}
 
-	akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
+	akey, _, err := GenerateAcceptanceKey(sikey[:], seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
 	if err != nil {
 		return err
 	}
