@@ -378,8 +378,9 @@ type Connection struct {
 	cancelFunc        context.CancelFunc // used to cancel the reconnect loop
 	reconnectedBefore bool
 
+	firstConnectDelayDuration     time.Duration
 	initialReconnectBackoffWindow func() time.Duration
-	randomTimer                   CancellableRandomTimer
+	connectDelayTimer             CancellableTimer
 
 	// for tests
 	reconnectCompleteForTest chan struct{}
@@ -400,6 +401,10 @@ type ConnectionOpts struct {
 	WrapErrorFunc    WrapErrorFunc
 	ReconnectBackoff func() backoff.BackOff
 	CommandBackoff   func() backoff.BackOff
+	// FirstConnectDelayDuration, if it returns non zero, causes a random
+	// backoff before the first connection. The random backoff timer is
+	// fast-forward-able by passing in a WithFireNow(ctx) into a RPC call.
+	FirstConnectDelayDuration time.Duration
 	// InitialReconnectBackoffWindow, if it returns non zero, causes a random
 	// backoff before reconnecting. The random backoff timer is
 	// fast-forward-able by passing in a WithFireNow(ctx) into a RPC call.
@@ -566,6 +571,7 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		errorUnwrapper:                errorUnwrapper,
 		reconnectBackoff:              reconnectBackoff,
 		doCommandBackoff:              commandBackoff,
+		firstConnectDelayDuration:     opts.FirstConnectDelayDuration,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
 		wef:                           opts.WrapErrorFunc,
 		tagsFunc:                      opts.TagsFunc,
@@ -649,8 +655,9 @@ func (c *Connection) DoCommand(ctx context.Context, name string, timeout time.Du
 		defer timeoutCancel()
 	}
 	for {
-		if c.initialReconnectBackoffWindow != nil && isWithFireNow(ctx) {
-			c.randomTimer.FireNow()
+		if (c.firstConnectDelayDuration != 0 ||
+			c.initialReconnectBackoffWindow != nil) && isWithFireNow(ctx) {
+			c.connectDelayTimer.FireNow()
 		}
 
 		// we may or may not be in the process of reconnecting.
@@ -791,14 +798,26 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	reconnectChan chan struct{}, reconnectErrPtr *error) {
 	// inform the handler of our disconnected state
 	c.handler.OnDisconnected(ctx, disconnectStatus)
-	if c.initialReconnectBackoffWindow != nil &&
+	if c.firstConnectDelayDuration != 0 &&
+		disconnectStatus == StartingFirstConnection {
+		c.connectDelayTimer.StartConstant(c.firstConnectDelayDuration)
+		c.log.Debug("starting %s: %s",
+			LogField{
+				Key: ConnectionLogMsgKey, Value: "initial connect backoff"},
+			LogField{Key: "duration", Value: c.firstConnectDelayDuration})
+		c.connectDelayTimer.Wait()
+		c.log.Debug("%s!", LogField{
+			Key: ConnectionLogMsgKey, Value: "initial connect backoff done"})
+	} else if c.initialReconnectBackoffWindow != nil &&
 		disconnectStatus == StartingNonFirstConnection {
-		waitDur := c.randomTimer.Start(c.initialReconnectBackoffWindow())
+		waitDur := c.connectDelayTimer.StartRandom(c.initialReconnectBackoffWindow())
 		c.log.Debug("starting random %s: %s",
-			LogField{Key: ConnectionLogMsgKey, Value: "backoff"},
+			LogField{
+				Key: ConnectionLogMsgKey, Value: "initial reconnect backoff"},
 			LogField{Key: "duration", Value: waitDur})
-		c.randomTimer.Wait()
-		c.log.Debug("%s!", LogField{Key: ConnectionLogMsgKey, Value: "backoff done"})
+		c.connectDelayTimer.Wait()
+		c.log.Debug("%s!", LogField{
+			Key: ConnectionLogMsgKey, Value: "initial reconnect backoff done"})
 	}
 	c.log.Debug("RetryNotify %s", LogField{Key: ConnectionLogMsgKey, Value: "beginning"})
 	err := backoff.RetryNotifyWithContext(ctx, func() (err error) {
@@ -879,7 +898,7 @@ func (c *Connection) Shutdown() {
 // FastForwardInitialBackoffTimer causes any pending reconnect to happen
 // immediately.
 func (c *Connection) FastForwardInitialBackoffTimer() {
-	c.randomTimer.FireNow()
+	c.connectDelayTimer.FireNow()
 }
 
 type connectionClient struct {

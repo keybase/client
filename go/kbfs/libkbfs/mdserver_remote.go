@@ -122,6 +122,7 @@ func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
+		FirstConnectDelayDuration:     mdserveFirstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return mdserverReconnectBackoffWindow },
 	}
 	mdServer.initNewConnection()
