@@ -502,13 +502,9 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 			return err
 		}
 
-		if team.IsSubteam() {
+		if team.IsSubteam() && keybase1.UserRolePairsHaveOwner(users) {
 			// Do the "owner in subteam" check early before we do anything else.
-			for _, urp := range users {
-				if urp.Role == keybase1.TeamRole_OWNER {
-					return NewSubteamOwnersError()
-				}
-			}
+			return NewSubteamOwnersError()
 		}
 
 		tx := CreateAddMemberTx(team)
