@@ -10,11 +10,11 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const SeitanInvitelinkEncodedIKeyLength = 28
-const seitanInvitelinkEncodedIKeyPlusOffset = 7
+const SeitanEncodedIKeyInvitelinkLength = 28
+const seitanEncodedIKeyInvitelinkPlusOffset = 7
 
 func GenerateSeitanIKeyInvitelink() (ikey keybase1.SeitanIKeyInvitelink, err error) {
-	str, err := generateIKey(SeitanInvitelinkEncodedIKeyLength, seitanInvitelinkEncodedIKeyPlusOffset)
+	str, err := generateIKey(SeitanEncodedIKeyInvitelinkLength, seitanEncodedIKeyInvitelinkPlusOffset)
 	if err != nil {
 		return ikey, err
 	}
@@ -22,7 +22,7 @@ func GenerateSeitanIKeyInvitelink() (ikey keybase1.SeitanIKeyInvitelink, err err
 }
 
 func ParseIKeyInvitelinkFromString(token string) (ikey keybase1.SeitanIKeyInvitelink, err error) {
-	if len(token) != SeitanInvitelinkEncodedIKeyLength {
+	if len(token) != SeitanEncodedIKeyInvitelinkLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
 
