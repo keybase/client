@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -622,12 +623,15 @@ func (t *UIThreadLoader) waitForOnline(ctx context.Context) (err error) {
 
 type knownRemoteInterface struct {
 	chat1.RemoteInterface
+	log      logger.Logger
 	knownMap map[chat1.MessageID]chat1.MessageBoxed
 }
 
-func newKnownRemoteInterface(ri chat1.RemoteInterface, knownMap map[chat1.MessageID]chat1.MessageBoxed) *knownRemoteInterface {
+func newKnownRemoteInterface(log logger.Logger, ri chat1.RemoteInterface,
+	knownMap map[chat1.MessageID]chat1.MessageBoxed) *knownRemoteInterface {
 	return &knownRemoteInterface{
 		knownMap:        knownMap,
+		log:             log,
 		RemoteInterface: ri,
 	}
 }
@@ -637,6 +641,7 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 	for _, msgID := range arg.MessageIDs {
 		if msgBoxed, ok := i.knownMap[msgID]; ok {
 			foundMap[msgID] = true
+			i.log.CDebugf(ctx, "knownRemoteInterface.GetMessagesRemote: hit message: %d", msgID)
 			res.Msgs = append(res.Msgs, msgBoxed)
 		}
 	}
@@ -665,6 +670,9 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 }
 
 func (t *UIThreadLoader) makeRi(ctx context.Context, knownRemotes []string) func() chat1.RemoteInterface {
+	if len(knownRemotes) == 0 {
+		return t.ri
+	}
 	knownMap := make(map[chat1.MessageID]chat1.MessageBoxed)
 	for _, knownRemote := range knownRemotes {
 		// Parse the message payload
@@ -682,7 +690,7 @@ func (t *UIThreadLoader) makeRi(ctx context.Context, knownRemotes []string) func
 		knownMap[msgBoxed.GetMessageID()] = msgBoxed
 	}
 	return func() chat1.RemoteInterface {
-		return newKnownRemoteInterface(t.ri(), knownMap)
+		return newKnownRemoteInterface(t.G().GetLog(), t.ri(), knownMap)
 	}
 }
 
