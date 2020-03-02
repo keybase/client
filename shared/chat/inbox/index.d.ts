@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {ConversationIDKey} from '../../constants/types/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import {RowItem} from '../../constants/types/chat2/rowitem'
+import * as Types from '../../constants/types/chat2'
 
 export type Props = {
   allowShowFloatingButton: boolean
@@ -13,7 +13,7 @@ export type Props = {
   neverLoaded: boolean
   onNewChat: () => void
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void
-  rows: Array<RowItem>
+  rows: Array<Types.ChatInboxRowItem>
   setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void

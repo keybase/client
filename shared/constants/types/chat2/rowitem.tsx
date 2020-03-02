@@ -1,9 +1,7 @@
-// Chat inbox row items
-
 import {ConversationIDKey} from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
-export type RowItemSmall = {
+export type ChatInboxRowItemSmall = {
   type: 'small'
   teamname: string
   isTeam: boolean
@@ -12,7 +10,7 @@ export type RowItemSmall = {
   snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
 }
-export type RowItemBigTeamsLabel = {
+export type ChatInboxRowItemBigTeamsLabel = {
   type: 'bigTeamsLabel'
   isFiltered: boolean
   isTeam?: boolean
@@ -22,7 +20,7 @@ export type RowItemBigTeamsLabel = {
   snippetDecoration: RPCChatTypes.SnippetDecoration
   time?: number
 }
-export type RowItemBigHeader = {
+export type ChatInboxRowItemBigHeader = {
   type: 'bigHeader'
   isTeam?: boolean
   teamname: string
@@ -32,7 +30,7 @@ export type RowItemBigHeader = {
   snippetDecoration: RPCChatTypes.SnippetDecoration
   time?: number
 }
-export type RowItemBig = {
+export type ChatInboxRowItemBig = {
   type: 'big'
   isTeam?: boolean
   conversationIDKey: ConversationIDKey
@@ -42,24 +40,24 @@ export type RowItemBig = {
   snippetDecoration: RPCChatTypes.SnippetDecoration
   time?: number
 }
-export type RowItemDivider = {
+export type ChatInboxRowItemDivider = {
   conversationIDKey?: never
   teamname?: never
   showButton: boolean
   type: 'divider'
 }
-export type RowItemTeamBuilder = {
+export type ChatInboxRowItemTeamBuilder = {
   conversationIDKey?: never
   teamname?: never
   type: 'teamBuilder'
 }
 
-export type RowItem =
-  | RowItemSmall
-  | RowItemBigTeamsLabel
-  | RowItemBigHeader
-  | RowItemBig
-  | RowItemDivider
-  | RowItemTeamBuilder
+export type ChatInboxRowItem =
+  | ChatInboxRowItemSmall
+  | ChatInboxRowItemBigTeamsLabel
+  | ChatInboxRowItemBigHeader
+  | ChatInboxRowItemBig
+  | ChatInboxRowItemDivider
+  | ChatInboxRowItemTeamBuilder
 
-export type RowType = RowItem['type']
+export type ChatInboxRowType = ChatInboxRowItem['type']

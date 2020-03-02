@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
 import * as T from './index.d'
-import {RowItem} from '../../constants/types/chat2/rowitem'
 import * as Types from '../../constants/types/chat2'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team'
@@ -15,6 +14,8 @@ import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
+
+type RowItem = Types.ChatInboxRowItem
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
