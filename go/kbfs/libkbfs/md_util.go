@@ -859,7 +859,10 @@ func GetChangesBetweenRevisions(
 		}
 		soFar += len(rmd.data.Changes.Ops)
 	}
-	chains.revertRenames(ops)
+	err = chains.revertRenames(ops)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create the change items for each chain.  Use the following
 	// simplifications:

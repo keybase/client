@@ -3905,7 +3905,10 @@ func (fbo *folderBranchOps) makeEditNotifications(
 
 		// The crChains creation process splits up a rename op into
 		// a delete and a create.  Turn them back into a rename.
-		chains.revertRenames(ops)
+		err = chains.revertRenames(ops)
+		if err != nil {
+			return nil, err
+		}
 
 		ops = pathSortedOps(make([]op, 0, len(ops)))
 		for _, chain := range chains.byMostRecent {
