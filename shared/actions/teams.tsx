@@ -1333,7 +1333,7 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
       // Get (hopefully fresh) role map. The app might have just started so it's
       // not enough to just look in the react store.
       const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
-      const role = map.teams[teamID]?.role ?? map.teams[teamID]?.implicitRole
+      const role = map.teams[teamID]?.role || map.teams[teamID]?.implicitRole
       if (role !== RPCTypes.TeamRole.admin && role !== RPCTypes.TeamRole.owner) {
         logger.info(`ignoring team="${teamname}" with addMember, user is not an admin but role=${role}`)
         return null
