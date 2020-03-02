@@ -97,9 +97,9 @@ if (Container.isMobile) {
 
 // @ts-ignore
 Conversation.navigationOptions = {
-  header: ({scene}) => (
-    <HeaderArea conversationIDKey={scene.route.params.conversationIDKey} progress={scene.progress} />
-  ),
+  header: undefined,
+  headerLeft: null,
+  headerTitle: () => <HeaderArea />,
 }
 
 const ConversationMemoed = React.memo(Conversation)
