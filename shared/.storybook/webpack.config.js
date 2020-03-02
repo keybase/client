@@ -36,6 +36,7 @@ module.exports = ({config, mode}) => {
       __STORYSHOT__: false,
       'process.platform': JSON.stringify('darwin'),
     }),
+    // When you change these, also change in package.json and in metro.config.js
     new webpack.NormalModuleReplacementPlugin(
       /typed-connect/,
       __dirname + '/../util/__mocks__/typed-connect.tsx'

@@ -83,6 +83,7 @@
     "timers": "fake",
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
+      "NOTE: When you change these, also change in": "metro.config.js and in .storybook/webpack.config.js",
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.tsx",
       "typed-connect": "<rootDir>/util/__mocks__/typed-connect.tsx",
       "react-spring": "<rootDir>/__mocks__/react-spring.tsx",
@@ -93,7 +94,7 @@
       "constants/platform": "<rootDir>/__mocks__/platform.tsx",
       "local-debug": "<rootDir>/__mocks__/local-debug.tsx",
       "feature-flags": "<rootDir>/__mocks__/feature-flags.tsx",
-      "safe-navigation": "<rootDir>/__mocks__/safe-navigation.tsx",
+      "navigation-hooks": "<rootDir>/util/__mocks__/navigation-hooks.tsx",
       "engine/saga$": "<rootDir>/__mocks__/engine-saga.tsx",
       "@msgpack": "<rootDir>/node_modules/@msgpack/msgpack/dist.es5/msgpack.js"
     },

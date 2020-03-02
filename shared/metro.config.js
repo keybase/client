@@ -4,8 +4,8 @@
  *
  * @format
  */
+/* eslint-disable */
 
-// eslint-disable-next-line
 const {getDefaultConfig} = require('metro-config')
 const {resolve} = require('metro-resolver')
 
@@ -31,6 +31,7 @@ module.exports = (async () => {
     }
     if (storybook) {
       newModuleName = newModuleName
+        // When you change these, also change in package.json and in .storybook/webpack.config.js
         .replace(/typed-connect/, '__mocks__/typed-connect')
         .replace(/navigation-hooks/, '__mocks__/navigation-hooks')
         .replace(/^electron$/, '/../__mocks__/electron')
