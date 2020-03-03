@@ -649,7 +649,7 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 	if len(remoteFetch) == 0 {
 		return res, nil
 	}
-	remoteRes, err := i.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+	remoteRes, err := i.RemoteInterface.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: arg.ConversationID,
 		MessageIDs:     remoteFetch,
 		ThreadReason:   arg.ThreadReason,
