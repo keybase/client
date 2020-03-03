@@ -27,20 +27,12 @@ const CommandMarkdown = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      bodyContainer: Styles.platformStyles({
-        common: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          paddingBottom: 0,
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
-        },
-      }),
+      bodyContainer: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+        paddingTop: Styles.globalMargins.tiny,
+      },
       container: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.boxShadow,
@@ -54,7 +46,7 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.white,
           flexShrink: 1,
           // if this is not constrained it pushes the rest of the input down
-          maxHeight: '50%',
+          maxHeight: '70%',
         },
       }),
       scrollContainer: Styles.platformStyles({
