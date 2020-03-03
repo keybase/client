@@ -13,7 +13,7 @@ const commonProps = {
   numRequests: 0,
   numSubteams: 0,
   resetUserCount: 0,
-  selectedTab: 'members',
+  selectedTab: 'members' as const,
   setSelectedTab: action('setSelectedTab'),
   showSubteams: false,
   teamID: 'Cool Team 😎 ID',
