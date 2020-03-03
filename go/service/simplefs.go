@@ -52,7 +52,7 @@ func (e WaitingForKBFSTimeoutError) Error() string {
 	return errors.WithMessage(e.originalError, "timeout waiting for kbfs").Error()
 }
 
-//  Cause makes it work with errors.Cause().
+// Cause makes it work with errors.Cause().
 func (e WaitingForKBFSTimeoutError) Cause() error {
 	return e.originalError
 }
