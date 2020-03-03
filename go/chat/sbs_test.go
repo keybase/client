@@ -356,3 +356,81 @@ func TestChatSrvSBSEmail(t *testing.T) {
 		},
 	})
 }
+
+func TestSBSWelcomeMessage(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// Only run for implicit teams.
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE: //, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvSBS", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		tc1 := ctc.world.Tcs[users[1].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+
+		// Create two conversations, one normal, one SBS.
+		convDisplayNames := []string{
+			// SBS goes first
+			fmt.Sprintf("%s,%s@rooter", users[0].Username, users[1].Username),
+			fmt.Sprintf("%s,%s", users[0].Username, users[1].Username),
+		}
+
+		newConvs := make([]chat1.NewConversationLocalRes, 2)
+		for i, convName := range convDisplayNames {
+			res, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+				chat1.NewConversationLocalArg{
+					TlfName:          convName,
+					TopicType:        chat1.TopicType_CHAT,
+					TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
+					MembersType:      mt,
+					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				})
+			require.NoError(t, err)
+			newConvs[i] = res
+		}
+
+		for i, nc := range newConvs {
+			mustPostLocalForTest(t, ctc, users[0], nc.Conv.Info,
+				chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: fmt.Sprintf("hello conv %s", convDisplayNames[i]),
+				}))
+		}
+
+		// users[1] proves rooter
+		kickTeamRekeyd(tc1.Context().ExternalG(), t)
+		proveRooter(t, tc1.Context().ExternalG(), users[1])
+
+		select {
+		case rres := <-listener0.membersUpdate:
+			require.Equal(t, newConvs[0].Conv.GetConvID(), rres.ConvID)
+			require.Equal(t, 1, len(rres.Members))
+			require.Equal(t, users[1].Username, rres.Members[0].Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no resolve")
+		}
+
+		for i, ncres := range newConvs {
+			tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+				ConversationID: ncres.Conv.GetConvID(),
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_SYSTEM},
+				},
+			})
+			require.NoError(t, err)
+			fmt.Printf("Messages for conv: %s\n", convDisplayNames[i])
+			for i, msg := range tvres.Thread.Messages {
+				fmt.Printf("[%d] = %s\n", i, utils.GetMsgSnippetBody(msg))
+			}
+			fmt.Printf("\n")
+		}
+	})
+}
