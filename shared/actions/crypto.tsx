@@ -34,6 +34,10 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   const usernames = users.map(user => {
     // If we're encrypting to service account that is not proven on keybase set
     // (SBS) then we *must* encrypt to ourselves
+    if (user.serviceId == 'email') {
+      hasSBS = true
+      return `[${user.username}]@email`
+    }
     if (user.serviceId !== 'keybase') {
       hasSBS = true
       return `${user.username}@${user.serviceId}`

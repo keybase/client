@@ -258,7 +258,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 	}
 
 	httpsArgs := libkb.HTTPArgs{
-		"sig_id_base":  libkb.S{Val: sigID.ToString(false)},
+		"sig_id_base":  libkb.S{Val: sigID.StripSuffix().String()},
 		"sig_id_short": libkb.S{Val: sigID.ToShortID()},
 		"sig":          libkb.S{Val: sig},
 		"uid":          libkb.UIDArg(e.them.GetUID()),

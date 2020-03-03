@@ -3942,6 +3942,13 @@
           ]
         },
         {
+          "name": "knownRemotes",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
           "name": "pagination",
           "type": [
             null,

@@ -57,7 +57,7 @@ let Conversation = (p: SwitchProps) => {
           dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'}))
         }
       } else {
-        if (!Constants.isSplit && _storeConvoIDKey !== conversationIDKey) {
+        if (!Constants.isSplit && _storeConvoIDKey === conversationIDKey) {
           dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey: conversationIDKey}))
         }
       }

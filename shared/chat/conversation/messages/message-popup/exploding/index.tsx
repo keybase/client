@@ -84,7 +84,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
                 colorYou={true}
                 usernames={[author]}
                 underline={true}
-                type="BodyBold"
+                type="BodySmallBold"
               />
             </Kb.Box2>
           </Kb.Box2>

@@ -61,7 +61,7 @@ func TestRevokeSig(t *testing.T) {
 		t.Fatal(err)
 	}
 	sigID := realUser.GetSigIDFromSeqno(FirstPGPSigSeqno)
-	revokeEngine = NewRevokeSigsEngine(tc.G, []string{sigID.ToString(true)})
+	revokeEngine = NewRevokeSigsEngine(tc.G, []string{sigID.String()})
 	err = RunEngine2(m, revokeEngine)
 	if err != nil {
 		t.Fatal(err)
@@ -69,7 +69,7 @@ func TestRevokeSig(t *testing.T) {
 	assertNumDevicesAndKeys(tc, u, 2, 5) // The first PGP key is gone.
 
 	// Revoking the same key again should fail.
-	revokeEngine = NewRevokeSigsEngine(tc.G, []string{sigID.ToString(true)})
+	revokeEngine = NewRevokeSigsEngine(tc.G, []string{sigID.String()})
 	err = RunEngine2(m, revokeEngine)
 	if err == nil {
 		t.Fatal("RevokeSigs should have failed, but it didn't")
@@ -77,7 +77,7 @@ func TestRevokeSig(t *testing.T) {
 	assertNumDevicesAndKeys(tc, u, 2, 5) // no change
 
 	// Revoke the second pgp key by prefix:
-	nextID := realUser.GetSigIDFromSeqno(SecondPGPSigSeqno).ToString(true)
+	nextID := realUser.GetSigIDFromSeqno(SecondPGPSigSeqno).String()
 
 	// Short prefix should fail:
 	revokeEngine = NewRevokeSigsEngine(tc.G, []string{nextID[0:4]})

@@ -138,7 +138,9 @@ function* handleLoudMessage(notification: Types.PushNotification) {
   yield Saga.put(RouteTreeGen.createClearModals())
   yield Saga.put(RouteTreeGen.createResetStack({actions, index: 1, tab: 'tabs.chatTab'}))
   yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
-  yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
+  yield Saga.put(
+    Chat2Gen.createSelectConversation({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
+  )
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
@@ -405,7 +407,10 @@ function* getStartupDetailsFromInitialPush() {
     }
   } else if (notification.type === 'chat.newmessage' || notification.type === 'chat.newmessageSilent_2') {
     if (notification.conversationIDKey) {
-      return {startupConversation: notification.conversationIDKey}
+      return {
+        startupConversation: notification.conversationIDKey,
+        startupPushPayload: notification.unboxPayload,
+      }
     }
   }
 
