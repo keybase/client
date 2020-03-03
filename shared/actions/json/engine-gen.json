@@ -220,6 +220,9 @@
         "keybase1Identify3UiIdentify3ShowTracker": {
             "params": "keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['outParam']) => void}"
         },
+        "keybase1Identify3UiIdentify3Summary": {
+            "params": "keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Summary']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Summary']['outParam']) => void}"
+        },
         "keybase1Identify3UiIdentify3UpdateRow": {
             "params": "keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UpdateRow']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UpdateRow']['outParam']) => void}"
         },

@@ -226,11 +226,25 @@ func (o Identify3Row) DeepCopy() Identify3Row {
 	}
 }
 
+type Identify3Summary struct {
+	NumProofsToCheck int `codec:"numProofsToCheck" json:"numProofsToCheck"`
+}
+
+func (o Identify3Summary) DeepCopy() Identify3Summary {
+	return Identify3Summary{
+		NumProofsToCheck: o.NumProofsToCheck,
+	}
+}
+
 type Identify3ShowTrackerArg struct {
 	GuiID        Identify3GUIID     `codec:"guiID" json:"guiID"`
 	Assertion    Identify3Assertion `codec:"assertion" json:"assertion"`
 	Reason       IdentifyReason     `codec:"reason" json:"reason"`
 	ForceDisplay bool               `codec:"forceDisplay" json:"forceDisplay"`
+}
+
+type Identify3SummaryArg struct {
+	Summary Identify3Summary `codec:"summary" json:"summary"`
 }
 
 type Identify3UpdateRowArg struct {
@@ -257,6 +271,7 @@ type Identify3ResultArg struct {
 
 type Identify3UiInterface interface {
 	Identify3ShowTracker(context.Context, Identify3ShowTrackerArg) error
+	Identify3Summary(context.Context, Identify3Summary) error
 	Identify3UpdateRow(context.Context, Identify3Row) error
 	Identify3UserReset(context.Context, Identify3GUIID) error
 	Identify3UpdateUserCard(context.Context, Identify3UpdateUserCardArg) error
@@ -280,6 +295,21 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 						return
 					}
 					err = i.Identify3ShowTracker(ctx, typedArgs[0])
+					return
+				},
+			},
+			"identify3Summary": {
+				MakeArg: func() interface{} {
+					var ret [1]Identify3SummaryArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]Identify3SummaryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]Identify3SummaryArg)(nil), args)
+						return
+					}
+					err = i.Identify3Summary(ctx, typedArgs[0].Summary)
 					return
 				},
 			},
@@ -368,6 +398,12 @@ type Identify3UiClient struct {
 
 func (c Identify3UiClient) Identify3ShowTracker(ctx context.Context, __arg Identify3ShowTrackerArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c Identify3UiClient) Identify3Summary(ctx context.Context, summary Identify3Summary) (err error) {
+	__arg := Identify3SummaryArg{Summary: summary}
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Summary", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
