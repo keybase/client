@@ -62,7 +62,7 @@ const BigTeamChannel = (props: Props) => {
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
-          fullWidth={!Styles.isPhone}
+          fullWidth={!Styles.isMobile}
           style={Styles.collapseStyles([
             styles.channelBackground,
             isSelected && styles.selectedChannelBackground,
@@ -139,6 +139,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isTablet: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
+      flex: 1,
       height: '80%',
       marginLeft: 48,
       paddingLeft: Styles.globalMargins.tiny,
