@@ -104,9 +104,10 @@ export const TextInput = (props: TextProps) => {
             placeholder={placeholder}
             multiline={true}
             rowsMax={value ? undefined : 1}
-            autoFocus={false}
+            autoFocus={true}
             hideBorder={true}
             growAndScroll={true}
+            className="mousetrap"
             padding="tiny"
             containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
             style={Styles.collapseStyles([
