@@ -85,7 +85,7 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	trackUI := &kbtest.FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
+	uis2 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
 
 	sink := libkb.NewBufferCloser()
 	arg := &engine.SaltpackEncryptArg{
@@ -99,8 +99,8 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	}
 
 	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
+	m2 := libkb.NewMetaContextForTest(tc).WithUIs(uis2)
+	if err := engine.RunEngine2(m2, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -115,19 +115,150 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	kbtest.Logout(tc)
 	err = u1.Login(tc.G)
 	require.NoError(t, err)
-	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI(), SaltpackUI: fakeSaltpackUI{}}
-	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	uis1 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI(), SaltpackUI: fakeSaltpackUI{}}
+	m1 := libkb.NewMetaContextForTest(tc).WithUIs(uis1)
 
 	decoded := libkb.NewBufferCloser()
 	decarg := &engine.SaltpackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m))
-	if err := engine.RunEngine2(m, dec); err != nil {
+	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m1))
+	if err := engine.RunEngine2(m1, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := decoded.String()
+	if decmsg != msg {
+		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
+	}
+}
+
+func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	u1 := tt.addUser("u1sp")
+	u2 := tt.addUser("u2sp")
+	u3 := tt.addUser("u3sp")
+
+	// u2 creates the team, and adds u1
+	team := u2.createTeam()
+	u2.addTeamMember(team, u1.username, keybase1.TeamRole_WRITER)
+
+	msg := "this message will be encrypted for an implicit team"
+
+	sink := libkb.NewBufferCloser()
+	arg := &engine.SaltpackEncryptArg{
+		Opts: keybase1.SaltpackEncryptOptions{
+			TeamRecipients: []string{team},
+			NoSelfEncrypt:  true,
+			UseEntityKeys:  true,
+		},
+		Source: strings.NewReader(msg),
+		Sink:   sink,
+	}
+
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	uis1 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.newSecretUI(), SaltpackUI: fakeSaltpackUI{}}
+	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
+	m1 := libkb.NewMetaContextForTest(*u1.tc).WithUIs(uis1)
+	if err := engine.RunEngine2(m1, eng); err != nil {
+		t.Fatal(err)
+	}
+
+	out := sink.String()
+	if len(out) == 0 {
+		t.Fatal("no output")
+	}
+
+	t.Logf("encrypted data: %s", out)
+
+	// u1 can decrypt
+	decoded := libkb.NewBufferCloser()
+	decarg := &engine.SaltpackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded,
+	}
+	dec1 := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m1))
+	if err := engine.RunEngine2(m1, dec1); err != nil {
+		t.Fatal(err)
+	}
+	decmsg := decoded.String()
+	if decmsg != msg {
+		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
+	}
+
+	// u2 can decrypt
+	uis2 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.newSecretUI(), SaltpackUI: fakeSaltpackUI{}}
+	m2 := libkb.NewMetaContextForTest(*u2.tc).WithUIs(uis2)
+
+	decoded2 := libkb.NewBufferCloser()
+	decarg = &engine.SaltpackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded2,
+	}
+	dec2 := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
+	if err := engine.RunEngine2(m2, dec2); err != nil {
+		t.Fatal(err)
+	}
+	decmsg = decoded2.String()
+	if decmsg != msg {
+		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
+	}
+
+	// u1 leaves team, can't decrypt
+	u1.leave(team)
+	teams := u1.teamList("", false, false)
+	require.Len(t, teams.Teams, 0)
+	decoded3 := libkb.NewBufferCloser()
+	decarg = &engine.SaltpackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded3,
+	}
+	dec1 = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m1))
+	err := engine.RunEngine2(m1, dec1)
+	x, ok := err.(libkb.DecryptionError)
+	if !ok {
+		t.Fatalf("expected error type libkb.DecryptionError, got %T (%s)", err, err)
+	}
+	if _, ok := x.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("expected error Cause type libkb.NoDecryptionKeyError, got %T (%s)", x.Cause.Err, x.Cause.Err)
+	}
+
+	// u2 can still decrypt
+	teams = u2.teamList("", false, false)
+	require.Len(t, teams.Teams, 1)
+	decoded4 := libkb.NewBufferCloser()
+	decarg = &engine.SaltpackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded4,
+	}
+	dec2 = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
+	if err := engine.RunEngine2(m2, dec2); err != nil {
+		t.Fatal(err)
+	}
+	decmsg = decoded4.String()
+	if decmsg != msg {
+		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
+	}
+
+	// u2 adds u3, can decrypt
+	u2.addTeamMember(team, u3.username, keybase1.TeamRole_WRITER)
+	uis3 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.newSecretUI(), SaltpackUI: fakeSaltpackUI{}}
+	m3 := libkb.NewMetaContextForTest(*u3.tc).WithUIs(uis3)
+
+	decoded5 := libkb.NewBufferCloser()
+	decarg = &engine.SaltpackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded5,
+	}
+	dec3 := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m3))
+	if err := engine.RunEngine2(m3, dec3); err != nil {
+		t.Fatal(err)
+	}
+	decmsg = decoded5.String()
 	if decmsg != msg {
 		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
 	}
@@ -146,7 +277,7 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	trackUI := &kbtest.FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.newSecretUI()}
+	uis1 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.newSecretUI()}
 
 	sink := libkb.NewBufferCloser()
 	arg := &engine.SaltpackEncryptArg{
@@ -159,8 +290,8 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	}
 
 	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
-	m := libkb.NewMetaContextForTest(*u1.tc).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
+	m1 := libkb.NewMetaContextForTest(*u1.tc).WithUIs(uis1)
+	if err := engine.RunEngine2(m1, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -172,16 +303,16 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	t.Logf("encrypted data: %s", out)
 
 	// u2 has not proven rooter yet, they should not be able to decrypt
-	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.newSecretUI(), SaltpackUI: fakeSaltpackUI{}}
-	m = libkb.NewMetaContextForTest(*u2.tc).WithUIs(uis)
+	uis2 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.newSecretUI(), SaltpackUI: fakeSaltpackUI{}}
+	m2 := libkb.NewMetaContextForTest(*u2.tc).WithUIs(uis2)
 
 	decoded := libkb.NewBufferCloser()
 	decarg := &engine.SaltpackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m))
-	err := engine.RunEngine2(m, dec)
+	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
+	err := engine.RunEngine2(m2, dec)
 	x, ok := err.(libkb.DecryptionError)
 	if !ok {
 		t.Fatalf("expected error type libkb.DecryptionError, got %T (%s)", err, err)
@@ -207,8 +338,8 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m))
-	if err := engine.RunEngine2(m, dec); err != nil {
+	dec = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
+	if err := engine.RunEngine2(m2, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := decoded.String()
