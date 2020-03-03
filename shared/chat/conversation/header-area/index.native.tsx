@@ -110,7 +110,7 @@ const UsernameHeader = (props: Props) => (
         inline={false}
         lineClamp={props.participants.length > 2 ? 2 : 1}
         commaColor={Styles.globalColors.black_50}
-        type={props.participants.length > 2 || !!props.theirFullname ? 'BodyTiny' : 'BodyBig'}
+        type={props.participants.length > 2 || !!props.theirFullname ? 'BodyTinyBold' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}

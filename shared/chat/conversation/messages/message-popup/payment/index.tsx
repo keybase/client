@@ -121,7 +121,7 @@ const Header = (props: HeaderProps) =>
             colorYou={true}
             inline={true}
             usernames={[props.sender]}
-            type="BodySmallSemibold"
+            type="BodySmallBold"
           />
         </Kb.Box2>
         <Kb.Text type="BodySmall" center={true}>

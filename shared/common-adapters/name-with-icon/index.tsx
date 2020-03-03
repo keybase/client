@@ -116,7 +116,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     ) : (
       <ConnectedUsernames
         onUsernameClicked={this.props.clickType === 'onClick' ? this.props.onClick : 'profile'}
-        type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+        type={adapterProps.titleType}
         containerStyle={Styles.collapseStyles([
           !this.props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
           this.props.size === 'smaller' && styles.smallerWidthTextContainer,
@@ -129,7 +129,10 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorFollowing={this.props.colorFollowing}
         colorYou={this.props.notFollowingColorOverride || true}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
-        style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
+        style={Styles.collapseStyles([
+          styles.textBold,
+          this.props.size === 'smaller' ? {} : styles.fullWidthText,
+        ])}
         withProfileCardPopup={this.props.withProfileCardPopup}
       />
     )
@@ -286,6 +289,9 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 48,
     },
   }),
+  textBold: {
+    fontWeight: '700',
+  },
   textContainer: {
     flex: 1,
   },
