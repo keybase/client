@@ -136,7 +136,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _onKeyDown = (e: React.KeyboardEvent) => {
-    console.log('JRY plain-input -]> onKeyDown', {event: e})
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e, this._isComposingIME)
     }
