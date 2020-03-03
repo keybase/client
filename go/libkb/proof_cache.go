@@ -217,7 +217,7 @@ func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash keybase1.MerkleStoreKitHas
 }
 
 func (pc *ProofCache) dbKey(sid keybase1.SigID) (DbKey, string) {
-	sidstr := sid.ToString(true)
+	sidstr := sid.String()
 	key := DbKey{Typ: DBProofCheck, Key: sidstr}
 	return key, sidstr
 }
