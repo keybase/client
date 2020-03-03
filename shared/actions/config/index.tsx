@@ -470,6 +470,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
+          pushBody: state.config.startupPushPayload,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
           skipNav: true,
         }),

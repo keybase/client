@@ -107,7 +107,7 @@ func (c *ConversationRetry) fixThreadFetch(ctx context.Context, uid gregor1.UID)
 	c.Debug(ctx, "fixThreadFetch: retrying conversation")
 	// Attempt a pull of 50 messages to simulate whatever request got the
 	// conversation in this queue.
-	_, err := c.G().ConvSource.Pull(ctx, c.convID, uid, chat1.GetThreadReason_FIXRETRY, nil,
+	_, err := c.G().ConvSource.Pull(ctx, c.convID, uid, chat1.GetThreadReason_FIXRETRY, nil, nil,
 		&chat1.Pagination{
 			Num: 50,
 		})

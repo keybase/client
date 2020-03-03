@@ -1006,6 +1006,7 @@ function* loadMoreMessages(
   let messageIDControl: RPCChatTypes.MessageIDControl | null = null
   let forceClear = false
   let forceContainsLatestCalc = false
+  let knownRemotes: Array<string> = []
   const centeredMessageIDs: Array<{
     conversationIDKey: Types.ConversationIDKey
     messageID: Types.MessageID
@@ -1031,6 +1032,9 @@ function* loadMoreMessages(
     case Chat2Gen.selectConversation:
       key = action.payload.conversationIDKey
       reason = action.payload.reason || 'selected'
+      if (action.payload.pushBody && action.payload.pushBody.length > 0) {
+        knownRemotes.push(action.payload.pushBody)
+      }
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -1160,6 +1164,7 @@ function* loadMoreMessages(
         cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
         conversationID,
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        knownRemotes,
         pagination,
         pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
         query: {

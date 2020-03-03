@@ -181,8 +181,8 @@ func TestChatSubteamRename(t *testing.T) {
 			require.NoError(t, err)
 			// Make sure user1 (user0 did all the sends) can decrypt everything
 			// in conversation.
-			tv, err := tc.Context().ConvSource.Pull(context.TODO(), convID, users[1].GetUID().ToBytes(), chat1.GetThreadReason_GENERAL, nil,
-				nil)
+			tv, err := tc.Context().ConvSource.Pull(context.TODO(), convID, users[1].GetUID().ToBytes(),
+				chat1.GetThreadReason_GENERAL, nil, nil, nil)
 			require.NoError(t, err)
 			for _, msg := range tv.Messages {
 				if msg.IsJourneycard() {

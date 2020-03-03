@@ -152,6 +152,7 @@ export const initialState: Types.State = {
   startupFile: new HiddenString(''),
   startupFollowUser: '',
   startupLink: '',
+  startupPushPayload: undefined,
   startupWasFromPush: false,
   systemDarkMode: false,
   uid: '',

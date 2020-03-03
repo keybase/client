@@ -68,8 +68,8 @@ outerLoop:
 			Next: next,
 		}
 		mctx.Debug("Pulling from ConvSource: i=%d, Pagination=%#v", i, pagination)
-		threadView, err := convSource.Pull(mctx.Ctx(), convIDBytes, uidBytes, chat1.GetThreadReason_GENERAL,
-			chatQuery, pagination)
+		threadView, err := convSource.Pull(mctx.Ctx(), convIDBytes, uidBytes,
+			chat1.GetThreadReason_GENERAL, nil, chatQuery, pagination)
 		if err != nil {
 			return ConvTranscript{}, err
 		}

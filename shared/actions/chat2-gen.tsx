@@ -616,6 +616,7 @@ type _SelectConversationPayload = {
     | 'teamMention'
   readonly skipNav?: boolean
   readonly navKey?: string
+  readonly pushBody?: string
 }
 type _SendAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
