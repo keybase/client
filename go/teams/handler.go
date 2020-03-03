@@ -584,7 +584,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
 
-		err := verifySeitanSingle(ctx, g, team, invite, seitan)
+		version, err := verifySeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
 			continue
@@ -616,7 +616,12 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		// PUK and status is set to ACCEPTED.
 
 		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
-		err = tx.CompleteInviteByID(ctx, invite.Id, uv)
+		switch version {
+		case SeitanVersionInvitelink:
+			err = tx.UseInviteByID(ctx, invite.Id, uv)
+		default:
+			err = tx.CompleteInviteByID(ctx, invite.Id, uv)
+		}
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to complete invite, member was added as keybase-invite: %v", err)
 			return err
@@ -649,43 +654,41 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	return nil
 }
 
-func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (version SeitanVersion, err error) {
 	category, err := invite.Type.C()
 	if err != nil {
-		return err
+		return version, err
 	}
 
 	if category != keybase1.TeamInviteCategory_SEITAN {
-		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
+		return version, fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
 	}
 
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
-		return err
+		return version, err
 	}
 
 	keyAndLabel, err := pkey.DecryptKeyAndLabel(ctx, team)
 	if err != nil {
-		return err
+		return version, err
 	}
 
-	version, err := keyAndLabel.V()
+	labelversion, err := keyAndLabel.V()
 	if err != nil {
-		return fmt.Errorf("while parsing KeyAndLabel: %s", err)
+		return version, fmt.Errorf("while parsing KeyAndLabel: %s", err)
 	}
 
-	switch version {
+	switch labelversion {
 	case keybase1.SeitanKeyAndLabelVersion_V1:
-		err = verifySeitanSingleV1(keyAndLabel.V1().I, invite, seitan)
+		return SeitanVersion1, verifySeitanSingleV1(keyAndLabel.V1().I, invite, seitan)
 	case keybase1.SeitanKeyAndLabelVersion_V2:
-		err = verifySeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
+		return SeitanVersion2, verifySeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
 	case keybase1.SeitanKeyAndLabelVersion_Invitelink:
-		err = verifySeitanSingleInvitelink(ctx, g, keyAndLabel.Invitelink().I, invite, seitan)
+		return SeitanVersionInvitelink, verifySeitanSingleInvitelink(ctx, g, keyAndLabel.Invitelink().I, invite, seitan)
 	default:
-		return fmt.Errorf("unknown KeyAndLabel version: %v", version)
+		return version, fmt.Errorf("unknown KeyAndLabel version: %v", version)
 	}
-
-	return err
 }
 
 func verifySeitanSingleV1(key keybase1.SeitanIKey, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {

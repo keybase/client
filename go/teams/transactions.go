@@ -582,6 +582,17 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertionOrEmail(ctx context.Context, 
 	return tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, assertion, role, botSettings)
 }
 
+func (tx *AddMemberTx) UseInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
+	payload := tx.findChangeReqForUV(uv)
+	if payload == nil {
+		return fmt.Errorf("could not find uv %v in transaction", uv)
+	}
+
+	payload.CompleteInviteID(inviteID, uv.PercentForm())
+	return nil
+}
+
+// CompleteInviteByID completes
 func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
 	payload := tx.findChangeReqForUV(uv)
 	if payload == nil {
