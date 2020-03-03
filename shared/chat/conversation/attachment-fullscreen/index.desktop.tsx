@@ -210,7 +210,12 @@ const styles = Styles.styleSheetCreate(
       contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
       contentsHidden: {display: 'none'},
       contentsZoom: Styles.platformStyles({
-        isElectron: {display: 'block', width: '100%', height: '100%', overflow: 'auto'},
+        isElectron: {
+          display: 'block',
+          height: '100%',
+          overflow: 'auto',
+          width: '100%',
+        },
       }),
       error: {
         color: Styles.globalColors.redDark,
