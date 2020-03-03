@@ -116,7 +116,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     ) : (
       <ConnectedUsernames
         onUsernameClicked={this.props.clickType === 'onClick' ? this.props.onClick : 'profile'}
-        type={this.props.horizontal ? 'BodyBold' : adapterProps.titleType}
+        type={adapterProps.titleType}
         containerStyle={Styles.collapseStyles([
           !this.props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
           this.props.size === 'smaller' && styles.smallerWidthTextContainer,
