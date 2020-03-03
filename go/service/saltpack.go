@@ -361,6 +361,8 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 		return keybase1.SaltpackEncryptFileResult{}, errors.New("source and destination directories cannot be the same")
 	}
 
+	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
+
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
 	}
@@ -386,8 +388,6 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 		Sink:   bw,
 		Source: pipeRead,
 	}
-
-	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
 	if err != nil {
@@ -504,6 +504,8 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 		return "", errors.New("source and destination directories cannot be the same")
 	}
 
+	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
+
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
 	}
@@ -528,8 +530,6 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 			Binary: true,
 		},
 	}
-
-	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
 
 	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
 		h.G().Log.Debug("sign error, so removing output file")
