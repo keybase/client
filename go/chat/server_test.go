@@ -454,7 +454,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		CreateNameInfoSource)
 	g.BotCommandManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
-	g.UIThreadLoader = NewUIThreadLoader(g)
+	g.UIThreadLoader = NewUIThreadLoader(g, func() chat1.RemoteInterface { return ri })
 	g.ParticipantsSource = NewCachingParticipantSource(g, func() chat1.RemoteInterface { return ri })
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
@@ -1242,7 +1242,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 		tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, chat1.GetThreadReason_GENERAL, nil,
-			nil)
+			nil, nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
 		require.NotZero(t, len(tv.Messages))
@@ -1265,7 +1265,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		require.NoError(t, err)
 		t.Logf("headline -> msgid:%v", res.MessageID)
 		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, chat1.GetThreadReason_GENERAL, nil,
-			nil)
+			nil, nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
 		require.NotZero(t, len(tv.Messages))
@@ -1281,7 +1281,8 @@ func TestChatSrvPostLocal(t *testing.T) {
 			Age:              0,
 		})
 		require.NoError(t, err)
-		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil)
+		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, chat1.GetThreadReason_GENERAL, nil,
+			nil, nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
 		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't have gotten a good answer from GetMessageBefore.
@@ -1725,12 +1726,16 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 
 		ri := ctc.as(t, users[0]).ri
 		sabRemote := messageSabotagerRemote{RemoteInterface: ri}
-		tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return sabRemote })
+		tc.Context().UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
+			return sabRemote
+		})
 		ctx := ctc.as(t, users[0]).startCtx
 		tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 			ConversationID: created.Id,
 		})
-		tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return ri })
+		tc.Context().UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
+			return ri
+		})
 		if err != nil {
 			t.Fatalf("GetThreadLocal error: %v", err)
 		}
@@ -2848,7 +2853,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		tc := ctc.world.Tcs[users[0].Username]
-		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		ri := ctc.as(t, users[0]).ri
+		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
 		uiThreadLoader.remoteThreadDelay = &delay
@@ -3053,7 +3059,8 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		tc := ctc.world.Tcs[users[0].Username]
-		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		ri := ctc.as(t, users[0]).ri
+		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
 		uiThreadLoader.remoteThreadDelay = &delay
@@ -3191,7 +3198,8 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		tc := ctc.world.Tcs[users[0].Username]
-		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		ri := ctc.as(t, users[0]).ri
+		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
 		uiThreadLoader.remoteThreadDelay = &delay
@@ -3517,7 +3525,8 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		tc := ctc.world.Tcs[users[0].Username]
-		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		ri := ctc.as(t, users[0]).ri
+		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
 		uiThreadLoader.remoteThreadDelay = &delay
@@ -3617,7 +3626,8 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		ri := ctc.as(t, users[0]).ri
+		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = nil
 		uiThreadLoader.remoteThreadDelay = &delay
@@ -3775,7 +3785,8 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
 		tc := ctc.world.Tcs[users[0].Username]
-		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		ri := ctc.as(t, users[0]).ri
+		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
 		uiThreadLoader.cachedThreadDelay = &delay
 		tc.ChatG.UIThreadLoader = uiThreadLoader
@@ -3824,7 +3835,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].ChatG
 		ri := ctc.as(t, users[0]).ri
-		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		g.UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
 
@@ -3839,7 +3850,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		require.Error(t, err)
 
 		// Advance clock and look for stale
-		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return ri })
+		g.UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface { return ri })
 		ctc.world.Fc.Advance(time.Hour)
 
 		updates := consumeNewThreadsStale(t, listener)
@@ -6509,7 +6520,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 			ctx = ctc.as(t, users[i]).startCtx
 			uid := gregor1.UID(users[i].GetUID().ToBytes())
 			tv, err := g.ConvSource.Pull(ctx, conv.Id, uid,
-				chat1.GetThreadReason_GENERAL, nil, nil)
+				chat1.GetThreadReason_GENERAL, nil, nil, nil)
 			if i == 3 {
 				require.Error(t, err)
 			} else {
@@ -6929,7 +6940,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			consumeNewMsgLocal(t, listener, chat1.MessageType_REQUESTPAYMENT)
 
 			tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid,
-				chat1.GetThreadReason_GENERAL, nil, nil)
+				chat1.GetThreadReason_GENERAL, nil, nil, nil)
 			require.NoError(t, err)
 			require.NotZero(t, len(tv.Messages))
 			require.Equal(t, chat1.MessageType_REQUESTPAYMENT, tv.Messages[0].GetMessageType())
@@ -6957,7 +6968,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
 
 			tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid,
-				chat1.GetThreadReason_GENERAL, nil, nil)
+				chat1.GetThreadReason_GENERAL, nil, nil, nil)
 			require.NoError(t, err)
 			require.NotZero(t, len(tv.Messages))
 			require.Equal(t, chat1.MessageType_DELETE, tv.Messages[0].GetMessageType())
@@ -7710,7 +7721,7 @@ func TestTeamBotSettings(t *testing.T) {
 			// ensure gregor withholds messages for restricted bot members
 			// unless it is specifically keyed for them.
 			tv, err := ctc.world.Tcs[botua.Username].Context().ConvSource.Pull(ctc.as(t, botua).startCtx,
-				created.Id, botuaUID, chat1.GetThreadReason_GENERAL, nil, nil)
+				created.Id, botuaUID, chat1.GetThreadReason_GENERAL, nil, nil, nil)
 			require.NoError(t, err)
 			// expected botua keyed messages
 			// NOTE that for ephemeral messages we include deleted messages in the thread
@@ -7741,8 +7752,8 @@ func TestTeamBotSettings(t *testing.T) {
 			}
 			require.Equal(t, len(expectedBotuaTyps), validIndex)
 
-			tv, err = ctc.world.Tcs[botua2.Username].Context().ConvSource.Pull(ctc.as(t, botua2).startCtx, created.Id,
-				botuaUID2, chat1.GetThreadReason_GENERAL, nil, nil)
+			tv, err = ctc.world.Tcs[botua2.Username].Context().ConvSource.Pull(ctc.as(t, botua2).startCtx,
+				created.Id, botuaUID2, chat1.GetThreadReason_GENERAL, nil, nil, nil)
 			require.NoError(t, err)
 			// expected botua2 keyed messages
 			// NOTE that for ephemeral messages we include deleted messages in the thread

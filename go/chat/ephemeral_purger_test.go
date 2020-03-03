@@ -80,7 +80,7 @@ func TestBackgroundPurge(t *testing.T) {
 		}, 0, nil, nil, nil)
 		require.NoError(t, err)
 		thread, err := tc.ChatG.ConvSource.Pull(ctx, convID, uid,
-			chat1.GetThreadReason_GENERAL,
+			chat1.GetThreadReason_GENERAL, nil,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			}, nil)
@@ -209,7 +209,7 @@ func TestBackgroundPurge(t *testing.T) {
 	t.Logf("assert listener 3")
 	world.Fc.Advance(lifetimeDuration)
 	thread, err := tc.ChatG.ConvSource.Pull(ctx, conv1.ConvID, uid,
-		chat1.GetThreadReason_GENERAL,
+		chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
