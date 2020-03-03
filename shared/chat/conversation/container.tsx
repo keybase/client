@@ -53,11 +53,11 @@ let Conversation = (p: SwitchProps) => {
     // eslint-disable-next-line
     React.useEffect(() => {
       if (isFocused) {
-        if (_storeConvoIDKey !== conversationIDKey) {
+        if (_storeConvoIDKey !== conversationIDKey && Constants.isValidConversationIDKey(conversationIDKey)) {
           dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'}))
         }
       } else {
-        if (!Constants.isSplit && _storeConvoIDKey !== conversationIDKey) {
+        if (!Constants.isSplit && _storeConvoIDKey === conversationIDKey) {
           dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey: conversationIDKey}))
         }
       }
@@ -97,9 +97,9 @@ if (Container.isMobile) {
 
 // @ts-ignore
 Conversation.navigationOptions = {
-  header: ({scene}) => (
-    <HeaderArea conversationIDKey={scene.route.params.conversationIDKey} progress={scene.progress} />
-  ),
+  header: undefined,
+  headerLeft: null,
+  headerTitle: () => <HeaderArea />,
 }
 
 const ConversationMemoed = React.memo(Conversation)

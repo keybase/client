@@ -766,7 +766,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	getDelay := func() time.Duration {
 		return baseDelay - (t.clock.Now().Sub(startTime))
 	}
-	var rconv types.RemoteConversation
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -837,6 +836,10 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			}()
 			if t.resolveThreadDelay != nil {
 				t.clock.Sleep(*t.resolveThreadDelay)
+			}
+			rconv, err := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
+			if err != nil {
+				return err
 			}
 			for _, skip := range skips {
 				messages := skip.Msgs

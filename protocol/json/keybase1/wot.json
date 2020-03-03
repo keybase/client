@@ -174,6 +174,23 @@
       ],
       "response": null
     },
+    "wotReactCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reaction",
+          "type": "WotReactionType"
+        }
+      ],
+      "response": null
+    },
     "wotListCLI": {
       "request": [
         {

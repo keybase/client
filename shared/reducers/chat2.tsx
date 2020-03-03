@@ -694,6 +694,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       targetConversationIDKey,
     }
   },
+  [Chat2Gen.addToMessageMap]: (draftState, action) => {
+    const {message} = action.payload
+    const convMap =
+      draftState.messageMap.get(message.conversationIDKey) ?? new Map<Types.Ordinal, Types.Message>()
+    convMap.set(message.ordinal, message)
+    draftState.messageMap.set(message.conversationIDKey, convMap)
+  },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, shouldClearOthers} = action.payload
     // pull out deletes and handle at the end
@@ -1235,14 +1242,17 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [EngineGen.chat1NotifyChatChatParticipantsInfo]: (draftState, action) => {
-    const {convID, participants} = action.payload.params
-    const conversationIDKey = Types.conversationIDToKey(convID)
-    if (participants) {
-      draftState.participantMap.set(
-        conversationIDKey,
-        Constants.uiParticipantsToParticipantInfo(participants)
-      )
-    }
+    const {participants: participantMap} = action.payload.params
+    Object.keys(participantMap).forEach(convIDStr => {
+      const participants = participantMap[convIDStr]
+      const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
+      if (participants) {
+        draftState.participantMap.set(
+          conversationIDKey,
+          Constants.uiParticipantsToParticipantInfo(participants)
+        )
+      }
+    })
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, initialTrustedLoad, removals} = action.payload

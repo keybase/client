@@ -10,7 +10,8 @@ import (
 )
 
 func getWotVouchChainLink(mctx MetaContext, uid keybase1.UID, sigID keybase1.SigID) (cl *WotVouchChainLink, voucher *User, err error) {
-	user, err := LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(uid))
+	// requires a full chain load
+	user, err := LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(uid).WithStubMode(StubModeUnstubbed))
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error loading user: %v", err)
 	}

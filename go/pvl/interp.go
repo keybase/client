@@ -132,7 +132,7 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 		return perr
 	}
 
-	sigBody, sigID, err := libkb.OpenSig(info.ArmoredSig)
+	sigBody, sigIDBase, err := libkb.OpenSig(info.ArmoredSig)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %v", err)
@@ -160,6 +160,8 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 				"Bad protocol in sig: %s", info.Protocol)
 		}
 	}
+
+	sigID := sigIDBase.ToSigIDLegacy()
 
 	mknewstate := func(i int) (scriptState, libkb.ProofError) {
 		state := scriptState{

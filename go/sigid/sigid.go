@@ -65,7 +65,7 @@ func isModernSigIDMaker(clientName string, clientVersionString string) YNM {
 //
 // So code on opposite sides of this bug will generate SigIDs in two
 // different ways.
-func isMaybeModernSigIDMakerModern(sigID keybase1.SigID) bool {
+func isMaybeModernSigIDMakerModern(sigID keybase1.SigIDBase) bool {
 	buf := sigID.ToBytes()
 	if buf == nil {
 		return true
@@ -102,7 +102,7 @@ func isMaybeModernSigIDMakerModern(sigID keybase1.SigID) bool {
 	return true
 }
 
-func ComputeSigBodyAndID(sigInfo *kbcrypto.NaclSigInfo, clientName string, clientVersion string) (body []byte, sigID keybase1.SigID, err error) {
+func ComputeSigBodyAndID(sigInfo *kbcrypto.NaclSigInfo, clientName string, clientVersion string) (body []byte, sigID keybase1.SigIDBase, err error) {
 	isModern := isModernSigIDMaker(clientName, clientVersion)
 	body, err = kbcrypto.EncodePacketToBytes(sigInfo)
 	sigID = kbcrypto.ComputeSigIDFromSigBody(body)

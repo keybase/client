@@ -17,6 +17,7 @@ import ChooseConversation from './conversation-list/choose-conversation'
 type Props = Container.RouteProps<{
   path?: Types.Path
   incomingShareItems?: Array<RPCTypes.IncomingShareItem>
+  useOriginal: boolean
   url?: string
 }>
 
@@ -25,6 +26,7 @@ const isChatText = (item: RPCTypes.IncomingShareItem): boolean =>
 
 const MobileSendAttachmentToChat = (props: Props) => {
   const incomingShareItems = Container.getRouteProps(props, 'incomingShareItems', undefined)
+  const useOriginal = Container.getRouteProps(props, 'useOriginal', false)
   const url = Container.getRouteProps(props, 'url', undefined)
   const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
   const dispatch = Container.useDispatch()
@@ -34,7 +36,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
     // If it's a chat text, we fill it in the compose box instead of sending it
     // as an attachment.
     ?.filter(item => !isChatText(item))
-    ?.map(({payloadPath}) => payloadPath)
+    ?.map(({originalPath, scaledPath}) => (useOriginal ? originalPath : scaledPath || originalPath))
   const pathsFromUrl = url ? [url] : []
   const pathsFromPath = path ? [path] : []
   const sendPaths = pathsFromIncomingShare || pathsFromUrl || pathsFromPath || []

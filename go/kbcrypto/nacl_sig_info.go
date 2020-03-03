@@ -54,10 +54,6 @@ func NewVerificationError(e error) VerificationError {
 	return VerificationError{Cause: e}
 }
 
-const (
-	SCSigCannotVerify = int(keybase1.StatusCode_SCSigCannotVerify)
-)
-
 func (e VerificationError) Error() string {
 	if e.Cause == nil {
 		return "Verification failed"
@@ -198,7 +194,7 @@ func NaclVerifyWithPayload(sig string, payloadIn []byte) (nk *NaclSigningKeyPubl
 	return nk, fullBody, nil
 }
 
-func (s NaclSigInfo) SigID() (ret keybase1.SigID, err error) {
+func (s NaclSigInfo) SigID() (ret keybase1.SigIDBase, err error) {
 	var body []byte
 	body, err = EncodePacketToBytes(&s)
 	if err != nil {

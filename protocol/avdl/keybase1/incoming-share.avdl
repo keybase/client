@@ -5,12 +5,15 @@ protocol incomingShare {
   enum IncomingShareType {
     FILE_0,
     TEXT_1,
-    IMAGE_2
+    IMAGE_2,
+    VIDEO_3
   }
 
   record IncomingShareItem {
     IncomingShareType type;
-    string payloadPath;
+    string originalPath;
+    union{null, string} scaledPath;
+    union{null, string} thumbnailPath;
     union {null, string} content;
   }
 

@@ -191,7 +191,10 @@ type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly 
 type _SetDirectMountDirPayload = {readonly directMountDir: string}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string | null}
-type _SetIncomingShareSourcePayload = {readonly source: Types.LocalPath | Array<RPCTypes.IncomingShareItem>}
+type _SetIncomingShareSourcePayload = {
+  readonly source: Types.LocalPath | Array<RPCTypes.IncomingShareItem>
+  readonly useOriginal: boolean
+}
 type _SetLastPublicBannerClosedTlfPayload = {readonly tlf: string}
 type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
 type _SetPathItemActionMenuDownloadPayload = {
