@@ -372,11 +372,14 @@ func MakeSigchainV2OuterSig(
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
+	var sigIDBase keybase1.SigIDBase
 
-	sig, sigid, err = signingKey.SignToString(encodedOuterLink)
+	sig, sigIDBase, err = signingKey.SignToString(encodedOuterLink)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
+	params := keybase1.SigIDSuffixParametersFromTypeAndVersion(string(v1LinkType), keybase1.SigVersion(2))
+	sigid = sigIDBase.ToSigID(params)
 
 	linkID = ComputeLinkID(encodedOuterLink)
 	return sig, sigid, linkID, nil
@@ -476,8 +479,16 @@ func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, er
 	return o.kid, nil
 }
 
+func (t SigchainV2Type) SigIDSuffixParams(v keybase1.SigVersion) keybase1.SigIDSuffixParameters {
+	return keybase1.SigIDSuffixParameters{
+		IsUserSig:       t.IsSupportedUserType(),
+		IsWalletStellar: (t == SigchainV2TypeWalletStellar),
+		SigVersion:      v,
+	}
+}
+
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
-	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
+	payload, kid, sigIDBase, err := SigExtractPayloadAndKID(armored)
 	if err != nil {
 		return nil, err
 	}
@@ -489,9 +500,10 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	if err := msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
+	params := ol.LinkType.SigIDSuffixParams(keybase1.SigVersion(2))
 	ret := OuterLinkV2WithMetadata{
 		OuterLinkV2: ol,
-		sigID:       sigID,
+		sigID:       sigIDBase.ToSigID(params),
 		raw:         payload,
 		kid:         kid,
 		sig:         armored,

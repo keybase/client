@@ -276,9 +276,9 @@ func (mr MerkleRoot) IsNil() bool {
 type SkipSequence []MerkleRootPayload
 
 type MerkleTriple struct {
-	Seqno  keybase1.Seqno `json:"seqno"`
-	LinkID LinkID         `json:"id"`
-	SigID  keybase1.SigID `json:"sigid,omitempty"`
+	Seqno  keybase1.Seqno     `json:"seqno"`
+	LinkID LinkID             `json:"id"`
+	SigID  keybase1.SigIDBase `json:"sigid,omitempty"`
 }
 
 type MerkleUserLeaf struct {
@@ -1457,9 +1457,9 @@ func parseTriple(jw *jsonw.Wrapper) (*MerkleTriple, error) {
 		return nil, err
 	}
 
-	var si keybase1.SigID
+	var si keybase1.SigIDBase
 	if l == 3 {
-		si, err = GetSigID(jw.AtIndex(2), false)
+		si, err = GetSigIDBase(jw.AtIndex(2))
 		if err != nil {
 			return nil, err
 		}
