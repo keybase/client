@@ -554,8 +554,13 @@ const loadTeam = async (state: TypedState, action: TeamsGen.LoadTeamPayload, log
     return
   }
 
-  const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
-  return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
+  try {
+    const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
+    return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
+  } catch (e) {
+    logger.error(e.message)
+    return
+  }
 }
 
 function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPayload, logger: Saga.SagaLogger) {
