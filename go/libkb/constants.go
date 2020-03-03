@@ -329,6 +329,7 @@ const (
 	SCChatStalePreviousState                    = int(keybase1.StatusCode_SCChatStalePreviousState)
 	SCChatEphemeralRetentionPolicyViolatedError = int(keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError)
 	SCMerkleClientError                         = int(keybase1.StatusCode_SCMerkleClientError)
+	SCMerkleUpdateRoot                          = int(keybase1.StatusCode_SCMerkleUpdateRoot)
 	SCBadEmail                                  = int(keybase1.StatusCode_SCBadEmail)
 	SCIdentifySummaryError                      = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey                             = int(keybase1.StatusCode_SCNeedSelfRekey)
@@ -781,4 +782,13 @@ const (
 	LoginAttemptNone    LoginAttempt = 0
 	LoginAttemptOffline LoginAttempt = 1
 	LoginAttemptOnline  LoginAttempt = 2
+)
+
+const (
+	// Do not fetch the merkle root again if it was fetched within this
+	// threshold. Note that the server can always not tell us about a new root
+	// even if we set this threshold to a very short value (unless we learn
+	// about it otherwise), and that if we poll an honest server will tell us if
+	// we should update the root (which will override this threshold).
+	DefaultMerkleRootFreshness = 1 * time.Minute
 )
