@@ -307,6 +307,35 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   return meta.teamname === teamname
 }
 
+export const getBotsAndParticipants = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const meta = getMeta(state, conversationIDKey)
+  const isAdhocTeam = meta.teamType === 'adhoc'
+  const participantInfo = getParticipantInfo(state, conversationIDKey)
+  const teamMembers = state.teams.teamIDToMembers.get(meta.teamID) ?? new Map()
+  let bots: Array<string> = []
+  if (isAdhocTeam) {
+    bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
+  } else {
+    bots = [...teamMembers.values()]
+      .filter(
+        p =>
+          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
+          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
+      )
+      .map(p => p.username)
+      .sort((l, r) => l.localeCompare(r))
+  }
+  let participants: Array<string> = participantInfo.all
+  if (teamMembers && meta.channelname === 'general') {
+    participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
+      l.push(mi.username)
+      return l
+    }, [])
+  }
+  participants = flags.botUI ? participants.filter(p => !bots.includes(p)) : participants
+  return {bots, participants}
+}
+
 export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyLeaveConversation = 'chat:leaveConversation'
