@@ -2406,7 +2406,7 @@ type RemoteClient struct {
 }
 
 func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteArg) (res GetInboxRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 300000*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 1200000*time.Millisecond)
 	return
 }
 

@@ -114,7 +114,7 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
-  @timeout_msec(300000) // 5 minutes
+  @timeout_msec(1200000) // 20 minutes
   GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, GetThreadReason reason, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
 
