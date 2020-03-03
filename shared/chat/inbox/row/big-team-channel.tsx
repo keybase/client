@@ -187,13 +187,18 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.white,
     ...Styles.globalStyles.fontBold,
   },
-  unread: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: Styles.borderRadius,
-    flexShrink: 0,
-    height: 8,
-    width: 8,
-  },
+  unread: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.orange,
+      borderRadius: Styles.borderRadius,
+      flexShrink: 0,
+      height: 8,
+      width: 8,
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.tiny,
+    },
+  }),
 }))
 
 export default React.memo(BigTeamChannel)
