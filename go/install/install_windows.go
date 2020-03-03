@@ -261,12 +261,8 @@ func deprecatedStartupInfo(logFile *os.File) {
 	if appDataDir, err := libkb.AppDataDir(); err != nil {
 		logFile.WriteString("Error getting AppDataDir\n")
 	} else {
-		autostartLinkPath := filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")
-		if exists, err := libkb.FileExists(autostartLinkPath); err == nil && exists == false {
+		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
 			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
-		} else if exists == true {
-			// file exists. remove it because we have a new way of doing this.
-			_ = os.Remove(autostartLinkPath)
 		} else if err != nil {
 			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
 			if err != nil {
