@@ -98,21 +98,21 @@ const ShowcaseTeamOffer = (props: Props) => {
       {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
       <Kb.ScrollView>
         {Styles.isMobile && <ShowcaseTeamOfferHeader />}
-        {props.teams
-          .filter(teamMeta => teamMeta.isMember)
-          .map(teamMeta => (
-            <TeamRow
-              key={teamMeta.id}
-              canShowcase={teamMeta.allowPromote || ['admin', 'owner'].includes(teamMeta.role)}
-              isExplicitMember={teamMeta.isMember}
-              name={teamMeta.teamname}
-              isOpen={teamMeta.isOpen}
-              membercount={teamMeta.memberCount}
-              onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
-              showcased={teamMeta.showcasing}
-              waiting={!!props.waiting[teamWaitingKey(teamMeta.teamname)]}
-            />
-          ))}
+        {props.teams.map(teamMeta => (
+          <TeamRow
+            key={teamMeta.id}
+            canShowcase={
+              (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
+            }
+            isExplicitMember={teamMeta.isMember}
+            name={teamMeta.teamname}
+            isOpen={teamMeta.isOpen}
+            membercount={teamMeta.memberCount}
+            onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
+            showcased={teamMeta.showcasing}
+            waiting={!!props.waiting[teamWaitingKey(teamMeta.teamname)]}
+          />
+        ))}
       </Kb.ScrollView>
     </Kb.Box2>
   )
