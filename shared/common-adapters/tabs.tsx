@@ -101,13 +101,27 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   divider: {
     ...Styles.globalStyles.flexBoxRow,
-    minHeight: 2,
     backgroundColor: Styles.globalColors.transparent,
+    minHeight: 2,
   },
   dividerSelected: {
     ...Styles.globalStyles.flexBoxRow,
-    minHeight: 2,
     backgroundColor: Styles.globalColors.blue,
+    minHeight: 2,
+  },
+  icon: {
+    alignSelf: 'center',
+  },
+  iconSelected: {
+    alignSelf: 'center',
+    color: Styles.globalColors.black,
+  },
+  progressIndicator: {
+    height: 17,
+    width: 17,
+  },
+  selected: {
+    color: Styles.globalColors.black,
   },
   tab: {
     flex: 1,
@@ -125,20 +139,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   tabTextContainer: {justifyContent: 'center'},
-  icon: {
-    alignSelf: 'center',
-  },
-  iconSelected: {
-    alignSelf: 'center',
-    color: Styles.globalColors.black,
-  },
-  progressIndicator: {
-    height: 17,
-    width: 17,
-  },
-  selected: {
-    color: Styles.globalColors.black,
-  },
 }))
 
 export default Tabs
