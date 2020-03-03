@@ -18,32 +18,11 @@ type Props = {
 }
 type OwnProps = Container.RouteProps<Props>
 
-// TODO: upon visiting this page, dispatch something to load the subteam data into the store for all these subteams
-const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
-  const subteamsAll = Constants.getTeamDetails(state, teamID).subteams
-  let subteamsNotIn: Array<Types.TeamMeta> = []
-  let subteamsIn: Array<Types.TeamMeta> = []
-  subteamsAll.forEach(subteamID => {
-    const subteamDetails = Constants.getTeamDetails(state, subteamID)
-    const subteamMeta = Constants.getTeamMeta(state, subteamID)
-    const memberInSubteam = subteamDetails.members.has(username)
-    if (memberInSubteam) {
-      subteamsIn.push(subteamMeta)
-    } else {
-      subteamsNotIn.push(subteamMeta)
-    }
-  })
-  return {
-    subteamsIn,
-    subteamsNotIn,
-  }
-}
-
 const TeamMember = (props: OwnProps) => {
   const username = Container.getRouteProps(props, 'username', '')
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
-    getSubteamsInNotIn(state, teamID, username)
+    Constants.getSubteamsInNotIn(state, teamID, username)
   )
   const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
   const sections = [
@@ -188,6 +167,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
     />
   )
 
+  // TODO(Y2K-1291): get this data
   const channels = ['general', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'mmm']
   const channelsJoined = channels.join(', #')
   const body = (
