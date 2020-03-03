@@ -119,7 +119,6 @@ const styles = Styles.styleSheetCreate(
       userMatchMention: {
         alignSelf: 'flex-start',
         justifyContent: 'center',
-        marginLeft: Styles.globalMargins.small,
       },
     } as const)
 )

@@ -257,7 +257,7 @@ const BottomRow = (props: {
   const keybaseUsernameComponent = serviceUserIsAlsoKeybaseUser ? (
     <>
       <Kb.Text
-        type="BodySemibold"
+        type="BodyBold"
         style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
         lineClamp={1}
       >
@@ -313,7 +313,7 @@ const Username = (props: {
   username: string
 }) => (
   <Kb.Text
-    type="BodySemibold"
+    type={props.isKeybaseResult && props.keybaseUsername ? 'BodyBold' : 'BodySemibold'}
     style={followingStateToStyle(
       props.isKeybaseResult && props.keybaseUsername ? props.followingState : 'NoState'
     )}
