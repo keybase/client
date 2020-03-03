@@ -77,3 +77,25 @@ func GeneratePackedEncryptedKeyInvitelink(ctx context.Context, ikey keybase1.Sei
 	return generatePackedEncryptedKeyWithSecretKeyInvitelink(ikey, appKey.Key,
 		appKey.KeyGeneration, nonce, label)
 }
+
+func GenerateSeitanInvitelinkAcceptanceKey(sikey []byte, uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
+	type AKeyPayload struct {
+		Stage       string         `codec:"stage" json:"stage"`
+		UID         keybase1.UID   `codec:"uid" json:"uid"`
+		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
+		CTime       int64          `codec:"ctime" json:"ctime"`
+		Version     SeitanVersion  `codec:"version" json:"version"`
+	}
+
+	akeyPayload, err := msgpack.Encode(AKeyPayload{
+		Stage:       "accept",
+		UID:         uid,
+		EldestSeqno: eldestSeqno,
+		CTime:       unixTime,
+		Version:     SeitanVersionInvitelink,
+	})
+	if err != nil {
+		return akey, encoded, err
+	}
+	return generateAcceptanceKey(akeyPayload, sikey)
+}

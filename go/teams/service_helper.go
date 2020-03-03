@@ -1246,7 +1246,10 @@ func parseAndAcceptSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalCon
 		return false, libkb.TeamInviteBadTokenError{}
 	}
 	err = AcceptSeitanInvitelink(ctx, g, seitan)
-	return true, err
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 
 }
 
@@ -1287,7 +1290,7 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	}
 
 	unixNow := time.Now().Unix()
-	_, encoded, err := GenerateAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, unixNow)
+	_, encoded, err := GenerateSeitanV1AcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, unixNow)
 	if err != nil {
 		return err
 	}
@@ -1354,8 +1357,18 @@ func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
 		return err
 	}
 
-	now := keybase1.ToTime(time.Now())
-	encoded, inviteID, err := ProcessSeitanInvitelink(ikey, uv, now)
+	sikey, err := GenerateSIKeyInvitelink(ikey)
+	if err != nil {
+		return err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return err
+	}
+
+	unixNow := time.Now().Unix()
+	_, encoded, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, unixNow)
 	if err != nil {
 		return err
 	}
@@ -1364,7 +1377,7 @@ func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
 
 	arg := apiArg("team/seitan_invitelink")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
-	arg.Args.Add("now", libkb.HTTPTime{Val: now})
+	arg.Args.Add("now", libkb.HTTPTime{Val: keybase1.Time(unixNow)})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
 	_, err = mctx.G().API.Post(mctx, arg)
 	return err

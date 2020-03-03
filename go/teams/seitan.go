@@ -271,26 +271,9 @@ func (pkey SeitanPKey) DecryptKeyAndLabel(ctx context.Context, team *Team) (ret 
 // "Acceptance Key"
 type SeitanAKey []byte
 
-func GenerateAcceptanceKey(sikey []byte, uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
-	type AKeyPayload struct {
-		Stage       string         `codec:"stage" json:"stage"`
-		UID         keybase1.UID   `codec:"uid" json:"uid"`
-		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
-		CTime       int64          `codec:"ctime" json:"ctime"`
-	}
-
-	payload, err := msgpack.Encode(AKeyPayload{
-		Stage:       "accept",
-		UID:         uid,
-		EldestSeqno: eldestSeqno,
-		CTime:       unixTime,
-	})
-	if err != nil {
-		return akey, encoded, err
-	}
-
+func generateAcceptanceKey(akeyPayload []byte, sikey []byte) (akey SeitanAKey, encoded string, err error) {
 	mac := hmac.New(sha512.New, sikey[:])
-	_, err = mac.Write(payload)
+	_, err = mac.Write(akeyPayload)
 	if err != nil {
 		return akey, encoded, err
 	}
@@ -299,4 +282,24 @@ func GenerateAcceptanceKey(sikey []byte, uid keybase1.UID, eldestSeqno keybase1.
 	akey = out[:32]
 	encoded = base64.StdEncoding.EncodeToString(akey)
 	return akey, encoded, nil
+}
+
+func GenerateSeitanV1AcceptanceKey(sikey []byte, uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
+	type AKeyPayload struct {
+		Stage       string         `codec:"stage" json:"stage"`
+		UID         keybase1.UID   `codec:"uid" json:"uid"`
+		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
+		CTime       int64          `codec:"ctime" json:"ctime"`
+	}
+
+	akeyPayload, err := msgpack.Encode(AKeyPayload{
+		Stage:       "accept",
+		UID:         uid,
+		EldestSeqno: eldestSeqno,
+		CTime:       unixTime,
+	})
+	if err != nil {
+		return akey, encoded, err
+	}
+	return generateAcceptanceKey(akeyPayload, sikey)
 }
