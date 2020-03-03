@@ -516,7 +516,7 @@ def testGoBuilds(prefix, packagesToTest) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
-      timeout(activity: true, time: 360, unit: 'SECONDS') {
+      timeout(activity: true, time: 720, unit: 'SECONDS') {
         sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
       }
     }
