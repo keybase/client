@@ -75,6 +75,8 @@ export const TextInput = (props: TextProps) => {
   }
 
   const onOpenFile = async () => {
+    // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
+    // To set a directory as input, a user will need to drag the directory into Keybase.
     const options = {
       allowDirectories: true,
       buttonLabel: 'Select',
