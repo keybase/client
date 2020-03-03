@@ -503,28 +503,35 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getChannelSuggestions = (filter: string) => {
     const fil = filter.toLowerCase()
+    console.warn(this.props.suggestChannels)
     return {
-      data: this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort(),
+      data: this.props.suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
       loading: this.props.suggestChannelsLoading,
       useSpaces: false,
     }
   }
 
-  _renderChannelSuggestion = (channelname: string, selected: boolean) => (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        styles.suggestionBase,
-        styles.fixSuggestionHeight,
-        {
-          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-        },
-      ])}
-    >
-      <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
-    </Kb.Box2>
-  )
+  _renderChannelSuggestion = (
+    {channelname, teamname}: {channelname: string; teamname?: string},
+    selected: boolean
+  ) =>
+    teamname ? (
+      this._renderTeamSuggestion(teamname, channelname, selected)
+    ) : (
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          styles.suggestionBase,
+          styles.fixSuggestionHeight,
+          {
+            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+          },
+        ])}
+      >
+        <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
+      </Kb.Box2>
+    )
 
   _transformChannelSuggestion = (
     channelname: string,
