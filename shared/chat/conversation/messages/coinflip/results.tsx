@@ -223,7 +223,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
       props.shuffle.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
-        <Kb.Text selectable={true} type="BodySmallSemibold" style={styles.listFull}>
+        <Kb.Text selectable={true} type="BodySmallBold" style={styles.listFull}>
           Full shuffle:{' '}
           <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
             {props.shuffle && props.shuffle.join(', ')}
@@ -326,9 +326,6 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.xsmall,
       },
       listFull: Styles.platformStyles({
-        common: {
-          color: Styles.globalColors.black,
-        },
         isElectron: {
           wordBreak: 'break-word',
         } as const,

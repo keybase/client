@@ -422,7 +422,7 @@ class Input extends React.Component<InputProps, InputState> {
       gap="tiny"
     >
       <Kb.Avatar teamname={teamname} size={32} />
-      <Kb.Text type="Body">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
+      <Kb.Text type="BodyBold">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
     </Kb.Box2>
   )
 
@@ -466,10 +466,9 @@ class Input extends React.Component<InputProps, InputState> {
           <Kb.Avatar username={username} size={32} />
         )}
         <Kb.ConnectedUsernames
-          type="Body"
+          type="BodyBold"
           colorFollowing={true}
           usernames={[username]}
-          style={styles.boldStyle}
           withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>
@@ -565,7 +564,7 @@ class Input extends React.Component<InputProps, InputState> {
           ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <Kb.Text type="BodySemibold" style={styles.boldStyle}>
+            <Kb.Text type="BodySemibold">
               {prefix}
               {command.name}
             </Kb.Text>
@@ -645,7 +644,6 @@ class Input extends React.Component<InputProps, InputState> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      boldStyle: {fontWeight: '700'},
       container: Styles.platformStyles({
         isMobile: {justifyContent: 'flex-end'},
       }),
