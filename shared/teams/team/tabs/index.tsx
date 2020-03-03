@@ -23,14 +23,14 @@ type TeamTabsProps = {
 
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs: Array<TabType<Types.TabKey>> = [
-    {title: 'members' as const, badgeNumber: props.resetUserCount},
+    {badgeNumber: props.resetUserCount, title: 'members' as const},
     ...(flags.teamsRedesign && props.isBig ? [{title: 'channels' as const}] : []),
     ...(props.admin && !flags.teamsRedesign
       ? [
           {
-            title: 'invites' as const,
-            text: `Invites (${props.numInvites + props.numRequests})`,
             badgeNumber: Math.min(props.newRequests, props.numRequests),
+            text: `Invites (${props.numInvites + props.numRequests})`,
+            title: 'invites' as const,
           },
         ]
       : []),
