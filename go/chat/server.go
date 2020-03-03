@@ -2989,6 +2989,9 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 
 	// loop through convs
 	for _, conv := range inbox.ConvsUnverified {
+		if conv.GetMembersType() != chat1.ConversationMembersType_TEAM {
+			continue
+		}
 		userPresent := make(map[keybase1.UID]bool)
 		for _, uid := range providedUIDs {
 			userPresent[keybase1.UID(uid.String())] = false
