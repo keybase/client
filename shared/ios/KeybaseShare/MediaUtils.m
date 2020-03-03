@@ -40,7 +40,40 @@
   return nil;
 }
 
++ (NSError *) stripExifAtURL:(NSURL*)url {
+  NSError * error;
+  CGImageSourceRef cgSource = CGImageSourceCreateWithURL((__bridge CFURLRef)url, nil);
+  CFStringRef type = CGImageSourceGetType(cgSource);
+  size_t count = CGImageSourceGetCount(cgSource);
+  NSURL * tmpDstURL = [url URLByAppendingPathExtension:@"tmp"];
+  CGImageDestinationRef cgDestination = CGImageDestinationCreateWithURL((__bridge CFURLRef)tmpDstURL, type, count, NULL);
+  
+  NSDictionary *removeExifProperties = @{(id)kCGImagePropertyExifDictionary: (id)kCFNull,
+                                         (id)kCGImagePropertyGPSDictionary : (id)kCFNull};
+  
+  for (size_t index = 0; index < count; index++) {
+    CGImageDestinationAddImageFromSource(cgDestination, cgSource, index, (__bridge CFDictionaryRef)removeExifProperties);
+  }
+  
+  if (!CGImageDestinationFinalize(cgDestination)) {
+    return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{@"message":@"CGImageDestinationFinalize failed"}];
+  }
+  
+  CFRelease(cgDestination);
+  CFRelease(cgSource);
+  
+  [[NSFileManager defaultManager] replaceItemAtURL:url withItemAtURL:tmpDstURL backupItemName:nil options:0 resultingItemURL:nil error:&error];
+  
+  return error;
+}
+
 + (void) processImageFromOriginal:(NSURL*)url completion:(ProcessMediaCompletion)completion {
+  NSError * error = [MediaUtils stripExifAtURL:url];
+  if (error != nil){
+    completion(error, nil, nil);
+    return;
+  }
+  
   NSString * basename = [[url URLByDeletingPathExtension] lastPathComponent];
   NSURL * parent = [url URLByDeletingLastPathComponent];
   NSURL * scaledURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.scaled.jpg", basename]];
@@ -48,7 +81,7 @@
   
   CGImageSourceRef cgSource = CGImageSourceCreateWithURL((__bridge CFURLRef)url, nil);
   
-  NSError * error = [MediaUtils _scaleDownCGImageSourceRef:cgSource dstURL:scaledURL options:[MediaUtils _scaledImageOptions]];
+  error = [MediaUtils _scaleDownCGImageSourceRef:cgSource dstURL:scaledURL options:[MediaUtils _scaledImageOptions]];
   if (error != nil) {
     completion(error, nil, nil);
     return;
@@ -64,11 +97,16 @@
 }
 
 + (void) processVideoFromOriginal:(NSURL*)url completion:(ProcessMediaCompletion)completion {
+  NSError * error = [MediaUtils stripExifAtURL:url];
+  if (error != nil){
+    completion(error, nil, nil);
+    return;
+  }
+  
   NSString * basename = [[url URLByDeletingPathExtension] lastPathComponent];
   NSURL * parent = [url URLByDeletingLastPathComponent];
   NSURL * normalVideoURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.scaled.mp4", basename]];
   NSURL * thumbnailURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.thumbnail.jpg", basename]];
-  NSError * error;
   
   AVURLAsset * asset = [[AVURLAsset alloc] initWithURL:url options:nil];
   
