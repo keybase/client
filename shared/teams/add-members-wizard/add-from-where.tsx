@@ -22,6 +22,7 @@ const AddFromWhere = (props: Props) => {
 
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
+  const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder())
   return (
     <Kb.Modal
       allowOverflow={true}
@@ -79,7 +80,7 @@ const AddFromWhere = (props: Props) => {
             icon="icon-teams-add-phone-contacts-64"
             title="From your contacts"
             description="Add your friends, family, or colleagues."
-            onClick={() => {} /* TODO add nav */}
+            onClick={onAddFromContacts}
           />
         )}
         <Kb.RichButton
