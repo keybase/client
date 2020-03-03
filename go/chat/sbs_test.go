@@ -398,6 +398,7 @@ func TestSBSWelcomeMessage(t *testing.T) {
 			newConvs[i] = res
 		}
 
+		// Conv without rooter is written last (most recently).
 		for i, nc := range newConvs {
 			mustPostLocalForTest(t, ctc, users[0], nc.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -418,6 +419,7 @@ func TestSBSWelcomeMessage(t *testing.T) {
 			require.Fail(t, "no resolve")
 		}
 
+		// Show messages in both convs using printf
 		for i, ncres := range newConvs {
 			tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 				ConversationID: ncres.Conv.GetConvID(),
@@ -431,6 +433,22 @@ func TestSBSWelcomeMessage(t *testing.T) {
 				fmt.Printf("[%d] = %s\n", i, utils.GetMsgSnippetBody(msg))
 			}
 			fmt.Printf("\n")
+		}
+
+		{
+			// Assert that conv[0] (the one with rooter) has the system message.
+			tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+				ConversationID: newConvs[0].Conv.GetConvID(),
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_SYSTEM},
+				},
+			})
+			require.NoError(t, err)
+			require.Len(t, tvres.Thread.Messages, 1) // fails here
+
+			// Because conv without rooter (newConvs[1] / convDisplayNames[1])
+			// was written to last, it gets picked in `handleSBSSingle` ->
+			// `SendChatSBSResolutionMessage` to send the system message to.
 		}
 	})
 }
