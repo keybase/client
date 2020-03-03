@@ -372,7 +372,7 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 	ctc := makeChatTestContext(t, "TestUIThreadLoaderSingleFlight", 1)
 	defer ctc.cleanup()
 
-	timeout := 2 * time.Second
+	timeout := 20 * time.Second
 	users := ctc.users()
 	chatUI := kbtest.NewChatUI()
 	tc := ctc.world.Tcs[users[0].Username]
