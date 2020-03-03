@@ -256,6 +256,9 @@ module.exports = {
   get SafeAreaViewTop() {
     return require('./safe-area-view').SafeAreaViewTop
   },
+  get useSafeArea() {
+    return require('./safe-area-view').useSafeArea
+  },
   get SaveIndicator() {
     return require('./save-indicator').default
   },
