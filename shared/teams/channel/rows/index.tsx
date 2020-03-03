@@ -25,16 +25,15 @@ const makeRows = (
   const rows: Array<Row> = []
   switch (selectedTab) {
     case 'members': {
-      const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-      const participantItems = participantInfo.all
+      const {participants} = ChatConstants.getBotsAndParticipants(state, conversationIDKey)
       rows.push({
-        count: participantItems.length,
+        count: participants.length,
         dividerType: 'members',
         key: 'member-divider:members',
         type: 'divider',
       })
       rows.push(
-        ...participantItems.map(username => ({
+        ...participants.map(username => ({
           key: `member:${username}`,
           type: 'member' as const,
           username: username,
