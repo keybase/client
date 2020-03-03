@@ -59,13 +59,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     }
 
     const isAvatar = !!(this.props.username || this.props.teamname) && !this.props.icon
-    const commonHeight = Styles.isMobile
-      ? this.props.size === 'big'
-        ? 64
-        : 48
-      : this.props.size === 'big'
-      ? 48
-      : 32
+    const commonHeight = this.props.size === 'big' ? 64 : Styles.isMobile ? 48 : 32
     const BoxComponent = this.props.onClick ? ClickableBox : Box
     const adapterProps = getAdapterProps(this.props.size || 'default')
 
@@ -151,7 +145,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       <TextOrComponent
         textType="Header"
         val={this.props.botAlias || null}
-        style={this.props.horizontal ? undefined : styles.fullWidthText}
+        style={this.props.horizontal ? styles.botAlias : styles.fullWidthText}
       />
     )
     const metas = this.props.horizontal ? (
@@ -185,7 +179,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
             this.props.horizontal
               ? Styles.collapseStyles([
                   Styles.globalStyles.flexBoxColumn,
-                  styles.textContainer,
+                  this.props.size === 'big' && styles.textContainer,
                   this.props.metaStyle,
                 ])
               : Styles.collapseStyles([
@@ -227,6 +221,9 @@ const TextOrComponent = (props: {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  botAlias: {
+    paddingTop: Styles.globalMargins.xtiny,
+  },
   fullWidthText: Styles.platformStyles({
     isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
   }),
@@ -252,9 +249,12 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   hbAvatarStyle: {
+    height: 64,
     marginRight: Styles.globalMargins.small,
+    width: 64,
   },
   hbContainerStyle: {
+    ...Styles.globalStyles.flexBoxRow,
     width: '100%',
   },
   hbIconStyle: Styles.platformStyles({
