@@ -347,9 +347,7 @@ class EditAvatar extends React.Component<Props, State> {
             onDrop={this.onDrop}
             style={Styles.collapseStyles([
               styles.container,
-              {
-                paddingTop: this.props.createdTeam ? 0 : Styles.globalMargins.xlarge,
-              },
+              this.props.createdTeam && styles.paddingTopForCreatedTeam,
             ])}
             onMouseUp={this.onMouseUp}
             onMouseDown={this.onMouseDown}
@@ -642,6 +640,9 @@ const styles = Styles.styleSheetCreate(() => ({
     maxWidth: 200,
   },
   overflowHidden: {overflow: 'hidden'},
+  paddingTopForCreatedTeam: {
+    paddingTop: Styles.globalMargins.xlarge,
+  },
   skipButton: {
     minWidth: 60,
   },
