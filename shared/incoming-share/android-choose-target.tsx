@@ -58,6 +58,7 @@ const AndroidChooseTarget = () => {
       items={[
         {
           originalPath: item.originalPath || '',
+          originalSize: 0,
           type: item.type,
         },
       ]}
