@@ -204,15 +204,15 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID, dispatch])
-  const haveCommands = !commands?.commands
+  const noCommands = !commands?.commands
   React.useEffect(() => {
     dispatch(
       WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
     )
-    if (!haveCommands) {
+    if (noCommands) {
       dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     }
-  }, [dispatch, haveCommands, botUsername])
+  }, [dispatch, noCommands, botUsername])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
