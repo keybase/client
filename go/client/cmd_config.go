@@ -396,7 +396,7 @@ func NewCmdConfigInfo(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 
 func (v *CmdConfigGet) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config: true,
+		Config: !v.Direct,
 		// The root user may use the "config get -d" command to read
 		// config files.
 		AllowRoot: v.Direct,
