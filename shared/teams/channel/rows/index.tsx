@@ -26,7 +26,7 @@ const makeRows = (
   switch (selectedTab) {
     case 'members': {
       const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-      const participantItems = participantInfo.name
+      const participantItems = participantInfo.all
       rows.push({
         count: participantItems.length,
         dividerType: 'members',
