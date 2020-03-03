@@ -1378,7 +1378,7 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 	return ikey, err
 }
 
-func (t *Team) InviteSeitanInvitelink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey keybase1.SeitanIKeyInvitelink, err error) {
+func (t *Team) InviteSeitanInvitelink(ctx context.Context, role keybase1.TeamRole) (ikey keybase1.SeitanIKeyInvitelink, err error) {
 	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v", t.Name(), role), func() error { return err })()
 
 	// Experimental code: we are figuring out how to do invite links.
@@ -1397,6 +1397,9 @@ func (t *Team) InviteSeitanInvitelink(ctx context.Context, role keybase1.TeamRol
 	if err != nil {
 		return ikey, err
 	}
+
+	// label is hardcoded for invitelinks, since they are identified by their secret
+	label := keybase1.NewSeitanKeyLabelWithGeneric(keybase1.SeitanKeyLabelGeneric{L: "link"})
 
 	_, encoded, err := GeneratePackedEncryptedKeyInvitelink(ctx, ikey, t, label)
 	if err != nil {

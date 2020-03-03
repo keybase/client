@@ -284,7 +284,7 @@ func generateAcceptanceKey(akeyPayload []byte, sikey []byte) (akey SeitanAKey, e
 	return akey, encoded, nil
 }
 
-func GenerateSeitanV1AcceptanceKey(sikey []byte, uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
+func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
 	type AKeyPayload struct {
 		Stage       string         `codec:"stage" json:"stage"`
 		UID         keybase1.UID   `codec:"uid" json:"uid"`
@@ -301,5 +301,5 @@ func GenerateSeitanV1AcceptanceKey(sikey []byte, uid keybase1.UID, eldestSeqno k
 	if err != nil {
 		return akey, encoded, err
 	}
-	return generateAcceptanceKey(akeyPayload, sikey)
+	return generateAcceptanceKey(akeyPayload, sikey[:])
 }

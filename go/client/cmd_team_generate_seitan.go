@@ -84,9 +84,9 @@ func (c *CmdTeamGenerateSeitan) Run() error {
 	labelSms.N = c.Number
 
 	arg := keybase1.TeamCreateSeitanTokenV2Arg{
-		Name:  c.Team,
-		Role:  c.Role,
-		Label: keybase1.NewSeitanKeyLabelWithSms(labelSms),
+		Teamname: c.Team,
+		Role:     c.Role,
+		Label:    keybase1.NewSeitanKeyLabelWithSms(labelSms),
 	}
 
 	res, err := cli.TeamCreateSeitanTokenV2(context.Background(), arg)

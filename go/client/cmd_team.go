@@ -33,6 +33,8 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdTeamFTL(cl, g),
 		newCmdTeamBotSettings(cl, g),
 		newCmdTeamSearch(cl, g),
+		newCmdTeamGenerateSeitan(cl, g),
+		newCmdTeamGenerateInvitelink(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificTeamCommands(cl, g)...)
 	sort.Sort(cli.ByName(subcommands))

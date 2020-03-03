@@ -50,6 +50,8 @@ func ParseSeitanVersion(s string) (version SeitanVersion, err error) {
 		return SeitanVersion1, nil
 	} else if s[seitanEncodedIKeyV2PlusOffset] == '+' {
 		return SeitanVersion2, nil
+	} else if s[seitanEncodedIKeyInvitelinkPlusOffset] == '+' {
+		return SeitanVersionInvitelink, nil
 	}
 	return version, errors.New("Invalid token, invalid '+' position")
 }

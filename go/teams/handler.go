@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
@@ -679,7 +680,7 @@ func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 	case keybase1.SeitanKeyAndLabelVersion_V2:
 		err = verifySeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
 	case keybase1.SeitanKeyAndLabelVersion_Invitelink:
-		err = verifySeitanSingleInvitelink(keyAndLabel.Invitelink().I, invite, seitan)
+		err = verifySeitanSingleInvitelink(ctx, g, keyAndLabel.Invitelink().I, invite, seitan)
 	default:
 		return fmt.Errorf("unknown KeyAndLabel version: %v", version)
 	}
@@ -703,7 +704,7 @@ func verifySeitanSingleV1(key keybase1.SeitanIKey, invite keybase1.TeamInvite, s
 		return errors.New("invite ID mismatch (seitan)")
 	}
 
-	akey, _, err := GenerateSeitanV1AcceptanceKey(sikey[:], seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
+	akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
 	if err != nil {
 		return err
 	}
@@ -751,7 +752,7 @@ func verifySeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	return nil
 }
 
-func verifySeitanSingleInvitelink(ikey keybase1.SeitanIKeyInvitelink, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, ikey keybase1.SeitanIKeyInvitelink, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	sikey, err := GenerateSIKeyInvitelink(ikey)
 	if err != nil {
 		return err
@@ -766,6 +767,7 @@ func verifySeitanSingleInvitelink(ikey keybase1.SeitanIKeyInvitelink, invite key
 		return errors.New("invite ID mismatch (seitan invitelink)")
 	}
 
+	g.Log.CWarningf(ctx, "@@@ CLKR", spew.Sdump(sikey[:]), seitan)
 	akey, _, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
 	if err != nil {
 		return err

@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbun"
@@ -1290,7 +1291,7 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	}
 
 	unixNow := time.Now().Unix()
-	_, encoded, err := GenerateSeitanV1AcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, unixNow)
+	_, encoded, err := sikey.GenerateAcceptanceKey(uv.Uid, uv.EldestSeqno, unixNow)
 	if err != nil {
 		return err
 	}
@@ -1367,8 +1368,9 @@ func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
 		return err
 	}
 
-	unixNow := time.Now().Unix()
-	_, encoded, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, unixNow)
+	now := time.Now()
+	mctx.Warning("@@@", spew.Sdump(sikey[:]), uv, now.Unix())
+	_, encoded, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, now.Unix())
 	if err != nil {
 		return err
 	}
@@ -1377,7 +1379,7 @@ func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
 
 	arg := apiArg("team/seitan_invitelink")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
-	arg.Args.Add("now", libkb.HTTPTime{Val: keybase1.Time(unixNow)})
+	arg.Args.Add("unix_timestamp_seconds", libkb.U{Val: uint64(now.Unix())})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
 	_, err = mctx.G().API.Post(mctx, arg)
 	return err
@@ -1936,12 +1938,12 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 }
 
 func CreateSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalContext, teamname string,
-	role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKeyInvitelink, error) {
+	role keybase1.TeamRole) (keybase1.SeitanIKeyInvitelink, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
 	}
-	ikey, err := t.InviteSeitanInvitelink(ctx, role, label)
+	ikey, err := t.InviteSeitanInvitelink(ctx, role)
 	if err != nil {
 		return "", err
 	}
