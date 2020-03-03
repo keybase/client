@@ -257,7 +257,7 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 
 // This is the old startup info logging. Retain it for now, but it is soon useless.
 // TODO Remove in 2021.
-func deprecatedStartupInfo(logFile *os.File) {
+func cleanupDeprecatedStartupInfo(logFile *os.File) {
 	if appDataDir, err := libkb.AppDataDir(); err != nil {
 		logFile.WriteString("Error getting AppDataDir\n")
 	} else {
@@ -303,7 +303,7 @@ func getVersionAndDrivers(logFile *os.File) {
 	logFile.WriteString("\n")
 
 	// Check whether the service shortcut is still present and not disabled
-	deprecatedStartupInfo(logFile)
+	cleanupDeprecatedStartupInfo(logFile)
 	status, err := autostartStatus()
 	logFile.WriteString(fmt.Sprintf("AutoStart: %v, %v\n", status, err))
 
