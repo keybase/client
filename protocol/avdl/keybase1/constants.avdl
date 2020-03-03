@@ -33,7 +33,6 @@ protocol constants {
     SCIdentifiesFailed_295,
     SCNoSpaceOnDevice_297,
     SCMerkleClientError_299,
-    SCMerkleUpdateRoot_300,
     SCBadEmail_472,
     SCRateLimit_602,
     SCBadSignupUsernameTaken_701,
