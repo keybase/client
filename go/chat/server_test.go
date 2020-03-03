@@ -1726,12 +1726,16 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 
 		ri := ctc.as(t, users[0]).ri
 		sabRemote := messageSabotagerRemote{RemoteInterface: ri}
-		tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return sabRemote })
+		tc.Context().UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
+			return sabRemote
+		})
 		ctx := ctc.as(t, users[0]).startCtx
 		tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 			ConversationID: created.Id,
 		})
-		tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return ri })
+		tc.Context().UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
+			return ri
+		})
 		if err != nil {
 			t.Fatalf("GetThreadLocal error: %v", err)
 		}
@@ -3831,7 +3835,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].ChatG
 		ri := ctc.as(t, users[0]).ri
-		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		g.UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
 
@@ -3846,7 +3850,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		require.Error(t, err)
 
 		// Advance clock and look for stale
-		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return ri })
+		g.UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface { return ri })
 		ctc.world.Fc.Advance(time.Hour)
 
 		updates := consumeNewThreadsStale(t, listener)

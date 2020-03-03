@@ -79,6 +79,10 @@ func (t *UIThreadLoader) Disconnected(ctx context.Context) {
 	t.offline = true
 }
 
+func (t *UIThreadLoader) SetRemoteInterface(ri func() chat1.RemoteInterface) {
+	t.ri = ri
+}
+
 func (t *UIThreadLoader) IsOffline(ctx context.Context) bool {
 	t.offlineMu.Lock()
 	defer t.offlineMu.Unlock()
