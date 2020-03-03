@@ -5,6 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as ChatConstants from '../../../constants/chat2'
+import * as TeamsGen from '../../../actions/teams-gen'
 import * as UsersGen from '../../../actions/users-gen'
 import flags from '../../../util/feature-flags'
 import capitalize from 'lodash/capitalize'
@@ -38,7 +39,7 @@ const makeTab = (name: TabKey, selectedTab: TabKey) => (
 )
 
 const ChannelTabs = (props: Props) => {
-  const {conversationIDKey, selectedTab, setSelectedTab} = props
+  const {conversationIDKey, selectedTab, setSelectedTab, teamID} = props
   const previousTab = Container.usePrevious(selectedTab)
   const {participants} = Container.useSelector(state =>
     ChatConstants.getBotsAndParticipants(state, conversationIDKey)
@@ -46,9 +47,10 @@ const ChannelTabs = (props: Props) => {
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (previousTab !== selectedTab && selectedTab === 'members') {
+      dispatch(TeamsGen.createGetMembers({teamID}))
       dispatch(UsersGen.createGetBlockState({usernames: participants}))
     }
-  }, [dispatch, participants, previousTab, selectedTab])
+  }, [dispatch, participants, previousTab, selectedTab, teamID])
   const tabs = [
     makeTab('members', selectedTab),
     makeTab('attachments', selectedTab),
