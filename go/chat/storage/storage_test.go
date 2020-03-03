@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -398,19 +399,24 @@ func TestStorageDeleteHistory(t *testing.T) {
 	// A start                            <not deletable>
 	// B text
 	// C text <----\        edited by E
-	// D headline  |                      <not deletable>
+	// D headline  |
 	// E edit -----^        edits C
 	// F text <---\         deleted by G
 	// G delete --^    ___  deletes F     <not deletable>
 	// H text           |
-	// I delete-history ^ upto H
-	// J delete-history upto itself
-	// K text
+	// I headline       |                 <not deletable>
+	// J delete-history ^ upto H
+	// K delete-history upto itself
+	// L text
 
 	tc, storage, uid := setupStorageTest(t, "delh")
 	defer tc.Cleanup()
+	inbox := NewInbox(tc.Context())
+	conv := makeConvo(gregor1.Time(0), 1, 1)
+	conv.Conv.MaxMsgSummaries = append(conv.Conv.MaxMsgSummaries, chat1.MessageSummary{MessageType: chat1.MessageType_HEADLINE, MsgID: 9})
+	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs([]types.RemoteConversation{conv}), nil))
 
-	convID := makeConvID()
+	convID := conv.GetConvID()
 	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
 	msgB := makeText(2, "some text")
 	msgC := makeText(3, "some text")
@@ -419,9 +425,10 @@ func TestStorageDeleteHistory(t *testing.T) {
 	msgF := makeText(6, "some text")
 	msgG := makeDelete(7, msgF.GetMessageID(), nil)
 	msgH := makeText(8, "some text")
-	msgI := makeDeleteHistory(9, msgH.GetMessageID())
-	msgJ := makeDeleteHistory(10, 10)
-	msgK := makeText(11, "some text")
+	msgI := makeHeadlineMessage(9)
+	msgJ := makeDeleteHistory(10, msgI.GetMessageID())
+	msgK := makeDeleteHistory(11, 11)
+	msgL := makeText(12, "some text")
 
 	type expectedM struct {
 		Name         string // letter label
@@ -511,33 +518,34 @@ func TestStorageDeleteHistory(t *testing.T) {
 
 	t.Logf("merge first delh")
 	// merge with one delh
-	merge([]chat1.MessageUnboxed{msgH, msgI}, true)
+	merge([]chat1.MessageUnboxed{msgH, msgI, msgJ}, true)
 	setExpected("A", msgA, false, 0)
-	setExpected("B", msgB, false, msgI.GetMessageID())
-	setExpected("C", msgC, false, msgI.GetMessageID())
-	setExpected("D", msgD, true, 0) // not deletable
-	setExpected("E", msgE, false, msgI.GetMessageID())
+	setExpected("B", msgB, false, msgJ.GetMessageID())
+	setExpected("C", msgC, false, msgJ.GetMessageID())
+	setExpected("D", msgD, false, msgJ.GetMessageID())
+	setExpected("E", msgE, false, msgJ.GetMessageID())
 	setExpected("F", msgF, false, msgG.GetMessageID())
-	setExpected("G", msgG, true, 0) // delete does not get deleted
-	setExpected("H", msgH, true, 0) // after the cutoff
-	setExpected("I", msgI, true, 0)
-	assertState(msgI.GetMessageID())
+	setExpected("G", msgG, true, 0)                    // delete does not get deleted
+	setExpected("H", msgH, false, msgJ.GetMessageID()) // after the cutoff
+	setExpected("I", msgI, true, 0)                    // not deletable
+	setExpected("J", msgJ, true, 0)
+	assertState(msgJ.GetMessageID())
 
 	t.Logf("merge an already-processed delh")
-	merge([]chat1.MessageUnboxed{msgH, msgI}, false)
-	assertState(msgI.GetMessageID())
+	merge([]chat1.MessageUnboxed{msgI, msgJ}, false)
+	assertState(msgJ.GetMessageID())
 
 	t.Logf("merge second delh (J)")
-	merge([]chat1.MessageUnboxed{msgJ, msgK}, true)
-	setExpected("H", msgH, false, msgJ.GetMessageID())
-	setExpected("I", msgI, true, 0) // delh can't be deleted
+	merge([]chat1.MessageUnboxed{msgK, msgL}, true)
+	setExpected("I", msgI, true, 0) // last headline can't be deleted
 	setExpected("J", msgJ, true, 0) // delh can't be deleted
-	setExpected("K", msgK, true, 0) // after the cutoff
-	assertState(msgK.GetMessageID())
+	setExpected("K", msgK, true, 0) // delh can't be deleted
+	setExpected("L", msgL, true, 0) // after the cutoff
+	assertState(msgL.GetMessageID())
 
 	t.Logf("merge non-latest delh")
-	merge([]chat1.MessageUnboxed{msgI}, false)
-	assertState(msgK.GetMessageID())
+	merge([]chat1.MessageUnboxed{msgJ}, false)
+	assertState(msgL.GetMessageID())
 
 	t.Logf("discard storage")
 	// Start over on storage, this time try things while missing
@@ -553,14 +561,15 @@ func TestStorageDeleteHistory(t *testing.T) {
 	assertState(msgB.GetMessageID())
 
 	t.Logf("merge after gap")
-	merge([]chat1.MessageUnboxed{msgH, msgI, msgJ, msgK}, true)
+	merge([]chat1.MessageUnboxed{msgH, msgI, msgJ, msgK, msgL}, true)
 	// B gets deleted even through it was across a gap
-	setExpected("B", msgB, false, msgJ.GetMessageID())
-	setExpected("H", msgH, false, msgJ.GetMessageID())
-	setExpected("I", msgI, true, 0) // delh can't be deleted
+	setExpected("B", msgB, false, msgK.GetMessageID())
+	setExpected("H", msgH, false, msgK.GetMessageID())
+	setExpected("I", msgI, true, 0) // headline can't be deleted
 	setExpected("J", msgJ, true, 0) // delh can't be deleted
-	setExpected("K", msgK, true, 0) // after the cutoff
-	assertStateAllowHoles(msgK.GetMessageID())
+	setExpected("K", msgK, true, 0) // delh can't be deleted
+	setExpected("L", msgL, true, 0) // after the cutoff
+	assertStateAllowHoles(msgL.GetMessageID())
 }
 
 func TestStorageExpunge(t *testing.T) {
@@ -568,17 +577,23 @@ func TestStorageExpunge(t *testing.T) {
 	// A start                            <not deletable>
 	// B text
 	// C text <----\        edited by E
-	// D headline  |                      <not deletable>
+	// D headline  |
 	// E edit -----^        edits C
 	// F text <---\         deleted by G
 	// G delete --^    ___  deletes F     <not deletable>
 	// H text           |
-	// I delete-history ^ upto H
+	// I headline
+	// J delete-history ^ upto I
 
 	tc, storage, uid := setupStorageTest(t, "delh")
 	defer tc.Cleanup()
 
-	convID := makeConvID()
+	inbox := NewInbox(tc.Context())
+	conv := makeConvo(gregor1.Time(0), 1, 1)
+	conv.Conv.MaxMsgSummaries = append(conv.Conv.MaxMsgSummaries, chat1.MessageSummary{MessageType: chat1.MessageType_HEADLINE, MsgID: 9})
+	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs([]types.RemoteConversation{conv}), nil))
+
+	convID := conv.GetConvID()
 	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
 	msgB := makeText(2, "some text")
 	msgC := makeText(3, "some text")
@@ -587,7 +602,8 @@ func TestStorageExpunge(t *testing.T) {
 	msgF := makeText(6, "some text")
 	msgG := makeDelete(7, msgF.GetMessageID(), nil)
 	msgH := makeText(8, "some text")
-	msgI := makeDeleteHistory(9, msgH.GetMessageID())
+	msgI := makeHeadlineMessage(9)
+	msgJ := makeDeleteHistory(10, msgI.GetMessageID())
 
 	type expectedM struct {
 		Name         string // letter label
@@ -632,10 +648,8 @@ func TestStorageExpunge(t *testing.T) {
 			m := res.Messages[len(res.Messages)-1-i]
 			require.True(t, m.IsValid(), "[%v] message should be valid", x.Name)
 			require.Equal(t, x.MsgID, m.Valid().ServerHeader.MessageID, "[%v] message ID", x.Name)
-			if m.GetMessageType() != chat1.MessageType_TLFNAME {
-				if !x.BodyPresent && x.SupersededBy == 0 {
-					t.Fatalf("You expected the body to be deleted but the message not to be superseded. Are you sure?")
-				}
+			if m.GetMessageType() != chat1.MessageType_TLFNAME && !x.BodyPresent && x.SupersededBy == 0 {
+				t.Fatalf("You expected the body to be deleted but the message not to be superseded. Are you sure?")
 			}
 			if x.SupersededBy != dontCare {
 				require.Equal(t, x.SupersededBy, m.Valid().ServerHeader.SupersededBy, "[%v] superseded by", x.Name)
@@ -681,6 +695,7 @@ func TestStorageExpunge(t *testing.T) {
 	t.Logf("expunge up to E")
 	setExpected("B", msgB, false, dontCare)
 	setExpected("C", msgC, false, dontCare)
+	setExpected("D", msgD, false, dontCare)
 	expunge(msgE.GetMessageID(), true)
 	assertState(msgG.GetMessageID())
 
@@ -692,16 +707,17 @@ func TestStorageExpunge(t *testing.T) {
 
 	t.Logf("merge first delh")
 	// merge with one delh
-	merge([]chat1.MessageUnboxed{msgH, msgI}, true)
-	setExpected("E", msgE, false, msgI.GetMessageID())
+	merge([]chat1.MessageUnboxed{msgH, msgI, msgJ}, true)
+	setExpected("E", msgE, false, msgJ.GetMessageID())
 	setExpected("F", msgF, false, msgG.GetMessageID())
-	setExpected("H", msgH, true, 0) // after the cutoff
-	setExpected("I", msgI, true, 0)
-	assertState(msgI.GetMessageID())
+	setExpected("H", msgH, false, msgJ.GetMessageID())
+	setExpected("I", msgI, true, 0) // after the cutoff
+	setExpected("J", msgJ, true, 0)
+	assertState(msgJ.GetMessageID())
 
 	t.Logf("expunge the rest")
-	setExpected("H", msgH, false, dontCare) // after the cutoff
-	expunge(msgI.GetMessageID()+12, true)
+	setExpected("I", msgI, false, dontCare) // after the cutoff
+	expunge(msgJ.GetMessageID()+12, true)
 }
 
 func TestStorageMiss(t *testing.T) {

@@ -821,10 +821,22 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		return nil, err
 	}
 
+	validConv := true
+	conv, err := NewInbox(s.G()).GetConversation(ctx, uid, convID)
+	switch err.(type) {
+	case nil:
+	case MissError:
+		de("delh: unable to find conversation %v", convID)
+		validConv = false
+	default:
+		return nil, err
+	}
+
 	var allAssets []chat1.Asset
 	var writeback, allPurged []chat1.MessageUnboxed
 	for _, msg := range rc.Result() {
-		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
+		mtype := msg.GetMessageType()
+		if !chat1.IsDeletableByDeleteHistory(mtype) {
 			// Skip message types that cannot be deleted this way
 			continue
 		}
@@ -836,6 +848,27 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		if mvalid.MessageBody.IsNil() {
 			continue
 		}
+		// METADATA and HEADLINE messages are only expunged if they are not the
+		// latest max message.
+		switch mtype {
+		case chat1.MessageType_METADATA,
+			chat1.MessageType_HEADLINE:
+			if !validConv {
+				de("delh: no conv, not expunging %v", msg.DebugString())
+				continue
+			}
+			maxMsg, err := conv.Conv.GetMaxMessage(mtype)
+			if err != nil {
+				de("delh: %v, not expunging %v", err, msg.DebugString())
+				continue
+			} else if maxMsg.MsgID == msg.GetMessageID() {
+				de("delh: not expunging %v, latest max message", msg.DebugString())
+				continue
+			}
+			de("delh: expunging %v, non-max message", msg.DebugString())
+		default:
+		}
+
 		mvalid.ServerHeader.SupersededBy = expunge.Basis // Can be 0
 		msgPurged, assets := s.purgeMessage(mvalid)
 		allPurged = append(allPurged, msg)
