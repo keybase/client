@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
+import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 type Props = Container.RouteProps<{
