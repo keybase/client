@@ -357,6 +357,10 @@ func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.
 func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	h.G().Log.Debug("encrypting directory")
 
+	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
+		return keybase1.SaltpackEncryptFileResult{}, errors.New("source and destination directories cannot be the same")
+	}
+
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
 	}
@@ -495,6 +499,10 @@ func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.Sal
 
 func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	h.G().Log.Debug("signing directory")
+
+	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
+		return "", errors.New("source and destination directories cannot be the same")
+	}
 
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
