@@ -45,6 +45,7 @@ func (e IncomingShareType) String() string {
 type IncomingShareItem struct {
 	Type          IncomingShareType `codec:"type" json:"type"`
 	OriginalPath  string            `codec:"originalPath" json:"originalPath"`
+	OriginalSize  int               `codec:"originalSize" json:"originalSize"`
 	ScaledPath    *string           `codec:"scaledPath,omitempty" json:"scaledPath,omitempty"`
 	ThumbnailPath *string           `codec:"thumbnailPath,omitempty" json:"thumbnailPath,omitempty"`
 	Content       *string           `codec:"content,omitempty" json:"content,omitempty"`
@@ -54,6 +55,7 @@ func (o IncomingShareItem) DeepCopy() IncomingShareItem {
 	return IncomingShareItem{
 		Type:         o.Type.DeepCopy(),
 		OriginalPath: o.OriginalPath,
+		OriginalSize: o.OriginalSize,
 		ScaledPath: (func(x *string) *string {
 			if x == nil {
 				return nil

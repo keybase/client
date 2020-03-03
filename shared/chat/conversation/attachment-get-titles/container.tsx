@@ -2,13 +2,15 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as FsTypes from '../../../constants/types/fs'
-import GetTitles, {PathToInfo} from '.'
+import GetTitles from '.'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Tabs from '../../../constants/tabs'
 
 type OwnProps = Container.RouteProps<{
-  pathAndOutboxIDs: Array<Types.PathAndOutboxID>
   conversationIDKey: Types.ConversationIDKey
+  pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+  selectConversationWithReason?: 'extension' | 'files'
 }>
 
 const noOutboxIds: Array<Types.PathAndOutboxID> = []
@@ -18,42 +20,62 @@ const mapStateToProps = (_: Container.TypedState, ownProps: OwnProps) => ({
   pathAndOutboxIDs: Container.getRouteProps(ownProps, 'pathAndOutboxIDs', noOutboxIds),
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onSubmit: (conversationIDKey: Types.ConversationIDKey, pathToInfo: PathToInfo) => {
-    const paths = Object.keys(pathToInfo)
-    const pathAndOutboxIDs = paths.map(p => ({
-      outboxID: pathToInfo[p].outboxID,
-      path: p,
-    }))
-    const titles = paths.map(p => pathToInfo[p].title)
-    dispatch(
-      Chat2Gen.createAttachFromDragAndDrop({
-        conversationIDKey,
-        paths: pathAndOutboxIDs,
-        titles,
-      })
-    )
-    dispatch(RouteTreeGen.createNavigateUp())
-  },
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
+  const conversationIDKey = Container.getRouteProps(
+    ownProps,
+    'conversationIDKey',
+    Constants.noConversationIDKey
+  )
+  const pathAndOutboxIDs = Container.getRouteProps(ownProps, 'pathAndOutboxIDs', noOutboxIds)
+  const selectConversationWithReason = Container.getRouteProps(
+    ownProps,
+    'selectConversationWithReason',
+    undefined
+  )
+  return {
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onSubmit: (titles: Array<string>) => {
+      dispatch(
+        Chat2Gen.createAttachFromDragAndDrop({
+          conversationIDKey,
+          paths: pathAndOutboxIDs,
+          titles,
+        })
+      )
+      dispatch(RouteTreeGen.createClearModals())
+
+      if (selectConversationWithReason) {
+        dispatch(
+          RouteTreeGen.createResetStack({
+            actions: [],
+            index: 0,
+            tab: Tabs.chatTab,
+          })
+        )
+        dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: selectConversationWithReason}))
+      }
+    },
+  }
+}
 
 export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, _: OwnProps) => ({
     onCancel: dispatchProps.onCancel,
-    onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
-    pathToInfo: stateProps.pathAndOutboxIDs.reduce<PathToInfo>((map, {path, outboxID}) => {
+    onSubmit: dispatchProps.onSubmit,
+    pathAndInfos: stateProps.pathAndOutboxIDs.map(({path, outboxID}) => {
       const filename = FsTypes.getLocalPathName(path)
-      map[path] = {
-        filename,
-        outboxID: outboxID,
-        title: '',
-        type: Constants.pathToAttachmentType(path),
+      return {
+        info: {
+          filename,
+          outboxID: outboxID,
+          title: '',
+          type: Constants.pathToAttachmentType(path),
+        },
+        path,
       }
-      return map
-    }, {}),
+    }),
     title: 'Attachments',
   })
 )(GetTitles)

@@ -30,6 +30,10 @@
           "name": "originalPath"
         },
         {
+          "type": "int",
+          "name": "originalSize"
+        },
+        {
           "type": [
             null,
             "string"
