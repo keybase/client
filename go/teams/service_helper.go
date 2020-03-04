@@ -1163,18 +1163,34 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamID keybase1.TeamID) error {
-	// This retry can cause multiple confirmation popups for the user
+	alreadyConfirmed := false
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
 
-		if t.chain().IsSubteam() {
-			return t.deleteSubteam(ctx, ui)
+		if !alreadyConfirmed {
+			var confirmed bool
+			if t.chain().IsSubteam() {
+				confirmed, err = ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
+			} else {
+				confirmed, err = ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
+			}
+			if err != nil {
+				return err
+			}
+			if !confirmed {
+				return errors.New("team delete not confirmed")
+			}
+			alreadyConfirmed = true
 		}
 
-		err = t.deleteRoot(ctx, ui)
+		if t.chain().IsSubteam() {
+			err = t.deleteSubteam(ctx)
+		} else {
+			err = t.deleteRoot(ctx)
+		}
 		if err != nil {
 			return err
 		}

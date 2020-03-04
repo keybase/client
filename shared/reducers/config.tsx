@@ -125,6 +125,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     if (!draftState.startupDetailsLoaded) {
       draftState.startupDetailsLoaded = true
       draftState.startupConversation = action.payload.startupConversation || ChatConstants.noConversationIDKey
+      draftState.startupPushPayload = action.payload.startupPushPayload
       draftState.startupFollowUser = action.payload.startupFollowUser
       draftState.startupLink = action.payload.startupLink
       draftState.startupTab = action.payload.startupTab

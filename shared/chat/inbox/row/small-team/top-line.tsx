@@ -48,6 +48,7 @@ class _SimpleTopLine extends React.Component<Props> {
               this.props.setShowingMenu(false)
               this.props.onForceHideMenu()
             }}
+            hasHeader={true}
             isSmallTeam={true}
             conversationIDKey={this.props.conversationIDKey}
           />

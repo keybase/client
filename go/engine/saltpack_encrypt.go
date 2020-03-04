@@ -133,6 +133,19 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 
 	e.UsedSBS, e.SBSAssertion = kf.UsedUnresolvedSBSAssertion()
 
+	if e.UsedSBS {
+		actx := m.G().MakeAssertionContext(m)
+		expr, err := libkb.AssertionParse(actx, e.SBSAssertion)
+		if err == nil {
+			social, err := expr.ToSocialAssertion()
+			if err == nil && social.Service == "email" {
+				// email assertions are pretty ugly, so just return
+				// the "User" part for easier handling upstream.
+				e.SBSAssertion = social.User
+			}
+		}
+	}
+
 	// This flag determines whether saltpack is used in signcryption (false)
 	// vs encryption (true) format.
 	encryptionOnlyMode := false

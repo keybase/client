@@ -73,7 +73,7 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 
 	getNextPage := func() (*chat1.ThreadView, error) {
 		thread, err := s.G().ConvSource.Pull(ctx, convID, uid,
-			chat1.GetThreadReason_SEARCHER,
+			chat1.GetThreadReason_SEARCHER, nil,
 			&chat1.GetThreadQuery{
 				MarkAsRead: false,
 			}, pagination)

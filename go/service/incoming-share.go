@@ -68,9 +68,14 @@ loop:
 		default:
 			continue loop
 		}
+		fi, err := os.Stat(jsonItem.OriginalPath)
+		if err != nil {
+			return nil, err
+		}
 		items = append(items, keybase1.IncomingShareItem{
 			Type:          t,
 			OriginalPath:  jsonItem.OriginalPath,
+			OriginalSize:  int(fi.Size()),
 			ScaledPath:    strPtr(jsonItem.ScaledPath),
 			ThumbnailPath: strPtr(jsonItem.ThumbnailPath),
 			Content:       strPtr(jsonItem.Content),

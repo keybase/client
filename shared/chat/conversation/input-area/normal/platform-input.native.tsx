@@ -423,32 +423,11 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      accessory: {
-        bottom: 1,
-        display: 'flex',
-        left: 0,
-        position: 'absolute',
-        right: 0,
-      },
-      accessoryContainer: {
-        position: 'relative',
-        width: '100%',
-      },
       actionContainer: {
         flexShrink: 0,
         marginLeft: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,
         minHeight: 32,
-      },
-      actionText: {
-        alignSelf: 'flex-end',
-        paddingBottom: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.tiny,
-      },
-      animatedContainer: {
-        bottom: 0,
-        position: 'absolute',
-        right: 0,
       },
       container: {
         alignItems: 'center',
@@ -518,20 +497,6 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
-      },
-      marginRightSmall: {
-        marginRight: Styles.globalMargins.small,
-      },
-      mentionHud: {
-        borderColor: Styles.globalColors.black_20,
-        borderTopWidth: 1,
-        flex: 1,
-        height: 160,
-        width: '100%',
-      },
-      smallGap: {
-        height: Styles.globalMargins.small,
-        width: Styles.globalMargins.small,
       },
     } as const)
 )

@@ -79,6 +79,7 @@ export type State = {
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean
   startupConversation: ConversationIDKey
+  startupPushPayload?: string
   startupFile: HiddenString
   startupFollowUser: string
   startupLink: string

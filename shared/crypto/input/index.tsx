@@ -225,11 +225,13 @@ export const DragAndDrop = (props: DragAndDropProps) => {
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
   }
 
+  const allowFolders = Constants.getAllowInputFolders(props.operation)
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
         disabled={inProgress}
-        allowFolders={true}
+        allowFolders={allowFolders}
         fullHeight={true}
         fullWidth={true}
         onAttach={onAttach}

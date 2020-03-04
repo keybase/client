@@ -39,7 +39,7 @@ const WebOfTrust = (props: Props) => (
             <Kb.Icon color={Styles.globalColors.blue} type="iconfont-proof-good" sizeType="Small" />
             <Kb.Text type="BodySmall">signed by </Kb.Text>{' '}
             <Kb.ConnectedUsernames
-              type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySemibold'}
+              type={Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
               usernames={[props.attestingUser]}
               colorBroken={true}
               colorFollowing={true}

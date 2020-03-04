@@ -8,3 +8,9 @@ export type Props = {
 
 export default class SafeAreaView extends React.Component<Props> {}
 export class SafeAreaViewTop extends React.Component<Props> {}
+export declare function useSafeArea(): {
+  bottom: number
+  left: number
+  right: number
+  top: number
+}

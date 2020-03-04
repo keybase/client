@@ -29,8 +29,8 @@ const MobileSendAttachmentToChat = (props: Props) => {
   const useOriginal = Container.getRouteProps(props, 'useOriginal', false)
   const url = Container.getRouteProps(props, 'url', undefined)
   const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
+  const isFromShareExtension = !!Container.getRouteProps(props, 'incomingShareItems', undefined)
   const dispatch = Container.useDispatch()
-  const username = Container.useSelector(state => state.config.username)
 
   const pathsFromIncomingShare = incomingShareItems
     // If it's a chat text, we fill it in the compose box instead of sending it
@@ -46,22 +46,36 @@ const MobileSendAttachmentToChat = (props: Props) => {
       ?.map(({content}) => content)
       ?.join(' ') || ''
 
-  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, convName: string) => {
-    sendPaths.length &&
+  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
+    text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
+    if (sendPaths.length) {
       dispatch(
-        Chat2Gen.createAttachmentsUpload({
-          conversationIDKey,
-          paths: sendPaths.map(p => ({
-            outboxID: null,
-            path: p,
-          })),
-          titles: [''],
-          tlfName: `${username},${convName.split('#')[0]}`,
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                conversationIDKey,
+                pathAndOutboxIDs: sendPaths.map(p => ({
+                  outboxID: null,
+                  path: p,
+                })),
+                selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
+                tlfName,
+              },
+              selected: 'chatAttachmentGetTitles',
+            },
+          ],
         })
       )
-    text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
-    dispatch(RouteTreeGen.createClearModals())
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'files'}))
+    } else {
+      dispatch(RouteTreeGen.createClearModals())
+      dispatch(
+        Chat2Gen.createSelectConversation({
+          conversationIDKey,
+          reason: isFromShareExtension ? 'extension' : 'files',
+        })
+      )
+    }
   }
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())

@@ -1,6 +1,7 @@
 // In order for the inbox rows to be calculated quickly we use fixed sizes for each type so
 // in order for the list and the rows to ensure they're the same size we keep the sizes here
 import {isMobile} from '../../../styles'
+import * as Types from '../../../constants/types/chat2'
 
 export const smallRowHeight = isMobile ? 64 : 56
 export const bigRowHeight = isMobile ? 40 : 24
@@ -16,19 +17,22 @@ export const dividerHeight = (showingButton: boolean) => {
   }
 }
 
-export const getRowHeight = (type: string, showingDividerButton: boolean) => {
-  if (type === 'bigTeamsLabel') {
-    return bigHeaderHeight
+export const getRowHeight = (type: Types.ChatInboxRowType, showingDividerButton: boolean) => {
+  const exhaustive = (type: Types.ChatInboxRowType, showingDividerButton: boolean) => {
+    switch (type) {
+      case 'bigTeamsLabel':
+        return bigHeaderHeight
+      case 'bigHeader':
+        return bigHeaderHeight
+      case 'big':
+        return bigRowHeight
+      case 'small':
+        return smallRowHeight
+      case 'divider':
+        return dividerHeight(showingDividerButton)
+      case 'teamBuilder':
+        return 0
+    }
   }
-  switch (type) {
-    case 'bigHeader':
-      return bigHeaderHeight
-    case 'big':
-      return bigRowHeight
-    case 'small':
-      return smallRowHeight
-    case 'divider':
-      return dividerHeight(showingDividerButton)
-  }
-  return 0
+  return exhaustive(type, showingDividerButton) ?? 0
 }

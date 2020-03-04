@@ -181,7 +181,7 @@ func (u *User) ToTrackingStatementSeqTail() *jsonw.Wrapper {
 		return jsonw.NewNil()
 	}
 	ret := jsonw.NewDictionary()
-	_ = ret.SetKey("sig_id", jsonw.NewString(mul.SigID.ToString(true)))
+	_ = ret.SetKey("sig_id", jsonw.NewString(mul.SigID.ToSigIDLegacy().String()))
 	_ = ret.SetKey("seqno", jsonw.NewInt(int(mul.Seqno)))
 	_ = ret.SetKey("payload_hash", jsonw.NewString(mul.LinkID.String()))
 	return ret
@@ -276,7 +276,7 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	_ = ret.SetKey("curr", jsonw.NewString(g.id.String()))
-	_ = ret.SetKey("sig_id", jsonw.NewString(g.GetSigID().ToString(true)))
+	_ = ret.SetKey("sig_id", jsonw.NewString(g.GetSigID().String()))
 
 	rkp := jsonw.NewDictionary()
 	_ = ret.SetKey("remote_key_proof", rkp)
@@ -741,7 +741,7 @@ func (u *User) WotReactProof(m MetaContext, signingKey GenericKey, sigVersion Si
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
-func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
+func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigIDBase, lid LinkID, err error) {
 	var tmp []byte
 	if tmp, err = jw.Marshal(); err != nil {
 		return
@@ -765,10 +765,14 @@ func MakeSig(
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
 	me *User,
 	sigVersion SigVersion) (sig string, sigID keybase1.SigID, linkID LinkID, err error) {
+
 	switch sigVersion {
 	case KeybaseSignatureV1:
-		sig, sigID, err = signingKey.SignToString(innerLinkJSON)
+		var sigIDBase keybase1.SigIDBase
+		sig, sigIDBase, err = signingKey.SignToString(innerLinkJSON)
 		linkID = ComputeLinkID(innerLinkJSON)
+		params := keybase1.SigIDSuffixParametersFromTypeAndVersion(string(v1LinkType), keybase1.SigVersion(sigVersion))
+		sigID = sigIDBase.ToSigID(params)
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
@@ -855,7 +859,7 @@ func (u *User) RevokeSigsProof(m MetaContext, key GenericKey, sigIDsToRevoke []k
 	revokeSection := jsonw.NewDictionary()
 	idsArray := jsonw.NewArray(len(sigIDsToRevoke))
 	for i, id := range sigIDsToRevoke {
-		err := idsArray.SetIndex(i, jsonw.NewString(id.ToString(true)))
+		err := idsArray.SetIndex(i, jsonw.NewString(id.String()))
 		if err != nil {
 			return nil, err
 		}
@@ -906,7 +910,7 @@ func (u *User) CryptocurrencySig(m MetaContext, key GenericKey, address string, 
 	}
 	if len(sigToRevoke) > 0 {
 		revokeSection := jsonw.NewDictionary()
-		err := revokeSection.SetKey("sig_id", jsonw.NewString(sigToRevoke.ToString(true /* suffix */)))
+		err := revokeSection.SetKey("sig_id", jsonw.NewString(sigToRevoke.String()))
 		if err != nil {
 			return nil, err
 		}
@@ -1091,7 +1095,7 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 	}
 
 	// Update the user locally
-	me.SigChainBump(linkID, sigID, false)
+	me.SigChainBump(linkID, sigID.ToSigIDLegacy(), false)
 	err = me.localDelegatePerUserKey(keybase1.PerUserKey{
 		Gen:         int(generation),
 		Seqno:       me.GetSigChainLastKnownSeqno(),

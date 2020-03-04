@@ -1270,7 +1270,7 @@ func (r *RevokeChainLink) ToDisplayString() string {
 	v := r.GetRevocations()
 	list := make([]string, len(v))
 	for i, s := range v {
-		list[i] = s.ToString(true)
+		list[i] = s.String()
 	}
 	return strings.Join(list, ",")
 }

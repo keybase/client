@@ -12,6 +12,7 @@ protocol incomingShare {
   record IncomingShareItem {
     IncomingShareType type;
     string originalPath;
+    int originalSize;
     union{null, string} scaledPath;
     union{null, string} thumbnailPath;
     union {null, string} content;

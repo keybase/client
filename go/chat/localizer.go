@@ -688,7 +688,7 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 	}
 	body := pinMessage.Valid().MessageBody
 	pinnedMsgID := body.Pin().MsgID
-	messages, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{pinnedMsgID}, nil)
+	messages, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{pinnedMsgID}, nil, nil)
 	if err != nil {
 		return pinnedMsg, pinnerUsername, false, nil
 	}
@@ -813,7 +813,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 		msgs, err := s.G().ConvSource.GetMessages(ctx, conversationRemote,
-			uid, utils.PluckMessageIDs(summaries), nil)
+			uid, utils.PluckMessageIDs(summaries), nil, nil)
 		if !s.isErrPermanent(err) {
 			errTyp = chat1.ConversationErrorType_TRANSIENT
 		}

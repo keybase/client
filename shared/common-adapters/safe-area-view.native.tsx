@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {View} from 'react-native'
-import {SafeAreaView, useSafeArea} from 'react-native-safe-area-context'
+import {useSafeArea} from 'react-native-safe-area-context'
 import {Props} from './safe-area-view'
 import * as Styles from '../styles'
 
@@ -18,4 +18,4 @@ const styles = Styles.styleSheetCreate(() => ({
   topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
 }))
 
-export default SafeAreaView
+export {SafeAreaView as default, useSafeArea} from 'react-native-safe-area-context'

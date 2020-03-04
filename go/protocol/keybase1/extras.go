@@ -137,6 +137,10 @@ func HashMetaFromString(s string) (ret HashMeta, err error) {
 	return HashMeta(b), nil
 }
 
+func cieq(s string, t string) bool {
+	return strings.ToLower(s) == strings.ToLower(t)
+}
+
 func KBFSRootHashFromString(s string) (ret KBFSRootHash, err error) {
 	if s == "null" {
 		return nil, nil
@@ -281,7 +285,7 @@ func (k KID) Match(q string, exact bool) bool {
 	}
 
 	if exact {
-		return strings.ToLower(k.String()) == strings.ToLower(q)
+		return cieq(k.String(), q)
 	}
 
 	if strings.HasPrefix(k.String(), strings.ToLower(q)) {
@@ -650,58 +654,35 @@ func (s SigID) ToDisplayString(verbose bool) string {
 	return fmt.Sprintf("%s...", s[0:SigIDQueryMin])
 }
 
-func (s SigID) ToString(suffix bool) string {
-	if len(s) == 0 {
-		return ""
-	}
-	if suffix {
-		return string(s)
-	}
-	return string(s[0 : len(s)-2])
-}
-
 func (s SigID) PrefixMatch(q string, exact bool) bool {
 	if s.IsNil() {
 		return false
 	}
 
 	if exact {
-		return strings.ToLower(s.ToString(true)) == strings.ToLower(q)
+		return cieq(string(s), q)
 	}
 
-	if strings.HasPrefix(s.ToString(true), strings.ToLower(q)) {
+	if strings.HasPrefix(strings.ToLower(string(s)), strings.ToLower(q)) {
 		return true
 	}
 
 	return false
 }
 
-func SigIDFromString(s string, suffix bool) (SigID, error) {
-	blen := SIG_ID_LEN
-	if suffix {
-		blen++
-	}
+func SigIDFromString(s string) (SigID, error) {
+	// Add 1 extra byte for the suffix
+	blen := SIG_ID_LEN + 1
 	if len(s) != hex.EncodedLen(blen) {
-		return "", fmt.Errorf("Invalid SigID string length: %d, expected %d (suffix = %v)", len(s), hex.EncodedLen(blen), suffix)
+		return "", fmt.Errorf("Invalid SigID string length: %d, expected %d", len(s), hex.EncodedLen(blen))
 	}
-	if suffix {
-		return SigID(s), nil
+	s = strings.ToLower(s)
+	// Throw the outcome away, but we're checking that we can decode the value as hex
+	_, err := hex.DecodeString(s)
+	if err != nil {
+		return "", err
 	}
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX)), nil
-}
-
-func SigIDFromBytes(b [SIG_ID_LEN]byte) SigID {
-	s := hex.EncodeToString(b[:])
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX))
-}
-
-func SigIDFromSlice(b []byte) (SigID, error) {
-	if len(b) != SIG_ID_LEN {
-		return "", fmt.Errorf("invalid byte slice for SigID: len == %d, expected %d", len(b), SIG_ID_LEN)
-	}
-	var x [SIG_ID_LEN]byte
-	copy(x[:], b)
-	return SigIDFromBytes(x), nil
+	return SigID(s), nil
 }
 
 func (s SigID) ToBytes() []byte {
@@ -710,6 +691,14 @@ func (s SigID) ToBytes() []byte {
 		return nil
 	}
 	return b[0:SIG_ID_LEN]
+}
+
+func (s SigID) StripSuffix() SigIDBase {
+	l := hex.EncodedLen(SIG_ID_LEN)
+	if len(s) == l {
+		return SigIDBase(string(s))
+	}
+	return SigIDBase(string(s[0:l]))
 }
 
 func (s SigID) Eq(t SigID) bool {
@@ -726,12 +715,7 @@ type SigIDMapKey string
 // ToMapKey returns the string representation (hex-encoded) of a SigID with the hardcoded 0x0f suffix
 // (for backward comptability with on-disk storage).
 func (s SigID) ToMapKey() SigIDMapKey {
-	tmp := s
-	hexLen := 2 * SIG_ID_LEN
-	if len(tmp) > hexLen {
-		tmp = tmp[0:hexLen]
-	}
-	return SigIDMapKey(fmt.Sprintf("%s%02x", tmp, SIG_ID_SUFFIX))
+	return SigIDMapKey(s.StripSuffix().ToSigIDLegacy().String())
 }
 
 func (s SigID) ToMediumID() string {
@@ -740,6 +724,95 @@ func (s SigID) ToMediumID() string {
 
 func (s SigID) ToShortID() string {
 	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
+}
+
+// SigIDBase is a 64-character long hex encoding of the SHA256 of a signature, without
+// any suffix. You get a SigID by adding either a 0f or a 22 suffix.
+type SigIDBase string
+
+func (s SigIDBase) String() string {
+	return string(s)
+}
+
+func SigIDBaseFromBytes(b [SIG_ID_LEN]byte) SigIDBase {
+	s := hex.EncodeToString(b[:])
+	return SigIDBase(s)
+}
+
+func SigIDBaseFromSlice(b []byte) (SigIDBase, error) {
+	var buf [32]byte
+	if len(b) != len(buf) {
+		return "", errors.New("need a SHA256 hash, got something the wrong length")
+	}
+	copy(buf[:], b[:])
+	return SigIDBaseFromBytes(buf), nil
+}
+
+func SigIDBaseFromString(s string) (SigIDBase, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return "", err
+	}
+	return SigIDBaseFromSlice(b)
+}
+
+func (s SigIDBase) EqSigID(t SigID) bool {
+	return cieq(s.String(), t.StripSuffix().String())
+}
+
+// SigIDSuffixParameters specify how to turn a 64-character SigIDBase into a 66-character SigID,
+// via the two suffixes. In the future, there might be a third, 38, in use.
+type SigIDSuffixParameters struct {
+	IsUserSig       bool       // true for user, false for team
+	IsWalletStellar bool       // exceptional sig type for backwards compatibility
+	SigVersion      SigVersion // 1,2 or 3 supported now
+}
+
+func SigIDSuffixParametersFromTypeAndVersion(typ string, vers SigVersion) SigIDSuffixParameters {
+	return SigIDSuffixParameters{
+		IsUserSig:       !strings.HasPrefix(typ, "teams."),
+		IsWalletStellar: (typ == "wallet.stellar"),
+		SigVersion:      vers,
+	}
+}
+
+func (s SigIDSuffixParameters) String() string {
+	if s.IsWalletStellar && s.SigVersion == 2 {
+		return "22"
+	}
+	if s.IsUserSig {
+		return "0f"
+	}
+	switch s.SigVersion {
+	case 2:
+		return "22"
+	case 3:
+		return "38"
+	default:
+		return "0f"
+	}
+}
+
+func (s SigIDBase) ToSigID(p SigIDSuffixParameters) SigID {
+	return SigID(string(s) + p.String())
+}
+
+// ToSigIDLegacy does what all of Keybase used to do, which is to always assign a 0x0f
+// suffix to SigIDBases to get SigIDs.
+func (s SigIDBase) ToSigIDLegacy() SigID {
+	return s.ToSigID(SigIDSuffixParameters{IsUserSig: true, IsWalletStellar: false, SigVersion: 1})
+}
+
+func (s SigIDBase) Eq(t SigIDBase) bool {
+	return cieq(string(s), string(t))
+}
+
+func (s SigIDBase) ToBytes() []byte {
+	x, err := hex.DecodeString(string(s))
+	if err != nil {
+		return nil
+	}
+	return x
 }
 
 func encode(b []byte) string {
@@ -941,7 +1014,7 @@ func (k *KID) Size() int {
 }
 
 func (s *SigID) UnmarshalJSON(b []byte) error {
-	sigID, err := SigIDFromString(Unquote(b), true)
+	sigID, err := SigIDFromString(Unquote(b))
 	if err != nil {
 		return err
 	}
@@ -950,7 +1023,7 @@ func (s *SigID) UnmarshalJSON(b []byte) error {
 }
 
 func (s *SigID) MarshalJSON() ([]byte, error) {
-	return Quote(s.ToString(true)), nil
+	return Quote(s.String()), nil
 }
 
 func (f Folder) ToString() string {

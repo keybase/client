@@ -517,7 +517,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export type RowItem = T.RowItem
-export type RowItemSmall = T.RowItemSmall
-export type RowItemBig = T.RowItemBig
 export default Inbox

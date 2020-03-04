@@ -52,7 +52,7 @@ class AddToChannel extends React.Component<Props, State> {
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames
               colorFollowing={true}
-              type="BodySemibold"
+              type="BodyBold"
               usernames={[user.username]}
               underline={false}
             />

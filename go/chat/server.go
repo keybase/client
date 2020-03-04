@@ -336,7 +336,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
-	thread, err := h.G().UIThreadLoader.Load(ctx, uid, arg.ConversationID, arg.Reason, arg.Query,
+	thread, err := h.G().UIThreadLoader.Load(ctx, uid, arg.ConversationID, arg.Reason, nil, arg.Query,
 		arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
@@ -385,7 +385,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	chatUI := h.getChatUI(arg.SessionID)
 	return res, h.G().UIThreadLoader.LoadNonblock(ctx, chatUI, uid, arg.ConversationID, arg.Reason,
-		arg.Pgmode, arg.CbMode, arg.Query, arg.Pagination)
+		arg.Pgmode, arg.CbMode, arg.KnownRemotes, arg.Query, arg.Pagination)
 }
 
 func (h *Server) NewConversationsLocal(ctx context.Context, arg chat1.NewConversationsLocalArg) (res chat1.NewConversationsLocalRes, err error) {
@@ -2505,7 +2505,8 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err != nil {
 			return err
 		}
-		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.Conv, uid, []chat1.MessageID{arg.MsgID}, nil)
+		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.Conv, uid, []chat1.MessageID{arg.MsgID}, nil,
+			nil)
 		if err != nil {
 			return err
 		}
@@ -3246,16 +3247,17 @@ func (h *Server) SimpleSearchInboxConvNames(ctx context.Context, query string) (
 		case chat1.TeamType_NONE:
 			searchable := utils.SearchableRemoteConversationName(conv, username)
 			res = append(res, chat1.SimpleSearchInboxConvNamesHit{
-				Name:   searchable,
-				ConvID: conv.GetConvID(),
-				Parts:  strings.Split(searchable, ","),
+				Name:    searchable,
+				ConvID:  conv.GetConvID(),
+				Parts:   strings.Split(searchable, ","),
+				TlfName: utils.GetRemoteConvTLFName(conv),
 			})
 		case chat1.TeamType_SIMPLE, chat1.TeamType_COMPLEX:
 			res = append(res, chat1.SimpleSearchInboxConvNamesHit{
-				Name:     utils.SearchableRemoteConversationName(conv, username),
-				ConvID:   conv.GetConvID(),
-				IsTeam:   true,
-				TeamName: utils.GetRemoteConvTLFName(conv),
+				Name:    utils.SearchableRemoteConversationName(conv, username),
+				ConvID:  conv.GetConvID(),
+				IsTeam:  true,
+				TlfName: utils.GetRemoteConvTLFName(conv),
 			})
 		}
 	}

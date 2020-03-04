@@ -44,7 +44,8 @@
         "'teamMention'" // from team mention
       ],
       "skipNav?": "boolean",
-      "navKey?": "string"
+      "navKey?": "string",
+      "pushBody?": "string"
     },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"

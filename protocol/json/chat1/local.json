@@ -3391,7 +3391,7 @@
         },
         {
           "type": "string",
-          "name": "teamName"
+          "name": "tlfName"
         }
       ]
     },
@@ -3940,6 +3940,13 @@
             null,
             "GetThreadQuery"
           ]
+        },
+        {
+          "name": "knownRemotes",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         },
         {
           "name": "pagination",

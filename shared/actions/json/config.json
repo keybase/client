@@ -89,7 +89,8 @@
       "startupTab?": "Tabs.Tab",
       "startupFollowUser": "string",
       "startupSharePath?": "FsTypes.LocalPath",
-      "startupShareText?": "string"
+      "startupShareText?": "string",
+      "startupPushPayload?": "string"
     },
     "setStartupFile": {
       "_description": "Stores the startup file path when launching Keybase from a cold start beofre log in",

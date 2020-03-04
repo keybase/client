@@ -942,7 +942,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 				// With listing, we don't know the totals ahead of time,
 				// so just start with a 0 total.
 				k.setProgressTotals(arg.OpID, 0, 0)
-				finalElemFI, err := fs.Stat(finalElem)
+				finalElemFI, err := fs.Lstat(finalElem)
 				if err != nil {
 					return err
 				}
@@ -1023,7 +1023,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 		// With listing, we don't know the totals ahead of time,
 		// so just start with a 0 total.
 		k.setProgressTotals(opID, 0, 0)
-		fi, err := fs.Stat(finalElem)
+		fi, err := fs.Lstat(finalElem)
 		if err != nil {
 			return err
 		}
@@ -1492,7 +1492,7 @@ func (k *SimpleFS) doRemove(
 		// recursively delete a TLF.
 		return errors.Errorf("Cannot recursively delete %s", fs.Root())
 	}
-	fi, err := fs.Stat(finalElem)
+	fi, err := fs.Lstat(finalElem)
 	if err != nil {
 		return err
 	}
@@ -1730,7 +1730,7 @@ func (k *SimpleFS) SimpleFSSetStat(
 	if err != nil {
 		return err
 	}
-	fi, err := fs.Stat(finalElem)
+	fi, err := fs.Lstat(finalElem)
 	if err != nil {
 		return err
 	}
