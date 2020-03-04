@@ -497,7 +497,11 @@ const routeToInitialScreen = (state: Container.TypedState) => {
     // A deep link
     if (state.config.startupLink) {
       if (Platform.isIOS && state.config.startupLink === 'keybase://incoming-share') {
-        return RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
+        return [
+          RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+          RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+          RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']}),
+        ]
       }
 
       if (
@@ -508,6 +512,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         try {
           const decoded = decodeURIComponent(state.config.startupLink.substr('keybase://'.length))
           return [
+            RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
             RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
             RouteTreeGen.createNavigateAppend({
               path: [{props: {path: `/keybase/${decoded}`}, selected: 'main'}],
