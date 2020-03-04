@@ -1470,7 +1470,7 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 		fbm.log.CDebugf(ctx, "Done cleaning %s: %+v", cacheType, err)
 	}()
 	for nextRev := lastRev + 1; nextRev <= recentRev; nextRev++ {
-		rmd, err := getSingleMD(
+		rmd, err := GetSingleMD(
 			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, nextRev,
 			kbfsmd.Merged, nil)
 		if err != nil {

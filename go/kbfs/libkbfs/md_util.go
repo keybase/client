@@ -173,10 +173,11 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.Branch
 	return rmds, nil
 }
 
-// getSingleMD returns an MD that is required to exist.
-func getSingleMD(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
-	rev kbfsmd.Revision, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
-	ImmutableRootMetadata, error) {
+// GetSingleMD returns an MD that is required to exist.
+func GetSingleMD(
+	ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
+	rev kbfsmd.Revision, mStatus kbfsmd.MergeStatus,
+	lockBeforeGet *keybase1.LockID) (ImmutableRootMetadata, error) {
 	rmds, err := getMDRange(
 		ctx, config, id, bid, rev, rev, mStatus, lockBeforeGet)
 	if err != nil {
