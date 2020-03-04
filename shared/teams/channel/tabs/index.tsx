@@ -31,17 +31,14 @@ const ChannelTabs = (props: Props) => {
     ...(props.admin ? [{title: 'settings' as const}] : []),
   ]
 
-  const onSelect = (tab: any) => {
-    const key = tab && tab.key
-    if (key) {
-      if (key !== 'loading') {
-        if (key === 'bots') {
-          props.loadBots()
-        }
-        setSelectedTab(key)
-      } else {
-        setSelectedTab('members')
+  const onSelect = (tab: TabKey) => {
+    if (tab !== 'loading') {
+      if (tab === 'bots') {
+        props.loadBots()
       }
+      setSelectedTab(tab)
+    } else {
+      setSelectedTab('members')
     }
   }
 

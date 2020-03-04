@@ -46,10 +46,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     ]
   }
 
-  private onSelectTab = (title: Panel) => {
-    this.props.onSelectTab(title)
-  }
-
   private renderTabs = () => {
     const tabs = this.getTabs()
     return (
@@ -57,7 +53,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         <Kb.Tabs
           tabs={tabs}
           selectedTab={this.props.selectedTab}
-          onSelect={this.onSelectTab}
+          onSelect={this.props.onSelectTab}
           style={styles.tabContainer}
           tabStyle={styles.tab}
         />
