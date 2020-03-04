@@ -106,7 +106,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
       <Kb.Text type="BodyTiny" style={styles.exploded}>
         EXPLODED BY{' '}
         <Kb.ConnectedUsernames
-          type="BodySmallSemibold"
+          type="BodySmallBold"
           onUsernameClicked="profile"
           usernames={[props.explodedBy]}
           inline={true}

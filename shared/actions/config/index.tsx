@@ -496,6 +496,34 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 
     // A deep link
     if (state.config.startupLink) {
+      if (Platform.isIOS && state.config.startupLink === 'keybase://incoming-share') {
+        return [
+          RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+          RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+          RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']}),
+        ]
+      }
+
+      if (
+        ['keybase://private', 'keybase://public', 'keybase://team'].some(prefix =>
+          state.config.startupLink.startsWith(prefix)
+        )
+      ) {
+        try {
+          const decoded = decodeURIComponent(state.config.startupLink.substr('keybase://'.length))
+          return [
+            RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+            RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {path: `/keybase/${decoded}`}, selected: 'main'}],
+            }),
+          ]
+        } catch (e) {
+          logger.warn("Coudn't decode KBFS URI")
+          return []
+        }
+      }
+
       try {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)

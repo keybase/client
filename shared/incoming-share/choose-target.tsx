@@ -149,9 +149,7 @@ const ChooseTarget = (props: Props) => {
             allowLabelClick={true}
             gapSize={Styles.globalMargins.small}
             color="blue"
-            label={`Send full-size ${
-              props.items.length > 1 ? 'images' : 'images'
-            } (${FsConstants.humanizeBytes(
+            label={`Send full size (${FsConstants.humanizeBytes(
               props.items.reduce((bytes, item) => bytes + item.originalSize, 0),
               1
             )})`}

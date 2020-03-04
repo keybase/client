@@ -17,7 +17,7 @@ export type Props = {
 export default ({username, theme, style, allowFontScaling, onClick}: Props) => {
   const renderText = (onLongPress?: () => void) => (
     <Text
-      type="BodySemibold"
+      type="BodyBold"
       onClick={onClick || undefined}
       className={Styles.classNames({'hover-underline': !Styles.isMobile})}
       style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}

@@ -31,7 +31,7 @@ const Recipients = () => {
           To:
         </Kb.Text>
         {recipients?.length ? (
-          <Kb.ConnectedUsernames type="BodySemibold" usernames={recipients} colorFollowing={true} />
+          <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (
           <>
             <Kb.PlainInput

@@ -93,10 +93,9 @@ export const Bot = (props: BotProps) => {
       </Kb.Text>
       <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
       {ownerTeam ? (
-        <Kb.Text type="BodySmall">{`@${ownerTeam}`}</Kb.Text>
+        <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
       ) : (
         <Kb.ConnectedUsernames
-          prefix="@"
           inline={true}
           usernames={[ownerUser ?? botUsername]}
           type="BodySmall"
@@ -317,7 +316,7 @@ export default (props: Props) => {
         if (item === addBotButton) {
           return (
             <Kb.Button
-              mode="Primary"
+              mode="Secondary"
               type="Default"
               label="Add a bot"
               style={styles.addBot}

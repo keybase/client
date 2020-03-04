@@ -1,8 +1,9 @@
 import React from 'react'
 import * as Sb from '../../../stories/storybook'
-import {TeamMemberHeader} from './index.new'
-import {fakeTeamID, store} from '../../stories'
+import {default as TeamMember, TeamMemberHeader} from './index.new'
 import AddToChannels from './add-to-channels'
+import {fakeTeamID, store} from '../../stories'
+
 const addToChannelsProps = Sb.createNavigator({teamID: fakeTeamID, usernames: ['andonuts']})
 
 const load = () =>
@@ -11,6 +12,7 @@ const load = () =>
     .add('Header normal', () => <TeamMemberHeader teamID={fakeTeamID} username="jeff" />)
     .add('Header long name', () => <TeamMemberHeader teamID={fakeTeamID} username="paula" />)
     .add('Header self + no name', () => <TeamMemberHeader teamID={fakeTeamID} username="andonuts" />)
+    .add('Rows', () => <TeamMember {...Sb.createNavigator({teamID: fakeTeamID, username: 'jeff'})} />)
     .add('Add to channels', () => <AddToChannels {...addToChannelsProps} />)
 
 export default load

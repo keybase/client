@@ -27,7 +27,7 @@ const ReplyPreview = (props: Props) => {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
-              <Kb.Text type="BodySemibold" style={styles.username}>
+              <Kb.Text type="BodyBold" style={styles.username}>
                 {props.username}
               </Kb.Text>
             </Kb.Box2>

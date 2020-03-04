@@ -117,7 +117,7 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
                   Public admins:{' '}
                   {
                     <Kb.ConnectedUsernames
-                      type="BodySmallSemibold"
+                      type="BodySmallBold"
                       colorFollowing={true}
                       colorBroken={true}
                       onUsernameClicked="profile"
