@@ -31,7 +31,6 @@ const MobileSendAttachmentToChat = (props: Props) => {
   const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
   const isFromShareExtension = !!Container.getRouteProps(props, 'incomingShareItems', undefined)
   const dispatch = Container.useDispatch()
-  const username = Container.useSelector(state => state.config.username)
 
   const pathsFromIncomingShare = incomingShareItems
     // If it's a chat text, we fill it in the compose box instead of sending it
