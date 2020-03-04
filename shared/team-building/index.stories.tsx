@@ -655,7 +655,7 @@ const load = () => {
         {...commonProps}
         {...contactProps}
         {...eventHandlers}
-        namespace="chat2"
+        namespace="teams"
         title="Add members"
         fetchUserRecs={() => {}}
         includeContacts={true}
