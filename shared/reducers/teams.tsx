@@ -310,6 +310,13 @@ export default Container.makeReducer<
   [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
     draftState.newTeamWizard.teamType = action.payload.teamType
   },
+  [TeamsGen.setTeamWizardNameDescription]: (draftState, action) => {
+    draftState.newTeamWizard.name = action.payload.teamname
+    draftState.newTeamWizard.description = action.payload.description
+    draftState.newTeamWizard.open = action.payload.openTeam
+    draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
+    draftState.newTeamWizard.showcase = action.payload.showcase
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)

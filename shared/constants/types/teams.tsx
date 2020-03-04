@@ -138,6 +138,7 @@ export type NewTeamWizardState = {
   name: string
   description: string
   open: boolean
+  openTeamJoinRole: TeamRoleType
   showcase: boolean
 }
 

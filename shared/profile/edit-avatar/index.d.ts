@@ -12,6 +12,7 @@ export type Props = {
   submitting: boolean
   teamname?: string
   waitingKey: string
+  wizard: boolean
 }
 
 export default class Render extends Component<Props> {}

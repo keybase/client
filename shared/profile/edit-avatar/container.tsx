@@ -14,6 +14,7 @@ type OwnProps = Container.RouteProps<{
   image: ImagePicker.ImagePickerResult
   sendChatNotification: boolean
   teamname: string
+  wizard: boolean
 }>
 
 const cancelledImage = {cancelled: true as const}
@@ -41,7 +42,7 @@ export default Container.connect(
     onSaveUserAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
       dispatch(ProfileGen.createUploadAvatar({crop, filename})),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     let error = ''
     if (stateProps.error) {
       error =
@@ -69,6 +70,7 @@ export default Container.connect(
       submitting: stateProps.submitting,
       teamname: stateProps.teamname,
       waitingKey: Constants.uploadAvatarWaitingKey,
+      wizard: Container.getRouteProps(ownProps, 'wizard', false),
     }
   }
 )(EditAvatar)

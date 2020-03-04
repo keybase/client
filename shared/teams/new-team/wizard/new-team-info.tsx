@@ -4,6 +4,7 @@ import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 import * as Types from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
@@ -12,22 +13,35 @@ const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  // TODO: consider using navigateUpTo instead to close the parent modal too.
-  const onClose = onBack
-  const onContinue = () => console.log('TODO (waiting on Y2K-1255)')
-
-  const teamType = Container.useSelector(state => state.teams.newTeamWizard.teamType)
+  const teamWizardState = Container.useSelector(state => state.teams.newTeamWizard)
   const teamNameTaken = false // TODO: get this live (Y2K-1524 and probably useRPC)
 
-  const [name, setName] = React.useState('')
-  const [description, setDescription] = React.useState('')
-  const [openTeam, setOpenTeam] = React.useState(teamType === 'community')
-  const [showcase, setShowcase] = React.useState(teamType !== 'other')
-  const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>('writer')
+  const [name, setName] = React.useState(teamWizardState.name)
+  const [description, setDescription] = React.useState(teamWizardState.description)
+  const [openTeam, setOpenTeam] = React.useState(
+    teamWizardState.name ? teamWizardState.open : teamWizardState.teamType === 'community'
+  )
+  const [showcase, setShowcase] = React.useState(
+    teamWizardState.name ? teamWizardState.showcase : teamWizardState.teamType !== 'other'
+  )
+  const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < 3
+
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  // TODO: consider using navigateUpTo instead to close the parent modal too.
+  const onClose = onBack
+  const onContinue = () =>
+    dispatch(
+      TeamsGen.createSetTeamWizardNameDescription({
+        description,
+        openTeam,
+        openTeamJoinRole: selectedRole,
+        showcase,
+        teamname: name,
+      })
+    )
 
   return (
     <Kb.Modal

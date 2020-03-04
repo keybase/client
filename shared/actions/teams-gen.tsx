@@ -75,6 +75,7 @@ export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnown
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamVersion = 'teams:setTeamVersion'
+export const setTeamWizardNameDescription = 'teams:setTeamWizardNameDescription'
 export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
@@ -278,6 +279,13 @@ type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
+type _SetTeamWizardNameDescriptionPayload = {
+  readonly teamname: string
+  readonly description: string
+  readonly openTeam: boolean
+  readonly openTeamJoinRole: Types.TeamRoleType
+  readonly showcase: boolean
+}
 type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
 type _SetUpdatedChannelNamePayload = {
@@ -630,6 +638,9 @@ export const createSetTeamVersion = (payload: _SetTeamVersionPayload): SetTeamVe
   payload,
   type: setTeamVersion,
 })
+export const createSetTeamWizardNameDescription = (
+  payload: _SetTeamWizardNameDescriptionPayload
+): SetTeamWizardNameDescriptionPayload => ({payload, type: setTeamWizardNameDescription})
 export const createSetTeamWizardTeamType = (
   payload: _SetTeamWizardTeamTypePayload
 ): SetTeamWizardTeamTypePayload => ({payload, type: setTeamWizardTeamType})
@@ -896,6 +907,10 @@ export type SetTeamVersionPayload = {
   readonly payload: _SetTeamVersionPayload
   readonly type: typeof setTeamVersion
 }
+export type SetTeamWizardNameDescriptionPayload = {
+  readonly payload: _SetTeamWizardNameDescriptionPayload
+  readonly type: typeof setTeamWizardNameDescription
+}
 export type SetTeamWizardTeamTypePayload = {
   readonly payload: _SetTeamWizardTeamTypePayload
   readonly type: typeof setTeamWizardTeamType
@@ -1026,6 +1041,7 @@ export type Actions =
   | SetTeamSawChatBannerPayload
   | SetTeamSawSubteamsBannerPayload
   | SetTeamVersionPayload
+  | SetTeamWizardNameDescriptionPayload
   | SetTeamWizardTeamTypePayload
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
