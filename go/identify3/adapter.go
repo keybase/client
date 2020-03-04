@@ -404,6 +404,10 @@ func (i *UIAdapter) ReportLastTrack(mctx libkb.MetaContext, track *keybase1.Trac
 }
 
 func (i *UIAdapter) plumbUncheckedProofs(mctx libkb.MetaContext, proofs []keybase1.IdentifyRow) {
+	err := i.ui.Identify3Summary(mctx.Ctx(), keybase1.Identify3Summary{NumProofsToCheck: len(proofs)})
+	if err != nil {
+		mctx.Debug("Identify3Summary call failed: %s", err.Error())
+	}
 	for _, proof := range proofs {
 		i.plumbUncheckedProof(mctx, proof)
 	}
