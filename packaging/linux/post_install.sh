@@ -182,6 +182,19 @@ is_redirector_enabled=""
 if redirector_enabled; then
     is_redirector_enabled="1"
 fi
+# Associate Keybase with .saltpack files.  This comes in three stages:
+if command -v xdg-mime &> /dev/null ; then
+  # 1. Associate .saltpack and application/x-saltpack.
+  xdg-mime install --mode system x-saltpack.xml
+  # 2. Associate Keybase app with application/x-saltpack.
+  xdg-mime default keybase.desktop application/x-saltpack
+fi
+
+# 3. Update the icon.
+
+# Restart services before restarting redirector manually
+# so we know if it was already restarted via systemd.
+safe_restart_systemd_services
 
 # Set suid on redirector before we restart it, in case package manager reverted
 # permissions.
