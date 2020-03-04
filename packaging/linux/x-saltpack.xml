@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mime-type xmlns="http://www.freedesktop.org/standards/shared-mime-info" type="application/x-saltpack">
+  <comment>Saltpack signed/encrypted file</comment>
+  <glob pattern="*.saltpack"/>
+</mime-type>
