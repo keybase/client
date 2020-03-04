@@ -1135,7 +1135,7 @@ protocol local {
     ConversationID convID;
     boolean isTeam;
     array<string> parts;
-    string teamName;
+    string tlfName;
   }
   array<SimpleSearchInboxConvNamesHit> simpleSearchInboxConvNames(string query);
 
