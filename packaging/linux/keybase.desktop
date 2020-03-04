@@ -6,4 +6,4 @@ Terminal=false
 Type=Application
 Categories=Network;
 StartupNotify=false
-MimeType=x-scheme-handler/web+stellar;x-scheme-handler/keybase;
+MimeType=x-scheme-handler/web+stellar;x-scheme-handler/keybase;application/x-saltpack;
