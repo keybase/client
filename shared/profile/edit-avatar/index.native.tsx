@@ -1,14 +1,26 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
-import {collapseStyles, globalColors, globalMargins, padding, styleSheetCreate} from '../../styles'
-import {isIOS} from '../../constants/platform'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  padding,
+  styleSheetCreate,
+  platformStyles,
+} from '../../styles'
+import {isIOS, isTablet} from '../../constants/platform'
 import {Props} from '.'
 import {parseUri} from '../../util/expo-image-picker'
 
 const {width: screenWidth} = Kb.NativeDimensions.get('window')
 
-const avatar_size = () => {
-  return screenWidth - globalMargins.medium * 2
+const avatar_size = (): number => {
+  const big = screenWidth - globalMargins.medium * 2
+  if (isTablet) {
+    return Math.min(500, big)
+  } else {
+    return big
+  }
 }
 
 class AvatarUpload extends React.Component<Props> {
@@ -157,12 +169,15 @@ const styles = styleSheetCreate(
         marginTop: globalMargins.small,
       },
       standardScreen: {...padding(0)},
-      zoomContainer: {
-        backgroundColor: globalColors.grey,
-        marginBottom: globalMargins.tiny,
-        overflow: 'hidden',
-        position: 'relative',
-      },
+      zoomContainer: platformStyles({
+        common: {
+          backgroundColor: globalColors.grey,
+          marginBottom: globalMargins.tiny,
+          overflow: 'hidden',
+          position: 'relative',
+        },
+        isTablet: {alignSelf: 'center'},
+      }),
     } as const)
 )
 
