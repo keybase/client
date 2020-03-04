@@ -175,7 +175,6 @@ fix_bad_config_perms
 
 # Associate Keybase with .saltpack files.
 if command -v update-mime-database &> /dev/null ; then
-  # Associate .saltpack with application/x-saltpack.
   update-mime-database /usr/share/mime
 fi
 
