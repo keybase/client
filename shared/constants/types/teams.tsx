@@ -22,7 +22,7 @@ export type PublicitySettings = {
   publicityTeam: boolean
 }
 
-export type ActivityLevel = 'active' | 'recently' | 'extinct'
+export type ActivityLevel = 'active' | 'recently' | 'none'
 
 export type Teamname = string
 
@@ -45,11 +45,10 @@ export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type ChannelInfo = {
   channelname: string
+  conversationIDKey: ConversationIDKey
   description: string
-  hasAllMembers?: boolean | null
   memberStatus: RPCChatTypes.ConversationMemberStatus
   mtime: number
-  numParticipants: number
 }
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
@@ -136,6 +135,7 @@ export type State = {
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
   readonly canPerform: Map<TeamID, TeamOperations>
+  readonly channelSelectedMembers: Map<ConversationIDKey, Set<string>>
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string
@@ -150,8 +150,8 @@ export type State = {
   readonly teamsWithChosenChannels: Set<Teamname>
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean
-  readonly selectedChannels: Map<TeamID, Set<string>>
-  readonly selectedMembers: Map<TeamID, Set<string>>
+  readonly teamSelectedChannels: Map<TeamID, Set<string>>
+  readonly teamSelectedMembers: Map<TeamID, Set<string>>
   readonly subteamFilter: string
   readonly subteamsFiltered: Set<TeamID> | undefined
   readonly teamAccessRequestsPending: Set<Teamname>

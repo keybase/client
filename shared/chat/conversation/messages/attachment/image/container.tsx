@@ -33,6 +33,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
         message,
       })
     ),
+  _onRetry: (message: Types.MessageAttachment) =>
+    dispatch(
+      Chat2Gen.createAttachmentDownload({
+        message,
+      })
+    ),
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
@@ -66,6 +72,7 @@ export default Container.connect(
 
     return {
       arrowColor,
+      downloadError: !!message.transferErrMsg,
       fileName: message.fileName,
       fullPath: message.fileURL,
       hasProgress,
@@ -76,6 +83,7 @@ export default Container.connect(
       onClick: () => dispatchProps._onClick(message),
       onCollapse: () => dispatchProps._onCollapse(message),
       onDoubleClick: () => dispatchProps._onDoubleClick(message),
+      onRetry: () => dispatchProps._onRetry(message),
       onShowInFinder:
         !Container.isMobile && message.downloadPath
           ? (e: React.SyntheticEvent) => {

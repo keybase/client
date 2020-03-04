@@ -281,7 +281,7 @@ const styles = Styles.styleSheetCreate(
         isTablet: {alignSelf: 'center', maxWidth: 600},
       }),
       settingsHeader: {
-        marginBottom: Styles.globalMargins.small,
+        display: 'flex',
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
       },
@@ -309,7 +309,8 @@ export default (p: Props) => {
       sections={[
         ...p.commonSections,
         {
-          data: ['tab'],
+          data: [{key: 'tab'}],
+          key: 'settings-panel',
           renderItem: () => (
             <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} key="settings" />
           ),

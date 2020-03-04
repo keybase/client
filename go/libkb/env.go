@@ -2064,6 +2064,9 @@ func (e *Env) GetRememberPassphrase(username NormalizedUsername) bool {
 }
 
 func GetPlatformString() string {
+	if IsIPad {
+		return "ipad"
+	}
 	if isIOS {
 		return "ios"
 	}
@@ -2072,7 +2075,7 @@ func GetPlatformString() string {
 
 func IsMobilePlatform() bool {
 	s := GetPlatformString()
-	return (s == "ios" || s == "android")
+	return (s == "ios" || s == "android" || s == "ipad")
 }
 
 func (e *Env) AllowPTrace() bool {

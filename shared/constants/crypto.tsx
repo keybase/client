@@ -3,6 +3,7 @@ import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/crypto'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
+import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 
@@ -66,6 +67,13 @@ export const Tabs: Array<Types.Tab> = [
   },
 ]
 
+export const CryptoSubTabs: {[k in Types.Operations]: Types.CryptoSubTab} = {
+  decrypt: decryptTab,
+  encrypt: encryptTab,
+  sign: signTab,
+  verify: verifyTab,
+}
+
 export const Operations: {[key: string]: Types.Operations} = {
   Decrypt: 'decrypt',
   Encrypt: 'encrypt',
@@ -74,10 +82,10 @@ export const Operations: {[key: string]: Types.Operations} = {
 }
 
 const operationToInputPlaceholder: {[k in Types.Operations]: string} = {
-  decrypt: 'Enter ciphertext, drop an encrypted file, or',
-  encrypt: 'Enter text, drop a file, or',
-  sign: 'Enter text, drop a file, or',
-  verify: 'Enter a signed message, drop a signed file, or',
+  decrypt: 'Enter ciphertext, drop an encrypted file or folder, or',
+  encrypt: 'Enter text, drop a file or folder, or',
+  sign: 'Enter text, drop a file or folder, or',
+  verify: 'Enter a signed message, drop a signed file or folder, or',
 }
 
 const operationToInputTextType: {[k in Types.Operations]: Types.TextType} = {
@@ -122,6 +130,13 @@ const operationToFileWaitingKey: {[k in Types.Operations]: Types.FileWaitingKey}
   verify: verifyFileWaitingKey,
 } as const
 
+const operationToAllowInputFolders: {[k in Types.Operations]: boolean} = {
+  decrypt: false,
+  encrypt: true,
+  sign: true,
+  verify: false,
+} as const
+
 export const getInputPlaceholder = (operation: Types.Operations) => operationToInputPlaceholder[operation]
 export const getInputTextType = (operation: Types.Operations) => operationToInputTextType[operation]
 export const getOutputTextType = (operation: Types.Operations) => operationToOutputTextType[operation]
@@ -129,12 +144,13 @@ export const getInputFileIcon = (operation: Types.Operations) => operationToInpu
 export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
 export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
+export const getAllowInputFolders = (operation: Types.Operations) => operationToAllowInputFolders[operation]
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
 
 export const getStatusCodeMessage = (
-  code: number,
+  error: RPCError,
   operation: Types.Operations,
   type: Types.InputTypes
 ): string => {
@@ -143,15 +159,40 @@ export const getStatusCodeMessage = (
   const action = type === 'text' ? (operation === Operations.Verify ? 'enter a' : 'enter') : 'drop a'
   const addInput =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'encrypted file'
-  const invalidInputMessage = `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`
 
-  const statusCodeToMessage: any = {
-    [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
-    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}`,
-    [RPCTypes.StatusCode.scapinetworkerror]: `Cannot ${operation} offline.`,
+  const offlineMessage = `You are offline.`
+  const genericMessage = `Failed to ${operation} ${type}.`
+
+  var wrongTypeHelpText = ``
+  if (operation === Operations.Verify) {
+    wrongTypeHelpText = ` Did you mean to decrypt it?` // just a guess. could get specific expected type from Cause with more effort.
+  } else if (operation === Operations.Decrypt) {
+    wrongTypeHelpText = ` Did you mean to verify it?` // just a guess.
+  }
+
+  const causeStatusCode =
+    error.fields && error.fields[1].key === 'Code' ? error.fields[1].value : RPCTypes.StatusCode.scgeneric
+  const causeStatusCodeToMessage: any = {
+    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
+    [RPCTypes.StatusCode
+      .scdecryptionkeynotfound]: `Your message couldn't be decrypted, because no suitable key was found.`,
+    [RPCTypes.StatusCode
+      .scverificationkeynotfound]: `Your message couldn't be verified, because no suitable key was found.`,
+    [RPCTypes.StatusCode.scwrongcryptomsgtype]: `This Saltpack format is unexpected.` + wrongTypeHelpText,
   } as const
 
-  return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
+  const statusCodeToMessage: any = {
+    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
+    [RPCTypes.StatusCode.scgeneric]: `${
+      error.message.includes('API network error') ? offlineMessage : genericMessage
+    }`,
+    [RPCTypes.StatusCode
+      .scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
+    [RPCTypes.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
+    [RPCTypes.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
+  } as const
+
+  return statusCodeToMessage[error.code] || genericMessage
 }
 
 // State
@@ -159,9 +200,11 @@ const defaultCommonState = {
   bytesComplete: 0,
   bytesTotal: 0,
   errorMessage: new HiddenString(''),
+  inProgress: false,
   input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
   output: new HiddenString(''),
+  outputFileDestination: new HiddenString(''),
   outputSenderFullname: undefined,
   outputSenderUsername: undefined,
   outputSigned: false,

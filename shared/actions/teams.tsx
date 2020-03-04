@@ -11,6 +11,7 @@ import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
+import * as Tabs from '../constants/tabs'
 import * as RouteTreeGen from './route-tree-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
@@ -554,8 +555,13 @@ const loadTeam = async (state: TypedState, action: TeamsGen.LoadTeamPayload, log
     return
   }
 
-  const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
-  return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
+  try {
+    const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
+    return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
+  } catch (e) {
+    logger.error(e.message)
+    return
+  }
 }
 
 function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPayload, logger: Saga.SagaLogger) {
@@ -648,11 +654,10 @@ const getChannelInfo = async (
 
   const channelInfo = {
     channelname: meta.channelname,
+    conversationIDKey,
     description: meta.description,
-    hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
-    numParticipants: convs[0].participants?.length ?? 0,
   }
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamID})
@@ -685,11 +690,10 @@ const getChannels = async (
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
     channelInfos.set(convID, {
       channelname: conv.channel,
+      conversationIDKey: convID,
       description: conv.headline,
-      hasAllMembers: null,
       memberStatus: conv.memberStatus,
       mtime: conv.time,
-      numParticipants: (conv.participants || []).length,
     })
   })
 
@@ -1322,11 +1326,31 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   let teamID: string
   try {
     teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
-  } catch (e) {
-    logger.info(`showTeamByName: team "${teamname}" cannot be loaded: ${e.toString()}`)
+  } catch (err) {
+    logger.info(`team="${teamname}" cannot be loaded:`, err)
     return null
   }
+
+  if (addMembers) {
+    // Check if we have the right role to be adding members, otherwise don't
+    // show the team builder.
+    try {
+      // Get (hopefully fresh) role map. The app might have just started so it's
+      // not enough to just look in the react store.
+      const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+      const role = map.teams[teamID]?.role || map.teams[teamID]?.implicitRole
+      if (role !== RPCTypes.TeamRole.admin && role !== RPCTypes.TeamRole.owner) {
+        logger.info(`ignoring team="${teamname}" with addMember, user is not an admin but role=${role}`)
+        return null
+      }
+    } catch (err) {
+      logger.info(`team="${teamname}" failed to check if user is an admin:`, err)
+      return null
+    }
+  }
+
   return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
     RouteTreeGen.createNavigateAppend({
       path: [{props: {initialTab, teamID}, selected: 'team'}],
     }),

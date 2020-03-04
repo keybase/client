@@ -86,13 +86,13 @@ type ConversationSource interface {
 	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
-		query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
+		ri func() chat1.RemoteInterface, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		reason chat1.GetThreadReason, query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
 	PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
 		query *chat1.GetThreadQuery, maxPages *int) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
-		reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
+		reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
@@ -300,6 +300,7 @@ type TeamChannelSource interface {
 	GetChannelTopicName(ctx context.Context, uid gregor1.UID,
 		tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error)
 	GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error)
+	GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID, remoteClient chat1.RemoteInterface) (gregor1.Time, error)
 	OnLogout(libkb.MetaContext) error
 	OnDbNuke(libkb.MetaContext) error
 }
@@ -585,9 +586,10 @@ type UIThreadLoader interface {
 	Offlinable
 	LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 		convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
-		cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error
+		cbmode chat1.GetThreadNonblockCbMode, knownRemotes []string, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error
 	Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
+		reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery,
+		pagination *chat1.Pagination) (chat1.ThreadView, error)
 }
 
 type JourneyCardManager interface {
@@ -596,6 +598,15 @@ type JourneyCardManager interface {
 	SentMessage(context.Context, gregor1.UID, keybase1.TeamID, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
 	Dismiss(context.Context, gregor1.UID, keybase1.TeamID, chat1.ConversationID, chat1.JourneycardType)
 	OnDbNuke(libkb.MetaContext) error
+}
+
+type ParticipantSource interface {
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error)
+	GetNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
+	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		dataSource InboxSourceDataSourceTyp)
 }
 
 type InternalError interface {

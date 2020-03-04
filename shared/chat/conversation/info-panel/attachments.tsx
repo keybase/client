@@ -7,11 +7,11 @@ import * as Constants from '../../../constants/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
 import chunk from 'lodash/chunk'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
+import {infoPanelWidth} from './common'
 
 const monthNames = [
   'January',
@@ -29,6 +29,7 @@ const monthNames = [
 ]
 
 type Thumb = {
+  key: React.Key
   ctime: number
   height: number
   isVideo: boolean
@@ -65,29 +66,36 @@ function getDateInfo<I extends {ctime: number}>(thumb: I) {
   }
 }
 
-function formMonths<I extends {ctime: number}>(
+function formMonths<I extends {ctime: number; key: React.Key}>(
   items: Array<I>
-): Array<{data: Array<I>; month: string; year: number}> {
+): Array<{
+  key: React.Key
+  data: Array<I>
+  month: string
+  year: number
+}> {
   if (items.length === 0) {
     return []
   }
+  const dateInfo = getDateInfo(items[0])
   let curMonth = {
-    ...getDateInfo(items[0]),
+    ...dateInfo,
     data: [] as Array<I>,
+    key: `month-${dateInfo.year}-${dateInfo.month}`,
   }
-  const months = items.reduce<Array<typeof curMonth>>((l, t, index) => {
-    const dateInfo = getDateInfo(t)
+  const months = items.reduce<Array<typeof curMonth>>((l, item, index) => {
+    const dateInfo = getDateInfo(item)
     if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
       if (curMonth.data.length > 0) {
         l.push(curMonth)
       }
       curMonth = {
-        data: [t],
-        month: dateInfo.month,
-        year: dateInfo.year,
+        ...dateInfo,
+        data: [item],
+        key: `month-${dateInfo.year}-${dateInfo.month}`,
       }
     } else {
-      curMonth.data.push(t)
+      curMonth.data.push(item)
     }
     if (index === items.length - 1 && curMonth.data.length > 0) {
       l.push(curMonth)
@@ -288,7 +296,9 @@ const styles = Styles.styleSheetCreate(
         top: '50%',
         width: 24,
       },
-      selectorContainer: {padding: Styles.globalMargins.small},
+      selectorContainer: {
+        padding: Styles.globalMargins.small,
+      },
       selectorDocContainer: {
         borderColor: Styles.globalColors.blue,
         borderLeftWidth: 1,
@@ -403,7 +413,8 @@ export default (p: Props) => {
   const commonSections = [
     ...p.commonSections,
     {
-      data: ['avselector'],
+      data: [{key: 'avselector'}],
+      key: 'avselector',
       renderItem: () => (
         <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
       ),
@@ -412,7 +423,8 @@ export default (p: Props) => {
   ]
 
   const loadMoreSection = {
-    data: ['load more'],
+    data: [{key: 'load more'}],
+    key: 'load-more',
     renderItem: () => {
       const status = attachmentInfo.status
       if (onLoadMore && status !== 'loading') {
@@ -446,10 +458,11 @@ export default (p: Props) => {
   if (attachmentInfo.messages.length === 0 && attachmentInfo.status !== 'loading') {
     sections = [
       {
-        data: ['No attachments'],
-        renderItem: ({item}: {item: string}) => (
+        data: [{key: 'no-attachments'}],
+        key: 'no-attachments',
+        renderItem: () => (
           <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
-            <Kb.Text type="BodySmall">{item}</Kb.Text>
+            <Kb.Text type="BodySmall">No attachments</Kb.Text>
           </Kb.Box2>
         ),
       },
@@ -459,8 +472,8 @@ export default (p: Props) => {
     switch (selectedAttachmentView) {
       case RPCChatTypes.GalleryItemTyp.media:
         {
-          const rowSize = 4
-          const maxMediaThumbSize = Styles.isMobile ? imgMaxWidthRaw() / rowSize : 80
+          const rowSize = 4 // count of images in each row
+          const maxMediaThumbSize = infoPanelWidth() / rowSize
           const s = formMonths(
             (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
               m =>
@@ -468,28 +481,38 @@ export default (p: Props) => {
                   ctime: m.timestamp,
                   height: m.previewHeight,
                   isVideo: !!m.videoDuration,
+                  key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
                   onClick: () => onMediaClick(m),
                   previewURL: m.previewURL,
                   width: m.previewWidth,
                 } as Thumb)
             )
-          ).map(month => ({
-            data: chunk(
+          ).map(month => {
+            const data = chunk(
               month.data.map(thumb => ({
+                debug: {
+                  height: thumb.height,
+                  maxMediaThumbSize,
+                  width: thumb.width,
+                },
                 sizing: Constants.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
                 thumb,
               })),
               rowSize
-            ),
-            renderItem: ({item, index}: {item: Array<MediaThumbProps>; index: number}) => (
-              <Kb.Box2 key={index} direction="horizontal" fullWidth={true}>
-                {item.map((cell, i) => {
-                  return <MediaThumb key={i} sizing={cell.sizing} thumb={cell.thumb} />
-                })}
-              </Kb.Box2>
-            ),
-            renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
-          }))
+            ).map((images, i) => ({images, key: i}))
+            return {
+              data,
+              key: month.key,
+              renderItem: ({item}: {item: Unpacked<typeof data>; index: number}) => (
+                <Kb.Box2 direction="horizontal" fullWidth={true}>
+                  {item.images.map(cell => {
+                    return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
+                  })}
+                </Kb.Box2>
+              ),
+              renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+            }
+          })
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
@@ -500,6 +523,7 @@ export default (p: Props) => {
             ctime: m.timestamp,
             downloading: m.transferState === 'downloading',
             fileName: m.fileName,
+            key: `doc-${m.ordinal}-${m.author}-${m.timestamp}-${m.fileName}`,
             message: m,
             name: m.title || m.fileName,
             onDownload: () => onDocDownload(m),
@@ -509,6 +533,7 @@ export default (p: Props) => {
 
           const s = formMonths(docs).map(month => ({
             data: month.data,
+            key: month.key,
             renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
           }))
@@ -518,7 +543,14 @@ export default (p: Props) => {
       case RPCChatTypes.GalleryItemTyp.link:
         {
           const links = attachmentInfo.messages.reduce<
-            Array<{author: string; ctime: number; snippet: string; title?: string; url?: string}>
+            Array<{
+              author: string
+              ctime: number
+              key: React.Key
+              snippet: string
+              title?: string
+              url?: string
+            }>
           >((l, m) => {
             if (m.type !== 'text') {
               return l
@@ -527,14 +559,16 @@ export default (p: Props) => {
               l.push({
                 author: m.author,
                 ctime: m.timestamp,
+                key: `unfurl-empty-${m.ordinal}-${m.author}-${m.timestamp}`,
                 snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
               })
             } else {
-              ;[...m.unfurls.values()].forEach(u => {
+              ;[...m.unfurls.values()].forEach((u, i) => {
                 if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
                   l.push({
                     author: m.author,
                     ctime: m.timestamp,
+                    key: `unfurl-${m.ordinal}-${i}-${m.author}-${m.timestamp}-${u.unfurl.generic.url}`,
                     snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
                     title: u.unfurl.generic.title,
                     url: u.unfurl.generic.url,
@@ -547,6 +581,7 @@ export default (p: Props) => {
 
           const s = formMonths(links).map(month => ({
             data: month.data,
+            key: month.key,
             renderItem: ({item}: {item: Link}) => {
               return (
                 <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">

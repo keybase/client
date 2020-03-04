@@ -522,15 +522,15 @@ func DecryptTLFCryptKeyClientHalf(
 		&nonce, &publicKeyData, &privateKeyData)
 	if !ok {
 		return TLFCryptKeyClientHalf{},
-			errors.WithStack(libkb.DecryptionError{Cause: errors.New(
-				"Can't unbox TLF crypt key client half")})
+			errors.WithStack(libkb.DecryptionError{Cause: libkb.ErrorCause{Err: errors.New(
+				"Can't unbox TLF crypt key client half")}})
 	}
 
 	var clientHalfData [32]byte
 	if len(decryptedData) != len(clientHalfData) {
 		return TLFCryptKeyClientHalf{},
-			errors.WithStack(libkb.DecryptionError{Cause: errors.New(
-				"TLF crypt key client half has wrong data length")})
+			errors.WithStack(libkb.DecryptionError{Cause: libkb.ErrorCause{Err: errors.New(
+				"TLF crypt key client half has wrong data length")}})
 	}
 
 	copy(clientHalfData[:], decryptedData)

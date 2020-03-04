@@ -11,9 +11,9 @@ import (
 
 func NewCmdPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "phonenumber",
-		// No "usage" hides from view
-		// Usage: "Manage your phone numbers",
+		Name:     "phonenumber",
+		Usage:    "Manage your phone numbers",
+		Unlisted: true,
 		Subcommands: []cli.Command{
 			NewCmdAddPhoneNumber(cl, g),
 			NewCmdEditPhoneNumber(cl, g),

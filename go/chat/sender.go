@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -113,7 +114,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	reachedLast := false
 	for {
 		thread, err = s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
-			chat1.GetThreadReason_PREPARE,
+			chat1.GetThreadReason_PREPARE, nil,
 			&chat1.GetThreadQuery{
 				DisableResolveSupersedes: true,
 			},
@@ -254,43 +255,48 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 }
 
 // Get all messages to be deleted, and attachments to delete.
-// Returns (message, assetsToDelete, error)
+// Returns (message, assetsToDelete, flipConvToDelete, error)
 // If the entire conversation is cached locally, this will find all messages that should be deleted.
 // If the conversation is not cached, this relies on the server to get old messages, so the server
 // could omit messages. Those messages would then not be signed into the `Deletes` list. And their
 // associated attachment assets would be left undeleted.
 func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.MessagePlaintext, []chat1.Asset, error) {
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.MessagePlaintext, []chat1.Asset, *chat1.ConversationID, error) {
 
 	var pendingAssetDeletes []chat1.Asset
+	var deleteFlipConvID *chat1.ConversationID
 
 	// Make sure this is a valid delete message
 	if msg.ClientHeader.MessageType != chat1.MessageType_DELETE {
-		return msg, nil, nil
+		return msg, nil, nil, nil
 	}
 
 	deleteTargetID := msg.ClientHeader.Supersedes
 	if deleteTargetID == 0 {
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
+		return msg, nil, nil, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
 	}
 
 	// Get the one message to be deleted by ID.
 	deleteTarget, err := s.getMessage(ctx, uid, convID, deleteTargetID, false /* resolveSupersedes */)
 	if err != nil {
-		return msg, nil, err
+		return msg, nil, nil, err
 	}
-	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
+	switch deleteTarget.ClientHeader.MessageType {
+	case chat1.MessageType_REACTION:
 		// Don't do anything here for reactions/unfurls, they can't be edited
-		return msg, nil, nil
-	} else if deleteTarget.ClientHeader.MessageType == chat1.MessageType_SYSTEM {
+		return msg, nil, nil, nil
+	case chat1.MessageType_SYSTEM:
 		msgSys := deleteTarget.MessageBody.System()
 		typ, err := msgSys.SystemType()
 		if err != nil {
-			return msg, nil, err
+			return msg, nil, nil, err
 		}
 		if !chat1.IsSystemMsgDeletableByDelete(typ) {
-			return msg, nil, fmt.Errorf("%v is not deletable", typ)
+			return msg, nil, nil, fmt.Errorf("%v is not deletable", typ)
 		}
+	case chat1.MessageType_FLIP:
+		flipConvID := deleteTarget.MessageBody.Flip().FlipConvID
+		deleteFlipConvID = &flipConvID
 	}
 
 	// Delete all assets on the deleted message.
@@ -313,14 +319,14 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 		// no edits/deletes possible here
 	default:
 		tv, err = s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
-			chat1.GetThreadReason_PREPARE,
+			chat1.GetThreadReason_PREPARE, nil,
 			&chat1.GetThreadQuery{
 				MarkAsRead:   false,
 				MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
 				After:        &timeBeforeFirst,
 			}, nil)
 		if err != nil {
-			return msg, nil, err
+			return msg, nil, nil, err
 		}
 	}
 
@@ -367,7 +373,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	//       careful to preserve them here.
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
-	return msg, pendingAssetDeletes, nil
+	return msg, pendingAssetDeletes, deleteFlipConvID, nil
 }
 
 func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
@@ -472,7 +478,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 				validConvs = append(validConvs, conv)
 			}
 			if conv.GetTopicName() == newTopicName {
-				return nil, DuplicateTopicNameError{TopicName: newTopicName}
+				return nil, DuplicateTopicNameError{Conv: conv}
 			}
 		}
 
@@ -501,7 +507,7 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 	}
 	body := msg.MessageBody.Edit()
 	// try to find the message with the given outbox ID in the first 50 messages.
-	tv, err := s.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_PREPARE,
+	tv, err := s.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_PREPARE, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes:             []chat1.MessageType{chat1.MessageType_TEXT},
 			DisableResolveSupersedes: true,
@@ -565,8 +571,8 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, con
 	return msg, nil
 }
 
-func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gregor1.UID,
-	conv *chat1.ConversationLocal) (res []chat1.ConversationLocalParticipant, err error) {
+func (s *BlockingSender) getUsernamesForMentions(ctx context.Context, uid gregor1.UID,
+	conv *chat1.ConversationLocal) (res []string, err error) {
 	if conv == nil {
 		return nil, nil
 	}
@@ -574,30 +580,32 @@ func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gre
 	// get the conv that we will look for @ mentions in
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		if conv.GetTopicName() == globals.DefaultTeamTopic {
-			return conv.Info.Participants, nil
-		}
-		topicType := chat1.TopicType_CHAT
-		ib, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-			types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
-				Name: &chat1.NameQuery{
-					Name:        conv.Info.TlfName,
-					TlfID:       &conv.Info.Triple.Tlfid,
-					MembersType: chat1.ConversationMembersType_TEAM,
-				},
-				TopicName: &globals.DefaultTeamTopic,
-				TopicType: &topicType,
-			})
+		teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
 		if err != nil {
-			return nil, err
+			return res, err
 		}
-		if len(ib.Convs) == 0 {
-			// just make a best effort here and return the current conv
-			return conv.Info.Participants, nil
+		team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		if err != nil {
+			return res, err
 		}
-		return ib.Convs[0].Info.Participants, nil
+		details, err := teams.MembersDetails(ctx, s.G().ExternalG(), team)
+		if err != nil {
+			return res, err
+		}
+		allMembers := details.All()
+		res = make([]string, 0, len(allMembers))
+		for _, memb := range allMembers {
+			res = append(res, memb.Username)
+		}
+		return res, nil
 	default:
-		return conv.Info.Participants, nil
+		res = make([]string, 0, len(conv.Info.Participants))
+		for _, p := range conv.Info.Participants {
+			res = append(res, p.Username)
+		}
+		return res, nil
 	}
 }
 func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
@@ -635,8 +643,8 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 	}
 
 	// find @ mentions
-	getConvMembers := func() ([]chat1.ConversationLocalParticipant, error) {
-		return s.getParticipantsForMentions(ctx, uid, conv)
+	getConvUsernames := func() ([]string, error) {
+		return s.getUsernamesForMentions(ctx, uid, conv)
 	}
 	var knownUserMentions []chat1.KnownUserMention
 	var maybeMentions []chat1.MaybeMention
@@ -646,7 +654,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
-			uid, conv.GetConvID(), msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
+			uid, conv.GetConvID(), msg.MessageBody.Text(), getConvUsernames, &s.DebugLabeler)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Text().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -661,7 +669,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Attachment().GetTitle(), nil, getConvMembers)
+			msg.MessageBody.Attachment().GetTitle(), nil, getConvUsernames)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Attachment().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -676,7 +684,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Flip().Text, nil, getConvMembers)
+			msg.MessageBody.Flip().Text, nil, getConvUsernames)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Flip().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -691,7 +699,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Edit().Body, nil, getConvMembers)
+			msg.MessageBody.Edit().Body, nil, getConvUsernames)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Edit().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -741,6 +749,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Make sure our delete message gets everything it should
 	var pendingAssetDeletes []chat1.Asset
+	var deleteFlipConvID *chat1.ConversationID
 	if conv != nil {
 		convID := conv.GetConvID()
 		msg.ClientHeader.Conv = conv.Info.Triple
@@ -778,8 +787,8 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			return res, err
 		}
 
-		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
-		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
+		// Be careful not to shadow (msg, pendingAssetDeletes, deleteFlipConvID) with this assignment.
+		msg, pendingAssetDeletes, deleteFlipConvID, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
 		if err != nil {
 			s.Debug(ctx, "Prepare: error getting deleted edits: %s", err)
 			return res, err
@@ -881,6 +890,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		Boxed:               boxed,
 		EncryptionInfo:      encInfo,
 		PendingAssetDeletes: pendingAssetDeletes,
+		DeleteFlipConv:      deleteFlipConvID,
 		AtMentions:          atMentions,
 		ChannelMention:      chanMention,
 		TopicNameState:      topicNameState,
@@ -1078,15 +1088,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		}
 		boxed = &prepareRes.Boxed
 
-		// Delete assets associated with a delete operation.
-		// Logs instead of returning an error. Assets can be left undeleted.
-		if len(prepareRes.PendingAssetDeletes) > 0 {
-			err = s.deleteAssets(ctx, convID, prepareRes.PendingAssetDeletes)
-			if err != nil {
-				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err)
-			}
-		}
-
 		// Log some useful information about the message we are sending
 		obidstr := "(none)"
 		if boxed.ClientHeader.OutboxID != nil {
@@ -1141,6 +1142,22 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			}
 		}
 		boxed.ServerHeader = &plres.MsgHeader
+
+		// Delete assets associated with a delete operation.
+		// Logs instead of returning an error. Assets can be left undeleted.
+		if len(prepareRes.PendingAssetDeletes) > 0 {
+			err = s.deleteAssets(ctx, convID, prepareRes.PendingAssetDeletes)
+			if err != nil {
+				s.Debug(ctx, "Send: failure in deleteAssets: %s", err)
+			}
+		}
+
+		if prepareRes.DeleteFlipConv != nil {
+			_, err = s.getRi().DeleteConversation(ctx, *prepareRes.DeleteFlipConv)
+			if err != nil {
+				s.Debug(ctx, "Send: failure in DeleteConversation: %s", err)
+			}
+		}
 		break
 	}
 	if err != nil {

@@ -854,7 +854,9 @@ func GetChangesBetweenRevisions(
 	ops := make([]op, opsCount)
 	soFar := 0
 	for _, rmd := range rmds {
-		copy(ops[soFar:], rmd.data.Changes.Ops)
+		for i, op := range rmd.data.Changes.Ops {
+			ops[soFar+i] = op.deepCopy()
+		}
 		soFar += len(rmd.data.Changes.Ops)
 	}
 	chains.revertRenames(ops)

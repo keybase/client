@@ -14,6 +14,7 @@ import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
+import {infoPanelWidthTablet} from '../../info-panel/common'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -352,7 +353,8 @@ class Input extends React.Component<InputProps, InputState> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
       // TODO: Ideally, we'd also stash and restore the selection.
-      if (!this.props.isSearching) {
+      // Bring up the keyboard as a result of switching convo, but only on phone, not tablet.
+      if (!this.props.isSearching && !Constants.isSplit) {
         this._inputFocus()
       }
     }
@@ -421,7 +423,7 @@ class Input extends React.Component<InputProps, InputState> {
       gap="tiny"
     >
       <Kb.Avatar teamname={teamname} size={32} />
-      <Kb.Text type="Body">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
+      <Kb.Text type="BodyBold">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
     </Kb.Box2>
   )
 
@@ -465,10 +467,9 @@ class Input extends React.Component<InputProps, InputState> {
           <Kb.Avatar username={username} size={32} />
         )}
         <Kb.ConnectedUsernames
-          type="Body"
+          type="BodyBold"
           colorFollowing={true}
           usernames={[username]}
-          style={styles.boldStyle}
           withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>
@@ -564,7 +565,7 @@ class Input extends React.Component<InputProps, InputState> {
           ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <Kb.Text type="BodySemibold" style={styles.boldStyle}>
+            <Kb.Text type="BodySemibold">
               {prefix}
               {command.name}
             </Kb.Text>
@@ -644,7 +645,6 @@ class Input extends React.Component<InputProps, InputState> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      boldStyle: {fontWeight: '700'},
       container: Styles.platformStyles({
         isMobile: {justifyContent: 'flex-end'},
       }),
@@ -673,6 +673,7 @@ const styles = Styles.styleSheetCreate(
       }),
       suggestionOverlay: Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+        isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
       }),
       suggestionSpinnerStyle: Styles.platformStyles({
         common: {

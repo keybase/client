@@ -15,6 +15,8 @@ import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
 
+type RowItem = Types.ChatInboxRowItem
+
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
     <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
@@ -109,7 +111,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     )
   }
 
-  _askForUnboxing = (rows: Array<T.RowItem>) => {
+  _askForUnboxing = (rows: Array<RowItem>) => {
     const toUnbox = rows.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
       if (r.type === 'small' && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
@@ -176,7 +178,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  _onScrollUnbox = debounce((data: {viewableItems: Array<{item: T.RowItem}>}) => {
+  _onScrollUnbox = debounce((data: {viewableItems: Array<{item: RowItem}>}) => {
     const {viewableItems} = data
     const item = viewableItems?.[0]
     if (item && Object.prototype.hasOwnProperty.call(item, 'index')) {
@@ -186,11 +188,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
 
   _maxVisible = Math.ceil(Kb.NativeDimensions.get('window').height / 64)
 
-  _setRef = (r: Kb.NativeFlatList<T.RowItem> | null) => {
+  _setRef = (r: Kb.NativeFlatList<RowItem> | null) => {
     this._list = r
   }
 
-  _getItemLayout = (data: null | Array<T.RowItem>, index: number) => {
+  _getItemLayout = (data: null | Array<RowItem>, index: number) => {
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
@@ -234,7 +236,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader showNewChat={false} showSearch={Styles.isMobile} />
+    const HeadComponent = <ChatInboxHeader context="inbox-header" />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
@@ -282,11 +284,13 @@ const styles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           backgroundColor: Styles.globalColors.fastBlank,
-          flex: 1,
+          flexShrink: 1,
           position: 'relative',
         },
         isTablet: {
-          maxWidth: Styles.globalStyles.shortWidth,
+          backgroundColor: Styles.globalColors.blueGrey,
+          minWidth: 300,
+          width: '30%',
         },
       }),
       loadingContainer: {
@@ -308,5 +312,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Inbox
-export type RowItem = T.RowItem
-export type RowItemSmall = T.RowItemSmall

@@ -1,4 +1,5 @@
 import * as Types from '../types/chat2'
+import * as UserTypes from '../types/users'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
@@ -17,9 +18,9 @@ import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
-import {getFullname} from '../users'
 import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
+import * as TeamTypes from '../types/teams'
 import flags from '../../util/feature-flags'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
@@ -40,6 +41,7 @@ export const makeState = (): Types.State => ({
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
+  botSearchResults: new Map(),
   botSettings: new Map(),
   botTeamRoleInConvMap: new Map(),
   channelSearchText: '',
@@ -459,12 +461,18 @@ export const getParticipantInfo = (
   return participantInfo ? participantInfo : noParticipantInfo
 }
 
-// we want the memoized function to have access to state but not have it be a part of the memoization else it'll fail always
-let _unmemoizedState: TypedState
 const _getParticipantSuggestionsMemoized = memoize(
-  (participants: Array<string>, teamType: Types.TeamType) => {
-    const suggestions = participants.map(username => ({
-      fullName: getFullname(_unmemoizedState, username) || '',
+  (
+    teamMembers: Map<string, TeamTypes.MemberInfo> | undefined,
+    participantInfo: Types.ParticipantInfo,
+    infoMap: Map<string, UserTypes.UserInfo>,
+    teamType: Types.TeamType
+  ) => {
+    const usernames = teamMembers
+      ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
+      : participantInfo.all
+    const suggestions = usernames.map(username => ({
+      fullName: infoMap.get(username)?.fullname || '',
       username,
     }))
     if (teamType !== 'adhoc') {
@@ -476,10 +484,10 @@ const _getParticipantSuggestionsMemoized = memoize(
 )
 
 export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
-  const participants = getParticipantInfo(state, id)
-  const {teamType} = getMeta(state, id)
-  _unmemoizedState = state
-  return _getParticipantSuggestionsMemoized(participants.all, teamType)
+  const {teamID, teamType} = getMeta(state, id)
+  const teamMembers = state.teams.teamIDToMembers.get(teamID)
+  const participantInfo = getParticipantInfo(state, id)
+  return _getParticipantSuggestionsMemoized(teamMembers, participantInfo, state.users.infoMap, teamType)
 }
 
 export const messageAuthorIsBot = (
@@ -514,6 +522,21 @@ export const getBotRestrictBlockMap = (
     blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
   })
   return blocks
+}
+
+export const uiParticipantsToParticipantInfo = (uiParticipants: Array<RPCChatTypes.UIParticipant>) => {
+  const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
+  uiParticipants.forEach(part => {
+    const {assertion, contactName, inConvName} = part
+    participantInfo.all.push(assertion)
+    if (inConvName) {
+      participantInfo.name.push(assertion)
+    }
+    if (contactName) {
+      participantInfo.contactName.set(assertion, contactName)
+    }
+  })
+  return participantInfo
 }
 
 export {

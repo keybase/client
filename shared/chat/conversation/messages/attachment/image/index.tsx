@@ -9,6 +9,7 @@ import {ShowToastAfterSaving} from '../shared'
 
 type Props = {
   arrowColor: string
+  downloadError: boolean
   hasProgress: boolean
   height: number
   isCollapsed: boolean
@@ -16,6 +17,7 @@ type Props = {
   onCollapse: () => void
   onShowInFinder?: (e: React.BaseSyntheticEvent) => void
   onDoubleClick: () => void
+  onRetry: () => void
   path: string
   fullPath: string
   fileName: string
@@ -199,13 +201,21 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 )}
               </Kb.Box>
               <Kb.Box style={styles.progressContainer}>
-                {!this.props.onShowInFinder && (
+                {!this.props.onShowInFinder && !this.props.downloadError && (
                   <Kb.Text type="BodySmall" style={styles.progressLabel}>
                     {progressLabel ||
                       '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
                   </Kb.Text>
                 )}
                 {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
+                {this.props.downloadError && (
+                  <Kb.Text type="BodySmall" style={styles.downloadErrorLabel}>
+                    Failed to download.{' '}
+                    <Kb.Text type="BodySmall" style={styles.retry} onClick={this.props.onRetry}>
+                      Retry
+                    </Kb.Text>
+                  </Kb.Text>
+                )}
               </Kb.Box>
             </Kb.Box2>
           )}
@@ -246,6 +256,10 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
       },
+      downloadErrorLabel: {
+        color: Styles.globalColors.redDark,
+        marginRight: Styles.globalMargins.tiny,
+      },
       downloadIcon: {
         maxHeight: 14,
         position: 'relative',
@@ -269,6 +283,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: Styles.globalMargins.tiny,
       },
+
       durationText: {
         color: Styles.globalColors.white,
         paddingLeft: 3,
@@ -323,6 +338,10 @@ const styles = Styles.styleSheetCreate(
       progressLabel: {
         color: Styles.globalColors.black_50,
         marginRight: Styles.globalMargins.tiny,
+      },
+      retry: {
+        color: Styles.globalColors.redDark,
+        textDecorationLine: 'underline',
       },
       title: Styles.platformStyles({
         common: {

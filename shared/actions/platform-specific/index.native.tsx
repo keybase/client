@@ -322,6 +322,7 @@ function* setupNetInfoWatcher() {
 function* loadStartupDetails() {
   let startupWasFromPush = false
   let startupConversation = undefined
+  let startupPushPayload = undefined
   let startupFollowUser = ''
   let startupLink = ''
   let startupTab = undefined
@@ -361,6 +362,7 @@ function* loadStartupDetails() {
     startupWasFromPush = true
     startupConversation = push.startupConversation
     startupFollowUser = push.startupFollowUser
+    startupPushPayload = push.startupPushPayload
   } else if (link) {
     // Second priority, deep link
     startupLink = link
@@ -386,6 +388,7 @@ function* loadStartupDetails() {
       startupConversation,
       startupFollowUser,
       startupLink,
+      startupPushPayload,
       startupSharePath,
       startupShareText,
       startupTab,

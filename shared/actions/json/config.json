@@ -4,6 +4,7 @@
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as FsTypes from '../constants/types/fs'",
+    "import HiddenString from '../util/hidden-string'",
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
@@ -88,7 +89,12 @@
       "startupTab?": "Tabs.Tab",
       "startupFollowUser": "string",
       "startupSharePath?": "FsTypes.LocalPath",
-      "startupShareText?": "string"
+      "startupShareText?": "string",
+      "startupPushPayload?": "string"
+    },
+    "setStartupFile": {
+      "_description": "Stores the startup file path when launching Keybase from a cold start beofre log in",
+      "startupFile": "HiddenString"
     },
     "setOpenAtLogin": {"openAtLogin": "boolean"},
     "setNotifySound": {"notifySound": "boolean"},

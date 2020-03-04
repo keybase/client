@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 type NetworkInstrumenterStorage interface {
-	Put(tag string, record InstrumentationRecord) error
+	Put(ctx context.Context, tag string, record InstrumentationRecord) error
 }
 
 func RPCInstrumentTag(methodType MethodType, method string) string {
@@ -29,7 +31,9 @@ func NewDummyInstrumentationStorage() *DummyInstrumentationStorage {
 
 var _ NetworkInstrumenterStorage = (*DummyInstrumentationStorage)(nil)
 
-func (d *DummyInstrumentationStorage) Put(tag string, record InstrumentationRecord) error { return nil }
+func (d *DummyInstrumentationStorage) Put(context.Context, string, InstrumentationRecord) error {
+	return nil
+}
 
 type MemoryInstrumentationStorage struct {
 	sync.Mutex
@@ -44,7 +48,7 @@ func NewMemoryInstrumentationStorage() *MemoryInstrumentationStorage {
 	}
 }
 
-func (s *MemoryInstrumentationStorage) Put(tag string, record InstrumentationRecord) error {
+func (s *MemoryInstrumentationStorage) Put(ctx context.Context, tag string, record InstrumentationRecord) error {
 	s.Lock()
 	defer s.Unlock()
 	s.storage[tag] = append(s.storage[tag], record)
@@ -95,16 +99,16 @@ func (r *NetworkInstrumenter) EndCall() {
 	}
 }
 
-func (r *NetworkInstrumenter) RecordAndFinish(size int64) error {
+func (r *NetworkInstrumenter) RecordAndFinish(ctx context.Context, size int64) error {
 	if r == nil {
 		return nil
 	}
 	r.IncrementSize(size)
 	r.EndCall()
-	return r.Finish()
+	return r.Finish(ctx)
 }
 
-func (r *NetworkInstrumenter) Finish() error {
+func (r *NetworkInstrumenter) Finish(ctx context.Context) error {
 	if r == nil {
 		return nil
 	}
@@ -112,5 +116,5 @@ func (r *NetworkInstrumenter) Finish() error {
 		return errors.New("record already finished")
 	}
 	r.finished = true
-	return r.storage.Put(r.tag, *r.InstrumentationRecord)
+	return r.storage.Put(ctx, r.tag, *r.InstrumentationRecord)
 }

@@ -8,6 +8,17 @@
   ],
   "types": [
     {
+      "type": "enum",
+      "name": "WotStatusType",
+      "symbols": [
+        "NONE_0",
+        "PROPOSED_1",
+        "ACCEPTED_2",
+        "REJECTED_3",
+        "REVOKED_4"
+      ]
+    },
+    {
       "type": "record",
       "name": "UsernameVerificationType",
       "fields": [],
@@ -49,16 +60,28 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "WotReactionType",
+      "symbols": [
+        "ACCEPT_0",
+        "REJECT_1"
+      ]
+    },
+    {
       "type": "record",
-      "name": "PendingVouch",
+      "name": "WotVouch",
       "fields": [
         {
-          "type": "UserVersion",
-          "name": "voucher"
+          "type": "WotStatusType",
+          "name": "status"
         },
         {
           "type": "SigID",
-          "name": "proof"
+          "name": "vouchProof"
+        },
+        {
+          "type": "UserVersion",
+          "name": "voucher"
         },
         {
           "type": {
@@ -68,20 +91,16 @@
           "name": "vouchTexts"
         },
         {
+          "type": "Time",
+          "name": "vouchedAt"
+        },
+        {
           "type": [
             null,
             "Confidence"
           ],
           "name": "confidence"
         }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "WotReactionType",
-      "symbols": [
-        "ACCEPT_0",
-        "REJECT_1"
       ]
     }
   ],
@@ -134,18 +153,6 @@
       ],
       "response": null
     },
-    "wotPending": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "PendingVouch"
-      }
-    },
     "wotReact": {
       "request": [
         {
@@ -166,6 +173,42 @@
         }
       ],
       "response": null
+    },
+    "wotReactCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reaction",
+          "type": "WotReactionType"
+        }
+      ],
+      "response": null
+    },
+    "wotListCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WotVouch"
+      }
     }
   },
   "namespace": "keybase.1"

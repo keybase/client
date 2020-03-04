@@ -43,7 +43,9 @@
         "'addedToChannel'", // just added people to this channel
         "'teamMention'" // from team mention
       ],
-      "navKey?": "string"
+      "skipNav?": "boolean",
+      "navKey?": "string",
+      "pushBody?": "string"
     },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
@@ -65,6 +67,7 @@
       "channelname?": "string",
       "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
       "reason": [
+        "'channelHeader'",
         "'manageView'",
         "'messageLink'",
         "'resetChatWithoutThem'",
@@ -921,6 +924,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "cardType": "RPCChatTypes.JourneycardType",
       "ordinal": "Types.Ordinal"
+    },
+    "addToMessageMap": {
+      "message": "Types.Message"
     }
   }
 }

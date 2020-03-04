@@ -2103,3 +2103,33 @@ func TestMembersDetailsHasCorrectJoinTimes(t *testing.T) {
 	}, 3)
 
 }
+
+func TestTeamPlayerNoRoleChange(t *testing.T) {
+	// Try to change_membership on user that is already in the team but do not
+	// upgrade role.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	teamSectionCM := makeTestSCTeamSection(team)
+	teamSectionCM.Members = &SCTeamMembers{
+		Writers: &[]SCTeamMember{SCTeamMember(testUV)},
+	}
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeChangeMembership,
+		teamSectionCM, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	require.Len(t, state.inner.UserLog[testUV], 1)
+	require.EqualValues(t, 2, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+
+	// Append the same link again: "change" Writer testUV to Writer.
+	state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+		teamSectionCM, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	// That didn't change UserLog - no change in role, didn't add a checkpoint.
+	require.Len(t, state.inner.UserLog[testUV], 1)
+	require.EqualValues(t, 2, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+}

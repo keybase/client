@@ -54,6 +54,7 @@ export const chat1NotifyChatChatInboxSynced = 'engine-gen:chat1NotifyChatChatInb
 export const chat1NotifyChatChatJoinedConversation = 'engine-gen:chat1NotifyChatChatJoinedConversation'
 export const chat1NotifyChatChatKBFSToImpteamUpgrade = 'engine-gen:chat1NotifyChatChatKBFSToImpteamUpgrade'
 export const chat1NotifyChatChatLeftConversation = 'engine-gen:chat1NotifyChatChatLeftConversation'
+export const chat1NotifyChatChatParticipantsInfo = 'engine-gen:chat1NotifyChatChatParticipantsInfo'
 export const chat1NotifyChatChatPaymentInfo = 'engine-gen:chat1NotifyChatChatPaymentInfo'
 export const chat1NotifyChatChatPromptUnfurl = 'engine-gen:chat1NotifyChatChatPromptUnfurl'
 export const chat1NotifyChatChatRequestInfo = 'engine-gen:chat1NotifyChatChatRequestInfo'
@@ -579,6 +580,11 @@ type _Chat1NotifyChatChatKBFSToImpteamUpgradePayload = {
 }
 type _Chat1NotifyChatChatLeftConversationPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatLeftConversation']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Chat1NotifyChatChatParticipantsInfoPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam'] & {
     sessionID: number
   }
 }
@@ -2079,6 +2085,9 @@ export const createChat1NotifyChatChatKBFSToImpteamUpgrade = (
 export const createChat1NotifyChatChatLeftConversation = (
   payload: _Chat1NotifyChatChatLeftConversationPayload
 ): Chat1NotifyChatChatLeftConversationPayload => ({payload, type: chat1NotifyChatChatLeftConversation})
+export const createChat1NotifyChatChatParticipantsInfo = (
+  payload: _Chat1NotifyChatChatParticipantsInfoPayload
+): Chat1NotifyChatChatParticipantsInfoPayload => ({payload, type: chat1NotifyChatChatParticipantsInfo})
 export const createChat1NotifyChatChatPaymentInfo = (
   payload: _Chat1NotifyChatChatPaymentInfoPayload
 ): Chat1NotifyChatChatPaymentInfoPayload => ({payload, type: chat1NotifyChatChatPaymentInfo})
@@ -2859,6 +2868,10 @@ export type Chat1NotifyChatChatLeftConversationPayload = {
   readonly payload: _Chat1NotifyChatChatLeftConversationPayload
   readonly type: typeof chat1NotifyChatChatLeftConversation
 }
+export type Chat1NotifyChatChatParticipantsInfoPayload = {
+  readonly payload: _Chat1NotifyChatChatParticipantsInfoPayload
+  readonly type: typeof chat1NotifyChatChatParticipantsInfo
+}
 export type Chat1NotifyChatChatPaymentInfoPayload = {
   readonly payload: _Chat1NotifyChatChatPaymentInfoPayload
   readonly type: typeof chat1NotifyChatChatPaymentInfo
@@ -3550,6 +3563,7 @@ export type Actions =
   | Chat1NotifyChatChatJoinedConversationPayload
   | Chat1NotifyChatChatKBFSToImpteamUpgradePayload
   | Chat1NotifyChatChatLeftConversationPayload
+  | Chat1NotifyChatChatParticipantsInfoPayload
   | Chat1NotifyChatChatPaymentInfoPayload
   | Chat1NotifyChatChatPromptUnfurlPayload
   | Chat1NotifyChatChatRequestInfoPayload

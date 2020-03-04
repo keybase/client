@@ -27,6 +27,7 @@
     },
     "setSearchFeaturedAndUsersResults": {
       "_description": "Set results of a search",
+      "query": "string",
       "results?": "Types.BotSearchResults"
     }
   }

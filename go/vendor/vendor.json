@@ -842,16 +842,16 @@
 			"revisionTime": "2020-01-23T00:39:47Z"
 		},
 		{
-			"checksumSHA1": "TIqDgkjQzUP1yqN1T4BopWeZmzs=",
+			"checksumSHA1": "wVxPwraD/RPx0b+Z70N9cgyBbcY=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "6cc1b9a028ec6d81451c0c6d736411afc9d3783b",
-			"revisionTime": "2020-02-18T21:23:29Z"
+			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
+			"revisionTime": "2020-02-20T20:58:49Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "6cc1b9a028ec6d81451c0c6d736411afc9d3783b",
-			"revisionTime": "2020-02-18T21:23:29Z"
+			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
+			"revisionTime": "2020-02-20T20:58:49Z"
 		},
 		{
 			"checksumSHA1": "cVToVAflSUcimfMfrEGACvPChH0=",
@@ -958,14 +958,14 @@
 		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
-			"revisionTime": "2019-07-23T20:28:32Z"
+			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
+			"revisionTime": "2020-02-24T21:58:29Z"
 		},
 		{
-			"checksumSHA1": "xbgwz0FAlOizDyRxDEil92l0XQk=",
+			"checksumSHA1": "NstCqfXwErGgU2i+UYTShuA9Avs=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "8aedd2a35c8130cb7252109883dc008933d1a3f4",
-			"revisionTime": "2019-12-06T08:11:17Z"
+			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
+			"revisionTime": "2020-02-24T21:58:29Z"
 		},
 		{
 			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",
@@ -980,10 +980,10 @@
 			"revisionTime": "2019-08-28T02:21:49Z"
 		},
 		{
-			"checksumSHA1": "oaEGy2fWwKmkVh84Qh9TFKEBv5E=",
+			"checksumSHA1": "rR2xCJVoRiXxUb1VkfJTBR5uKqc=",
 			"path": "github.com/keybase/saltpack",
-			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
-			"revisionTime": "2019-08-28T02:09:36Z"
+			"revision": "d75baa96bffb2aa32454882f7bfed544adab0963",
+			"revisionTime": "2020-02-28T19:06:33Z"
 		},
 		{
 			"checksumSHA1": "hqQxqs30aFMN/MLPcg8O1OiqmMA=",

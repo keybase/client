@@ -24,7 +24,7 @@ const TeamRow = (props: Props) => {
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
 
-  const activity = <Activity level={'extinct' /* TODO plumbing for this */} />
+  const activity = <Activity level={'recently' /* TODO plumbing for this */} />
 
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))

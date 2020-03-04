@@ -230,6 +230,13 @@ func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	}
 }
 
+type sigCompression3Type int
+
+const (
+	sigCompression3Unstubbed sigCompression3Type = 1
+	sigCompression3Stubbed   sigCompression3Type = 2
+)
+
 func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID, stubMode StubMode, unstubs map[keybase1.Seqno]LinkID) (dirtyTail *MerkleTriple, err error) {
 	m, tbs := m.WithTimeBuckets()
 	low := sc.GetLastLoadedSeqno()
@@ -243,18 +250,19 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	// admin permissions to be honored on the server.
 	readDeleted := m.G().Env.GetReadDeletedSigChain()
 
-	v2Compressed := (stubMode == StubModeStubbed)
-	nopj := true
+	c3 := sigCompression3Unstubbed
+	if stubMode == StubModeStubbed {
+		c3 = sigCompression3Stubbed
+	}
 
 	resp, finisher, err := sc.G().API.GetResp(m, APIArg{
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeOPTIONAL,
 		Args: HTTPArgs{
-			"uid":           UIDArg(sc.uid),
-			"low":           I{int(low)},
-			"v2_compressed": B{v2Compressed},
-			"nopj":          B{nopj},
-			"read_deleted":  B{readDeleted},
+			"uid":          UIDArg(sc.uid),
+			"low":          I{int(low)},
+			"read_deleted": B{readDeleted},
+			"c3":           I{int(c3)},
 		},
 	})
 	if err != nil {

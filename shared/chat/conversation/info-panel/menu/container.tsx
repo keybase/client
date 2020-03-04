@@ -15,6 +15,8 @@ import * as Styles from '../../../../styles'
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
+  floatingMenuContainerStyle?: Styles.StylesCrossPlatform
+  hasHeader: boolean
   isSmallTeam: boolean
   teamID?: TeamTypes.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -57,9 +59,12 @@ export default Container.namedConnect(
 
     let teamMeta: TeamTypes.TeamMeta | undefined
     let teamname: string = ''
+    let channelname: string = ''
+    let isInChannel: boolean = false
+    let participantsCount: number = 0
     let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
-      const meta = state.chat2.metaMap.get(conversationIDKey) || ChatConstants.makeConversationMeta()
+      const meta = ChatConstants.getMeta(state, conversationIDKey)
       const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
       const participants = ChatConstants.getRowParticipants(participantInfo, state.config.username)
       // If it's a one-on-one chat, we need the user's fullname.
@@ -70,7 +75,10 @@ export default Container.namedConnect(
       const isTeam = meta.teamType === 'big' || meta.teamType === 'small'
       teamMeta = isTeam ? TeamConstants.getTeamMeta(state, meta.teamID) : undefined
       teamname = meta.teamname
+      channelname = meta.channelname
       teamID = meta.teamID ?? TeamTypes.noTeamID
+      isInChannel = meta.membershipType !== 'youArePreviewing'
+      participantsCount = participantInfo?.all?.length ?? 0
       _convPropsFullname = fullname
       _convPropsIgnored = meta.status === RPCChatTypes.ConversationStatus.ignored
       _convPropsMuted = meta.isMuted
@@ -96,10 +104,14 @@ export default Container.namedConnect(
         _teamID: _convPropsTeamID ?? teamID,
         badgeSubscribe: false,
         canAddPeople: false,
+        channelname: '',
+        hasHeader: false,
+        isInChannel: false,
         isSmallTeam: false,
         manageChannelsSubtitle: '',
         manageChannelsTitle: '',
         memberCount: 0,
+        participantsCount: 0,
         teamname: '',
       }
     }
@@ -108,9 +120,9 @@ export default Container.namedConnect(
     const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
 
     const manageChannelsTitle = isSmallTeam
-      ? 'Create chat channels...'
+      ? 'Create channels...'
       : moreThanOneSubscribedChannel(state.chat2.inboxLayout, teamname)
-      ? 'Manage chat channels'
+      ? 'Browse all channels'
       : 'Subscribe to channels...'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
     return {
@@ -124,10 +136,13 @@ export default Container.namedConnect(
       _teamID: _convPropsTeamID ?? teamID,
       badgeSubscribe,
       canAddPeople: yourOperations.manageMembers,
+      channelname,
+      isInChannel,
       isSmallTeam,
       manageChannelsSubtitle,
       manageChannelsTitle,
       memberCount: teamMeta?.memberCount ?? 0,
+      participantsCount,
       teamname,
     }
   },
@@ -149,6 +164,8 @@ export default Container.namedConnect(
       if (!teamID) return
       return dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected}]}))
     },
+    _onJoinChannel: () => dispatch(ChatGen.createJoinConversation({conversationIDKey})),
+    _onLeaveChannel: () => dispatch(ChatGen.createLeaveConversation({conversationIDKey})),
     _onLeaveTeam: (teamID?: TeamTypes.TeamID) =>
       teamID &&
       dispatch(
@@ -184,7 +201,11 @@ export default Container.namedConnect(
       attachTo: o.attachTo,
       badgeSubscribe: s.badgeSubscribe,
       canAddPeople: s.canAddPeople,
+      channelname: s.channelname,
       convProps,
+      floatingMenuContainerStyle: o.floatingMenuContainerStyle,
+      hasHeader: o.hasHeader,
+      isInChannel: s.isInChannel,
       isSmallTeam: s.isSmallTeam,
       manageChannelsSubtitle: s.manageChannelsSubtitle,
       manageChannelsTitle: s.manageChannelsTitle,
@@ -194,11 +215,14 @@ export default Container.namedConnect(
       onHidden: o.onHidden,
       onHideConv: d.onHideConv,
       onInvite: () => d._onInvite(s._teamID),
+      onJoinChannel: d._onJoinChannel,
+      onLeaveChannel: d._onLeaveChannel,
       onLeaveTeam: () => d._onLeaveTeam(s._teamID),
       onManageChannels: () => d._onManageChannels(s._teamID),
       onMuteConv: d.onMuteConv,
       onUnhideConv: d.onUnhideConv,
       onViewTeam: () => d._onViewTeam(s._teamID),
+      participantsCount: s.participantsCount,
       teamname: s.teamname,
       visible: o.visible,
     }

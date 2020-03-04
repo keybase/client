@@ -123,8 +123,9 @@ public class MainActivity extends ReactActivity {
       createDummyFile(context);
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
+    boolean isIPad = false;
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
+      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion, isIPad);
 
   }
 

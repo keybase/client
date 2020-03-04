@@ -403,7 +403,7 @@ func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.
 
 func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
 	contentForce := "true" == req.URL.Query().Get("contentforce")
-	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
+	if r.G().IsMobileAppType() && !contentForce {
 		r.Debug(ctx, "serveUnfurlVideoHostPage: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
 		autoplay := ""
@@ -444,7 +444,7 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
 	contentForce := "true" == req.URL.Query().Get("contentforce")
-	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
+	if r.G().IsMobileAppType() && !contentForce {
 		r.Debug(ctx, "serve: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
 		if _, err := w.Write([]byte(fmt.Sprintf(`

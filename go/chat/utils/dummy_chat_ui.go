@@ -228,3 +228,7 @@ func (d DummyChatNotifications) ChatConvUpdate(context.Context, chat1.ChatConvUp
 func (d DummyChatNotifications) ChatWelcomeMessageLoaded(context.Context, chat1.ChatWelcomeMessageLoadedArg) error {
 	return nil
 }
+func (d DummyChatNotifications) ChatParticipantsInfo(context.Context,
+	map[chat1.ConvIDStr][]chat1.UIParticipant) error {
+	return nil
+}

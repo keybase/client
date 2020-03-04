@@ -126,11 +126,19 @@ func (rkq *RekeyQueueStandard) IsRekeyPending(id tlf.ID) bool {
 
 // Shutdown implements the RekeyQueue interface for RekeyQueueStandard.
 func (rkq *RekeyQueueStandard) Shutdown() {
-	rkq.mu.Lock()
-	defer rkq.mu.Unlock()
-	if rkq.cancel != nil {
-		rkq.cancel()
+	// Don't wait on the shutdown channel while holding the lock,
+	// since that can cause deadlock.  Get it first, and then wait
+	// after releasing the lock.
+	cancel, shutdownDoneCh := func() (context.CancelFunc, <-chan struct{}) {
+		rkq.mu.Lock()
+		defer rkq.mu.Unlock()
+		cancel := rkq.cancel
 		rkq.cancel = nil
-		<-rkq.shutdownDoneCh
+		return cancel, rkq.shutdownDoneCh
+	}()
+
+	if cancel != nil {
+		cancel()
+		<-shutdownDoneCh
 	}
 }

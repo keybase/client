@@ -336,7 +336,7 @@ const Buttons = (p: ButtonsProps) => {
       <Kb.Box style={styles.explodingWrapper}>
         {isExploding ? (
           <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
-            <Kb.Text type="BodyTinyBold" negative={true}>
+            <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
               {formatDurationShort(explodingModeSeconds * 1000)}
             </Kb.Text>
           </Kb.Box2>
@@ -390,15 +390,18 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
         <AnimatedIcon
           onClick={expandInput}
           type="iconfont-arrow-full-up"
+          fontSize={18}
           style={{
             transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
           }}
+          color={Styles.globalColors.black_20}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
         <AnimatedIcon
           onClick={expandInput}
           type="iconfont-arrow-full-up"
+          fontSize={18}
           style={{
             transform: [
               {
@@ -408,6 +411,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
               },
             ],
           }}
+          color={Styles.globalColors.black_20}
         />
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -419,31 +423,11 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      accessory: {
-        bottom: 1,
-        display: 'flex',
-        left: 0,
-        position: 'absolute',
-        right: 0,
-      },
-      accessoryContainer: {
-        position: 'relative',
-        width: '100%',
-      },
       actionContainer: {
         flexShrink: 0,
-        marginRight: 8,
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
         minHeight: 32,
-      },
-      actionText: {
-        alignSelf: 'flex-end',
-        paddingBottom: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.tiny,
-      },
-      animatedContainer: {
-        bottom: 0,
-        position: 'absolute',
-        right: 0,
       },
       container: {
         alignItems: 'center',
@@ -469,12 +453,16 @@ const styles = Styles.styleSheetCreate(
       exploding: {
         backgroundColor: Styles.globalColors.black,
         borderRadius: Styles.globalMargins.mediumLarge / 2,
-        height: 24,
-        width: 24,
+        height: 28,
+        width: 28,
+      },
+      explodingText: {
+        fontSize: 11,
+        lineHeight: 16,
       },
       explodingWrapper: {
-        height: 24,
-        width: 24,
+        height: 30,
+        width: 30,
       },
       iconBottom: {
         bottom: 0,
@@ -482,14 +470,14 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
       },
       iconContainer: {
-        height: 32,
-        padding: Styles.globalMargins.xtiny,
+        height: 28,
+        marginRight: -4,
         position: 'relative',
-        width: 32,
+        width: 28,
       },
       iconTop: {
         position: 'absolute',
-        right: 1,
+        right: 0,
         top: 0,
       },
       input: Styles.platformStyles({
@@ -509,20 +497,6 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
-      },
-      marginRightSmall: {
-        marginRight: Styles.globalMargins.small,
-      },
-      mentionHud: {
-        borderColor: Styles.globalColors.black_20,
-        borderTopWidth: 1,
-        flex: 1,
-        height: 160,
-        width: '100%',
-      },
-      smallGap: {
-        height: Styles.globalMargins.small,
-        width: Styles.globalMargins.small,
       },
     } as const)
 )

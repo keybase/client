@@ -45,7 +45,7 @@ func getLogger(mctx libkb.MetaContext) *log.Logger {
 		mctx.Debug("Unable to getLogger %v", err)
 		return nil
 	}
-	l := log.New(lfw, getLogPrefix(mctx), log.LstdFlags|log.Lshortfile)
+	l := log.New(lfw, getLogPrefix(mctx), log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 	return l
 }
 

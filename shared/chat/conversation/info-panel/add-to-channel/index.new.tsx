@@ -130,7 +130,7 @@ const AddToChannel = (props: Props) => {
                 body={
                   <Kb.Box2 direction="vertical" alignItems="flex-start">
                     <Kb.ConnectedUsernames
-                      type="BodySemibold"
+                      type="BodyBold"
                       colorFollowing={true}
                       usernames={[item.username]}
                     />

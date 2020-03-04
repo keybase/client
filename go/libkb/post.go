@@ -34,7 +34,7 @@ type PostProofArg struct {
 
 func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 	hargs := HTTPArgs{
-		"sig_id_base":     S{arg.SigID.ToString(false)},
+		"sig_id_base":     S{arg.SigID.StripSuffix().String()},
 		"sig_id_short":    S{arg.SigID.ToShortID()},
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
@@ -165,7 +165,7 @@ func checkPostedAPICall(mctx MetaContext, sigID keybase1.SigID) (found bool, sta
 		Endpoint:    "sig/posted",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
-			"sig_id": S{sigID.ToString(true)},
+			"sig_id": S{sigID.String()},
 		},
 	})
 	if e2 != nil {

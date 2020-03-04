@@ -32,6 +32,8 @@ import (
 	context "golang.org/x/net/context"
 )
 
+var IsIPad bool // Set by bind's Init.
+
 type ShutdownHook func(mctx MetaContext) error
 
 type LoginHook interface {
@@ -173,6 +175,7 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+	IsIPad          bool
 
 	SyncedContactList SyncedContactListProvider
 
@@ -267,7 +270,7 @@ func (g *GlobalContext) initPerfLogFile() {
 		g.Log.Debug("Unable to getLogger %v", err)
 		return
 	}
-	g.PerfLog = logger.NewInternalLogger(log.New(lfw, "", log.LstdFlags|log.Lshortfile))
+	g.PerfLog = logger.NewInternalLogger(log.New(lfw, "", log.LstdFlags|log.Lmicroseconds|log.Lshortfile))
 }
 
 func (g *GlobalContext) initGUILogFile() {
@@ -356,7 +359,6 @@ func (g *GlobalContext) simulateServiceRestart() {
 // ConfigureLogging should be given non-nil Usage if called by the main
 // service.
 func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
-	g.initPerfLogFile()
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 
@@ -374,16 +376,26 @@ func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 	}
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 
-	shouldConfigureGUILog := true
+	// On Linux, the post-install script calls `keybase --use-root-config-file
+	// config get --direct` to figure out if the redirector should be enabled or not.
+	// That command, like all other commands, goes through all these initial steps
+	// like ConfigureLogging before executing the command. On Ubuntu, '$HOME' is *not*
+	// changed to the root's user's HOME when using sudo, which basically means
+	// that `sudo bash -c 'mkdir $HOME/.cache'`, e.g., creates it within the *user's*
+	// home directory with root permissions (unlike Debian, Fedora, Arch, etc.).
+	// So, in this case, we do not configure the log files so as not to mess up
+	// permissions in the user's home directory.
+	shouldInitLogs := true
 	if usage != nil && usage.AllowRoot {
 		isAdmin, _, err := IsSystemAdminUser()
 		if err == nil && isAdmin {
-			shouldConfigureGUILog = false
+			shouldInitLogs = false
 		}
 	}
 
-	if shouldConfigureGUILog {
+	if shouldInitLogs {
 		g.initGUILogFile()
+		g.initPerfLogFile()
 	}
 
 	return nil
@@ -858,11 +870,11 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
 		if g.LocalNetworkInstrumenterStorage != nil {
-			<-g.LocalNetworkInstrumenterStorage.Stop()
+			<-g.LocalNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		if g.RemoteNetworkInstrumenterStorage != nil {
-			<-g.RemoteNetworkInstrumenterStorage.Stop()
+			<-g.RemoteNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		// shutdown the databases after the shutdown hooks run, we may want to
@@ -970,8 +982,8 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
-	g.LocalNetworkInstrumenterStorage.Start()
-	g.RemoteNetworkInstrumenterStorage.Start()
+	g.LocalNetworkInstrumenterStorage.Start(context.TODO())
+	g.RemoteNetworkInstrumenterStorage.Start(context.TODO())
 
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err

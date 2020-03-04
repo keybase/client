@@ -204,6 +204,7 @@ const styles = Styles.styleSheetCreate(() => ({
   blue: {color: Styles.globalColors.blueDark},
   center: {alignSelf: 'center'},
   error: {
+    alignSelf: 'center',
     backgroundColor: Styles.globalColors.red,
     borderRadius: Styles.borderRadius,
     padding: Styles.globalMargins.medium,

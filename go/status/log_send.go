@@ -314,11 +314,11 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 			l.StatusJSON = l.mergeExtendedStatus(l.StatusJSON)
 		}
 		if addNetworkStats {
-			localStats, err := mctx.G().LocalNetworkInstrumenterStorage.Stats()
+			localStats, err := mctx.G().LocalNetworkInstrumenterStorage.Stats(mctx.Ctx())
 			if err != nil {
 				return "", err
 			}
-			remoteStats, err := mctx.G().RemoteNetworkInstrumenterStorage.Stats()
+			remoteStats, err := mctx.G().RemoteNetworkInstrumenterStorage.Stats(mctx.Ctx())
 			if err != nil {
 				return "", err
 			}

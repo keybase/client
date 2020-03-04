@@ -291,6 +291,7 @@ type SenderPrepareResult struct {
 	Boxed               chat1.MessageBoxed
 	EncryptionInfo      BoxerEncryptionInfo
 	PendingAssetDeletes []chat1.Asset
+	DeleteFlipConv      *chat1.ConversationID
 	AtMentions          []gregor1.UID
 	ChannelMention      chat1.ChannelMention
 	TopicNameState      *chat1.TopicNameState
@@ -309,6 +310,11 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 		Amount:   p.Amount,
 		Currency: p.Currency,
 	}
+}
+
+type ParticipantResult struct {
+	Uids []gregor1.UID
+	Err  error
 }
 
 type DummyAttachmentFetcher struct{}
@@ -689,15 +695,33 @@ var _ UIThreadLoader = (*DummyUIThreadLoader)(nil)
 
 func (d DummyUIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
-	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
+	cbmode chat1.GetThreadNonblockCbMode, knownRemote []string,
+	query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
 	return nil
 }
 
 func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, nil
 }
 
 func (d DummyUIThreadLoader) IsOffline(ctx context.Context) bool { return true }
 func (d DummyUIThreadLoader) Connected(ctx context.Context)      {}
 func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}
+
+type DummyParticipantSource struct{}
+
+func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
+	return nil, nil
+}
+func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) chan ParticipantResult {
+	ch := make(chan ParticipantResult)
+	close(ch)
+	return ch
+}
+func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
+}

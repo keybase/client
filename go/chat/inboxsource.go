@@ -199,6 +199,14 @@ func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ t
 	}
 }
 
+func (b *baseInboxSource) setDefaultParticipantMode(q *chat1.GetInboxQuery) *chat1.GetInboxQuery {
+	if q == nil {
+		q = new(chat1.GetInboxQuery)
+	}
+	q.ParticipantsMode = chat1.InboxParticipantsMode_SKIP_TEAMS
+	return q
+}
+
 func (b *baseInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	b.localizer.start(ctx)
 }
@@ -311,7 +319,7 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		return types.Inbox{}, OfflineError{}
 	}
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: rquery,
+		Query: s.setDefaultParticipantMode(rquery),
 	})
 	if err != nil {
 		return types.Inbox{}, err
@@ -751,14 +759,9 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text *string) error {
-	modified, err := s.createInbox().Draft(ctx, uid, convID, text)
+	_, err := s.createInbox().Draft(ctx, uid, convID, text)
 	if err != nil {
 		return err
-	}
-	if modified && text == nil {
-		s.Debug(ctx, "Draft: flushing inbox on clear")
-		// if we cleared the draft, force an inbox flush
-		s.forceFlush(ctx)
 	}
 	return nil
 }
@@ -896,7 +899,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	rquery.SummarizeMaxMsgs = true // always summarize max msgs
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &rquery,
+		Query: s.setDefaultParticipantMode(&rquery),
 	})
 	if err != nil {
 		return types.Inbox{}, err

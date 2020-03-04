@@ -41,6 +41,11 @@
       "options": "Types.EncryptOptions",
       "hideIncludeSelf?": "boolean"
     },
+    "onSaltpackOpenFile": {
+      "_description": "User opened a saltpack file on from their file browser. Notified by OS and deeplinks",
+      "operation": "Types.Operations",
+      "path": "HiddenString"
+    },
     "onOperationSuccess": {
       "_description": "On saltpack RPC successful response. input is the operation that started it",
       "input": "any",
@@ -62,6 +67,11 @@
       "_description": "Resets all values in the store for the given operation",
       "operation": "Types.Operations"
     },
+    "runFileOperation": {
+      "_description": "",
+      "operation": "Types.Operations",
+      "destinationDir": "HiddenString"
+    },
     "saltpackDone": {
       "_description": "Progress logging",
       "filename": "HiddenString",
@@ -72,12 +82,14 @@
       "input": "HiddenString",
       "options": "Types.EncryptOptions",
       "recipients": "Array<string>",
-      "type": "Types.InputTypes"
+      "type": "Types.InputTypes",
+      "destinationDir?": "HiddenString"
     },
     "saltpackDecrypt": {
       "_description": "Calls Saltpack RPC",
       "input": "HiddenString",
-      "type": "Types.InputTypes"
+      "type": "Types.InputTypes",
+      "destinationDir?": "HiddenString"
     },
     "saltpackProgress": {
       "_description": "Progress logging",
@@ -89,7 +101,8 @@
     "saltpackSign": {
       "_description": "Calls Saltpack RPC",
       "input": "HiddenString",
-      "type": "Types.InputTypes"
+      "type": "Types.InputTypes",
+      "destinationDir?": "HiddenString"
     },
     "saltpackStart": {
       "_description": "Progress logging",
@@ -99,7 +112,8 @@
     "saltpackVerify": {
       "_description": "Calls Saltpack RPC",
       "input": "HiddenString",
-      "type": "Types.InputTypes"
+      "type": "Types.InputTypes",
+      "destinationDir?": "HiddenString"
     }
   }
 }

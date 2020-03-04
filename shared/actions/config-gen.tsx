@@ -4,6 +4,7 @@ import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
+import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
 // Constants
@@ -49,6 +50,7 @@ export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
+export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const setUserSwitching = 'config:setUserSwitching'
@@ -147,7 +149,9 @@ type _SetStartupDetailsPayload = {
   readonly startupFollowUser: string
   readonly startupSharePath?: FsTypes.LocalPath
   readonly startupShareText?: string
+  readonly startupPushPayload?: string
 }
+type _SetStartupFilePayload = {readonly startupFile: HiddenString}
 type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
@@ -209,6 +213,13 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload): FilePic
 export const createSetWhatsNewLastSeenVersion = (
   payload: _SetWhatsNewLastSeenVersionPayload
 ): SetWhatsNewLastSeenVersionPayload => ({payload, type: setWhatsNewLastSeenVersion})
+/**
+ * Stores the startup file path when launching Keybase from a cold start beofre log in
+ */
+export const createSetStartupFile = (payload: _SetStartupFilePayload): SetStartupFilePayload => ({
+  payload,
+  type: setStartupFile,
+})
 /**
  * This action is dispatched multiple times with various flags. if you want to do something as a result of startup or login listen to this
  */
@@ -530,6 +541,10 @@ export type SetStartupDetailsPayload = {
   readonly payload: _SetStartupDetailsPayload
   readonly type: typeof setStartupDetails
 }
+export type SetStartupFilePayload = {
+  readonly payload: _SetStartupFilePayload
+  readonly type: typeof setStartupFile
+}
 export type SetSystemDarkModePayload = {
   readonly payload: _SetSystemDarkModePayload
   readonly type: typeof setSystemDarkMode
@@ -621,6 +636,7 @@ export type Actions =
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload
+  | SetStartupFilePayload
   | SetSystemDarkModePayload
   | SetUseNativeFramePayload
   | SetUserSwitchingPayload

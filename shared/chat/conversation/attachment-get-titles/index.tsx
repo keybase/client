@@ -10,19 +10,20 @@ export type Info = {
   outboxID: RPCChatTypes.OutboxID | null
 }
 
-export type PathToInfo = {
-  [K in string]: Info
+type PathAndInfo = {
+  path: string
+  info: Info
 }
 
 type Props = {
-  pathToInfo: PathToInfo
+  pathAndInfos: Array<PathAndInfo>
   onCancel: () => void
-  onSubmit: (pathToInfo: PathToInfo) => void
+  onSubmit: (titles: Array<string>) => void
 }
 
 type State = {
   index: number
-  pathToInfo: PathToInfo
+  titles: Array<string>
 }
 
 class GetTitles extends React.Component<Props, State> {
@@ -32,23 +33,21 @@ class GetTitles extends React.Component<Props, State> {
     super(props)
     this.state = {
       index: 0,
-      pathToInfo: props.pathToInfo,
+      titles: props.pathAndInfos.map(() => ''),
     }
   }
 
   _onNext = (e?: React.BaseSyntheticEvent) => {
     e && e.preventDefault()
 
-    const paths = Object.keys(this.state.pathToInfo)
-    const path = paths[this.state.index]
-    const info = this.state.pathToInfo[path]
+    const {info} = this.props.pathAndInfos[this.state.index]
     if (!info) return
 
     const nextIndex = this.state.index + 1
 
     // done
-    if (nextIndex === paths.length) {
-      this.props.onSubmit(this.state.pathToInfo)
+    if (nextIndex === this.props.pathAndInfos.length) {
+      this.props.onSubmit(this.state.titles)
     } else {
       // go to next
       this.setState({index: nextIndex})
@@ -56,31 +55,18 @@ class GetTitles extends React.Component<Props, State> {
   }
 
   _isLast = () => {
-    const numPaths = Object.keys(this.state.pathToInfo).length
+    const numPaths = this.props.pathAndInfos.length
     return this.state.index + 1 === numPaths
   }
 
   _updateTitle = (title: string) => {
-    this.setState(state => {
-      const paths = Object.keys(state.pathToInfo)
-      const path = paths[state.index]
-
-      return {
-        pathToInfo: {
-          ...state.pathToInfo,
-          [path]: {
-            ...state.pathToInfo[path],
-            title,
-          },
-        },
-      }
-    })
+    this.setState(state => ({
+      titles: [...state.titles.slice(0, state.index), title, ...state.titles.slice(state.index + 1)],
+    }))
   }
 
   render() {
-    const paths = Object.keys(this.state.pathToInfo)
-    const path = paths[this.state.index]
-    const info = this.state.pathToInfo[path]
+    const {info, path} = this.props.pathAndInfos[this.state.index]
     const titleHint = 'Add a caption...'
     if (!info) return null
 
@@ -101,11 +87,11 @@ class GetTitles extends React.Component<Props, State> {
                 <Kb.Icon type="icon-file-uploading-48" />
               )}
             </Kb.Box2>
-            {paths.length > 0 && !Styles.isMobile && (
+            {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
               <Kb.Box2 direction="vertical" style={styles.filename}>
                 <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
                 <Kb.Text type="BodySmall" center={true}>
-                  {info.filename} ({this.state.index + 1} of {paths.length})
+                  {info.filename} ({this.state.index + 1} of {this.props.pathAndInfos.length})
                 </Kb.Text>
               </Kb.Box2>
             )}
@@ -118,7 +104,7 @@ class GetTitles extends React.Component<Props, State> {
                 multiline={true}
                 rowsMin={2}
                 padding="tiny"
-                value={info.title}
+                value={this.state.titles[this.state.index]}
                 onEnterKeyDown={this._onNext}
                 onChangeText={this._updateTitle}
                 selectTextOnFocus={true}

@@ -21,6 +21,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBChatParticipants               = 0xa8
 	DBOpenTeams                      = 0xa9
 	DBNetworkInstrumentation         = 0xaa
 	DBFeaturedBots                   = 0xab

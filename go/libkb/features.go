@@ -173,7 +173,7 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 	}
 	rawFeature, ok := raw.Features[string(f)]
 	if !ok {
-		m.Info("Feature %q wasn't returned from server", f)
+		m.Debug("Feature %q wasn't returned from server", f)
 		return false, nil
 	}
 	slot.readFrom(m, rawFeature)
@@ -186,7 +186,7 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 func (s *FeatureFlagSet) Enabled(m MetaContext, f Feature) (on bool) {
 	on, err := s.EnabledWithError(m, f)
 	if err != nil {
-		m.Info("Error checking feature %q: %v", f, err)
+		m.Debug("Error checking feature %q: %v", f, err)
 		return false
 	}
 	return on

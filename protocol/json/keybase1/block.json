@@ -39,6 +39,26 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GetBlockSizesRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "int"
+          },
+          "name": "sizes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BlockStatus"
+          },
+          "name": "statuses"
+        }
+      ]
+    },
+    {
       "type": "fixed",
       "name": "BlockRefNonce",
       "size": "8"
@@ -198,6 +218,22 @@
         }
       ],
       "response": "GetBlockRes"
+    },
+    "getBlockSizes": {
+      "request": [
+        {
+          "name": "bids",
+          "type": {
+            "type": "array",
+            "items": "BlockIdCombo"
+          }
+        },
+        {
+          "name": "folder",
+          "type": "string"
+        }
+      ],
+      "response": "GetBlockSizesRes"
     },
     "addReference": {
       "request": [

@@ -253,6 +253,7 @@ export type TypedActionsMap = {
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
   'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
+  'chat2:addToMessageMap': chat2.AddToMessageMapPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -278,6 +279,7 @@ export type TypedActionsMap = {
   'config:globalError': config.GlobalErrorPayload
   'config:pushLoaded': config.PushLoadedPayload
   'config:setStartupDetails': config.SetStartupDetailsPayload
+  'config:setStartupFile': config.SetStartupFilePayload
   'config:setOpenAtLogin': config.SetOpenAtLoginPayload
   'config:setNotifySound': config.SetNotifySoundPayload
   'config:setDeletedSelf': config.SetDeletedSelfPayload
@@ -315,9 +317,11 @@ export type TypedActionsMap = {
   'crypto:setInput': crypto.SetInputPayload
   'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
+  'crypto:onSaltpackOpenFile': crypto.OnSaltpackOpenFilePayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:runFileOperation': crypto.RunFileOperationPayload
   'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
   'crypto:saltpackDecrypt': crypto.SaltpackDecryptPayload
@@ -327,6 +331,7 @@ export type TypedActionsMap = {
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
+  'deeplinks:saltpackFileOpen': deeplinks.SaltpackFileOpenPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
   'dev:updateDebugConfig': dev.UpdateDebugConfigPayload
   'dev:debugCount': dev.DebugCountPayload
@@ -402,6 +407,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
   'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
   'engine-gen:chat1NotifyChatChatWelcomeMessageLoaded': enginegen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
+  'engine-gen:chat1NotifyChatChatParticipantsInfo': enginegen.Chat1NotifyChatChatParticipantsInfoPayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -885,6 +891,7 @@ export type TypedActionsMap = {
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'team-building:tbResetStore': teambuilding.TbResetStorePayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
+  'teams:channelSetMemberSelected': teams.ChannelSetMemberSelectedPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload
@@ -904,7 +911,7 @@ export type TypedActionsMap = {
   'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
-  'teams:setMemberSelected': teams.SetMemberSelectedPayload
+  'teams:teamSetMemberSelected': teams.TeamSetMemberSelectedPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload

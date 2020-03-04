@@ -8,6 +8,7 @@ package service
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/kvstore"
 	"github.com/keybase/client/go/libkb"
@@ -19,6 +20,7 @@ import (
 
 type KVStoreHandler struct {
 	*BaseHandler
+	sync.Mutex
 	libkb.Contextified
 	Boxer kvstore.KVStoreBoxer
 }
@@ -100,9 +102,15 @@ func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KV
 }
 
 func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntryArg) (res keybase1.KVGetResult, err error) {
+	h.Lock()
+	defer h.Unlock()
+	return h.getKVEntryLocked(ctx, arg)
+}
+
+func (h *KVStoreHandler) getKVEntryLocked(ctx context.Context, arg keybase1.GetKVEntryArg) (res keybase1.KVGetResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#PutKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#GetKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
 
 	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
@@ -158,6 +166,12 @@ type putEntryAPIRes struct {
 }
 
 func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntryArg) (res keybase1.KVPutResult, err error) {
+	h.Lock()
+	defer h.Unlock()
+	return h.putKVEntryLocked(ctx, arg)
+}
+
+func (h *KVStoreHandler) putKVEntryLocked(ctx context.Context, arg keybase1.PutKVEntryArg) (res keybase1.KVPutResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#PutKVEntry: t:%s, n:%s, k:%s, r:%d", arg.TeamName, arg.Namespace, arg.EntryKey, arg.Revision), func() error { return err })()
@@ -178,7 +192,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	revision := arg.Revision
 	if revision == 0 {
 		// fetch to get the correct revision when it's not specified
-		getRes, err := h.GetKVEntry(ctx, keybase1.GetKVEntryArg{
+		getRes, err := h.getKVEntryLocked(ctx, keybase1.GetKVEntryArg{
 			SessionID: arg.SessionID,
 			TeamName:  arg.TeamName,
 			Namespace: arg.Namespace,
@@ -242,6 +256,12 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 }
 
 func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntryArg) (res keybase1.KVDeleteEntryResult, err error) {
+	h.Lock()
+	defer h.Unlock()
+	return h.delKVEntryLocked(ctx, arg)
+}
+
+func (h *KVStoreHandler) delKVEntryLocked(ctx context.Context, arg keybase1.DelKVEntryArg) (res keybase1.KVDeleteEntryResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#DeleteKVEntry: t:%s, n:%s, k:%s, r:%d", arg.TeamName, arg.Namespace, arg.EntryKey, arg.Revision), func() error { return err })()
@@ -267,7 +287,7 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 			Namespace: arg.Namespace,
 			EntryKey:  arg.EntryKey,
 		}
-		getRes, err := h.GetKVEntry(ctx, getArg)
+		getRes, err := h.getKVEntryLocked(ctx, getArg)
 		if err != nil {
 			err = fmt.Errorf("error fetching the revision before deleting this entry: %s", err)
 			mctx.Debug("%+v: %s", entryID, err)
@@ -328,6 +348,12 @@ type getListNamespacesAPIRes struct {
 }
 
 func (h *KVStoreHandler) ListKVNamespaces(ctx context.Context, arg keybase1.ListKVNamespacesArg) (res keybase1.KVListNamespaceResult, err error) {
+	h.Lock()
+	defer h.Unlock()
+	return h.listKVNamespaceLocked(ctx, arg)
+}
+
+func (h *KVStoreHandler) listKVNamespaceLocked(ctx context.Context, arg keybase1.ListKVNamespacesArg) (res keybase1.KVListNamespaceResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#ListKVNamespaces: t:%s", arg.TeamName), func() error { return err })()
@@ -375,6 +401,12 @@ type compressedEntryKey struct {
 }
 
 func (h *KVStoreHandler) ListKVEntries(ctx context.Context, arg keybase1.ListKVEntriesArg) (res keybase1.KVListEntryResult, err error) {
+	h.Lock()
+	defer h.Unlock()
+	return h.listKVEntriesLocked(ctx, arg)
+}
+
+func (h *KVStoreHandler) listKVEntriesLocked(ctx context.Context, arg keybase1.ListKVEntriesArg) (res keybase1.KVListEntryResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#ListKVEntries: t:%s, n:%s", arg.TeamName, arg.Namespace), func() error { return err })()

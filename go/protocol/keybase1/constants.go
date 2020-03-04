@@ -36,11 +36,13 @@ const (
 	StatusCode_SCWrongCryptoFormat                         StatusCode = 279
 	StatusCode_SCDecryptionError                           StatusCode = 280
 	StatusCode_SCInvalidAddress                            StatusCode = 281
+	StatusCode_SCWrongCryptoMsgType                        StatusCode = 282
 	StatusCode_SCNoSession                                 StatusCode = 283
 	StatusCode_SCAccountReset                              StatusCode = 290
 	StatusCode_SCIdentifiesFailed                          StatusCode = 295
 	StatusCode_SCNoSpaceOnDevice                           StatusCode = 297
 	StatusCode_SCMerkleClientError                         StatusCode = 299
+	StatusCode_SCMerkleUpdateRoot                          StatusCode = 300
 	StatusCode_SCBadEmail                                  StatusCode = 472
 	StatusCode_SCRateLimit                                 StatusCode = 602
 	StatusCode_SCBadSignupUsernameTaken                    StatusCode = 701
@@ -71,6 +73,7 @@ const (
 	StatusCode_SCKeyDuplicateUpdate                        StatusCode = 921
 	StatusCode_SCSibkeyAlreadyExists                       StatusCode = 922
 	StatusCode_SCDecryptionKeyNotFound                     StatusCode = 924
+	StatusCode_SCVerificationKeyNotFound                   StatusCode = 925
 	StatusCode_SCKeyNoPGPEncryption                        StatusCode = 927
 	StatusCode_SCKeyNoNaClEncryption                       StatusCode = 928
 	StatusCode_SCKeySyncedPGPNotFound                      StatusCode = 929
@@ -275,11 +278,13 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCWrongCryptoFormat":         279,
 	"SCDecryptionError":           280,
 	"SCInvalidAddress":            281,
+	"SCWrongCryptoMsgType":        282,
 	"SCNoSession":                 283,
 	"SCAccountReset":              290,
 	"SCIdentifiesFailed":          295,
 	"SCNoSpaceOnDevice":           297,
 	"SCMerkleClientError":         299,
+	"SCMerkleUpdateRoot":          300,
 	"SCBadEmail":                  472,
 	"SCRateLimit":                 602,
 	"SCBadSignupUsernameTaken":    701,
@@ -310,6 +315,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCKeyDuplicateUpdate":        921,
 	"SCSibkeyAlreadyExists":       922,
 	"SCDecryptionKeyNotFound":     924,
+	"SCVerificationKeyNotFound":   925,
 	"SCKeyNoPGPEncryption":        927,
 	"SCKeyNoNaClEncryption":       928,
 	"SCKeySyncedPGPNotFound":      929,
@@ -512,11 +518,13 @@ var StatusCodeRevMap = map[StatusCode]string{
 	279:  "SCWrongCryptoFormat",
 	280:  "SCDecryptionError",
 	281:  "SCInvalidAddress",
+	282:  "SCWrongCryptoMsgType",
 	283:  "SCNoSession",
 	290:  "SCAccountReset",
 	295:  "SCIdentifiesFailed",
 	297:  "SCNoSpaceOnDevice",
 	299:  "SCMerkleClientError",
+	300:  "SCMerkleUpdateRoot",
 	472:  "SCBadEmail",
 	602:  "SCRateLimit",
 	701:  "SCBadSignupUsernameTaken",
@@ -547,6 +555,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	921:  "SCKeyDuplicateUpdate",
 	922:  "SCSibkeyAlreadyExists",
 	924:  "SCDecryptionKeyNotFound",
+	925:  "SCVerificationKeyNotFound",
 	927:  "SCKeyNoPGPEncryption",
 	928:  "SCKeyNoNaClEncryption",
 	929:  "SCKeySyncedPGPNotFound",

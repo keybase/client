@@ -24,16 +24,16 @@ type GenericKey interface {
 
 	// Sign to an ASCII signature (which includes the message
 	// itself) and return it, along with a derived ID.
-	SignToString(msg []byte) (sig string, id keybase1.SigID, err error)
+	SignToString(msg []byte) (sig string, id keybase1.SigIDBase, err error)
 
 	// Verify that the given signature is valid and extracts the
 	// embedded message from it. Also returns the signature ID.
-	VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error)
+	VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigIDBase, err error)
 
 	// Verify that the given signature is valid and that its
 	// embedded message matches the given one. Also returns the
 	// signature ID.
-	VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error)
+	VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigIDBase, err error)
 
 	// Encrypt to an ASCII armored encryption; optionally include a sender's
 	// (private) key so that we can provably see who sent the message.

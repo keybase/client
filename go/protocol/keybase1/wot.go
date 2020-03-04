@@ -10,6 +10,41 @@ import (
 	"time"
 )
 
+type WotStatusType int
+
+const (
+	WotStatusType_NONE     WotStatusType = 0
+	WotStatusType_PROPOSED WotStatusType = 1
+	WotStatusType_ACCEPTED WotStatusType = 2
+	WotStatusType_REJECTED WotStatusType = 3
+	WotStatusType_REVOKED  WotStatusType = 4
+)
+
+func (o WotStatusType) DeepCopy() WotStatusType { return o }
+
+var WotStatusTypeMap = map[string]WotStatusType{
+	"NONE":     0,
+	"PROPOSED": 1,
+	"ACCEPTED": 2,
+	"REJECTED": 3,
+	"REVOKED":  4,
+}
+
+var WotStatusTypeRevMap = map[WotStatusType]string{
+	0: "NONE",
+	1: "PROPOSED",
+	2: "ACCEPTED",
+	3: "REJECTED",
+	4: "REVOKED",
+}
+
+func (e WotStatusType) String() string {
+	if v, ok := WotStatusTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type UsernameVerificationType string
 
 func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
@@ -54,38 +89,6 @@ func (o Confidence) DeepCopy() Confidence {
 	}
 }
 
-type PendingVouch struct {
-	Voucher    UserVersion `codec:"voucher" json:"voucher"`
-	Proof      SigID       `codec:"proof" json:"proof"`
-	VouchTexts []string    `codec:"vouchTexts" json:"vouchTexts"`
-	Confidence *Confidence `codec:"confidence,omitempty" json:"confidence,omitempty"`
-}
-
-func (o PendingVouch) DeepCopy() PendingVouch {
-	return PendingVouch{
-		Voucher: o.Voucher.DeepCopy(),
-		Proof:   o.Proof.DeepCopy(),
-		VouchTexts: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.VouchTexts),
-		Confidence: (func(x *Confidence) *Confidence {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Confidence),
-	}
-}
-
 type WotReactionType int
 
 const (
@@ -112,6 +115,42 @@ func (e WotReactionType) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type WotVouch struct {
+	Status     WotStatusType `codec:"status" json:"status"`
+	VouchProof SigID         `codec:"vouchProof" json:"vouchProof"`
+	Voucher    UserVersion   `codec:"voucher" json:"voucher"`
+	VouchTexts []string      `codec:"vouchTexts" json:"vouchTexts"`
+	VouchedAt  Time          `codec:"vouchedAt" json:"vouchedAt"`
+	Confidence *Confidence   `codec:"confidence,omitempty" json:"confidence,omitempty"`
+}
+
+func (o WotVouch) DeepCopy() WotVouch {
+	return WotVouch{
+		Status:     o.Status.DeepCopy(),
+		VouchProof: o.VouchProof.DeepCopy(),
+		Voucher:    o.Voucher.DeepCopy(),
+		VouchTexts: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.VouchTexts),
+		VouchedAt: o.VouchedAt.DeepCopy(),
+		Confidence: (func(x *Confidence) *Confidence {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Confidence),
+	}
+}
+
 type WotVouchArg struct {
 	SessionID  int         `codec:"sessionID" json:"sessionID"`
 	Uv         UserVersion `codec:"uv" json:"uv"`
@@ -126,10 +165,6 @@ type WotVouchCLIArg struct {
 	Confidence Confidence `codec:"confidence" json:"confidence"`
 }
 
-type WotPendingArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type WotReactArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Uv        UserVersion     `codec:"uv" json:"uv"`
@@ -137,11 +172,23 @@ type WotReactArg struct {
 	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
 }
 
+type WotReactCLIArg struct {
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Username  string          `codec:"username" json:"username"`
+	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
+}
+
+type WotListCLIArg struct {
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	Username  *string `codec:"username,omitempty" json:"username,omitempty"`
+}
+
 type WotInterface interface {
 	WotVouch(context.Context, WotVouchArg) error
 	WotVouchCLI(context.Context, WotVouchCLIArg) error
-	WotPending(context.Context, int) ([]PendingVouch, error)
 	WotReact(context.Context, WotReactArg) error
+	WotReactCLI(context.Context, WotReactCLIArg) error
+	WotListCLI(context.Context, WotListCLIArg) ([]WotVouch, error)
 }
 
 func WotProtocol(i WotInterface) rpc.Protocol {
@@ -178,21 +225,6 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 					return
 				},
 			},
-			"wotPending": {
-				MakeArg: func() interface{} {
-					var ret [1]WotPendingArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]WotPendingArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]WotPendingArg)(nil), args)
-						return
-					}
-					ret, err = i.WotPending(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"wotReact": {
 				MakeArg: func() interface{} {
 					var ret [1]WotReactArg
@@ -205,6 +237,36 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 						return
 					}
 					err = i.WotReact(ctx, typedArgs[0])
+					return
+				},
+			},
+			"wotReactCLI": {
+				MakeArg: func() interface{} {
+					var ret [1]WotReactCLIArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]WotReactCLIArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]WotReactCLIArg)(nil), args)
+						return
+					}
+					err = i.WotReactCLI(ctx, typedArgs[0])
+					return
+				},
+			},
+			"wotListCLI": {
+				MakeArg: func() interface{} {
+					var ret [1]WotListCLIArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]WotListCLIArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]WotListCLIArg)(nil), args)
+						return
+					}
+					ret, err = i.WotListCLI(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -226,13 +288,17 @@ func (c WotClient) WotVouchCLI(ctx context.Context, __arg WotVouchCLIArg) (err e
 	return
 }
 
-func (c WotClient) WotPending(ctx context.Context, sessionID int) (res []PendingVouch, err error) {
-	__arg := WotPendingArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotPending", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c WotClient) WotReact(ctx context.Context, __arg WotReactArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotReact", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
-func (c WotClient) WotReact(ctx context.Context, __arg WotReactArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotReact", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c WotClient) WotReactCLI(ctx context.Context, __arg WotReactCLIArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotReactCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c WotClient) WotListCLI(ctx context.Context, __arg WotListCLIArg) (res []WotVouch, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotListCLI", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

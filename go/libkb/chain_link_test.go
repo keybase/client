@@ -1,9 +1,10 @@
 package libkb
 
 import (
+	"testing"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
@@ -15,7 +16,7 @@ func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
 	packedBytes, err := packed.Marshal()
 	require.NoError(tc.T, err)
 	unpacked := NewChainLink(tc.G, nil, linkServer.id)
-	err = unpacked.Unpack(m, true, uid, packedBytes)
+	err = unpacked.unpackFromLocalStorage(m, uid, packedBytes)
 	require.NoError(tc.T, err)
 	repacked, err := unpacked.Pack()
 	require.NoError(tc.T, err)
@@ -66,7 +67,8 @@ const linkVer1 = `{
       "last_check": null,
       "last_success": null,
       "version": null,
-      "fingerprint": ""
+      "fingerprint": "",
+      "si1" : "aFWjav1+kGe8j73ulzmDTJYSPlD2VQsRXUzX2Ch628qdnVzbg24ZuOgwPMKt8RENC9O6VCnPAhSnMfuYO86lAA=="
     }`
 
 const linkVer2 = `{
@@ -101,5 +103,6 @@ const linkVer2 = `{
       "last_check": null,
       "last_success": null,
       "version": null,
-      "fingerprint": ""
+      "fingerprint": "",
+      "si2" : "k8RAg38rHEmvaUJHc3QGMqx8tZCDjxi2z1e7c+9brX1WWbqSHOLXDY+hRsnSkPNv7MfnrOK6hjzww/udG30iQYvEDpcCBsDAAwHCBw=="
     }`

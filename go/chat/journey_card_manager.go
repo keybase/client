@@ -868,7 +868,10 @@ func (cc *JourneyCardManagerSingleUser) SentMessage(ctx context.Context, teamID 
 }
 
 func (cc *JourneyCardManagerSingleUser) Dismiss(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, cardType chat1.JourneycardType) {
-	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
+	var err error
+	defer cc.G().CTrace(ctx, fmt.Sprintf("JourneyCardManagerSingleUser.Dismiss(cardType:%v, teamID:%v, convID:%v)",
+		cardType, teamID, convID.DbShortFormString()), func() error { return err })()
+	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
 		cc.Debug(ctx, "Dismiss storageLock error: %v", err)
 		return

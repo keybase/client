@@ -31,6 +31,9 @@ import {
   SelectedUser,
   ServiceIdWithContact,
 } from '../constants/types/team-building'
+import RolePickerHeaderAction from './role-picker-header-action'
+import {ModalTitle as TeamsModalTitle} from '../teams/common'
+import flags from '../util/feature-flags'
 
 export const numSectionLabel = '0-9'
 
@@ -569,6 +572,75 @@ class TeamBuilding extends React.PureComponent<Props> {
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: this.offset}}}], {useNativeDriver: true})
     : undefined
 
+  private modalHeader = () => {
+    const mobileCancel = Styles.isMobile ? (
+      <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
+        Cancel
+      </Kb.Text>
+    ) : (
+      undefined
+    )
+    switch (this.props.namespace) {
+      case 'people': {
+        return Styles.isMobile
+          ? {
+              hideBorder: true,
+              leftButton: mobileCancel,
+            }
+          : undefined
+      }
+      case 'teams': {
+        const rightButton =
+          Styles.isMobile && this.props.rolePickerProps ? (
+            <RolePickerHeaderAction
+              onFinishTeamBuilding={this.props.onFinishTeamBuilding}
+              rolePickerProps={this.props.rolePickerProps}
+              count={this.props.teamSoFar.length}
+            />
+          ) : (
+            undefined
+          )
+        if (flags.teamsRedesign) {
+          return {
+            hideBorder: true,
+            leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
+            rightButton,
+            title: <TeamsModalTitle teamname={this.props.teamname ?? ''} title="Search people" />,
+          }
+        }
+        return Styles.isMobile
+          ? {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
+          : {
+              hideBorder: true,
+              title: (
+                <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+                  <Kb.Avatar teamname={this.props.teamname} size={32} style={styles.teamAvatar} />
+                  <Kb.Text type="Header">{this.props.title}</Kb.Text>
+                  <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
+                </Kb.Box2>
+              ),
+            }
+      }
+      case 'chat2': {
+        const rightButton = Styles.isMobile ? (
+          <Kb.Button
+            label="Start"
+            onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
+            small={true}
+            type="Success"
+            style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+          />
+        ) : (
+          undefined
+        )
+        return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
+      }
+      default: {
+        return {hideBorder: true, leftButton: mobileCancel, title: this.props.title}
+      }
+    }
+  }
+
   render() {
     const props = this.props
 
@@ -636,34 +708,12 @@ class TeamBuilding extends React.PureComponent<Props> {
       />
     )
 
-    // Handle when team-building is making a new chat v.s. adding members to a team.
-    const chatHeader =
-      props.namespace === 'people' ? null : props.rolePickerProps ? (
-        <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-          <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
-          <Kb.Text type="Header">{props.title}</Kb.Text>
-          <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" alignItems="center">
-          <Kb.Text type="Header" style={styles.newChatHeader}>
-            {props.title}
-          </Kb.Text>
-        </Kb.Box2>
-      )
-
     // If there are no filterServices or if the filterServices has a phone
     const showContactsBanner =
       Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
 
-    const containerStyle = Styles.collapseStyles([
-      styles.container,
-      props.namespace !== 'people' ? styles.fixedWidthContainer : null,
-    ])
-
-    return (
-      <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
-        {Styles.isMobile ? null : chatHeader}
+    const body = (
+      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
         {teamBox &&
           (Styles.isMobile ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -701,6 +751,19 @@ class TeamBuilding extends React.PureComponent<Props> {
         )}
         {content}
       </Kb.Box2>
+    )
+
+    return (
+      <Kb.Modal
+        onClose={props.onClose}
+        header={this.modalHeader()}
+        allowOverflow={true}
+        noScrollView={true}
+        mode="DefaultFullHeight"
+        {...(props.namespace === 'people' ? peopleModalProps : {})}
+      >
+        {body}
+      </Kb.Modal>
     )
   }
 }
@@ -742,18 +805,6 @@ const styles = Styles.styleSheetCreate(
         common: {
           position: 'relative',
         },
-        isElectron: {
-          borderRadius: 4,
-          flex: 1,
-          height: 560,
-          maxHeight: 560,
-          minHeight: 200,
-          overflow: 'visible',
-        },
-        isMobile: {
-          flexGrow: 1,
-          height: '100%',
-        },
       }),
       emptyContainer: Styles.platformStyles({
         common: {flex: 1},
@@ -768,17 +819,13 @@ const styles = Styles.styleSheetCreate(
           padding: Styles.globalMargins.small,
         },
       }),
-      fixedWidthContainer: Styles.platformStyles({
-        isElectron: {
-          width: 400,
-        },
-      }),
       headerContainer: Styles.platformStyles({
         isElectron: {
           marginBottom: Styles.globalMargins.xtiny,
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
+      hide: {opacity: 0},
       iconContactBookContainer: {
         alignItems: 'center',
         marginLeft: Styles.globalMargins.xsmall,
@@ -833,6 +880,20 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         ...Styles.padding(Styles.globalMargins.small),
       },
+      peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
+      peoplePopupStyleContainer: Styles.platformStyles({
+        isElectron: {
+          width: '100%',
+          ...Styles.padding(0, Styles.globalMargins.xsmall),
+        },
+      }),
+      peoplePopupStyleCover: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'flex-start',
+          backgroundColor: 'initial',
+          ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
+        },
+      }),
       searchHint: {
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,
@@ -856,5 +917,12 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
+
+const peopleModalProps: Partial<React.ComponentProps<typeof Kb.Modal>> = {
+  popupStyleClose: styles.peoplePopupStyleClose,
+  popupStyleContainer: styles.peoplePopupStyleContainer,
+  popupStyleCover: styles.peoplePopupStyleCover,
+  popupTabBarShim: true,
+}
 
 export default TeamBuilding

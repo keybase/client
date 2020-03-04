@@ -967,7 +967,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	if role == keybase1.TeamRole_NONE {
 		_, err := t.getAdminPermission(ctx)
 		switch err.(type) {
-		case nil, AdminPermissionRequiredError:
+		case nil, *AdminPermissionRequiredError:
 			return NewImplicitAdminCannotLeaveError()
 		}
 	}
@@ -996,7 +996,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 }
 
-func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
+func (t *Team) deleteRoot(ctx context.Context) error {
 	m := t.MetaContext(ctx)
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -1014,14 +1014,6 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 			Name: "SELF_NOT_OWNER",
 			Desc: "You must be an owner to delete a team",
 		}
-	}
-
-	confirmed, err := ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
-	if err != nil {
-		return err
-	}
-	if !confirmed {
-		return errors.New("team delete not confirmed")
 	}
 
 	ratchet, err := t.makeRatchet(ctx)
@@ -1060,8 +1052,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	return t.HintLatestSeqno(m, latestSeqno)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
-
+func (t *Team) deleteSubteam(ctx context.Context) error {
 	m := t.MetaContext(ctx)
 
 	// subteam delete consists of two links:
@@ -1078,21 +1069,21 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		Public:      t.IsPublic(),
 		ForceRepoll: true,
 	})
-	if err != nil {
-		return err
+	switch {
+	case err == nil:
+	case IsTeamReadError(err):
+		return fmt.Errorf("failed to load parent team; you must be an admin of a parent team to delete a subteam: %w", err)
+	default:
+		return fmt.Errorf("failed to load parent team: %w", err)
 	}
 
 	admin, err := parentTeam.getAdminPermission(ctx)
-	if err != nil {
-		return err
-	}
-
-	confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
-	if err != nil {
-		return err
-	}
-	if !confirmed {
-		return errors.New("team delete not confirmed")
+	switch err.(type) {
+	case nil:
+	case *AdminPermissionRequiredError:
+		return fmt.Errorf("failed to get admin permission from parent team; you must be an admin of a parent team to delete a subteam: %w", err)
+	default:
+		return fmt.Errorf("failed to get admin permission from parent team: %w", err)
 	}
 
 	subteamName := SCTeamName(t.Data.Name.String())
@@ -1378,6 +1369,46 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 		Type: "seitan_invite_token",
 		Name: keybase1.TeamInviteName(encoded),
 		ID:   inviteID,
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return ikey, err
+	}
+
+	return ikey, err
+}
+
+func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v", t.Name(), role), func() error { return err })()
+
+	// Experimental code: we are figuring out how to do invite links.
+
+	ikey, err = GenerateIKeyV2()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
+	if err != nil {
+		return ikey, err
+	}
+
+	maxUses := keybase1.TeamInviteMaxUses(10)
+	invite := SCTeamInvite{
+		Type:    "seitan_invite_token",
+		Name:    keybase1.TeamInviteName(encoded),
+		ID:      inviteID,
+		MaxUses: &maxUses,
 	}
 
 	if err := t.postInvite(ctx, invite, role); err != nil {

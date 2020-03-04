@@ -12,6 +12,7 @@ import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/
 import {renderWelcomeMessage} from '../../../chat/conversation/messages/cards/team-journey/util'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
+import flags from '../../../util/feature-flags'
 
 type Props = {
   canShowcase: boolean
@@ -344,7 +345,7 @@ export class Settings extends React.Component<Props, State> {
             waiting={this.props.waitingForSavePublicity}
           />
         </Kb.Box2>
-        {(this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
+        {flags.teamsRedesign && (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
           <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
             <Kb.Box>
               <Kb.Text style={styles.header} type="BodySmallSemibold">

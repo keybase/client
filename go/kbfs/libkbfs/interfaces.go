@@ -1459,11 +1459,12 @@ type BlockOps interface {
 	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
 		block data.Block, cacheLifetime data.BlockCacheLifetime) error
 
-	// GetEncodedSize gets the encoded size of the block associated
-	// with the given block pointer (which belongs to the TLF with the
-	// given key metadata).
-	GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata,
-		blockPtr data.BlockPointer) (uint32, keybase1.BlockStatus, error)
+	// GetEncodedSizes gets the encoded sizes and statuses of the
+	// block associated with the given block pointers (which belongs
+	// to the TLF with the given key metadata).  If a block is not
+	// found, it gets a size of 0 and an UNKNOWN status.
+	GetEncodedSizes(ctx context.Context, kmd libkey.KeyMetadata,
+		blockPtrs []data.BlockPointer) ([]uint32, []keybase1.BlockStatus, error)
 
 	// Delete instructs the server to delete the given block references.
 	// It returns the number of not-yet deleted references to
@@ -1712,12 +1713,13 @@ type BlockServer interface {
 		context kbfsblock.Context, cacheType DiskBlockCacheType) (
 		[]byte, kbfscrypto.BlockCryptKeyServerHalf, error)
 
-	// GetEncodedSize gets the encoded size of the block associated
-	// with the given block pointer (which belongs to the TLF with the
-	// given key metadata).
-	GetEncodedSize(
-		ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-		context kbfsblock.Context) (uint32, keybase1.BlockStatus, error)
+	// GetEncodedSizes gets the encoded sizes and statuses of the
+	// blocks associated with the given block IDs (which belong to the
+	// TLF with the given key metadata).  If a block is not found, it
+	// gets a size of 0 and an UNKNOWN status.
+	GetEncodedSizes(
+		ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
+		contexts []kbfsblock.Context) ([]uint32, []keybase1.BlockStatus, error)
 
 	// Put stores the (encrypted) block data under the given ID
 	// and context on the server, along with the server half of
@@ -1924,6 +1926,9 @@ type InitMode interface {
 	Type() InitModeType
 	// IsTestMode returns whether we are running a test.
 	IsTestMode() bool
+	// IsSingleOp returns whether this is a single-op mode (only one
+	// write is expected at a time).
+	IsSingleOp() bool
 	// BlockWorkers returns the number of block workers to run.
 	BlockWorkers() int
 	// PrefetchWorkers returns the number of prefetch workers to run.

@@ -41,6 +41,7 @@ const (
 	fsIndexStorageDir = "kbfs_index"
 	docDbDir          = "docdb"
 	nameDocIDPrefix   = "name_"
+	maxIndexBatchSize = 100 * 1024 * 1024 // 100 MB
 )
 
 const (
@@ -92,6 +93,8 @@ type Indexer struct {
 	indexReadyCh   chan struct{}
 	cancelCtx      context.CancelFunc
 	fs             billy.Filesystem
+	currBatch      *bleve.Batch
+	batchFns       []func() error
 }
 
 func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
@@ -413,6 +416,69 @@ func nameDocID(docID string) string {
 	return nameDocIDPrefix + docID
 }
 
+func (i *Indexer) flushBatchLocked(ctx context.Context) error {
+	if i.currBatch == nil {
+		return nil
+	}
+	defer func() {
+		i.currBatch = nil
+		i.batchFns = nil
+	}()
+
+	// Flush the old batch.
+	i.log.CDebugf(
+		ctx, "Flushing a batch of size %d", i.currBatch.TotalDocsSize())
+	err := i.index.Batch(i.currBatch)
+	if err != nil {
+		return err
+	}
+	for _, f := range i.batchFns {
+		err := f()
+		if err != nil {
+			return err
+		}
+	}
+	return i.blocksDb.ClearMemory()
+}
+
+func (i *Indexer) flushBatch(ctx context.Context) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	return i.flushBatchLocked(ctx)
+}
+
+func (i *Indexer) refreshBatchLocked(ctx context.Context) error {
+	if i.index == nil {
+		return errors.New("Index not loaded")
+	}
+	err := i.flushBatchLocked(ctx)
+	if err != nil {
+		return err
+	}
+	i.currBatch = i.index.NewBatch()
+	return nil
+}
+
+func (i *Indexer) refreshBatch(ctx context.Context) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	return i.refreshBatchLocked(ctx)
+}
+
+func (i *Indexer) currBatchLocked(ctx context.Context) (*bleve.Batch, error) {
+	if i.currBatch == nil {
+		return nil, errors.New("No current batch")
+	}
+
+	if i.currBatch.TotalDocsSize() > maxIndexBatchSize {
+		err := i.refreshBatchLocked(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return i.currBatch, nil
+}
+
 func (i *Indexer) indexChildWithPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, oldPtr, newPtr data.BlockPointer,
@@ -446,9 +512,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 				return nil, nil
 			}
 			return func() error {
-				return i.blocksDb.Put(
+				flushFn, err := i.blocksDb.PutMemory(
 					ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID,
 					true)
+				if err != nil {
+					return err
+				}
+				i.lock.Lock()
+				defer i.lock.Unlock()
+				i.batchFns = append(i.batchFns, flushFn)
+				return nil
 			}, nil
 		}
 	case ldberrors.ErrNotFound:
@@ -470,39 +543,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	}
 
 	dirDoneFn = func() error {
-		return i.blocksDb.Put(
+		flushFn, err := i.blocksDb.PutMemory(
 			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, true)
-	}
-
-	defer func() {
 		if err != nil {
-			return
+			return err
 		}
-
-		// Put the docID into the DB after a successful indexing.
-		putErr := i.blocksDb.Put(
-			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, false)
-		if putErr != nil {
-			err = putErr
-			return
-		}
-
-		// Save the docID -> parentDocID mapping.
-		putErr = i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
-		if putErr != nil {
-			err = putErr
-			return
-		}
-
-		// Delete the old pointer if one was given.
-		if oldPtr != data.ZeroPtr {
-			delErr := i.blocksDb.Delete(ctx, tlfID, oldPtr)
-			if err != nil {
-				err = delErr
-				return
-			}
-		}
-	}()
+		i.lock.Lock()
+		defer i.lock.Unlock()
+		i.batchFns = append(i.batchFns, flushFn)
+		return nil
+	}
 
 	// Get the content type and create a document based on that type.
 	d, nameD, err := makeDoc(
@@ -511,13 +561,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		return nil, err
 	}
 
-	i.lock.RLock()
-	defer i.lock.RUnlock()
+	i.lock.Lock()
+	defer i.lock.Unlock()
 	if i.index == nil {
 		return nil, errors.New("Index not loaded")
 	}
 
-	b := i.index.NewBatch()
+	b, err := i.currBatchLocked(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	if d != nil {
 		err = b.Index(docID, d)
@@ -530,10 +583,35 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		return nil, err
 	}
 
-	err = i.index.Batch(b)
+	// Put the docID into the DB after a successful indexing.
+	flushFn, err := i.blocksDb.PutMemory(
+		ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, false)
 	if err != nil {
 		return nil, err
 	}
+
+	i.batchFns = append(i.batchFns, func() error {
+		err := flushFn()
+		if err != nil {
+			return err
+		}
+
+		// Save the docID -> parentDocID mapping.
+		err = i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+		if err != nil {
+			return err
+		}
+
+		// Delete the old pointer if one was given.
+		if oldPtr != data.ZeroPtr {
+			err = i.blocksDb.Delete(ctx, tlfID, oldPtr)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 
 	return dirDoneFn, nil
 }
@@ -604,15 +682,29 @@ func (i *Indexer) renameChild(
 		return err
 	}
 
-	// Rename the doc ID for the new name.
-	newNameDoc := makeNameDoc(n, revision, time.Unix(0, ei.Mtime))
-	err = i.index.Index(nameDocID(docID), newNameDoc)
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	b, err := i.currBatchLocked(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Fix the child name in the doc db.
-	return i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+	newNameDoc := makeNameDoc(n, revision, time.Unix(0, ei.Mtime))
+	err = b.Index(nameDocID(docID), newNameDoc)
+	if err != nil {
+		return err
+	}
+
+	// Rename the doc ID for the new name.
+	i.batchFns = append(
+		i.batchFns,
+		func() error {
+			// Fix the child name in the doc db.
+			return i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+		})
+
+	return nil
 }
 
 func (i *Indexer) deleteFromUnrefs(
@@ -641,10 +733,14 @@ unrefLoop:
 		return nil
 	}
 
-	i.lock.RLock()
-	defer i.lock.RUnlock()
+	i.lock.Lock()
+	defer i.lock.Unlock()
 
-	b := i.index.NewBatch()
+	b, err := i.currBatchLocked(ctx)
+	if err != nil {
+		return err
+	}
+
 	b.Delete(docID)
 	b.Delete(nameDocID(docID))
 	err = i.index.Batch(b)
@@ -652,12 +748,12 @@ unrefLoop:
 		return err
 	}
 
-	err = i.docDb.Delete(ctx, docID)
-	if err != nil {
-		return err
-	}
-
-	return i.blocksDb.Delete(ctx, tlfID, unref)
+	i.batchFns = append(
+		i.batchFns,
+		func() error { return i.docDb.Delete(ctx, docID) },
+		func() error { return i.blocksDb.Delete(ctx, tlfID, unref) },
+	)
+	return nil
 }
 
 func (i *Indexer) fsForRev(
@@ -733,19 +829,27 @@ func (i *Indexer) recordUpdatedNodePtr(
 		return nil, err
 	}
 	tlfID := node.GetFolderBranch().Tlf
-	err = i.blocksDb.Put(
-		ctx, tlfID, md.BlockInfo.BlockPointer, currentIndexedBlocksDbVersion,
-		docID, false)
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	flushFn, err := i.blocksDb.PutMemory(
+		ctx, tlfID, md.BlockInfo.BlockPointer,
+		currentIndexedBlocksDbVersion, docID, false)
 	if err != nil {
 		return nil, err
 	}
+	i.batchFns = append(i.batchFns, flushFn)
+
 	return func() error {
-		err := i.blocksDb.Put(
+		flushFn, err := i.blocksDb.PutMemory(
 			ctx, tlfID, md.BlockInfo.BlockPointer,
 			currentIndexedBlocksDbVersion, docID, true)
 		if err != nil {
 			return err
 		}
+
+		i.lock.Lock()
+		defer i.lock.Unlock()
+		i.batchFns = append(i.batchFns, flushFn)
 
 		if oldPtr != data.ZeroPtr {
 			err := i.blocksDb.Delete(ctx, tlfID, oldPtr)
@@ -770,6 +874,22 @@ func (i *Indexer) indexNewlySyncedTlf(
 	if err != nil {
 		return err
 	}
+
+	err = i.refreshBatch(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		flushErr := i.flushBatch(ctx)
+		if flushErr == nil {
+			return
+		}
+		i.log.CDebugf(ctx, "Error flushing batch: %+v", flushErr)
+		if err == nil {
+			err = flushErr
+		}
+	}()
 
 	// Record the docID for the root node. But no need to index the
 	// root dir, since it doesn't really have a name.
@@ -876,6 +996,22 @@ func (i *Indexer) doIncrementalIndex(
 
 		// After a successful indexing, mark the revision as fully indexed.
 		err = i.tlfDb.Put(ctx, m.tlfID, newRev, kbfsmd.RevisionUninitialized)
+	}()
+
+	err = i.refreshBatch(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		flushErr := i.flushBatch(ctx)
+		if flushErr == nil {
+			return
+		}
+		i.log.CDebugf(ctx, "Error flushing batch: %+v", flushErr)
+		if err == nil {
+			err = flushErr
+		}
 	}()
 
 	newChanges := 0

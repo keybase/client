@@ -207,27 +207,22 @@ const onGetInboxConvsUnboxed = (
     if (meta) {
       metas.push(meta)
     }
-    const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
-    ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
-      const {assertion, fullName, contactName, inConvName} = part
-      if (!infoMap.get(assertion) && fullName) {
-        added = true
-        usernameToFullname[assertion] = fullName
-      }
-      participantInfo.all.push(assertion)
-      if (inConvName) {
-        participantInfo.name.push(assertion)
-      }
-      if (contactName) {
-        participantInfo.contactName.set(assertion, contactName)
-      }
-    })
+    const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
+      inboxUIItem.participants ?? []
+    )
     if (participantInfo.all.length > 0) {
       participants.push({
         conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
         participants: participantInfo,
       })
     }
+    inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
+      const {assertion, fullName} = part
+      if (!infoMap.get(assertion) && fullName) {
+        added = true
+        usernameToFullname[assertion] = fullName
+      }
+    })
   })
   if (added) {
     actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
@@ -1011,6 +1006,7 @@ function* loadMoreMessages(
   let messageIDControl: RPCChatTypes.MessageIDControl | null = null
   let forceClear = false
   let forceContainsLatestCalc = false
+  let knownRemotes: Array<string> = []
   const centeredMessageIDs: Array<{
     conversationIDKey: Types.ConversationIDKey
     messageID: Types.MessageID
@@ -1036,6 +1032,9 @@ function* loadMoreMessages(
     case Chat2Gen.selectConversation:
       key = action.payload.conversationIDKey
       reason = action.payload.reason || 'selected'
+      if (action.payload.pushBody && action.payload.pushBody.length > 0) {
+        knownRemotes.push(action.payload.pushBody)
+      }
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -1165,6 +1164,7 @@ function* loadMoreMessages(
         cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
         conversationID,
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        knownRemotes,
         pagination,
         pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
         query: {
@@ -1905,7 +1905,7 @@ const previewConversationTeam = async (
 ) => {
   const {conversationIDKey, teamname, reason} = action.payload
   if (conversationIDKey) {
-    if (reason === 'messageLink' || reason === 'teamMention') {
+    if (reason === 'messageLink' || reason === 'teamMention' || reason === 'channelHeader') {
       // Add preview channel to inbox
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
@@ -2071,7 +2071,7 @@ function* downloadAttachment(downloadToCache: boolean, message: Types.Message, l
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
     return rpcRes.filePath
   } catch (e) {
-    logger.error(`downloadAttachment error: ${e.message}`, logger)
+    logger.info(`downloadAttachment error: ${e.message}`, logger)
     yield Saga.put(
       Chat2Gen.createAttachmentDownloaded({error: e.message || 'Error downloading attachment', message})
     )
@@ -2100,10 +2100,20 @@ function* attachmentDownload(
   yield Saga.callUntyped(downloadAttachment, false, message, logger)
 }
 
-const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) =>
+const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) => [
+  Chat2Gen.createAddToMessageMap({message: action.payload.message}),
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {message: action.payload.message}, selected: 'chatAttachmentFullscreen'}],
-  })
+    path: [
+      {
+        props: {
+          conversationIDKey: action.payload.message.conversationIDKey,
+          ordinal: action.payload.message.ordinal,
+        },
+        selected: 'chatAttachmentFullscreen',
+      },
+    ],
+  }),
+]
 
 // Handle an image pasted into a conversation
 const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
@@ -2551,7 +2561,13 @@ const mobileNavigateOnSelect = (
   action: Chat2Gen.SelectConversationPayload,
   logger: Saga.SagaLogger
 ) => {
-  const {conversationIDKey, navKey, reason} = action.payload
+  const {conversationIDKey, navKey, reason, skipNav} = action.payload
+  if (skipNav) {
+    logger.info(
+      `mobileNavigateOnSelect: skipNav passed selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+    )
+    return
+  }
   if (Constants.isValidConversationIDKey(conversationIDKey)) {
     if (reason === 'focused') {
       logger.info(
@@ -2560,9 +2576,9 @@ const mobileNavigateOnSelect = (
       return false // never nav if this is from a nav
     }
     logger.info(
-      `mobileNavigateOnSelect: navigating to selected: selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+      `mobileNavigateOnSelect: navigating to param: ${conversationIDKey} selected: ${state.chat2.selectedConversation}`
     )
-    return navigateToThreadRoute(state.chat2.selectedConversation, navKey)
+    return navigateToThreadRoute(conversationIDKey, navKey)
   } else if (
     conversationIDKey === Constants.pendingWaitingConversationIDKey ||
     conversationIDKey === Constants.pendingErrorConversationIDKey
@@ -2596,8 +2612,8 @@ function* mobileMessageAttachmentShare(
   }
   const filePath = yield* downloadAttachment(true, message, logger)
   if (!filePath) {
-    logger.error('Downloading attachment failed')
-    throw new Error('Downloading attachment failed')
+    logger.info('Downloading attachment failed')
+    return
   }
 
   if (isIOS && message.fileName.endsWith('.pdf')) {
@@ -2641,8 +2657,8 @@ function* mobileMessageAttachmentSave(
   const fileName = yield* downloadAttachment(true, message, logger)
   if (!fileName) {
     // failed to download
-    logger.error('Downloading attachment failed')
-    throw new Error('Downloading attachment failed')
+    logger.info('Downloading attachment failed')
+    return
   }
   yield Saga.put(Chat2Gen.createAttachmentMobileSave({conversationIDKey, ordinal}))
   try {

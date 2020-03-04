@@ -24,7 +24,7 @@ export default Container.connect(
       canShowcase: teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner',
       error: state.teams.errorInSettings,
       ignoreAccessRequests: teamDetails.settings.tarsDisabled,
-      isBigTeam: Constants.isBigTeam(state, teamMeta.teamname),
+      isBigTeam: Constants.isBigTeam(state, teamID),
       openTeam: settings.open,
       // Cast to TeamRoleType
       openTeamRole: teamDetails.settings.openJoinAs,

@@ -34,6 +34,7 @@ import popupDialog from './popup-dialog.stories'
 import proofBrokenBanner from './proof-broken-banner.stories'
 import radiobutton from './radio-button.stories'
 import reload from './reload.stories'
+import richbutton from './rich-button.stories'
 import saveIndicator from './save-indicator.stories'
 import searchFilter from './search-filter.stories'
 import sectionList from './section-list.stories'
@@ -84,6 +85,7 @@ const load = () => {
     proofBrokenBanner,
     radiobutton,
     reload,
+    richbutton,
     saveIndicator,
     searchFilter,
     sectionList,

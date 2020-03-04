@@ -3391,7 +3391,7 @@
         },
         {
           "type": "string",
-          "name": "teamName"
+          "name": "tlfName"
         }
       ]
     },
@@ -3940,6 +3940,13 @@
             null,
             "GetThreadQuery"
           ]
+        },
+        {
+          "name": "knownRemotes",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         },
         {
           "name": "pagination",
@@ -5728,6 +5735,28 @@
         }
       ],
       "response": "int"
+    },
+    "refreshParticipants": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "getLastActiveAtLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "gregor1.Time"
     }
   },
   "namespace": "chat.1"

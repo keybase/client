@@ -110,7 +110,10 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 	apiArg := APIArg{
 		Endpoint:    "sig/get_high",
 		SessionType: APISessionTypeOPTIONAL,
-		Args:        HTTPArgs{"uid": S{Val: hsc.uid.String()}},
+		Args: HTTPArgs{
+			"uid": S{Val: hsc.uid.String()},
+			"c3":  I{Val: int(sigCompression3Unstubbed)},
+		},
 	}
 	resp, finisher, err := m.G().API.GetResp(m, apiArg)
 	if err != nil {
@@ -140,6 +143,9 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 
 		parentSigChain := &SigChain{} // because we don't want the cache to use these
 		link, err = ImportLinkFromServer(m, parentSigChain, value, selfUID)
+		if err != nil {
+			m.Debug("Error importing link: %s", err.Error())
+		}
 		links = append(links, link)
 		lastLink = link
 	}, "sigs")

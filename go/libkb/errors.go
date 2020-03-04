@@ -1472,15 +1472,35 @@ func (e NoDecryptionKeyError) Error() string {
 
 //=============================================================================
 
+type ErrorCause struct {
+	Err        error
+	StatusCode int
+}
+
+// DecryptionError is the default decryption error
 type DecryptionError struct {
-	Cause error
+	Cause ErrorCause
 }
 
 func (e DecryptionError) Error() string {
-	if e.Cause == nil {
+	if e.Cause.Err == nil {
 		return "Decryption error"
 	}
-	return fmt.Sprintf("Decryption error: %v", e.Cause)
+	return fmt.Sprintf("Decryption error: %+v", e.Cause)
+}
+
+//=============================================================================
+
+// VerificationError is the default verification error
+type VerificationError struct {
+	Cause ErrorCause
+}
+
+func (e VerificationError) Error() string {
+	if e.Cause.Err == nil {
+		return "Verification error"
+	}
+	return fmt.Sprintf("Verification error: %+v", e.Cause)
 }
 
 //=============================================================================

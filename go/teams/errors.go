@@ -271,7 +271,7 @@ type AdminPermissionRequiredError struct{}
 
 func NewAdminPermissionRequiredError() error { return &AdminPermissionRequiredError{} }
 
-func (e AdminPermissionRequiredError) Error() string {
+func (e *AdminPermissionRequiredError) Error() string {
 	return "Only admins can perform this operation."
 }
 

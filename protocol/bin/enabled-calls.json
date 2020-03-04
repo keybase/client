@@ -60,6 +60,7 @@
   "chat.1.local.previewConversationByIDLocal": {"promise": true},
   "chat.1.local.profileChatSearch": {"promise": true},
   "chat.1.local.removeBotMember": {"promise": true},
+  "chat.1.local.refreshParticipants": {"promise": true},
   "chat.1.local.requestInboxLayout": {"promise": true},
   "chat.1.local.requestInboxSmallIncrease": {"promise": true},
   "chat.1.local.requestInboxSmallReset": {"promise": true},

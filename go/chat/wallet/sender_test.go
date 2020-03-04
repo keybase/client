@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/externalstest"
@@ -17,30 +18,63 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+type mockUIDMapper struct {
+	libkb.UIDMapper
+	usernames map[string]string
+}
+
+func newMockUIDMapper() *mockUIDMapper {
+	return &mockUIDMapper{
+		usernames: make(map[string]string),
+	}
+}
+
+func (m *mockUIDMapper) addUser(uid gregor1.UID, username string) {
+	m.usernames[uid.String()] = username
+}
+
+func (m *mockUIDMapper) getUser(uid gregor1.UID) string {
+	return m.usernames[uid.String()]
+}
+
+func (m *mockUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext,
+	uids []keybase1.UID, fullNameFreshness, networkTimeBudget time.Duration,
+	forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
+	for _, uid := range uids {
+		res = append(res, libkb.UsernamePackage{
+			NormalizedUsername: libkb.NewNormalizedUsername(m.getUser(uid.ToBytes())),
+		})
+	}
+	return res, nil
+}
+
+type mockParticipantsSource struct {
+	types.ParticipantSource
+	partsFn func() []gregor1.UID
+}
+
+func (m *mockParticipantsSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	dataSource types.InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
+	return m.partsFn(), nil
+}
+
 type mockInboxSource struct {
 	types.InboxSource
 	membersTypFn func() chat1.ConversationMembersType
-	partsFn      func() []string
 }
 
-func (m *mockInboxSource) Read(ctx context.Context, uid gregor1.UID,
-	localizeTyp types.ConversationLocalizerTyp,
-	dataSource types.InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery) (types.Inbox, chan types.AsyncInboxResult, error) {
-	parts := m.partsFn()
-	var convParts []chat1.ConversationLocalParticipant
-	for _, p := range parts {
-		convParts = append(convParts, chat1.ConversationLocalParticipant{
-			Username: p,
-		})
-	}
+func (m *mockInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
+	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery) (types.Inbox, error) {
 	return types.Inbox{
-		Convs: []chat1.ConversationLocal{{
-			Info: chat1.ConversationInfoLocal{
-				MembersType:  m.membersTypFn(),
-				Participants: convParts,
+		ConvsUnverified: []types.RemoteConversation{{
+			Conv: chat1.Conversation{
+				Metadata: chat1.ConversationMetadata{
+					ConversationID: query.ConvIDs[0],
+					MembersType:    m.membersTypFn(),
+				},
 			},
 		}},
-	}, nil, nil
+	}, nil
 }
 
 type mockStellar struct {
@@ -89,14 +123,16 @@ func TestStellarSender(t *testing.T) {
 	convID := chat1.ConversationID([]byte{0, 3})
 	ms := mockStellar{}
 	mi := mockInboxSource{}
-	mu := newMockUpakLoader()
+	mp := mockParticipantsSource{}
+	mu := newMockUIDMapper()
 	mu.addUser(mikeUID, "mikem")
 	mu.addUser(patrickUID, "patrick")
 	mu.addUser(maxUID, "max")
 	tc.G.SetStellar(&ms)
-	tc.G.SetUPAKLoader(mu)
+	tc.G.SetUIDMapper(mu)
 	g := globals.NewContext(tc.G, &globals.ChatContext{
-		InboxSource: &mi,
+		InboxSource:        &mi,
+		ParticipantsSource: &mp,
 	})
 	sender := NewSender(g)
 	successFn := func(incErr error, uids ...gregor1.UID) func(payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
@@ -118,21 +154,21 @@ func TestStellarSender(t *testing.T) {
 	teamFn := func() chat1.ConversationMembersType {
 		return chat1.ConversationMembersType_TEAM
 	}
-	mikePatrickFn := func() []string {
-		return []string{"mikem", "patrick"}
+	mikePatrickFn := func() []gregor1.UID {
+		return []gregor1.UID{mikeUID, patrickUID}
 	}
-	allFn := func() []string {
-		return []string{"mikem", "patrick", "max"}
+	allFn := func() []gregor1.UID {
+		return []gregor1.UID{mikeUID, patrickUID, maxUID}
 	}
 	type paymentRes struct {
 		resultTyp chat1.TextPaymentResultTyp
 		text      string
 	}
 	testCase := func(body string, expected []paymentRes, senderUID gregor1.UID,
-		partsFn func() []string, typFn func() chat1.ConversationMembersType,
+		partsFn func() []gregor1.UID, typFn func() chat1.ConversationMembersType,
 		miniFn func([]libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error)) {
 		mi.membersTypFn = typFn
-		mi.partsFn = partsFn
+		mp.partsFn = partsFn
 		ms.miniFn = miniFn
 		parsedPayments := sender.ParsePayments(context.TODO(), senderUID, convID, body)
 		res, err := sender.SendPayments(context.TODO(), convID, parsedPayments)

@@ -89,7 +89,7 @@ const MessagePopupHeader = (props: {
             colorYou={true}
             usernames={[author]}
             underline={true}
-            type="BodySmallSemibold"
+            type="BodySmallBold"
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -110,7 +110,7 @@ const MessagePopupHeader = (props: {
               colorYou={true}
               usernames={[botUsername]}
               underline={true}
-              type="BodySmallSemibold"
+              type="BodySmallBold"
             />
           </Kb.Box2>
         </Kb.Box2>

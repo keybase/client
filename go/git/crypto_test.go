@@ -32,6 +32,7 @@ func setupTest(tb testing.TB, name string) libkb.TestContext {
 	tc.G.SetProofServices(externals.NewProofServices(tc.G))
 	InstallInsecureTriplesec(tc.G)
 	teams.NewTeamLoaderAndInstall(tc.G)
+	teams.NewFastTeamLoaderAndInstall(tc.G)
 	teams.NewAuditorAndInstall(tc.G)
 	hidden.NewChainManagerAndInstall(tc.G)
 	return tc
@@ -208,7 +209,7 @@ func TestCryptoKeyGen(t *testing.T) {
 	boxed.Gen = 2
 	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
 	require.Error(tc.T, err)
-	require.Equal(tc.T, "no team secret found at generation 2", err.Error())
+	require.Equal(tc.T, "FTL Missing seed at generation: 2", err.Error())
 	require.Nil(tc.T, unboxed)
 }
 

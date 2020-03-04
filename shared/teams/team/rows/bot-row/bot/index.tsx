@@ -58,7 +58,7 @@ export const TeamBotRow = (props: Props) => {
           prefix="@"
           inline={true}
           usernames={[props.ownerUser ?? props.username]}
-          type="BodySmall"
+          type="BodySmallBold"
           withProfileCardPopup={true}
           onUsernameClicked="profile"
         />

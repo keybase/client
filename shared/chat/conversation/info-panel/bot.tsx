@@ -93,10 +93,9 @@ export const Bot = (props: BotProps) => {
       </Kb.Text>
       <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
       {ownerTeam ? (
-        <Kb.Text type="BodySmall">{`@${ownerTeam}`}</Kb.Text>
+        <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
       ) : (
         <Kb.ConnectedUsernames
-          prefix="@"
           inline={true}
           usernames={[ownerUser ?? botUsername]}
           type="BodySmall"
@@ -133,6 +132,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       addBot: {
+        alignSelf: undefined,
         marginBottom: Styles.globalMargins.xtiny,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
@@ -290,24 +290,33 @@ export default (props: Props) => {
     }
   }, [featuredBotsLength, dispatch, conversationIDKey, loadedAllBots])
 
+  const items = [
+    ...(canManageBots ? [addBotButton] : []),
+    ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
+    ...usernamesToFeaturedBots(botsInConv),
+    ...(botsInTeam.length > 0 ? [inThisTeamHeader] : []),
+    ...usernamesToFeaturedBots(botsInTeam),
+    featuredBotsHeader,
+    ...(featuredBots.length > 0 ? featuredBots : []),
+    ...(!loadedAllBots && featuredBots.length > 0 ? [loadMoreBotsButton] : []),
+    ...(loadingBots ? [featuredBotSpinner] : []),
+  ]
+
   const sections = [
     {
-      data: [
-        ...(canManageBots ? [addBotButton] : []),
-        ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
-        ...usernamesToFeaturedBots(botsInConv),
-        ...(botsInTeam.length > 0 ? [inThisTeamHeader] : []),
-        ...usernamesToFeaturedBots(botsInTeam),
-        featuredBotsHeader,
-        ...(featuredBots.length > 0 ? featuredBots : []),
-        ...(!loadedAllBots && featuredBots.length > 0 ? [loadMoreBotsButton] : []),
-        ...(loadingBots ? [featuredBotSpinner] : []),
-      ],
+      data: items,
+      key: 'bots',
+      keyExtractor: (item: Unpacked<typeof items>, index: number) => {
+        if (typeof item === 'string' || item instanceof String) {
+          return item
+        }
+        return item.botUsername ? 'abot-' + item.botUsername : index
+      },
       renderItem: ({item}: {item: any}) => {
         if (item === addBotButton) {
           return (
             <Kb.Button
-              mode="Primary"
+              mode="Secondary"
               type="Default"
               label="Add a bot"
               style={styles.addBot}

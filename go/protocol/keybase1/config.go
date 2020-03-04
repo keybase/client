@@ -12,11 +12,12 @@ import (
 )
 
 type CurrentStatus struct {
-	Configured     bool  `codec:"configured" json:"configured"`
-	Registered     bool  `codec:"registered" json:"registered"`
-	LoggedIn       bool  `codec:"loggedIn" json:"loggedIn"`
-	SessionIsValid bool  `codec:"sessionIsValid" json:"sessionIsValid"`
-	User           *User `codec:"user,omitempty" json:"user,omitempty"`
+	Configured     bool   `codec:"configured" json:"configured"`
+	Registered     bool   `codec:"registered" json:"registered"`
+	LoggedIn       bool   `codec:"loggedIn" json:"loggedIn"`
+	SessionIsValid bool   `codec:"sessionIsValid" json:"sessionIsValid"`
+	User           *User  `codec:"user,omitempty" json:"user,omitempty"`
+	DeviceName     string `codec:"deviceName" json:"deviceName"`
 }
 
 func (o CurrentStatus) DeepCopy() CurrentStatus {
@@ -32,6 +33,7 @@ func (o CurrentStatus) DeepCopy() CurrentStatus {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.User),
+		DeviceName: o.DeviceName,
 	}
 }
 

@@ -3,6 +3,7 @@
 
 import * as RouteTreeGen from './route-tree-gen'
 import * as TeamTypes from '../constants/types/teams'
+import flags from '../util/feature-flags'
 
 // TODO i think this should go away. either we dispatch a team building action that's typed that produces these or
 // we actually type the routes / props
@@ -41,7 +42,19 @@ export const appendNewChatBuilder = () =>
 
 export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
+    path: [
+      {
+        props: {
+          filterServices: flags.teamsRedesign
+            ? ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
+            : undefined,
+          namespace: 'teams',
+          teamID,
+          title: '',
+        },
+        selected: 'teamsTeamBuilder',
+      },
+    ],
   })
 
 export const appendEncryptRecipientsBuilder = () =>

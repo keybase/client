@@ -24,7 +24,8 @@ autorestart_enabled() {
 }
 
 make_mountpoint() {
-  if redirector_enabled ; then
+  local_is_redirector_enabled="$1"
+  if [ -n "$local_is_redirector_enabled" ]; then
     if ! mountpoint "$rootmount" &> /dev/null; then
       mkdir -p "$rootmount"
       chown root:root "$rootmount"
@@ -177,9 +178,14 @@ if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
 
+is_redirector_enabled=""
+if redirector_enabled; then
+    is_redirector_enabled="1"
+fi
+
 # Set suid on redirector before we restart it, in case package manager reverted
 # permissions.
-if redirector_enabled ; then
+if [ -n "$is_redirector_enabled" ]; then
   chown root:root "$krbin"
   chmod 4755 "$krbin"
 else
@@ -215,7 +221,7 @@ elif [ -d "$rootmount" ] ; then
         fi
         rmdir "$rootmount"
         echo You must run run_keybase to restore file system access.
-    elif ! redirector_enabled ; then
+    elif [ -z "$is_redirector_enabled" ]; then
         if killall "$(basename "$krbin")" &> /dev/null ; then
             echo "Stopping existing root redirector."
         fi
@@ -266,4 +272,4 @@ elif [ -d "$rootmount" ] ; then
 fi
 
 # Make the mountpoint if it doesn't already exist by this point.
-make_mountpoint
+make_mountpoint "$is_redirector_enabled"

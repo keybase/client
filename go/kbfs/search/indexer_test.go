@@ -96,6 +96,8 @@ func writeFile(
 
 	t.Log("Index the file")
 	namePPS := data.NewPathPartString(name, nil)
+	err = i.refreshBatch(ctx)
+	require.NoError(t, err)
 	if newFile {
 		ids, err := i.blocksDb.GetNextDocIDs(1)
 		require.NoError(t, err)
@@ -108,6 +110,8 @@ func writeFile(
 		require.NoError(t, err)
 		require.NotNil(t, dirDoneFn)
 	}
+	err = i.flushBatch(ctx)
+	require.NoError(t, err)
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -213,7 +217,11 @@ func TestIndexFile(t *testing.T) {
 		ctx, rootNode, data.NewPathPartString(dName, nil), rootNode,
 		newDNamePPS)
 	require.NoError(t, err)
+	err = i.refreshBatch(ctx)
+	require.NoError(t, err)
 	err = i.renameChild(ctx, rootNode, "", newDNamePPS, 1)
+	require.NoError(t, err)
+	err = i.flushBatch(ctx)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -227,9 +235,13 @@ func TestIndexFile(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps.RemoveEntry(ctx, rootNode, aNamePPS)
 	require.NoError(t, err)
+	err = i.refreshBatch(ctx)
+	require.NoError(t, err)
 	err = i.deleteFromUnrefs(
 		ctx, rootNode.GetFolderBranch().Tlf,
 		[]data.BlockPointer{md.BlockInfo.BlockPointer})
+	require.NoError(t, err)
+	err = i.flushBatch(ctx)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)

@@ -17,7 +17,7 @@ type rpcMessage interface {
 	Compression() CompressionType
 	Err() error
 	DecodeMessage(int, *fieldDecoder, *protocolHandler, *callContainer, *compressorCacher, NetworkInstrumenterStorage) error
-	RecordAndFinish(int64) error
+	RecordAndFinish(context.Context, int64) error
 }
 
 type basicRPCData struct {
@@ -56,8 +56,8 @@ func (rpcCallMessage) MinLength() int {
 	return 3
 }
 
-func (r *rpcCallMessage) RecordAndFinish(size int64) error {
-	return r.instrumenter.RecordAndFinish(size)
+func (r *rpcCallMessage) RecordAndFinish(ctx context.Context, size int64) error {
+	return r.instrumenter.RecordAndFinish(ctx, size)
 }
 
 func (r *rpcCallMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer,
@@ -113,8 +113,8 @@ func (rpcCallCompressedMessage) MinLength() int {
 	return 4
 }
 
-func (r *rpcCallCompressedMessage) RecordAndFinish(size int64) error {
-	return r.instrumenter.RecordAndFinish(size)
+func (r *rpcCallCompressedMessage) RecordAndFinish(ctx context.Context, size int64) error {
+	return r.instrumenter.RecordAndFinish(ctx, size)
 }
 
 func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer,
@@ -177,11 +177,11 @@ func (r rpcResponseMessage) MinLength() int {
 	return 3
 }
 
-func (r *rpcResponseMessage) RecordAndFinish(size int64) error {
+func (r *rpcResponseMessage) RecordAndFinish(ctx context.Context, size int64) error {
 	if r.c == nil {
 		return nil
 	}
-	return r.c.instrumenter.RecordAndFinish(size)
+	return r.c.instrumenter.RecordAndFinish(ctx, size)
 }
 
 func (r *rpcResponseMessage) DecodeMessage(l int, d *fieldDecoder, _ *protocolHandler, cc *callContainer,
@@ -303,8 +303,8 @@ type rpcNotifyMessage struct {
 	err  error
 }
 
-func (r *rpcNotifyMessage) RecordAndFinish(size int64) error {
-	return r.instrumenter.RecordAndFinish(size)
+func (r *rpcNotifyMessage) RecordAndFinish(ctx context.Context, size int64) error {
+	return r.instrumenter.RecordAndFinish(ctx, size)
 }
 
 func (r *rpcNotifyMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer,
@@ -358,7 +358,7 @@ type rpcCancelMessage struct {
 	err   error
 }
 
-func (r *rpcCancelMessage) RecordAndFinish(size int64) error {
+func (r *rpcCancelMessage) RecordAndFinish(ctx context.Context, size int64) error {
 	return nil
 }
 

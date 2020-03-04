@@ -125,8 +125,8 @@ func TestAuditStaleTeam(t *testing.T) {
 		rmC(B)
 	}
 
-	// A forces local idea of what the max merkle sequence number is.
-	_, err = tcs[A].G.MerkleClient.FetchRootFromServerBySeqno(m[A], keybase1.Seqno(100000000))
+	// A updates to the latest merkle root.
+	_, err = tcs[A].G.MerkleClient.FetchRootFromServer(m[A], 0)
 	require.NoError(t, err)
 
 	// A forces an audit on a stale team.

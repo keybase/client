@@ -84,11 +84,7 @@ class InboxSearch extends React.Component<Props, State> {
   }) => {
     if (typeof h.item === 'string') {
       return h.item === emptyUnreadPlaceholder ? (
-        <Kb.Text
-          style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
-          type="BodySmall"
-          center={true}
-        >
+        <Kb.Text style={styles.emptyUnreadPlaceholder} type="BodySmall" center={true}>
           No unread messages or conversations
         </Kb.Text>
       ) : null
@@ -253,7 +249,7 @@ class InboxSearch extends React.Component<Props, State> {
               renderHeader: this.renderTeamHeader,
               renderItem: this.renderOpenTeams,
               status: this.props.openTeamsStatus,
-              title: this.props.openTeamsResultsSuggested ? 'Suggested Teams' : 'Open Teams',
+              title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
             },
           ]
         : []),
@@ -396,9 +392,10 @@ const styles = Styles.styleSheetCreate(
           height: '100%',
           width: '100%',
         },
-        isTablet: {
-          maxWidth: Styles.globalStyles.shortWidth,
-        },
+      }),
+      emptyUnreadPlaceholder: Styles.platformStyles({
+        common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)},
+        isTablet: {backgroundColor: Styles.globalColors.blueGrey},
       }),
       errorText: {
         color: Styles.globalColors.redDark,

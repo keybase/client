@@ -9,9 +9,6 @@ import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as FsConstants from '../constants/fs'
 import * as Container from '../util/container'
-import GlobalError from '../app/global-errors/container'
-import OutOfDate from '../app/out-of-date'
-import RuntimeStats from '../app/runtime-stats/container'
 import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -67,13 +64,18 @@ const defaultNavigationOptions: any = {
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
 const tabs = Shared.mobileTabs
-const icons: {[key: string]: IconType} = {
-  [Tabs.chatTab]: 'iconfont-nav-2-chat',
-  [Tabs.fsTab]: 'iconfont-nav-2-files',
-  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
-  [Tabs.peopleTab]: 'iconfont-nav-2-people',
-  [Tabs.settingsTab]: 'iconfont-nav-2-hamburger',
-  [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
+
+type TabData = {
+  icon: IconType
+  label: string
+}
+const data: {[key: string]: TabData} = {
+  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
+  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
+  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
+  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
+  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallets'},
 }
 
 const FilesTabBadge = () => {
@@ -84,7 +86,7 @@ const FilesTabBadge = () => {
 const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   <Kb.NativeView style={tabStyles.container}>
     <Kb.Icon
-      type={icons[routeName]}
+      type={data[routeName].icon}
       fontSize={32}
       style={tabStyles.tab}
       color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
@@ -140,6 +142,11 @@ const VanillaTabNavigator = createBottomTabNavigator(
         initialRouteName: tabRoots[tab],
         initialRouteParams: undefined,
         transitionConfig: () => ({
+          containerStyle: {
+            get backgroundColor() {
+              return Styles.globalColors.white
+            },
+          },
           transitionSpec: {
             // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
             duration: 250,
@@ -164,6 +171,21 @@ const VanillaTabNavigator = createBottomTabNavigator(
         tabBarIcon: ({focused}) => (
           <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
         ),
+        tabBarLabel: ({focused}) =>
+          navigation.state.routeName === 'blank' ? (
+            <></>
+          ) : (
+            <Kb.Text
+              // @ts-ignore expecting a literal color, not a getter
+              style={{
+                color: focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack,
+                marginLeft: Styles.globalMargins.medium,
+              }}
+              type="BodyBig"
+            >
+              {data[navigation.state.routeName].label}
+            </Kb.Text>
+          ),
         tabBarVisible,
       }
     },
@@ -177,7 +199,7 @@ const VanillaTabNavigator = createBottomTabNavigator(
       },
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
-      showLabel: false,
+      showLabel: Styles.isTablet,
       get style() {
         return {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest}
       },
@@ -205,11 +227,16 @@ const TabNavigator = Container.connect(
 const tabStyles = Styles.styleSheetCreate(
   () =>
     ({
-      badge: {
-        position: 'absolute',
-        right: 8,
-        top: 3,
-      },
+      badge: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          right: 8,
+          top: 3,
+        },
+        isTablet: {
+          marginRight: Styles.globalMargins.tiny,
+        },
+      }),
       container: {
         justifyContent: 'center',
       },
@@ -331,19 +358,11 @@ class RNApp extends React.PureComponent<Props> {
 
   render() {
     return (
-      <>
-        <Kb.NativeStatusBar
-          barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
-        />
-        <AppContainer
-          ref={this.setNav}
-          onNavigationStateChange={this.onNavigationStateChange}
-          {...this.hmrProps()}
-        />
-        <GlobalError />
-        <OutOfDate />
-        <RuntimeStats />
-      </>
+      <AppContainer
+        ref={this.setNav}
+        onNavigationStateChange={this.onNavigationStateChange}
+        {...this.hmrProps()}
+      />
     )
   }
 }

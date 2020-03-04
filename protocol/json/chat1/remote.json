@@ -905,6 +905,51 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "RefreshParticipantsRemoteRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hashMatch"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "uids"
+        },
+        {
+          "type": "string",
+          "name": "hash"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetLastActiveAtRes",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "lastActiveAt"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -930,7 +975,7 @@
         }
       ],
       "response": "GetInboxRemoteRes",
-      "timeout_msec": 300000
+      "timeout_msec": 1200000
     },
     "getThreadRemote": {
       "request": [
@@ -1636,6 +1681,32 @@
         }
       ],
       "response": "GetRecentJoinsRes"
+    },
+    "refreshParticipantsRemote": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "hash",
+          "type": "string"
+        }
+      ],
+      "response": "RefreshParticipantsRemoteRes"
+    },
+    "getLastActiveAt": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "GetLastActiveAtRes"
     }
   },
   "namespace": "chat.1",

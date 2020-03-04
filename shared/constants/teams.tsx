@@ -2,6 +2,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {noConversationIDKey} from './types/chat2/common'
 import {getFullRoute} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
@@ -53,11 +54,10 @@ export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcome
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
+  conversationIDKey: noConversationIDKey,
   description: '',
-  hasAllMembers: null,
   memberStatus: RPCChatTypes.ConversationMemberStatus.active,
   mtime: 0,
-  numParticipants: 0,
 })
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
@@ -170,6 +170,7 @@ const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
+  channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
   errorInChannelCreation: '',
@@ -185,8 +186,6 @@ const emptyState: Types.State = {
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
-  selectedChannels: new Map(),
-  selectedMembers: new Map(),
   subteamFilter: '',
   subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
@@ -208,6 +207,8 @@ const emptyState: Types.State = {
   teamNameToLoadingInvites: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
+  teamSelectedChannels: new Map(),
+  teamSelectedMembers: new Map(),
   teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
@@ -495,24 +496,14 @@ export const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types
   [...state.chat2.metaMap.values()].reduce((count, c) => (count += c.teamname === teamname ? 1 : 0), 0)
 
 /**
- * Gets whether the team is big or small for teams you are a member of
- */
-export const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
-  // TODO do not use metaMap here. It's likely this team has no convos in the metaMap.
-  const conv = [...state.chat2.metaMap.values()].find(c => c.teamname === teamname)
-  if (conv) {
-    if (conv.teamType === 'big' || conv.teamType === 'small') {
-      return conv.teamType
-    }
-  }
-  return null
-}
-
-/**
  * Returns true if the team is big and you're a member
  */
-export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  getTeamType(state, teamname) === 'big'
+export const isBigTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
+  const bigTeams = state.chat2.inboxLayout?.bigTeams
+  return (bigTeams || []).some(
+    v => v.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && v.label.id === teamID
+  )
+}
 
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,
@@ -821,6 +812,26 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
+
+export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
+  const subteamsAll = getTeamDetails(state, teamID).subteams
+  let subteamsNotIn: Array<Types.TeamMeta> = []
+  let subteamsIn: Array<Types.TeamMeta> = []
+  subteamsAll.forEach(subteamID => {
+    const subteamDetails = getTeamDetails(state, subteamID)
+    const subteamMeta = getTeamMeta(state, subteamID)
+    const memberInSubteam = subteamDetails.members.has(username)
+    if (memberInSubteam) {
+      subteamsIn.push(subteamMeta)
+    } else {
+      subteamsNotIn.push(subteamMeta)
+    }
+  })
+  return {
+    subteamsIn,
+    subteamsNotIn,
+  }
+}
 
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>

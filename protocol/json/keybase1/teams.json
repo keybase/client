@@ -144,6 +144,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteMaxUses",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "ReaderKeyMask",
       "fields": [
         {
@@ -500,6 +506,20 @@
     },
     {
       "type": "record",
+      "name": "TeamUsedInvite",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        },
+        {
+          "type": "UserVersionPercentForm",
+          "name": "uv"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamChangeReq",
       "fields": [
         {
@@ -559,6 +579,13 @@
             "keys": "TeamInviteID"
           },
           "name": "completedInvites"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamUsedInvite"
+          },
+          "name": "usedInvites"
         }
       ]
     },
@@ -1322,6 +1349,20 @@
         {
           "type": "UserVersion",
           "name": "inviter"
+        },
+        {
+          "type": [
+            null,
+            "TeamInviteMaxUses"
+          ],
+          "name": "maxUses"
+        },
+        {
+          "type": [
+            null,
+            "UnixTime"
+          ],
+          "name": "etime"
         }
       ]
     },
@@ -1568,6 +1609,17 @@
           "name": "obsoleteInvites"
         },
         {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamUsedInviteLog"
+            },
+            "keys": "TeamInviteID"
+          },
+          "name": "usedInvites"
+        },
+        {
           "type": "boolean",
           "name": "open"
         },
@@ -1646,6 +1698,20 @@
         {
           "type": "SignatureMetadata",
           "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamUsedInviteLog",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "int",
+          "name": "logPoint"
         }
       ]
     },
@@ -3448,23 +3514,6 @@
         "type": "array",
         "items": "TeamIDAndName"
       }
-    },
-    "teamChangeMembership": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "req",
-          "type": "TeamChangeReq"
-        }
-      ],
-      "response": null
     },
     "teamAddMember": {
       "request": [

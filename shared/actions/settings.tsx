@@ -385,11 +385,18 @@ const loadSettings = async (
 const visFromBoolean = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
   searchable ? ChatTypes.Keybase1.IdentityVisibility.public : ChatTypes.Keybase1.IdentityVisibility.private
 
-const editEmail = async (action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
+const editEmail = async (
+  state: TypedState,
+  action: SettingsGen.EditEmailPayload,
+  logger: Saga.SagaLogger
+) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
     await RPCTypes.emailsDeleteEmailRpcPromise({email: action.payload.email})
+    if (state.settings.email.addedEmail === action.payload.email) {
+      return SettingsGen.createClearAddedEmail()
+    }
     return false
   }
   if (action.payload.makePrimary) {
@@ -874,7 +881,7 @@ function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.editContactImportEnabled, editContactImportEnabled)
 
   // Emails
-  yield* Saga.chainAction(SettingsGen.editEmail, editEmail)
+  yield* Saga.chainAction2(SettingsGen.editEmail, editEmail)
   yield* Saga.chainAction2(SettingsGen.addEmail, addEmail)
   yield* Saga.chainAction2(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
   yield* Saga.chainAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, emailAddressVerified)
