@@ -215,15 +215,6 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
         <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
       )
 
-    const editing = isEditing && (
-      <Kb.Box style={styles.editingTabStyle}>
-        <Kb.Text type="BodySmall">Edit:</Kb.Text>
-        <Kb.Text type="BodySmallPrimaryLink" onClick={onCancelEditing}>
-          Cancel
-        </Kb.Text>
-      </Kb.Box>
-    )
-
     return (
       <AnimatedBox2
         direction="vertical"
@@ -274,7 +265,6 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
-            {editing}
             <Kb.PlainInput
               autoCorrect={true}
               autoCapitalize="sentences"
@@ -307,6 +297,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             explodingModeSeconds={explodingModeSeconds}
             cannotWrite={cannotWrite}
             toggleShowingMenu={() => this.toggleShowingMenu('exploding')}
+            onCancelEditing={onCancelEditing}
           />
         </Kb.Box2>
       </AnimatedBox2>
@@ -325,10 +316,11 @@ type ButtonsProps = Pick<
   insertMentionMarker: () => void
   openFilePicker: () => void
   onSubmit: () => void
+  onCancelEditing: () => void
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {conversationIDKey, insertMentionMarker, openFilePicker, openMoreMenu, onSubmit} = p
+  const {conversationIDKey, insertMentionMarker, openFilePicker, openMoreMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
 
   const explodingIcon = !isEditing && !cannotWrite && (
@@ -359,6 +351,7 @@ const Buttons = (p: ButtonsProps) => {
       alignItems="center"
       style={styles.actionContainer}
     >
+      {isEditing && <Kb.Button mode="Secondary" small={true} onClick={onCancelEditing} label="Cancel" />}
       {explodingIcon}
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
