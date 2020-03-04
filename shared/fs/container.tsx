@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
@@ -16,12 +15,11 @@ type ChooseComponentProps = {
   kbfsDaemonStatus: Types.KbfsDaemonStatus
   path: Types.Path
   pathType: Types.PathType
-  waitForKbfsDaemon: () => void
 }
 
 const ChooseComponent = (props: ChooseComponentProps) => {
   Kbfs.useUserIsLookingAtFs()
-  const {emitBarePreview, waitForKbfsDaemon} = props
+  const {emitBarePreview} = props
 
   const fileContext = Container.useSelector(
     state => state.fs.fileContext.get(props.path) || Constants.emptyFileContext
@@ -30,13 +28,6 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   React.useEffect(() => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])
-
-  const isConnected = props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
-  React.useEffect(() => {
-    // Always triggers whenever something changes if we are not connected.
-    // Saga deduplicates redundant checks.
-    isConnected && waitForKbfsDaemon()
-  }, [isConnected, waitForKbfsDaemon])
 
   Kbfs.useFsPathMetadata(props.path)
   const onUrlError = Kbfs.useFsFileContext(props.path)
@@ -112,7 +103,6 @@ const Connected = Container.namedConnect(
         })
       )
     },
-    waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
@@ -123,7 +113,6 @@ const Connected = Container.namedConnect(
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
-      waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
     }
   },
   'FsMain'

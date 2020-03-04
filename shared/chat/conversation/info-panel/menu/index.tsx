@@ -70,7 +70,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
         inline={false}
         skipSelf={props.participants.length > 1}
         containerStyle={styles.maybeLongText}
-        type="BodyBig"
+        type="BodyBold"
         underline={false}
         usernames={props.participants}
         onUsernameClicked="profile"

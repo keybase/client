@@ -101,7 +101,9 @@ const ShowcaseTeamOffer = (props: Props) => {
         {props.teams.map(teamMeta => (
           <TeamRow
             key={teamMeta.id}
-            canShowcase={teamMeta.allowPromote || ['admin', 'owner'].includes(teamMeta.role)}
+            canShowcase={
+              (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
+            }
             isExplicitMember={teamMeta.isMember}
             name={teamMeta.teamname}
             isOpen={teamMeta.isOpen}

@@ -130,6 +130,13 @@ const operationToFileWaitingKey: {[k in Types.Operations]: Types.FileWaitingKey}
   verify: verifyFileWaitingKey,
 } as const
 
+const operationToAllowInputFolders: {[k in Types.Operations]: boolean} = {
+  decrypt: false,
+  encrypt: true,
+  sign: true,
+  verify: false,
+} as const
+
 export const getInputPlaceholder = (operation: Types.Operations) => operationToInputPlaceholder[operation]
 export const getInputTextType = (operation: Types.Operations) => operationToInputTextType[operation]
 export const getOutputTextType = (operation: Types.Operations) => operationToOutputTextType[operation]
@@ -137,6 +144,7 @@ export const getInputFileIcon = (operation: Types.Operations) => operationToInpu
 export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
 export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
+export const getAllowInputFolders = (operation: Types.Operations) => operationToAllowInputFolders[operation]
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`

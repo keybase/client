@@ -7,6 +7,9 @@ const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
 const target = isRenderer ? window : global
 const {argv, platform, env, type} = process
 const isDarwin = platform === 'darwin'
+const isWindows = platform === 'win32'
+const isLinux = platform === 'linux'
+
 // @ts-ignore
 const pid = isRenderer ? Electron.remote.process.pid : process.pid
 
@@ -74,8 +77,13 @@ const darwinCopyToChatTempUploadFile = isDarwin
 const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   try {
     const {title, message, buttonLabel, allowDirectories, allowFiles, allowMultiselect, defaultPath} = opts
+    // If on Windows or Linux and allowDirectories, prefer allowDirectories.
+    // Can't have both openFile and openDirectory on Windows/Linux
+    // Source: https://www.electronjs.org/docs/api/dialog#dialogshowopendialogbrowserwindow-options
+    const windowsOrLinux = isWindows || isLinux
+    const canAllowFiles = allowDirectories && windowsOrLinux ? false : allowFiles ?? true
     const allowedProperties = [
-      ...(allowFiles !== false ? ['openFile' as const] : []),
+      ...(canAllowFiles ? ['openFile' as const] : []),
       ...(allowDirectories ? ['openDirectory' as const] : []),
       ...(allowMultiselect ? ['multiSelections' as const] : []),
     ]

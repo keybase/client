@@ -3391,7 +3391,7 @@
         },
         {
           "type": "string",
-          "name": "teamName"
+          "name": "tlfName"
         }
       ]
     },

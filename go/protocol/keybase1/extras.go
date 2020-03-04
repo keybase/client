@@ -715,12 +715,7 @@ type SigIDMapKey string
 // ToMapKey returns the string representation (hex-encoded) of a SigID with the hardcoded 0x0f suffix
 // (for backward comptability with on-disk storage).
 func (s SigID) ToMapKey() SigIDMapKey {
-	tmp := s
-	hexLen := 2 * SIG_ID_LEN
-	if len(tmp) > hexLen {
-		tmp = tmp[0:hexLen]
-	}
-	return SigIDMapKey(fmt.Sprintf("%s%02x", tmp, SIG_ID_SUFFIX))
+	return SigIDMapKey(s.StripSuffix().ToSigIDLegacy().String())
 }
 
 func (s SigID) ToMediumID() string {
@@ -731,6 +726,8 @@ func (s SigID) ToShortID() string {
 	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
 }
 
+// SigIDBase is a 64-character long hex encoding of the SHA256 of a signature, without
+// any suffix. You get a SigID by adding either a 0f or a 22 suffix.
 type SigIDBase string
 
 func (s SigIDBase) String() string {
@@ -760,9 +757,11 @@ func SigIDBaseFromString(s string) (SigIDBase, error) {
 }
 
 func (s SigIDBase) EqSigID(t SigID) bool {
-	return cieq(string(s), string(t[0:64]))
+	return cieq(s.String(), t.StripSuffix().String())
 }
 
+// SigIDSuffixParameters specify how to turn a 64-character SigIDBase into a 66-character SigID,
+// via the two suffixes. In the future, there might be a third, 38, in use.
 type SigIDSuffixParameters struct {
 	IsUserSig       bool       // true for user, false for team
 	IsWalletStellar bool       // exceptional sig type for backwards compatibility
@@ -798,6 +797,8 @@ func (s SigIDBase) ToSigID(p SigIDSuffixParameters) SigID {
 	return SigID(string(s) + p.String())
 }
 
+// ToSigIDLegacy does what all of Keybase used to do, which is to always assign a 0x0f
+// suffix to SigIDBases to get SigIDs.
 func (s SigIDBase) ToSigIDLegacy() SigID {
 	return s.ToSigID(SigIDSuffixParameters{IsUserSig: true, IsWalletStellar: false, SigVersion: 1})
 }

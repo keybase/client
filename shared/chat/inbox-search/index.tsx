@@ -249,7 +249,7 @@ class InboxSearch extends React.Component<Props, State> {
               renderHeader: this.renderTeamHeader,
               renderItem: this.renderOpenTeams,
               status: this.props.openTeamsStatus,
-              title: this.props.openTeamsResultsSuggested ? 'Suggested Teams' : 'Open Teams',
+              title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
             },
           ]
         : []),

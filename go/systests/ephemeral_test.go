@@ -481,6 +481,7 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 }
 
 func TestEphemeralResetMember(t *testing.T) {
+	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 

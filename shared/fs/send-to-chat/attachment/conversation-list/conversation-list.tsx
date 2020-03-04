@@ -39,12 +39,7 @@ const _itemRenderer = (index: number, row: Row) => {
         ])}
       >
         {item.isTeam ? (
-          <TeamAvatar
-            isHovered={false}
-            isMuted={false}
-            isSelected={row.isSelected}
-            teamname={item.teamName}
-          />
+          <TeamAvatar isHovered={false} isMuted={false} isSelected={row.isSelected} teamname={item.tlfName} />
         ) : (
           <Avatars
             isHovered={false}
@@ -150,7 +145,7 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
           items={props.results.map((r, index) => ({
             isSelected: index === props.selected,
             item: r,
-            onSelect: () => props.onSelect(Types.conversationIDToKey(r.convID), r.name),
+            onSelect: () => props.onSelect(Types.conversationIDToKey(r.convID), r.tlfName),
           }))}
           renderItem={_itemRenderer}
           indexAsKey={true}

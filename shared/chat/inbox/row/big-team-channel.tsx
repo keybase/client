@@ -62,7 +62,7 @@ const BigTeamChannel = (props: Props) => {
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
-          fullWidth={!Styles.isPhone}
+          fullWidth={!Styles.isMobile}
           style={Styles.collapseStyles([
             styles.channelBackground,
             isSelected && styles.selectedChannelBackground,
@@ -139,6 +139,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isTablet: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
+      flex: 1,
       height: '80%',
       marginLeft: 48,
       paddingLeft: Styles.globalMargins.tiny,
@@ -186,13 +187,18 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.white,
     ...Styles.globalStyles.fontBold,
   },
-  unread: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: Styles.borderRadius,
-    flexShrink: 0,
-    height: 8,
-    width: 8,
-  },
+  unread: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.orange,
+      borderRadius: Styles.borderRadius,
+      flexShrink: 0,
+      height: 8,
+      width: 8,
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.tiny,
+    },
+  }),
 }))
 
 export default React.memo(BigTeamChannel)

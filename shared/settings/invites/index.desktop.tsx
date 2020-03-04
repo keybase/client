@@ -204,7 +204,7 @@ function AcceptedInviteItem({
     >
       <Kb.Avatar username={invite.username} size={32} />
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small}}>
-        <Kb.ConnectedUsernames type="BodySemibold" usernames={[invite.username]} />
+        <Kb.ConnectedUsernames type="BodyBold" usernames={[invite.username]} />
       </Kb.Box>
     </Kb.Box>
   )
