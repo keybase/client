@@ -496,6 +496,29 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 
     // A deep link
     if (state.config.startupLink) {
+      if (Platform.isIOS && state.config.startupLink === 'keybase://incoming-share') {
+        return RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
+      }
+
+      if (
+        ['keybase://private', 'keybase://public', 'keybase://team'].some(prefix =>
+          state.config.startupLink.startsWith(prefix)
+        )
+      ) {
+        try {
+          const decoded = decodeURIComponent(state.config.startupLink.substr('keybase://'.length))
+          return [
+            RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {path: `/keybase/${decoded}`}, selected: 'main'}],
+            }),
+          ]
+        } catch (e) {
+          logger.warn("Coudn't decode KBFS URI")
+          return []
+        }
+      }
+
       try {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)
@@ -595,15 +618,8 @@ const newNavigation = (
     | RouteTreeGen.SwitchTabPayload
     | RouteTreeGen.ResetStackPayload
 ) => {
-  // When we are cold starting and have a initial link, sometimes we dispatch
-  // an navigateAppend action pretty early (fs links and incoming-share), and
-  // _setNavigator may not have been called yet. So wait for up to a second.
-  let count = 0
-  const dispatchAction = () => {
-    const n = Router2._getNavigator()
-    n ? n.dispatchOldAction(action) : count++ < 10 && setTimeout(dispatchAction, 100)
-  }
-  dispatchAction()
+  const n = Router2._getNavigator()
+  n && n.dispatchOldAction(action)
 }
 
 function* criticalOutOfDateCheck() {
