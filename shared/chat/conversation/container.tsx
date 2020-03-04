@@ -46,12 +46,20 @@ let Conversation = (p: SwitchProps) => {
 
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
 
+  // @ts-ignore
+  const lastIsFocused = React.useRef<boolean>(p.isFocused)
   // temporary until nav 5
   if (Container.isMobile) {
     // @ts-ignore
     const {isFocused} = p
     // eslint-disable-next-line
     React.useEffect(() => {
+      // only do something if the focused changed
+      if (lastIsFocused.current === isFocused) {
+        return
+      }
+
+      lastIsFocused.current = isFocused
       if (isFocused) {
         if (_storeConvoIDKey !== conversationIDKey && Constants.isValidConversationIDKey(conversationIDKey)) {
           dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'}))
