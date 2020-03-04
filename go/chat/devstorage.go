@@ -78,7 +78,7 @@ func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 		return false, nil
 	}
 	conv := convs[0]
-	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL,
+	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, &chat1.Pagination{Num: 1})

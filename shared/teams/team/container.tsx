@@ -115,6 +115,7 @@ const newNavigationOptions = () => ({
   headerHideBorder: true,
 })
 
+// TODO: hide the tab bar when the selection popup is present on mobile
 TabsState.navigationOptions = flags.teamsRedesign
   ? newNavigationOptions
   : (ownProps: TabsStateOwnProps) => ({

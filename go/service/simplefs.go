@@ -43,6 +43,35 @@ func (s *SimpleFSHandler) wrapContextWithTimeout(ctx context.Context) (newCtx co
 const waitForTransporterInterval = time.Second / 4
 const waitForTransporterTimeout = time.Minute
 
+type WaitingForKBFSTimeoutError struct {
+	originalError error
+}
+
+// Error implements the error interface.
+func (e WaitingForKBFSTimeoutError) Error() string {
+	return errors.WithMessage(e.originalError, "timeout waiting for kbfs").Error()
+}
+
+// Cause makes it work with errors.Cause().
+func (e WaitingForKBFSTimeoutError) Cause() error {
+	return e.originalError
+}
+
+// HumanError implements the HumanErrorer interface used in libkb/errors.
+// Without this, the Cause will end up being returned to GUI.
+func (e WaitingForKBFSTimeoutError) HumanError() error {
+	return e
+}
+
+// ToStatus implements the ExportableError interface.
+func (e WaitingForKBFSTimeoutError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: int(keybase1.StatusCode_SCKBFSClientTimeout),
+		Name: "SC_KBFS_CLIENT_TIMEOUT",
+		Desc: "timeout waiting for kbfs",
+	}
+}
+
 func (s *SimpleFSHandler) client(ctx context.Context) (*keybase1.SimpleFSClient, error) {
 	ctx, cancel := context.WithTimeout(ctx, waitForTransporterTimeout)
 	defer cancel()
@@ -50,7 +79,7 @@ func (s *SimpleFSHandler) client(ctx context.Context) (*keybase1.SimpleFSClient,
 	for xp == nil {
 		select {
 		case <-ctx.Done():
-			return nil, errors.WithStack(ctx.Err())
+			return nil, WaitingForKBFSTimeoutError{ctx.Err()}
 		default:
 		}
 		time.Sleep(waitForTransporterInterval)

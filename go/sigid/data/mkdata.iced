@@ -41,23 +41,32 @@ class Runner
 
   output_shorts : ({out, h, g, covered}) ->
     out.push "var legacyHashPrefixes16 = [...]uint16{"
-    for hash in g when not(h[hash[0...4]]) and not(covered[hash])
-      out.push "\t" + hash_to_uint16(hash) + ","
+    output16 = {}
+    for hash in g when not(h[(prfx = hash[0...4])]) and not(covered[hash])
+      if not(output16[prfx])
+        out.push "\t" + hash_to_uint16(hash) + ","
       covered[hash] = true
+      output16[prfx] = true
     out.push "}"
 
   output_3bytes : ({out, h, g, covered}) ->
     out.push "var legacyHashPrefixes24 = [...]byte{"
-    for hash in g when not(h[hash[0...6]]) and not(covered[hash])
-      out.push "\t" + hash_to_3bytes(hash).join(", ") + ","
+    output24 = {}
+    for hash in g when not(h[(prfx = hash[0...6])]) and not(covered[hash])
+      if not(output24[prfx])
+        out.push "\t" + hash_to_3bytes(hash).join(", ") + ","
       covered[hash] = true
+      output24[prfx] = true
     out.push "}"
 
   output_words : ({out, h, g, covered}) ->
     out.push "var legacyHashPrefixes32 = [...]uint32{"
-    for hash in g when not(h[hash[0...8]]) and not(covered[hash])
-      out.push "\t" + hash_to_uint32(hash) + ","
+    output32 = {}
+    for hash in g when not(h[(prfx = hash[0...8])]) and not(covered[hash])
+      if not(output32[prfx])
+        out.push "\t" + hash_to_uint32(hash) + ","
       covered[hash] = true
+      output32[prfx] = true
     out.push "}"
 
   run : ({input}, cb) ->

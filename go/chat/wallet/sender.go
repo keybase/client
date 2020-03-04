@@ -32,21 +32,8 @@ func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID c
 	if err != nil {
 		return parts, membersType, err
 	}
-	uids, err := s.G().ParticipantsSource.Get(ctx, uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
+	if parts, err = utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID); err != nil {
 		return parts, membersType, err
-	}
-	kuids := make([]keybase1.UID, 0, len(uids))
-	for _, uid := range uids {
-		kuids = append(kuids, keybase1.UID(uid.String()))
-	}
-	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
-	if err != nil {
-		return parts, membersType, err
-	}
-	parts = make([]string, 0, len(rows))
-	for _, row := range rows {
-		parts = append(parts, row.NormalizedUsername.String())
 	}
 	return parts, conv.GetMembersType(), nil
 }

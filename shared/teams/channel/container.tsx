@@ -18,6 +18,7 @@ const defaultTab: TabKey = 'members'
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamID = Container.getRouteProps(ownProps, 'teamID', '')
   const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey', '')
+  const rows = makeRows(ownProps.selectedTab, conversationIDKey, state)
 
   return {
     _channelInfo:
@@ -25,6 +26,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _yourOperations: Constants.getCanPerformByID(state, teamID),
     _yourUsername: state.config.username,
     conversationIDKey,
+    rows,
     teamID,
   }
 }
@@ -37,9 +39,8 @@ const ConnectedChannel = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => {
-    const {conversationIDKey, teamID} = stateProps
+    const {conversationIDKey, rows, teamID} = stateProps
     const {selectedTab, setSelectedTab} = ownProps
-    const rows = makeRows(ownProps.selectedTab)
     const sections: Sections = [
       {data: [{key: 'header-inner', type: 'header' as const}], key: 'header'},
       {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},

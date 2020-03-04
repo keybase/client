@@ -76,7 +76,13 @@ type JointSelectionPopupProps = {
 const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   const {onUnselect, selectableTabName, selectedCount, children} = props
   const onSelectableTab = !!selectableTabName
-  return onSelectableTab && (!Styles.isMobile || !!selectedCount) ? (
+
+  // For boosting the list to scroll not behind the popup on mobile
+  const [height, setHeight] = React.useState(0)
+  if (!onSelectableTab || (Styles.isMobile && !selectedCount)) {
+    return null
+  }
+  const popup = (
     <Kb.Box2
       fullWidth={Styles.isMobile}
       direction={Styles.isMobile ? 'vertical' : 'horizontal'}
@@ -87,6 +93,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       ])}
       gap={Styles.isMobile ? 'tiny' : undefined}
       className="selectionPopup"
+      onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Styles.isMobile && (
         <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onUnselect}>
@@ -105,7 +112,15 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       {!Styles.isMobile && <Kb.BoxGrow />}
       {children}
     </Kb.Box2>
-  ) : null
+  )
+  return Styles.isMobile ? (
+    <>
+      {<Kb.Box style={{height: height > 48 ? height - 48 : 0}} />}
+      <Kb.FloatingBox>{popup}</Kb.FloatingBox>
+    </>
+  ) : (
+    popup
+  )
 }
 
 const TeamSelectionPopup = (props: TeamProps) => {

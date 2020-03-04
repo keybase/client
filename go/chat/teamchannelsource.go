@@ -281,7 +281,8 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 		if err != nil {
 			continue
 		}
-		unboxeds, err := c.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{msg.GetMessageID()}, nil)
+		unboxeds, err := c.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{msg.GetMessageID()},
+			nil, nil)
 		if err != nil {
 			c.Debug(ctx, "GetChannelsTopicName: failed to unbox metadata message for: convID: %s err: %s",
 				conv.GetConvID(), err)

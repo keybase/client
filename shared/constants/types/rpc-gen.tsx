@@ -1876,6 +1876,7 @@ export enum IncomingShareType {
   file = 0,
   text = 1,
   image = 2,
+  video = 3,
 }
 
 export enum InstallAction {
@@ -2285,11 +2286,13 @@ export enum StatusCode {
   scwrongcryptoformat = 279,
   scdecryptionerror = 280,
   scinvalidaddress = 281,
+  scwrongcryptomsgtype = 282,
   scnosession = 283,
   scaccountreset = 290,
   scidentifiesfailed = 295,
   scnospaceondevice = 297,
   scmerkleclienterror = 299,
+  scmerkleupdateroot = 300,
   scbademail = 472,
   scratelimit = 602,
   scbadsignupusernametaken = 701,
@@ -2320,6 +2323,7 @@ export enum StatusCode {
   sckeyduplicateupdate = 921,
   scsibkeyalreadyexists = 922,
   scdecryptionkeynotfound = 924,
+  scverificationkeynotfound = 925,
   sckeynopgpencryption = 927,
   sckeynonaclencryption = 928,
   sckeysyncedpgpnotfound = 929,
@@ -2353,6 +2357,7 @@ export enum StatusCode {
   scgenericapierror = 1600,
   scapinetworkerror = 1601,
   sctimeout = 1602,
+  sckbfsclienttimeout = 1603,
   scprooferror = 1701,
   scidentificationexpired = 1702,
   scselfnotfound = 1703,
@@ -2870,7 +2875,7 @@ export type ImplicitRole = {readonly role: TeamRole; readonly ancestor: TeamID}
 export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration; readonly time: Time}
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
-export type IncomingShareItem = {readonly type: IncomingShareType; readonly payloadPath: String; readonly content?: String | null}
+export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath: String; readonly originalSize: Int; readonly scaledPath?: String | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
@@ -4171,4 +4176,5 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.wot.wotVouch'
 // 'keybase.1.wot.wotVouchCLI'
 // 'keybase.1.wot.wotReact'
+// 'keybase.1.wot.wotReactCLI'
 // 'keybase.1.wot.wotListCLI'

@@ -225,7 +225,7 @@ func (f *File) Unlock() (err error) {
 		jManager = nil
 	}
 
-	if f.fs.config.Mode().Type() == libkbfs.InitSingleOp {
+	if f.fs.config.Mode().IsSingleOp() {
 		if jManager != nil {
 			err = jManager.FinishSingleOp(f.fs.ctx,
 				f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{

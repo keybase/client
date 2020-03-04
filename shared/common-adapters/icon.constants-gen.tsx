@@ -1056,6 +1056,8 @@ export type IconType =
   | 'release-5.1.0-blocking'
   | 'release-5.2.0-bots'
   | 'release-5.2.0-crypto'
+  | 'release-5.3.0-ipad'
+  | 'release-5.3.0-open-teams'
 
 export const iconMeta: {[k in IconType]: IconMeta} = {
   'icon-GPG-export': {
@@ -10011,6 +10013,22 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/releases/release-5.2.0-crypto.png')
+    },
+  },
+  'release-5.3.0-ipad': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.3.0-ipad.png')
+    },
+  },
+  'release-5.3.0-open-teams': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.3.0-open-teams.png')
     },
   },
 }

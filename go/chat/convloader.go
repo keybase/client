@@ -506,7 +506,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	if pagination.Num > 0 {
 		var err error
 		tv, err = b.G().ConvSource.Pull(ctx, job.ConvID, uid,
-			chat1.GetThreadReason_BACKGROUNDCONVLOAD, query, pagination)
+			chat1.GetThreadReason_BACKGROUNDCONVLOAD, nil, query, pagination)
 		if err != nil {
 			b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
 			if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {

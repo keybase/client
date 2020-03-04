@@ -12,6 +12,7 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addBotMember = 'chat2:addBotMember'
+export const addToMessageMap = 'chat2:addToMessageMap'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
@@ -197,6 +198,7 @@ type _AddBotMemberPayload = {
   readonly username: string
   readonly restricted: boolean
 }
+type _AddToMessageMapPayload = {readonly message: Types.Message}
 type _AddUserToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -487,6 +489,7 @@ type _MetaRequestTrustedPayload = {
     | 'scroll'
     | 'ensureSelectedMeta'
     | 'ensureWidgetMetas'
+    | 'ensureChannelMeta'
     | 'inboxSearchResults'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
@@ -612,7 +615,9 @@ type _SelectConversationPayload = {
     | 'teamChat'
     | 'addedToChannel'
     | 'teamMention'
+  readonly skipNav?: boolean
   readonly navKey?: string
+  readonly pushBody?: string
 }
 type _SendAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1423,6 +1428,10 @@ export const createSetLoadedBotPage = (payload: _SetLoadedBotPagePayload): SetLo
   payload,
   type: setLoadedBotPage,
 })
+export const createAddToMessageMap = (payload: _AddToMessageMapPayload): AddToMessageMapPayload => ({
+  payload,
+  type: addToMessageMap,
+})
 export const createAttachFromDragAndDrop = (
   payload: _AttachFromDragAndDropPayload
 ): AttachFromDragAndDropPayload => ({payload, type: attachFromDragAndDrop})
@@ -1706,6 +1715,10 @@ export type AddAttachmentViewMessagePayload = {
   readonly type: typeof addAttachmentViewMessage
 }
 export type AddBotMemberPayload = {readonly payload: _AddBotMemberPayload; readonly type: typeof addBotMember}
+export type AddToMessageMapPayload = {
+  readonly payload: _AddToMessageMapPayload
+  readonly type: typeof addToMessageMap
+}
 export type AddUserToChannelPayload = {
   readonly payload: _AddUserToChannelPayload
   readonly type: typeof addUserToChannel
@@ -2332,6 +2345,7 @@ export type UpdateUserReacjisPayload = {
 export type Actions =
   | AddAttachmentViewMessagePayload
   | AddBotMemberPayload
+  | AddToMessageMapPayload
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachFromDragAndDropPayload

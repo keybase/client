@@ -1,5 +1,6 @@
 import * as NetInfo from '@react-native-community/netinfo'
 import * as RPCTypes from './rpc-gen'
+import HiddenString from '../../util/hidden-string'
 import {ConversationIDKey} from './chat2'
 import {DarkModePreference} from '../../styles/dark-mode'
 import {RPCError} from '../../util/errors'
@@ -78,6 +79,8 @@ export type State = {
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean
   startupConversation: ConversationIDKey
+  startupPushPayload?: string
+  startupFile: HiddenString
   startupFollowUser: string
   startupLink: string
   startupTab?: Tab

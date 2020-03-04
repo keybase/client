@@ -412,6 +412,7 @@ export type MoveOrCopySource = {
 export type IncomingShareSource = {
   readonly type: DestinationPickerSource.IncomingShare
   readonly source: LocalPath | Array<RPCTypes.IncomingShareItem>
+  readonly useOriginal: boolean
 }
 
 export type NoSource = {
@@ -474,10 +475,8 @@ export type SystemFileManagerIntegration = {
 }
 
 export enum KbfsDaemonRpcStatus {
-  Unknown = 'unknown',
   Connected = 'connected',
   Waiting = 'waiting',
-  WaitTimeout = 'wait-timeout',
 }
 export enum KbfsDaemonOnlineStatus {
   Unknown = 'unknown',

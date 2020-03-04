@@ -782,7 +782,7 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 	}, nil
 }
 
-func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.ConversationLocalParticipant,
+func (m *FlipManager) parseSpecials(arg string, usernames []string,
 	nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
@@ -802,9 +802,7 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.Conversation
 		var targets []string
 		handParts := strings.Split(strings.Join(toks[2:], " "), ",")
 		if len(handParts) == 1 && (handParts[0] == "@here" || handParts[0] == "@channel") {
-			for _, memb := range convMembers {
-				targets = append(targets, memb.Username)
-			}
+			targets = usernames
 		} else {
 			for _, pt := range handParts {
 				t := strings.Trim(pt, " ")
@@ -819,15 +817,11 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.Conversation
 			HandTargets:   targets,
 		}, nil
 	case arg == "@here" || arg == "@channel":
-		if len(convMembers) == 0 {
+		if len(usernames) == 0 {
 			return flip.NewStartWithShuffle(m.clock.Now(), 1, nPlayersApprox), flipTextMetadata{
 				ShuffleItems:      []string{"@here"},
 				ConvMemberShuffle: true,
 			}, nil
-		}
-		var usernames []string
-		for _, memb := range convMembers {
-			usernames = append(usernames, memb.Username)
 		}
 		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(usernames)), nPlayersApprox),
 			flipTextMetadata{
@@ -838,7 +832,7 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.Conversation
 	return start, metadata, errFailedToParse
 }
 
-func (m *FlipManager) startFromText(text string, convMembers []chat1.ConversationLocalParticipant) (start flip.Start, metadata flipTextMetadata) {
+func (m *FlipManager) startFromText(text string, convMembers []string) (start flip.Start, metadata flipTextMetadata) {
 	var err error
 	nPlayersApprox := len(convMembers)
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
@@ -967,6 +961,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	// Generate dev channel for game message
 	var conv chat1.ConversationLocal
+	var participants []string
 	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusInProgress, nil)
 	convCreatedCh := make(chan error)
 	go func() {
@@ -982,6 +977,11 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 			tlfName = utils.AddUserToTLFName(m.G(), tlfName, keybase1.TLFVisibility_PRIVATE,
 				membersType)
 		default:
+		}
+		// Get conv participants
+		if participants, err = utils.GetConvParticipantUsernames(ctx, m.G(), uid, hostConvID); err != nil {
+			convCreatedCh <- err
+			return
 		}
 		// Preserve the ephemeral lifetime from the conv/message to the game
 		// conversation.
@@ -1025,8 +1025,8 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Record metadata of the host message into the game thread as the first message
-	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(hostConv.Info.Participants))
-	start, metadata := m.startFromText(text, hostConv.Info.Participants)
+	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(participants))
+	start, metadata := m.startFromText(text, participants)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		flipTextMetadata: metadata,
 		ConvID:           hostConvID,

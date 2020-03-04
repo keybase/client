@@ -525,7 +525,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri, chat.CreateNameInfoSource)
 	g.UIInboxLoader = chat.NewUIInboxLoader(g)
-	g.UIThreadLoader = chat.NewUIThreadLoader(g)
+	g.UIThreadLoader = chat.NewUIThreadLoader(g, ri)
 	g.ParticipantsSource = chat.NewCachingParticipantSource(g, ri)
 
 	// Set up Offlinables on Syncer

@@ -29,6 +29,7 @@ const InboxAndConversation = (props: Props) => {
 InboxAndConversation.navigationOptions = {
   header: undefined,
   headerTitle: Header,
+  headerTitleContainerStyle: {left: 0, right: 0},
 }
 
 const Memoed = React.memo(InboxAndConversation)

@@ -84,8 +84,6 @@ func TestAccessRequestAccept(t *testing.T) {
 }
 
 func TestAccessRequestIgnore(t *testing.T) {
-	t.Skip() // Y2K-1455
-
 	tc, owner, u1, _, teamName := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
@@ -94,53 +92,43 @@ func TestAccessRequestIgnore(t *testing.T) {
 	require.NoError(t, err)
 
 	// u1 requests access to the team
-	if err := u1.Login(tc.G); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := RequestAccess(context.Background(), tc.G, teamName); err != nil {
-		t.Fatal(err)
-	}
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
+
+	_, err = RequestAccess(context.Background(), tc.G, teamName)
+	require.NoError(t, err)
+
+	// Set no caching mode. If we change our full name and ask UidMapper about
+	// it quickly, we might still be getting the old version because of pubsub
+	// delay.
+	tc.G.UIDMapper.SetTestingNoCachingMode(true)
+
+	// Change full name
 	fullName, err := libkb.RandString("test", 5)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := kbtest.EditProfile(u1.User.MetaContext(context.Background()), keybase1.ProfileEditArg{
+	require.NoError(t, err)
+	err = kbtest.EditProfile(tc.MetaContext(), keybase1.ProfileEditArg{
 		FullName: fullName,
-	}); err != nil {
-		t.Fatal(err)
-	}
+	})
+	require.NoError(t, err)
 
 	// owner lists requests, sees u1 request
 	err = tc.Logout()
 	require.NoError(t, err)
-	if err := owner.Login(tc.G); err != nil {
-		t.Fatal(err)
-	}
-	require.NoError(t, tc.G.UIDMapper.ClearUIDFullName(context.Background(), tc.G, u1.User.GetUID()))
+	err = owner.Login(tc.G)
+	require.NoError(t, err)
+
 	reqs, err := ListRequests(context.Background(), tc.G, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(reqs) != 1 {
-		t.Fatalf("num requests: %d, expected 1", len(reqs))
-	}
-	if reqs[0].Name != teamName {
-		t.Errorf("request team name: %q, expected %q", reqs[0].Name, teamName)
-	}
-	if reqs[0].Username != u1.Username {
-		t.Errorf("request username: %q, expected %q", reqs[0].Username, u1.Username)
-	}
-	if !reqs[0].Ctime.Time().After(time.Now().Add(-1 * time.Minute)) {
-		t.Errorf("request ctime %q, expected during last minute", reqs[0].Ctime)
-	}
-	if reqs[0].FullName.String() != fullName {
-		t.Errorf("request full name %q, expected %q", reqs[0].FullName, fullName)
-	}
+	require.NoError(t, err)
+
+	require.Len(t, reqs, 1)
+	require.Equal(t, teamName, reqs[0].Name)
+	require.Equal(t, u1.Username, reqs[0].Username)
+	require.True(t, reqs[0].Ctime.Time().After(time.Now().Add(-1*time.Minute)), "ctime within last minute")
+	require.Equal(t, fullName, reqs[0].FullName.String())
 
 	// owner ignores u1 request
-	if err := IgnoreRequest(context.Background(), tc.G, reqs[0].Name, reqs[0].Username); err != nil {
-		t.Fatal(err)
-	}
+	err = IgnoreRequest(context.Background(), tc.G, reqs[0].Name, reqs[0].Username)
+	require.NoError(t, err)
 
 	// owner lists requests, sees no requests
 	assertNoRequests(tc)
@@ -148,36 +136,27 @@ func TestAccessRequestIgnore(t *testing.T) {
 	// u1 requests access to the team again
 	err = tc.Logout()
 	require.NoError(t, err)
-	if err := u1.Login(tc.G); err != nil {
-		t.Fatal(err)
-	}
+
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
+
 	_, err = RequestAccess(context.Background(), tc.G, teamName)
-	if err == nil {
-		t.Fatal("second RequestAccess success, expected error")
-	}
+	require.Error(t, err)
 	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("error %s (%T), expected libkb.AppStatusError", err, err)
-	}
-	if aerr.Code != libkb.SCTeamTarDuplicate {
-		t.Errorf("status code: %d, expected %d", aerr.Code, libkb.SCTeamTarDuplicate)
-	}
+	require.True(t, ok, "error is libkb.AppStatusError")
+	require.Equal(t, libkb.SCTeamTarDuplicate, aerr.Code, "expected status code")
+
 	err = tc.Logout()
 	require.NoError(t, err)
 
 	// owner lists requests, sees no requests
-	if err := owner.Login(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	err = owner.Login(tc.G)
+	require.NoError(t, err)
 	assertNoRequests(tc)
 }
 
 func assertNoRequests(tc libkb.TestContext) {
-	reqs, err := ListRequests(context.Background(), tc.G, nil)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if len(reqs) != 0 {
-		tc.T.Fatalf("num requests: %d, expected 0", len(reqs))
-	}
+	reqs, err := ListRequests(context.Background(), tc.G, nil /* teamName */)
+	require.NoError(tc.T, err)
+	require.Len(tc.T, reqs, 0)
 }

@@ -98,7 +98,7 @@ func TestSendTextByName(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
 		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid,
-			chat1.GetThreadReason_GENERAL,
+			chat1.GetThreadReason_GENERAL, nil,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			}, nil)

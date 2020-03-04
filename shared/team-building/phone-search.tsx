@@ -92,7 +92,7 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => (
         colorFollowing={true}
         inline={true}
         onUsernameClicked="profile"
-        type="BodySmallSemibold"
+        type="BodySmallBold"
         usernames={[username]}
       />{' '}
       on Keybase.
@@ -119,7 +119,6 @@ const styles = Styles.styleSheetCreate(
       userMatchMention: {
         alignSelf: 'flex-start',
         justifyContent: 'center',
-        marginLeft: Styles.globalMargins.small,
       },
     } as const)
 )

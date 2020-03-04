@@ -2692,14 +2692,14 @@ func (n *NotifyRouter) HandleSaltpackOperationStart(ctx context.Context, opType 
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Saltpack {
-			go func() {
-				_ = (keybase1.NotifySaltpackClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).SaltpackOperationStart(context.Background(), keybase1.SaltpackOperationStartArg{
-					OpType:   opType,
-					Filename: filename,
-				})
-			}()
+			// note there's no goroutine here on purpose
+			// (notification ordering)
+			_ = (keybase1.NotifySaltpackClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).SaltpackOperationStart(context.Background(), keybase1.SaltpackOperationStartArg{
+				OpType:   opType,
+				Filename: filename,
+			})
 		}
 		return true
 	})
@@ -2715,16 +2715,16 @@ func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opTy
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Saltpack {
-			go func() {
-				_ = (keybase1.NotifySaltpackClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).SaltpackOperationProgress(context.Background(), keybase1.SaltpackOperationProgressArg{
-					OpType:        opType,
-					Filename:      filename,
-					BytesComplete: bytesComplete,
-					BytesTotal:    bytesTotal,
-				})
-			}()
+			// note there's no goroutine here on purpose
+			// (notification ordering)
+			_ = (keybase1.NotifySaltpackClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).SaltpackOperationProgress(context.Background(), keybase1.SaltpackOperationProgressArg{
+				OpType:        opType,
+				Filename:      filename,
+				BytesComplete: bytesComplete,
+				BytesTotal:    bytesTotal,
+			})
 		}
 		return true
 	})
@@ -2740,14 +2740,14 @@ func (n *NotifyRouter) HandleSaltpackOperationDone(ctx context.Context, opType k
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Saltpack {
-			go func() {
-				_ = (keybase1.NotifySaltpackClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).SaltpackOperationDone(context.Background(), keybase1.SaltpackOperationDoneArg{
-					OpType:   opType,
-					Filename: filename,
-				})
-			}()
+			// note there's no goroutine here on purpose
+			// (notification ordering)
+			_ = (keybase1.NotifySaltpackClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).SaltpackOperationDone(context.Background(), keybase1.SaltpackOperationDoneArg{
+				OpType:   opType,
+				Filename: filename,
+			})
 		}
 		return true
 	})

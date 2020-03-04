@@ -1,12 +1,27 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
-import {collapseStyles, globalColors, globalMargins, padding, styleSheetCreate} from '../../styles'
-import {isIOS} from '../../constants/platform'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  padding,
+  styleSheetCreate,
+  platformStyles,
+} from '../../styles'
+import {isIOS, isTablet} from '../../constants/platform'
 import {Props} from '.'
 import {parseUri} from '../../util/expo-image-picker'
 
 const {width: screenWidth} = Kb.NativeDimensions.get('window')
-const AVATAR_SIZE = screenWidth - globalMargins.medium * 2
+
+const avatar_size = (): number => {
+  const big = screenWidth - globalMargins.medium * 2
+  if (isTablet) {
+    return Math.min(500, big)
+  } else {
+    return big
+  }
+}
 
 class AvatarUpload extends React.Component<Props> {
   _h: number = 0
@@ -43,9 +58,9 @@ class AvatarUpload extends React.Component<Props> {
     const y0 = rH * y
     return {
       x0: Math.round(x0),
-      x1: Math.round((x + AVATAR_SIZE) * rW),
+      x1: Math.round((x + avatar_size()) * rW),
       y0: Math.round(y0),
-      y1: Math.round((y + AVATAR_SIZE) * rH),
+      y1: Math.round((y + avatar_size()) * rH),
     }
   }
 
@@ -60,6 +75,7 @@ class AvatarUpload extends React.Component<Props> {
   _imageDimensions = () => {
     if (!this.props.image || this.props.image.cancelled === true) return
 
+    const AVATAR_SIZE = avatar_size()
     let height = AVATAR_SIZE
     let width = (AVATAR_SIZE * this.props.image.width) / this.props.image.height
 
@@ -93,7 +109,9 @@ class AvatarUpload extends React.Component<Props> {
                 : collapseStyles([
                     styles.zoomContainer,
                     {
-                      borderRadius: this.props.teamname ? 32 : AVATAR_SIZE,
+                      borderRadius: this.props.teamname ? 32 : avatar_size(),
+                      height: avatar_size(),
+                      width: avatar_size(),
                     },
                   ])
             }
@@ -110,7 +128,9 @@ class AvatarUpload extends React.Component<Props> {
                   ? collapseStyles([
                       styles.zoomContainer,
                       {
-                        borderRadius: this.props.teamname ? 32 : AVATAR_SIZE,
+                        borderRadius: this.props.teamname ? 32 : avatar_size(),
+                        height: avatar_size(),
+                        width: avatar_size(),
                       },
                     ])
                   : null
@@ -149,14 +169,15 @@ const styles = styleSheetCreate(
         marginTop: globalMargins.small,
       },
       standardScreen: {...padding(0)},
-      zoomContainer: {
-        backgroundColor: globalColors.grey,
-        height: AVATAR_SIZE,
-        marginBottom: globalMargins.tiny,
-        overflow: 'hidden',
-        position: 'relative',
-        width: AVATAR_SIZE,
-      },
+      zoomContainer: platformStyles({
+        common: {
+          backgroundColor: globalColors.grey,
+          marginBottom: globalMargins.tiny,
+          overflow: 'hidden',
+          position: 'relative',
+        },
+        isTablet: {alignSelf: 'center'},
+      }),
     } as const)
 )
 

@@ -54,7 +54,7 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 	}, func() interface{} {
 		return make(map[chat1.ConvIDStr][]chat1.UIParticipant)
 	},
-		200*time.Millisecond)
+		200*time.Millisecond, true)
 	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 		notifyCancel()
 		return nil

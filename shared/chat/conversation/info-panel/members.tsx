@@ -6,7 +6,6 @@ import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import flags from '../../../util/feature-flags'
 import Participant from './participant'
 import * as Styles from '../../../styles'
 
@@ -32,6 +31,9 @@ export default (props: Props) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
+  const {participants} = Container.useSelector(state =>
+    Constants.getBotsAndParticipants(state, conversationIDKey)
+  )
   React.useEffect(() => {
     if (teamname) {
       refreshParticipants(
@@ -41,36 +43,6 @@ export default (props: Props) => {
       )
     }
   }, [conversationIDKey, refreshParticipants, teamname])
-
-  let participants = participantInfo.all
-  const adhocTeam = meta.teamType === 'adhoc'
-
-  let botUsernames: Array<string> = []
-  if (adhocTeam) {
-    botUsernames = participants.filter(p => !participantInfo.name.includes(p))
-  } else {
-    botUsernames = [...teamMembers.values()]
-      .filter(
-        p =>
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
-      )
-      .map(p => p.username)
-      .sort((l, r) => l.localeCompare(r))
-  }
-
-  if (teamMembers && isGeneral) {
-    participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
-      l.push(mi.username)
-      return l
-    }, [])
-
-    if (flags.botUI) {
-      participants = participants.filter(p => !botUsernames.includes(p))
-    }
-  } else {
-    participants = flags.botUI ? participants.filter(p => !botUsernames.includes(p)) : participants
-  }
 
   const showSpinner = !participants.length
   const participantsItems = participants

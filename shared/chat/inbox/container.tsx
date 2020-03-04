@@ -7,15 +7,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox from '.'
 import {isPhone} from '../../constants/platform'
-import {
-  Props,
-  RowItemSmall,
-  RowItemBig,
-  RowItemBigHeader,
-  RowItemDivider,
-  RowItemTeamBuilder,
-  RowItem,
-} from '.'
+import {Props} from '.'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 // @ts-ignore
@@ -27,7 +19,7 @@ type OwnProps = {
 
 const makeBigRows = (
   bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
-): Array<RowItemBig | RowItemBigHeader | RowItemTeamBuilder> => {
+): Array<Types.ChatInboxRowItemBig | Types.ChatInboxRowItemBigHeader | Types.ChatInboxRowItemTeamBuilder> => {
   return bigTeams.map(t => {
     switch (t.state) {
       case RPCChatTypes.UIInboxBigTeamRowTyp.channel:
@@ -54,7 +46,7 @@ const makeBigRows = (
 
 const makeSmallRows = (
   smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>
-): Array<RowItemSmall | RowItemTeamBuilder> => {
+): Array<Types.ChatInboxRowItemSmall | Types.ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
     return {
       conversationIDKey: Types.stringToConversationIDKey(t.convID),
@@ -167,11 +159,11 @@ const Connected = Container.namedConnect(
     }
     let smallRows = makeSmallRows(smallTeams)
     let bigRows = makeBigRows(bigTeams)
-    const teamBuilder: RowItemTeamBuilder = {type: 'teamBuilder'}
+    const teamBuilder: Types.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
     const hasAllSmallTeamConvs =
       (stateProps._inboxLayout?.smallTeams?.length ?? 0) === (stateProps._inboxLayout?.totalSmallTeams ?? 0)
-    const divider: Array<RowItemDivider | RowItemTeamBuilder> =
+    const divider: Array<Types.ChatInboxRowItemDivider | Types.ChatInboxRowItemTeamBuilder> =
       bigRows.length !== 0 || !hasAllSmallTeamConvs
         ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
         : []
@@ -186,7 +178,7 @@ const Connected = Container.namedConnect(
         bigRows.push(teamBuilder)
       }
     }
-    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
+    const rows: Array<Types.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
 
     const unreadIndices: Array<number> = []
     for (let i = rows.length - 1; i >= 0; i--) {

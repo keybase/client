@@ -281,7 +281,7 @@ const styles = Styles.styleSheetCreate(
         isTablet: {alignSelf: 'center', maxWidth: 600},
       }),
       settingsHeader: {
-        marginBottom: Styles.globalMargins.small,
+        display: 'flex',
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
       },

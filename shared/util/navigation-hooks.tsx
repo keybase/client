@@ -11,6 +11,7 @@ import {
  * See here: https://github.com/react-navigation/hooks/blob/5044bcac81ee3e1418b38419c9f0d45bcfe573b2/src/Hooks.ts
  */
 
+// TODO: mock this hook in storybook
 export function useNavigation<S>(): NavigationScreenProp<S & NavigationRoute> {
   return useContext(NavigationContext as any)
 }

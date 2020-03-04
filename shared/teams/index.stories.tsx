@@ -1,5 +1,6 @@
 import main from './main/index.stories'
 import common from './common/index.stories'
+import team from './team/index.stories'
 import deleteTeam from './delete-team/index.stories'
 import editTeamDescription from './edit-team-description/index.stories'
 import settings from './team/settings-tab/index.stories'
@@ -19,6 +20,7 @@ import addMembersWizard from './add-members-wizard/index.stories'
 const load = () => {
   main()
   common()
+  team()
   deleteTeam()
   editTeamDescription()
   settings()

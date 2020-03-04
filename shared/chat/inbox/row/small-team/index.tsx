@@ -206,6 +206,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       height: '100%',
+      paddingLeft: Styles.globalMargins.tiny,
     },
     isElectron: Styles.desktopStyles.clickable,
   }),

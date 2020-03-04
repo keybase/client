@@ -53,7 +53,7 @@ export const TeamMemberRow = (props: Props) => {
   }
   if (props.fullName && active) {
     fullNameLabel = (
-      <Kb.Text style={styles.fullNameLabel} type="BodySmall">
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {props.fullName} •
       </Kb.Text>
     )
@@ -98,7 +98,7 @@ export const TeamMemberRow = (props: Props) => {
 
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-            <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
+            <Kb.ConnectedUsernames type="BodyBold" usernames={[props.username]} />
           </Kb.Box>
 
           <Kb.Box style={styles.nameContainerInner}>
@@ -227,7 +227,7 @@ export const TeamMemberRow = (props: Props) => {
           <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
           <Kb.Box style={styles.nameContainer}>
             <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-              <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
+              <Kb.ConnectedUsernames type="BodyBold" usernames={[props.username]} />
             </Kb.Box>
             <Kb.Box style={styles.nameContainerInner}>
               {fullNameLabel}

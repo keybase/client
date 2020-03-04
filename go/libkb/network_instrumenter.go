@@ -15,8 +15,8 @@ import (
 )
 
 type NetworkStatsJSON struct {
-	Local  []keybase1.InstrumentationStat `json:"remote"`
-	Remote []keybase1.InstrumentationStat `json:"local"`
+	Local  []keybase1.InstrumentationStat `json:"local"`
+	Remote []keybase1.InstrumentationStat `json:"remote"`
 }
 
 var internalHosts = map[string]struct{}{
@@ -149,7 +149,8 @@ func (s *DiskInstrumentationStorage) flush(ctx context.Context, storage map[stri
 		if err != nil {
 			return err
 		}
-		if found {
+		// Keep only window of the past month
+		if found && time.Since(existing.Ctime.Time()) <= time.Hour*24*30 {
 			record = existing.AppendStat(record)
 		}
 		if err := s.G().LocalDb.PutObjMsgpack(s.dbKey(tag), nil, record); err != nil {
@@ -212,14 +213,6 @@ func (s *DiskInstrumentationStorage) GetAll(ctx context.Context) (res []keybase1
 		if err != nil {
 			return nil, err
 		} else if !ok {
-			continue
-		}
-		// Keep only window of the past month
-		if time.Since(record.Ctime.Time()) > time.Hour*24*30 {
-			s.G().Log.Debug("DiskInstrumentationStorage: GetAll: purging record from", record.Ctime.Time())
-			if err := s.G().LocalDb.Delete(dbKey); err != nil {
-				s.G().Log.Debug("DiskInstrumentationStorage: GetAll: unable to delete old record: %v", err)
-			}
 			continue
 		}
 		res = append(res, record)

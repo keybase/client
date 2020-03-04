@@ -4,6 +4,7 @@ import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
@@ -33,6 +34,10 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   const usernames = users.map(user => {
     // If we're encrypting to service account that is not proven on keybase set
     // (SBS) then we *must* encrypt to ourselves
+    if (user.serviceId == 'email') {
+      hasSBS = true
+      return `[${user.username}]@email`
+    }
     if (user.serviceId !== 'keybase') {
       hasSBS = true
       return `${user.username}@${user.serviceId}`
@@ -59,12 +64,12 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   return actions
 }
 
-function* teamBuildingSaga() {
-  yield* commonTeamBuildingSaga('crypto')
-
-  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
-  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
-  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => {
+  const {operation} = action.payload
+  const tab = Constants.CryptoSubTabs[operation]
+  return RouteTreeGen.createNavigateAppend({
+    path: ['cryptoRoot', tab],
+  })
 }
 
 // more of a debounce to keep things simple
@@ -289,7 +294,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -323,7 +328,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -370,7 +375,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -401,7 +406,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -444,7 +449,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Sign, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -467,7 +472,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Sign, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -512,7 +517,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
@@ -542,7 +547,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
@@ -610,6 +615,14 @@ const downloadSignedText = async (state: TypedState) => {
   })
 }
 
+function* teamBuildingSaga() {
+  yield* commonTeamBuildingSaga('crypto')
+
+  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
+  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
+  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+}
+
 function* cryptoSaga() {
   yield* Saga.chainAction2(CryptoGen.downloadEncryptedText, downloadEncryptedText)
   yield* Saga.chainAction2(CryptoGen.downloadSignedText, downloadSignedText)
@@ -628,6 +641,7 @@ function* cryptoSaga() {
   yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
+  yield* Saga.chainAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)

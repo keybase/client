@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import {Props as IconProps} from '../common-adapters/icon'
+import {AvatarSize} from '../common-adapters/avatar'
 import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import memoize from 'lodash/memoize'
@@ -24,6 +25,7 @@ type AvatarProps = {
   isMuted: boolean
   isSelected: boolean
   backgroundColor?: string
+  singleSize?: AvatarSize
 }
 
 const MobileMutedIcon = (p: {
@@ -123,7 +125,7 @@ class Avatars extends React.Component<AvatarProps> {
   }
 
   render() {
-    const {participants, isHovered, isLocked, isMuted, isSelected, backgroundColor} = this.props
+    const {participants, isHovered, isLocked, isMuted, isSelected, backgroundColor, singleSize} = this.props
 
     const avatarCount = Math.min(2, participants.length)
     const opacity = isLocked ? 0.4 : 1
@@ -132,7 +134,7 @@ class Avatars extends React.Component<AvatarProps> {
         ({
           borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
           loadingColor: Styles.globalColors.greyLight,
-          size: 32,
+          size: singleSize || 32,
           skipBackground: Styles.isMobile,
           username,
         } as const)
@@ -142,7 +144,7 @@ class Avatars extends React.Component<AvatarProps> {
       <Kb.Box style={styles.avatarBox}>
         <Kb.Box style={styles.avatarInnerBox}>
           <Kb.MultiAvatar
-            singleSize={48}
+            singleSize={singleSize || 48}
             multiSize={32}
             avatarProps={avatarProps}
             multiPadding={Styles.isMobile ? 2 : 0}
@@ -168,18 +170,11 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 0,
-    height: 48,
     justifyContent: 'flex-start',
-    marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
-    maxWidth: 48,
-    minWidth: 48,
     position: 'relative',
   },
   avatarInnerBox: {
-    height: 48,
-    maxWidth: 48,
-    minWidth: 48,
     position: 'relative',
   },
   mutedIcon: Styles.platformStyles({
@@ -202,11 +197,12 @@ class TeamAvatar extends React.Component<{
   isHovered: boolean
   isMuted: boolean
   isSelected: boolean
+  size?: AvatarSize
 }> {
   render() {
     return (
       <Kb.Box style={styles.avatarBox}>
-        <Kb.Avatar teamname={this.props.teamname} size={48} />
+        <Kb.Avatar teamname={this.props.teamname} size={this.props.size || 48} />
         <MutedIcon
           isSelected={this.props.isSelected}
           isMuted={this.props.isMuted}

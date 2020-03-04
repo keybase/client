@@ -36,7 +36,7 @@ const getAddedUsernames = (usernames: Array<string>) => {
     res.push(
       <Kb.ConnectedUsernames
         inline={true}
-        type="BodySmallSemibold"
+        type="BodySmallBold"
         onUsernameClicked="profile"
         colorFollowing={true}
         underline={true}

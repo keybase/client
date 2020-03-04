@@ -237,9 +237,10 @@ const ProfileCard = ({
 type WithProfileCardPopupProps = {
   username: string
   children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
+  ellipsisStyle?: Styles.StylesCrossPlatform
 }
 
-export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupProps) => {
+export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithProfileCardPopupProps) => {
   const ref = React.useRef(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
@@ -282,7 +283,7 @@ export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupP
     </>
   ) : (
     <Kb.Box
-      style={styles.popupTextContainer}
+      style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={() => setShowing(true)}
       onMouseLeave={() => setShowing(false)}
       ref={ref}

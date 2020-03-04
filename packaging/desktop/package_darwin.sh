@@ -44,6 +44,7 @@ kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
 icon_path="$client_dir/media/icons/Keybase.icns"
+saltpack_icon="$client_dir/media/icons/saltpack.icns"
 
 echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
@@ -185,7 +186,7 @@ package_electron() {(
   rm -rf "$shared_dir/node_modules"
 
   yarn install --pure-lockfile
-  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --outDir="$build_dir"
+  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon"  --outDir="$build_dir"
 
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
   cd "$out_dir/$app_name.app/Contents/MacOS"

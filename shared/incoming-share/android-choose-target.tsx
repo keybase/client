@@ -8,12 +8,17 @@ import ChooseTarget from './choose-target'
 
 const AndroidChooseTarget = () => {
   const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+  const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   const share = Container.useSelector(state => state.config.androidShare)
   const onKBFS =
     share?.type === RPCTypes.IncomingShareType.file
       ? () => {
-          dispatch(FsGen.createSetIncomingShareSource({source: FsTypes.stringToLocalPath(share.url)}))
+          dispatch(
+            FsGen.createSetIncomingShareSource({
+              source: FsTypes.stringToLocalPath(share.url),
+              useOriginal: true,
+            })
+          )
           dispatch(
             FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')})
           )
@@ -24,7 +29,7 @@ const AndroidChooseTarget = () => {
   const item = share
     ? share.type === RPCTypes.IncomingShareType.file
       ? {
-          payloadPath: share.url,
+          originalPath: share.url,
           type: RPCTypes.IncomingShareType.file,
         }
       : {
@@ -52,11 +57,12 @@ const AndroidChooseTarget = () => {
     <ChooseTarget
       items={[
         {
-          filename: item.payloadPath ? FsTypes.getLocalPathName(item.payloadPath) : '',
-          shareType: item.type,
+          originalPath: item.originalPath || '',
+          originalSize: 0,
+          type: item.type,
         },
       ]}
-      onBack={onBack}
+      onCancel={onCancel}
       onChat={onChat}
       onKBFS={onKBFS}
     />

@@ -1,9 +1,10 @@
+import uniq from 'lodash/uniq'
+import URL from 'url-parse'
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
-import uniq from 'lodash/uniq'
+import HiddenString from '../util/hidden-string'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
-import URL from 'url-parse'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -148,8 +149,10 @@ export const initialState: Types.State = {
   remoteWindowNeedsProps: new Map(),
   startupConversation: ChatConstants.noConversationIDKey,
   startupDetailsLoaded: false,
+  startupFile: new HiddenString(''),
   startupFollowUser: '',
   startupLink: '',
+  startupPushPayload: undefined,
   startupWasFromPush: false,
   systemDarkMode: false,
   uid: '',

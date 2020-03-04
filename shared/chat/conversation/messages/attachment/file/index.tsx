@@ -61,7 +61,10 @@ const FileAttachment = React.memo((props: Props) => {
         {!!props.errorMsg && (
           <Kb.Box style={styles.progressContainerStyle}>
             <Kb.Text type="BodySmall" style={styles.error}>
-              Failed to download attachment, please retry
+              Failed to download.{' '}
+              <Kb.Text type="BodySmall" style={styles.retry} onClick={props.onDownload}>
+                Retry
+              </Kb.Text>
             </Kb.Text>
           </Kb.Box>
         )}
@@ -111,6 +114,10 @@ const styles = Styles.styleSheetCreate(
       progressLabelStyle: {
         color: Styles.globalColors.black_50,
         marginRight: Styles.globalMargins.tiny,
+      },
+      retry: {
+        color: Styles.globalColors.redDark,
+        textDecorationLine: 'underline',
       },
       titleStyle: {
         flex: 1,

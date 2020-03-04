@@ -352,6 +352,20 @@ func (s *sigChainPayloadJSON) HighSkip() (*HighSkip, error) {
 	return &highSkip, nil
 }
 
+func (s *sigChainPayloadJSON) toSigIDSuffixParameters() (ret keybase1.SigIDSuffixParameters, err error) {
+	var typ string
+	var vers SigVersion
+	typ, err = s.Type()
+	if err != nil {
+		return ret, err
+	}
+	vers, err = s.Version()
+	if err != nil {
+		return ret, err
+	}
+	return keybase1.SigIDSuffixParametersFromTypeAndVersion(typ, keybase1.SigVersion(vers)), nil
+}
+
 func newSigInfo(kid keybase1.KID, payload []byte, sig kbcrypto.NaclSignature) *kbcrypto.NaclSigInfo {
 	return &kbcrypto.NaclSigInfo{
 		Kid:      kid.ToBinaryKID(),
@@ -376,6 +390,8 @@ func decodeSig1Imploded(s string) (*kbcrypto.NaclSignature, error) {
 func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (*importRes, error) {
 	var sigBody []byte
 	var ret importRes
+	var sigIDBase keybase1.SigIDBase
+	var params keybase1.SigIDSuffixParameters
 
 	sig1ImplodedRaw := jsonGetString(packed, "si1")
 	if sig1ImplodedRaw == "" {
@@ -409,10 +425,15 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (*importRes, error
 	}
 	sigInfo := newSigInfo(ret.kid, payloadJSON.Bytes(), *sig1Imploded)
 	clientName, clientVersion := payloadJSON.ClientNameAndVersion()
-	sigBody, ret.sigID, err = sigid.ComputeSigBodyAndID(sigInfo, clientName, clientVersion)
+	sigBody, sigIDBase, err = sigid.ComputeSigBodyAndID(sigInfo, clientName, clientVersion)
 	if err != nil {
 		return nil, err
 	}
+	params, err = payloadJSON.toSigIDSuffixParameters()
+	if err != nil {
+		return nil, err
+	}
+	ret.sigID = sigIDBase.ToSigID(params)
 	ret.sig = base64.StdEncoding.EncodeToString(sigBody)
 	ret.payload = payloadJSON.Bytes()
 	return &ret, nil
@@ -475,6 +496,8 @@ func decodeSig2Imploded(s string) (*sig2Imploded, error) {
 
 func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (*importRes, error) {
 	var ret importRes
+	var sigIDBase keybase1.SigIDBase
+	var params keybase1.SigIDSuffixParameters
 
 	sig2ImplodedRaw := jsonGetString(packed, "si2")
 	if sig2ImplodedRaw == "" {
@@ -533,7 +556,12 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (*importRes, 
 		return nil, err
 	}
 	ret.sig = base64.StdEncoding.EncodeToString(sigBody)
-	ret.sigID = kbcrypto.ComputeSigIDFromSigBody(sigBody)
+	sigIDBase = kbcrypto.ComputeSigIDFromSigBody(sigBody)
+	params, err = payloadJSON.toSigIDSuffixParameters()
+	if err != nil {
+		return nil, err
+	}
+	ret.sigID = sigIDBase.ToSigID(params)
 
 	ret.ol2 = &OuterLinkV2WithMetadata{
 		OuterLinkV2: sig2Imploded.OuterLink,
@@ -579,11 +607,13 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (*importRes, 
 func importLinkFromServerPGP(m MetaContext, sig string, packed []byte) (*importRes, error) {
 	var ret importRes
 	var err error
+	var sigIDBase keybase1.SigIDBase
 
-	ret.payload, ret.sigID, err = SigExtractPGPPayload(sig)
+	ret.payload, sigIDBase, err = SigExtractPGPPayload(sig)
 	if err != nil {
 		return nil, err
 	}
+	ret.sigID = sigIDBase.ToSigIDLegacy()
 	ret.linkID, err = computeLinkIDFromHashWithWhitespaceFixes(m, ret.payload)
 	if err != nil {
 		return nil, err

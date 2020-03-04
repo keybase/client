@@ -328,7 +328,7 @@ class BlockModal extends React.PureComponent<Props, State> {
     const teamLabel = this.props.context === 'message-popup'
 
     const topStuff = (
-      <>
+      <React.Fragment key="topStuff">
         {(!!teamname || !adderUsername) && (
           <>
             <CheckboxRow
@@ -346,7 +346,7 @@ class BlockModal extends React.PureComponent<Props, State> {
             <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
           </Kb.Box2>
         )}
-      </>
+      </React.Fragment>
     )
 
     var items: Array<Item> = ['topStuff']
@@ -376,7 +376,10 @@ class BlockModal extends React.PureComponent<Props, State> {
               ? topStuff
               : this.renderRowsForUsername(item.username, idx === this.props.otherUsernames?.length)
           }
-          style={Styles.isMobile ? styles.grow : getListHeightStyle(this.props.otherUsernames?.length ?? 0)}
+          indexAsKey={true}
+          style={
+            Styles.isMobile ? styles.grow : getListHeightStyle((this.props.otherUsernames?.length ?? 0) + 1)
+          }
         />
       </Kb.Modal>
     )
@@ -385,7 +388,7 @@ class BlockModal extends React.PureComponent<Props, State> {
 
 export default BlockModal
 
-const getListHeightStyle = (numOthers: number) => ({height: numOthers >= 3 ? 260 : numOthers * 120})
+const getListHeightStyle = (numOthers: number) => ({height: numOthers >= 4 ? 380 : numOthers * 120})
 
 const styles = Styles.styleSheetCreate(() => ({
   checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),

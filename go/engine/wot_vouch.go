@@ -53,7 +53,7 @@ func (e *WotVouch) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *WotVouch) Run(mctx libkb.MetaContext) error {
-	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Vouchee.Uid)
+	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Vouchee.Uid).WithStubMode(libkb.StubModeUnstubbed)
 	them, err := libkb.LoadUser(luArg)
 	if err != nil {
 		return err

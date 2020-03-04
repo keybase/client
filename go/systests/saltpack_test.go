@@ -186,8 +186,8 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected error type libkb.DecryptionError, got %T (%s)", err, err)
 	}
-	if _, ok := x.Cause.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("expected error Cause type libkb.NoDecryptionKeyError, got %T (%s)", x.Cause, x.Cause)
+	if _, ok := x.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("expected error Cause type libkb.NoDecryptionKeyError, got %T (%s)", x.Cause.Err, x.Cause.Err)
 	}
 
 	// Get current implicit team seqno so we can wait for it to be updated later

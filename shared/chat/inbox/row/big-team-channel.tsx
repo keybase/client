@@ -58,7 +58,7 @@ const BigTeamChannel = (props: Props) => {
 
   return (
     <Kb.ClickableBox onClick={onSelectConversation} style={styles.container}>
-      <Kb.Box style={styles.rowContainer}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
@@ -97,7 +97,7 @@ const BigTeamChannel = (props: Props) => {
               color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
               style={styles.muted}
               type={
-                Styles.isMobile ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
+                Styles.isPhone ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
               }
             />
           )}
@@ -113,7 +113,7 @@ const BigTeamChannel = (props: Props) => {
             {hasBadge && <Kb.Box style={styles.unread} />}
           </Kb.Box>
         </Kb.Box2>
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
@@ -131,10 +131,18 @@ const styles = Styles.styleSheetCreate(() => ({
       borderTopLeftRadius: 3,
       paddingLeft: Styles.globalMargins.tiny,
     },
-    isMobile: {
+    isPhone: {
       ...Styles.globalStyles.fillAbsolute,
       flex: 1,
       paddingLeft: Styles.globalMargins.small,
+    },
+    isTablet: {
+      borderBottomLeftRadius: 3,
+      borderTopLeftRadius: 3,
+      flex: 1,
+      height: '80%',
+      marginLeft: 48,
+      paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   channelHash: {color: Styles.globalColors.black_20},
@@ -154,13 +162,12 @@ const styles = Styles.styleSheetCreate(() => ({
   muted: {marginLeft: Styles.globalMargins.xtiny},
   rowContainer: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'stretch',
-      height: '100%',
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: 0,
     },
     isElectron: Styles.desktopStyles.clickable,
+    isTablet: {alignItems: 'center'},
   }),
   selectedChannelBackground: {backgroundColor: Styles.globalColors.blue},
   textError: {color: Styles.globalColors.redDark},
@@ -180,13 +187,18 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.white,
     ...Styles.globalStyles.fontBold,
   },
-  unread: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: Styles.borderRadius,
-    flexShrink: 0,
-    height: 8,
-    width: 8,
-  },
+  unread: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.orange,
+      borderRadius: Styles.borderRadius,
+      flexShrink: 0,
+      height: 8,
+      width: 8,
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.tiny,
+    },
+  }),
 }))
 
 export default React.memo(BigTeamChannel)

@@ -43,7 +43,9 @@
         "'addedToChannel'", // just added people to this channel
         "'teamMention'" // from team mention
       ],
-      "navKey?": "string"
+      "skipNav?": "boolean",
+      "navKey?": "string",
+      "pushBody?": "string"
     },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
@@ -147,6 +149,7 @@
         "'scroll'",
         "'ensureSelectedMeta'",
         "'ensureWidgetMetas'",
+        "'ensureChannelMeta'",
         "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
@@ -922,6 +925,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "cardType": "RPCChatTypes.JourneycardType",
       "ordinal": "Types.Ordinal"
+    },
+    "addToMessageMap": {
+      "message": "Types.Message"
     }
   }
 }

@@ -114,7 +114,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	reachedLast := false
 	for {
 		thread, err = s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
-			chat1.GetThreadReason_PREPARE,
+			chat1.GetThreadReason_PREPARE, nil,
 			&chat1.GetThreadQuery{
 				DisableResolveSupersedes: true,
 			},
@@ -319,7 +319,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 		// no edits/deletes possible here
 	default:
 		tv, err = s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
-			chat1.GetThreadReason_PREPARE,
+			chat1.GetThreadReason_PREPARE, nil,
 			&chat1.GetThreadQuery{
 				MarkAsRead:   false,
 				MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
@@ -507,7 +507,7 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 	}
 	body := msg.MessageBody.Edit()
 	// try to find the message with the given outbox ID in the first 50 messages.
-	tv, err := s.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_PREPARE,
+	tv, err := s.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_PREPARE, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes:             []chat1.MessageType{chat1.MessageType_TEXT},
 			DisableResolveSupersedes: true,

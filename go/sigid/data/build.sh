@@ -1,7 +1,7 @@
 #!/bin/sh
 
-ALL="sigids-1.0.16"
-FIXES="sigid-fixes"
+ALL="sigids-1.0.16.txt"
+FIXES="sigid-fixes.txt"
 TMP=$(mktemp)
 
 grep -E '^h' $ALL > $TMP

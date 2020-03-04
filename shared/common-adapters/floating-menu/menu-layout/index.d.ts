@@ -8,6 +8,7 @@ export type MenuItem = {
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
   icon?: IconType | null
+  iconIsVisible?: boolean
   iconStyle?: IconStyle
   isBadged?: boolean
   inProgress?: boolean
@@ -18,6 +19,7 @@ export type MenuItem = {
   style?: Object
   subTitle?: string
   title: string // Used only as ID if view is provided for header
+  unWrapped?: boolean
   view?: React.ReactNode // Required for header
 }
 

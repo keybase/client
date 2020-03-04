@@ -614,6 +614,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_REQUESTPAYMENT:
 		mv.Renderable = true
 		mv.Body = formatRequestPaymentMessage(g, m.MessageBody.Requestpayment())
+	case chat1.MessageType_FLIP:
+		mv.Renderable = true
+		mv.Body = m.MessageBody.Flip().Text
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}

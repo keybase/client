@@ -233,7 +233,7 @@ export const defaultDriverStatus: Types.DriverStatus = isLinux
 
 export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
-  rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
+  rpcStatus: Types.KbfsDaemonRpcStatus.Waiting,
 }
 
 export const emptySettings: Types.Settings = {
@@ -765,7 +765,7 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     : picker.source.type === Types.DestinationPickerSource.IncomingShare
     ? Array.isArray(picker.source.source)
       ? getSharePathArrayDescription(
-          picker.source.source.map(({payloadPath}) => Types.getLocalPathName(payloadPath))
+          picker.source.source.map(({originalPath}) => Types.getLocalPathName(originalPath))
         )
       : picker.source.source
     : ''

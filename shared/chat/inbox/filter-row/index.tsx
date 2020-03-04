@@ -213,10 +213,7 @@ const styles = Styles.styleSheetCreate(
             : 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
           borderRadius: 6,
         },
-        isMobile: {
-          backgroundColor: '#0dff0c',
-          borderRadius: 8,
-        },
+        isMobile: {borderRadius: 8},
       }),
       searchBox: Styles.platformStyles({
         common: {flex: 1},

@@ -695,12 +695,14 @@ var _ UIThreadLoader = (*DummyUIThreadLoader)(nil)
 
 func (d DummyUIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
-	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
+	cbmode chat1.GetThreadNonblockCbMode, knownRemote []string,
+	query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
 	return nil
 }
 
 func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, nil
 }
 

@@ -96,7 +96,7 @@ func TestJourneycardDismiss(t *testing.T) {
 
 	requireJourneycard := func(toExist bool) {
 		thread, err := tc1.ChatG.ConvSource.Pull(ctx1, convID, uid1,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
@@ -180,7 +180,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 
 	requireNoJourneycard := func(convID chat1.ConversationID) {
 		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
@@ -191,7 +191,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 
 	requireJourneycard := func(convID chat1.ConversationID, cardType chat1.JourneycardType) {
 		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
@@ -279,7 +279,7 @@ func TestJourneycardPersist(t *testing.T) {
 
 	requireJourneycard := func(convID chat1.ConversationID, cardType chat1.JourneycardType, skipMessages int) chat1.MessageUnboxedJourneycard {
 		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1+skipMessages)

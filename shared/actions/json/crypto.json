@@ -41,6 +41,11 @@
       "options": "Types.EncryptOptions",
       "hideIncludeSelf?": "boolean"
     },
+    "onSaltpackOpenFile": {
+      "_description": "User opened a saltpack file on from their file browser. Notified by OS and deeplinks",
+      "operation": "Types.Operations",
+      "path": "HiddenString"
+    },
     "onOperationSuccess": {
       "_description": "On saltpack RPC successful response. input is the operation that started it",
       "input": "any",

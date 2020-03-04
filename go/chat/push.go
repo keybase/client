@@ -424,7 +424,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes id from reaction, skipping: %v", err)
 					return false
 				}
-				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil)
+				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil, nil)
 				if err != nil || len(supersedesMsg) == 0 || !supersedesMsg[0].IsValid() {
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes message from reaction, skipping: %v", err)
 					return false
@@ -481,7 +481,7 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 	switch msg.GetMessageType() {
 	case chat1.MessageType_EDIT:
 		targetMsgID := msg.Valid().MessageBody.Edit().MessageID
-		msgs, err := g.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{targetMsgID}, nil)
+		msgs, err := g.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{targetMsgID}, nil, nil)
 		if err != nil {
 			g.Debug(ctx, "getSupersedesTarget: failed to get message: %v", err)
 			return nil

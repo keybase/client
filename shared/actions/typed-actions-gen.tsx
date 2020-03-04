@@ -253,6 +253,7 @@ export type TypedActionsMap = {
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
   'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
+  'chat2:addToMessageMap': chat2.AddToMessageMapPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -278,6 +279,7 @@ export type TypedActionsMap = {
   'config:globalError': config.GlobalErrorPayload
   'config:pushLoaded': config.PushLoadedPayload
   'config:setStartupDetails': config.SetStartupDetailsPayload
+  'config:setStartupFile': config.SetStartupFilePayload
   'config:setOpenAtLogin': config.SetOpenAtLoginPayload
   'config:setNotifySound': config.SetNotifySoundPayload
   'config:setDeletedSelf': config.SetDeletedSelfPayload
@@ -315,6 +317,7 @@ export type TypedActionsMap = {
   'crypto:setInput': crypto.SetInputPayload
   'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
+  'crypto:onSaltpackOpenFile': crypto.OnSaltpackOpenFilePayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
@@ -328,6 +331,7 @@ export type TypedActionsMap = {
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
+  'deeplinks:saltpackFileOpen': deeplinks.SaltpackFileOpenPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
   'dev:updateDebugConfig': dev.UpdateDebugConfigPayload
   'dev:debugCount': dev.DebugCountPayload
@@ -611,6 +615,7 @@ export type TypedActionsMap = {
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
+  'fs:checkKbfsDaemonRpcStatus': fs.CheckKbfsDaemonRpcStatusPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
   'fs:kbfsDaemonOnlineStatusChanged': fs.KbfsDaemonOnlineStatusChangedPayload

@@ -14,8 +14,8 @@ func NewCmdKVStore(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		newCmdKVStoreAPI(cl, g),
 	}
 	return cli.Command{
-		Name: "kvstore",
-		// Usage:        "Manage a simple cleartext key to encrypted value store", //uncomment to unhide from command list
+		Name:         "kvstore",
+		Usage:        "Manage a simple cleartext key to encrypted value store",
 		ArgumentHelp: "[arguments...]",
 		Subcommands:  subcommands,
 	}

@@ -279,7 +279,7 @@ func TestThrottleBatch(t *testing.T) {
 		return 0
 	}
 
-	f, cancel := ThrottleBatch(handler, batcher, reset, 200)
+	f, cancel := ThrottleBatch(handler, batcher, reset, 200, true)
 	f(2)
 	getVal(2)
 	f(3)

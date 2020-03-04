@@ -42,7 +42,7 @@ const PinnedMessage = (props: Props) => {
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.Text type="BodyTinySemibold" style={styles.author}>
+            <Kb.Text type="BodyTinyBold" style={styles.author}>
               {props.author}
             </Kb.Text>
             <Kb.Text type="BodyTinySemibold" style={styles.label}>
@@ -153,7 +153,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       container: {
-        ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
         backgroundColor: Styles.globalColors.white,
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
