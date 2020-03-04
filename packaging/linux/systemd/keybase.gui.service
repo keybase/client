@@ -19,7 +19,7 @@ EnvironmentFile=-%t/keybase/keybase.gui.env
 EnvironmentFile=-%h/.config/keybase/keybase.autogen.env
 EnvironmentFile=-%h/.config/keybase/keybase.env
 
-ExecStart=/usr/bin/env bash -c "/opt/keybase/Keybase $KEYBASE_STARTUP_URL"
+ExecStart=/opt/keybase/Keybase
 
 # After starting, we clear the KEYBASE_AUTOSTART variable so the next time
 # systemctl --start keybase.gui is called, it will be maximized.
@@ -29,7 +29,7 @@ ExecStart=/usr/bin/env bash -c "/opt/keybase/Keybase $KEYBASE_STARTUP_URL"
 # environment variable into systemd during autostart.
 # We need to shell out because systemctl is sometimes in /bin and sometimes in
 # /usr/bin depending on the distro
-ExecStartPost=/usr/bin/env systemctl --user unset-environment KEYBASE_AUTOSTART KEYBASE_STARTUP_URL
+ExecStartPost=/usr/bin/env systemctl --user unset-environment KEYBASE_AUTOSTART
 
 # We don't set Restart=, since a GUI crash is probably visible to the user.
 

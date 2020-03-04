@@ -26,9 +26,8 @@ kill_all() {
   fi
 
   # Only stop main Electron process; others have additional flags after the process name
-  # However, it is possible to invoke the GUI with a deeplink URL (including ://), so include those too.
   # Child Electron processes will be stopped by main process' handler
-  if main_electron_pids="$(pgrep -f '/Keybase($|.*:\/\/)')"; then
+  if main_electron_pids="$(pgrep 'Keybase$')"; then
       # intentionally splitting pids
       # shellcheck disable=SC2046
       kill $(echo "$main_electron_pids" | xargs) &> /dev/null && echo Shutting down Keybase GUI...
@@ -73,9 +72,6 @@ start_systemd() {
 
   [ "$KEYBASE_NO_KBFS" == "1" ] || systemctl --user restart kbfs.service
   gui_fail_help="Failed to launch GUI. Pass -g to prevent startup if on a machine without a graphical display."
-  if [ -n "$KEYBASE_STARTUP_URL" ]; then
-      systemctl --user import-environment KEYBASE_STARTUP_URL
-  fi
   [ "$KEYBASE_NO_GUI" == "1" ] || systemctl --user restart keybase.gui.service || echo "$gui_fail_help"
 }
 
@@ -124,7 +120,7 @@ start_background() {
 
       echo Launching Keybase GUI...
       gui_log="$logdir/Keybase.app.log"
-      "$KEYBASE" "$KEYBASE_STARTUP_URL" &>> "$gui_log" &
+      "$KEYBASE" &>> "$gui_log" &
   fi
 }
 
@@ -203,8 +199,6 @@ check_for_url_scheme_or_saltpack_file_launch() {
       if pgrep -u "$USER" -f 'Keybase$' &> /dev/null; then
           "$KEYBASE" "$1" &
           exit
-      else
-          KEYBASE_STARTUP_URL=$1
       fi
   fi
 
@@ -251,8 +245,6 @@ KEYBASE_NO_GUI="${KEYBASE_NO_GUI:-0}"
 KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
-
-KEYBASE_STARTUP_URL=""
 
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
 #   http://keybase.io/docs/linux-user-guide
