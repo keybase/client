@@ -185,6 +185,7 @@
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },
+    "checkKbfsDaemonRpcStatus": {},
     "waitForKbfsDaemon": {},
     "kbfsDaemonRpcStatusChanged": {
       "rpcStatus": "Types.KbfsDaemonRpcStatus"

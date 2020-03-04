@@ -615,6 +615,7 @@ export type TypedActionsMap = {
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
+  'fs:checkKbfsDaemonRpcStatus': fs.CheckKbfsDaemonRpcStatusPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
   'fs:kbfsDaemonOnlineStatusChanged': fs.KbfsDaemonOnlineStatusChangedPayload
