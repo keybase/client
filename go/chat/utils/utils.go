@@ -948,10 +948,6 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 	conv := rc.Conv
 	var summaries []chat1.MessageSummary
 	for _, typ := range chat1.VisibleChatMessageTypes() {
-		switch typ {
-		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-			continue
-		}
 		summary, err := conv.GetMaxMessage(typ)
 		if err == nil {
 			summaries = append(summaries, summary)
