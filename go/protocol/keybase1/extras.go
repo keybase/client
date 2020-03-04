@@ -2859,6 +2859,10 @@ func (req *TeamChangeReq) RestrictedBotUVs() (ret []UserVersion) {
 	return ret
 }
 
+// CompleteInviteID adds to the `completed_invites` field, and signals that the
+// invite can never be used again. It's used whenever `max_uses` is not
+// specified, *even* for an invitelink (when it's not specified, the semantics
+// are that it has 1 use).
 func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	if req.CompletedInvites == nil {
 		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
@@ -2866,11 +2870,11 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 	req.CompletedInvites[inviteID] = uv
 }
 
+// UseInviteID adds to the `used_invites` field iff `max_uses` is specified in
+// the invite, and says nothing about whether the invite can be used again or
+// not. Note that `max_uses` is present even if it's a infinite-use invite link.
 func (req *TeamChangeReq) UseInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
-	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{
-		InviteID: inviteID,
-		Uv:       uv,
-	})
+	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{InviteID: inviteID, Uv: uv})
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {

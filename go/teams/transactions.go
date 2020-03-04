@@ -588,7 +588,7 @@ func (tx *AddMemberTx) UseInviteByID(ctx context.Context, inviteID keybase1.Team
 		return fmt.Errorf("could not find uv %v in transaction", uv)
 	}
 
-	payload.CompleteInviteID(inviteID, uv.PercentForm())
+	payload.UseInviteID(inviteID, uv.PercentForm())
 	return nil
 }
 
@@ -851,6 +851,14 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 
 			section.CompletedInvites = payload.CompletedInvites
+			for _, usedInvite := range payload.UsedInvites {
+				exportedUse := SCMapInviteIDUVPair{
+					InviteID: SCTeamInviteID(usedInvite.InviteID),
+					UV:       usedInvite.Uv,
+				}
+				section.UsedInvites = append(section.UsedInvites, exportedUse)
+			}
+
 			sections = append(sections, section)
 
 			// If there are additions, then there will be a new key involved.
