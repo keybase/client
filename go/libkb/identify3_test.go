@@ -66,6 +66,9 @@ func (i *id3FakeUI) Identify3TrackerTimedOut(_ context.Context, id keybase1.Iden
 	return nil
 }
 func (i *id3FakeUI) Identify3Result(context.Context, keybase1.Identify3ResultArg) error { return nil }
+func (i *id3FakeUI) Identify3Summary(_ context.Context, summary keybase1.Identify3Summary) error {
+	return nil
+}
 
 func TestIdentify3State(t *testing.T) {
 	tc := SetupTest(t, "TestIdentify3State()", 1)
