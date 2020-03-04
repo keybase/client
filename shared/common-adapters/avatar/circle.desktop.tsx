@@ -77,17 +77,18 @@ const useStory = (username: string) => {
         if (p >= 1) {
           return p
         }
-        let next = p + 0.1
+        let next = p + 0.6
         if (next >= 1) {
-          next = 1
+          next = 0 // TEMP 1
         }
         if (next > 0.3 && color !== Styles.globalColors.red) {
           setColor(Styles.globalColors.red)
         }
+        console.log('aaa', next)
         return next
       })
     },
-    percentDone >= 1 ? undefined : 500
+    percentDone >= 1 ? undefined : 3000
   )
 
   const mockState = React.useRef<'drawing' | 'waiting'>('drawing')
@@ -98,7 +99,7 @@ const useStory = (username: string) => {
     setPercentDone(0)
     setColor(Styles.globalColors.green)
     mockState.current = 'drawing'
-  }, 2000)
+  }, 5000)
 
   React.useEffect(() => {
     if (!isDone || mockState.current !== 'drawing') {
@@ -118,12 +119,47 @@ const useStory = (username: string) => {
 
 const getDataHook = __STORYBOOK__ ? useStory : useGetIDInfo
 
+type CrossingState = 'under50' | 'crossing50' | 'above50'
+
 const Circle = (props: Props) => {
   const {username, size} = props
   const {percentDone, color, following} = getDataHook(username)
   const width = 6
   const innerRadius = 3
   const isDone = percentDone >= 1
+
+  // when we cross halfway we need to coordinate animating two halves so the animation is staggered and doesn't
+  // happen on top of each other (splits the circle). In this state we delay the second half
+  const lastValue = React.useRef<number>(-1)
+  React.useEffect(() => {
+    lastValue.current = percentDone
+  })
+
+  const crossingHalfway = React.useRef<CrossingState>('under50')
+
+  const oldUnder = lastValue.current < 50
+  const newUnder = percentDone < 50
+  if (crossingHalfway.current === 'crossing50') {
+    // nothing, we're handling the crossover
+  } else {
+    // crossed?
+    if (oldUnder !== newUnder) {
+      if (oldUnder) {
+        crossingHalfway.current = 'crossing50'
+      } else {
+        crossingHalfway.current = 'above50'
+      }
+    }
+  }
+
+  let percentToDraw: number
+  if (crossingHalfway.current === 'crossing50') {
+    percentToDraw = 0.5
+  } else {
+    percentDone
+  }
+
+  console.log('aaa corss', crossingHalfway.current)
 
   if (!username) {
     return null
@@ -155,15 +191,18 @@ const Circle = (props: Props) => {
         />
         <HalfCircle
           key="0-50"
-          percentDone={Math.min(0.5, percentDone)}
+          percentDone={Math.min(0.5, percentToDraw)}
           width={width}
           size={size}
-          style={{opacity: isDone && !following ? 0 : 1, zIndex: CircleZindex.lowerHalf}}
+          style={{
+            opacity: isDone && !following ? 0 : 1,
+            zIndex: CircleZindex.lowerHalf,
+          }}
           color={color}
         />
         <HalfCircle
           key="50-100"
-          percentDone={Math.max(0, percentDone - 0.5)}
+          percentDone={Math.max(0, percentToDraw - 0.5)}
           width={width}
           size={size}
           className="higherCircle"
@@ -182,6 +221,7 @@ const Circle = (props: Props) => {
             right: innerRadius,
             top: innerRadius,
             zIndex: CircleZindex.inner,
+            opacity: 0, // TEMP
           }}
         />
       </div>

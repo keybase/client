@@ -85,6 +85,8 @@
     position: absolute;
     right: 0;
     top: 0;
+/* TEMP */
+    opacity: 0; 
 }
 
 .darkMode .avatar-background {
@@ -180,6 +182,6 @@
 }
 
 .halfCircle {
-    transition-duration: 0.3s;
+    transition-duration: 3s;
     transition-property: transform color;
 }

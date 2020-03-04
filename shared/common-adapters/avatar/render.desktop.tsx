@@ -38,7 +38,7 @@ const Avatar = (props: Props) => {
           <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
         </div>
       )}
-      {!!props.url && (
+      {false && !!props.url && (
         <div
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
           style={{
