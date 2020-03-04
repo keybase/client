@@ -279,6 +279,19 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	// invitation should automatically cancel first invitation.
 	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
 
+	// Load team, see if we really have just one invite.
+	teamObj := ann.loadTeamByID(teamID, true /* admin */)
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, invites, 1)
+	for _, invite := range invites {
+		require.Equal(t, keybase1.TeamRole_ADMIN, invite.Role)
+		require.EqualValues(t, bob.userVersion().PercentForm(), invite.Name)
+		typ, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_KEYBASE, typ)
+		break // check the first (and only) invite
+	}
+
 	t.Logf("Trying to get a PUK")
 
 	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
