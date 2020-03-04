@@ -2271,6 +2271,9 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 		if invite.MaxUses != nil {
 			return fmt.Errorf("`completed_invites` for an invite with `max_uses`: %s", id)
 		}
+		if invite.Etime != nil {
+			return fmt.Errorf("`completed_invites` for an invite with `etime`: %s", id)
+		}
 		stateToUpdate.informCompletedInvite(id)
 	}
 	return nil
@@ -2315,6 +2318,20 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			// We couldn't find the invite, and we have no stubbed links, which
 			// means that inviteID is invalid.
 			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
+		}
+
+		isMultiUse, err := IsMultiUseInvite(invite)
+		if err != nil {
+			return err
+		}
+		if !isMultiUse {
+			return fmt.Errorf("inviteID %q does not use UsedInvites", inviteID)
+		}
+
+		maxUses := invite.MaxUses
+		alreadyUsed := len(stateToUpdate.inner.UsedInvites[inviteID])
+		if maxUses.IsUsedUp(alreadyUsed) {
+			return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
 		}
 
 		uv, err := keybase1.ParseUserVersion(pair.UV)
