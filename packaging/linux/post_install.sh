@@ -174,11 +174,9 @@ fix_bad_config_perms() {
 fix_bad_config_perms
 
 # Associate Keybase with .saltpack files.
-if command -v xdg-mime &> /dev/null ; then
+if command -v update-mime-database &> /dev/null ; then
   # Associate .saltpack with application/x-saltpack.
-  xdg-mime install --mode system /opt/keybase/x-saltpack.xml
-  # Associate Keybase app with application/x-saltpack.
-  xdg-mime default keybase.desktop application/x-saltpack
+  update-mime-database /usr/share/mime
 fi
 
 # Update the GTK icon cache, if possible.

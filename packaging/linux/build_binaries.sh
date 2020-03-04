@@ -102,7 +102,6 @@ build_one_architecture() {
   # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
   mkdir -p "$layout_dir/opt/keybase"
   cp "$here/post_install.sh" "$layout_dir/opt/keybase/"
-  cp "$here/x-saltpack.xml" "$layout_dir/opt/keybase/"
   cp "$here/crypto_squirrel.txt" "$layout_dir/opt/keybase/"
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
@@ -162,6 +161,11 @@ build_one_architecture() {
   apps_dir="$layout_dir/usr/share/applications"
   mkdir -p "$apps_dir"
   cp "$here/keybase.desktop" "$apps_dir"
+
+  # Copy in the Saltpack file extension MIME type association.
+  apps_dir="$layout_dir/usr/share/mime/packages"
+  mkdir -p "$apps_dir"
+  cp "$here/x-saltpack.xml" "$apps_dir"
 
   # Copy in the systemd unit files.
   units_dir="$layout_dir/usr/lib/systemd/user"
