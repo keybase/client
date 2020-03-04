@@ -198,7 +198,9 @@ class ZoomableImage extends React.Component<Props, State> {
     this.mounted && this.setState({imageHeight, imageWidth})
 
     this.resetInitial(imageWidth, imageHeight)
-    Animated.timing(this.opacity, {...this.animatedCommon, toValue: 1}).start()
+    this.state.viewHeight &&
+      this.state.viewWidth &&
+      Animated.timing(this.opacity, {...this.animatedCommon, toValue: 1}).start()
   }
 
   private getImageSize = () => {
@@ -209,7 +211,12 @@ class ZoomableImage extends React.Component<Props, State> {
     const {nativeEvent} = event
     const {layout} = nativeEvent
     const {width, height} = layout
-    this.setState({viewHeight: height, viewWidth: width})
+    // There's a race where when you view an image the second time, image size
+    // comes in before onLayout gets the view sizes (viewHeight and viewWidth).
+    // And getInitialScaleAndOffset ends up doing a crazy zoom/rotate. So call
+    // getImageSize here as well to make sure resetInitial is called when all
+    // values are available.
+    this.setState({viewHeight: height, viewWidth: width}, this.getImageSize)
   }
 
   componentWillUnmount() {
