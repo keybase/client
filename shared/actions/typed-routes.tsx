@@ -64,7 +64,7 @@ export const appendTeamsContactsTeamBuilder = () =>
         props: {
           filterServices: [],
           justContacts: true,
-          namespace: 'chat2',
+          namespace: 'teams',
           title: 'Add members',
         },
         selected: 'teamsContactsTeamBuilder',

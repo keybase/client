@@ -227,7 +227,10 @@ const makeDebouncedSearch = (time: number) =>
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamID}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch: Container.TypedDispatch,
+  {namespace, teamID, justContacts}: OwnProps
+) => ({
   _onAdd: (user: Types.User) =>
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
@@ -240,7 +243,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
   },
   fetchUserRecs: () =>
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
+    dispatch(
+      TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2' || justContacts, namespace})
+    ),
   onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
