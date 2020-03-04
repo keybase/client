@@ -440,6 +440,10 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
 }
 
+func IsSnippetChatMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.SnippetChatMessageTypes())
+}
+
 func IsBadgeableMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.BadgeableMessageTypes())
 }

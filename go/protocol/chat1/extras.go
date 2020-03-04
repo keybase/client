@@ -272,6 +272,23 @@ func NonEmptyConvMessageTypes() []MessageType {
 	return badgeableMessageTypes
 }
 
+var snippetMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_DELETEHISTORY,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
+// Snippet chat messages can be the snippet of a conversation.
+func SnippetChatMessageTypes() []MessageType {
+	return snippetMessageTypes
+}
+
 var editableMessageTypesByEdit = []MessageType{
 	MessageType_TEXT,
 }
