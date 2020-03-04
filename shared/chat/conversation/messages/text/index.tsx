@@ -126,14 +126,13 @@ const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, typ
       allowFontScaling={true}
     >
       {text}
-      fromcode
     </Kb.Markdown>
   )
   const content = (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       {!!reply && <Reply {...reply} isParentHighlighted={isHighlighted} />}
       {markdown}
-      <Kb.Avatar username="tst5" size={24} />
+      {/* <Kb.Avatar username="tst5" size={24} /> */}
       {!!claim && <Claim {...claim} />}
     </Kb.Box2>
   )

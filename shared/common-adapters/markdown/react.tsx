@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import Text from '../text'
 import Box from '../box'
 import Emoji, {Props as EmojiProps} from '../emoji'
+import Avatar from '../avatar'
 import {emojiIndexByName} from './emoji-gen'
 import ServiceDecoration from './service-decoration'
 
@@ -238,6 +239,13 @@ const reactComponentsForMarkdownType = {
       _output: SimpleMarkdown.ReactOutput,
       state: SimpleMarkdown.State
     ) => <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />,
+  },
+  usermoji: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      _output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => <Avatar username={String(node.content).toLowerCase()} size={16} key={state.key} />,
   },
   fence: {
     react: (

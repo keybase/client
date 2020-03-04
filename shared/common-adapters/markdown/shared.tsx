@@ -124,6 +124,18 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
       return {content: shortName || capture[0]}
     },
   },
+  usermoji: {
+    // xxx todo this regex must include all usernames
+    match: SimpleMarkdown.inlineRegex(new RegExp(`^:&([\\w\\d]+):`)),
+    order: SimpleMarkdown.defaultRules.text.order - 0.5 - 0.25,
+    parse: (
+      capture: SimpleMarkdown.Capture,
+      _nestedParse: SimpleMarkdown.Parser,
+      _state: SimpleMarkdown.State
+    ) => {
+      return {content: capture[1]}
+    },
+  },
   escape: {
     // handle escaped chars, keep this to handle escapes globally
     ...SimpleMarkdown.defaultRules.escape,
