@@ -86,6 +86,9 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
       if (isRelevantDeepLink(link)) {
         mainWindowDispatch(DeeplinksGen.createLink({link}))
         return
+      } else if (isValidSaltpackFilePath(link)) {
+        mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: link}))
+        return
       }
     }
   }
