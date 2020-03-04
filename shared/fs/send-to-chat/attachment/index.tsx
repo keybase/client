@@ -47,7 +47,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
       ?.map(({content}) => content)
       ?.join(' ') || ''
 
-  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, convName: string) => {
+  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
     text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
     if (sendPaths.length) {
       dispatch(
@@ -61,7 +61,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
                   path: p,
                 })),
                 selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
-                tlfName: `${username},${convName.split('#')[0]}`,
+                tlfName,
               },
               selected: 'chatAttachmentGetTitles',
             },
