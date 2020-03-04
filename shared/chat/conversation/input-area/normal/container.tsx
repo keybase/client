@@ -123,6 +123,7 @@ export default Container.namedConnect(
       conversationIDKey,
       editText: editInfo ? editInfo.text : '',
       explodingModeSeconds,
+      infoPanelShowing: state.chat2.infoPanelShowing,
       isActiveForFocus: state.chat2.focus === null,
       isEditExploded: editInfo ? editInfo.exploded : false,
       isExploding,
@@ -249,6 +250,7 @@ export default Container.namedConnect(
         }
         return ret
       },
+      infoPanelShowing: stateProps.infoPanelShowing,
       isActiveForFocus: stateProps.isActiveForFocus,
       isEditExploded: stateProps.isEditExploded,
       isEditing: !!stateProps._editOrdinal,

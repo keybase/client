@@ -44,6 +44,7 @@ type CommonProps = {
 }
 
 export type InputProps = {
+  infoPanelShowing: boolean
   isActiveForFocus: boolean
   suggestTeams: Array<{
     username: string
