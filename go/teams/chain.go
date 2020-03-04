@@ -207,6 +207,17 @@ func (t TeamSigChainState) GetUserLastJoinTime(user keybase1.UserVersion) (time 
 	return t.inner.GetUserLastJoinTime(user)
 }
 
+func (t *TeamSigChainState) GetNumberOfUsesForMultipleUseInviteID(inviteID keybase1.TeamInviteID) (n int, err error) {
+	invite, found := t.FindActiveInviteByID(inviteID)
+	if !found {
+		return n, libkb.NotFoundError{}
+	}
+	if invite.MaxUses == nil {
+		return n, fmt.Errorf("cannot get number of uses for a non-multiple-use invite")
+	}
+	return len(t.inner.UsedInvites[inviteID]), nil
+}
+
 // assertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
 // Figure out when this admin permission was revoked, if at all. If the promotion event
 // wasn't found as specified, then return an AdminPermissionError. In addition, we return

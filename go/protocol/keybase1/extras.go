@@ -2684,6 +2684,16 @@ func (e TeamInviteMaxUses) IsValid() bool {
 	return e > 0 || e == TeamMaxUsesInfinite
 }
 
+func (e TeamInviteMaxUses) IsUsedUp(alreadyUsed int) bool {
+	if !e.IsValid() {
+		return true
+	}
+	if e == TeamMaxUsesInfinite {
+		return false
+	}
+	return alreadyUsed >= int(e)
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
@@ -2860,9 +2870,8 @@ func (req *TeamChangeReq) RestrictedBotUVs() (ret []UserVersion) {
 }
 
 // CompleteInviteID adds to the `completed_invites` field, and signals that the
-// invite can never be used again. It's used whenever `max_uses` is not
-// specified, *even* for an invitelink (when it's not specified, the semantics
-// are that it has 1 use).
+// invite can never be used again. It's used for SBS, Keybase, SeitanV1, and
+// SeitanV2 invites.
 func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	if req.CompletedInvites == nil {
 		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
@@ -2870,9 +2879,8 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 	req.CompletedInvites[inviteID] = uv
 }
 
-// UseInviteID adds to the `used_invites` field iff `max_uses` is specified in
-// the invite, and says nothing about whether the invite can be used again or
-// not. Note that `max_uses` is present even if it's a infinite-use invite link.
+// UseInviteID adds to the `used_invites` field. It is used for SeitanInvitelink invites,
+// which can be used multiple times.
 func (req *TeamChangeReq) UseInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{InviteID: inviteID, Uv: uv})
 }

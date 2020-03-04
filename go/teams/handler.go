@@ -577,6 +577,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	tx := CreateAddMemberTx(team)
 
 	for _, seitan := range msg.Seitans {
+		// TODO what if there are two seitans for same inviteid?
 		invite, found := team.chain().FindActiveInviteByID(seitan.InviteID)
 		if !found {
 			return libkb.NotFoundError{}
@@ -584,7 +585,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
 
-		version, err := verifySeitanSingle(ctx, g, team, invite, seitan)
+		_, err = verifySeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
 			continue
@@ -598,8 +599,11 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		}
 
 		if currentRole.IsOrAbove(invite.Role) {
-			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
-			tx.CancelInvite(invite.Id, uv.Uid)
+			g.Log.CDebugf(ctx, "User already has same or higher role.")
+			if invite.MaxUses == nil {
+				g.Log.CDebugf(ctx, "User already has same or higher role; since MaxUses was not specified, cancelling invite.")
+				tx.CancelInvite(invite.Id, uv.Uid)
+			}
 			continue
 		}
 
@@ -610,21 +614,20 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		}
 
 		// Only allow adding members as cryptomembers. Server should
-		// never send us  PUKless users accepting seitan tokens. When
+		// never send us PUKless users accepting seitan tokens. When
 		// PUKless user accepts seitan token invite status is set to
 		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
 		// PUK and status is set to ACCEPTED.
-
-		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
-		switch version {
-		case SeitanVersionInvitelink:
-			err = tx.UseInviteByID(ctx, invite.Id, uv)
-		default:
+		if invite.MaxUses == nil {
+			g.Log.CDebugf(ctx, "Using invite %q", invite.Id)
 			err = tx.CompleteInviteByID(ctx, invite.Id, uv)
+		} else {
+			g.Log.CDebugf(ctx, "Completing invite %q", invite.Id)
+			err = tx.UseInviteByID(ctx, invite.Id, uv)
 		}
 		if err != nil {
-			g.Log.CDebugf(ctx, "Failed to complete invite, member was added as keybase-invite: %v", err)
-			return err
+			g.Log.CDebugf(ctx, "Failed to complete or use invite: %v", err)
+			continue
 		}
 
 		chats = append(chats, chatSeitanRecip{

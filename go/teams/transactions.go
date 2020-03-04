@@ -29,6 +29,10 @@ type AddMemberTx struct {
 	// completedInvites is used to mark completed invites, so they are
 	// skipped in sweeping methods.
 	completedInvites map[keybase1.TeamInviteID]bool
+
+	// keep track of how many multiple-use invites have been used so far
+	usedInviteCount map[keybase1.TeamInviteID]int
+
 	// lastChangeForUID holds index of last tx.payloads payload that
 	// affects given uid.
 	lastChangeForUID map[keybase1.UID]int
@@ -58,6 +62,7 @@ func CreateAddMemberTx(t *Team) *AddMemberTx {
 		team:             t,
 		completedInvites: make(map[keybase1.TeamInviteID]bool),
 		lastChangeForUID: make(map[keybase1.UID]int),
+		usedInviteCount:  make(map[keybase1.TeamInviteID]int),
 	}
 }
 
@@ -583,12 +588,31 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertionOrEmail(ctx context.Context, 
 }
 
 func (tx *AddMemberTx) UseInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
+	// TODO verify it's not expired or maxused, also expired for complete (expiry not caught by precheck)
 	payload := tx.findChangeReqForUV(uv)
 	if payload == nil {
 		return fmt.Errorf("could not find uv %v in transaction", uv)
 	}
 
+	invite, found := tx.team.chain().FindActiveInviteByID(inviteID)
+	if !found {
+		return fmt.Errorf("failed to find invite being used")
+	}
+
+	if invite.MaxUses != nil {
+		alreadyUsedBeforeTransaction, err := tx.team.chain().GetNumberOfUsesForMultipleUseInviteID(inviteID)
+		if err != nil {
+			return err
+		}
+
+		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
+		if invite.MaxUses.IsUsedUp(alreadyUsed) {
+			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
+		}
+	}
+
 	payload.UseInviteID(inviteID, uv.PercentForm())
+	tx.usedInviteCount[inviteID]++
 	return nil
 }
 
