@@ -23,6 +23,7 @@
       <ComponentRef Id="GUIShortCutComponent" />
       <ComponentRef Id="SaltpackFiles" />
       <ComponentRef Id="SaltpackApp" />
+      <ComponentRef Id="SaltpackIcon" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
       <ComponentGroupRef Id="DokanInstallerComponents" />
@@ -172,6 +173,11 @@
     <Component Id="SaltpackApp" Guid="{C62D3822-D039-4D4D-AEBA-4AFFCEBDEB7B}" Directory="INSTALLFOLDER">
       <RegistryKey Root="HKCU" Key="Software\Classes\saltpack\shell\open\command">
         <RegistryValue Value="&quot;[GuiDir]Keybase.exe&quot; &quot;%1&quot;" KeyPath="yes" Type="string" />
+      </RegistryKey>
+    </Component>
+    <Component Id="SaltpackIcon" Guid="{2EDFF243-3A47-47A8-BBD6-3BA7358FFDE0}" Directory="INSTALLFOLDER">
+      <RegistryKey Root="HKCU" Key="Software\Classes\saltpack\DefaultIcon">
+        <RegistryValue Value="[GuiDir]resources/app/images/windows/Saltpack.ico" KeyPath="yes" Type="string" />
       </RegistryKey>
     </Component>
   </Fragment>
