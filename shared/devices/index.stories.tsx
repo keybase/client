@@ -20,22 +20,45 @@ const idToType = i => {
   }
 }
 
+const now = new Date()
+const secondAgo = dateFns.sub(now, {seconds: 1})
+const fourHoursAgo = dateFns.sub(now, {hours: 4})
+
 const activeDevices = withNew => {
   const existingDevices = [
-    {deviceNumberOfType: 0, id: stringToDeviceID('1'), isNew: false, key: '1', type: 'device'},
-    {deviceNumberOfType: 3, id: stringToDeviceID('2'), isNew: false, key: '2', type: 'device'},
-    {deviceNumberOfType: 7, id: stringToDeviceID('3'), isNew: false, key: '3', type: 'device'},
+    {
+      deviceNumberOfType: 0,
+      id: stringToDeviceID('1'),
+      isNew: false,
+      key: '1',
+      lastUsed: fourHoursAgo,
+      type: 'device',
+    },
+    {
+      deviceNumberOfType: 3,
+      id: stringToDeviceID('2'),
+      isNew: false,
+      key: '2',
+      lastUsed: fourHoursAgo,
+      type: 'device',
+    },
+    {
+      deviceNumberOfType: 7,
+      id: stringToDeviceID('3'),
+      isNew: false,
+      key: '3',
+      lastUsed: fourHoursAgo,
+      type: 'device',
+    },
   ]
   if (withNew) {
-    return [...existingDevices, {id: stringToDeviceID('6'), isNew: true, key: '6', type: 'device'}]
+    return [
+      ...existingDevices,
+      {id: stringToDeviceID('6'), isNew: true, key: '6', lastUsed: fourHoursAgo, type: 'device'},
+    ]
   }
   return existingDevices
 }
-
-const now = new Date()
-const secondAgo = dateFns.sub(now, {seconds: 1})
-
-const fourHoursAgo = dateFns.sub(now, {hours: 4})
 
 const revokedDevices = withNew => {
   const existingDevices = [
@@ -73,6 +96,7 @@ const provider = Sb.createPropProviderWithCommon({
     device: {
       currentDevice: deviceID === '1',
       deviceNumberOfType: 8,
+      lastUsed: fourHoursAgo,
       name: {
         '1': 'laptop',
         '2': 'phone',

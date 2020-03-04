@@ -16,8 +16,8 @@ const derivedProps = (
 ) => {
   const currentDeviceName = currentDeviceAlreadyProvisioned
     ? currentDeviceType === 'mobile'
-      ? 'oldPhone6'
-      : 'oldMacMini'
+      ? 'Old iPhone 6'
+      : 'Old Mac Mini'
     : ''
   return {
     currentDevice: DevicesConstants.makeDevice({deviceNumberOfType: 3, type: currentDeviceType}),
@@ -25,6 +25,7 @@ const derivedProps = (
     currentDeviceName,
     currentDeviceType,
     error: '',
+    iconNumber: 1,
     onBack: Sb.action('onBack'),
     onClose: Sb.action('onClose'),
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
@@ -78,10 +79,10 @@ const load = () => {
     let otherName
     switch (otherType) {
       case 'desktop':
-        otherName = 'newMacbookPro13'
+        otherName = 'New Macbook Pro 13'
         break
       case 'mobile':
-        otherName = 'newiPhoneX'
+        otherName = 'New iPhone X'
         break
       default:
         otherName = ''
