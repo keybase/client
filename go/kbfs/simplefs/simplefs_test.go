@@ -251,6 +251,23 @@ func TestSymlink(t *testing.T) {
 		Link:   badLink,
 	})
 	require.Error(t, err)
+
+	// Regression test for HOTPOT-2007.
+	t.Log("Make sure a symlink can be deleted")
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID:      opid,
+		Path:      link,
+		Recursive: true,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_REMOVE, link, keybase1.Path{},
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	testList(ctx, t, sfs, p, "test1.txt")
 }
 
 func TestList(t *testing.T) {
