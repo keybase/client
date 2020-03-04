@@ -102,6 +102,7 @@ build_one_architecture() {
   # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
   mkdir -p "$layout_dir/opt/keybase"
   cp "$here/post_install.sh" "$layout_dir/opt/keybase/"
+  cp "$here/x-saltpack.xml" "$layout_dir/opt/keybase/"
   cp "$here/crypto_squirrel.txt" "$layout_dir/opt/keybase/"
 
   # Build the kbfsfuse binary. Currently, this always builds from master.

@@ -176,7 +176,7 @@ fix_bad_config_perms
 # Associate Keybase with .saltpack files.
 if command -v xdg-mime &> /dev/null ; then
   # Associate .saltpack with application/x-saltpack.
-  xdg-mime install --mode system x-saltpack.xml
+  xdg-mime install --mode system /opt/keybase/x-saltpack.xml
   # Associate Keybase app with application/x-saltpack.
   xdg-mime default keybase.desktop application/x-saltpack
 fi
