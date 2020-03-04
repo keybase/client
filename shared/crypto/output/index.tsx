@@ -9,6 +9,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platforms from '../../constants/platform'
 import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
@@ -267,7 +268,7 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
       allowDirectories: true,
       allowFiles: false,
       buttonLabel: 'Select',
-      defaultPath: input,
+      ...(Platforms.isDarwin ? {defaultPath: input} : {}),
     }
     const filePaths = await showOpenDialog(options)
     if (!filePaths) return

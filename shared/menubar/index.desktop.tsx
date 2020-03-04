@@ -37,7 +37,6 @@ export type Props = {
   showUser: (username?: string) => void
   showingDiskSpaceBanner: boolean
   username: string | null
-  waitForKbfsDaemon: () => void
   navBadges: Map<string, number>
 
   // UploadCountdownHOCProps
@@ -58,19 +57,13 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  _refreshUserFileEditsOrWaitForKbfsDaemon = () =>
-    this.props.loggedIn &&
-    (this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected
-      ? this.props.refreshUserFileEdits()
-      : this.props.waitForKbfsDaemon())
-
   componentDidMount() {
-    this._refreshUserFileEditsOrWaitForKbfsDaemon()
-    Electron.remote.getCurrentWindow().on('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
+    this.props.refreshUserFileEdits()
+    Electron.remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
   }
 
   componentWillUnmount() {
-    Electron.remote.getCurrentWindow().removeListener('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
+    Electron.remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
   }
 
   render() {
