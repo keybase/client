@@ -585,7 +585,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
 
-		_, err = verifySeitanSingle(ctx, g, team, invite, seitan)
+		version, err := verifySeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
 			continue
@@ -618,12 +618,15 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		// PUKless user accepts seitan token invite status is set to
 		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
 		// PUK and status is set to ACCEPTED.
-		if invite.MaxUses == nil {
-			g.Log.CDebugf(ctx, "Using invite %q", invite.Id)
-			err = tx.CompleteInviteByID(ctx, invite.Id, uv)
-		} else {
+		switch version {
+		case SeitanVersion1, SeitanVersion2:
 			g.Log.CDebugf(ctx, "Completing invite %q", invite.Id)
-			err = tx.UseInviteByID(ctx, invite.Id, uv)
+			err = tx.CompleteInviteByID(ctx, invite.Id, uv)
+		case SeitanVersionInvitelink:
+			g.Log.CDebugf(ctx, "Using invite %q", invite.Id)
+			err = tx.UseInviteByID(ctx, g, invite.Id, uv)
+		default:
+			err = fmt.Errorf("unknown seitan version")
 		}
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to complete or use invite: %v", err)

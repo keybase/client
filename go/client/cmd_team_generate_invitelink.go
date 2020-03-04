@@ -6,6 +6,7 @@ package client
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -15,15 +16,19 @@ import (
 
 type CmdTeamGenerateInvitelink struct {
 	libkb.Contextified
-	Team string
-	Role keybase1.TeamRole
+	Team              string
+	Role              keybase1.TeamRole
+	Etime             *keybase1.UnixTime
+	TeamInviteMaxUses *keybase1.TeamInviteMaxUses
 }
 
 func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "generate-invitelink",
 		ArgumentHelp: "<team name>",
-		Usage:        "Generate an invite link that you can send via SMS, iMessage, or similar.",
+		Usage: `Generate an invite link that you can send via SMS, iMessage, or similar.
+If neither max-uses nor infinite-uses is passed, defaults to one-time-use. If duration is not
+passed, does not expire.`,
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateInvitelinkRunner(g)
 			cl.ChooseCommand(cmd, "generate-invitelink", c)
@@ -32,6 +37,18 @@ func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 			cli.StringFlag{
 				Name:  "r, role",
 				Usage: "team role (admin, writer, reader) [required]",
+			},
+			cli.DurationFlag{
+				Name:  "d, duration",
+				Usage: "time duration until this invite expires (30m, 120h, etc.).",
+			},
+			cli.IntFlag{
+				Name:  "max-uses",
+				Usage: "number of uses this invite link is valid for (greater than 0); exclusive with infinite-uses",
+			},
+			cli.BoolFlag{
+				Name:  "infinite-uses",
+				Usage: "whether this invite link is valid for infinite uses; exclusive with max-uses",
 			},
 		},
 		Description: teamGenerateInvitelinkDoc,
@@ -59,6 +76,33 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 		return errors.New("invalid team role, please use admin, writer, or reader")
 	}
 
+	if ctx.IsSet("duration") {
+		v := ctx.Duration("duration")
+		if v <= 0 {
+			return errors.New("duration must be positive")
+		}
+		t := keybase1.ToUnixTime(time.Now().Add(v))
+		c.Etime = &t
+	}
+
+	if ctx.Bool("infinite-uses") && ctx.IsSet("max-uses") {
+		return errors.New("can only specify one of max-uses and infinite-uses")
+	}
+
+	if ctx.IsSet("infinite-uses") || ctx.IsSet("max-uses") {
+		infiniteUses := ctx.Bool("infinite-uses")
+		var maxUsesVal *int
+		if ctx.IsSet("max-uses") {
+			v := ctx.Int("max-uses")
+			maxUsesVal = &v
+		}
+		maxUses, err := keybase1.NewTeamInviteMaxUses(infiniteUses, maxUsesVal)
+		if err != nil {
+			return err
+		}
+		c.TeamInviteMaxUses = &maxUses
+	}
+
 	return nil
 }
 
@@ -71,6 +115,8 @@ func (c *CmdTeamGenerateInvitelink) Run() error {
 	arg := keybase1.TeamCreateSeitanInvitelinkArg{
 		Teamname: c.Team,
 		Role:     c.Role,
+		Etime:    c.Etime,
+		MaxUses:  c.TeamInviteMaxUses,
 	}
 
 	res, err := cli.TeamCreateSeitanInvitelink(context.Background(), arg)

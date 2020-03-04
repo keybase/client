@@ -667,6 +667,10 @@ func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ k
 	return nil, libkb.NotFoundError{}
 }
 
+// FindActiveInviteByID returns potentially expired invites that have not been
+// explicitly cancelled, since the sigchain player is agnostic to the concept
+// of time. We treat invite expiration times as advisory for admin clients
+// completing invites, but do not check them in the sigchain player.
 func (t *TeamSigChainState) FindActiveInviteByID(id keybase1.TeamInviteID) (keybase1.TeamInvite, bool) {
 	invite, found := t.inner.ActiveInvites[id]
 	return invite, found

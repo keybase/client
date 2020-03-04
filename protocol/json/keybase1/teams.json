@@ -4057,8 +4057,18 @@
           "type": "TeamRole"
         },
         {
-          "name": "label",
-          "type": "SeitanKeyLabel"
+          "name": "maxUses",
+          "type": [
+            null,
+            "TeamInviteMaxUses"
+          ]
+        },
+        {
+          "name": "etime",
+          "type": [
+            null,
+            "UnixTime"
+          ]
         }
       ],
       "response": "SeitanIKeyInvitelink"

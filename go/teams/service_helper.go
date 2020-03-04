@@ -1938,12 +1938,13 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 }
 
 func CreateSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalContext, teamname string,
-	role keybase1.TeamRole) (keybase1.SeitanIKeyInvitelink, error) {
+	role keybase1.TeamRole, etime *keybase1.UnixTime,
+	maxUses *keybase1.TeamInviteMaxUses) (keybase1.SeitanIKeyInvitelink, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
 	}
-	ikey, err := t.InviteSeitanInvitelink(ctx, role)
+	ikey, err := t.InviteSeitanInvitelink(ctx, role, etime, maxUses)
 	if err != nil {
 		return "", err
 	}

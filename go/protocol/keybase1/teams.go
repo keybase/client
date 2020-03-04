@@ -4047,10 +4047,11 @@ type TeamCreateSeitanTokenV2Arg struct {
 }
 
 type TeamCreateSeitanInvitelinkArg struct {
-	SessionID int            `codec:"sessionID" json:"sessionID"`
-	Teamname  string         `codec:"teamname" json:"teamname"`
-	Role      TeamRole       `codec:"role" json:"role"`
-	Label     SeitanKeyLabel `codec:"label" json:"label"`
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	Teamname  string             `codec:"teamname" json:"teamname"`
+	Role      TeamRole           `codec:"role" json:"role"`
+	MaxUses   *TeamInviteMaxUses `codec:"maxUses,omitempty" json:"maxUses,omitempty"`
+	Etime     *UnixTime          `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
 type TeamAddEmailsBulkArg struct {
