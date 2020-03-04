@@ -173,6 +173,14 @@ fix_bad_config_perms() {
 
 fix_bad_config_perms
 
+# Associate Keybase with .saltpack files.
+if command -v xdg-mime &> /dev/null ; then
+  # Associate .saltpack with application/x-saltpack.
+  xdg-mime install --mode system x-saltpack.xml
+  # Associate Keybase app with application/x-saltpack.
+  xdg-mime default keybase.desktop application/x-saltpack
+fi
+
 # Update the GTK icon cache, if possible.
 if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
@@ -182,15 +190,6 @@ is_redirector_enabled=""
 if redirector_enabled; then
     is_redirector_enabled="1"
 fi
-# Associate Keybase with .saltpack files.  This comes in three stages:
-if command -v xdg-mime &> /dev/null ; then
-  # 1. Associate .saltpack and application/x-saltpack.
-  xdg-mime install --mode system x-saltpack.xml
-  # 2. Associate Keybase app with application/x-saltpack.
-  xdg-mime default keybase.desktop application/x-saltpack
-fi
-
-# 3. Update the icon.
 
 # Restart services before restarting redirector manually
 # so we know if it was already restarted via systemd.

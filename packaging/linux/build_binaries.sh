@@ -146,11 +146,14 @@ build_one_architecture() {
     chmod 4755 "$layout_dir/opt/keybase/chrome-sandbox"
   )
 
-  # Copy in the icon images.
+  # Copy in the icon images and .saltpack file type SVG.
   for size in 16 32 128 256 512 ; do
     icon_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/apps"
+    saltpack_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/mimetypes"
     mkdir -p "$icon_dest"
     cp "$this_repo/media/icons/Keybase.iconset/icon_${size}x${size}.png" "$icon_dest/keybase.png"
+    mkdir -p "$saltpack_dest"
+    cp "$this_repo/media/icons/Saltpack.iconset/icon_${size}x${size}.png" "$saltpack_dest/application-x-saltpack.png"
   done
 
   # Copy in the desktop entry. Note that this is different from the autostart
