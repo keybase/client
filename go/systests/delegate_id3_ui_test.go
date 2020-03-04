@@ -100,6 +100,10 @@ func (d *delegateID3UI) Identify3Result(_ context.Context, arg keybase1.Identify
 	return nil
 }
 
+func (d *delegateID3UI) Identify3Summary(_ context.Context, arg keybase1.Identify3Summary) error {
+	return nil
+}
+
 func newDelegateID3UI(g *libkb.GlobalContext, t *testing.T) *delegateID3UI {
 	return &delegateID3UI{
 		Contextified: libkb.NewContextified(g),
