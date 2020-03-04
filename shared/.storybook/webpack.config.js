@@ -23,6 +23,11 @@ const babelRule = {
   },
 }
 
+const replacements = require('../mocks').replacements
+const moduleReplacementPlugins = replacements.map(rep => {
+  const [regex, replacement] = rep
+  return new webpack.NormalModuleReplacementPlugin(regex, __dirname + '/' + replacement)
+})
 module.exports = ({config, mode}) => {
   config.resolve = {
     extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
@@ -36,24 +41,7 @@ module.exports = ({config, mode}) => {
       __STORYSHOT__: false,
       'process.platform': JSON.stringify('darwin'),
     }),
-    // When you change these, also change in package.json and in metro.config.js
-    new webpack.NormalModuleReplacementPlugin(
-      /typed-connect/,
-      __dirname + '/../util/__mocks__/typed-connect.tsx'
-    ),
-    new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.tsx'),
-    new webpack.NormalModuleReplacementPlugin(
-      // Don't match files that are named `dark-mode.png` accidentally
-      /dark-mode.tsx/,
-      __dirname + '/../styles/__mocks__/dark-mode.tsx'
-    ),
-    new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.tsx'),
-    new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.tsx'),
-    new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.tsx'),
-    new webpack.NormalModuleReplacementPlugin(
-      /navigation-hooks/,
-      __dirname + '/../util/__mocks__/navigation-hooks.tsx'
-    ),
+    ...moduleReplacementPlugins,
   ]
 
   // Override default ignoring node_modules

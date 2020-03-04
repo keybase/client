@@ -8,6 +8,7 @@
 
 const {getDefaultConfig} = require('metro-config')
 const {resolve} = require('metro-resolver')
+const {replacements} = require('./mocks')
 
 let storybook = false
 module.exports = (async () => {
@@ -30,16 +31,10 @@ module.exports = (async () => {
       console.log('Switching to normal mode')
     }
     if (storybook) {
-      newModuleName = newModuleName
-        // When you change these, also change in package.json and in .storybook/webpack.config.js
-        .replace(/typed-connect/, '__mocks__/typed-connect')
-        .replace(/navigation-hooks/, '__mocks__/navigation-hooks')
-        .replace(/^electron$/, '/../__mocks__/electron')
-        .replace(/engine$/, '/../__mocks__/engine')
-        .replace(/dark-mode/, '../styles/__mocks__/dark-mode')
-        .replace(/util\/saga/, '/../__mocks__/saga')
-        .replace(/route-tree$/, '/../__mocks__/empty')
-        .replace(/feature-flags/, '/../__mocks__/feature-flags')
+      replacements.forEach(rep => {
+        const [regex, replacement] = rep
+        newModuleName = newModuleName.replace(regex, replacement)
+      })
     }
     // To prevent the metro resolver from just turning around and calling us
     context.resolveRequest = null
