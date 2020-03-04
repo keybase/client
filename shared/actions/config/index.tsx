@@ -595,6 +595,9 @@ const newNavigation = (
     | RouteTreeGen.SwitchTabPayload
     | RouteTreeGen.ResetStackPayload
 ) => {
+  // When we are cold starting and have a initial link, sometimes we dispatch
+  // an navigateAppend action pretty early (fs links and incoming-share), and
+  // _setNavigator may not have been called yet. So wait for up to a second.
   let count = 0
   const dispatchAction = () => {
     const n = Router2._getNavigator()
