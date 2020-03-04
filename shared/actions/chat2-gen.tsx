@@ -489,6 +489,7 @@ type _MetaRequestTrustedPayload = {
     | 'scroll'
     | 'ensureSelectedMeta'
     | 'ensureWidgetMetas'
+    | 'ensureChannelMeta'
     | 'inboxSearchResults'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }

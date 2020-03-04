@@ -5,6 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as ChatConstants from '../../../constants/chat2'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as UsersGen from '../../../actions/users-gen'
 import flags from '../../../util/feature-flags'
@@ -44,13 +45,22 @@ const ChannelTabs = (props: Props) => {
   const {participants} = Container.useSelector(state =>
     ChatConstants.getBotsAndParticipants(state, conversationIDKey)
   )
+  const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (previousTab !== selectedTab && selectedTab === 'members') {
+      if (meta.conversationIDKey === 'EMPTY') {
+        dispatch(
+          Chat2Gen.createMetaRequestTrusted({
+            conversationIDKeys: [conversationIDKey],
+            reason: 'ensureChannelMeta',
+          })
+        )
+      }
       dispatch(TeamsGen.createGetMembers({teamID}))
       dispatch(UsersGen.createGetBlockState({usernames: participants}))
     }
-  }, [dispatch, participants, previousTab, selectedTab, teamID])
+  }, [conversationIDKey, dispatch, meta, participants, previousTab, selectedTab, teamID])
   const tabs = [
     makeTab('members', selectedTab),
     makeTab('attachments', selectedTab),

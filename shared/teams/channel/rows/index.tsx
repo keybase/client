@@ -25,7 +25,7 @@ const makeRows = (
   const rows: Array<Row> = []
   switch (selectedTab) {
     case 'members': {
-      const {participants} = ChatConstants.getBotsAndParticipants(state, conversationIDKey)
+      const {participants} = ChatConstants.getBotsAndParticipants(state, conversationIDKey, true)
       rows.push({
         count: participants.length,
         dividerType: 'members',

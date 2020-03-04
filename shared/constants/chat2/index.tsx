@@ -307,7 +307,11 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   return meta.teamname === teamname
 }
 
-export const getBotsAndParticipants = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+export const getBotsAndParticipants = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey,
+  sort?: boolean
+) => {
   const meta = getMeta(state, conversationIDKey)
   const isAdhocTeam = meta.teamType === 'adhoc'
   const participantInfo = getParticipantInfo(state, conversationIDKey)
@@ -333,6 +337,25 @@ export const getBotsAndParticipants = (state: TypedState, conversationIDKey: Typ
     }, [])
   }
   participants = flags.botUI ? participants.filter(p => !bots.includes(p)) : participants
+  participants = sort
+    ? participants
+        .map(p => ({
+          isAdmin: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+          isOwner: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+          username: p,
+        }))
+        .sort((l, r) => {
+          const leftIsAdmin = l.isAdmin || l.isOwner
+          const rightIsAdmin = r.isAdmin || r.isOwner
+          if (leftIsAdmin && !rightIsAdmin) {
+            return -1
+          } else if (!leftIsAdmin && rightIsAdmin) {
+            return 1
+          }
+          return l.username.localeCompare(r.username)
+        })
+        .map(p => p.username)
+    : participants
   return {bots, participants}
 }
 
