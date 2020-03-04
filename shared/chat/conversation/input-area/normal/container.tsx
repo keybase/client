@@ -250,12 +250,12 @@ export default Container.namedConnect(
         }
         return ret
       },
+      infoPanelShowing: stateProps.infoPanelShowing,
       isActiveForFocus: stateProps.isActiveForFocus,
       isEditExploded: stateProps.isEditExploded,
       isEditing: !!stateProps._editOrdinal,
       isExploding: stateProps.isExploding,
       isSearching: stateProps.isSearching,
-      infoPanelShowing: stateProps.infoPanelShowing,
       maxInputArea: ownProps.maxInputArea,
       minWriterRole: stateProps.minWriterRole,
       onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
