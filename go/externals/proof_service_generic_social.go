@@ -170,11 +170,12 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 	mctx = mctx.WithLogTag("PCS")
 	defer mctx.TraceTimed("GenericSocialProofChecker.CheckStatus", func() error { return retErr })()
 
-	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
+	_, sigIDBase, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %v", err)
 	}
+	sigID := sigIDBase.ToSigIDLegacy()
 
 	remoteUsername := rc.proof.GetRemoteUsername()
 	if err := rc.config.validateRemoteUsername(remoteUsername); err != nil {

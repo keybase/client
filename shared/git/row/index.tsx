@@ -119,7 +119,7 @@ const Row = (props: Props) => (
             {!!props.teamname && !!props.lastEditUser && (
               <Kb.Box style={{marginLeft: 2}}>
                 <Kb.ConnectedUsernames
-                  type="BodySmallSemibold"
+                  type="BodySmallBold"
                   underline={true}
                   colorFollowing={true}
                   usernames={[props.lastEditUser]}

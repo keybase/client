@@ -44,12 +44,13 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           backgroundColor: Styles.globalColors.white,
+          flexShrink: 1,
+          // if this is not constrained it pushes the rest of the input down
+          maxHeight: '70%',
         },
       }),
       scrollContainer: Styles.platformStyles({
-        isElectron: {
-          maxHeight: 300,
-        },
+        isElectron: {maxHeight: 300},
       }),
       title: {
         backgroundColor: Styles.globalColors.black_05,

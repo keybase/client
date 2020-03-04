@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as FsTypes from '../constants/types/fs'
+import * as FsConstants from '../constants/fs'
 
 type Props = {
   items: Array<RPCTypes.IncomingShareItem>
@@ -130,7 +131,7 @@ const ChooseTarget = (props: Props) => {
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader onCancel={props.onCancel} title="Incoming Content" />
+      <Kb.HeaderHocHeader onCancel={props.onCancel} title="Share" />
       <Kb.Box2
         direction="vertical"
         gap="medium"
@@ -148,7 +149,10 @@ const ChooseTarget = (props: Props) => {
             allowLabelClick={true}
             gapSize={Styles.globalMargins.small}
             color="blue"
-            label={`Use ${props.items.length > 1 ? 'originals' : 'original'}`}
+            label={`Send full size (${FsConstants.humanizeBytes(
+              props.items.reduce((bytes, item) => bytes + item.originalSize, 0),
+              1
+            )})`}
             on={useOriginal}
             onClick={() => setUseOriginal(b => !b)}
           />

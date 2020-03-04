@@ -17,11 +17,11 @@ func testOne(t *testing.T, sig string, sigID string) {
 	require.NoError(t, err)
 	version, err := jsonparserw.GetString(payload, "client", "version")
 	require.NoError(t, err)
-	expectedSigID, err := keybase1.SigIDFromString(sigID, true)
+	expectedSigID, err := keybase1.SigIDFromString(sigID)
 	require.NoError(t, err)
 	_, computedSigID, err := ComputeSigBodyAndID(&si, name, version)
 	require.NoError(t, err)
-	require.True(t, expectedSigID.Eq(computedSigID))
+	require.True(t, expectedSigID.Eq(computedSigID.ToSigIDLegacy()))
 }
 
 func TestSignatures(t *testing.T) {
@@ -92,7 +92,7 @@ func TestSignatures(t *testing.T) {
 
 func TestPrefixTable(t *testing.T) {
 	for _, tv := range testVectors {
-		res := isMaybeModernSigIDMakerModern(keybase1.SigID(tv.sigID))
+		res := isMaybeModernSigIDMakerModern(keybase1.SigIDBase(tv.sigID[0:64]))
 		require.Equal(t, res, tv.isModern)
 	}
 }

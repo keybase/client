@@ -19,7 +19,7 @@ const TeamInviteRowOld = (props: Props) => {
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={styles.usernameRole}>
         <Kb.ConnectedUsernames
           lineClamp={1}
-          type="BodySemibold"
+          type="BodyBold"
           colorFollowing={true}
           inline={true}
           usernames={[label]}

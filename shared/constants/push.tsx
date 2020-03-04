@@ -52,7 +52,7 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
         conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
         membersType: anyToConversationMembersType(data.t),
         type: 'chat.newmessage',
-        unboxPayload: n.m || '',
+        unboxPayload: data.m || '',
         userInteraction,
       }
     } else if (data.type === 'chat.newmessageSilent_2' && data.c) {
@@ -62,7 +62,7 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
           conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
           membersType,
           type: 'chat.newmessageSilent_2',
-          unboxPayload: n.m || '',
+          unboxPayload: data.m || '',
         }
       }
     } else if (data.type === 'follow' && data.username) {

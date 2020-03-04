@@ -8,6 +8,7 @@ import * as TeamBuildingTypes from '../team-building'
 import * as Team from '../teams'
 import HiddenString from '../../../util/hidden-string'
 import {AmpTracker} from '../../../chat/audio/amptracker'
+import * as ChatInboxRowTypes from './rowitem'
 
 export type QuoteInfo = {
   // Always positive and monotonically increasing.
@@ -330,3 +331,12 @@ export {
   stringToOutboxID,
 } from './message'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'
+
+export type ChatInboxRowItemSmall = ChatInboxRowTypes.ChatInboxRowItemSmall
+export type ChatInboxRowItemBigTeamsLabel = ChatInboxRowTypes.ChatInboxRowItemBigTeamsLabel
+export type ChatInboxRowItemBigHeader = ChatInboxRowTypes.ChatInboxRowItemBigHeader
+export type ChatInboxRowItemBig = ChatInboxRowTypes.ChatInboxRowItemBig
+export type ChatInboxRowItemDivider = ChatInboxRowTypes.ChatInboxRowItemDivider
+export type ChatInboxRowItemTeamBuilder = ChatInboxRowTypes.ChatInboxRowItemTeamBuilder
+export type ChatInboxRowItem = ChatInboxRowTypes.ChatInboxRowItem
+export type ChatInboxRowType = ChatInboxRowTypes.ChatInboxRowType

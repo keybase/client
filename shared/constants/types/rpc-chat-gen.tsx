@@ -392,7 +392,7 @@ export type MessageTypes = {
     outParam: GetThreadLocalRes
   }
   'chat.1.local.getThreadNonblock': {
-    inParam: {readonly conversationID: ConversationID; readonly cbMode: GetThreadNonblockCbMode; readonly reason: GetThreadReason; readonly pgmode: GetThreadNonblockPgMode; readonly query?: GetThreadQuery | null; readonly pagination?: UIPagination | null; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    inParam: {readonly conversationID: ConversationID; readonly cbMode: GetThreadNonblockCbMode; readonly reason: GetThreadReason; readonly pgmode: GetThreadNonblockPgMode; readonly query?: GetThreadQuery | null; readonly knownRemotes?: Array<String> | null; readonly pagination?: UIPagination | null; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: NonblockFetchRes
   }
   'chat.1.local.getUnfurlSettings': {
@@ -1361,7 +1361,7 @@ export type SetStatusPayload = {readonly Action: String; readonly convID: Conver
 export type SetTeamRetentionUpdate = {readonly inboxVers: InboxVers; readonly teamID: Keybase1.TeamID; readonly policy: RetentionPolicy}
 export type SignEncryptedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type SignatureInfo = {readonly v: Int; readonly s: Bytes; readonly k: Bytes}
-export type SimpleSearchInboxConvNamesHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null; readonly teamName: String}
+export type SimpleSearchInboxConvNamesHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null; readonly tlfName: String}
 export type StaticConfig = {readonly deletableByDeleteHistory?: Array<MessageType> | null; readonly builtinCommands?: Array<BuiltinCommandGroup> | null}
 export type SubteamRenameUpdate = {readonly convIDs?: Array<ConversationID> | null; readonly inboxVers: InboxVers}
 export type SweepRes = {readonly foundTask: Boolean; readonly deletedMessages: Boolean; readonly expunge: Expunge}

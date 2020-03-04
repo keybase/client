@@ -149,6 +149,7 @@ type _SetStartupDetailsPayload = {
   readonly startupFollowUser: string
   readonly startupSharePath?: FsTypes.LocalPath
   readonly startupShareText?: string
+  readonly startupPushPayload?: string
 }
 type _SetStartupFilePayload = {readonly startupFile: HiddenString}
 type _SetSystemDarkModePayload = {readonly dark: boolean}

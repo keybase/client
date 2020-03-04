@@ -20,10 +20,7 @@ import logger from '../logger'
 const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
   const initialTab = action === 'manage_settings' ? 'settings' : undefined
   const addMembers = action === 'add_or_invite' ? true : undefined
-  return [
-    RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
-    TeamsGen.createShowTeamByName({addMembers, initialTab, teamname}),
-  ]
+  return [TeamsGen.createShowTeamByName({addMembers, initialTab, teamname})]
 }
 
 const handleShowUserProfileLink = (username: string) => {
@@ -117,13 +114,6 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
 }
 
 const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
-  // If we're not logged in, trying to nav around the app as if we were will
-  // put people on broken screens -- instead just let people log in and retry.
-  if (!state.config.loggedIn) {
-    console.warn('Refusing to follow a deeplink when not logged in yet.')
-    return false
-  }
-
   if (action.payload.link.startsWith('web+stellar:')) {
     return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else if (action.payload.link.startsWith('keybase://')) {
