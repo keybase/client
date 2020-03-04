@@ -3247,16 +3247,17 @@ func (h *Server) SimpleSearchInboxConvNames(ctx context.Context, query string) (
 		case chat1.TeamType_NONE:
 			searchable := utils.SearchableRemoteConversationName(conv, username)
 			res = append(res, chat1.SimpleSearchInboxConvNamesHit{
-				Name:   searchable,
-				ConvID: conv.GetConvID(),
-				Parts:  strings.Split(searchable, ","),
+				Name:    searchable,
+				ConvID:  conv.GetConvID(),
+				Parts:   strings.Split(searchable, ","),
+				TlfName: utils.GetRemoteConvTLFName(conv),
 			})
 		case chat1.TeamType_SIMPLE, chat1.TeamType_COMPLEX:
 			res = append(res, chat1.SimpleSearchInboxConvNamesHit{
-				Name:     utils.SearchableRemoteConversationName(conv, username),
-				ConvID:   conv.GetConvID(),
-				IsTeam:   true,
-				TeamName: utils.GetRemoteConvTLFName(conv),
+				Name:    utils.SearchableRemoteConversationName(conv, username),
+				ConvID:  conv.GetConvID(),
+				IsTeam:  true,
+				TlfName: utils.GetRemoteConvTLFName(conv),
 			})
 		}
 	}

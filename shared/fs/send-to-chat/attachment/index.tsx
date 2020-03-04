@@ -31,7 +31,6 @@ const MobileSendAttachmentToChat = (props: Props) => {
   const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
   const isFromShareExtension = !!Container.getRouteProps(props, 'incomingShareItems', undefined)
   const dispatch = Container.useDispatch()
-  const username = Container.useSelector(state => state.config.username)
 
   const pathsFromIncomingShare = incomingShareItems
     // If it's a chat text, we fill it in the compose box instead of sending it
@@ -47,7 +46,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
       ?.map(({content}) => content)
       ?.join(' ') || ''
 
-  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, convName: string) => {
+  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
     text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
     if (sendPaths.length) {
       dispatch(
@@ -61,7 +60,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
                   path: p,
                 })),
                 selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
-                tlfName: `${username},${convName.split('#')[0]}`,
+                tlfName,
               },
               selected: 'chatAttachmentGetTitles',
             },
