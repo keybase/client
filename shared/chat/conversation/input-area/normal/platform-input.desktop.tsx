@@ -336,27 +336,6 @@ const EmojiPicker = ({
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      accessory: {
-        bottom: 1,
-        display: 'flex',
-        left: 0,
-        position: 'absolute',
-        right: 0,
-      },
-      accessoryContainer: {
-        position: 'relative',
-        width: '100%',
-      },
-      boomIcon: Styles.platformStyles({
-        common: {
-          left: 231,
-          marginTop: -30,
-          position: 'absolute',
-        },
-        isElectron: {
-          cursor: 'text',
-        },
-      }),
       cancelEditing: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
@@ -468,22 +447,6 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
       },
-      mentionCatcher: {
-        ...Styles.globalStyles.fillAbsolute,
-        backgroundColor: Styles.globalColors.transparent,
-      },
-      mentionHud: Styles.platformStyles({
-        common: {
-          borderRadius: 4,
-          height: 224,
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
-          width: '100%',
-        },
-        isElectron: {
-          ...Styles.desktopStyles.boxShadow,
-        },
-      }),
       walletsIcon: {
         alignSelf: 'flex-end',
         marginBottom: 6,

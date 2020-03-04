@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"errors"
 	"io"
 	"net/http"
 
@@ -46,3 +47,28 @@ func (a *APIArgRecorder) Post(mctx MetaContext, arg APIArg) (*APIRes, error) {
 func (a *APIArgRecorder) Reset() {
 	a.Args = nil
 }
+
+type ErrorMockAPI struct{}
+
+var _ API = (*ErrorMockAPI)(nil)
+
+var errMockAPI = errors.New("ErrorMockAPI error")
+
+func (n *ErrorMockAPI) Get(MetaContext, APIArg) (*APIRes, error)                { return nil, errMockAPI }
+func (n *ErrorMockAPI) GetDecode(MetaContext, APIArg, APIResponseWrapper) error { return errMockAPI }
+func (n *ErrorMockAPI) GetDecodeCtx(context.Context, APIArg, APIResponseWrapper) error {
+	return errMockAPI
+}
+func (n *ErrorMockAPI) GetResp(MetaContext, APIArg) (*http.Response, func(), error) {
+	return nil, noopFinisher, nil
+}
+func (n *ErrorMockAPI) Post(MetaContext, APIArg) (*APIRes, error)                { return nil, errMockAPI }
+func (n *ErrorMockAPI) PostJSON(MetaContext, APIArg) (*APIRes, error)            { return nil, errMockAPI }
+func (n *ErrorMockAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error { return errMockAPI }
+func (n *ErrorMockAPI) PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error {
+	return errMockAPI
+}
+func (n *ErrorMockAPI) PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error) {
+	return nil, errMockAPI
+}
+func (n *ErrorMockAPI) Delete(MetaContext, APIArg) (*APIRes, error) { return nil, errMockAPI }

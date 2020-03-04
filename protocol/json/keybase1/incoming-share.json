@@ -13,7 +13,8 @@
       "symbols": [
         "FILE_0",
         "TEXT_1",
-        "IMAGE_2"
+        "IMAGE_2",
+        "VIDEO_3"
       ]
     },
     {
@@ -26,7 +27,25 @@
         },
         {
           "type": "string",
-          "name": "payloadPath"
+          "name": "originalPath"
+        },
+        {
+          "type": "int",
+          "name": "originalSize"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "scaledPath"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "thumbnailPath"
         },
         {
           "type": [

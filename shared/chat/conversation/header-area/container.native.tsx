@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as Kb from '../../../common-adapters/mobile.native'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, Props} from './index.native'
 import * as Container from '../../../util/container'
@@ -8,27 +9,42 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
 import {getFullname} from '../../../constants/users'
 import * as Tabs from '../../../constants/tabs'
+import {withNavigation} from 'react-navigation'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
+  progress: any
 }
 
 const isPhoneOrEmail = (props: Props): boolean =>
   props.participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
 
-const HeaderBranch = (props: Props) => {
+const HeaderBranch = (props: Props & {progress: any}) => {
+  const {progress, ...rest} = props
+
+  let header: React.ReactNode = null
   if (props.teamName) {
-    return <ChannelHeader {...props} />
+    header = <ChannelHeader {...rest} />
+  } else if (isPhoneOrEmail(props)) {
+    header = <PhoneOrEmailHeader {...rest} />
+  } else {
+    header = <UsernameHeader {...rest} />
   }
-  if (isPhoneOrEmail(props)) {
-    return <PhoneOrEmailHeader {...props} />
-  }
-  return <UsernameHeader {...props} />
+  const opacity = 1
+  // Temp until nav5
+  //const p = Kb.NativeAnimated.add(progress.current, progress.next || 0)
+
+  //const opacity = p.interpolate({
+  //inputRange: [0, 1, 2],
+  //outputRange: [0, 1, 0],
+  //})
+
+  return <Kb.NativeAnimated.View style={{opacity, width: '100%'}}>{header}</Kb.NativeAnimated.View>
 }
 
-export default Container.connect(
+const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
-    const conversationIDKey = ownProps.conversationIDKey
+    const {conversationIDKey} = ownProps
     const meta = Constants.getMeta(state, conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const participants = meta.teamname ? null : participantInfo.name
@@ -96,6 +112,7 @@ export default Container.connect(
       onToggleThreadSearch,
       participants: participants || [],
       pendingWaiting,
+      progress: ownProps.progress,
       smallTeam,
       teamName,
       theirFullname,
@@ -103,3 +120,15 @@ export default Container.connect(
     }
   }
 )(HeaderBranch)
+
+const GrabConvoID = ({navigation}) => {
+  return (
+    <Connected
+      conversationIDKey={navigation.getParam('conversationIDKey', Constants.noConversationIDKey)}
+      progress={null}
+    />
+  )
+}
+const ConnectedWrapper = withNavigation(GrabConvoID)
+
+export default () => <ConnectedWrapper />

@@ -279,7 +279,7 @@ export default () => {
   win.loadURL(htmlFile)
   if (!disableSpellCheck) {
     win.webContents.session.setSpellCheckerDictionaryDownloadURL(
-      'https://keybase.io/dictionaries/hunspell_dictionaries.zip'
+      'https://keybase.io/dictionaries/hunspell_dictionaries.zip/'
     )
   }
 

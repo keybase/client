@@ -362,7 +362,7 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}) error
 		return true
 	}
 	// On mobile fresh start, apply the foreground wait
-	if b.G().GetAppType() == libkb.MobileAppType {
+	if b.G().IsMobileAppType() {
 		b.Debug(bgctx, "loop: delaying startup since on mobile")
 		b.clock.Sleep(b.resumeWait)
 	}
@@ -506,7 +506,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	if pagination.Num > 0 {
 		var err error
 		tv, err = b.G().ConvSource.Pull(ctx, job.ConvID, uid,
-			chat1.GetThreadReason_BACKGROUNDCONVLOAD, query, pagination)
+			chat1.GetThreadReason_BACKGROUNDCONVLOAD, nil, query, pagination)
 		if err != nil {
 			b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
 			if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {

@@ -20,6 +20,7 @@ import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
 import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
+import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
@@ -30,15 +31,20 @@ export const newRoutes = {
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
     : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
-  // TODO connect broken
   teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
 }
 
+const addWizardRoutes = {
+  teamAddToTeamFromWhere: {
+    getScreen: (): typeof TeamAddToTeamFromWhere => require('./add-members-wizard/add-from-where').default,
+  },
+}
+
 export const newModalRoutes = {
+  ...addWizardRoutes,
   contactRestricted: {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
   },
-  // TODO connect broken
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,

@@ -5404,11 +5404,11 @@ func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 }
 
 type SimpleSearchInboxConvNamesHit struct {
-	Name     string         `codec:"name" json:"name"`
-	ConvID   ConversationID `codec:"convID" json:"convID"`
-	IsTeam   bool           `codec:"isTeam" json:"isTeam"`
-	Parts    []string       `codec:"parts" json:"parts"`
-	TeamName string         `codec:"teamName" json:"teamName"`
+	Name    string         `codec:"name" json:"name"`
+	ConvID  ConversationID `codec:"convID" json:"convID"`
+	IsTeam  bool           `codec:"isTeam" json:"isTeam"`
+	Parts   []string       `codec:"parts" json:"parts"`
+	TlfName string         `codec:"tlfName" json:"tlfName"`
 }
 
 func (o SimpleSearchInboxConvNamesHit) DeepCopy() SimpleSearchInboxConvNamesHit {
@@ -5427,7 +5427,7 @@ func (o SimpleSearchInboxConvNamesHit) DeepCopy() SimpleSearchInboxConvNamesHit 
 			}
 			return ret
 		})(o.Parts),
-		TeamName: o.TeamName,
+		TlfName: o.TlfName,
 	}
 }
 
@@ -6112,6 +6112,7 @@ type GetThreadNonblockArg struct {
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Pgmode           GetThreadNonblockPgMode      `codec:"pgmode" json:"pgmode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
+	KnownRemotes     []string                     `codec:"knownRemotes" json:"knownRemotes"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }

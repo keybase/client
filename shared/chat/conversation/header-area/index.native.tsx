@@ -105,18 +105,20 @@ const UsernameHeader = (props: Props) => (
           {props.theirFullname}
         </Text>
       )}
-      <ConnectedUsernames
-        colorFollowing={true}
-        inline={false}
-        lineClamp={props.participants.length > 2 ? 2 : 1}
-        commaColor={Styles.globalColors.black_50}
-        type={props.participants.length > 2 || !!props.theirFullname ? 'BodyTiny' : 'BodyBig'}
-        usernames={props.participants}
-        containerStyle={styles.center}
-        onUsernameClicked={props.onShowProfile}
-        skipSelf={props.participants.length > 1}
-      />
-      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
+      <Box2 direction="horizontal" fullWidth={true} style={styles.nameMutedContainer}>
+        <ConnectedUsernames
+          colorFollowing={true}
+          inline={false}
+          lineClamp={props.participants.length > 2 ? 2 : 1}
+          commaColor={Styles.globalColors.black_50}
+          type={props.participants.length > 2 || !!props.theirFullname ? 'BodyTinyBold' : 'BodyBig'}
+          usernames={props.participants}
+          containerStyle={styles.center}
+          onUsernameClicked={props.onShowProfile}
+          skipSelf={props.participants.length > 1}
+        />
+        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
+      </Box2>
     </Box2>
   </Wrapper>
 )
@@ -161,6 +163,10 @@ const styles = Styles.styleSheetCreate(
       },
       lessMargins: {
         marginBottom: -5,
+      },
+      nameMutedContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
       },
       shhIcon: {marginLeft: Styles.globalMargins.xtiny},
       usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},

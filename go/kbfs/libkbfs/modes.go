@@ -31,6 +31,8 @@ func NewInitModeFromType(t InitModeType) InitMode {
 		return modeMemoryLimited{modeConstrained{modeDefault{}}}
 	case InitTestSearch:
 		return modeTestSearch{modeDefault{}}
+	case InitSingleOpWithQR:
+		return modeSingleOpWithQR{modeSingleOp{modeDefault{}}}
 	default:
 		panic(fmt.Sprintf("Unknown mode: %s", t))
 	}
@@ -75,6 +77,10 @@ func (md modeDefault) RekeyQueueSize() int {
 }
 
 func (md modeDefault) IsTestMode() bool {
+	return false
+}
+
+func (md modeDefault) IsSingleOp() bool {
 	return false
 }
 
@@ -233,6 +239,10 @@ func (mm modeMinimal) RekeyQueueSize() int {
 }
 
 func (mm modeMinimal) IsTestMode() bool {
+	return false
+}
+
+func (mm modeMinimal) IsSingleOp() bool {
 	return false
 }
 
@@ -455,6 +465,38 @@ func (mso modeSingleOp) InitialDelayForBackgroundWork() time.Duration {
 func (mso modeSingleOp) BackgroundWorkPeriod() time.Duration {
 	// No background work
 	return math.MaxInt64
+}
+
+func (mso modeSingleOp) IsSingleOp() bool {
+	return true
+}
+
+// Single-op mode with QR:
+
+type modeSingleOpWithQR struct {
+	modeSingleOp
+}
+
+func (msowq modeSingleOpWithQR) QuotaReclamationEnabled() bool {
+	return true
+}
+
+func (msowq modeSingleOpWithQR) QuotaReclamationPeriod() time.Duration {
+	// We might end up needing to make this much shorter, because it
+	// can take a while to get through all the revisions.  But for now
+	// I want to make sure it doesn't wake up too often and cause too
+	// much CPU.
+	return 1 * time.Minute
+}
+
+func (msowq modeSingleOpWithQR) QuotaReclamationMinUnrefAge() time.Duration {
+	return 1 * time.Minute
+}
+
+func (msowq modeSingleOpWithQR) QuotaReclamationMinHeadAge() time.Duration {
+	// In the case of indexing, another device will never run QR on
+	// the TLFs in question, but might as well set it to something...
+	return 2 * time.Minute
 }
 
 // Constrained mode:

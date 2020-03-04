@@ -7,6 +7,7 @@ package kbfsblock
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -47,6 +48,26 @@ func MakeGetBlockArg(tlfID tlf.ID, id ID, context Context) keybase1.GetBlockArg 
 		Bid:    makeIDCombo(id, context),
 		Folder: tlfID.String(),
 	}
+}
+
+// MakeGetBlockSizesArg builds a keybase1.GetBlockSizesArg from the
+// given params.
+func MakeGetBlockSizesArg(
+	tlfID tlf.ID, ids []ID, contexts []Context) (
+	keybase1.GetBlockSizesArg, error) {
+	if len(ids) != len(contexts) {
+		return keybase1.GetBlockSizesArg{}, fmt.Errorf(
+			"MakeGetBlockSizesArg: %d IDs but %d contexts",
+			len(ids), len(contexts))
+	}
+	arg := keybase1.GetBlockSizesArg{
+		Bids:   make([]keybase1.BlockIdCombo, len(ids)),
+		Folder: tlfID.String(),
+	}
+	for i, id := range ids {
+		arg.Bids[i] = makeIDCombo(id, contexts[i])
+	}
+	return arg, nil
 }
 
 // ParseGetBlockRes parses the given keybase1.GetBlockRes into its

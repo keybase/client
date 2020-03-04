@@ -53,7 +53,7 @@ export const TeamMemberRow = (props: Props) => {
   }
   if (props.fullName && active) {
     fullNameLabel = (
-      <Kb.Text style={styles.fullNameLabel} type="BodySmall">
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {props.fullName} •
       </Kb.Text>
     )
@@ -75,12 +75,12 @@ export const TeamMemberRow = (props: Props) => {
     const teamID = props.teamID
 
     const dispatch = Container.useDispatch()
-    const selectedMembers = Container.useSelector(state => state.teams.selectedMembers.get(teamID))
-    const anySelected = !!selectedMembers?.size
-    const selected = !!selectedMembers?.has(props.username)
+    const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
+    const anySelected = !!teamSelectedMembers?.size
+    const selected = !!teamSelectedMembers?.has(props.username)
 
     const onSelect = (selected: boolean) => {
-      dispatch(TeamsGen.createSetMemberSelected({selected, teamID, username: props.username}))
+      dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
     }
 
     const checkCircle = (
@@ -98,7 +98,7 @@ export const TeamMemberRow = (props: Props) => {
 
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-            <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
+            <Kb.ConnectedUsernames type="BodyBold" usernames={[props.username]} />
           </Kb.Box>
 
           <Kb.Box style={styles.nameContainerInner}>
@@ -227,7 +227,7 @@ export const TeamMemberRow = (props: Props) => {
           <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
           <Kb.Box style={styles.nameContainer}>
             <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-              <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
+              <Kb.ConnectedUsernames type="BodyBold" usernames={[props.username]} />
             </Kb.Box>
             <Kb.Box style={styles.nameContainerInner}>
               {fullNameLabel}

@@ -58,6 +58,93 @@ const load = () => {
     .add('Decrypt - Large', () => <Output operation={Constants.Operations.Decrypt} />)
     .add('Verify - Large', () => <Output operation={Constants.Operations.Verify} />)
 
+  Sb.storiesOf('Crypto/Output File Destination', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt, decrypt, sign, verify} = draftState.crypto
+
+        encrypt.inputType = 'file'
+        encrypt.input = new Container.HiddenString('/path/to/file.ext')
+        encrypt.outputStatus = undefined
+
+        sign.inputType = 'file'
+        encrypt.input = new Container.HiddenString('/path/to/file.encrypted.saltpack')
+        sign.outputStatus = undefined
+
+        decrypt.inputType = 'file'
+        encrypt.input = new Container.HiddenString('/path/to/file.ext')
+        decrypt.outputStatus = undefined
+
+        verify.inputType = 'file'
+        encrypt.input = new Container.HiddenString('/path/to/file.ext.signed.saltpack')
+        verify.outputStatus = undefined
+      })
+    )
+    .add('Encrypt', () => <Output operation={Constants.Operations.Encrypt} />)
+    .add('Decrypt', () => <Output operation={Constants.Operations.Decrypt} />)
+    .add('Sign', () => <Output operation={Constants.Operations.Sign} />)
+    .add('Verify', () => <Output operation={Constants.Operations.Verify} />)
+
+  Sb.storiesOf('Crypto/Output Progress', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt} = draftState.crypto
+        encrypt.outputStatus = undefined
+        encrypt.inProgress = true
+        encrypt.bytesComplete = 0
+        encrypt.bytesTotal = 1073741824
+      })
+    )
+    .add('Progress - None', () => <Output operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Progress', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt} = draftState.crypto
+        encrypt.outputStatus = undefined
+        encrypt.inProgress = true
+        encrypt.bytesComplete = 300
+        encrypt.bytesTotal = 1073741824
+      })
+    )
+    .add('Progrss - Byte', () => <Output operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Progress', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt} = draftState.crypto
+        encrypt.outputStatus = undefined
+        encrypt.inProgress = true
+        encrypt.bytesComplete = 850944
+        encrypt.bytesTotal = 1073741824
+      })
+    )
+    .add('Progrss - Kilobyte', () => <Output operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Progress', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt} = draftState.crypto
+        encrypt.outputStatus = undefined
+        encrypt.inProgress = true
+        encrypt.bytesComplete = 40789606
+        encrypt.bytesTotal = 1073741824
+      })
+    )
+    .add('Progrss - Megabyte', () => <Output operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Progress', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt} = draftState.crypto
+        encrypt.outputStatus = undefined
+        encrypt.inProgress = true
+        encrypt.bytesComplete = 1288490188
+        encrypt.bytesTotal = 1503238553
+      })
+    )
+    .add('Progrss - Gigabyte', () => <Output operation={Constants.Operations.Encrypt} />)
+
   Sb.storiesOf('Crypto/Output Bar', module)
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {

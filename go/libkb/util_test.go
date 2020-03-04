@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/clockwork"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -239,4 +241,61 @@ func TestSecureRandomRndRange(t *testing.T) {
 	r2, err := s.RndRange(0, 1000000000000)
 	require.NoError(t, err)
 	require.NotEqual(t, r1, r2)
+}
+
+func TestThrottleBatch(t *testing.T) {
+	clock := clockwork.NewFakeClock()
+	throttleBatchClock = clock
+	ch := make(chan int, 100)
+	handler := func(arg interface{}) {
+		v, ok := arg.(int)
+		require.True(t, ok)
+		ch <- v
+	}
+	getVal := func(expected int) {
+		select {
+		case v := <-ch:
+			require.Equal(t, expected, v)
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "no value received")
+		}
+	}
+	noVal := func() {
+		time.Sleep(10 * time.Millisecond)
+		select {
+		case <-ch:
+			require.Fail(t, "no value should have been received")
+		default:
+		}
+	}
+	batcher := func(batchedInt interface{}, singleInt interface{}) interface{} {
+		batched, ok := batchedInt.(int)
+		require.True(t, ok)
+		single, ok := singleInt.(int)
+		require.True(t, ok)
+		return batched + single
+	}
+	reset := func() interface{} {
+		return 0
+	}
+
+	f, cancel := ThrottleBatch(handler, batcher, reset, 200, true)
+	f(2)
+	getVal(2)
+	f(3)
+	f(2)
+	noVal()
+	clock.Advance(300 * time.Millisecond)
+	getVal(5)
+
+	clock.Advance(time.Hour)
+	f(2)
+	getVal(2)
+
+	f(2)
+	noVal()
+	cancel()
+	time.Sleep(100 * time.Millisecond)
+	clock.Advance(300 * time.Millisecond)
+	noVal()
 }

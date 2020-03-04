@@ -37,7 +37,7 @@ const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowPro
       icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
       body={
         <Kb.Box2 direction="vertical">
-          <Kb.ConnectedUsernames usernames={[username]} colorFollowing={true} type="BodySemibold" />
+          <Kb.ConnectedUsernames usernames={[username]} colorFollowing={true} type="BodyBold" />
           {lower}
         </Kb.Box2>
       }

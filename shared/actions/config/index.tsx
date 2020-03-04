@@ -1,14 +1,16 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
+import * as Flow from '../../util/flow'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
-import * as Flow from '../../util/flow'
 import * as SettingsGen from '../settings-gen'
 import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
+import * as RouteTreeGen from '../route-tree-gen'
+import * as DeeplinksGen from '../deeplinks-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
@@ -16,7 +18,6 @@ import * as SettingsConstants from '../../constants/settings'
 import * as LoginConstants from '../../constants/login'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
-import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as Platform from '../../constants/platform'
@@ -411,6 +412,10 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
   if (!state.config.startupDetailsLoaded) {
     return
   }
+  // bail if not bootstrapped
+  if (state.config.daemonHandshakeState !== 'done') {
+    return
+  }
 
   return routeToInitialScreen(state)
 }
@@ -465,7 +470,9 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
+          pushBody: state.config.startupPushPayload,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
+          skipNav: true,
         }),
       ]
     }
@@ -479,8 +486,44 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       ]
     }
 
+    // A saltpack file open
+    if (state.config.startupFile.stringValue() && Platform.isElectron) {
+      logger.info('Saltpack file open after log in')
+      return DeeplinksGen.createSaltpackFileOpen({
+        path: state.config.startupFile,
+      })
+    }
+
     // A deep link
     if (state.config.startupLink) {
+      if (Platform.isIOS && state.config.startupLink === 'keybase://incoming-share') {
+        return [
+          RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+          RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+          RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']}),
+        ]
+      }
+
+      if (
+        ['keybase://private', 'keybase://public', 'keybase://team'].some(prefix =>
+          state.config.startupLink.startsWith(prefix)
+        )
+      ) {
+        try {
+          const decoded = decodeURIComponent(state.config.startupLink.substr('keybase://'.length))
+          return [
+            RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+            RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {path: `/keybase/${decoded}`}, selected: 'main'}],
+            }),
+          ]
+        } catch (e) {
+          logger.warn("Coudn't decode KBFS URI")
+          return []
+        }
+      }
+
       try {
         const url = new URL(state.config.startupLink)
         const username = Constants.urlToUsername(url)

@@ -32,22 +32,24 @@ export type TextType = 'cipher' | 'plain'
 export type Operations = 'encrypt' | 'decrypt' | 'sign' | 'verify'
 export type InputTypes = 'text' | 'file'
 export type OutputType = 'text' | 'file'
-export type OutputStatus = 'success' | 'error'
+export type OutputStatus = 'success' | 'pending' | 'error'
 
 export type CommonState = {
   bytesComplete: number
   bytesTotal: number
-  warningMessage: HiddenString
   errorMessage: HiddenString
+  inProgress: boolean
   input: HiddenString
   inputType: InputTypes
-  // to ensure what the user types matches the input
   output: HiddenString
-  outputSenderUsername?: HiddenString
+  outputFileDestination: HiddenString
   outputSenderFullname?: HiddenString
+  outputSenderUsername?: HiddenString
   outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType
+  warningMessage: HiddenString
+  // to ensure what the user types matches the input
   outputValid: boolean
 }
 

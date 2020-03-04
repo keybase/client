@@ -21,7 +21,6 @@
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComps" />
       <ComponentRef Id="GUIShortCutComponent" />
-      <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
       <ComponentGroupRef Id="DokanInstallerComponents" />
@@ -118,20 +117,6 @@
           <RegistryValue Name="prompterexe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
         <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
-      </Component>
-    </ComponentGroup>
-  </Fragment>
-  <Fragment>
-    <ComponentGroup Id="StartupShortcuts" Directory="StartupFolder">
-      <Component Id="AppShortCutStartUpComponent" Guid="{648c099c-748c-4e54-986a-ebd48e5cc0cb}">
-        <Shortcut Id="AppShortCutStartUp" Name="KeybaseStartup"
-                  Description="Start Keybase at boot"
-                  Target="[INSTALLFOLDER]keybaserq.exe"
-                  Arguments="keybase.exe --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog"
-                  WorkingDirectory="INSTALLFOLDER"/>
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
-        </RegistryKey>
       </Component>
     </ComponentGroup>
   </Fragment>

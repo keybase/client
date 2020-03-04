@@ -69,11 +69,69 @@ const darwinCopyToChatTempUploadFile = isDarwin
       throw new Error('unsupported platform')
     }
 
+// Expose native file picker to components.
+// Improved experience over HTML <input type='file' />
+const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
+  try {
+    const {title, message, buttonLabel, allowDirectories, allowFiles, allowMultiselect, defaultPath} = opts
+    const allowedProperties = [
+      ...(allowFiles !== false ? ['openFile' as const] : []),
+      ...(allowDirectories ? ['openDirectory' as const] : []),
+      ...(allowMultiselect ? ['multiSelections' as const] : []),
+    ]
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const result = await Electron.remote.dialog.showOpenDialog(
+      Electron.remote.getCurrentWindow(),
+      allowedOptions
+    )
+    if (!result) return
+    if (result.canceled) return
+    return result.filePaths
+  } catch (err) {
+    console.warn('Electron failed to launch showOpenDialog')
+    return
+  }
+}
+
+const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
+  try {
+    const {title, message, buttonLabel, defaultPath} = opts
+    const allowedProperties = ['showOverwriteConfirmation' as const]
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const result = await Electron.remote.dialog.showSaveDialog(
+      Electron.remote.getCurrentWindow(),
+      allowedOptions
+    )
+    if (!result) return
+    if (result.canceled) return
+    return result.filePath
+  } catch (err) {
+    console.warn('Electron failed to launch showSaveDialog')
+    return
+  }
+}
+
 target.KB = {
   __dirname: __dirname,
   electron: {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
+    },
+    dialog: {
+      showOpenDialog,
+      showSaveDialog,
     },
   },
   kb: {

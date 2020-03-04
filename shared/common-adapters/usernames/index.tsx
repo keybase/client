@@ -127,7 +127,7 @@ const UsernameText = (props: Props) => {
         )
 
         return props.withProfileCardPopup && WithProfileCardPopup ? (
-          <WithProfileCardPopup key={u.username} username={u.username}>
+          <WithProfileCardPopup key={u.username} username={u.username} ellipsisStyle={styles.inlineStyle}>
             {renderText}
           </WithProfileCardPopup>
         ) : (

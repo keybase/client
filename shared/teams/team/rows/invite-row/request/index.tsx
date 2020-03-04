@@ -39,7 +39,7 @@ const TeamRequestRowOld = (props: Props) => {
       <Kb.ClickableBox style={styles.clickContainer} onClick={() => onOpenProfile(username)}>
         <Kb.Avatar username={username} size={Styles.isMobile ? 48 : 32} />
         <Kb.Box style={styles.userDetails}>
-          <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+          <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={[username]} />
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
             <Kb.Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
           </Kb.Box>
@@ -115,7 +115,7 @@ const TeamRequestRowNew = (props: Props) => {
       body={
         <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+            <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={[username]} />
             <Kb.Box2 direction="horizontal">
               <Kb.Meta
                 title="please decide"

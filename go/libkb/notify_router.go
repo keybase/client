@@ -67,7 +67,7 @@ type NotifyListener interface {
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
 	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay)
-	ChatParticipantsInfo(convID chat1.ConversationID, participants []chat1.UIParticipant)
+	ChatParticipantsInfo(participants map[chat1.ConvIDStr][]chat1.UIParticipant)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -185,8 +185,8 @@ func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.Con
 }
 func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)          {}
 func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, chat1.WelcomeMessageDisplay) {}
-func (n *NoopNotifyListener) ChatParticipantsInfo(convID chat1.ConversationID,
-	participants []chat1.UIParticipant) {
+func (n *NoopNotifyListener) ChatParticipantsInfo(
+	participants map[chat1.ConvIDStr][]chat1.UIParticipant) {
 }
 
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
@@ -1487,7 +1487,7 @@ func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
 }
 
 func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
-	convID chat1.ConversationID, participants []chat1.UIParticipant) {
+	participants map[chat1.ConvIDStr][]chat1.UIParticipant) {
 	if n == nil {
 		return
 	}
@@ -1496,17 +1496,14 @@ func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
 			go func() {
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatParticipantsInfo(ctx, chat1.ChatParticipantsInfoArg{
-					ConvID:       convID,
-					Participants: participants,
-				})
+				}).ChatParticipantsInfo(ctx, participants)
 			}()
 		}
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.ChatParticipantsInfo(convID, participants)
+		listener.ChatParticipantsInfo(participants)
 	})
 }
 
@@ -2695,14 +2692,14 @@ func (n *NotifyRouter) HandleSaltpackOperationStart(ctx context.Context, opType 
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Saltpack {
-			go func() {
-				_ = (keybase1.NotifySaltpackClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).SaltpackOperationStart(context.Background(), keybase1.SaltpackOperationStartArg{
-					OpType:   opType,
-					Filename: filename,
-				})
-			}()
+			// note there's no goroutine here on purpose
+			// (notification ordering)
+			_ = (keybase1.NotifySaltpackClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).SaltpackOperationStart(context.Background(), keybase1.SaltpackOperationStartArg{
+				OpType:   opType,
+				Filename: filename,
+			})
 		}
 		return true
 	})
@@ -2718,16 +2715,16 @@ func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opTy
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Saltpack {
-			go func() {
-				_ = (keybase1.NotifySaltpackClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).SaltpackOperationProgress(context.Background(), keybase1.SaltpackOperationProgressArg{
-					OpType:        opType,
-					Filename:      filename,
-					BytesComplete: bytesComplete,
-					BytesTotal:    bytesTotal,
-				})
-			}()
+			// note there's no goroutine here on purpose
+			// (notification ordering)
+			_ = (keybase1.NotifySaltpackClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).SaltpackOperationProgress(context.Background(), keybase1.SaltpackOperationProgressArg{
+				OpType:        opType,
+				Filename:      filename,
+				BytesComplete: bytesComplete,
+				BytesTotal:    bytesTotal,
+			})
 		}
 		return true
 	})
@@ -2743,14 +2740,14 @@ func (n *NotifyRouter) HandleSaltpackOperationDone(ctx context.Context, opType k
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Saltpack {
-			go func() {
-				_ = (keybase1.NotifySaltpackClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).SaltpackOperationDone(context.Background(), keybase1.SaltpackOperationDoneArg{
-					OpType:   opType,
-					Filename: filename,
-				})
-			}()
+			// note there's no goroutine here on purpose
+			// (notification ordering)
+			_ = (keybase1.NotifySaltpackClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).SaltpackOperationDone(context.Background(), keybase1.SaltpackOperationDoneArg{
+				OpType:   opType,
+				Filename: filename,
+			})
 		}
 		return true
 	})

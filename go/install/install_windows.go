@@ -374,7 +374,18 @@ func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
 	return nil, fmt.Errorf("Cannot use lsof on Windows.")
 }
 
+// delete this function and calls to it if present after 2022
+func deleteDeprecatedFileIfPresent() {
+	// this file is no longer how we do things, and if it's present (which it shouldn't be) it could
+	// cause unexpected behavior
+	if appDataDir, err := libkb.AppDataDir(); err == nil {
+		autostartLinkPath := filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")
+		_ = os.Remove(autostartLinkPath)
+	}
+}
+
 func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
+	deleteDeprecatedFileIfPresent()
 	status, err := autostartStatus()
 	if err != nil {
 		return keybase1.OnLoginStartupStatus_UNKNOWN

@@ -15,6 +15,7 @@ import (
 type cmdWotList struct {
 	libkb.Contextified
 	username *string
+	ownWot   bool
 }
 
 func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -28,7 +29,8 @@ func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "list", c)
 		},
-		Flags: []cli.Flag{},
+		Flags:    []cli.Flag{},
+		Unlisted: true,
 	}
 }
 
@@ -36,9 +38,11 @@ func (c *cmdWotList) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 1 {
 		return errors.New("too many arguments")
 	}
+	c.ownWot = true
 	if len(ctx.Args()) == 1 {
 		username := ctx.Args()[0]
 		c.username = &username
+		c.ownWot = false
 	}
 	return nil
 }
@@ -60,19 +64,34 @@ func (c *cmdWotList) Run() error {
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
 	}
-	line("Web-Of-Trust")
+	var targetUsername string
+	if c.ownWot {
+		targetUsername = c.G().Env.GetUsername().String()
+	} else {
+		targetUsername = *c.username
+	}
+	line("Web-Of-Trust for %s", targetUsername)
+	line("-------------------------------")
 	if len(res) == 0 {
 		line("no attestations to show")
 		return nil
 	}
-	line("  STATUS   | VOUCHER : ATTESTATION")
 	for _, vouch := range res {
 		vouchTexts := strings.Join(vouch.VouchTexts, ", ")
 		voucher, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Voucher.Uid)
 		if err != nil {
 			return fmt.Errorf("error looking up username for vouch: %s", err.Error())
 		}
-		line("%10s | %s: \"%s\"", vouch.Status, voucher, vouchTexts)
+		line("Voucher: %s", voucher)
+		line("Attestation: \"%s\"", vouchTexts)
+		line("Status: %s", vouch.Status)
+		if c.ownWot && vouch.Status == keybase1.WotStatusType_PROPOSED {
+			line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
+		}
+		if vouch.Confidence != nil {
+			line("Additional Details: %+v", *vouch.Confidence)
+		}
+		line("-------------------------------")
 	}
 	return nil
 }

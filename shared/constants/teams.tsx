@@ -170,6 +170,7 @@ const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
+  channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
   errorInChannelCreation: '',
@@ -186,8 +187,6 @@ const emptyState: Types.State = {
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
-  selectedChannels: new Map(),
-  selectedMembers: new Map(),
   subteamFilter: '',
   subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
@@ -209,6 +208,8 @@ const emptyState: Types.State = {
   teamNameToLoadingInvites: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
+  teamSelectedChannels: new Map(),
+  teamSelectedMembers: new Map(),
   teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
@@ -812,6 +813,26 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
+
+export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
+  const subteamsAll = getTeamDetails(state, teamID).subteams
+  let subteamsNotIn: Array<Types.TeamMeta> = []
+  let subteamsIn: Array<Types.TeamMeta> = []
+  subteamsAll.forEach(subteamID => {
+    const subteamDetails = getTeamDetails(state, subteamID)
+    const subteamMeta = getTeamMeta(state, subteamID)
+    const memberInSubteam = subteamDetails.members.has(username)
+    if (memberInSubteam) {
+      subteamsIn.push(subteamMeta)
+    } else {
+      subteamsNotIn.push(subteamMeta)
+    }
+  })
+  return {
+    subteamsIn,
+    subteamsNotIn,
+  }
+}
 
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>

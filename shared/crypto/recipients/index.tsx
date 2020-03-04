@@ -10,15 +10,17 @@ const placeholder = 'Search people'
 
 const Recipients = () => {
   const dispatch = Container.useDispatch()
-  // Store
-  const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
 
-  // Actions
+  const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
+  const inProgress = Container.useSelector(state => state.crypto.encrypt.inProgress)
+
   const onAddRecipients = () => {
+    if (inProgress) return
     dispatch(appendEncryptRecipientsBuilder())
   }
 
   const onClearRecipients = () => {
+    if (inProgress) return
     dispatch(CryptoGen.createClearRecipients({operation: Constants.Operations.Encrypt}))
   }
 
@@ -29,10 +31,11 @@ const Recipients = () => {
           To:
         </Kb.Text>
         {recipients?.length ? (
-          <Kb.ConnectedUsernames type="BodySemibold" usernames={recipients} colorFollowing={true} />
+          <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (
           <>
             <Kb.PlainInput
+              disabled={inProgress}
               placeholder={placeholder}
               allowFontScaling={false}
               onFocus={onAddRecipients}
@@ -45,6 +48,7 @@ const Recipients = () => {
             type="iconfont-remove"
             boxStyle={styles.removeRecipients}
             color={Styles.globalColors.black_20}
+            hoverColor={inProgress ? Styles.globalColors.black_20 : undefined}
             onClick={onClearRecipients}
           />
         ) : null}

@@ -16,6 +16,11 @@ protocol block {
     BlockStatus status;
   }
 
+  record GetBlockSizesRes {
+    array<int> sizes;
+    array<BlockStatus> statuses;
+  }
+
   // Fixed-size nonce to identify a reference to a block
   fixed BlockRefNonce(8);
 
@@ -58,6 +63,7 @@ protocol block {
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
   void putBlockAgain(string folder, BlockReference ref, string blockKey, bytes buf);
   GetBlockRes getBlock(BlockIdCombo bid, string folder, boolean sizeOnly);
+  GetBlockSizesRes getBlockSizes(array<BlockIdCombo> bids, string folder);
 
   void addReference(string folder, BlockReference ref);
   void delReference(string folder, BlockReference ref);

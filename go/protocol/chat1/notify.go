@@ -1071,8 +1071,7 @@ type ChatWelcomeMessageLoadedArg struct {
 }
 
 type ChatParticipantsInfoArg struct {
-	ConvID       ConversationID  `codec:"convID" json:"convID"`
-	Participants []UIParticipant `codec:"participants" json:"participants"`
+	Participants map[ConvIDStr][]UIParticipant `codec:"participants" json:"participants"`
 }
 
 type NotifyChatInterface interface {
@@ -1100,7 +1099,7 @@ type NotifyChatInterface interface {
 	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
 	ChatConvUpdate(context.Context, ChatConvUpdateArg) error
 	ChatWelcomeMessageLoaded(context.Context, ChatWelcomeMessageLoadedArg) error
-	ChatParticipantsInfo(context.Context, ChatParticipantsInfoArg) error
+	ChatParticipantsInfo(context.Context, map[ConvIDStr][]UIParticipant) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1478,7 +1477,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatParticipantsInfoArg)(nil), args)
 						return
 					}
-					err = i.ChatParticipantsInfo(ctx, typedArgs[0])
+					err = i.ChatParticipantsInfo(ctx, typedArgs[0].Participants)
 					return
 				},
 			},
@@ -1614,7 +1613,8 @@ func (c NotifyChatClient) ChatWelcomeMessageLoaded(ctx context.Context, __arg Ch
 	return
 }
 
-func (c NotifyChatClient) ChatParticipantsInfo(ctx context.Context, __arg ChatParticipantsInfoArg) (err error) {
+func (c NotifyChatClient) ChatParticipantsInfo(ctx context.Context, participants map[ConvIDStr][]UIParticipant) (err error) {
+	__arg := ChatParticipantsInfoArg{Participants: participants}
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatParticipantsInfo", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

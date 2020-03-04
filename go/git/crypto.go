@@ -81,19 +81,13 @@ func (c *Crypto) Unbox(ctx context.Context, teamSpec keybase1.TeamIDWithVisibili
 	}
 
 	public := teamSpec.Visibility == keybase1.TLFVisibility_PUBLIC
-
-	var needKeyGeneration keybase1.PerTeamKeyGeneration
-	if !public {
-		needKeyGeneration = metadata.Gen
-	}
-	team, err := c.loadTeam(ctx, teamSpec, needKeyGeneration)
-	if err != nil {
-		return nil, err
+	if public != teamSpec.TeamID.IsPublic() {
+		return nil, libkb.NewTeamVisibilityError(public, teamSpec.TeamID.IsPublic())
 	}
 
 	key := publicCryptKey
 	if !public {
-		key, err = team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
+		key, err = c.fastLoadKeyAtGeneration(ctx, teamSpec, metadata)
 		if err != nil {
 			return nil, err
 		}
@@ -107,6 +101,33 @@ func (c *Crypto) Unbox(ctx context.Context, teamSpec keybase1.TeamIDWithVisibili
 		return nil, libkb.DecryptOpenError{}
 	}
 	return plaintext, nil
+}
+
+func (c *Crypto) fastLoadKeyAtGeneration(ctx context.Context, teamSpec keybase1.TeamIDWithVisibility, metadata *keybase1.EncryptedGitMetadata) (key keybase1.TeamApplicationKey, err error) {
+	teamID := teamSpec.TeamID
+	arg := keybase1.FastTeamLoadArg{
+		ID:                   teamID,
+		Public:               false,
+		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_GIT_METADATA},
+		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{metadata.Gen},
+	}
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	res, err := mctx.G().GetFastTeamLoader().Load(mctx, arg)
+	if err != nil {
+		return key, err
+	}
+	n := len(res.ApplicationKeys)
+	if n != 1 {
+		return key, fmt.Errorf("wrong number of keys back from FTL; wanted 1 but got %d", n)
+	}
+	if metadata.Gen > 0 && res.ApplicationKeys[0].KeyGeneration != metadata.Gen {
+		return key, fmt.Errorf("wrong generation back from FTL; wanted %d but got %d", metadata.Gen, res.ApplicationKeys[0].KeyGeneration)
+	}
+
+	if res.ApplicationKeys[0].Application != keybase1.TeamApplication_GIT_METADATA {
+		return key, fmt.Errorf("wrong application; wanted %d but got %d", keybase1.TeamApplication_GIT_METADATA, res.ApplicationKeys[0].Application)
+	}
+	return res.ApplicationKeys[0], nil
 }
 
 func (c *Crypto) loadTeam(ctx context.Context, teamSpec keybase1.TeamIDWithVisibility, needKeyGeneration keybase1.PerTeamKeyGeneration) (*teams.Team, error) {

@@ -28,9 +28,11 @@ func NewIncomingShareHandler(xp rpc.Transporter, g *libkb.GlobalContext) *Incomi
 
 // shareItemJSON is for json parsing only.
 type shareItemJSON struct {
-	Type        string `json:"type"`
-	PayloadPath string `json:"payloadPath"`
-	Content     string `json:"content"`
+	Type          string `json:"type"`
+	OriginalPath  string `json:"originalPath"`
+	ScaledPath    string `json:"scaledPath"`
+	ThumbnailPath string `json:"thumbnailPath"`
+	Content       string `json:"content"`
 }
 
 func strPtr(str string) *string {
@@ -61,13 +63,22 @@ loop:
 			t = keybase1.IncomingShareType_TEXT
 		case "image":
 			t = keybase1.IncomingShareType_IMAGE
+		case "video":
+			t = keybase1.IncomingShareType_VIDEO
 		default:
 			continue loop
 		}
+		fi, err := os.Stat(jsonItem.OriginalPath)
+		if err != nil {
+			return nil, err
+		}
 		items = append(items, keybase1.IncomingShareItem{
-			Type:        t,
-			PayloadPath: jsonItem.PayloadPath,
-			Content:     strPtr(jsonItem.Content),
+			Type:          t,
+			OriginalPath:  jsonItem.OriginalPath,
+			OriginalSize:  int(fi.Size()),
+			ScaledPath:    strPtr(jsonItem.ScaledPath),
+			ThumbnailPath: strPtr(jsonItem.ThumbnailPath),
+			Content:       strPtr(jsonItem.Content),
 		})
 	}
 	return items, nil
