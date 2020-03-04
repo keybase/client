@@ -14,6 +14,7 @@ import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
+import {infoPanelWidthTablet} from '../../info-panel/common'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -674,6 +675,7 @@ const styles = Styles.styleSheetCreate(
       }),
       suggestionOverlay: Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+        isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
       }),
       suggestionSpinnerStyle: Styles.platformStyles({
         common: {
