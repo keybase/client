@@ -598,7 +598,7 @@ func (tx *AddMemberTx) UseInviteByID(ctx context.Context, g *libkb.GlobalContext
 		return fmt.Errorf("failed to find invite being used")
 	}
 
-	alreadyUsedBeforeTransaction, err := tx.team.chain().GetNumberOfUsesForMultipleUseInviteID(inviteID)
+	alreadyUsedBeforeTransaction, err := tx.team.chain().GetNumberOfUsesForMultiUseInviteID(inviteID)
 	if err != nil {
 		return err
 	}

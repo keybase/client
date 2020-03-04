@@ -207,14 +207,35 @@ func (t TeamSigChainState) GetUserLastJoinTime(user keybase1.UserVersion) (time 
 	return t.inner.GetUserLastJoinTime(user)
 }
 
-func (t *TeamSigChainState) GetNumberOfUsesForMultipleUseInviteID(inviteID keybase1.TeamInviteID) (n int, err error) {
+func IsMultiUseInvite(invite keybase1.TeamInvite) (bool, error) {
+	category, err := invite.Type.C()
+	if err != nil {
+		return false, err
+	}
+	if category != keybase1.TeamInviteCategory_SEITAN {
+		return false, nil
+	}
+	pkey, err := SeitanDecodePKey(string(invite.Name))
+	if err != nil {
+		return false, err
+	}
+	return pkey.Version == SeitanVersionInvitelink, nil
+}
+
+func (t *TeamSigChainState) GetNumberOfUsesForMultiUseInviteID(inviteID keybase1.TeamInviteID) (n int, err error) {
 	invite, found := t.FindActiveInviteByID(inviteID)
 	if !found {
 		return n, libkb.NotFoundError{}
 	}
-	if invite.MaxUses == nil {
-		return n, fmt.Errorf("cannot get number of uses for a non-multiple-use invite")
+
+	isMultiUse, err := IsMultiUseInvite(invite)
+	if err != nil {
+		return n, err
 	}
+	if !isMultiUse {
+		return n, fmt.Errorf("inviteID %q does not use UsedInvites", inviteID)
+	}
+
 	return len(t.inner.UsedInvites[inviteID]), nil
 }
 

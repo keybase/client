@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
@@ -585,7 +584,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
 
-		version, err := verifySeitanSingle(ctx, g, team, invite, seitan)
+		err := verifySeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
 			continue
@@ -598,10 +597,16 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return err
 		}
 
+		isMultiUse, err := IsMultiUseInvite(invite)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Error checking whether invite is multiuse: %s", isMultiUse)
+			continue
+		}
+
 		if currentRole.IsOrAbove(invite.Role) {
 			g.Log.CDebugf(ctx, "User already has same or higher role.")
-			if invite.MaxUses == nil {
-				g.Log.CDebugf(ctx, "User already has same or higher role; since MaxUses was not specified, cancelling invite.")
+			if !isMultiUse {
+				g.Log.CDebugf(ctx, "User already has same or higher role; since is not a multiuse invite, cancelling invite.")
 				tx.CancelInvite(invite.Id, uv.Uid)
 			}
 			continue
@@ -618,15 +623,12 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		// PUKless user accepts seitan token invite status is set to
 		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
 		// PUK and status is set to ACCEPTED.
-		switch version {
-		case SeitanVersion1, SeitanVersion2:
-			g.Log.CDebugf(ctx, "Completing invite %q", invite.Id)
-			err = tx.CompleteInviteByID(ctx, invite.Id, uv)
-		case SeitanVersionInvitelink:
+		if isMultiUse {
 			g.Log.CDebugf(ctx, "Using invite %q", invite.Id)
 			err = tx.UseInviteByID(ctx, g, invite.Id, uv)
-		default:
-			err = fmt.Errorf("unknown seitan version")
+		} else {
+			g.Log.CDebugf(ctx, "Completing invite %q", invite.Id)
+			err = tx.CompleteInviteByID(ctx, invite.Id, uv)
 		}
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to complete or use invite: %v", err)
@@ -660,40 +662,40 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	return nil
 }
 
-func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (version SeitanVersion, err error) {
+func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	category, err := invite.Type.C()
 	if err != nil {
-		return version, err
+		return err
 	}
 
 	if category != keybase1.TeamInviteCategory_SEITAN {
-		return version, fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
+		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
 	}
 
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
-		return version, err
+		return err
 	}
 
 	keyAndLabel, err := pkey.DecryptKeyAndLabel(ctx, team)
 	if err != nil {
-		return version, err
+		return err
 	}
 
 	labelversion, err := keyAndLabel.V()
 	if err != nil {
-		return version, fmt.Errorf("while parsing KeyAndLabel: %s", err)
+		return fmt.Errorf("while parsing KeyAndLabel: %s", err)
 	}
 
 	switch labelversion {
 	case keybase1.SeitanKeyAndLabelVersion_V1:
-		return SeitanVersion1, verifySeitanSingleV1(keyAndLabel.V1().I, invite, seitan)
+		return verifySeitanSingleV1(keyAndLabel.V1().I, invite, seitan)
 	case keybase1.SeitanKeyAndLabelVersion_V2:
-		return SeitanVersion2, verifySeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
+		return verifySeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
 	case keybase1.SeitanKeyAndLabelVersion_Invitelink:
-		return SeitanVersionInvitelink, verifySeitanSingleInvitelink(ctx, g, keyAndLabel.Invitelink().I, invite, seitan)
+		return verifySeitanSingleInvitelink(ctx, g, keyAndLabel.Invitelink().I, invite, seitan)
 	default:
-		return version, fmt.Errorf("unknown KeyAndLabel version: %v", version)
+		return fmt.Errorf("unknown KeyAndLabel version: %v", labelversion)
 	}
 }
 
@@ -776,7 +778,6 @@ func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, i
 		return errors.New("invite ID mismatch (seitan invitelink)")
 	}
 
-	g.Log.CWarningf(ctx, "@@@ CLKR", spew.Sdump(sikey[:]), seitan)
 	akey, _, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
 	if err != nil {
 		return err
