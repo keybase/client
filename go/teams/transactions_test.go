@@ -132,30 +132,20 @@ func TestPreprocessAssertions(t *testing.T) {
 	defer tc.Cleanup()
 
 	tests := []struct {
-		s             string
-		isServerTrust bool
-		hasSingle     bool
-		isError       bool
+		s         string
+		isEmail   bool
+		hasSingle bool
+		isError   bool
 	}{
 		{"bob", false, true, false},
 		{"bob+bob@twitter", false, false, false},
 		{"[bob@gmail.com]@email", true, true, false},
 		{"[bob@gmail.com]@email+bob", false, false, true},
-		{"18005558638@phone", true, true, false},
-		{"18005558638@phone+alice", false, false, true},
-		{"18005558638@phone+[bob@gmail.com]@email", false, false, true},
 	}
 	for _, test := range tests {
-		t.Logf("Testing: %s", test.s)
-		isServerTrust, single, full, err := preprocessAssertion(libkb.NewMetaContextForTest(tc), test.s)
-		require.Equal(t, isServerTrust, test.isServerTrust)
+		isEmail, single, _, err := preprocessAssertion(libkb.NewMetaContextForTest(tc), test.s)
+		require.Equal(t, isEmail, test.isEmail)
 		require.Equal(t, (single != nil), test.hasSingle)
-		if test.isError {
-			require.Error(t, err)
-			require.Nil(t, full)
-		} else {
-			require.NoError(t, err)
-			require.NotNil(t, full)
-		}
+		require.Equal(t, (err != nil), test.isError)
 	}
 }

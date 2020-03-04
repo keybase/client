@@ -3261,15 +3261,15 @@ func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
 }
 
 type UserRolePair struct {
-	Assertion   string           `codec:"assertion" json:"assertion"`
-	Role        TeamRole         `codec:"role" json:"role"`
-	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
+	AssertionOrEmail string           `codec:"assertionOrEmail" json:"assertionOrEmail"`
+	Role             TeamRole         `codec:"role" json:"role"`
+	BotSettings      *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
 func (o UserRolePair) DeepCopy() UserRolePair {
 	return UserRolePair{
-		Assertion: o.Assertion,
-		Role:      o.Role.DeepCopy(),
+		AssertionOrEmail: o.AssertionOrEmail,
+		Role:             o.Role.DeepCopy(),
 		BotSettings: (func(x *TeamBotSettings) *TeamBotSettings {
 			if x == nil {
 				return nil

@@ -1663,33 +1663,28 @@ func TestBatchAddMembersCLI(t *testing.T) {
 
 	dodo.proveRooter()
 	users := []keybase1.UserRolePair{
-		{Assertion: bob.username, Role: keybase1.TeamRole_ADMIN},
-		{Assertion: ciara.username, Role: keybase1.TeamRole_WRITER},
-		{Assertion: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
-		{Assertion: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
-		{Assertion: john.username + "@keybase", Role: keybase1.TeamRole_READER},
-		{Assertion: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
-		{Assertion: botua.username, Role: keybase1.TeamRole_BOT},
-		{Assertion: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
+		{AssertionOrEmail: bob.username, Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: ciara.username, Role: keybase1.TeamRole_WRITER},
+		{AssertionOrEmail: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
+		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
+		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
 	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.NoError(t, err)
-	require.Len(t, added, 7)
-	require.Len(t, notAdded, 1)
-	require.Equal(t, keybase1.User{
-		Uid:      ciara.uid,
-		Username: ciara.username,
-	}, notAdded[0])
+	require.Equal(t, 6, len(added))
+	require.Equal(t, 1, len(notAdded))
 
 	team := alice.loadTeamByID(teamID, true /* admin */)
 	members, err := team.Members()
 	require.NoError(t, err)
-	require.Equal(t, []keybase1.UserVersion{{Uid: alice.uid, EldestSeqno: 1}}, members.Owners)
-	require.Equal(t, []keybase1.UserVersion{{Uid: bob.uid, EldestSeqno: 1}}, members.Admins)
-	require.Equal(t, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}}, members.Writers)
+	require.Equal(t, members.Owners, []keybase1.UserVersion{{Uid: alice.uid, EldestSeqno: 1}})
+	require.Equal(t, members.Admins, []keybase1.UserVersion{{Uid: bob.uid, EldestSeqno: 1}})
+	require.Equal(t, members.Writers, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}})
 	require.Len(t, members.Readers, 0)
-	require.Equal(t, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}}, members.Bots)
-	require.Equal(t, []keybase1.UserVersion{{Uid: restrictedBotua.uid, EldestSeqno: 1}}, members.RestrictedBots)
+	require.Equal(t, members.Bots, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}})
+	require.Equal(t, members.RestrictedBots, []keybase1.UserVersion{{Uid: restrictedBotua.uid, EldestSeqno: 1}})
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))
 	for _, invite := range invites {
@@ -1701,9 +1696,6 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		case keybase1.TeamInviteCategory_EMAIL:
 			require.Equal(t, invite.Name, keybase1.TeamInviteName("rob@gmail.com"))
 			require.Equal(t, invite.Role, keybase1.TeamRole_READER)
-		case keybase1.TeamInviteCategory_KEYBASE:
-			require.Equal(t, invite.Name, keybase1.TeamInviteName(john.userVersion().PercentForm()))
-			require.Equal(t, invite.Role, keybase1.TeamRole_READER)
 		default:
 			require.FailNowf(t, "unexpected invite type", "%v", spew.Sdump(invite))
 		}
@@ -1711,7 +1703,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 
 	// It should fail to combine assertions with email addresses
 	users = []keybase1.UserRolePair{
-		{Assertion: "[job@gmail.com]@email+job33", Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: "[job@gmail.com]@email+job33", Role: keybase1.TeamRole_READER},
 	}
 	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
@@ -1719,7 +1711,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
 	// It should also fail to combine invites with other assertions
 	users = []keybase1.UserRolePair{
-		{Assertion: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
 	}
 	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
@@ -1753,7 +1745,7 @@ func TestBatchAddMembers(t *testing.T) {
 	makeUserRolePairs := func(v []string, role keybase1.TeamRole) []keybase1.UserRolePair {
 		var ret []keybase1.UserRolePair
 		for _, s := range v {
-			ret = append(ret, keybase1.UserRolePair{Assertion: s, Role: role})
+			ret = append(ret, keybase1.UserRolePair{AssertionOrEmail: s, Role: role})
 		}
 		return ret
 	}
@@ -1825,30 +1817,6 @@ func TestBatchAddMembers(t *testing.T) {
 		}
 	}
 	require.Equal(t, 2, sbsCount, "sbs count")
-}
-
-func TestAddCompoundAssertion(t *testing.T) {
-	tt := newTeamTester(t)
-	defer tt.cleanup()
-
-	alice := tt.addUser("alice")
-	bob := tt.addUser("bob")
-
-	teamID, _ := alice.createTeam2()
-
-	bob.proveRooter()
-
-	assertion := fmt.Sprintf("%s@uid+%s@rooter", bob.uid, bob.username)
-
-	users := []keybase1.UserRolePair{
-		{Assertion: assertion, Role: keybase1.TeamRole_WRITER},
-	}
-	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
-	require.NoError(t, err)
-	require.Len(t, notAdded, 0)
-	require.Len(t, added, 1)
-	require.False(t, added[0].Invite)
-	require.EqualValues(t, bob.username, added[0].Username)
 }
 
 func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {

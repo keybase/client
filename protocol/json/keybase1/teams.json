@@ -2835,7 +2835,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "assertion"
+          "name": "assertionOrEmail"
         },
         {
           "type": "TeamRole",
