@@ -45,8 +45,11 @@ const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
   //   backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
   // }
 
-  let gappedChildren: Array<React.ReactNode> = children as any
-  if (gap && (gapStart || gapEnd || React.Children.count(children) > 1)) {
+  let typedChildren: Array<React.ReactNode> = children as any
+  let gappedChildren = React.Children.toArray(typedChildren).filter(
+    child => !(child === undefined || child === null || child === true || child === false)
+  )
+  if (gap && (gapStart || gapEnd || gappedChildren.length > 1)) {
     let gapIdx = 1
     const gapList = horizontal ? hgaps.get(gap)! : vgaps.get(gap)!
     gappedChildren = intersperseFn(() => gapList[gapIdx++], React.Children.toArray(gappedChildren))
