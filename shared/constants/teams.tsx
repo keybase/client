@@ -840,26 +840,6 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
 
-export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
-  const subteamsAll = getTeamDetails(state, teamID).subteams
-  let subteamsNotIn: Array<Types.TeamMeta> = []
-  let subteamsIn: Array<Types.TeamMeta> = []
-  subteamsAll.forEach(subteamID => {
-    const subteamDetails = getTeamDetails(state, subteamID)
-    const subteamMeta = getTeamMeta(state, subteamID)
-    const memberInSubteam = subteamDetails.members.has(username)
-    if (memberInSubteam) {
-      subteamsIn.push(subteamMeta)
-    } else {
-      subteamsNotIn.push(subteamMeta)
-    }
-  })
-  return {
-    subteamsIn,
-    subteamsNotIn,
-  }
-}
-
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
   oldVersion

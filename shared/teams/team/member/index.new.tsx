@@ -25,7 +25,6 @@ type MetaPlusMembership = {
   memberInfo: Types.MemberInfo
 }
 
-// TODO: upon visiting this page, dispatch something to load the subteam data into the store for all these subteams
 const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
   const subteamsAll = [...Constants.getTeamDetails(state, teamID).subteams.values()]
   let subteamsNotIn: Array<Types.TeamMeta> = []
