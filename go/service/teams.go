@@ -304,7 +304,7 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 
 	var users []keybase1.UserRolePair
 	for _, a := range arg.Assertions {
-		users = append(users, keybase1.UserRolePair{Assertion: a, Role: arg.Role})
+		users = append(users, keybase1.UserRolePair{AssertionOrEmail: a, Role: arg.Role})
 	}
 	arg2 := keybase1.TeamAddMembersMultiRoleArg{
 		TeamID:               arg.TeamID,
@@ -317,15 +317,13 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 
 func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1.TeamAddMembersMultiRoleArg) (res keybase1.TeamAddMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-
 	debugString := "0"
 	if len(arg.Users) > 0 {
-		debugString = fmt.Sprintf("'%v'", arg.Users[0].Assertion)
+		debugString = fmt.Sprintf("'%v'", arg.Users[0].AssertionOrEmail)
 		if len(arg.Users) > 1 {
-			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].Assertion, len(arg.Users)-1)
+			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].AssertionOrEmail, len(arg.Users)-1)
 		}
 	}
-
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%s, %s)", arg.TeamID, debugString),
 		func() error { return err })()
 	if len(arg.Users) == 0 {
@@ -358,7 +356,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 			ctx := libkb.WithLogTag(context.Background(), "BG")
 			for i, res := range added {
 				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v, role: %v",
-					i, arg.Users[i].Assertion, res.Username, res.Invite, arg.Users[i].Role)
+					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite, arg.Users[i].Role)
 				if !res.Invite && !res.Username.IsNil() {
 					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.TeamID, "",
 						res.Username.String(), chat1.ConversationMembersType_TEAM, arg.Users[i].Role)
@@ -449,9 +447,9 @@ func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEdi
 	ctx = libkb.WithLogTag(ctx, "TM")
 	debugString := "0"
 	if len(arg.Users) > 0 {
-		debugString = fmt.Sprintf("'%v, %v'", arg.Users[0].Assertion, arg.Users[0].Role)
+		debugString = fmt.Sprintf("'%v, %v'", arg.Users[0].AssertionOrEmail, arg.Users[0].Role)
 		if len(arg.Users) > 1 {
-			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].Assertion, len(arg.Users)-1)
+			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].AssertionOrEmail, len(arg.Users)-1)
 		}
 	}
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMembers(%s, %s)", arg.TeamID, debugString),
