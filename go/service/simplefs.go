@@ -799,3 +799,14 @@ func (s *SimpleFSHandler) SimpleFSSearch(
 	defer cancel()
 	return cli.SimpleFSSearch(ctx, arg)
 }
+
+// SimpleFSResetIndex implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSResetIndex(ctx context.Context) error {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
+	// Don't use a timeout for resetting the index; let it completely
+	// clean up the storage as needed.
+	return cli.SimpleFSResetIndex(ctx)
+}
