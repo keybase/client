@@ -211,18 +211,17 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 		return errors.New("Encrypt needs at least one recipient")
 	}
 
-	// by default, use entity keys
-	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys")
+	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys") // by default, use entity keys
 	if len(c.opts.TeamRecipients) == 0 {
 		// if not encrypting for a team, use all keys unless "no-" flags passed
-		if ctx.Bool("include-device-keys") || ctx.Bool("include-device-keys") {
+		if ctx.Bool("include-device-keys") || ctx.Bool("include-paper-keys") {
 			return errors.New("cannot use these flags if not encrypting for at least 1 team: --include-device-keys, --include-paper-keys; please remove")
 		}
 		c.opts.UseDeviceKeys = !ctx.Bool("no-device-keys")
 		c.opts.UsePaperKeys = !ctx.Bool("no-paper-keys")
 	} else {
 		// if encrypting for at least 1 team, only use entity keys unless "include-" flags passed
-		if ctx.Bool("no-device-keys") || ctx.Bool("no-device-keys") {
+		if ctx.Bool("no-device-keys") || ctx.Bool("no-paper-keys") {
 			return errors.New("cannot use these flags if encrypting for at least 1 team: --no-device-keys, --no-paper-keys; please remove")
 		}
 		c.opts.UseDeviceKeys = ctx.Bool("include-device-keys")
