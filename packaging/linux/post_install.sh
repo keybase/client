@@ -191,10 +191,6 @@ if redirector_enabled; then
     is_redirector_enabled="1"
 fi
 
-# Restart services before restarting redirector manually
-# so we know if it was already restarted via systemd.
-safe_restart_systemd_services
-
 # Set suid on redirector before we restart it, in case package manager reverted
 # permissions.
 if [ -n "$is_redirector_enabled" ]; then
