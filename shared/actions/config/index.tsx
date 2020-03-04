@@ -595,8 +595,12 @@ const newNavigation = (
     | RouteTreeGen.SwitchTabPayload
     | RouteTreeGen.ResetStackPayload
 ) => {
-  const n = Router2._getNavigator()
-  n && n.dispatchOldAction(action)
+  let count = 0
+  const dispatchAction = () => {
+    const n = Router2._getNavigator()
+    n ? n.dispatchOldAction(action) : count++ < 10 && setTimeout(dispatchAction, 100)
+  }
+  dispatchAction()
 }
 
 function* criticalOutOfDateCheck() {
