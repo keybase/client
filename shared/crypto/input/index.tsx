@@ -6,6 +6,7 @@ import * as Types from '../../constants/types/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import HiddenString from '../../util/hidden-string'
 
 const {electron} = KB
@@ -75,8 +76,10 @@ export const TextInput = (props: TextProps) => {
   }
 
   const onOpenFile = async () => {
+    // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
+    // To set a directory as input, a user will need to drag the directory into Keybase.
     const options = {
-      allowDirectories: true,
+      allowDirectories: Platform.isDarwin,
       buttonLabel: 'Select',
     }
     const filePaths = await showOpenDialog(options)
