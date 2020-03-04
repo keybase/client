@@ -146,7 +146,7 @@ build_one_architecture() {
     chmod 4755 "$layout_dir/opt/keybase/chrome-sandbox"
   )
 
-  # Copy in the icon images and .saltpack file type SVG.
+  # Copy in the icon images and .saltpack file images.
   for size in 16 32 128 256 512 ; do
     icon_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/apps"
     saltpack_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/mimetypes"
