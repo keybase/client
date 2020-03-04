@@ -378,7 +378,7 @@ func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
 func deleteDeprecatedFileIfPresent() {
 	// this file is no longer how we do things, and if it's present (which it shouldn't be) it could
 	// cause unexpected behavior
-	if appDataDir, err := libkb.AppDataDir(); err != nil {
+	if appDataDir, err := libkb.AppDataDir(); err == nil {
 		autostartLinkPath := filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")
 		_ = os.Remove(autostartLinkPath)
 	}
