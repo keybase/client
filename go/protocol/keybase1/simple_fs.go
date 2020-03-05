@@ -1998,8 +1998,10 @@ type SimpleFSInterface interface {
 	SimpleFSSymlink(context.Context, SimpleFSSymlinkArg) error
 	// Begin recursive copy of directory
 	//
-	// overwriteExistingFiles controls whether an existing file will be overwritten. It
-	// doesn't control dir behaviors.
+	// overwriteExistingFiles controls whether an existing file from `src` will
+	// overwrite a file with the same name in `dest`; if `false`, an error will be
+	// returned in that case.  For directories that share a name, the copy will
+	// continue recursively into the directory without causing an error.
 	SimpleFSCopyRecursive(context.Context, SimpleFSCopyRecursiveArg) error
 	// Begin move of file or directory, from/to KBFS only
 	SimpleFSMove(context.Context, SimpleFSMoveArg) error
@@ -3110,8 +3112,10 @@ func (c SimpleFSClient) SimpleFSSymlink(ctx context.Context, __arg SimpleFSSymli
 
 // Begin recursive copy of directory
 //
-// overwriteExistingFiles controls whether an existing file will be overwritten. It
-// doesn't control dir behaviors.
+// overwriteExistingFiles controls whether an existing file from `src` will
+// overwrite a file with the same name in `dest`; if `false`, an error will be
+// returned in that case.  For directories that share a name, the copy will
+// continue recursively into the directory without causing an error.
 func (c SimpleFSClient) SimpleFSCopyRecursive(ctx context.Context, __arg SimpleFSCopyRecursiveArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopyRecursive", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return

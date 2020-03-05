@@ -1182,7 +1182,7 @@
         }
       ],
       "response": null,
-      "doc": "Begin recursive copy of directory \n\n   overwriteExistingFiles controls whether an existing file will be overwritten. It\n   doesn't control dir behaviors."
+      "doc": "Begin recursive copy of directory \n\n   overwriteExistingFiles controls whether an existing file from `src` will\n   overwrite a file with the same name in `dest`; if `false`, an error will be\n   returned in that case.  For directories that share a name, the copy will\n   continue recursively into the directory without causing an error."
     },
     "simpleFSMove": {
       "request": [
