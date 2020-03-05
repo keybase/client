@@ -604,9 +604,7 @@ func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, g *libkb.GlobalCon
 	}
 
 	if isNewStyle {
-		// TODO need a force load to use UsedInvites: subversion??
 		alreadyUsedBeforeTransaction := len(tx.team.chain().inner.UsedInvites[inviteID])
-
 		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
 		if invite.MaxUses.IsUsedUp(alreadyUsed) {
 			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
