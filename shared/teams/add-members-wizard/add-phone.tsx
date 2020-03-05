@@ -4,15 +4,17 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle} from '../common'
 import PhoneInput from '../../signup/phone-number/phone-input'
 
-type Props = {
+type Props = Container.RouteProps<{
   teamID: Types.TeamID
-}
+}>
 
 const AddPhone = (props: Props) => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -37,8 +39,14 @@ const AddPhone = (props: Props) => {
     setPhoneNumbers([...phoneNumbers])
   }
 
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, props.teamID).teamname)
+  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
+
+  React.useEffect(() => {
+    if (!defaultCountry) {
+      dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+    }
+  }, [defaultCountry, dispatch])
 
   return (
     <Kb.Modal
