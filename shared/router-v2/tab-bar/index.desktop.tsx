@@ -8,7 +8,6 @@ import * as Container from '../../util/container'
 import * as Kbfs from '../../fs/common'
 import RuntimeStats from '../../app/runtime-stats'
 import './tab-bar.css'
-import flags from '../../util/feature-flags'
 import AccountSwitcher from '../account-switcher/container'
 
 export type Props = {
@@ -39,7 +38,7 @@ const data = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-const tabs = Tabs.desktopTabOrder.filter(tab => (tab === Tabs.cryptoTab ? flags.cryptoTab : true))
+const tabs = Tabs.desktopTabOrder
 
 type State = {
   showingMenu: boolean
@@ -84,14 +83,12 @@ class TabBar extends React.PureComponent<Props, State> {
           small={true}
           style={styles.button}
         />
-        {flags.fastAccountSwitch && <AccountSwitcher />}
+        <AccountSwitcher />
       </Kb.Box2>
     ),
   })
   private menuItems = (): Kb.MenuItems => [
-    ...(flags.fastAccountSwitch
-      ? [{onClick: this.props.onAddAccount, title: 'Log in as another user'}]
-      : [{onClick: this.props.onProfileClick, title: 'View profile'}, 'Divider' as const]),
+    {onClick: this.props.onAddAccount, title: 'Log in as another user'},
     {onClick: this.props.onSettings, title: 'Settings'},
     {onClick: this.props.onHelp, title: 'Help'},
     {danger: true, onClick: this.props.onSignOut, title: 'Sign out'},
