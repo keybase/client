@@ -80,6 +80,7 @@ type Indexer struct {
 	loopWG       kbfssync.RepeatedWaitGroup
 	kvstoreName  string
 	fullIndexCB  func() error // helpful for testing
+	progress     *Progress
 
 	userChangedCh chan struct{}
 	tlfCh         chan tlfMessage
@@ -108,6 +109,7 @@ func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
 		log:           log,
 		configInitFn:  configInitFn,
 		kvstoreName:   kvstoreName,
+		progress:      NewProgress(config.Clock()),
 		userChangedCh: make(chan struct{}, 1),
 		tlfCh:         make(chan tlfMessage, 1000),
 		shutdownCh:    make(chan struct{}),
@@ -351,6 +353,28 @@ func (i *Indexer) UserChanged(
 
 var _ libfs.RemoteStatusUpdater = (*Indexer)(nil)
 
+func (i *Indexer) getMDForRev(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (
+	md libkbfs.ImmutableRootMetadata, err error) {
+	return libkbfs.GetSingleMD(
+		ctx, i.config, tlfID, kbfsmd.NullBranchID, rev, kbfsmd.Merged, nil)
+}
+
+func (i *Indexer) tlfQueueForProgress(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	md, err := i.getMDForRev(ctx, tlfID, rev)
+	if err != nil {
+		return err
+	}
+	// For now assume we will be indexing the entire TLF.  If when
+	// we actually start indexing, we figure out that this is an
+	// incremental index, we can update it. `DiskUsage` is the
+	// encoded, padded size, but it's the best we can easily do
+	// right now.
+	i.progress.tlfQueue(tlfID, md.DiskUsage())
+	return nil
+}
+
 // FullSyncStarted implements the libkbfs.SyncedTlfObserver interface
 // for Indexer.
 func (i *Indexer) FullSyncStarted(
@@ -366,10 +390,20 @@ func (i *Indexer) FullSyncStarted(
 			return
 		}
 
+		ctx := i.makeContext(context.Background())
+		err := i.tlfQueueForProgress(ctx, tlfID, rev)
+		if err != nil {
+			i.log.CDebugf(
+				ctx, "Couldn't enqueue for %s/%s: %+v", tlfID, rev, err)
+			i.indexWG.Done()
+			return
+		}
+
 		m := tlfMessage{tlfID, rev, keybase1.FolderSyncMode_ENABLED}
 		select {
 		case i.tlfCh <- m:
 		default:
+			i.progress.tlfUnqueue(tlfID)
 			i.indexWG.Done()
 			i.log.CDebugf(
 				context.Background(), "Couldn't send TLF message for %s/%d",
@@ -384,6 +418,11 @@ func (i *Indexer) SyncModeChanged(
 	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode) {
 	i.log.CDebugf(ctx, "Sync mode changed for %s to %s", tlfID, newMode)
 	i.indexWG.Add(1)
+
+	// Don't enqueue progress for a TLF when the sync mode changes; if
+	// the TLF is now being synced, `FullSyncStarted` will also be
+	// called.
+
 	m := tlfMessage{tlfID, kbfsmd.RevisionUninitialized, newMode}
 	select {
 	case i.tlfCh <- m:
@@ -520,6 +559,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if err == nil {
+			// Mark the bytes of this child as indexed.  This is the
+			// actual unencrypted size of the entry, which won't match
+			// up perfectly with the disk usage, but it's the easiest
+			// thing to do for now.
+			i.progress.indexedBytes(ei.Size)
+		}
+	}()
 
 	tlfID := n.GetFolderBranch().Tlf
 
@@ -786,7 +835,7 @@ func (i *Indexer) fsForRev(
 	}
 	branch := data.MakeRevBranchName(rev)
 
-	md, err := i.config.MDOps().GetForTLF(ctx, tlfID, nil)
+	md, err := i.getMDForRev(ctx, tlfID, rev)
 	if err != nil {
 		return nil, err
 	}
@@ -944,6 +993,18 @@ func (i *Indexer) doFullIndex(
 			ctx, "Finished full index of %s at rev %d: %+v", m.tlfID, rev, err)
 	}()
 
+	md, err := i.getMDForRev(ctx, m.tlfID, rev)
+	if err != nil {
+		return err
+	}
+	i.progress.startIndex(m.tlfID, md.DiskUsage(), indexFull)
+	defer func() {
+		progErr := i.progress.finishIndex(m.tlfID)
+		if progErr != nil {
+			i.log.CDebugf(ctx, "Couldn't finish index: %+v", err)
+		}
+	}()
+
 	fs, err := i.fsForRev(ctx, m.tlfID, rev)
 	if err != nil {
 		return err
@@ -995,11 +1056,20 @@ func (i *Indexer) doIncrementalIndex(
 	}()
 
 	// Gather list of changes after indexedRev, up to and including newRev.
-	changes, err := libkbfs.GetChangesBetweenRevisions(
+	changes, refSize, err := libkbfs.GetChangesBetweenRevisions(
 		ctx, i.config, m.tlfID, indexedRev, newRev)
 	if err != nil {
 		return err
 	}
+
+	i.progress.startIndex(m.tlfID, refSize, indexIncremental)
+	defer func() {
+		progErr := i.progress.finishIndex(m.tlfID)
+		if progErr != nil {
+			i.log.CDebugf(ctx, "Couldn't finish index: %+v", err)
+		}
+	}()
+
 	// Sort by path length, to make sure we process directories before
 	// their children.
 	sort.Slice(changes, func(i, j int) bool {
@@ -1169,6 +1239,14 @@ func (i *Indexer) doIncrementalIndex(
 func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 	defer i.indexWG.Done()
 
+	doUnqueue := true
+	defer func() {
+		if doUnqueue {
+			// We didn't end up indexing this TLF after all.
+			i.progress.tlfUnqueue(m.tlfID)
+		}
+	}()
+
 	// Figure out which revision to lock to, for this
 	// indexing scan.
 	rev := m.rev
@@ -1210,6 +1288,7 @@ func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 		}
 	}
 
+	doUnqueue = false
 	if indexedRev != kbfsmd.RevisionUninitialized {
 		err = i.doIncrementalIndex(ctx, m, indexedRev, rev)
 	} else {
@@ -1428,4 +1507,9 @@ func (i *Indexer) ResetIndex(ctx context.Context) (err error) {
 
 	i.startLoop()
 	return nil
+}
+
+// Progress returns the progress instance of this indexer.
+func (i *Indexer) Progress() *Progress {
+	return i.progress
 }
