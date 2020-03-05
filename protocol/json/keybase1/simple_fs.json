@@ -966,6 +966,49 @@
           "name": "nextResult"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "IndexProgressRecord",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesSoFar"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSIndexProgress",
+      "fields": [
+        {
+          "type": "IndexProgressRecord",
+          "name": "overallProgress"
+        },
+        {
+          "type": "Folder",
+          "name": "currFolder"
+        },
+        {
+          "type": "IndexProgressRecord",
+          "name": "currProgress"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Folder"
+          },
+          "name": "foldersLeft"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1691,6 +1734,10 @@
     "simpleFSResetIndex": {
       "request": [],
       "response": null
+    },
+    "simpleFSGetIndexProgress": {
+      "request": [],
+      "response": "SimpleFSIndexProgress"
     }
   },
   "namespace": "keybase.1"
