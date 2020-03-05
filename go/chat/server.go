@@ -2985,7 +2985,6 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 	if err != nil {
 		return res, err
 	}
-	fmt.Printf("conversations matched: %d\n", len(inbox.ConvsUnverified))
 
 	// loop through convs
 	for _, conv := range inbox.ConvsUnverified {

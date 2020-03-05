@@ -168,7 +168,11 @@ export default Container.namedConnect(
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
       suggestChannels: getChannelSuggestions(state, teamname, meta.teamID, conversationIDKey),
-      suggestChannelsLoading: Waiting.anyWaiting(state, TeamsConstants.getChannelsWaitingKey(meta.teamID)),
+      suggestChannelsLoading: Waiting.anyWaiting(
+        state,
+        TeamsConstants.getChannelsWaitingKey(meta.teamID),
+        Constants.waitingKeyMutualTeams(conversationIDKey)
+      ),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
       suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),

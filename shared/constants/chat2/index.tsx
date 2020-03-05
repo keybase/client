@@ -385,6 +385,8 @@ export const waitingKeyConvStatusChange = (conversationIDKey: Types.Conversation
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))

@@ -2410,9 +2410,7 @@ function* loadSuggestionData(
   const teamID = meta.teamID
   // If this is an impteam, try to refresh mutual team info
   if (!meta.teamname) {
-    // TODO: reload mutual team info
     yield Saga.put(Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey}))
-    // then once those are loaded, ping a creategetchannels for all of those teams (might be slow, figure out how to put a spinner up? maybe this should go in another action
     return
   }
   // This only happens when user enters '#' which isn't that often. If this
@@ -2428,7 +2426,10 @@ const refreshMutualTeamsInConv = async (
   const {conversationIDKey} = action.payload
   const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
-  const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise({usernames: otherParticipants})
+  const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
+    {usernames: otherParticipants},
+    Constants.waitingKeyMutualTeams(conversationIDKey)
+  )
   return [
     ...(results.teamIDs?.map(teamID => TeamsGen.createGetChannels({teamID})) ?? []),
     Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []}),

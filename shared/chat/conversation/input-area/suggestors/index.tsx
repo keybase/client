@@ -362,10 +362,10 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
       let suggestionsVisible = false
       const results = this._getResults()
-      if (results.data.length) {
+      if (results.data.length || results.loading) {
         suggestionsVisible = true
         const active = this.state.active
-        const content = (
+        const content = results.data.length ? (
           <>
             <SuggestionList
               style={
@@ -387,6 +387,32 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
               />
             )}
           </>
+        ) : (
+          <Kb.Box2
+            direction="vertical"
+            alignItems="center"
+            fullWidth={true}
+            style={Styles.collapseStyles([
+              Styles.platformStyles({
+                common: {
+                  justifyContent: 'center',
+                },
+                isElectron: {
+                  backgroundColor: Styles.globalColors.white,
+                  borderRadius: 4,
+                  height: Styles.globalMargins.large,
+                },
+                isMobile: {
+                  flexGrow: 0,
+                  height: Styles.globalMargins.mediumLarge,
+                  marginTop: 'auto',
+                },
+              }),
+              this.props.suggestionListStyle,
+            ])}
+          >
+            <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
+          </Kb.Box2>
         )
         overlay = Styles.isMobile ? (
           <Kb.FloatingBox
