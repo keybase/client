@@ -1080,7 +1080,11 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	mergeRes, err := s.storage.Expunge(ctx, conv, uid, expunge)
 	if err != nil {
 		return err
 	}
@@ -1100,8 +1104,12 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 		globals.CtxAddMessageCacheSkips(ctx, convID, msgs)
 		return nil
 	}
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
 
-	mergeRes, err := s.storage.Merge(ctx, convID, uid, msgs)
+	mergeRes, err := s.storage.Merge(ctx, conv, uid, msgs)
 	if err != nil {
 		return err
 	}

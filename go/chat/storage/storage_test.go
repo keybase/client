@@ -188,7 +188,15 @@ func sortMessagesDesc(msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
 
 func mustMerge(t testing.TB, storage *Storage,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) MergeResult {
-	res, err := storage.Merge(context.Background(), convID, uid, msgs)
+	conv, err := NewInbox(storage.G()).GetConversation(context.Background(), uid, convID)
+	switch err.(type) {
+	case nil:
+	case MissError:
+		conv = types.RemoteConversation{Conv: makeConversationAt(convID, 0)}
+	default:
+		require.NoError(t, err)
+	}
+	res, err := storage.Merge(context.Background(), conv, uid, msgs)
 	require.NoError(t, err)
 	return res
 }
@@ -671,7 +679,7 @@ func TestStorageExpunge(t *testing.T) {
 		t.Logf("merge complete")
 	}
 	expunge := func(upto chat1.MessageID, expectedDeletedHistory bool) {
-		res, err := storage.Expunge(context.Background(), convID, uid, chat1.Expunge{Upto: upto})
+		res, err := storage.Expunge(context.Background(), conv, uid, chat1.Expunge{Upto: upto})
 		require.NoError(t, err)
 		if expectedDeletedHistory {
 			require.NotNil(t, res.Expunged, "deleted history merge response")
