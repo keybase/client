@@ -7,12 +7,11 @@ package simplefs
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"sync"
-	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -76,8 +75,7 @@ func (m *uploadManager) makeTempDir() (tempDirPath string, err error) {
 	if err != nil {
 		return "", err
 	}
-	tempDirPath = filepath.Join(cacheDirAbs, "uploads", base64.RawURLEncoding.EncodeToString(buf))
-	err = os.MkdirAll(tempDirPath, os.ModePerm)
+	tempDirPath, err = ioutil.TempDir(cacheDirAbs, "uploads-")
 	if err != nil {
 		return "", err
 	}
@@ -107,6 +105,15 @@ func (m *uploadManager) waitForDownload(uploadID string) {
 	if !ok {
 		return
 	}
+	defer func() {
+		if upload.dirToDelete == nil {
+			return
+		}
+		if err := os.RemoveAll(*upload.dirToDelete); err != nil {
+			m.k.log.CDebugf(m.makeContext(), "remove temp dir error %s", err)
+		}
+
+	}()
 	defer m.publisher.PublishChange(keybase1.SubscriptionTopic_UPLOAD_STATUS)
 
 	err := m.k.SimpleFSWait(m.makeContext(), upload.opid)
@@ -126,9 +133,6 @@ func (m *uploadManager) waitForDownload(uploadID string) {
 		})
 		return
 	}
-	if upload.dirToDelete != nil {
-		os.RemoveAll(*upload.dirToDelete)
-	}
 	m.doWhileLocked(func() {
 		delete(m.uploads, uploadID)
 	})
@@ -136,8 +140,8 @@ func (m *uploadManager) waitForDownload(uploadID string) {
 
 const uploadSuffixMax = 1024
 
-func (m *uploadManager) _start(ctx context.Context,
-	sourceLocalPath string, parentPath string) (opid keybase1.OpID, dstPath keybase1.KBFSPath, err error) {
+func (m *uploadManager) doStart(ctx context.Context,
+	sourceLocalPath string, dstParentPath string) (opid keybase1.OpID, dstPath keybase1.KBFSPath, err error) {
 	opid, err = m.k.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return keybase1.OpID{}, keybase1.KBFSPath{}, err
@@ -151,15 +155,20 @@ renameLoop:
 			name = fmt.Sprintf("%s (%d)", basename, i)
 		}
 		dstPath = keybase1.NewPathWithKbfsPath(
-			path.Join(parentPath, name)).Kbfs()
+			path.Join(dstParentPath, name)).Kbfs()
 
 		// First check with stat. This should cover most cases, and is
 		// the last resort for avoiding merging directories where we
 		// don't get something like O_CREATE for free.
-		if _, err = m.k.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
+		_, err = m.k.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
 			Path: keybase1.NewPathWithKbfs(dstPath),
-		}); err == nil {
+		})
+		switch {
+		case err == nil:
 			continue renameLoop
+		case os.IsNotExist(err):
+		default:
+			return keybase1.OpID{}, keybase1.KBFSPath{}, err
 		}
 
 		err = m.k.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
@@ -192,17 +201,22 @@ func (m *uploadManager) getDirToDeleteRLocked(sourceLocalPath string) *string {
 
 func (m *uploadManager) start(ctx context.Context, sourceLocalPath string,
 	targetParentPath keybase1.KBFSPath) (uploadID string, err error) {
-	uploadID = strconv.FormatInt(time.Now().UnixNano(), 16)
-	opid, dstPath, err := m._start(ctx, sourceLocalPath, targetParentPath.Path)
+	opid, dstPath, err := m.doStart(ctx, sourceLocalPath, targetParentPath.Path)
 	if err != nil {
 		return "", err
 	}
+	uploadID = base64.RawURLEncoding.EncodeToString(opid[:])
 
 	defer m.publisher.PublishChange(keybase1.SubscriptionTopic_UPLOAD_STATUS)
 
 	m.doWhileLocked(func() {
+		var dirToDelete *string
+		sourceParent := filepath.Dir(sourceLocalPath)
+		if m.tempPaths[sourceParent] {
+			dirToDelete = &sourceParent
+		}
 		m.uploads[uploadID] = upload{
-			dirToDelete: m.getDirToDeleteRLocked(sourceLocalPath),
+			dirToDelete: dirToDelete,
 			uploadID:    uploadID,
 			opid:        opid,
 			state: keybase1.UploadState{
@@ -212,6 +226,8 @@ func (m *uploadManager) start(ctx context.Context, sourceLocalPath string,
 		}
 	})
 
+	// If we start having tests on this we'll need proper shutdown mechanism
+	// for these goroutines.
 	go m.waitForDownload(uploadID)
 
 	return uploadID, nil
@@ -243,6 +259,7 @@ func (m *uploadManager) dismiss(uploadID string) error {
 func (m *uploadManager) getUploads() (uploads []keybase1.UploadState) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
+	uploads = make([]keybase1.UploadState, 0, len(m.uploads))
 	for _, upload := range m.uploads {
 		uploads = append(uploads, upload.state)
 	}
