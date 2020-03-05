@@ -14,9 +14,9 @@ type Props = {
 const AddPhone = (props: Props) => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
 
-  // const dispatch = Container.useDispatch()
-  // const nav = Container.useSafeNavigation()
-  const onBack = () => null // dispatch(nav.safeNavigateUpPayload())
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
 
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
   const setPhoneNumber = (i: number, phoneNumber: string, valid: boolean) => {
