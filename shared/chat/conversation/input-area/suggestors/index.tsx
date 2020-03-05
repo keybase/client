@@ -392,24 +392,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             direction="vertical"
             alignItems="center"
             fullWidth={true}
-            style={Styles.collapseStyles([
-              Styles.platformStyles({
-                common: {
-                  justifyContent: 'center',
-                },
-                isElectron: {
-                  backgroundColor: Styles.globalColors.white,
-                  borderRadius: 4,
-                  height: Styles.globalMargins.large,
-                },
-                isMobile: {
-                  flexGrow: 0,
-                  height: Styles.globalMargins.mediumLarge,
-                  marginTop: 'auto',
-                },
-              }),
-              this.props.suggestionListStyle,
-            ])}
+            style={Styles.collapseStyles([styles.spinnerBackground, this.props.suggestionListStyle])}
           >
             <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
           </Kb.Box2>
@@ -473,6 +456,24 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   // @ts-ignore TODO fix these types
   return React.forwardRef((props, ref) => <SuggestorsComponent {...props} forwardedRef={ref} />)
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  spinnerBackground: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+    },
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: 4,
+      height: Styles.globalMargins.large,
+    },
+    isMobile: {
+      flexGrow: 0,
+      height: Styles.globalMargins.mediumLarge,
+      marginTop: 'auto',
+    },
+  }),
+}))
 
 export {standardTransformer}
 export default AddSuggestors
