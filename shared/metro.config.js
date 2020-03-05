@@ -10,7 +10,7 @@ const {getDefaultConfig} = require('metro-config')
 const {resolve} = require('metro-resolver')
 const {replacements} = require('./mocks')
 
-let storybook = false
+let storybook = 'none'
 module.exports = (async () => {
   const {
     resolver: {sourceExts},
@@ -22,15 +22,21 @@ module.exports = (async () => {
   const mockingResolveRequest = (context, moduleName, platform) => {
     let newModuleName = moduleName
     if (moduleName === './storybook-index') {
-      storybook = true
+      if (storybook === 'normal') {
+        console.log('Switching to storybook mode, please restart metro.')
+        process.exit(12)
+      }
+      storybook = 'storybook'
       newModuleName = './index'
-      console.log('Switching to storybook mode')
     } else if (moduleName === './normal-index') {
-      storybook = false
+      if (storybook === 'storybook') {
+        console.log('Switching to normal mode, please restart metro')
+        process.exit(12)
+      }
+      storybook = 'normal'
       newModuleName = './index'
-      console.log('Switching to normal mode')
     }
-    if (storybook) {
+    if (storybook === 'storybook') {
       replacements.forEach(rep => {
         const [regex, replacement] = rep
         newModuleName = newModuleName.replace(regex, replacement)
