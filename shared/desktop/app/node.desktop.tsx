@@ -78,7 +78,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
   }
 
   // The new instance might be due to a URL schema handler launch.
-  logger.info('Launched with URL', commandLine)
+  logger.warn('Launched with URL', commandLine)
   if (commandLine.length > 1 && commandLine[1]) {
     // Allow both argv1 and argv2 to be the link to support "/usr/lib/electron/electron path-to-app"-style
     // invocations (used in the Arch community packages).
@@ -116,6 +116,7 @@ const isRelevantDeepLink = (x: string) => {
 }
 
 const isValidSaltpackFilePath = (p: string) => {
+  logger.warn('in isValidSaltpackFilePath with', p)
   const valid = p.endsWith('.encrypted.saltpack') || p.endsWith('.signed.saltpack')
   if (!valid) {
     logger.warn(
@@ -163,6 +164,7 @@ const handleCrashes = () => {
 const getStartupProcessArgs = () => {
   let arg: string | undefined
 
+  logger.warn('in getStartupProcessArgs, process.argv is', process.argv)
   if (
     process.argv.length > 1 &&
     (isRelevantDeepLink(process.argv[1]) || isValidSaltpackFilePath(process.argv[1]))
@@ -313,6 +315,8 @@ const plumbEvents = () => {
           // reset it
           menubarWindowID = 0
         }
+        logger.warn('startupURL is', startupURL)
+        logger.warn('saltpackFilePath is', saltpackFilePath)
         if (startupURL) {
           // Mac calls open-url for a launch URL before redux is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
