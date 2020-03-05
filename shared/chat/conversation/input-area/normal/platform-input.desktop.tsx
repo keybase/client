@@ -171,14 +171,14 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   render() {
     let hintText = 'Write a message'
-    if (this.props.isExploding) {
-      hintText = 'Write an exploding message'
-    } else if (this.props.isEditing) {
-      hintText = 'Edit your message'
-    } else if (this.props.cannotWrite) {
+    if (this.props.cannotWrite) {
       hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
       } to post.`
+    } else if (this.props.isEditing) {
+      hintText = 'Edit your message'
+    } else if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
     }
 
     return (
