@@ -13,6 +13,7 @@ export const deleteFile = 'fs:deleteFile'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
 export const dismissFsError = 'fs:dismissFsError'
+export const dismissUpload = 'fs:dismissUpload'
 export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
@@ -114,6 +115,7 @@ type _DeleteFilePayload = {readonly path: Types.Path}
 type _DiscardEditPayload = {readonly editID: Types.EditID}
 type _DismissDownloadPayload = {readonly downloadID: string}
 type _DismissFsErrorPayload = {readonly key: string}
+type _DismissUploadPayload = {readonly uploadID: string}
 type _DownloadPayload = {readonly path: Types.Path}
 type _DriverDisablePayload = void
 type _DriverDisablingPayload = void
@@ -269,6 +271,10 @@ export const createDismissDownload = (payload: _DismissDownloadPayload): Dismiss
 export const createDismissFsError = (payload: _DismissFsErrorPayload): DismissFsErrorPayload => ({
   payload,
   type: dismissFsError,
+})
+export const createDismissUpload = (payload: _DismissUploadPayload): DismissUploadPayload => ({
+  payload,
+  type: dismissUpload,
 })
 export const createDownload = (payload: _DownloadPayload): DownloadPayload => ({payload, type: download})
 export const createDriverDisable = (payload: _DriverDisablePayload): DriverDisablePayload => ({
@@ -599,6 +605,10 @@ export type DismissDownloadPayload = {
 export type DismissFsErrorPayload = {
   readonly payload: _DismissFsErrorPayload
   readonly type: typeof dismissFsError
+}
+export type DismissUploadPayload = {
+  readonly payload: _DismissUploadPayload
+  readonly type: typeof dismissUpload
 }
 export type DownloadPayload = {readonly payload: _DownloadPayload; readonly type: typeof download}
 export type DriverDisablePayload = {
@@ -931,6 +941,7 @@ export type Actions =
   | DiscardEditPayload
   | DismissDownloadPayload
   | DismissFsErrorPayload
+  | DismissUploadPayload
   | DownloadPayload
   | DriverDisablePayload
   | DriverDisablingPayload

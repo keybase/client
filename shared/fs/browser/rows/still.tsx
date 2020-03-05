@@ -8,10 +8,10 @@ import * as Kb from '../../../common-adapters'
 import {LastModifiedLine, Filename} from '../../common'
 
 type StillProps = StillCommonProps & {
+  dismissUploadError?: () => void
   intentIfDownloading?: Types.DownloadIntent | null
   isEmpty: boolean
   type: Types.PathType
-  uploadError?: string
   uploading: boolean
   writingToJournal: boolean
 }
@@ -37,7 +37,12 @@ const Still = (props: StillProps) => (
     inDestinationPicker={props.inDestinationPicker}
     writingToJournal={props.writingToJournal}
   >
-    <Kb.Box style={Styles.collapseStyles([rowStyles.itemBox, props.writingToJournal && rowStyles.opacity30])}>
+    <Kb.Box
+      style={Styles.collapseStyles([
+        rowStyles.itemBox,
+        props.writingToJournal && !props.dismissUploadError && rowStyles.opacity30,
+      ])}
+    >
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Filename
           path={props.path}
@@ -52,10 +57,19 @@ const Still = (props: StillProps) => (
           />
         )}
       </Kb.Box2>
-      {props.uploadError ? (
+      {props.dismissUploadError ? (
         <Kb.Text type="BodySmallError">
-          Upload has failed:
-          {props.uploadError}
+          Upload has failed.{' '}
+          <Kb.Text
+            type="BodySmallPrimaryLink"
+            style={styles.redDark}
+            onClick={e => {
+              e.stopPropagation()
+              props.dismissUploadError?.()
+            }}
+          >
+            Dismiss
+          </Kb.Text>
         </Kb.Text>
       ) : props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
@@ -71,3 +85,7 @@ const Still = (props: StillProps) => (
 )
 
 export default Still
+
+const styles = Styles.styleSheetCreate(() => ({
+  redDark: {color: Styles.globalColors.redDark},
+}))

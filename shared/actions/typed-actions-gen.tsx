@@ -572,6 +572,7 @@ export type TypedActionsMap = {
   'fs:uploadFromDragAndDrop': fs.UploadFromDragAndDropPayload
   'fs:loadUploadStatus': fs.LoadUploadStatusPayload
   'fs:loadedUploadStatus': fs.LoadedUploadStatusPayload
+  'fs:dismissUpload': fs.DismissUploadPayload
   'fs:journalUpdate': fs.JournalUpdatePayload
   'fs:openLocalPathInSystemFileManager': fs.OpenLocalPathInSystemFileManagerPayload
   'fs:openPathInSystemFileManager': fs.OpenPathInSystemFileManagerPayload

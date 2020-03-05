@@ -73,6 +73,9 @@
     "loadedUploadStatus": {
       "uploadStates": "Array<RPCTypes.UploadState>"
     },
+    "dismissUpload": {
+      "uploadID": "string"
+    },
     "journalUpdate": {
       "syncingPaths": "Array<Types.Path>",
       "totalSyncingBytes": "number",

@@ -417,8 +417,9 @@ const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
       sourceLocalPath: action.payload.localPath,
       targetParentPath: Constants.pathToRPCPath(action.payload.parentPath).kbfs,
     })
+    return false
   } catch (err) {
-    makeUnretriableErrorHandler(action)(err)
+    return makeUnretriableErrorHandler(action)(err)
   }
 }
 
@@ -449,6 +450,13 @@ const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.Uplo
       parentPath: action.payload.parentPath,
     })
   )
+}
+
+const dismissUpload = async (_: Container.TypedState, action: FsGen.DismissUploadPayload) => {
+  try {
+    await RPCTypes.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID: action.payload.uploadID})
+  } catch {}
+  return false
 }
 
 const getWaitDuration = (endEstimate: number | null, lower: number, upper: number): number => {
@@ -616,8 +624,8 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
                 Types.getPathName(state.fs.destinationPicker.source.path)
               )
             ),
-            overwriteExistingFiles: false,
             opID: Constants.makeUUID() as string,
+            overwriteExistingFiles: false,
             src: Constants.pathToRPCPath(state.fs.destinationPicker.source.path),
           },
         ]
@@ -631,8 +639,8 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
                 // We use the local path name here since we only care about file name.
               )
             ),
-            overwriteExistingFiles: false,
             opID: Constants.makeUUID() as string,
+            overwriteExistingFiles: false,
             src: {
               PathType: RPCTypes.PathType.local,
               local: Types.localPathToString(state.fs.destinationPicker.source.source),
@@ -647,8 +655,8 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
               // We use the local path name here since we only care about file name.
             )
           ),
-          overwriteExistingFiles: false,
           opID: Constants.makeUUID() as string,
+          overwriteExistingFiles: false,
           src: {
             PathType: RPCTypes.PathType.local,
             // @ts-ignore
@@ -1072,6 +1080,7 @@ function* fsSaga() {
   yield* Saga.chainAction2(FsGen.upload, upload)
   yield* Saga.chainAction2(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
   yield* Saga.chainAction2(FsGen.loadUploadStatus, loadUploadStatus)
+  yield* Saga.chainAction2(FsGen.dismissUpload, dismissUpload)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
   yield* Saga.chainAction2(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
