@@ -71,6 +71,17 @@ let Conversation = (p: SwitchProps) => {
       }
       // eslint-disable-next-line
     }, [isFocused, dispatch, _storeConvoIDKey, conversationIDKey])
+
+    // handle unmount only
+    // eslint-disable-next-line
+    React.useEffect(() => {
+      return () => {
+        if (!Constants.isSplit && _storeConvoIDKey === conversationIDKey) {
+          dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey: conversationIDKey}))
+        }
+      }
+      // eslint-disable-next-line
+    }, [])
   }
 
   switch (type) {
