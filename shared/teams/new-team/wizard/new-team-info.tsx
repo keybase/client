@@ -8,6 +8,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
@@ -30,8 +31,7 @@ const NewTeamInfo = () => {
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < 3
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  // TODO: consider using navigateUpTo instead to close the parent modal too.
-  const onClose = onBack
+  const onClose = () => dispatch(RouteTreeGen.createClearModals())
   const onContinue = () =>
     dispatch(
       TeamsGen.createSetTeamWizardNameDescription({
@@ -57,7 +57,7 @@ const NewTeamInfo = () => {
       }}
       allowOverflow={true}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap={'tiny'}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.LabeledInput
           placeholder="Team name"
           value={name}
