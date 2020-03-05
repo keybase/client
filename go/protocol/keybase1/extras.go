@@ -739,6 +739,36 @@ func SigIDBaseFromBytes(b [SIG_ID_LEN]byte) SigIDBase {
 	return SigIDBase(s)
 }
 
+// MarshalJSON output the SigIDBase as a full SigID to be compatible
+// with legacy versions of the app.
+func (s SigIDBase) MarshalJSON() ([]byte, error) {
+	return Quote(s.ToSigIDLegacy().String()), nil
+}
+
+// UnmarshalJSON will accept either a SigID or a SigIDBase, and can
+// strip off the suffix.
+func (s *SigIDBase) UnmarshalJSON(b []byte) error {
+	tmp := Unquote(b)
+
+	l := hex.EncodedLen(SIG_ID_LEN)
+	if len(tmp) == l {
+		base, err := SigIDBaseFromString(tmp)
+		if err != nil {
+			return err
+		}
+		*s = base
+		return nil
+	}
+
+	// If we didn't get a sigID the right size, try to strip off the suffix.
+	sigID, err := SigIDFromString(tmp)
+	if err != nil {
+		return err
+	}
+	*s = sigID.StripSuffix()
+	return nil
+}
+
 func SigIDBaseFromSlice(b []byte) (SigIDBase, error) {
 	var buf [32]byte
 	if len(b) != len(buf) {
