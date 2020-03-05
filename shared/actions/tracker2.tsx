@@ -8,11 +8,6 @@ import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 
-const identify3UserReset = (action: EngineGen.Keybase1Identify3UiIdentify3UserResetPayload) =>
-  Tracker2Gen.createUpdateUserReset({
-    guiID: action.payload.params.guiID,
-  })
-
 const identify3Result = (action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
     guiID: action.payload.params.guiID,
@@ -28,12 +23,6 @@ const identify3ShowTracker = (action: EngineGen.Keybase1Identify3UiIdentify3Show
     ignoreCache: false,
     inTracker: true,
     reason: action.payload.params.reason.reason || '',
-  })
-
-const identify3UpdateRow = (action: EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload) =>
-  Tracker2Gen.createUpdateAssertion({
-    assertion: Constants.rpcAssertionToAssertion(action.payload.params.row),
-    guiID: action.payload.params.row.guiID,
   })
 
 const connected = async () => {
@@ -59,38 +48,6 @@ const refreshChanged = (
     inTracker: false,
     reason: '',
   })
-
-const updateUserCard = (
-  state: Container.TypedState,
-  action: EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
-) => {
-  const {guiID, card} = action.payload.params
-  const username = Constants.guiIDToUsername(state.tracker2, guiID)
-  if (!username) {
-    // an unknown or stale guiid, just ignore
-    return
-  }
-
-  return Tracker2Gen.createUpdatedDetails({
-    bio: card.bio,
-    blocked: card.blocked,
-    fullname: card.fullName,
-    guiID,
-    hidFromFollowers: card.hidFromFollowers,
-    location: card.location,
-    stellarHidden: card.stellarHidden,
-    teamShowcase: (card.teamShowcase || []).map(t => ({
-      description: t.description,
-      isOpen: t.open,
-      membersCount: t.numMembers,
-      name: t.fqName,
-      publicAdmins: t.publicAdmins || [],
-    })),
-    unverifiedFollowersCount: card.unverifiedNumFollowers,
-    unverifiedFollowingCount: card.unverifiedNumFollowing,
-    username,
-  })
-}
 
 const changeFollow = async (action: Tracker2Gen.ChangeFollowPayload) => {
   try {
@@ -313,20 +270,15 @@ const refreshTrackerBlock = async (action: Tracker2Gen.UpdatedDetailsPayload) =>
   })
 
 function* tracker2Saga() {
-  yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateUserCard, updateUserCard)
   yield* Saga.chainAction(Tracker2Gen.changeFollow, changeFollow)
   yield* Saga.chainAction(Tracker2Gen.ignore, ignore)
   yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
   yield* Saga.chainAction(Tracker2Gen.load, loadFollowers)
   yield* Saga.chainAction(Tracker2Gen.load, loadFollowing)
-
   yield* Saga.chainAction2(Tracker2Gen.getProofSuggestions, getProofSuggestions)
-
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingChanged, refreshChanged)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3Result, identify3Result)
-  yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3UserReset, identify3UserReset)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3ShowTracker, identify3ShowTracker)
-  yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3UpdateRow, identify3UpdateRow)
   yield* Saga.chainAction2(EngineGen.connected, connected)
   yield* Saga.chainAction(Tracker2Gen.showUser, showUser)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersUserChanged, refreshSelf)

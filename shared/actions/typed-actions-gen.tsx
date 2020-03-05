@@ -977,10 +977,8 @@ export type TypedActionsMap = {
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
-  'tracker2:updateUserReset': tracker2.UpdateUserResetPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
   'tracker2:closeTracker': tracker2.CloseTrackerPayload
-  'tracker2:updateAssertion': tracker2.UpdateAssertionPayload
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
   'tracker2:updateFollows': tracker2.UpdateFollowsPayload
