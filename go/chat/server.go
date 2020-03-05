@@ -31,11 +31,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type ServerConnection interface {
-	Reconnect(context.Context) (bool, error)
-	GetClient() chat1.RemoteInterface
-}
-
 type UISource interface {
 	GetChatUI(sessionID int) libkb.ChatUI
 	GetStreamUICli() *keybase1.StreamUiClient
@@ -45,7 +40,7 @@ type Server struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	serverConn    ServerConnection
+	serverConn    types.ServerConnection
 	uiSource      UISource
 	boxer         *Boxer
 	identNotifier types.IdentifyNotifier
@@ -68,7 +63,7 @@ type Server struct {
 
 var _ chat1.LocalInterface = (*Server)(nil)
 
-func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
+func NewServer(g *globals.Context, serverConn types.ServerConnection, uiSource UISource) *Server {
 	return &Server{
 		Contextified:                      globals.NewContextified(g),
 		DebugLabeler:                      utils.NewDebugLabeler(g.ExternalG(), "Server", false),
