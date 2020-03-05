@@ -82,7 +82,10 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
   if (commandLine.length > 1 && commandLine[1]) {
     // Allow both argv1 and argv2 to be the link to support "/usr/lib/electron/electron path-to-app"-style
     // invocations (used in the Arch community packages).
-    for (let link of commandLine.slice(1, 3)) {
+    //
+    // Windows looks like:
+    // ["Keybase.exe", "--somearg", "--someotherarg", "actuallink"]
+    for (let link of commandLine.slice(1, 9)) {
       if (isRelevantDeepLink(link)) {
         mainWindowDispatch(DeeplinksGen.createLink({link}))
         return
