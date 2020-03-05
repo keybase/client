@@ -215,7 +215,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 		if !forRecipients {
 			return errors.New("need at least one recipient")
 		} else {
-			return errors.New("can only encrypt for either all individuals or all teams")
+			return errors.New("can only encrypt for either only individuals only teams")
 		}
 	}
 
