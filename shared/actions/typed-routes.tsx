@@ -48,6 +48,7 @@ export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
           filterServices: flags.teamsRedesign
             ? ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
             : undefined,
+          goButtonLabel: 'Add',
           namespace: 'teams',
           teamID,
           title: '',

@@ -184,14 +184,18 @@ init() {
   fi
 }
 
-check_for_url_scheme_launch() {
+check_for_url_scheme_or_saltpack_file_launch() {
   # We set a URL scheme handler on our .desktop file, and since that file
   # points to this script, that's what gets called with URL links. We can
   # differentiate between a normal run_keybase invocation and a URL launch
   # by checking argv.
+  #
+  # We also have a .saltpack MIME type registration, so double clicking on
+  # a saltpack file will also cause run_keybase to receive a $1 argument
+  # of a filename to open.
 
   # If Keybase is already running, then pass it the link and exit.
-  if [[ $# -eq 1 && "$1" =~ ^(web\+|keybase).* ]]; then
+  if [[ $# -eq 1 && "$1" =~ ^(/|web\+|keybase).* ]]; then
       if pgrep -u "$USER" -f 'Keybase$' &> /dev/null; then
           "$KEYBASE" "$1" &
           exit
@@ -259,7 +263,7 @@ init
 
 # Exit early if run caused by a URL scheme invocation and Keybase is already
 # running; otherwise fall through to start Keybase.
-check_for_url_scheme_launch "$@"
+check_for_url_scheme_or_saltpack_file_launch "$@"
 
 # Always stop any running services. With systemd, we could've decided to just
 # `start` services and no-op if they're already running, however:

@@ -149,6 +149,7 @@
         "'scroll'",
         "'ensureSelectedMeta'",
         "'ensureWidgetMetas'",
+        "'ensureChannelMeta'",
         "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"

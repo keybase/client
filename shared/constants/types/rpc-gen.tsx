@@ -819,6 +819,10 @@ export type MessageTypes = {
     inParam: {readonly guiID: Identify3GUIID; readonly assertion: Identify3Assertion; readonly reason: IdentifyReason; readonly forceDisplay?: Boolean}
     outParam: void
   }
+  'keybase.1.identify3Ui.identify3Summary': {
+    inParam: {readonly summary: Identify3Summary}
+    outParam: void
+  }
   'keybase.1.identify3Ui.identify3TrackerTimedOut': {
     inParam: {readonly guiID: Identify3GUIID}
     outParam: void
@@ -2018,6 +2022,8 @@ export enum PerfEventType {
   network = 0,
   teamboxaudit = 1,
   teamaudit = 2,
+  userchain = 3,
+  teamchain = 4,
 }
 
 export enum PrefetchStatus {
@@ -2353,6 +2359,7 @@ export enum StatusCode {
   scgenericapierror = 1600,
   scapinetworkerror = 1601,
   sctimeout = 1602,
+  sckbfsclienttimeout = 1603,
   scprooferror = 1701,
   scidentificationexpired = 1702,
   scselfnotfound = 1703,
@@ -2856,6 +2863,7 @@ export type Identify3Assertion = String
 export type Identify3GUIID = String
 export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null}
 export type Identify3RowMeta = {readonly color: Identify3RowColor; readonly label: String}
+export type Identify3Summary = {readonly numProofsToCheck: Int}
 export type IdentifyKey = {readonly pgpFingerprint: Bytes; readonly KID: KID; readonly trackDiff?: TrackDiff | null; readonly breaksTracking: Boolean; readonly sigID: SigID}
 export type IdentifyLiteRes = {readonly ul: UserOrTeamLite; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type IdentifyOutcome = {readonly username: String; readonly status?: Status | null; readonly warnings?: Array<String> | null; readonly trackUsed?: TrackSummary | null; readonly trackStatus: TrackStatus; readonly numTrackFailures: Int; readonly numTrackChanges: Int; readonly numProofFailures: Int; readonly numRevoked: Int; readonly numProofSuccesses: Int; readonly revoked?: Array<TrackDiff> | null; readonly trackOptions: TrackOptions; readonly forPGPPull: Boolean; readonly reason: IdentifyReason}
@@ -3258,6 +3266,7 @@ export type IncomingCallMapType = {
   'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: MessageTypes['keybase.1.gregorUI.pushOutOfBandMessages']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.homeUI.homeUIRefresh'?: (params: MessageTypes['keybase.1.homeUI.homeUIRefresh']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.identify3Ui.identify3ShowTracker'?: (params: MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.identify3Ui.identify3Summary'?: (params: MessageTypes['keybase.1.identify3Ui.identify3Summary']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.identify3Ui.identify3UpdateRow'?: (params: MessageTypes['keybase.1.identify3Ui.identify3UpdateRow']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.identify3Ui.identify3UserReset'?: (params: MessageTypes['keybase.1.identify3Ui.identify3UserReset']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.identify3Ui.identify3UpdateUserCard'?: (params: MessageTypes['keybase.1.identify3Ui.identify3UpdateUserCard']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3399,6 +3408,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: MessageTypes['keybase.1.gregorUI.pushOutOfBandMessages']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.gregorUI.pushOutOfBandMessages']['outParam']) => void}) => IncomingReturn
   'keybase.1.homeUI.homeUIRefresh'?: (params: MessageTypes['keybase.1.homeUI.homeUIRefresh']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.homeUI.homeUIRefresh']['outParam']) => void}) => IncomingReturn
   'keybase.1.identify3Ui.identify3ShowTracker'?: (params: MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['outParam']) => void}) => IncomingReturn
+  'keybase.1.identify3Ui.identify3Summary'?: (params: MessageTypes['keybase.1.identify3Ui.identify3Summary']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.identify3Ui.identify3Summary']['outParam']) => void}) => IncomingReturn
   'keybase.1.identify3Ui.identify3UpdateRow'?: (params: MessageTypes['keybase.1.identify3Ui.identify3UpdateRow']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.identify3Ui.identify3UpdateRow']['outParam']) => void}) => IncomingReturn
   'keybase.1.identify3Ui.identify3UserReset'?: (params: MessageTypes['keybase.1.identify3Ui.identify3UserReset']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.identify3Ui.identify3UserReset']['outParam']) => void}) => IncomingReturn
   'keybase.1.identify3Ui.identify3UpdateUserCard'?: (params: MessageTypes['keybase.1.identify3Ui.identify3UpdateUserCard']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.identify3Ui.identify3UpdateUserCard']['outParam']) => void}) => IncomingReturn
@@ -3845,6 +3855,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.identify.resolveImplicitTeam'
 // 'keybase.1.identify.normalizeSocialAssertion'
 // 'keybase.1.identify3Ui.identify3ShowTracker'
+// 'keybase.1.identify3Ui.identify3Summary'
 // 'keybase.1.identify3Ui.identify3UpdateRow'
 // 'keybase.1.identify3Ui.identify3UserReset'
 // 'keybase.1.identify3Ui.identify3UpdateUserCard'

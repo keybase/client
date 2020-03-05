@@ -41,7 +41,7 @@ const Avatar = (props: Props) => {
         )}
         {!!props.blocked && (
           <Kb.Box style={[imageStyles[props.size], {borderRadius}]}>
-            <Icon type="icon-poop-96" style={styles[`icon:${props.size}`]} />
+            <Icon type="icon-poop-96" style={iconStyles[props.size]} />
           </Kb.Box>
         )}
         {!!props.url && (

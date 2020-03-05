@@ -23,7 +23,7 @@ import (
 
 // If links are needed in full that are stubbed in state, go out and get them from the server.
 // Does not ask for any links above state's seqno, those will be fetched by getNewLinksFromServer.
-func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
+func (l *TeamLoader) fillInStubbedLinks(mctx libkb.MetaContext,
 	me keybase1.UserVersion, teamID keybase1.TeamID, state *keybase1.TeamData,
 	needSeqnos []keybase1.Seqno, readSubteamID keybase1.TeamID,
 	proofSet *proofSetT, parentChildOperations []*parentChildOperation, lkc *loadKeyCache) (
@@ -47,11 +47,11 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		return state, proofSet, parentChildOperations, nil
 	}
 
-	teamUpdate, err := l.world.getLinksFromServer(ctx, state.Chain.Id, requestSeqnos, &readSubteamID)
+	teamUpdate, err := l.world.getLinksFromServer(mctx.Ctx(), state.Chain.Id, requestSeqnos, &readSubteamID)
 	if err != nil {
 		return state, proofSet, parentChildOperations, err
 	}
-	newLinks, err := teamUpdate.unpackLinks(ctx)
+	newLinks, err := teamUpdate.unpackLinks(mctx)
 	if err != nil {
 		return state, proofSet, parentChildOperations, err
 	}
@@ -65,7 +65,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 
 		var signer *SignerX
 		var fullVerifyCutoff keybase1.Seqno // Always fullVerify when inflating. No reasoning has been done on whether it could be skipped.
-		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID,
+		signer, err = l.verifyLink(mctx.Ctx(), teamID, state, me, link, fullVerifyCutoff, readSubteamID,
 			proofSet, lkc, parentsCache)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
@@ -75,13 +75,13 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 			return state, proofSet, parentChildOperations, fmt.Errorf("blank signer for full link: %v", signer)
 		}
 
-		state, err = l.inflateLink(ctx, state, link, *signer, me)
+		state, err = l.inflateLink(mctx.Ctx(), state, link, *signer, me)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
 
-		if l.isParentChildOperation(ctx, link) {
-			pco, err := l.toParentChildOperation(ctx, link)
+		if l.isParentChildOperation(mctx.Ctx(), link) {
+			pco, err := l.toParentChildOperation(mctx.Ctx(), link)
 			if err != nil {
 				return state, proofSet, parentChildOperations, err
 			}

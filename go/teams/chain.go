@@ -2225,9 +2225,11 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 	for id := range completed {
 		invite, ok := stateToUpdate.inner.ActiveInvites[id]
 		if !ok {
-			// Invite doesn't exist - that's likely an error, but we've allowed
-			// this for so long that we have to prove that no team has done
-			// this in order to change this.
+			// Invite doesn't exist or we don't know about it because invite
+			// links were stubbed. We could do a similar check here that we do
+			// in teamSigchainPlayer.useInvites, but we haven't been doing it
+			// in the past, so we might have links with issues like that in the
+			// wild.
 			continue
 		}
 		if invite.MaxUses != nil {
@@ -2251,41 +2253,55 @@ func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 }
 
 func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, used []SCMapInviteIDUVPair) error {
+	if len(used) == 0 {
+		return nil
+	}
+
+	hasStubbedLinks := stateToUpdate.HasAnyStubbedLinks()
 	for _, pair := range used {
 		inviteID, err := pair.InviteID.TeamInviteID()
 		if err != nil {
 			return err
 		}
-		invite, ok := stateToUpdate.inner.ActiveInvites[inviteID]
-		if !ok {
+
+		invite, foundInvite := stateToUpdate.inner.ActiveInvites[inviteID]
+		if foundInvite {
+			// We found the invite, check if current invite usage is valid.
+			if invite.MaxUses == nil {
+				return fmt.Errorf("`used_invites` for an invite that did not have `max_uses`: %s", inviteID)
+			}
+			maxUses := *invite.MaxUses
+			uses := len(stateToUpdate.inner.UsedInvites[inviteID])
+			if !maxUses.IsInfiniteUses() && uses >= int(maxUses) {
+				return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
+			}
+		} else if !hasStubbedLinks {
+			// We couldn't find the invite, and we have no stubbed links, which
+			// means that inviteID is invalid.
 			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 		}
-		if invite.MaxUses == nil {
-			return fmt.Errorf("`used_invites` for an invite that did not have `max_uses`: %s", inviteID)
-		}
-		maxUses := *invite.MaxUses
-		uses := len(stateToUpdate.inner.UsedInvites[inviteID])
-		if !maxUses.IsInfiniteUses() && uses >= int(maxUses) {
-			return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
-		}
+
 		uv, err := keybase1.ParseUserVersion(pair.UV)
 		if err != nil {
 			return err
 		}
-		var foundUV bool
-		for _, updatedUV := range roleUpdates[invite.Role] {
-			if uv.Eq(updatedUV) {
-				foundUV = true
-				break
+		if foundInvite {
+			// If we have the invite, also check if invite role matches role
+			// added.
+			var foundUV bool
+			for _, updatedUV := range roleUpdates[invite.Role] {
+				if uv.Eq(updatedUV) {
+					foundUV = true
+					break
+				}
+			}
+			if !foundUV {
+				return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV, invite.Role.HumanString())
 			}
 		}
-		if !foundUV {
-			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV, invite.Role.HumanString())
-		}
+
 		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
 		if logPoint < 0 {
-			// This check is redundant, but better to be safe here instead of
-			// storing wrong index to UserLog.
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
 		}
 		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],

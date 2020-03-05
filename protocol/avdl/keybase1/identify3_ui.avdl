@@ -65,6 +65,14 @@ protocol identify3Ui {
     union { null, KID } kid;       // in the case of PGP key, also send the KID so that we can revoke by kid
   }
 
+  record Identify3Summary {
+    int numProofsToCheck;
+  }
+
+  void identify3Summary(
+    Identify3Summary summary
+  ) oneway;
+
   @lint("ignore")
   void identify3UpdateRow(
     Identify3Row row

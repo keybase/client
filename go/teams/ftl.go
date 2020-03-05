@@ -827,7 +827,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	if !teamUpdate.ID.Eq(arg.ID) {
 		return nil, NewFastLoadError("server returned wrong id: %v != %v", teamUpdate.ID, arg.ID)
 	}
-	links, err = teamUpdate.unpackLinks(m.Ctx())
+	links, err = teamUpdate.unpackLinks(m)
 	if err != nil {
 		return nil, err
 	}

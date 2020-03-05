@@ -1,69 +1,123 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import Box from './box'
+import Badge from './badge'
 import ClickableBox from './clickable-box'
 import Divider from './divider'
+import Icon, {IconType} from './icon'
+import ProgressIndicator from './progress-indicator'
+import Text from './text'
+import {Box, Box2} from './box'
+import capitalize from 'lodash/capitalize'
 
 const Kb = {
+  Badge,
   Box,
+  Box2,
   ClickableBox,
   Divider,
+  Icon,
+  ProgressIndicator,
+  Text,
 }
 
-type Props = {
-  clickableBoxStyle?: any
-  tabs: Array<React.ReactNode>
-  selected: React.ReactNode
-  onSelect: (s: React.ReactNode, idx: number) => any
-  style?: any
-  tabStyle?: any
+export type Tab<TitleT extends string> = {
+  title: TitleT
+  text?: string // text to show instead of title
+  icon?: IconType
+  badgeNumber?: number
 }
 
-const Tabs = ({clickableBoxStyle, tabs, selected, onSelect, style, tabStyle}: Props) => {
-  return (
-    <Kb.Box style={Styles.collapseStyles([styles.container, style])}>
-      {tabs.map((t, idx) => {
-        // @ts-ignore
-        const key: string = (t && t.key) || idx
-        return (
-          <Kb.ClickableBox onClick={() => onSelect(t, idx)} key={key} style={clickableBoxStyle}>
-            <Kb.Box style={styles.tabContainer}>
-              <Kb.Box
-                style={Styles.collapseStyles([styles.tab, t === selected && styles.tabSelected, tabStyle])}
-              >
-                {t}
-              </Kb.Box>
-              <Kb.Divider
-                style={Styles.collapseStyles([
-                  styles.divider,
-                  {
-                    backgroundColor:
-                      t === selected ? Styles.globalColors.blue : Styles.globalColors.transparent,
-                  },
-                ])}
-              />
+type Props<TitleT extends string> = {
+  clickableBoxStyle?: Styles.StylesCrossPlatform
+  tabs: Array<Tab<TitleT>>
+  onSelect: (title: TitleT) => void
+  selectedTab?: TitleT
+  style?: Styles.StylesCrossPlatform
+  tabStyle?: Styles.StylesCrossPlatform
+  showProgressIndicator?: boolean
+}
+
+const TabText = ({selected, text}: {selected: boolean; text: string}) => (
+  <Kb.Box2 style={styles.tabTextContainer} direction="horizontal">
+    <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
+      {text}
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
+  <Kb.Box2
+    direction="horizontal"
+    style={Styles.collapseStyles([styles.container, props.style])}
+    alignItems="flex-start"
+    fullWidth={true}
+  >
+    {props.tabs.map((tab: Tab<TitleT>) => {
+      const selected = props.selectedTab === tab.title
+      return (
+        <Kb.ClickableBox
+          onClick={() => props.onSelect(tab.title)}
+          key={tab.title}
+          style={props.clickableBoxStyle}
+        >
+          <Kb.Box2 direction="vertical" style={styles.tabContainer} fullWidth={true}>
+            <Kb.Box style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
+              {tab.icon ? (
+                <Kb.Icon type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
+              ) : (
+                <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
+              )}
+              {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
             </Kb.Box>
-          </Kb.ClickableBox>
-        )
-      })}
-    </Kb.Box>
-  )
-}
+            <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      )
+    })}
+    {props.showProgressIndicator && <Kb.ProgressIndicator style={styles.progressIndicator} />}
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate(() => ({
+  badge: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      marginLeft: 2,
+      marginTop: 1,
+    },
+  }),
   container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
     flex: 1,
     maxHeight: Styles.isMobile ? 48 : 40,
-    width: '100%',
   },
   divider: {
     ...Styles.globalStyles.flexBoxRow,
+    backgroundColor: Styles.globalColors.transparent,
     minHeight: 2,
+  },
+  dividerSelected: {
+    ...Styles.globalStyles.flexBoxRow,
+    backgroundColor: Styles.globalColors.blue,
+    minHeight: 2,
+  },
+  icon: {
+    alignSelf: 'center',
+  },
+  iconSelected: {
+    alignSelf: 'center',
+    color: Styles.globalColors.black,
+  },
+  progressIndicator: {
+    height: 17,
+    width: 17,
+  },
+  selected: {
+    color: Styles.globalColors.black,
   },
   tab: {
     flex: 1,
@@ -73,9 +127,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingTop: Styles.globalMargins.small,
   },
   tabContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-    },
     isElectron: {
       height: 40,
     },
@@ -83,9 +134,7 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 48,
     },
   }),
-  tabSelected: {
-    color: Styles.globalColors.black,
-  },
+  tabTextContainer: {justifyContent: 'center'},
 }))
 
 export default Tabs

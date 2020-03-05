@@ -91,7 +91,7 @@ const initialState: DeserializeProps = {
   files: 0,
   kbfsDaemonStatus: {
     onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
-    rpcStatus: FSTypes.KbfsDaemonRpcStatus.Unknown,
+    rpcStatus: FSTypes.KbfsDaemonRpcStatus.Connected,
   },
   kbfsEnabled: false,
   navBadges: new Map(),

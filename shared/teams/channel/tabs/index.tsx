@@ -3,8 +3,13 @@ import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import * as ChatConstants from '../../../constants/chat2'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as UsersGen from '../../../actions/users-gen'
 import flags from '../../../util/feature-flags'
-import capitalize from 'lodash/capitalize'
+import {Tab as TabType} from '../../../common-adapters/tabs'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
@@ -22,55 +27,58 @@ export type Props = OwnProps & {
   loading: boolean
 }
 
-const TabText = ({selected, text}: {selected: boolean; text: string}) => (
-  <Kb.Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : styles.tabText}>
-    {text}
-  </Kb.Text>
-)
-
-const makeTab = (name: TabKey, selectedTab: TabKey) => (
-  <Kb.Box key={name} style={styles.tabTextContainer}>
-    <TabText selected={selectedTab === name} text={capitalize(name)} />
-  </Kb.Box>
-)
-
 const ChannelTabs = (props: Props) => {
-  const {selectedTab, setSelectedTab} = props
-  const tabs = [
-    makeTab('members', selectedTab),
-    makeTab('attachments', selectedTab),
-    ...(flags.botUI ? [makeTab('bots', selectedTab)] : []),
-    ...(props.admin ? [makeTab('settings', selectedTab)] : []),
-    ...(!Styles.isMobile && props.loading
-      ? [<Kb.ProgressIndicator key="loading" style={styles.progressIndicator} />]
-      : []),
+  const {conversationIDKey, selectedTab, setSelectedTab, teamID} = props
+  const previousTab = Container.usePrevious(selectedTab)
+  const {participants} = Container.useSelector(state =>
+    ChatConstants.getBotsAndParticipants(state, conversationIDKey)
+  )
+  const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (previousTab !== selectedTab && selectedTab === 'members') {
+      if (meta.conversationIDKey === 'EMPTY') {
+        dispatch(
+          Chat2Gen.createMetaRequestTrusted({
+            conversationIDKeys: [conversationIDKey],
+            reason: 'ensureChannelMeta',
+          })
+        )
+      }
+      dispatch(TeamsGen.createGetMembers({teamID}))
+      dispatch(UsersGen.createGetBlockState({usernames: participants}))
+    }
+  }, [conversationIDKey, dispatch, meta, participants, previousTab, selectedTab, teamID])
+
+  const tabs: Array<TabType<TabKey>> = [
+    {title: 'members' as const},
+    {title: 'attachments' as const},
+    ...(flags.botUI ? [{title: 'bots' as const}] : []),
+    ...(props.admin ? [{title: 'settings' as const}] : []),
   ]
 
-  const onSelect = (tab: any) => {
-    const key = tab && tab.key
-    if (key) {
-      if (key !== 'loading') {
-        if (key === 'bots') {
-          props.loadBots()
-        }
-        setSelectedTab(key)
-      } else {
-        setSelectedTab('members')
+  const onSelect = (tab: TabKey) => {
+    if (tab !== 'loading') {
+      if (tab === 'bots') {
+        props.loadBots()
       }
+      setSelectedTab(tab)
+    } else {
+      setSelectedTab('members')
     }
   }
 
-  const selected = tabs.find(tab => tab.key === selectedTab) || null
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box style={styles.container}>
         <Kb.Tabs
           clickableBoxStyle={styles.clickableBox}
           tabs={tabs}
-          selected={selected}
+          selectedTab={selectedTab}
           onSelect={onSelect}
           style={styles.tabContainer}
           tabStyle={styles.tab}
+          showProgressIndicator={!Styles.isMobile && props.loading}
         />
       </Kb.Box>
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
@@ -87,10 +95,6 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.white,
   },
-  progressIndicator: {
-    height: 17,
-    width: 17,
-  },
   tab: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
@@ -105,12 +109,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flexBasis: '100%',
     marginTop: 0,
   },
-  tabText: {},
-  tabTextContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    justifyContent: 'center',
-  },
-  tabTextSelected: {color: Styles.globalColors.black},
 }))
 
 export default ChannelTabs

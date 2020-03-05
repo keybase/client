@@ -601,6 +601,7 @@ class Input extends React.Component<InputProps, InputState> {
       suggestAllChannels,
       suggestCommands,
       isActiveForFocus,
+      infoPanelShowing,
       ...platformInputProps
     } = this.props
     return (
@@ -622,7 +623,10 @@ class Input extends React.Component<InputProps, InputState> {
             styles.suggestionList,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
           ])}
-          suggestionOverlayStyle={styles.suggestionOverlay}
+          suggestionOverlayStyle={Styles.collapseStyles([
+            styles.suggestionOverlay,
+            infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
+          ])}
           suggestionSpinnerStyle={Styles.collapseStyles([
             styles.suggestionSpinnerStyle,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
@@ -673,7 +677,10 @@ const styles = Styles.styleSheetCreate(
       }),
       suggestionOverlay: Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
-        isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
+        isTablet: {marginLeft: '30%', marginRight: 0},
+      }),
+      suggestionOverlayWithInfoPanel: Styles.platformStyles({
+        isTablet: {marginRight: infoPanelWidthTablet},
       }),
       suggestionSpinnerStyle: Styles.platformStyles({
         common: {
