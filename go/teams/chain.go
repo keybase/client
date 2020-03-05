@@ -211,11 +211,7 @@ func (t TeamSigChainState) GetUserLastJoinTime(user keybase1.UserVersion) (time 
 // membership link, can optionally specify an expiration time, and a maximum
 // number of uses (potentially infinite).
 func IsNewStyleInvite(invite keybase1.TeamInvite) (bool, error) {
-	category, err := invite.Type.C()
-	if err != nil {
-		return false, err
-	}
-	return category == keybase1.TeamInviteCategory_INVITELINK, nil
+	return invite.MaxUses != nil, nil
 }
 
 // assertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
