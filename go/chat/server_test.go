@@ -4796,6 +4796,58 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 	})
 }
 
+func TestChatSrvMutualTeamsLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvChatMembershipsLocal", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		t.Logf("create team only one user is in")
+		conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		teamID1, err := ctc.as(t, users[0]).chatLocalHandler().TeamIDFromTLFName(ctx, chat1.TeamIDFromTLFNameArg{
+			TlfName:     conv1.TlfName,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		})
+		require.NoError(t, err)
+		t.Logf("teamID 1: %s", teamID1)
+		t.Logf("check that users share no mutual teams")
+		emptyMutualTeamsRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMutualTeamsLocal(ctx, []string{users[1].Username})
+		require.NoError(t, err)
+		require.Equal(t, 0, len(emptyMutualTeamsRes.TeamIDs))
+
+		t.Logf("create team with both users")
+		conv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		teamID2, err := ctc.as(t, users[0]).chatLocalHandler().TeamIDFromTLFName(ctx, chat1.TeamIDFromTLFNameArg{
+			TlfName:     conv2.TlfName,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		})
+		require.NoError(t, err)
+		t.Logf("check that users have 1 mutual team")
+
+		getMutualTeamsRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMutualTeamsLocal(ctx, []string{users[1].Username})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(getMutualTeamsRes.TeamIDs))
+		require.Equal(t, teamID2, getMutualTeamsRes.TeamIDs[0])
+	})
+}
+
 func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvSetAppNotificationSettings", 2)
