@@ -192,7 +192,7 @@ func mustMerge(t testing.TB, storage *Storage,
 	switch err.(type) {
 	case nil:
 	case MissError:
-		conv = types.RemoteConversation{Conv: makeConversationAt(convID, 0)}
+		conv = types.NewEmptyRemoteConversation(convID)
 	default:
 		require.NoError(t, err)
 	}
