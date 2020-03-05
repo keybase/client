@@ -167,6 +167,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 })
 
 const emptyState: Types.State = {
+  addMembersWizard: {justFinished: false},
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),

@@ -52,6 +52,7 @@ export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
+export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
@@ -214,6 +215,7 @@ type _SetChannelSelectedPayload = {
 }
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
+type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
@@ -548,6 +550,9 @@ export const createSetEditDescriptionError = (
 export const createSetEmailInviteError = (
   payload: _SetEmailInviteErrorPayload
 ): SetEmailInviteErrorPayload => ({payload, type: setEmailInviteError})
+export const createSetJustFinishedAddMembersWizard = (
+  payload: _SetJustFinishedAddMembersWizardPayload
+): SetJustFinishedAddMembersWizardPayload => ({payload, type: setJustFinishedAddMembersWizard})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload): SetMemberPublicityPayload => ({
   payload,
   type: setMemberPublicity,
@@ -808,6 +813,10 @@ export type SetEmailInviteErrorPayload = {
   readonly payload: _SetEmailInviteErrorPayload
   readonly type: typeof setEmailInviteError
 }
+export type SetJustFinishedAddMembersWizardPayload = {
+  readonly payload: _SetJustFinishedAddMembersWizardPayload
+  readonly type: typeof setJustFinishedAddMembersWizard
+}
 export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
   readonly type: typeof setMemberPublicity
@@ -994,6 +1003,7 @@ export type Actions =
   | SetChannelSelectedPayload
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
+  | SetJustFinishedAddMembersWizardPayload
   | SetMemberPublicityPayload
   | SetMembersPayload
   | SetNewTeamInfoPayload
