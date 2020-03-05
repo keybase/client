@@ -1,35 +1,81 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
+import * as Kb from '../../common-adapters/mobile.native'
 import * as Constants from '../../constants/settings'
+import * as Container from '../../util/container'
+import * as Styles from '../../styles'
+import {logPerfLogPointRpcPromise} from '../../constants/types/rpc-gen'
 import {keybaseFM} from '../../constants/whats-new'
-import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import WhatsNewIcon from '../../whats-new/icon/container'
 import {Props} from './index'
 
+const PerfRow = () => {
+  const [toSubmit, setToSubmit] = React.useState('')
+  const ref = React.useRef<Kb.PlainInput>(null)
+
+  return (
+    <Kb.Box2
+      alignItems="center"
+      direction="horizontal"
+      fullWidth={true}
+      gap="xtiny"
+      style={styles.perfRow}
+      gapStart={true}
+    >
+      <Kb.Button
+        small={true}
+        label="PerfLog"
+        onClick={() => {
+          logPerfLogPointRpcPromise({msg: toSubmit})
+          ref.current?.transformText(
+            () => ({
+              selection: {end: 0, start: 0},
+              text: '',
+            }),
+            true
+          )
+        }}
+      />
+      <Kb.PlainInput
+        ref={ref}
+        onChangeText={text => setToSubmit(`GUI: ${text}`)}
+        style={styles.perfInput}
+        placeholder="Add to perf log"
+      />
+    </Kb.Box2>
+  )
+}
+
 const renderItem = ({item}) => {
+  if (item.text === 'perf') {
+    return <PerfRow />
+  }
   return item.text ? <SettingsItem {...item} /> : null
 }
 
 function SettingsNav(props: Props) {
   const {badgeNumbers} = props
+  const statsShown = Container.useSelector(state => !!state.config.runtimeStats)
+
   return (
-    <NativeSectionList
+    <Kb.SectionList
+      keyboardShouldPersistTaps="handled"
       keyExtractor={(item, index) => item.text + index}
       renderItem={renderItem}
       renderSectionHeader={({section: {title}}) =>
         title ? (
-          <Text type="BodySmallSemibold" style={styles.sectionTitle}>
+          <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
             {title}
-          </Text>
+          </Kb.Text>
         ) : null
       }
-      style={globalStyles.fullHeight}
+      style={Styles.globalStyles.fullHeight}
       sections={[
         {
           data: [
+            ...(statsShown ? [{text: 'perf'}] : []),
             {
               badgeNumber: badgeNumbers.get(TabConstants.gitTab),
               icon: 'iconfont-nav-git',
@@ -104,7 +150,7 @@ function SettingsNav(props: Props) {
             {
               onClick: () => props.onTabChange(Constants.logOutTab),
               text: 'Sign out',
-              textColor: globalColors.red,
+              textColor: Styles.globalColors.red,
             },
           ],
           title: 'More',
@@ -114,13 +160,15 @@ function SettingsNav(props: Props) {
   )
 }
 
-const styles = styleSheetCreate(() => ({
+const styles = Styles.styleSheetCreate(() => ({
+  perfInput: {backgroundColor: Styles.globalColors.grey},
+  perfRow: {height: 44},
   sectionTitle: {
-    backgroundColor: globalColors.blueLighter3,
-    color: globalColors.black_50,
+    backgroundColor: Styles.globalColors.blueLighter3,
+    color: Styles.globalColors.black_50,
     paddingBottom: 7,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     paddingTop: 7,
   },
 }))
