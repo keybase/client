@@ -16,6 +16,7 @@
 #import <keybase/keybase.h>
 #import "Pusher.h"
 #import "Fs.h"
+#import "Storybook.h"
 
 #import <UMCore/UMModuleRegistry.h>
 #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
@@ -102,7 +103,11 @@
 #if DEBUG
   // uncomment to get a prod bundle. If you set this it remembers so set it back and re-run to reset it!
 //  [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
-  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+  
+  // This is a mildly hacky solution to mock out some code when we're in storybook mode.
+  // The code that handles this is in `shared/metro.config.js`.
+  NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL fallbackResource:nil];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif

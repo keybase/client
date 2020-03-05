@@ -56,66 +56,6 @@
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace"
   },
-  "jest": {
-    "coverageDirectory": "./coverage",
-    "modulePaths": [
-      "<rootDir>/desktop/node_modules"
-    ],
-    "modulePathIgnorePatterns": [
-      "<rootDir>/.tsOut"
-    ],
-    "transformIgnorePatterns": [
-      "node_modules/(?!universalify|fs-extra|react-redux|react-gateway|@storybook|@react-navigation)"
-    ],
-    "setupFiles": [
-      "<rootDir>/test/setupFiles.js"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/setupTestFrameworkScriptFile.js"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "<rootDir>/.tsOut/"
-    ],
-    "snapshotSerializers": [
-      "jest-emotion"
-    ],
-    "timers": "fake",
-    "testEnvironment": "jsdom",
-    "moduleNameMapper": {
-      "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.tsx",
-      "typed-connect": "<rootDir>/util/__mocks__/typed-connect.tsx",
-      "react-spring": "<rootDir>/__mocks__/react-spring.tsx",
-      "react-list": "<rootDir>/__mocks__/react-list.tsx",
-      "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.tsx",
-      "^electron$": "<rootDir>/__mocks__/electron.tsx",
-      "hidden-string": "<rootDir>/__mocks__/hidden-string.tsx",
-      "constants/platform": "<rootDir>/__mocks__/platform.tsx",
-      "local-debug": "<rootDir>/__mocks__/local-debug.tsx",
-      "feature-flags": "<rootDir>/__mocks__/feature-flags.tsx",
-      "safe-navigation": "<rootDir>/__mocks__/safe-navigation.tsx",
-      "engine/saga$": "<rootDir>/__mocks__/engine-saga.tsx",
-      "@msgpack": "<rootDir>/node_modules/@msgpack/msgpack/dist.es5/msgpack.js"
-    },
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts",
-      "tsx",
-      "jsx",
-      "node",
-      "desktop.js",
-      "desktop.tsx"
-    ],
-    "transform": {
-      "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
-    },
-    "globals": {
-      "__DEV__": true,
-      "__STORYBOOK__": true,
-      "__STORYSHOT__": true
-    }
-  },
   "keywords": [],
   "author": "",
   "license": "MIT",
