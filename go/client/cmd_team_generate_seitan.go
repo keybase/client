@@ -109,8 +109,7 @@ func (c *CmdTeamGenerateSeitan) GetUsage() libkb.Usage {
 }
 
 const teamGenerateSeitanDoc = `"keybase generate-invite-token" allows you to create a one-time use,
-expiring, cryptographically secure token that someone can use to join
-a team.
+cryptographically secure token that someone can use to join a team.
 
 Optionally, full name and phone number can be provided (using
 --fullname and --number flags) to label created token to make them
