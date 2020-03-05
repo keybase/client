@@ -27,20 +27,12 @@ const seitanEncodedIKeyV2PlusOffset = 6
 // "Invite Key Version 2"
 type SeitanIKeyV2 string
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 // IsSeitany is a very conservative check of whether a given string looks
 // like a Seitan token. We want to err on the side of considering strings
 // Seitan tokens, since we don't mistakenly want to send botched Seitan
 // tokens to the server.
 func IsSeitany(s string) bool {
-	m := min(min(seitanEncodedIKeyPlusOffset, seitanEncodedIKeyV2PlusOffset), seitanEncodedIKeyInvitelinkPlusOffset)
-	return len(s) > m && strings.IndexByte(s, '+') > 1
+	return len(s) > seitanEncodedIKeyInvitelinkPlusOffset && strings.IndexByte(s, '+') > 1
 }
 
 func ParseSeitanVersion(s string) (version SeitanVersion, err error) {

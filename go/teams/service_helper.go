@@ -9,7 +9,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbun"
@@ -1369,7 +1368,6 @@ func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	now := time.Now()
-	mctx.Warning("@@@", spew.Sdump(sikey[:]), uv, now.Unix())
 	_, encoded, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, now.Unix())
 	if err != nil {
 		return err
@@ -1379,7 +1377,7 @@ func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
 
 	arg := apiArg("team/seitan_invitelink")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
-	arg.Args.Add("unix_timestamp_seconds", libkb.U{Val: uint64(now.Unix())})
+	arg.Args.Add("unix_timestamp", libkb.U{Val: uint64(now.Unix())})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
 	_, err = mctx.G().API.Post(mctx, arg)
 	return err
@@ -1937,19 +1935,20 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 	return keybase1.SeitanIKeyV2(ikey), err
 }
 
-func CreateSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalContext, teamname string,
-	role keybase1.TeamRole, etime *keybase1.UnixTime,
-	maxUses *keybase1.TeamInviteMaxUses) (keybase1.SeitanIKeyInvitelink, error) {
+func CreateInvitelink(ctx context.Context, g *libkb.GlobalContext, teamname string,
+	role keybase1.TeamRole, maxUses keybase1.TeamInviteMaxUses,
+	etime *keybase1.UnixTime) (invitelink keybase1.Invitelink, err error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
-		return "", err
+		return invitelink, err
 	}
-	ikey, err := t.InviteSeitanInvitelink(ctx, role, etime, maxUses)
+	ikey, err := t.InviteInvitelink(ctx, role, maxUses, etime)
 	if err != nil {
-		return "", err
+		return invitelink, err
 	}
 
-	return ikey, err
+	// TODO fill in other fields
+	return keybase1.Invitelink{Ikey: ikey}, err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.

@@ -2563,6 +2563,7 @@ export enum TeamInviteCategory {
   sbs = 4,
   seitan = 5,
   phone = 6,
+  invitelink = 7,
 }
 
 export enum TeamMemberStatus {
@@ -2884,6 +2885,7 @@ export type IncomingShareItem = {readonly type: IncomingShareType; readonly orig
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
+export type Invitelink = {readonly ikey: SeitanIKeyInvitelink; readonly webLink: String; readonly deepLink: String; readonly maxUses: TeamInviteMaxUses; readonly etime?: UnixTime | null}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -3145,7 +3147,7 @@ export type TeamInviteID = String
 export type TeamInviteMaxUses = Int
 export type TeamInviteName = String
 export type TeamInviteSocialNetwork = String
-export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone}
+export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone} | {c: TeamInviteCategory.invitelink}
 export type TeamInvitee = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly role: TeamRole}
 export type TeamJoinRequest = {readonly name: String; readonly username: String; readonly fullName: FullName; readonly ctime: UnixTime}
 export type TeamKBFSKeyRefresher = {readonly generation: Int; readonly appType: TeamApplication}

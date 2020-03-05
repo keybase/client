@@ -2676,18 +2676,14 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 // multiple use, with infinite number of uses.
 const TeamMaxUsesInfinite = -1
 
-func NewTeamInviteMaxUses(infiniteUses bool, maxUses *int) (v TeamInviteMaxUses, err error) {
+func NewTeamInviteMaxUses(infiniteUses bool, maxUses int) (v TeamInviteMaxUses, err error) {
 	if infiniteUses {
 		return TeamMaxUsesInfinite, nil
 	}
-	if maxUses == nil {
-		return v, errors.New("non-infinite uses with nil maxUses")
-	}
-	val := *maxUses
-	if val <= 0 {
+	if maxUses <= 0 {
 		return v, errors.New("non-infinite uses with nonpositive maxUses")
 	}
-	return TeamInviteMaxUses(v), nil
+	return TeamInviteMaxUses(maxUses), nil
 }
 
 func (e TeamInviteMaxUses) IsInfiniteUses() bool {
@@ -2698,19 +2694,14 @@ func (e TeamInviteMaxUses) IsValid() bool {
 	return e > 0 || e == TeamMaxUsesInfinite
 }
 
-func (e *TeamInviteMaxUses) IsUsedUp(alreadyUsed int) bool {
-	// nil defaults to single-use
-	if e == nil {
-		return alreadyUsed >= 1
-	}
-
+func (e TeamInviteMaxUses) IsUsedUp(alreadyUsed int) bool {
 	if !e.IsValid() {
 		return true
 	}
-	if *e == TeamMaxUsesInfinite {
+	if e == TeamMaxUsesInfinite {
 		return false
 	}
-	return alreadyUsed >= int(*e)
+	return alreadyUsed >= int(e)
 }
 
 func (m MemberInfo) TeamName() (TeamName, error) {

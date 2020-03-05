@@ -637,14 +637,13 @@ func (h *TeamsHandler) TeamCreateSeitanTokenV2(ctx context.Context, arg keybase1
 }
 
 func (h *TeamsHandler) TeamCreateSeitanInvitelink(ctx context.Context,
-	arg keybase1.TeamCreateSeitanInvitelinkArg) (token keybase1.SeitanIKeyInvitelink,
-	err error) {
+	arg keybase1.TeamCreateSeitanInvitelinkArg) (invitelink keybase1.Invitelink, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
-		return "", err
+		return invitelink, err
 	}
-	return teams.CreateSeitanTokenInvitelink(ctx, h.G().ExternalG(),
-		arg.Teamname, arg.Role, arg.Etime, arg.MaxUses)
+	return teams.CreateInvitelink(ctx, h.G().ExternalG(),
+		arg.Teamname, arg.Role, arg.MaxUses, arg.Etime)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {

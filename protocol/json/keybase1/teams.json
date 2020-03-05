@@ -1281,7 +1281,8 @@
         "EMAIL_3",
         "SBS_4",
         "SEITAN_5",
-        "PHONE_6"
+        "PHONE_6",
+        "INVITELINK_7"
       ]
     },
     {
@@ -2946,6 +2947,35 @@
     },
     {
       "type": "record",
+      "name": "Invitelink",
+      "fields": [
+        {
+          "type": "SeitanIKeyInvitelink",
+          "name": "ikey"
+        },
+        {
+          "type": "string",
+          "name": "webLink"
+        },
+        {
+          "type": "string",
+          "name": "deepLink"
+        },
+        {
+          "type": "TeamInviteMaxUses",
+          "name": "maxUses"
+        },
+        {
+          "type": [
+            null,
+            "UnixTime"
+          ],
+          "name": "etime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -4058,10 +4088,7 @@
         },
         {
           "name": "maxUses",
-          "type": [
-            null,
-            "TeamInviteMaxUses"
-          ]
+          "type": "TeamInviteMaxUses"
         },
         {
           "name": "etime",
@@ -4071,7 +4098,7 @@
           ]
         }
       ],
-      "response": "SeitanIKeyInvitelink"
+      "response": "Invitelink"
     },
     "teamAddEmailsBulk": {
       "request": [

@@ -587,7 +587,7 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertionOrEmail(ctx context.Context, 
 	return tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, assertion, role, botSettings)
 }
 
-func (tx *AddMemberTx) UseInviteByID(ctx context.Context, g *libkb.GlobalContext, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
+func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, g *libkb.GlobalContext, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
 	payload := tx.findChangeReqForUV(uv)
 	if payload == nil {
 		return fmt.Errorf("could not find uv %v in transaction", uv)
@@ -598,37 +598,33 @@ func (tx *AddMemberTx) UseInviteByID(ctx context.Context, g *libkb.GlobalContext
 		return fmt.Errorf("failed to find invite being used")
 	}
 
-	alreadyUsedBeforeTransaction, err := tx.team.chain().GetNumberOfUsesForMultiUseInviteID(inviteID)
+	isNewStyle, err := IsNewStyleInvite(invite)
 	if err != nil {
 		return err
 	}
 
-	alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
-	if invite.MaxUses.IsUsedUp(alreadyUsed) {
-		return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
-	}
+	if isNewStyle {
+		// TODO need a force load to use UsedInvites: subversion??
+		alreadyUsedBeforeTransaction := len(tx.team.chain().inner.UsedInvites[inviteID])
 
-	if invite.Etime != nil {
-		now := g.Clock().Now()
-		etime := keybase1.FromUnixTime(*invite.Etime)
-		if now.After(etime) {
-			return fmt.Errorf("invite expired at %v which is before the current time of %v; rejecting", etime, now)
+		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
+		if invite.MaxUses.IsUsedUp(alreadyUsed) {
+			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
 		}
+
+		if invite.Etime != nil {
+			now := g.Clock().Now()
+			etime := keybase1.FromUnixTime(*invite.Etime)
+			if now.After(etime) {
+				return fmt.Errorf("invite expired at %v which is before the current time of %v; rejecting", etime, now)
+			}
+		}
+
+		payload.UseInviteID(inviteID, uv.PercentForm())
+		tx.usedInviteCount[inviteID]++
+	} else {
+		payload.CompleteInviteID(inviteID, uv.PercentForm())
 	}
-
-	payload.UseInviteID(inviteID, uv.PercentForm())
-	tx.usedInviteCount[inviteID]++
-	return nil
-}
-
-// CompleteInviteByID completes
-func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
-	payload := tx.findChangeReqForUV(uv)
-	if payload == nil {
-		return fmt.Errorf("could not find uv %v in transaction", uv)
-	}
-
-	payload.CompleteInviteID(inviteID, uv.PercentForm())
 	return nil
 }
 

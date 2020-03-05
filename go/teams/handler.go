@@ -597,16 +597,16 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return err
 		}
 
-		isMultiUse, err := IsMultiUseInvite(invite)
+		isNewStyle, err := IsNewStyleInvite(invite)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Error checking whether invite is multiuse: %s", isMultiUse)
+			g.Log.CDebugf(ctx, "Error checking whether invite is new-style: %s", isNewStyle)
 			continue
 		}
 
 		if currentRole.IsOrAbove(invite.Role) {
 			g.Log.CDebugf(ctx, "User already has same or higher role.")
-			if !isMultiUse {
-				g.Log.CDebugf(ctx, "User already has same or higher role; since is not a multiuse invite, cancelling invite.")
+			if !isNewStyle {
+				g.Log.CDebugf(ctx, "User already has same or higher role; since is not a new-style invite, cancelling invite.")
 				tx.CancelInvite(invite.Id, uv.Uid)
 			}
 			continue
@@ -623,15 +623,9 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		// PUKless user accepts seitan token invite status is set to
 		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
 		// PUK and status is set to ACCEPTED.
-		if isMultiUse {
-			g.Log.CDebugf(ctx, "Using invite %q", invite.Id)
-			err = tx.UseInviteByID(ctx, g, invite.Id, uv)
-		} else {
-			g.Log.CDebugf(ctx, "Completing invite %q", invite.Id)
-			err = tx.CompleteInviteByID(ctx, invite.Id, uv)
-		}
+		err = tx.ConsumeInviteByID(ctx, g, invite.Id, uv)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Failed to complete or use invite: %v", err)
+			g.Log.CDebugf(ctx, "Failed to consume invite: %v", err)
 			continue
 		}
 

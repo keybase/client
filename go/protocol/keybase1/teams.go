@@ -1591,25 +1591,27 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 type TeamInviteCategory int
 
 const (
-	TeamInviteCategory_NONE    TeamInviteCategory = 0
-	TeamInviteCategory_UNKNOWN TeamInviteCategory = 1
-	TeamInviteCategory_KEYBASE TeamInviteCategory = 2
-	TeamInviteCategory_EMAIL   TeamInviteCategory = 3
-	TeamInviteCategory_SBS     TeamInviteCategory = 4
-	TeamInviteCategory_SEITAN  TeamInviteCategory = 5
-	TeamInviteCategory_PHONE   TeamInviteCategory = 6
+	TeamInviteCategory_NONE       TeamInviteCategory = 0
+	TeamInviteCategory_UNKNOWN    TeamInviteCategory = 1
+	TeamInviteCategory_KEYBASE    TeamInviteCategory = 2
+	TeamInviteCategory_EMAIL      TeamInviteCategory = 3
+	TeamInviteCategory_SBS        TeamInviteCategory = 4
+	TeamInviteCategory_SEITAN     TeamInviteCategory = 5
+	TeamInviteCategory_PHONE      TeamInviteCategory = 6
+	TeamInviteCategory_INVITELINK TeamInviteCategory = 7
 )
 
 func (o TeamInviteCategory) DeepCopy() TeamInviteCategory { return o }
 
 var TeamInviteCategoryMap = map[string]TeamInviteCategory{
-	"NONE":    0,
-	"UNKNOWN": 1,
-	"KEYBASE": 2,
-	"EMAIL":   3,
-	"SBS":     4,
-	"SEITAN":  5,
-	"PHONE":   6,
+	"NONE":       0,
+	"UNKNOWN":    1,
+	"KEYBASE":    2,
+	"EMAIL":      3,
+	"SBS":        4,
+	"SEITAN":     5,
+	"PHONE":      6,
+	"INVITELINK": 7,
 }
 
 var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
@@ -1620,6 +1622,7 @@ var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
 	4: "SBS",
 	5: "SEITAN",
 	6: "PHONE",
+	7: "INVITELINK",
 }
 
 func (e TeamInviteCategory) String() string {
@@ -3430,6 +3433,30 @@ func (o TeamEditMembersResult) DeepCopy() TeamEditMembersResult {
 	}
 }
 
+type Invitelink struct {
+	Ikey     SeitanIKeyInvitelink `codec:"ikey" json:"ikey"`
+	WebLink  string               `codec:"webLink" json:"webLink"`
+	DeepLink string               `codec:"deepLink" json:"deepLink"`
+	MaxUses  TeamInviteMaxUses    `codec:"maxUses" json:"maxUses"`
+	Etime    *UnixTime            `codec:"etime,omitempty" json:"etime,omitempty"`
+}
+
+func (o Invitelink) DeepCopy() Invitelink {
+	return Invitelink{
+		Ikey:     o.Ikey.DeepCopy(),
+		WebLink:  o.WebLink,
+		DeepLink: o.DeepLink,
+		MaxUses:  o.MaxUses.DeepCopy(),
+		Etime: (func(x *UnixTime) *UnixTime {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Etime),
+	}
+}
+
 type BulkRes struct {
 	Malformed []string `codec:"malformed" json:"malformed"`
 }
@@ -4047,11 +4074,11 @@ type TeamCreateSeitanTokenV2Arg struct {
 }
 
 type TeamCreateSeitanInvitelinkArg struct {
-	SessionID int                `codec:"sessionID" json:"sessionID"`
-	Teamname  string             `codec:"teamname" json:"teamname"`
-	Role      TeamRole           `codec:"role" json:"role"`
-	MaxUses   *TeamInviteMaxUses `codec:"maxUses,omitempty" json:"maxUses,omitempty"`
-	Etime     *UnixTime          `codec:"etime,omitempty" json:"etime,omitempty"`
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	Teamname  string            `codec:"teamname" json:"teamname"`
+	Role      TeamRole          `codec:"role" json:"role"`
+	MaxUses   TeamInviteMaxUses `codec:"maxUses" json:"maxUses"`
+	Etime     *UnixTime         `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
 type TeamAddEmailsBulkArg struct {
@@ -4232,7 +4259,7 @@ type TeamsInterface interface {
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
 	TeamCreateSeitanTokenV2(context.Context, TeamCreateSeitanTokenV2Arg) (SeitanIKeyV2, error)
-	TeamCreateSeitanInvitelink(context.Context, TeamCreateSeitanInvitelinkArg) (SeitanIKeyInvitelink, error)
+	TeamCreateSeitanInvitelink(context.Context, TeamCreateSeitanInvitelinkArg) (Invitelink, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -5408,7 +5435,7 @@ func (c TeamsClient) TeamCreateSeitanTokenV2(ctx context.Context, __arg TeamCrea
 	return
 }
 
-func (c TeamsClient) TeamCreateSeitanInvitelink(ctx context.Context, __arg TeamCreateSeitanInvitelinkArg) (res SeitanIKeyInvitelink, err error) {
+func (c TeamsClient) TeamCreateSeitanInvitelink(ctx context.Context, __arg TeamCreateSeitanInvitelinkArg) (res Invitelink, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelink", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
