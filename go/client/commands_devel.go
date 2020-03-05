@@ -74,6 +74,7 @@ func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 		NewCmdSimpleFSUpgrade(cl, g),
 		NewCmdSimpleFSForceConflict(cl, g),
 		NewCmdSimpleFSSearch(cl, g),
+		NewCmdSimpleFSResetIndex(cl, g),
 	}
 }
 

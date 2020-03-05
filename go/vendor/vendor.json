@@ -956,16 +956,16 @@
 			"revisionTime": "2018-03-01T23:53:30Z"
 		},
 		{
-			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
+			"checksumSHA1": "5pmXwOy9jB8chFU+JjG0G3Il8yE=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
-			"revisionTime": "2020-02-24T21:58:29Z"
+			"revision": "6fcc57755f35fd21109d656057901b3c0eccd3e9",
+			"revisionTime": "2020-02-28T19:22:15Z"
 		},
 		{
-			"checksumSHA1": "NstCqfXwErGgU2i+UYTShuA9Avs=",
+			"checksumSHA1": "uR+QsoTqF59Ur57qgaodzx/T58Q=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
-			"revisionTime": "2020-02-24T21:58:29Z"
+			"revision": "6fcc57755f35fd21109d656057901b3c0eccd3e9",
+			"revisionTime": "2020-02-28T19:22:15Z"
 		},
 		{
 			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",

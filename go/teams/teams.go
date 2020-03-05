@@ -1621,6 +1621,8 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 
 	section.CompletedInvites = req.CompletedInvites
+	section.UsedInvites = makeSCMapInviteIDUVMap(req.UsedInvites)
+
 	section.Implicit = t.IsImplicit()
 	section.Public = t.IsPublic()
 

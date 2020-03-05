@@ -419,6 +419,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1GregorUIPushOutOfBandMessages': enginegen.Keybase1GregorUIPushOutOfBandMessagesPayload
   'engine-gen:keybase1HomeUIHomeUIRefresh': enginegen.Keybase1HomeUIHomeUIRefreshPayload
   'engine-gen:keybase1Identify3UiIdentify3ShowTracker': enginegen.Keybase1Identify3UiIdentify3ShowTrackerPayload
+  'engine-gen:keybase1Identify3UiIdentify3Summary': enginegen.Keybase1Identify3UiIdentify3SummaryPayload
   'engine-gen:keybase1Identify3UiIdentify3UpdateRow': enginegen.Keybase1Identify3UiIdentify3UpdateRowPayload
   'engine-gen:keybase1Identify3UiIdentify3UserReset': enginegen.Keybase1Identify3UiIdentify3UserResetPayload
   'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard': enginegen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
@@ -615,6 +616,7 @@ export type TypedActionsMap = {
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
+  'fs:checkKbfsDaemonRpcStatus': fs.CheckKbfsDaemonRpcStatusPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
   'fs:kbfsDaemonOnlineStatusChanged': fs.KbfsDaemonOnlineStatusChangedPayload

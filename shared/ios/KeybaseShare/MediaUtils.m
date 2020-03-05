@@ -40,7 +40,7 @@
   return nil;
 }
 
-+ (NSError *) stripExifAtURL:(NSURL*)url {
++ (NSError *) _stripImageExifAtURL:(NSURL*)url {
   NSError * error;
   CGImageSourceRef cgSource = CGImageSourceCreateWithURL((__bridge CFURLRef)url, nil);
   CFStringRef type = CGImageSourceGetType(cgSource);
@@ -68,7 +68,7 @@
 }
 
 + (void) processImageFromOriginal:(NSURL*)url completion:(ProcessMediaCompletion)completion {
-  NSError * error = [MediaUtils stripExifAtURL:url];
+  NSError * error = [MediaUtils _stripImageExifAtURL:url];
   if (error != nil){
     completion(error, nil, nil);
     return;
@@ -96,17 +96,42 @@
   completion(nil, scaledURL, thumbnailURL);
 }
 
-+ (void) processVideoFromOriginal:(NSURL*)url completion:(ProcessMediaCompletion)completion {
-  NSError * error = [MediaUtils stripExifAtURL:url];
-  if (error != nil){
-    completion(error, nil, nil);
-    return;
++ (BOOL) _needScaleDownAsset:(AVURLAsset *) asset {
+  NSArray<AVAssetTrack *> * tracks = [asset tracks];
+  if (tracks != nil){
+    for (int i = 0; i < tracks.count; ++i) {
+      CGSize size = [tracks[i] naturalSize];
+      if (size.height * size.width > 640*480) {
+        return true;
+      }
+    }
   }
-  
+  return false;
+}
+
++ (void) _stripVideoExifAndCompleteAsset:(AVURLAsset *) asset originalURL:(NSURL *)originalURL completion:(ProcessMediaCompletionErrorOnly)completion {
+  NSURL * tmpDstURL = [originalURL URLByAppendingPathExtension:@"tmp"];
+  AVAssetExportSession * exportSessionOriginal = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPresetHighestQuality];
+  exportSessionOriginal.shouldOptimizeForNetworkUse = true;
+  exportSessionOriginal.outputFileType = AVFileTypeMPEG4;
+  exportSessionOriginal.outputURL = tmpDstURL;
+  [exportSessionOriginal exportAsynchronouslyWithCompletionHandler:^{
+    if (exportSessionOriginal.error != nil) {
+      completion(exportSessionOriginal.error);
+      return;
+    }
+    NSError * error;
+    [[NSFileManager defaultManager] replaceItemAtURL:originalURL withItemAtURL:tmpDstURL backupItemName:nil options:0 resultingItemURL:nil error:&error];
+    completion(error);
+  }];
+}
+
++ (void) processVideoFromOriginal:(NSURL*)url completion:(ProcessMediaCompletion)completion {
   NSString * basename = [[url URLByDeletingPathExtension] lastPathComponent];
   NSURL * parent = [url URLByDeletingLastPathComponent];
   NSURL * normalVideoURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.scaled.mp4", basename]];
   NSURL * thumbnailURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.thumbnail.jpg", basename]];
+  NSError * error;
   
   AVURLAsset * asset = [[AVURLAsset alloc] initWithURL:url options:nil];
   
@@ -137,32 +162,32 @@
     return;
   }
   
-  NSArray<AVAssetTrack *> * tracks = [asset tracks];
-  BOOL needScaleDown = false;
-  if (tracks != nil){
-    for (int i = 0; i < tracks.count; ++i) {
-      CGSize size = [tracks[i] naturalSize];
-      if (size.height * size.width > 640*480) {
-        needScaleDown = true;
-        break;
-      }
-    }
-  }
+  BOOL needScaleDown = [MediaUtils _needScaleDownAsset:asset];
   if (!needScaleDown) {
-    completion(nil, url, thumbnailURL);
+    [MediaUtils _stripVideoExifAndCompleteAsset:asset originalURL:url completion:^(NSError * _Nullable error) {
+      if (error != nil) {
+        completion(error, nil, nil);
+      }
+      completion(nil, url, thumbnailURL);
+    }];
     return;
   }
   
-  AVAssetExportSession * exportSession = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPreset640x480];
-  exportSession.shouldOptimizeForNetworkUse = true;
-  exportSession.outputFileType = AVFileTypeMPEG4;
-  exportSession.outputURL = normalVideoURL;
-  [exportSession exportAsynchronouslyWithCompletionHandler:^{
-    if (exportSession.error != nil) {
-      completion(exportSession.error, nil, nil);
+  AVAssetExportSession * exportSessionNormal = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPreset640x480];
+  exportSessionNormal.shouldOptimizeForNetworkUse = true;
+  exportSessionNormal.outputFileType = AVFileTypeMPEG4;
+  exportSessionNormal.outputURL = normalVideoURL;
+  [exportSessionNormal exportAsynchronouslyWithCompletionHandler:^{
+    if (exportSessionNormal.error != nil) {
+      completion(exportSessionNormal.error, nil, nil);
       return;
     }
-    completion(nil, normalVideoURL, thumbnailURL);
+    [MediaUtils _stripVideoExifAndCompleteAsset:asset originalURL:url completion:^(NSError * _Nullable error) {
+      if (error != nil) {
+        completion(error, nil, nil);
+      }
+      completion(nil, normalVideoURL, thumbnailURL);
+    }];
   }];
 }
 

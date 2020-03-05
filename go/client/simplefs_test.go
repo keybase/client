@@ -386,6 +386,10 @@ func (s SimpleFSMock) SimpleFSSearch(
 	return keybase1.SimpleFSSearchResults{}, nil
 }
 
+func (s SimpleFSMock) SimpleFSResetIndex(ctx context.Context) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

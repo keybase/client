@@ -378,10 +378,21 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 }
 
 func (sc *SigChain) VerifyChain(mctx MetaContext, uid keybase1.UID) (err error) {
-	defer mctx.Trace("SigChain#VerifyChain", func() error { return err })()
-	mctx.Debug("+ SigChain#VerifyChain()")
+	defer mctx.TraceTimed(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), func() error { return err })()
+	defer mctx.PerfTrace(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), func() error { return err })()
+	start := time.Now()
 	defer func() {
-		mctx.Debug("- SigChain#VerifyChain() -> %s", ErrToOk(err))
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Verified sig chain for %s", uid)
+		} else {
+			message = fmt.Sprintf("Failed to verify sigchain for %s", uid)
+		}
+		mctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_USERCHAIN,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
 	}()
 
 	expectedNextHighSkip := NewInitialHighSkip()

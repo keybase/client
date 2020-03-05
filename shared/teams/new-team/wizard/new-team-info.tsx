@@ -8,7 +8,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()

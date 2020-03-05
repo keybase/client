@@ -1875,6 +1875,9 @@ type SimpleFSSearchArg struct {
 	StartingFrom int    `codec:"startingFrom" json:"startingFrom"`
 }
 
+type SimpleFSResetIndexArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1999,6 +2002,7 @@ type SimpleFSInterface interface {
 	SimpleFSUserIn(context.Context, string) error
 	SimpleFSUserOut(context.Context, string) error
 	SimpleFSSearch(context.Context, SimpleFSSearchArg) (SimpleFSSearchResults, error)
+	SimpleFSResetIndex(context.Context) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2860,6 +2864,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSResetIndex": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSResetIndexArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSResetIndex(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3258,5 +3272,10 @@ func (c SimpleFSClient) SimpleFSUserOut(ctx context.Context, clientID string) (e
 
 func (c SimpleFSClient) SimpleFSSearch(ctx context.Context, __arg SimpleFSSearchArg) (res SimpleFSSearchResults, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSResetIndex(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSResetIndex", []interface{}{SimpleFSResetIndexArg{}}, nil, 0*time.Millisecond)
 	return
 }

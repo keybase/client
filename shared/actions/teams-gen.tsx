@@ -125,6 +125,7 @@ type _CreateChannelPayload = {
   readonly teamID: Types.TeamID
   readonly channelname: string
   readonly description: string | null
+  readonly navToChatOnSuccess: boolean
 }
 type _CreateNewTeamFromConversationPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey

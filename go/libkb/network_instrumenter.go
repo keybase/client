@@ -15,8 +15,8 @@ import (
 )
 
 type NetworkStatsJSON struct {
-	Local  []keybase1.InstrumentationStat `json:"remote"`
-	Remote []keybase1.InstrumentationStat `json:"local"`
+	Local  []keybase1.InstrumentationStat `json:"local"`
+	Remote []keybase1.InstrumentationStat `json:"remote"`
 }
 
 var internalHosts = map[string]struct{}{

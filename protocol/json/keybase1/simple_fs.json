@@ -1687,6 +1687,10 @@
         }
       ],
       "response": "SimpleFSSearchResults"
+    },
+    "simpleFSResetIndex": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

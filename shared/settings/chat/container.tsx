@@ -63,12 +63,13 @@ export default Container.namedConnect(
     )
     const selectedTeams: {[K in TeamTypes.TeamID]: boolean} = {}
     teamMeta.forEach(t => {
-      // If there's a server-provided previous choice, use that.
       if (serverSelectedTeams.has(t.id)) {
+        // If there's a server-provided previous choice, use that.
         selectedTeams[t.id] = !!serverSelectedTeams.get(t.id)?.enabled
+      } else {
+        // Else, default the team to being selected if the team is non-open.
+        selectedTeams[t.id] = !t.isOpen
       }
-      // Else, default the team to being selected if the team is non-open.
-      selectedTeams[t.id] = !t.isOpen
     })
     return {
       ...ownProps,

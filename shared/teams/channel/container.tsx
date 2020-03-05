@@ -8,7 +8,11 @@ import {TabKey} from './tabs'
 import Channel, {Sections, TabProps} from '.'
 import makeRows from './rows'
 
-type RouteProps = Container.RouteProps<{teamID: Types.TeamID; conversationIDKey: ChatTypes.ConversationIDKey}>
+type RouteProps = Container.RouteProps<{
+  teamID: Types.TeamID
+  conversationIDKey: ChatTypes.ConversationIDKey
+  selectedTab?: TabKey
+}>
 type OwnProps = TabProps & RouteProps
 
 // keep track during session
@@ -18,6 +22,7 @@ const defaultTab: TabKey = 'members'
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamID = Container.getRouteProps(ownProps, 'teamID', '')
   const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey', '')
+  const rows = makeRows(ownProps.selectedTab, conversationIDKey, state)
 
   return {
     _channelInfo:
@@ -25,6 +30,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _yourOperations: Constants.getCanPerformByID(state, teamID),
     _yourUsername: state.config.username,
     conversationIDKey,
+    rows,
     teamID,
   }
 }
@@ -37,9 +43,8 @@ const ConnectedChannel = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => {
-    const {conversationIDKey, teamID} = stateProps
+    const {conversationIDKey, rows, teamID} = stateProps
     const {selectedTab, setSelectedTab} = ownProps
-    const rows = makeRows(ownProps.selectedTab)
     const sections: Sections = [
       {data: [{key: 'header-inner', type: 'header' as const}], key: 'header'},
       {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
@@ -61,7 +66,8 @@ const ConnectedChannel = Container.connect(
 // connected state while providing its props to downstream components.
 const ConnectedChannelWithTabs = (props: RouteProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const defaultSelectedTab = lastSelectedTabs[teamID] ?? defaultTab
+  const defaultSelectedTab =
+    lastSelectedTabs[teamID] ?? Container.getRouteProps(props, 'selectedTab', undefined) ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
     t => {

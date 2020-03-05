@@ -665,4 +665,6 @@ protocol SimpleFS {
   }
 
   SimpleFSSearchResults simpleFSSearch(string query, int numResults, int startingFrom);
+
+  void simpleFSResetIndex();
 }

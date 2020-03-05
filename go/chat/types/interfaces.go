@@ -609,6 +609,11 @@ type ParticipantSource interface {
 		dataSource InboxSourceDataSourceTyp)
 }
 
+type ServerConnection interface {
+	Reconnect(context.Context) (bool, error)
+	GetClient() chat1.RemoteInterface
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string
