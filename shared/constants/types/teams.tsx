@@ -131,7 +131,12 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
+export type AddMembersWizardState = {
+  justFinished: boolean
+}
+
 export type State = {
+  readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
   readonly canPerform: Map<TeamID, TeamOperations>

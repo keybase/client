@@ -892,7 +892,7 @@ const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberP
         isShowcased: showcase,
         teamID,
       },
-      Constants.teamWaitingKeyByID(teamID, state)
+      [Constants.teamWaitingKeyByID(teamID, state), Constants.setMemberPublicityWaitingKey(teamID)]
     )
     return
   } catch (error) {
