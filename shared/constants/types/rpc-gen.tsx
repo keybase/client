@@ -2879,6 +2879,7 @@ export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration;
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
 export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath: String; readonly originalSize: Int; readonly scaledPath?: String | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
+export type IndexProgressRecord = {readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesSoFar: Int64}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
@@ -3079,6 +3080,7 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
+export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: Array<Folder> | null}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
 export type SimpleFSSearchHit = {readonly path: String}
@@ -4117,6 +4119,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.SimpleFS.simpleFSGetStats'
 // 'keybase.1.SimpleFS.simpleFSSearch'
 // 'keybase.1.SimpleFS.simpleFSResetIndex'
+// 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

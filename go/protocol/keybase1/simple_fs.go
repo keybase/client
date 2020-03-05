@@ -1599,6 +1599,46 @@ func (o SimpleFSSearchResults) DeepCopy() SimpleFSSearchResults {
 	}
 }
 
+type IndexProgressRecord struct {
+	EndEstimate Time  `codec:"endEstimate" json:"endEstimate"`
+	BytesTotal  int64 `codec:"bytesTotal" json:"bytesTotal"`
+	BytesSoFar  int64 `codec:"bytesSoFar" json:"bytesSoFar"`
+}
+
+func (o IndexProgressRecord) DeepCopy() IndexProgressRecord {
+	return IndexProgressRecord{
+		EndEstimate: o.EndEstimate.DeepCopy(),
+		BytesTotal:  o.BytesTotal,
+		BytesSoFar:  o.BytesSoFar,
+	}
+}
+
+type SimpleFSIndexProgress struct {
+	OverallProgress IndexProgressRecord `codec:"overallProgress" json:"overallProgress"`
+	CurrFolder      Folder              `codec:"currFolder" json:"currFolder"`
+	CurrProgress    IndexProgressRecord `codec:"currProgress" json:"currProgress"`
+	FoldersLeft     []Folder            `codec:"foldersLeft" json:"foldersLeft"`
+}
+
+func (o SimpleFSIndexProgress) DeepCopy() SimpleFSIndexProgress {
+	return SimpleFSIndexProgress{
+		OverallProgress: o.OverallProgress.DeepCopy(),
+		CurrFolder:      o.CurrFolder.DeepCopy(),
+		CurrProgress:    o.CurrProgress.DeepCopy(),
+		FoldersLeft: (func(x []Folder) []Folder {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Folder, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.FoldersLeft),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1878,6 +1918,9 @@ type SimpleFSSearchArg struct {
 type SimpleFSResetIndexArg struct {
 }
 
+type SimpleFSGetIndexProgressArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -2003,6 +2046,7 @@ type SimpleFSInterface interface {
 	SimpleFSUserOut(context.Context, string) error
 	SimpleFSSearch(context.Context, SimpleFSSearchArg) (SimpleFSSearchResults, error)
 	SimpleFSResetIndex(context.Context) error
+	SimpleFSGetIndexProgress(context.Context) (SimpleFSIndexProgress, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2874,6 +2918,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetIndexProgress": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetIndexProgressArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetIndexProgress(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3277,5 +3331,10 @@ func (c SimpleFSClient) SimpleFSSearch(ctx context.Context, __arg SimpleFSSearch
 
 func (c SimpleFSClient) SimpleFSResetIndex(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSResetIndex", []interface{}{SimpleFSResetIndexArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetIndexProgress(ctx context.Context) (res SimpleFSIndexProgress, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetIndexProgress", []interface{}{SimpleFSGetIndexProgressArg{}}, &res, 0*time.Millisecond)
 	return
 }
