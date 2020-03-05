@@ -211,12 +211,11 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	c.opts.Recipients = ctx.Args()
 	forRecipients := len(c.opts.Recipients) > 0
 	forTeamRecipients := len(c.opts.TeamRecipients) > 0
-	if forRecipients == forTeamRecipients { // !xor
-		if !forRecipients {
-			return errors.New("need at least one recipient")
-		} else {
-			return errors.New("can only encrypt for either only individuals only teams")
-		}
+	if !forRecipients && !forTeamRecipients {
+		return errors.New("need at least one recipient")
+	}
+	if forRecipients && forTeamRecipients {
+		return errors.New("can only encrypt for either only individuals or only teams")
 	}
 
 	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys") // by default, use entity keys
@@ -261,7 +260,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	// mechanism with the encryption format. As such, we cannot encrypt for teams
 	// (and implicit teams): we can error here for teams, and later if resolving
 	// any user would lead to the creation of an implicit team.
-	if c.opts.UseEntityKeys && len(c.opts.TeamRecipients) > 0 && c.opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE {
+	if forTeamRecipients && c.opts.UseEntityKeys && c.opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE {
 		return errors.New("--auth-type=repudiable requires --no-entity-keys when encrypting for a team")
 	}
 
