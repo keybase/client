@@ -177,7 +177,7 @@
     </Component>
     <Component Id="SaltpackIcon" Guid="{2EDFF243-3A47-47A8-BBD6-3BA7358FFDE0}" Directory="INSTALLFOLDER">
       <RegistryKey Root="HKCU" Key="Software\Classes\saltpack\DefaultIcon">
-        <RegistryValue Value="[GuiDir]resources/app/images/windows/Saltpack.ico" KeyPath="yes" Type="string" />
+        <RegistryValue Value="[GuiDir]resources\app\images\windows\Saltpack.ico" KeyPath="yes" Type="string" />
       </RegistryKey>
     </Component>
   </Fragment>
