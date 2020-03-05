@@ -22,7 +22,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   proofProviders: true,
   stellarExternalPartners: true,
-  tabletSupport: false, // Whether tablet support is public. Changes some UI on non-tablets.
+  tabletSupport: true, // Whether tablet support is public. Changes some UI on non-tablets.
   teamInvites: false,
   teamsRedesign: false,
   userBlocking: true,
