@@ -19,7 +19,7 @@ type CmdTeamGenerateInvitelink struct {
 	Team              string
 	Role              keybase1.TeamRole
 	Etime             *keybase1.UnixTime
-	TeamInviteMaxUses *keybase1.TeamInviteMaxUses
+	TeamInviteMaxUses keybase1.TeamInviteMaxUses
 }
 
 func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -89,19 +89,16 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 		return errors.New("can only specify one of max-uses and infinite-uses")
 	}
 
-	if ctx.IsSet("infinite-uses") || ctx.IsSet("max-uses") {
-		infiniteUses := ctx.Bool("infinite-uses")
-		var maxUsesVal *int
-		if ctx.IsSet("max-uses") {
-			v := ctx.Int("max-uses")
-			maxUsesVal = &v
-		}
-		maxUses, err := keybase1.NewTeamInviteMaxUses(infiniteUses, maxUsesVal)
-		if err != nil {
-			return err
-		}
-		c.TeamInviteMaxUses = &maxUses
+	infiniteUses := ctx.Bool("infinite-uses")
+	maxUsesVal := 1
+	if ctx.IsSet("max-uses") {
+		maxUsesVal = ctx.Int("max-uses")
 	}
+	maxUses, err := keybase1.NewTeamInviteMaxUses(infiniteUses, maxUsesVal)
+	if err != nil {
+		return err
+	}
+	c.TeamInviteMaxUses = maxUses
 
 	return nil
 }
@@ -129,7 +126,7 @@ func (c *CmdTeamGenerateInvitelink) Run() error {
 Users can join the team by visiting that link.
 If they already have Keybase installed, they can run 'keybase team accept-invite --token %s'.
 Or they can go to the teams tab in the app, press "Join a team", and enter the link there.
-`, res, res)
+`, res.Ikey, res.Ikey)
 
 	return nil
 }

@@ -657,15 +657,6 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 }
 
 func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
-	category, err := invite.Type.C()
-	if err != nil {
-		return err
-	}
-
-	if category != keybase1.TeamInviteCategory_SEITAN {
-		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
-	}
-
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return err
@@ -681,12 +672,26 @@ func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		return fmt.Errorf("while parsing KeyAndLabel: %s", err)
 	}
 
+	category, err := invite.Type.C()
+	if err != nil {
+		return err
+	}
+
 	switch labelversion {
 	case keybase1.SeitanKeyAndLabelVersion_V1:
+		if category != keybase1.TeamInviteCategory_SEITAN {
+			return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v; wanted seitan", category)
+		}
 		return verifySeitanSingleV1(keyAndLabel.V1().I, invite, seitan)
 	case keybase1.SeitanKeyAndLabelVersion_V2:
+		if category != keybase1.TeamInviteCategory_SEITAN {
+			return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v; wanted seitan", category)
+		}
 		return verifySeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
 	case keybase1.SeitanKeyAndLabelVersion_Invitelink:
+		if category != keybase1.TeamInviteCategory_INVITELINK {
+			return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v; wanted invitelink", category)
+		}
 		return verifySeitanSingleInvitelink(ctx, g, keyAndLabel.Invitelink().I, invite, seitan)
 	default:
 		return fmt.Errorf("unknown KeyAndLabel version: %v", labelversion)

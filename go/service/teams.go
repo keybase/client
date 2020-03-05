@@ -642,8 +642,8 @@ func (h *TeamsHandler) TeamCreateSeitanInvitelink(ctx context.Context,
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return invitelink, err
 	}
-	return teams.CreateInvitelink(ctx, h.G().ExternalG(),
-		arg.Teamname, arg.Role, arg.MaxUses, arg.Etime)
+	return teams.CreateInvitelink(ctx, h.G().ExternalG(), arg.Teamname, arg.Role, arg.MaxUses,
+		arg.Etime)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
