@@ -68,7 +68,7 @@ export default Container.connect(
         TeamsGen.createCreateChannel({
           channelname,
           description,
-          navToChatOnSuccess: Container.getRouteProps(ownProps, 'navToChatOnSuccess', true)!,
+          navToChatOnSuccess: Container.getRouteProps(ownProps, 'navToChatOnSuccess', undefined) ?? true,
           teamID,
         })
       ),
