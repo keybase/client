@@ -885,12 +885,6 @@
       "allowMentions": "boolean",
       "convs?": "Array<string>"
     },
-    "loadMoreSmalls": {
-      "_description": "Tell the service to give us more small teams"
-    },
-    "resetSmalls": {
-      "_description": "Tell the service to revert to default number of small teams"
-    },
     "setParticipants": {
       "_description": "Set conversation participant info",
       "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
