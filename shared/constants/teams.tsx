@@ -27,6 +27,7 @@ export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
   const teamname = getTeamNameFromID(state, teamID) ?? ''
   return teamWaitingKey(teamname)
 }
+export const setMemberPublicityWaitingKey = (teamID: Types.TeamID) => `teamMemberPub:${teamID}`
 export const teamGetWaitingKey = (teamID: Types.TeamID) => `teamGet:${teamID}`
 export const teamTarsWaitingKey = (teamID: Types.TeamID) => `teamTars:${teamID}`
 export const teamCreationWaitingKey = 'teamCreate'

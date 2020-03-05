@@ -42,6 +42,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   )
   // Automatically dismiss this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
+  const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
   return (
     <Kb.Box2
       direction="vertical"
@@ -63,6 +64,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
           onClick={onFeature}
           small={true}
           style={Styles.globalStyles.flexOne}
+          waiting={waiting}
         />
         <Kb.Button
           label="Later"
