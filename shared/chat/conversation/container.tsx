@@ -49,6 +49,7 @@ let Conversation = (p: SwitchProps) => {
   // @ts-ignore
   const lastIsFocused = React.useRef<boolean>(p.isFocused)
   // temporary until nav 5
+  // TODO the relationship between this view and the store is too fragile. redo
   if (Container.isMobile) {
     // @ts-ignore
     const {isFocused} = p
