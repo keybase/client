@@ -1146,8 +1146,12 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	payload["sigs"] = []interface{}{sigParent, sigSub}
 
 	var ratchetSet hidden.RatchetBlindingKeySet
-	ratchetSet.Add(*parentRatchet)
-	ratchetSet.Add(*subRatchet)
+	if parentRatchet != nil {
+		ratchetSet.Add(*parentRatchet)
+	}
+	if subRatchet != nil {
+		ratchetSet.Add(*subRatchet)
+	}
 	err = ratchetSet.AddToJSONPayload(payload)
 	if err != nil {
 		return err
