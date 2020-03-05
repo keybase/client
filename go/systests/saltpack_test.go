@@ -128,9 +128,7 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 		t.Fatal(err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg)
 }
 
 func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
@@ -145,7 +143,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	team := u2.createTeam()
 	u2.addTeamMember(team, u1.username, keybase1.TeamRole_WRITER)
 
-	msg := "this message will be encrypted for an implicit team"
+	msg := "this message will be encrypted for a team"
 
 	sink := libkb.NewBufferCloser()
 	arg := &engine.SaltpackEncryptArg{
@@ -186,9 +184,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 		t.Fatal(err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg)
 
 	// u2 can decrypt
 	uis2 := libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.newSecretUI(), SaltpackUI: fakeSaltpackUI{}}
@@ -204,9 +200,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 		t.Fatal(err)
 	}
 	decmsg = decoded2.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg)
 
 	// u1 leaves team, can't decrypt
 	u1.leave(team)
@@ -219,13 +213,9 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 	}
 	dec1 = engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m1))
 	err := engine.RunEngine2(m1, dec1)
-	x, ok := err.(libkb.DecryptionError)
-	if !ok {
-		t.Fatalf("expected error type libkb.DecryptionError, got %T (%s)", err, err)
-	}
-	if _, ok := x.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("expected error Cause type libkb.NoDecryptionKeyError, got %T (%s)", x.Cause.Err, x.Cause.Err)
-	}
+	require.IsType(t, libkb.DecryptionError{}, err)
+	x, _ := err.(libkb.DecryptionError)
+	require.IsType(t, libkb.NoDecryptionKeyError{}, x.Cause.Err)
 
 	// u2 can still decrypt
 	teams = u2.teamList("", false, false)
@@ -240,9 +230,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 		t.Fatal(err)
 	}
 	decmsg = decoded4.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg)
 
 	// u2 adds u3, can decrypt
 	u2.addTeamMember(team, u3.username, keybase1.TeamRole_WRITER)
@@ -259,9 +247,7 @@ func TestSaltpackEncryptDecryptWithEntityKeysForTeams(t *testing.T) {
 		t.Fatal(err)
 	}
 	decmsg = decoded5.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg)
 }
 
 func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
@@ -313,13 +299,9 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	}
 	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m2))
 	err := engine.RunEngine2(m2, dec)
-	x, ok := err.(libkb.DecryptionError)
-	if !ok {
-		t.Fatalf("expected error type libkb.DecryptionError, got %T (%s)", err, err)
-	}
-	if _, ok := x.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("expected error Cause type libkb.NoDecryptionKeyError, got %T (%s)", x.Cause.Err, x.Cause.Err)
-	}
+	require.IsType(t, libkb.DecryptionError{}, err)
+	x, _ := err.(libkb.DecryptionError)
+	require.IsType(t, libkb.NoDecryptionKeyError{}, x.Cause.Err)
 
 	// Get current implicit team seqno so we can wait for it to be updated later
 	team, _, _, err := teams.LookupImplicitTeam(context.Background(), u1.tc.G, u1.username+","+u2.username+"@rooter", false, teams.ImplicitTeamOptions{})
@@ -343,7 +325,5 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 		t.Fatal(err)
 	}
 	decmsg := decoded.String()
-	if decmsg != msg {
-		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
-	}
+	require.Equal(t, msg, decmsg)
 }

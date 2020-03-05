@@ -52,34 +52,38 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 		cli.BoolFlag{
 			Name: "no-device-keys",
-			Usage: `Do not use the device keys of all the user recipients (and
-	members of recipient teams) for encryption. This does not affect paper
-	keys.  This flag is ignored if encrypting for at least 1 team, where we
-	don't encrypt for device keys by default.`,
+			Usage: `Do not use the device keys of all the user recipients
+	for encryption. This does not affect paper keys.  This flag is ignored if
+	encrypting for teams, where we don't encrypt for device keys by
+	default.`,
 		},
 		cli.BoolFlag{
 			Name: "no-paper-keys",
-			Usage: `Do not use the paper keys of all the user recipients (and members
-	of recipient teams) for encryption. This flag is ignored if encrypting
-	for at least 1 team, where we don't encrypt for paper keys by default.`,
+			Usage: `Do not use the paper keys of all the user recipients for
+	encryption. This flag is ignored if encrypting for teams, where
+	we don't encrypt for paper keys by default.`,
 		},
 		cli.BoolFlag{
+			Name: "no-self-encrypt",
+			Usage: `Don't encrypt for yourself. This flag is ignored if encrypting
+	for teams, where we don't encrypt for self by default.`},
+		cli.BoolFlag{
 			Name: "include-device-keys",
-			Usage: `Use the device keys of all the user recipients (and members of
-	recipient teams) for encryption.  This does not affect paper keys. This
-	flag is ignored if not encrypting for at least 1 team, where we encrypt for
+			Usage: `Use the device keys of all the user recipients and members of
+	recipient teams for encryption.  This does not affect paper keys. This
+	flag is accepted if encrypting for teams, where we encrypt for
 	device keys by default.`,
 		},
 		cli.BoolFlag{
 			Name: "include-paper-keys",
-			Usage: `Use the paper keys of all the user recipients (and members of
-	recipient teams) for encryption. This flag is ignored if not encrypting
-	for at least 1 team, where we encrypt for paper keys by default.`,
+			Usage: `Use the paper keys of all the user recipients and members of
+	recipient teams for encryption. This flag is accepted if encrypting
+	for teams, where we encrypt for paper keys by default.`,
 		},
 		cli.BoolFlag{
-			Name:  "no-self-encrypt",
-			Usage: "Don't encrypt for yourself.",
-		},
+			Name: "include-self-encrypt",
+			Usage: `Do encrypt for yourself. This flag is accepted if encrypting for
+	teams, where we don't encrypt for self by default.`},
 		cli.StringFlag{
 			Name:  "auth-type",
 			Value: "signed",
@@ -121,9 +125,7 @@ cannot be altered in any way.
 
   - Team encryption, available through the "--team" flag, encrypts the message
   for the team key. Future team members can decrypt the message, and members
-  who leave the team will be unable to decrypt the message (the exception is
-  that if the encryptor of the message leaves the team, they will still be able
-  to decrypt the message, unless they use the --no-self-encrypt flag).
+  who leave the team will be unable to decrypt the message.
 
   - You can also encrypt for users who have not yet joined keybase, but are on
   a social network such as foo@twitter: the message will be encrypted with a
@@ -207,30 +209,38 @@ func (c *CmdEncrypt) GetUsage() libkb.Usage {
 func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	c.opts.TeamRecipients = ctx.StringSlice("team")
 	c.opts.Recipients = ctx.Args()
-	if len(c.opts.Recipients) == 0 && len(c.opts.TeamRecipients) == 0 {
-		return errors.New("Encrypt needs at least one recipient")
+	forRecipients := len(c.opts.Recipients) > 0
+	forTeamRecipients := len(c.opts.TeamRecipients) > 0
+	if forRecipients == forTeamRecipients { // !xor
+		if !forRecipients {
+			return errors.New("need at least one recipient")
+		} else {
+			return errors.New("can only encrypt for either all individuals or all teams")
+		}
 	}
 
 	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys") // by default, use entity keys
-	if len(c.opts.TeamRecipients) == 0 {
+	if forRecipients {
 		// if not encrypting for a team, use all keys unless "no-" flags passed
-		if ctx.Bool("include-device-keys") || ctx.Bool("include-paper-keys") {
-			return errors.New("cannot use these flags if not encrypting for at least 1 team: --include-device-keys, --include-paper-keys; please remove")
+		if ctx.Bool("include-device-keys") || ctx.Bool("include-paper-keys") || ctx.Bool("include-self-encrypt") {
+			return errors.New("can only use these flags if encrypting for teams: --include-device-keys, --include-paper-keys, --include-self-encrypt; please remove")
 		}
 		c.opts.UseDeviceKeys = !ctx.Bool("no-device-keys")
 		c.opts.UsePaperKeys = !ctx.Bool("no-paper-keys")
+		c.opts.NoSelfEncrypt = ctx.Bool("no-self-encrypt")
 	} else {
-		// if encrypting for at least 1 team, only use entity keys unless "include-" flags passed
-		if ctx.Bool("no-device-keys") || ctx.Bool("no-paper-keys") {
-			return errors.New("cannot use these flags if encrypting for at least 1 team: --no-device-keys, --no-paper-keys; please remove")
+		// if encrypting for teams, only use team entity keys unless "include-" flags passed
+		if ctx.Bool("no-device-keys") || ctx.Bool("no-paper-keys") || ctx.Bool("no-self-encrypt") {
+			return errors.New("cannot use these flags if encrypting for teams: --no-device-keys, --no-paper-keys, --no-self-encrypt; please remove")
 		}
 		c.opts.UseDeviceKeys = ctx.Bool("include-device-keys")
 		c.opts.UsePaperKeys = ctx.Bool("include-paper-keys")
+		c.opts.NoSelfEncrypt = !ctx.Bool("include-self-encrypt")
 	}
 	c.opts.UseKBFSKeysOnlyForTesting = ctx.Bool("use-kbfs-keys-only")
 
 	if !(c.opts.UseEntityKeys || c.opts.UseDeviceKeys || c.opts.UsePaperKeys) {
-		if len(c.opts.TeamRecipients) == 0 {
+		if forRecipients {
 			// legal arg combos if not encrypting for team: any subset (including empty set) of at most 2 of (--no-device-keys, --no-paper-keys or --no-entity-keys)
 			return errors.New("please remove at least one of --no-device-keys, --no-paper-keys or --no-entity-keys")
 		}
@@ -255,7 +265,6 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 		return errors.New("--auth-type=repudiable requires --no-entity-keys when encrypting for a team")
 	}
 
-	c.opts.NoSelfEncrypt = ctx.Bool("no-self-encrypt")
 	c.opts.Binary = ctx.Bool("binary")
 	c.opts.SaltpackVersion = ctx.Int("saltpack-version")
 
