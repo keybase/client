@@ -35,10 +35,13 @@ const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
 type FeatureTeamCardProps = {teamID: Types.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   const dispatch = Container.useDispatch()
-  const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({teamID, showcase: true}))
-  const onNoThanks = () => dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false}))
+  const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
+  const onNoThanks = React.useCallback(
+    () => dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false})),
+    [dispatch]
+  )
   // Automatically dismiss this when the user navigates away
-  React.useEffect(() => onNoThanks, [])
+  React.useEffect(() => onNoThanks, [onNoThanks])
   return (
     <Kb.Box2
       direction="vertical"
@@ -52,7 +55,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
         <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
       </Kb.Box>
       <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
-      <Kb.Text type="BodySmall">So your friends or coworkers know of your team's existence</Kb.Text>
+      <Kb.Text type="BodySmall">So your friends or coworkers know of your team's existence.</Kb.Text>
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
         <Kb.Button
           label="Yes, feature it"
