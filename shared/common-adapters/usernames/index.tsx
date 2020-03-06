@@ -88,7 +88,7 @@ const UsernameText = (props: Props) => {
         const _onUsernameClicked = props.onUsernameClicked
         const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
         const renderText = (onLongPress?: () => void) => (
-          <Text type="Body" key={u.username}>
+          <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle} underlineNever={true}>
                 {'and '}
