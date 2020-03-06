@@ -9,15 +9,28 @@ import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const teamWizardState = Container.useSelector(state => state.teams.newTeamWizard)
-  const teamNameTaken = false // TODO: get this live (Y2K-1524 and probably useRPC)
 
   const [name, setName] = React.useState(teamWizardState.name)
+  const [teamNameTakenError, setTeamNameTakenError] = React.useState<string | null>(null)
+  const [teamNameTaken, setTeamNameTaken] = React.useState(false)
+  const checkTeamNameTaken = Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise)
+  React.useEffect(() => {
+    if (name !== '') {
+      checkTeamNameTaken([{teamName: name.split('.') as RPCTypes.TeamName}], setTeamNameTaken, e =>
+        setTeamNameTakenError(e.message)
+      )
+    } else {
+      setTeamNameTaken(false)
+    }
+  }, [name, setTeamNameTaken, checkTeamNameTaken])
+
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, setOpenTeam] = React.useState(
     teamWizardState.name ? teamWizardState.open : teamWizardState.teamType === 'community'
@@ -67,7 +80,7 @@ const NewTeamInfo = () => {
         />
         {teamNameTaken ? (
           <Kb.Text type="BodySmallError" style={styles.extraLineText}>
-            This team name is already taken
+            This team name is already taken. {teamNameTakenError}
           </Kb.Text>
         ) : (
           <Kb.Text type="BodySmall">
