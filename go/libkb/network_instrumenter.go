@@ -99,6 +99,7 @@ func (s *DiskInstrumentationStorage) Start(ctx context.Context) {
 		panic("Tried to start DiskInstrumenter twice; panic!")
 	}
 	s.stopCh = make(chan struct{})
+	s.G().Log.Info("DiskInstrumentationStorage: Start: running eg with stopCh ptr; %p", s.stopCh)
 	s.eg.Go(func() error { return s.flushLoop(s.stopCh) })
 }
 
@@ -108,11 +109,14 @@ func (s *DiskInstrumentationStorage) Stop(ctx context.Context) chan struct{} {
 	defer s.Unlock()
 	ch := make(chan struct{})
 	if s.stopCh != nil {
+		s.G().Log.Info("DiskInstrumentationStorage: Stop: closing stopch with ptr; %p", s.stopCh)
 		close(s.stopCh)
+		s.G().Log.Info("DiskInstrumentationStorage: Stop: closed stopch with ptr")
 		s.stopCh = nil
 		go func() {
+			s.G().Log.Info("DiskInstrumentationStorage: Waiting for errgroup to finish")
 			if err := s.eg.Wait(); err != nil {
-				s.G().Log.Debug("DiskInstrumentationStorage: flush: unable to wait for shutdown: %v", err)
+				s.G().Log.Info("DiskInstrumentationStorage: flush: unable to wait for shutdown: %v", err)
 			}
 			close(ch)
 		}()
@@ -125,6 +129,7 @@ func (s *DiskInstrumentationStorage) Stop(ctx context.Context) chan struct{} {
 func (s *DiskInstrumentationStorage) flushLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
 	for {
+		s.G().Log.Info("DiskInstrumentationStorage: flushLoop: top of loop; %p", stopCh)
 		select {
 		case <-stopCh:
 			return s.Flush(ctx)

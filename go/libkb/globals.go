@@ -309,6 +309,8 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.GregorState = newNullGregorState()
 	g.LocalNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_LOCAL)
 	g.RemoteNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_REMOTE)
+	g.Log.Info("DiskInstrumentationStorage: Init: Local: %p; Remote: %p",
+		g.LocalNetworkInstrumenterStorage, g.RemoteNetworkInstrumenterStorage)
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -869,12 +871,18 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		}
 		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
+		g.Log.Info("DiskInstrumentationStorage: ConfigureUsage: Local: %p; Remote: %p",
+			g.LocalNetworkInstrumenterStorage, g.RemoteNetworkInstrumenterStorage)
 		if g.LocalNetworkInstrumenterStorage != nil {
+			g.Log.Info("DiskInstrumentationStorage: ConfigureUsage: Stopping local")
 			<-g.LocalNetworkInstrumenterStorage.Stop(mctx.Ctx())
+			g.Log.Info("DiskInstrumentationStorage: ConfigureUsage: Stopped local and got back from ch")
 		}
 
 		if g.RemoteNetworkInstrumenterStorage != nil {
+			g.Log.Info("DiskInstrumentationStorage: ConfigureUsage: Stopping remote")
 			<-g.RemoteNetworkInstrumenterStorage.Stop(mctx.Ctx())
+			g.Log.Info("DiskInstrumentationStorage: ConfigureUsage: Stopped remote and got back from ch")
 		}
 
 		// shutdown the databases after the shutdown hooks run, we may want to
@@ -982,6 +990,8 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
+	g.Log.Info("DiskInstrumentationStorage: ConfigureUsage: Local: %p; Remote: %p",
+		g.LocalNetworkInstrumenterStorage, g.RemoteNetworkInstrumenterStorage)
 	g.LocalNetworkInstrumenterStorage.Start(context.TODO())
 	g.RemoteNetworkInstrumenterStorage.Start(context.TODO())
 
