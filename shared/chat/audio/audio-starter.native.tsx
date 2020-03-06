@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 import {Gateway} from 'react-gateway'
 
 type AudioStarterProps = {
@@ -69,9 +68,6 @@ const AudioStarter = (props: AudioStarterProps) => {
       locked.current = false
     }
   }, [props.locked])
-  if (!flags.audioAttachments) {
-    return null
-  }
   const animateDown = () => {
     Kb.NativeAnimated.timing(props.dragY, {
       duration: 400,

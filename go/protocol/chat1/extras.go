@@ -201,9 +201,7 @@ var deletableMessageTypesByDelete = []MessageType{
 var nonDeletableMessageTypesByDeleteHistory = []MessageType{
 	MessageType_NONE,
 	MessageType_DELETE,
-	MessageType_METADATA,
 	MessageType_TLFNAME,
-	MessageType_HEADLINE,
 	MessageType_DELETEHISTORY,
 }
 
@@ -270,6 +268,23 @@ func BadgeableMessageTypes() []MessageType {
 // Used for filtering empty convs out of the the inbox.
 func NonEmptyConvMessageTypes() []MessageType {
 	return badgeableMessageTypes
+}
+
+var snippetMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_DELETEHISTORY,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
+// Snippet chat messages can be the snippet of a conversation.
+func SnippetChatMessageTypes() []MessageType {
+	return snippetMessageTypes
 }
 
 var editableMessageTypesByEdit = []MessageType{

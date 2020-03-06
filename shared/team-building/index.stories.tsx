@@ -143,6 +143,7 @@ const load = () => {
         title="The Title"
         fetchUserRecs={() => {}}
         includeContacts={true}
+        justContacts={false}
         recommendations={[]}
         searchString="chris"
         selectedService="keybase"
@@ -241,6 +242,7 @@ const load = () => {
         {...eventHandlers}
         namespace="chat2"
         includeContacts={true}
+        justContacts={false}
         title="The Title"
         fetchUserRecs={() => {}}
         recommendations={[]}
@@ -342,6 +344,7 @@ const load = () => {
         namespace="chat2"
         title="Keybase Test Team"
         includeContacts={true}
+        justContacts={false}
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
           changeShowRolePicker: Sb.action('changeShowRolePicker'),
@@ -383,6 +386,7 @@ const load = () => {
         namespace="chat2"
         title="The Title"
         includeContacts={true}
+        justContacts={false}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
@@ -408,6 +412,7 @@ const load = () => {
         namespace="chat2"
         title="The Title"
         includeContacts={true}
+        justContacts={false}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -489,6 +494,7 @@ const load = () => {
         namespace="chat2"
         title="The Title"
         includeContacts={true}
+        justContacts={false}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -570,6 +576,7 @@ const load = () => {
         namespace="chat2"
         title="The Title"
         includeContacts={true}
+        justContacts={false}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
@@ -640,6 +647,32 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={new Map()}
+      />
+    ))
+    .add('Team Building Just contacts', () => (
+      <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="teams"
+        title="Add members"
+        fetchUserRecs={() => {}}
+        includeContacts={true}
+        justContacts={true}
+        recommendations={[]}
+        searchString=""
+        selectedService="keybase"
+        waitingForCreate={false}
+        onSearchForMore={() => {
+          Sb.action('onSearchForMore')
+        }}
+        teamSoFar={[]}
+        serviceResultCount={{}}
+        onAdd={Sb.action('onAdd')}
+        highlightedIndex={1}
+        search={Sb.action('search')}
+        searchResults={[]}
         teamBuildingSearchResults={new Map()}
       />
     ))

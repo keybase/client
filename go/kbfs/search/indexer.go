@@ -19,6 +19,7 @@ import (
 	"github.com/blevesearch/bleve/registry"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -76,6 +77,7 @@ type Indexer struct {
 	configInitFn initFn
 	once         sync.Once
 	indexWG      kbfssync.RepeatedWaitGroup
+	loopWG       kbfssync.RepeatedWaitGroup
 	kvstoreName  string
 	fullIndexCB  func() error // helpful for testing
 
@@ -112,9 +114,7 @@ func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
 		indexReadyCh:  make(chan struct{}),
 	}
 
-	ctx, cancel := context.WithCancel(i.makeContext(context.Background()))
-	i.cancelLoop = cancel
-	go i.loop(ctx)
+	i.startLoop()
 	return i, nil
 }
 
@@ -122,6 +122,13 @@ func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
 func NewIndexer(config libkbfs.Config) (*Indexer, error) {
 	return newIndexerWithConfigInit(
 		config, defaultInitConfig, kvstoreNamePrefix)
+}
+
+func (i *Indexer) startLoop() {
+	ctx, cancel := context.WithCancel(i.makeContext(context.Background()))
+	i.cancelLoop = cancel
+	i.loopWG.Add(1)
+	go i.loop(ctx)
 }
 
 func (i *Indexer) makeContext(ctx context.Context) context.Context {
@@ -479,6 +486,17 @@ func (i *Indexer) currBatchLocked(ctx context.Context) (*bleve.Batch, error) {
 	return i.currBatch, nil
 }
 
+func (i *Indexer) checkDone(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-i.shutdownCh:
+		return errors.New("Shutdown")
+	default:
+		return nil
+	}
+}
+
 func (i *Indexer) indexChildWithPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, oldPtr, newPtr data.BlockPointer,
@@ -496,6 +514,11 @@ func (i *Indexer) indexChildWithPtrAndNode(
 			i.log.CDebugf(ctx, "Stopping index due to testing error: %+v", err)
 			return nil, err
 		}
+	}
+
+	err = i.checkDone(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	tlfID := n.GetFolderBranch().Tlf
@@ -776,6 +799,11 @@ func (i *Indexer) fsForRev(
 func (i *Indexer) indexNewlySyncedTlfDir(
 	ctx context.Context, dir libkbfs.Node,
 	dirDocID string, rev kbfsmd.Revision) error {
+	err := i.checkDone(ctx)
+	if err != nil {
+		return err
+	}
+
 	children, err := i.config.KBFSOps().GetDirChildren(ctx, dir)
 	if err != nil {
 		return err
@@ -1061,6 +1089,11 @@ func (i *Indexer) doIncrementalIndex(
 	// Iterate through each change and call the appropriate index
 	// function for it.
 	for _, change := range changes {
+		err := i.checkDone(ctx)
+		if err != nil {
+			return err
+		}
+
 		plainPath, _ := change.CurrPath.PlaintextSansTlf()
 		dir, _ := path.Split(plainPath)
 		dirFS, err := fs.ChrootAsLibFS(path.Clean(dir))
@@ -1200,6 +1233,8 @@ func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 }
 
 func (i *Indexer) loop(ctx context.Context) {
+	defer i.loopWG.Done()
+
 	i.log.CDebugf(ctx, "Starting indexing loop")
 	defer i.log.CDebugf(ctx, "Ending index loop")
 
@@ -1267,6 +1302,10 @@ outerLoop:
 // Shutdown shuts down this indexer.
 func (i *Indexer) Shutdown(ctx context.Context) error {
 	close(i.shutdownCh)
+	err := i.loopWG.Wait(ctx)
+	if err != nil {
+		return err
+	}
 
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -1368,4 +1407,25 @@ resultLoop:
 	}
 
 	return results, nextResult, nil
+}
+
+// ResetIndex shuts down the current indexer, completely removes its
+// on-disk presence, and then restarts it as a blank index.
+func (i *Indexer) ResetIndex(ctx context.Context) (err error) {
+	i.log.CDebugf(ctx, "Resetting the index")
+	defer func() { i.log.CDebugf(ctx, "Done resetting the index: %+v", err) }()
+
+	err = i.Shutdown(ctx)
+	if err != nil {
+		return err
+	}
+
+	dir := filepath.Join(i.config.StorageRoot(), indexStorageDir)
+	err = ioutil.RemoveAll(dir)
+	if err != nil {
+		return err
+	}
+
+	i.startLoop()
+	return nil
 }

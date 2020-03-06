@@ -91,8 +91,12 @@ func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
 	return nil
 }
 
-func (g *gregorTestConnection) GetClient() chat1.RemoteClient {
+func (g *gregorTestConnection) GetClient() chat1.RemoteInterface {
 	return chat1.RemoteClient{Cli: g.cli}
+}
+
+func (g *gregorTestConnection) Reconnect(ctx context.Context) (bool, error) {
+	return false, nil
 }
 
 func (g *gregorTestConnection) OnConnect(ctx context.Context, conn *rpc.Connection,
@@ -369,11 +373,13 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	var tlf *kbtest.TlfMock
 	var ri chat1.RemoteInterface
+	var serverConn types.ServerConnection
 	if useRemoteMock {
 		mockRemote := kbtest.NewChatRemoteMock(c.world)
 		mockRemote.SetCurrentUser(user.User.GetUID().ToBytes())
 		tlf = kbtest.NewTlfMock(c.world)
 		ri = mockRemote
+		serverConn = kbtest.NewChatRemoteMockServerConnection(mockRemote)
 		ctx = newTestContextWithTlfMock(tc, tlf)
 	} else {
 		ctx = newTestContext(tc)
@@ -384,6 +390,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		g.GregorState = gh
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
+		serverConn = gh
 	}
 
 	h.boxer = NewBoxer(g)
@@ -417,7 +424,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	tc.G.SetService()
 	baseSender := NewBlockingSender(g, h.boxer, func() chat1.RemoteInterface { return ri })
-	deliverer := NewDeliverer(g, baseSender)
+	deliverer := NewDeliverer(g, baseSender, serverConn)
 	deliverer.SetClock(c.world.Fc)
 	if useRemoteMock {
 		deliverer.setTestingNameInfoSource(tlf)
@@ -2686,7 +2693,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(res.Conversations), "no conv found")
+		require.Equal(t, 1, len(res.Conversations), "no conv found for %v", mt)
 		require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
 
 		t.Logf("simple post")

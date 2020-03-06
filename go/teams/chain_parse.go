@@ -207,6 +207,20 @@ func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
 	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm().String()), nil
 }
 
+func makeSCMapInviteIDUVMap(pairs []keybase1.TeamUsedInvite) (ret []SCMapInviteIDUVPair) {
+	if len(pairs) > 0 {
+		ret = make([]SCMapInviteIDUVPair, len(pairs))
+		for i, v := range pairs {
+			ret[i] = SCMapInviteIDUVPair{
+				InviteID: SCTeamInviteID(v.InviteID),
+				UV:       v.Uv,
+			}
+		}
+	}
+
+	return ret
+}
+
 // Non-team-specific stuff below the line
 // -------------------------
 

@@ -868,14 +868,17 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
     }
 
     // Select the new channel, and switch to the chat tab.
-    yield Saga.put(
-      Chat2Gen.createPreviewConversation({
-        channelname,
-        conversationIDKey: newConversationIDKey,
-        reason: 'newChannel',
-        teamname,
-      })
-    )
+    if (action.payload.navToChatOnSuccess) {
+      yield Saga.put(
+        Chat2Gen.createPreviewConversation({
+          channelname,
+          conversationIDKey: newConversationIDKey,
+          reason: 'newChannel',
+          teamname,
+        })
+      )
+    }
+    // TODO: else, reload the channel list
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
@@ -889,7 +892,7 @@ const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberP
         isShowcased: showcase,
         teamID,
       },
-      Constants.teamWaitingKeyByID(teamID, state)
+      [Constants.teamWaitingKeyByID(teamID, state), Constants.setMemberPublicityWaitingKey(teamID)]
     )
     return
   } catch (error) {
@@ -1364,6 +1367,18 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
+const setTeamWizardTeamType = () =>
+  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescriptionPayload) =>
+  RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {createdTeam: true, teamname: action.payload.teamname, wizard: true},
+        selected: 'teamEditTeamAvatar',
+      },
+    ],
+  })
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1445,6 +1460,9 @@ const teamsSaga = function*() {
 
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
   yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
+
+  yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

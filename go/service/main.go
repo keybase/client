@@ -493,7 +493,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
 	g.AddDbNukeHook(g.AttachmentUploader, "AttachmentUploader")
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
-	g.MessageDeliverer = chat.NewDeliverer(g, sender)
+	g.MessageDeliverer = chat.NewDeliverer(g, sender, d.gregor)
 
 	// team channel source
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)

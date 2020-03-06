@@ -1092,7 +1092,7 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	ratchet, err := t.makeRatchet(ctx)
+	parentRatchet, err := parentTeam.makeRatchet(ctx)
 	if err != nil {
 		return err
 	}
@@ -1105,7 +1105,7 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 		Admin:    admin,
 		Public:   t.IsPublic(),
 		Entropy:  entropy,
-		Ratchets: ratchet.ToTeamSection(),
+		Ratchets: parentRatchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -1121,6 +1121,10 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 		return err
 	}
 
+	subRatchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
 	subSection := SCTeamSection{
 		ID:   SCTeamID(t.ID),
 		Name: &subteamName, // weird this is required
@@ -1129,8 +1133,9 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 			Seqno:   parentTeam.chain().GetLatestSeqno() + 1, // the seqno of the *new* parent link
 			SeqType: seqTypeForTeamPublicness(parentTeam.IsPublic()),
 		},
-		Public: t.IsPublic(),
-		Admin:  admin,
+		Public:   t.IsPublic(),
+		Admin:    admin,
+		Ratchets: subRatchet.ToTeamSection(),
 	}
 	sigSub, latestSeqno, err := t.sigTeamItem(ctx, subSection, libkb.LinkTypeDeleteUpPointer, mr)
 	if err != nil {
@@ -1139,7 +1144,19 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigParent, sigSub}
-	ratchet.AddToJSONPayload(payload)
+
+	var ratchetSet hidden.RatchetBlindingKeySet
+	if parentRatchet != nil {
+		ratchetSet.Add(*parentRatchet)
+	}
+	if subRatchet != nil {
+		ratchetSet.Add(*subRatchet)
+	}
+	err = ratchetSet.AddToJSONPayload(payload)
+	if err != nil {
+		return err
+	}
+
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
@@ -1621,6 +1638,8 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 
 	section.CompletedInvites = req.CompletedInvites
+	section.UsedInvites = makeSCMapInviteIDUVMap(req.UsedInvites)
+
 	section.Implicit = t.IsImplicit()
 	section.Public = t.IsPublic()
 

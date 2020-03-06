@@ -46,12 +46,21 @@ let Conversation = (p: SwitchProps) => {
 
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
 
+  // @ts-ignore
+  const lastIsFocused = React.useRef<boolean>(p.isFocused)
   // temporary until nav 5
+  // TODO the relationship between this view and the store is too fragile. redo
   if (Container.isMobile) {
     // @ts-ignore
     const {isFocused} = p
     // eslint-disable-next-line
     React.useEffect(() => {
+      // only do something if the focused changed
+      if (lastIsFocused.current === isFocused) {
+        return
+      }
+
+      lastIsFocused.current = isFocused
       if (isFocused) {
         if (_storeConvoIDKey !== conversationIDKey && Constants.isValidConversationIDKey(conversationIDKey)) {
           dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'}))
@@ -63,6 +72,17 @@ let Conversation = (p: SwitchProps) => {
       }
       // eslint-disable-next-line
     }, [isFocused, dispatch, _storeConvoIDKey, conversationIDKey])
+
+    // handle unmount only
+    // eslint-disable-next-line
+    React.useEffect(() => {
+      return () => {
+        if (!Constants.isSplit && _storeConvoIDKey === conversationIDKey) {
+          dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey: conversationIDKey}))
+        }
+      }
+      // eslint-disable-next-line
+    }, [])
   }
 
   switch (type) {

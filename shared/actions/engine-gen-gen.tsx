@@ -84,6 +84,7 @@ export const keybase1GregorUIPushState = 'engine-gen:keybase1GregorUIPushState'
 export const keybase1HomeUIHomeUIRefresh = 'engine-gen:keybase1HomeUIHomeUIRefresh'
 export const keybase1Identify3UiIdentify3Result = 'engine-gen:keybase1Identify3UiIdentify3Result'
 export const keybase1Identify3UiIdentify3ShowTracker = 'engine-gen:keybase1Identify3UiIdentify3ShowTracker'
+export const keybase1Identify3UiIdentify3Summary = 'engine-gen:keybase1Identify3UiIdentify3Summary'
 export const keybase1Identify3UiIdentify3TrackerTimedOut =
   'engine-gen:keybase1Identify3UiIdentify3TrackerTimedOut'
 export const keybase1Identify3UiIdentify3UpdateRow = 'engine-gen:keybase1Identify3UiIdentify3UpdateRow'
@@ -766,6 +767,15 @@ type _Keybase1Identify3UiIdentify3ShowTrackerPayload = {
     result: (
       param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['outParam']
     ) => void
+  }
+}
+type _Keybase1Identify3UiIdentify3SummaryPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Summary']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Summary']['outParam']) => void
   }
 }
 type _Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {
@@ -2181,6 +2191,9 @@ export const createKeybase1Identify3UiIdentify3ShowTracker = (
   payload,
   type: keybase1Identify3UiIdentify3ShowTracker,
 })
+export const createKeybase1Identify3UiIdentify3Summary = (
+  payload: _Keybase1Identify3UiIdentify3SummaryPayload
+): Keybase1Identify3UiIdentify3SummaryPayload => ({payload, type: keybase1Identify3UiIdentify3Summary})
 export const createKeybase1Identify3UiIdentify3TrackerTimedOut = (
   payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload
 ): Keybase1Identify3UiIdentify3TrackerTimedOutPayload => ({
@@ -2978,6 +2991,10 @@ export type Keybase1Identify3UiIdentify3ShowTrackerPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3ShowTrackerPayload
   readonly type: typeof keybase1Identify3UiIdentify3ShowTracker
 }
+export type Keybase1Identify3UiIdentify3SummaryPayload = {
+  readonly payload: _Keybase1Identify3UiIdentify3SummaryPayload
+  readonly type: typeof keybase1Identify3UiIdentify3Summary
+}
 export type Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload
   readonly type: typeof keybase1Identify3UiIdentify3TrackerTimedOut
@@ -3592,6 +3609,7 @@ export type Actions =
   | Keybase1HomeUIHomeUIRefreshPayload
   | Keybase1Identify3UiIdentify3ResultPayload
   | Keybase1Identify3UiIdentify3ShowTrackerPayload
+  | Keybase1Identify3UiIdentify3SummaryPayload
   | Keybase1Identify3UiIdentify3TrackerTimedOutPayload
   | Keybase1Identify3UiIdentify3UpdateRowPayload
   | Keybase1Identify3UiIdentify3UpdateUserCardPayload

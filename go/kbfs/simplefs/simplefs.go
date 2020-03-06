@@ -3291,6 +3291,15 @@ func (k *SimpleFS) SimpleFSSearch(
 	return res, nil
 }
 
+// SimpleFSResetIndex implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSResetIndex(ctx context.Context) error {
+	if k.indexer == nil {
+		return errors.New("Indexing not enabled")
+	}
+
+	return k.indexer.ResetIndex(ctx)
+}
+
 // Shutdown shuts down SimpleFS.
 func (k *SimpleFS) Shutdown(ctx context.Context) error {
 	if k.indexer == nil {

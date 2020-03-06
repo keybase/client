@@ -101,6 +101,7 @@ export type Props = ContactProps & {
   recommendedHideYourself?: boolean
   highlightedIndex: number | null
   includeContacts: boolean
+  justContacts: boolean
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
   onBackspace: () => void
@@ -404,24 +405,30 @@ class TeamBuilding extends React.PureComponent<Props> {
     }
   )
 
-  _searchInput = () => (
-    <Input
-      onChangeText={this.props.onChangeText}
-      onClear={
-        this.props.namespace === 'people' && !this.props.searchString
-          ? this.props.onClose
-          : this.props.onClear
-      }
-      onDownArrowKeyDown={this.props.onDownArrowKeyDown}
-      onUpArrowKeyDown={this.props.onUpArrowKeyDown}
-      onEnterKeyDown={this.props.onEnterKeyDown}
-      onBackspace={this.props.onBackspace}
-      placeholder={'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)}
-      searchString={this.props.searchString}
-      focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
-      focusCounter={this.props.focusInputCounter}
-    />
-  )
+  _searchInput = () => {
+    const searchPlaceholder = this.props.justContacts
+      ? 'Search contacts'
+      : 'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)
+
+    return (
+      <Input
+        onChangeText={this.props.onChangeText}
+        onClear={
+          this.props.namespace === 'people' && !this.props.searchString
+            ? this.props.onClose
+            : this.props.onClear
+        }
+        onDownArrowKeyDown={this.props.onDownArrowKeyDown}
+        onUpArrowKeyDown={this.props.onUpArrowKeyDown}
+        onEnterKeyDown={this.props.onEnterKeyDown}
+        onBackspace={this.props.onBackspace}
+        placeholder={searchPlaceholder}
+        searchString={this.props.searchString}
+        focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
+        focusCounter={this.props.focusInputCounter}
+      />
+    )
+  }
 
   _listBody = () => {
     const ResultRow = this.props.namespace === 'people' ? PeopleResult : UserResult
@@ -691,7 +698,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           </>
         )
     }
-    const teamBox = !!props.teamSoFar.length && (
+    const teamBox = !!props.teamSoFar.length && !props.justContacts && (
       <TeamBox
         allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
         onChangeText={props.onChangeText}
@@ -732,7 +739,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             </Kb.Text>
           </Kb.Text>
         )}
-        {(props.namespace !== 'people' || Styles.isMobile) && (
+        {(props.namespace !== 'people' || Styles.isMobile) && !props.justContacts && (
           <FilteredServiceTabBar
             filterServices={props.filterServices}
             selectedService={props.selectedService}

@@ -739,6 +739,36 @@ func SigIDBaseFromBytes(b [SIG_ID_LEN]byte) SigIDBase {
 	return SigIDBase(s)
 }
 
+// MarshalJSON output the SigIDBase as a full SigID to be compatible
+// with legacy versions of the app.
+func (s SigIDBase) MarshalJSON() ([]byte, error) {
+	return Quote(s.ToSigIDLegacy().String()), nil
+}
+
+// UnmarshalJSON will accept either a SigID or a SigIDBase, and can
+// strip off the suffix.
+func (s *SigIDBase) UnmarshalJSON(b []byte) error {
+	tmp := Unquote(b)
+
+	l := hex.EncodedLen(SIG_ID_LEN)
+	if len(tmp) == l {
+		base, err := SigIDBaseFromString(tmp)
+		if err != nil {
+			return err
+		}
+		*s = base
+		return nil
+	}
+
+	// If we didn't get a sigID the right size, try to strip off the suffix.
+	sigID, err := SigIDFromString(tmp)
+	if err != nil {
+		return err
+	}
+	*s = sigID.StripSuffix()
+	return nil
+}
+
 func SigIDBaseFromSlice(b []byte) (SigIDBase, error) {
 	var buf [32]byte
 	if len(b) != len(buf) {
@@ -2836,6 +2866,13 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 	req.CompletedInvites[inviteID] = uv
 }
 
+func (req *TeamChangeReq) UseInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
+	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{
+		InviteID: inviteID,
+		Uv:       uv,
+	})
+}
+
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
 	ret = append(ret, req.RestrictedBotUVs()...)
 	ret = append(ret, req.Bots...)
@@ -3551,6 +3588,15 @@ func (s TeamSigChainState) KeySummary() string {
 		v = append(v, k)
 	}
 	return fmt.Sprintf("{maxPTK:%d, ptk:%v}", s.MaxPerTeamKeyGeneration, v)
+}
+
+func (s TeamSigChainState) HasAnyStubbedLinks() bool {
+	for _, v := range s.StubbedLinks {
+		if v {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *HiddenTeamChain) IsStale() bool {

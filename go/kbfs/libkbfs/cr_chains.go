@@ -1441,7 +1441,7 @@ func (ccs *crChains) remove(ctx context.Context, log logger.Logger,
 	return chainsWithRemovals
 }
 
-func (ccs *crChains) revertRenames(oldOps []op) {
+func (ccs *crChains) revertRenames(oldOps []op) error {
 	for _, oldOp := range oldOps {
 		if rop, ok := oldOp.(*renameOp); ok {
 			// Replace the corresponding createOp, and remove the
@@ -1474,7 +1474,16 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 
 			newChain := oldChain
 			if rop.NewDir != (blockUpdate{}) {
-				newChain = ccs.byMostRecent[rop.NewDir.Ref]
+				newChain, ok = ccs.byMostRecent[rop.NewDir.Ref]
+				if !ok {
+					// There was a corresponding rmOp, and the node
+					// was renamed across directories, but for some
+					// unknown reason we can't find the chain for the
+					// new directory.
+					return errors.Errorf(
+						"Cannot find new directory %s for rename op: %s",
+						rop.NewDir.Ref, rop)
+				}
 			}
 
 			added := false
@@ -1508,4 +1517,5 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 			}
 		}
 	}
+	return nil
 }

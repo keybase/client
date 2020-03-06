@@ -51,7 +51,7 @@ class MultiAvatar extends React.Component<Props> {
     }
 
     return (
-      <Kb.Box style={Styles.collapseStyles([{height: '100%', position: 'relative', width: '100%'}, style])}>
+      <Kb.Box style={Styles.collapseStyles([{position: 'relative', width: '100%'}, style])}>
         <Kb.Avatar {...leftProps} style={leftAvatar(multiPadding, leftProps.style)} size={multiSize} />
         <Kb.Avatar {...rightProps} style={rightAvatar(multiPadding, rightProps.style)} size={multiSize} />
       </Kb.Box>
@@ -61,7 +61,6 @@ class MultiAvatar extends React.Component<Props> {
 
 const singleStyle = {
   ...Styles.globalStyles.flexBoxCenter,
-  height: '100%',
   width: '100%',
 }
 

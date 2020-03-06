@@ -362,6 +362,24 @@ func (m *TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName strin
 	return res, nil
 }
 
+type ChatRemoteMockServerConnection struct {
+	mock *ChatRemoteMock
+}
+
+func NewChatRemoteMockServerConnection(mock *ChatRemoteMock) *ChatRemoteMockServerConnection {
+	return &ChatRemoteMockServerConnection{
+		mock: mock,
+	}
+}
+
+func (m ChatRemoteMockServerConnection) GetClient() chat1.RemoteInterface {
+	return m.mock
+}
+
+func (m ChatRemoteMockServerConnection) Reconnect(ctx context.Context) (bool, error) {
+	return false, nil
+}
+
 type ChatRemoteMock struct {
 	world     *ChatMockWorld
 	readMsgid map[chat1.ConvIDStr]chat1.MessageID

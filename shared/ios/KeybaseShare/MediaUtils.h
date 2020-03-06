@@ -10,6 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 typedef void (^ProcessMediaCompletion) (NSError* _Nullable error, NSURL* _Nullable scaled, NSURL* _Nullable thumbnail);
+typedef void (^ProcessMediaCompletionErrorOnly) (NSError* _Nullable error);
+
 
 @interface MediaUtils : NSObject
 + (CFDictionaryRef) _scaledImageOptions;

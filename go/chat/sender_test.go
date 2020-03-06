@@ -204,7 +204,8 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, types.Sender, types.Sender, *chatListener) {
 	var ri chat1.RemoteInterface
 	world := NewChatMockWorld(t, "chatsender", numUsers)
-	ri = kbtest.NewChatRemoteMock(world)
+	mock := kbtest.NewChatRemoteMock(world)
+	ri = mock
 	tlf := kbtest.NewTlfMock(world)
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
@@ -213,8 +214,10 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	uid := u.User.GetUID().ToBytes()
 
 	var ctx context.Context
+	var serverConn types.ServerConnection
 	if useRemoteMock {
 		ctx = newTestContextWithTlfMock(tc, tlf)
+		serverConn = kbtest.NewChatRemoteMockServerConnection(mock)
 	} else {
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
@@ -225,6 +228,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
+		serverConn = gh
 	}
 	boxer := NewBoxer(g)
 	boxer.SetClock(world.Fc)
@@ -259,7 +263,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	g.NotifyRouter.AddListener(&listener)
 
-	deliverer := NewDeliverer(g, baseSender)
+	deliverer := NewDeliverer(g, baseSender, serverConn)
 	deliverer.SetClock(world.Fc)
 	deliverer.setTestingNameInfoSource(tlf)
 

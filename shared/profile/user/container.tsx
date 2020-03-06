@@ -5,7 +5,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as Types from '../../constants/types/tracker2'
 import Profile2, {BackgroundColorType} from '.'
-import flags from '../../util/feature-flags'
 import * as Styles from '../../styles'
 
 export type OwnProps = Container.RouteProps<{username: string}>
@@ -112,7 +111,6 @@ const connected = Container.namedConnect(
     let onAddIdentity: (() => void) | undefined
     if (
       stateProps.userIsYou &&
-      flags.proofProviders &&
       stateProps._suggestionKeys &&
       stateProps._suggestionKeys.some(s => s.belowFold)
     ) {
