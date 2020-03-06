@@ -14,8 +14,9 @@ import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
 
-const {electron} = KB
+const {electron, path: nodePath} = KB
 const {showOpenDialog} = electron.dialog
+const {dirname} = nodePath
 
 type OutputProps = {
   operation: Types.Operations
@@ -265,11 +266,12 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
 
   const onOpenFile = async () => {
+    const defaultPath = dirname(input)
     const options = {
       allowDirectories: true,
       allowFiles: false,
       buttonLabel: 'Select',
-      ...(Platforms.isDarwin ? {defaultPath: input} : {}),
+      ...(Platforms.isDarwin ? {defaultPath} : {}),
     }
     const filePaths = await showOpenDialog(options)
     if (!filePaths) return
