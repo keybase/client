@@ -7,6 +7,7 @@ export {WebViewProps, WebViewInjections} from './web-view'
 export {AnimationType} from './animation'
 
 export {NavigationEvents} from '@react-navigation/core'
+export {LayoutAnimation} from 'react-native'
 
 export {default as Animated, Transition, animated} from './animated'
 export {default as Animation} from './animation'

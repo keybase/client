@@ -120,13 +120,17 @@ const AddingMembers = () => {
   const showDivider = Styles.isMobile && addingMembers.length > 4
   const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
   const belowDivider = Container.isMobile && expanded ? addingMembers.slice(4) : []
+  const toggleExpanded = () => {
+    Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+    setExpanded(!expanded)
+  }
   const content = (
     <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
         <AddingMember key={toAdd.assertion} {...toAdd} />
       ))}
       {showDivider && (
-        <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
+        <Kb.ClickableBox onClick={toggleExpanded}>
           <Kb.Box2
             direction="horizontal"
             alignSelf="stretch"
