@@ -8,16 +8,17 @@ import * as React from 'react'
 import Overlay from '../overlay'
 import {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {MenuItem, MenuItems as _MenuItems} from './menu-layout'
-import {Color, StylesCrossPlatform} from '../../styles'
+import * as Styles from '../../styles'
 
 export type MenuItems = _MenuItems
 
 export type Props = {
   attachTo?: () => React.Component<any> | null
-  backgroundColor?: Color
+  backgroundColor?: Styles.Color
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",
-  containerStyle?: StylesCrossPlatform
+  containerStyle?: Styles.StylesCrossPlatform
+  wide?: boolean
   header?: MenuItem
   items: _MenuItems
   listStyle?: Object
@@ -26,7 +27,7 @@ export type Props = {
   positionFallbacks?: Position[]
   propagateOutsideClicks?: boolean
   remeasureHint?: number
-  textColor?: Color
+  textColor?: Styles.Color
   visible: boolean
 }
 
@@ -54,7 +55,16 @@ export default (props: Props) => {
         listStyle={props.listStyle}
         textColor={props.textColor}
         backgroundColor={props.backgroundColor}
+        style={Styles.collapseStyles([props.wide && styles.wide])}
       />
     </Overlay>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  wide: Styles.platformStyles({
+    isElectron: {
+      width: 280,
+    },
+  }),
+}))
