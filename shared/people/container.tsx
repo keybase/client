@@ -50,6 +50,7 @@ export class LoadOnMount extends React.PureComponent<Props> {
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)
   _onClickUser = (username: string) => this.props.onClickUser(username)
   render() {
+    console.log('aaa', this.props)
     return (
       <Kb.Reloadable
         waitingKeys={Constants.getPeopleDataWaitingKey}
