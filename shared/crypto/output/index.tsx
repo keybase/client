@@ -121,12 +121,13 @@ export const OutputProgress = (props: OutputProgressProps) => {
 
   const bytesTotal = Container.useSelector(state => state.crypto[operation].bytesTotal)
   const bytesComplete = Container.useSelector(state => state.crypto[operation].bytesComplete)
+  const inProgress = Container.useSelector(state => state.crypto[operation].inProgress)
 
-  const progress = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
+  const ratio = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
-  return progress ? (
+  return inProgress ? (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
-      <Kb.ProgressBar ratio={progress} style={styles.progressBar} />
+      <Kb.ProgressBar ratio={ratio} style={styles.progressBar} />
       <Kb.Text type="Body">{`${humanizeBytes(bytesComplete, 1)} / ${humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
     </Kb.Box2>
   ) : null

@@ -267,6 +267,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.outputStatus = 'error'
     op.errorMessage = errorMessage
   },
+  [CryptoGen.saltpackStart]: (draftState, action) => {
+    const {operation} = action.payload
+    if (operationGuard(operation, action)) return
+
+    // Gets the progress bar on screen sooner. This matters most when encrypting/signing a directory (since progress is slow)
+    const op = draftState[operation]
+    op.inProgress = true
+  },
   [CryptoGen.saltpackProgress]: (draftState, action) => {
     const {bytesComplete, bytesTotal, operation} = action.payload
     if (operationGuard(operation, action)) return
