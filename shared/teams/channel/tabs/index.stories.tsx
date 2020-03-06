@@ -12,7 +12,7 @@ const commonProps = {
 
 const load = () => {
   storiesOf('Channels/Tabs', module)
-    .addDecorator(updateStoreDecorator(store, draftState => {}))
+    .addDecorator(updateStoreDecorator(store, () => {}))
     .add('Standard', () => <ChannelTabs {...commonProps} teamID={fakeTeamIDs[0]} />)
     .add('Loading', () => <ChannelTabs {...commonProps} teamID={fakeTeamIDs[1]} />)
     .add('Admin', () => <ChannelTabs {...commonProps} teamID={fakeTeamIDs[2]} admin={true} />)
