@@ -160,8 +160,6 @@ export type TypedActionsMap = {
   'chat2:setConvExplodingMode': chat2.SetConvExplodingModePayload
   'chat2:setExplodingModeLock': chat2.SetExplodingModeLockPayload
   'chat2:updateConvExplodingModes': chat2.UpdateConvExplodingModesPayload
-  'chat2:setWalletsOld': chat2.SetWalletsOldPayload
-  'chat2:handleSeeingWallets': chat2.HandleSeeingWalletsPayload
   'chat2:staticConfigLoaded': chat2.StaticConfigLoadedPayload
   'chat2:setMinWriterRole': chat2.SetMinWriterRolePayload
   'chat2:saveMinWriterRole': chat2.SaveMinWriterRolePayload
@@ -209,7 +207,6 @@ export type TypedActionsMap = {
   'chat2:inboxSearchSetIndexPercent': chat2.InboxSearchSetIndexPercentPayload
   'chat2:setMaybeMentionInfo': chat2.SetMaybeMentionInfoPayload
   'chat2:tabSelected': chat2.TabSelectedPayload
-  'chat2:setInboxShowIsNew': chat2.SetInboxShowIsNewPayload
   'chat2:resolveMaybeMention': chat2.ResolveMaybeMentionPayload
   'chat2:loadAttachmentView': chat2.LoadAttachmentViewPayload
   'chat2:addAttachmentViewMessage': chat2.AddAttachmentViewMessagePayload

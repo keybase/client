@@ -485,12 +485,6 @@
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
     },
-    "setWalletsOld": {
-      "_description": "Set that wallets in chat is not new."
-    },
-    "handleSeeingWallets": {
-      "_description": "The user has interacted with wallets in chat."
-    },
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
@@ -717,10 +711,6 @@
     },
     "tabSelected": {
       "_description": "Desktop changed tab to chat"
-    },
-    "setInboxShowIsNew": {
-      "_description": "We've seen chat search before",
-      "isNew": "boolean"
     },
     "resolveMaybeMention": {
       "_description": "Resolve an unknown @ mention",
