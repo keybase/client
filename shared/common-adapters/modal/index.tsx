@@ -43,7 +43,7 @@ type Props = {
   mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean
-  tabletWideBackground?: boolean
+  backgroundStyle?: Styles.StylesCrossPlatform
 
   // Desktop only popup overrides
   popupStyleClose?: Styles.StylesCrossPlatform
@@ -61,7 +61,7 @@ const ModalInner = (props: Props) => (
     ) : (
       <Kb.ScrollView
         alwaysBounceVertical={false}
-        style={styles.scroll}
+        style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
         contentContainerStyle={styles.scrollContentContainer}
       >
         {props.children}
@@ -302,9 +302,6 @@ const styles = Styles.styleSheetCreate(() => {
     overflowVisible: {overflow: 'visible'},
     scroll: Styles.platformStyles({
       isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
-      isTablet: {
-        backgroundColor: Styles.globalColors.blueGrey,
-      },
     }),
     scrollContentContainer: Styles.platformStyles({
       common: {
