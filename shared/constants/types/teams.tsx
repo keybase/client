@@ -143,6 +143,7 @@ export type NewTeamWizardState = {
 }
 export type AddMembersWizardState = {
   justFinished: boolean
+  teamID: TeamID
 }
 
 export type State = {

@@ -353,6 +353,10 @@
       "teamID": "Types.TeamID",
       "message": "RPCChatTypes.WelcomeMessageDisplay"
     },
+    "startAddMembersWizard": {
+      "_description": "Setup store and navigate to start of add members wizard.",
+      "teamID": "Types.TeamID"
+    },
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"
     },

@@ -317,6 +317,10 @@ export default Container.makeReducer<
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
     draftState.newTeamWizard.showcase = action.payload.showcase
   },
+  [TeamsGen.startAddMembersWizard]: (draftState, action) => {
+    const {teamID} = action.payload
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, teamID}
+  },
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
     draftState.addMembersWizard.justFinished = action.payload.justFinished
   },

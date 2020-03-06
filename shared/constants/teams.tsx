@@ -167,8 +167,10 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
+export const addMembersWizardEmptyState = {justFinished: false, teamID: Types.noTeamID}
+
 const emptyState: Types.State = {
-  addMembersWizard: {justFinished: false},
+  addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
@@ -825,8 +827,8 @@ export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Type
 
 export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
   const subteamsAll = getTeamDetails(state, teamID).subteams
-  let subteamsNotIn: Array<Types.TeamMeta> = []
-  let subteamsIn: Array<Types.TeamMeta> = []
+  const subteamsNotIn: Array<Types.TeamMeta> = []
+  const subteamsIn: Array<Types.TeamMeta> = []
   subteamsAll.forEach(subteamID => {
     const subteamDetails = getTeamDetails(state, subteamID)
     const subteamMeta = getTeamMeta(state, subteamID)

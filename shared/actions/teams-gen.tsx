@@ -85,6 +85,7 @@ export const setWelcomeMessage = 'teams:setWelcomeMessage'
 export const setWelcomeMessageError = 'teams:setWelcomeMessageError'
 export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
+export const startAddMembersWizard = 'teams:startAddMembersWizard'
 export const teamCreated = 'teams:teamCreated'
 export const teamLoaded = 'teams:teamLoaded'
 export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
@@ -312,6 +313,7 @@ type _ShowTeamByNamePayload = {
   readonly initialTab?: Types.TabKey
   readonly addMembers?: boolean
 }
+type _StartAddMembersWizardPayload = {readonly teamID: Types.TeamID}
 type _TeamCreatedPayload = {
   readonly fromChat: boolean
   readonly teamID: Types.TeamID
@@ -441,6 +443,12 @@ export const createChannelSetMemberSelected = (
 export const createTeamSetMemberSelected = (
   payload: _TeamSetMemberSelectedPayload
 ): TeamSetMemberSelectedPayload => ({payload, type: teamSetMemberSelected})
+/**
+ * Setup store and navigate to start of add members wizard.
+ */
+export const createStartAddMembersWizard = (
+  payload: _StartAddMembersWizardPayload
+): StartAddMembersWizardPayload => ({payload, type: startAddMembersWizard})
 /**
  * Stop listening for team details for this team
  */
@@ -953,6 +961,10 @@ export type ShowTeamByNamePayload = {
   readonly payload: _ShowTeamByNamePayload
   readonly type: typeof showTeamByName
 }
+export type StartAddMembersWizardPayload = {
+  readonly payload: _StartAddMembersWizardPayload
+  readonly type: typeof startAddMembersWizard
+}
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
 export type TeamSetMemberSelectedPayload = {
@@ -1061,6 +1073,7 @@ export type Actions =
   | SetWelcomeMessagePayload
   | SettingsErrorPayload
   | ShowTeamByNamePayload
+  | StartAddMembersWizardPayload
   | TeamCreatedPayload
   | TeamLoadedPayload
   | TeamSetMemberSelectedPayload

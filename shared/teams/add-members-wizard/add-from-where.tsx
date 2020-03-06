@@ -3,13 +3,11 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
 import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 type Props = Container.RouteProps<{
   newTeam?: boolean
-  teamID: Types.TeamID
 }>
 
 const AddFromWhere = (props: Props) => {
@@ -17,7 +15,7 @@ const AddFromWhere = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const newTeam = Container.getRouteProps(props, 'newTeam', false)
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
 
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
