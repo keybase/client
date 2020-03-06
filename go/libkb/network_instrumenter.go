@@ -96,7 +96,7 @@ func (s *DiskInstrumentationStorage) Start(ctx context.Context) {
 	s.Lock()
 	defer s.Unlock()
 	if s.stopCh != nil {
-		return
+		panic("Tried to start DiskInstrumenter twice; panic!")
 	}
 	s.stopCh = make(chan struct{})
 	s.eg.Go(func() error { return s.flushLoop(s.stopCh) })
@@ -137,6 +137,7 @@ func (s *DiskInstrumentationStorage) flushLoop(stopCh chan struct{}) error {
 }
 
 func (s *DiskInstrumentationStorage) Flush(ctx context.Context) (err error) {
+	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Flush", func() error { return err })()
 	s.Lock()
 	storage := s.storage
 	s.storage = make(map[string]keybase1.InstrumentationStat)
