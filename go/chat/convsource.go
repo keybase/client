@@ -178,10 +178,11 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
-	if err = outbox.AppendToThread(ctx, conv.GetConvID(), thread); err != nil {
-		if _, ok := err.(storage.MissError); !ok {
-			return err
-		}
+	err = outbox.AppendToThread(ctx, conv.GetConvID(), thread)
+	switch err.(type) {
+	case nil, storage.MissError:
+	default:
+		return err
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
@@ -1080,7 +1081,15 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	switch err {
+	case nil:
+	case utils.ErrGetUnverifiedConvNotFound:
+		conv = types.NewEmptyRemoteConversation(convID)
+	default:
+		return err
+	}
+	mergeRes, err := s.storage.Expunge(ctx, conv, uid, expunge)
 	if err != nil {
 		return err
 	}
@@ -1100,8 +1109,16 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 		globals.CtxAddMessageCacheSkips(ctx, convID, msgs)
 		return nil
 	}
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	switch err {
+	case nil:
+	case utils.ErrGetUnverifiedConvNotFound:
+		conv = types.NewEmptyRemoteConversation(convID)
+	default:
+		return err
+	}
 
-	mergeRes, err := s.storage.Merge(ctx, convID, uid, msgs)
+	mergeRes, err := s.storage.Merge(ctx, conv, uid, msgs)
 	if err != nil {
 		return err
 	}

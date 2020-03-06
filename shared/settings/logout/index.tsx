@@ -63,6 +63,7 @@ class LogOut extends React.Component<Props, State> {
       />
     ) : (
       <Kb.Modal
+        backgroundStyle={styles.logoutBackground}
         banners={[
           this.props.checkPasswordIsCorrect === false && (
             <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
@@ -183,6 +184,11 @@ const styles = Styles.styleSheetCreate(
       logout: {
         paddingLeft: Styles.globalMargins.xtiny,
       },
+      logoutBackground: Styles.platformStyles({
+        isTablet: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+      }),
       logoutContainer: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,

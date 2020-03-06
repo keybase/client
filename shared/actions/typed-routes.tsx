@@ -58,6 +58,21 @@ export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
     ],
   })
 
+export const appendTeamsContactsTeamBuilder = () =>
+  RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {
+          filterServices: [],
+          justContacts: true,
+          namespace: 'teams',
+          title: 'Add members',
+        },
+        selected: 'teamsContactsTeamBuilder',
+      },
+    ],
+  })
+
 export const appendEncryptRecipientsBuilder = () =>
   RouteTreeGen.createNavigateAppend({
     path: [
