@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
 import {memoize} from '../../util/memoize'
-import OperationRow from './operation-row'
+import NavRow from './nav-row'
 
 type Props = {
   children?: React.ReactNode
@@ -13,7 +13,7 @@ type Props = {
 
 type Row = Types.Tab & {isSelected: boolean; key: string}
 
-class OperationsList extends React.PureComponent<Props> {
+class SubNav extends React.PureComponent<Props> {
   private getRows = memoize((routeSelected: string) =>
     Constants.Tabs.map(t => ({
       ...t,
@@ -24,13 +24,7 @@ class OperationsList extends React.PureComponent<Props> {
 
   private renderItem = (_: number, row: Row) => {
     return (
-      <OperationRow
-        key={row.tab}
-        isSelected={row.isSelected}
-        title={row.title}
-        tab={row.tab}
-        icon={row.icon}
-      />
+      <NavRow key={row.tab} isSelected={row.isSelected} title={row.title} tab={row.tab} icon={row.icon} />
     )
   }
 
@@ -66,4 +60,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default OperationsList
+export default SubNav

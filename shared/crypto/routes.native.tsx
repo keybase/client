@@ -1,8 +1,8 @@
-import NativeSubNav from 'render.native'
+import CryptoSubNav from './sub-nav'
 
 export const newRoutes = {
   cryptoRoot: {
-    getScreen: (): typeof NativeSubNav => require('./render.native').default,
+    getScreen: (): typeof CryptoSubNav => require('./sub-nav').default,
   },
 }
 export const newModalRoutes = {}
