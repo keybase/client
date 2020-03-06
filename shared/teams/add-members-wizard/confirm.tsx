@@ -42,6 +42,19 @@ const AddMembersConfirm = () => {
             <RoleSelector />
           </Kb.Box2>
         </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+          <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="BodySmall">Your invitees will be added to 3 channels.</Kb.Text>
+            <Kb.Text type="BodySmall">
+              {/* TODO: Hook this up when default channels settings are hooked up */}
+              <Kb.Text type="BodySmallSemibold">#general</Kb.Text>,{' '}
+              <Kb.Text type="BodySmallSemibold">#random</Kb.Text>, and{' '}
+              <Kb.Text type="BodySmallSemibold">#hellos</Kb.Text>.{' '}
+              <Kb.Text type="BodySmallPrimaryLink">Change this</Kb.Text>
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
   )
