@@ -3393,8 +3393,7 @@ func (k *SimpleFS) SimpleFSGetUploadStatus(
 // SimpleFSCancelUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelUpload(
 	ctx context.Context, uploadID string) (err error) {
-	k.uploadManager.cancel(ctx, uploadID)
-	return nil
+	return k.uploadManager.cancel(ctx, uploadID)
 }
 
 // SimpleFSDismissUpload implements the SimpleFSInterface.
