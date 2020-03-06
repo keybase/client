@@ -110,3 +110,5 @@ export const getActiveKey = (): string => {
   if (!_navigator) return ''
   return _getActiveKey(_navigator.getNavState())
 }
+
+export const tabletHeaderExtraHeight = 16

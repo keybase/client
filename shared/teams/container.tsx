@@ -87,6 +87,7 @@ const Reloadable = (props: ReloadableProps) => {
     </Kb.Reloadable>
   )
 }
+
 Reloadable.navigationOptions = {
   header: undefined,
   headerRightActions: () => <ConnectedHeaderRightActions />,

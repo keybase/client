@@ -8,6 +8,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Container from '../../util/container'
 import Actions from './actions'
 import MainBanner from './main-banner/container'
+import {tabletHeaderExtraHeight} from '../../constants/router2'
 
 /*
  *
@@ -89,7 +90,9 @@ const getBaseHeight = (path: Types.Path) => {
     Styles.statusBarHeight +
     44 +
     (path === Constants.defaultPath
-      ? 0
+      ? Styles.isTablet
+        ? tabletHeaderExtraHeight
+        : 0
       : (Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
   )
 }

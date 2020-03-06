@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
+import {tabletHeaderExtraHeight} from '../constants/router2'
 
 export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
 
@@ -40,7 +41,7 @@ const shimNewRoute = (Original: any) => {
         if (Styles.isIPhoneX) {
           headerHeight = 88
         } else {
-          headerHeight = 64
+          headerHeight = 64 + (Styles.isTablet ? tabletHeaderExtraHeight : 0)
         }
       }
     }
