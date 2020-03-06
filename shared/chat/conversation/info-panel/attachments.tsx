@@ -267,6 +267,7 @@ const styles = Styles.styleSheetCreate(
         height: 16,
         width: 16,
       },
+      flexWrap: {flexWrap: 'wrap'},
       linkContainer: {padding: Styles.globalMargins.tiny},
       linkStyle: Styles.platformStyles({
         common: {color: Styles.globalColors.black_50},
@@ -359,7 +360,8 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null =>
 
 const noAttachmentView = Constants.makeAttachmentViewInfo()
 
-export default (p: Props) => {
+// TODO: fix this typing when sectionlist typing is fixed
+export const useAttachmentSections = (p: Props, loadImmediately: boolean, useFlexWrap: boolean): any => {
   const {conversationIDKey} = p
   const dispatch = Container.useDispatch()
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
@@ -367,8 +369,10 @@ export default (p: Props) => {
   )
 
   React.useEffect(() => {
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
-  }, [selectedAttachmentView, conversationIDKey, dispatch])
+    if (loadImmediately) {
+      dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+    }
+  }, [loadImmediately, selectedAttachmentView, conversationIDKey, dispatch])
 
   const attachmentView = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
   const attachmentInfo = attachmentView?.get(selectedAttachmentView) || noAttachmentView
@@ -488,29 +492,33 @@ export default (p: Props) => {
                 } as Thumb)
             )
           ).map(month => {
-            const data = chunk(
-              month.data.map(thumb => ({
-                debug: {
-                  height: thumb.height,
-                  maxMediaThumbSize,
-                  width: thumb.width,
-                },
-                sizing: Constants.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
-                thumb,
-              })),
-              rowSize
-            ).map((images, i) => ({images, key: i}))
+            const dataUnchunked = month.data.map(thumb => ({
+              debug: {
+                height: thumb.height,
+                maxMediaThumbSize,
+                width: thumb.width,
+              },
+              sizing: Constants.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
+              thumb,
+            }))
+            const dataChunked = useFlexWrap ? [dataUnchunked] : chunk(dataUnchunked, rowSize)
+            const data = dataChunked.map((images, i) => ({images, key: i}))
             return {
               data,
               key: month.key,
               renderItem: ({item}: {item: Unpacked<typeof data>; index: number}) => (
-                <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.Box2
+                  direction="horizontal"
+                  fullWidth={true}
+                  style={useFlexWrap ? styles.flexWrap : undefined}
+                >
                   {item.images.map(cell => {
                     return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
                   })}
                 </Kb.Box2>
               ),
               renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+              title: `${month.month} ${month.year}`,
             }
           })
           sections = [...commonSections, ...s, loadMoreSection]
@@ -628,7 +636,10 @@ export default (p: Props) => {
         break
     }
   }
-
+  return sections
+}
+export default (p: Props) => {
+  const sections = useAttachmentSections(p, true, false)
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}

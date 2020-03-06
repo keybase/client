@@ -11,6 +11,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as UsersGen from '../../actions/users-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import {SectionBase} from '../../common-adapters/section-list'
+import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import SelectionPopup from '../common/selection-popup'
 import ChannelTabs from './tabs'
 import ChannelHeader from './header'
@@ -102,10 +103,6 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
   const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
 
-  // Tabs stuff
-  const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-
-  // Actual data
   const {bots, participants} = Container.useSelector(state =>
     ChatConstants.getBotsAndParticipants(state, conversationIDKey)
   )
@@ -113,7 +110,7 @@ const Channel = (props: OwnProps) => {
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID) ?? emptyMap)
 
-  // Load data upon choosing a tab
+  const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, participants, bots)
 
   // Make the actual sections (consider farming this out into another function or file)
@@ -134,7 +131,13 @@ const Channel = (props: OwnProps) => {
       ),
   }
 
-  const sections: Array<SectionBase<string> & {title?: string}> = [headerSection]
+  const attachmentSections = useAttachmentSections(
+    {commonSections: [], conversationIDKey, renderTabs: () => null},
+    selectedTab === 'attachments',
+    true
+  )
+
+  const sections: Array<SectionBase<any> & {title?: string}> = [headerSection]
   switch (selectedTab) {
     case 'members':
       sections.push({
@@ -174,10 +177,11 @@ const Channel = (props: OwnProps) => {
         renderItem: ({item}) => <BotRow teamID={teamID} username={item} />,
         title: 'In this team:',
       })
+      // TODO: consider adding featured bots here, pending getting an actual design for this tab
       break
     }
-
-    // TODO: consider adding featured bots here, pending getting an actual design for this tab
+    case 'attachments':
+      sections.push(...attachmentSections)
   }
 
   const renderSectionHeader = ({section}) =>
