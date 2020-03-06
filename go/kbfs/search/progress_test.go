@@ -58,7 +58,8 @@ func TestProgress(t *testing.T) {
 	})
 
 	t.Log("Start the index")
-	p.startIndex(id1, size1, indexFull)
+	err := p.startIndex(id1, size1, indexFull)
+	require.NoError(t, err)
 	checkStatus(expectedProg{
 		currTlf:      id1,
 		currTotal:    int64(size1),
@@ -109,7 +110,7 @@ func TestProgress(t *testing.T) {
 		overallEnd:   overallEndEstimate,
 	})
 
-	err := p.finishIndex(id1)
+	err = p.finishIndex(id1)
 	require.NoError(t, err)
 	checkStatus(expectedProg{
 		q:            []tlf.ID{id2},

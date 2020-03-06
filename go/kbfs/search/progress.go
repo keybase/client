@@ -60,9 +60,15 @@ func (p *Progress) tlfUnqueue(id tlf.ID) {
 	delete(p.tlfSizesToIndex, id)
 }
 
-func (p *Progress) startIndex(id tlf.ID, sizeEstimate uint64, t indexType) {
+func (p *Progress) startIndex(
+	id tlf.ID, sizeEstimate uint64, t indexType) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
+
+	if p.currTlf != tlf.NullID {
+		return errors.Errorf("Cannot index %s before finishing index of %s",
+			id, p.currTlf)
+	}
 
 	p.currTlf = id
 	delete(p.tlfSizesToIndex, id)
@@ -70,6 +76,7 @@ func (p *Progress) startIndex(id tlf.ID, sizeEstimate uint64, t indexType) {
 	p.currHasIndexed = 0
 	p.currIndexType = t
 	p.currStartTime = p.clock.Now()
+	return nil
 }
 
 func (p *Progress) indexedBytes(size uint64) {
