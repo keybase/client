@@ -41,7 +41,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     return [
       {title: 'members' as const},
       {title: 'attachments' as const},
-      ...(flags.botUI ? [{title: 'bots' as const}] : []),
+      {title: 'bots' as const},
       ...(showSettings ? [{title: 'settings' as const}] : []),
     ]
   }

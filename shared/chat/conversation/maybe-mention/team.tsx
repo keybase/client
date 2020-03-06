@@ -34,7 +34,7 @@ class TeamMention extends React.Component<Props, State> {
   }
 
   _onClick = () => {
-    if (!Styles.isMobile && this.props.onChat) {
+    if (this.props.onChat) {
       this.props.onChat()
     } else {
       this.setState({showPopup: true})

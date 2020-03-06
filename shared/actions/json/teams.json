@@ -353,6 +353,9 @@
       "teamID": "Types.TeamID",
       "message": "RPCChatTypes.WelcomeMessageDisplay"
     },
+    "setJustFinishedAddMembersWizard": {
+      "justFinished": "boolean"
+    },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",
       "filter": "string",

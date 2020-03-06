@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as ConfigTypes from '../constants/types/config'
-import flags from '../util/feature-flags'
 
 type Props = {
   outOfDate?: ConfigTypes.OutOfDate
@@ -14,7 +13,7 @@ const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
   (outOfDate.message ? `: ${outOfDate.message}` : '.')
 
 const OutOfDate = ({outOfDate, updateNow}: Props) => {
-  if (!flags.outOfDateBanner || !outOfDate) return null
+  if (!outOfDate) return null
   const bannerColor = outOfDate.critical ? 'red' : 'yellow'
   return (
     <Kb.Banner color={bannerColor} style={styles.banner} textContainerStyle={styles.textContainerStyle}>

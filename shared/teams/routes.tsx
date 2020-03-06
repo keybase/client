@@ -87,6 +87,9 @@ export const newModalRoutes = {
   teamWizard2TeamInfo: {
     getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
   },
+  teamsContactsTeamBuilder: {
+    getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
+  },
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },

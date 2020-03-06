@@ -9,7 +9,6 @@ import * as Container from '../util/container'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
-import flags from '../util/feature-flags'
 
 // TODO better types for response / incomingCallMap
 
@@ -68,7 +67,7 @@ function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
         clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
         deviceType: isMobile ? 'mobile' : 'desktop',
-        doUserSwitch: flags.fastAccountSwitch,
+        doUserSwitch: true,
         paperKey: '',
         username: action.payload.username,
       },
