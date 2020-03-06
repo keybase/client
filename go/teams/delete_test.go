@@ -116,6 +116,55 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 	}
 }
 
+func TestDeleteSubteamWithHiddenRotations(t *testing.T) {
+	tc, owner, admin, _, root, sub := memberSetupSubteam(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, root, admin.Username, keybase1.TeamRole_ADMIN)
+	assertRole(tc, sub, owner.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, admin.Username, keybase1.TeamRole_NONE)
+
+	// switch to `admin` user
+	err := tc.Logout()
+	require.NoError(t, err)
+	if err := admin.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	subTeam, err := GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	require.NoError(t, err)
+
+	err = subTeam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+	require.NoError(t, err)
+
+	rootTeam, err := GetTeamByNameForTest(context.Background(), tc.G, root, false, false)
+	require.NoError(t, err)
+
+	err = rootTeam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+	require.NoError(t, err)
+
+	assertCanUserPerformTeamDelete(t, tc.G, sub)
+	subTeam, err = GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	require.NoError(t, err, "error getting team before delete")
+
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, subTeam.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	if err == nil {
+		t.Fatal("no error getting deleted team")
+	}
+	aerr, ok := err.(libkb.AppStatusError)
+	if !ok {
+		t.Fatalf("error type: %T (%s), expected libkb.AppStatusError", err, err)
+	}
+	if aerr.Code != int(keybase1.StatusCode_SCTeamReadError) {
+		t.Errorf("error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
+	}
+}
+
 func TestRecreateSubteam(t *testing.T) {
 	tc, _, admin, _, _, sub := memberSetupSubteam(t)
 	defer tc.Cleanup()
