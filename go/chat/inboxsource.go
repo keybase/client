@@ -1089,7 +1089,7 @@ func (h convSearchHit) hitScore() (score int) {
 	return score
 }
 
-func (h convSearchHit) less(o convSearchHit) bool {
+func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
 	hScore := h.hitScore()
 	oScore := o.hitScore()
 	if hScore < oScore {
@@ -1097,8 +1097,15 @@ func (h convSearchHit) less(o convSearchHit) bool {
 	} else if hScore > oScore {
 		return false
 	}
-	htime := utils.GetConvMtime(h.conv)
-	otime := utils.GetConvMtime(o.conv)
+	var htime, otime gregor1.Time
+	switch emptyMode {
+	case types.InboxSourceSearchEmptyModeAllBySenderCtime:
+		htime = utils.GetConvLatestCtime(h.conv)
+		otime = utils.GetConvLatestCtime(o.conv)
+	default:
+		htime = utils.GetConvMtime(h.conv)
+		otime = utils.GetConvMtime(o.conv)
+	}
 	return htime.Before(otime)
 }
 
@@ -1146,7 +1153,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 				}
 				res.hits = []nameContainsQueryRes{cqe}
 			}
-		case types.InboxSourceSearchEmptyModeAll:
+		default:
 			res.hits = []nameContainsQueryRes{nameContainsQueryExact}
 		}
 		return res
@@ -1215,7 +1222,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		hits = append(hits, hit)
 	}
 	sort.Slice(hits, func(i, j int) bool {
-		return hits[j].less(hits[i])
+		return hits[j].less(hits[i], emptyMode)
 	})
 	res = make([]types.RemoteConversation, len(hits))
 	for i, hit := range hits {

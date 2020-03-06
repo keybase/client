@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"encoding/hex"
 
@@ -64,6 +65,7 @@ func makeInboxMsg(id chat1.MessageID, typ chat1.MessageType) chat1.MessageBoxed 
 		},
 		ServerHeader: &chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 	}
 }
@@ -391,6 +393,7 @@ func TestInboxNewMessage(t *testing.T) {
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "conv not promoted")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LatestCtime)
 	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 	maxMsg, err := res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -407,16 +410,17 @@ func TestInboxNewMessage(t *testing.T) {
 	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 
 	// Send another one from a diff User
-	msg = makeInboxMsg(3, chat1.MessageType_TEXT)
-	msg.ClientHeader.Sender = uid2
+	msg2 := makeInboxMsg(3, chat1.MessageType_TEXT)
+	msg2.ClientHeader.Sender = uid2
 	convID = conv.GetConvID()
-	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 4, conv.GetConvID(), msg, nil))
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 4, conv.GetConvID(), msg2, nil))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(3), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LatestCtime)
 	require.Equal(t, []gregor1.UID{uid2, uid1, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -435,20 +439,20 @@ func TestInboxNewMessage(t *testing.T) {
 	delete := makeInboxMsg(5, chat1.MessageType_DELETE)
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 0, conv.GetConvID(), delete, nil))
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 6, conv.GetConvID(), delete,
-		[]chat1.MessageSummary{msg.Summary()}))
+		[]chat1.MessageSummary{msg2.Summary()}))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
 	})
 	require.NoError(t, err)
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
-	require.Equal(t, msg.GetMessageID(), maxMsg.GetMessageID())
+	require.Equal(t, msg2.GetMessageID(), maxMsg.GetMessageID())
 	delete = makeInboxMsg(6, chat1.MessageType_DELETE)
 	err = inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), delete, nil)
 	require.Error(t, err)
 	require.IsType(t, VersionMismatchError{}, err)
 
-	err = inbox.NewMessage(context.TODO(), uid, 10, conv.GetConvID(), msg, nil)
+	err = inbox.NewMessage(context.TODO(), uid, 10, conv.GetConvID(), msg2, nil)
 	require.IsType(t, VersionMismatchError{}, err)
 }
 
@@ -482,6 +486,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(1), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LatestCtime)
 	require.NoError(t, inbox.ReadMessage(context.TODO(), uid, 3, conv.GetConvID(), 2))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
@@ -489,6 +494,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LatestCtime)
 
 	err = inbox.ReadMessage(context.TODO(), uid, 10, conv.GetConvID(), 3)
 	require.IsType(t, VersionMismatchError{}, err)
@@ -881,8 +887,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[5].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			convs[5].Conv.Metadata.Version = chat1.ConversationVers(2)
-		}
-		if c.GetConvID().Eq(convs[6].GetConvID()) {
+		} else if c.GetConvID().Eq(convs[6].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, c.Conv.ReaderInfo.Status)
 			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[6].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET

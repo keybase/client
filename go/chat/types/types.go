@@ -74,6 +74,7 @@ type InboxSourceSearchEmptyMode int
 const (
 	InboxSourceSearchEmptyModeUnread InboxSourceSearchEmptyMode = iota
 	InboxSourceSearchEmptyModeAll
+	InboxSourceSearchEmptyModeAllBySenderCtime
 )
 
 type InboxSourceDataSourceTyp int
