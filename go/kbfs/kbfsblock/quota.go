@@ -4,7 +4,12 @@
 
 package kbfsblock
 
-import "github.com/keybase/client/go/kbfs/kbfscodec"
+import (
+	"time"
+
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/protocol/keybase1"
+)
 
 // UsageType indicates the type of usage that quota manager is keeping stats of
 type UsageType int
@@ -42,6 +47,31 @@ func NewUsageStat() *UsageStat {
 	}
 }
 
+// UsageStatFromProtocol converts the RPC format into the local format.
+func UsageStatFromProtocol(stat keybase1.UsageStat) *UsageStat {
+	u := &UsageStat{
+		Bytes: map[UsageType]int64{
+			UsageWrite:      stat.Bytes.Write,
+			UsageArchive:    stat.Bytes.Archive,
+			UsageRead:       stat.Bytes.Read,
+			UsageMDWrite:    stat.Bytes.MdWrite,
+			UsageGitWrite:   stat.Bytes.GitWrite,
+			UsageGitArchive: stat.Bytes.GitArchive,
+		},
+		Blocks: map[UsageType]int64{
+			UsageWrite:      stat.Blocks.Write,
+			UsageArchive:    stat.Blocks.Archive,
+			UsageRead:       stat.Blocks.Read,
+			UsageMDWrite:    stat.Blocks.MdWrite,
+			UsageGitWrite:   stat.Blocks.GitWrite,
+			UsageGitArchive: stat.Blocks.GitArchive,
+		},
+		Mtime: keybase1.FromTime(stat.Mtime).UnixNano(),
+	}
+
+	return u
+}
+
 // NonZero checks whether UsageStat has accumulated any usage info
 func (u *UsageStat) NonZero() bool {
 	for i := UsageType(0); i < NumUsage; i++ {
@@ -50,6 +80,27 @@ func (u *UsageStat) NonZero() bool {
 		}
 	}
 	return false
+}
+
+// ToProtocol converts this stat to the RPC protocol format.
+func (u *UsageStat) ToProtocol() (res keybase1.UsageStat) {
+	res.Mtime = keybase1.ToTime(time.Unix(0, u.Mtime))
+
+	res.Bytes.Write = u.Bytes[UsageWrite]
+	res.Bytes.Archive = u.Bytes[UsageArchive]
+	res.Bytes.Read = u.Bytes[UsageRead]
+	res.Bytes.MdWrite = u.Bytes[UsageMDWrite]
+	res.Bytes.GitWrite = u.Bytes[UsageGitWrite]
+	res.Bytes.GitArchive = u.Bytes[UsageGitArchive]
+
+	res.Blocks.Write = u.Blocks[UsageWrite]
+	res.Blocks.Archive = u.Blocks[UsageArchive]
+	res.Blocks.Read = u.Blocks[UsageRead]
+	res.Blocks.MdWrite = u.Blocks[UsageMDWrite]
+	res.Blocks.GitWrite = u.Blocks[UsageGitWrite]
+	res.Blocks.GitArchive = u.Blocks[UsageGitArchive]
+
+	return res
 }
 
 //AccumOne records the usage of one block, whose size is denoted by change
@@ -99,6 +150,20 @@ func NewQuotaInfo() *QuotaInfo {
 	}
 }
 
+// QuotaInfoFromProtocol converts the RPC format into the local format.
+func QuotaInfoFromProtocol(info keybase1.BlockQuotaInfo) *QuotaInfo {
+	u := &QuotaInfo{
+		Folders:  make(map[string]*UsageStat, len(info.Folders)),
+		Total:    UsageStatFromProtocol(info.Total),
+		Limit:    info.Limit,
+		GitLimit: info.GitLimit,
+	}
+	for _, stat := range info.Folders {
+		u.Folders[stat.FolderID] = UsageStatFromProtocol(stat.Stats)
+	}
+	return u
+}
+
 // AccumOne combines one quota charge to the existing QuotaInfo
 func (u *QuotaInfo) AccumOne(change int, folder string, usage UsageType) {
 	if _, ok := u.Folders[folder]; !ok {
@@ -128,6 +193,23 @@ func (u *QuotaInfo) Accum(another *QuotaInfo, accumF func(int64, int64) int64) {
 // ToBytes marshals this QuotaInfo
 func (u *QuotaInfo) ToBytes(codec kbfscodec.Codec) ([]byte, error) {
 	return codec.Encode(u)
+}
+
+// ToProtocol converts this info to the RPC protocol format.
+func (u *QuotaInfo) ToProtocol() (res keybase1.BlockQuotaInfo) {
+	res.Limit = u.Limit
+	res.GitLimit = u.GitLimit
+	res.Total = u.Total.ToProtocol()
+
+	res.Folders = make([]keybase1.FolderUsageStat, 0, len(u.Folders))
+	for f, us := range u.Folders {
+		res.Folders = append(res.Folders, keybase1.FolderUsageStat{
+			FolderID: f,
+			Stats:    us.ToProtocol(),
+		})
+	}
+
+	return res
 }
 
 // QuotaInfoDecode decodes b into a QuotaInfo
