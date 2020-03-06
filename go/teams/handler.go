@@ -576,10 +576,10 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	tx := CreateAddMemberTx(team)
 
 	for _, seitan := range msg.Seitans {
-		// TODO what if there are two seitans for same inviteid?
 		invite, found := team.chain().FindActiveInviteByID(seitan.InviteID)
 		if !found {
-			return libkb.NotFoundError{}
+			g.Log.CDebugf(ctx, "Couldn't find specified invite id %q; skipping", seitan.InviteID)
+			continue
 		}
 
 		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)

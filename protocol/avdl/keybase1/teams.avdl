@@ -608,9 +608,6 @@ protocol teams {
     INVITELINK_7
   }
 
-  /* IsNewStyle */
-  /*   return catego == invitelink */
-
   variant TeamInviteType switch (TeamInviteCategory c) {
     case UNKNOWN: string;
     case SBS: TeamInviteSocialNetwork;

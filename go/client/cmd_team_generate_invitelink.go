@@ -26,7 +26,7 @@ func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 	return cli.Command{
 		Name:         "generate-invitelink",
 		ArgumentHelp: "<team name>",
-		Usage: `Generate an invite link that you can send via SMS, iMessage, or similar.
+		Usage: `Generate an invite link that you can send via iMessage or similar.
 If neither max-uses nor infinite-uses is passed, defaults to one-time-use. If duration is not
 passed, does not expire.`,
 		Action: func(c *cli.Context) {
@@ -89,16 +89,14 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 		return errors.New("can only specify one of max-uses and infinite-uses")
 	}
 
-	infiniteUses := ctx.Bool("infinite-uses")
-	maxUsesVal := 1
-	if ctx.IsSet("max-uses") {
-		maxUsesVal = ctx.Int("max-uses")
+	if ctx.Bool("infinite-uses") {
+		c.TeamInviteMaxUses = keybase1.TeamMaxUsesInfinite
+	} else if ctx.IsSet("max-uses") {
+		c.TeamInviteMaxUses, err = keybase1.NewTeamInviteFiniteUses(ctx.Int("max-uses"))
+		if err != nil {
+			return err
+		}
 	}
-	maxUses, err := keybase1.NewTeamInviteMaxUses(infiniteUses, maxUsesVal)
-	if err != nil {
-		return err
-	}
-	c.TeamInviteMaxUses = maxUses
 
 	return nil
 }

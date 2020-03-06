@@ -272,7 +272,7 @@ func (pkey SeitanPKey) DecryptKeyAndLabel(ctx context.Context, team *Team) (ret 
 type SeitanAKey []byte
 
 func generateAcceptanceKey(akeyPayload []byte, sikey []byte) (akey SeitanAKey, encoded string, err error) {
-	mac := hmac.New(sha512.New, sikey[:])
+	mac := hmac.New(sha512.New, sikey)
 	_, err = mac.Write(akeyPayload)
 	if err != nil {
 		return akey, encoded, err

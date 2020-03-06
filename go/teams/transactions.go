@@ -874,13 +874,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 
 			section.CompletedInvites = payload.CompletedInvites
-			for _, usedInvite := range payload.UsedInvites {
-				exportedUse := SCMapInviteIDUVPair{
-					InviteID: SCTeamInviteID(usedInvite.InviteID),
-					UV:       usedInvite.Uv,
-				}
-				section.UsedInvites = append(section.UsedInvites, exportedUse)
-			}
+			section.UsedInvites = makeSCMapInviteIDUVMap(payload.UsedInvites)
 
 			sections = append(sections, section)
 

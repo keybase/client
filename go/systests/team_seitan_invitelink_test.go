@@ -12,7 +12,7 @@ import (
 
 func TestTeamInviteSeitanInvitelinkHappy(t *testing.T) {
 	testTeamInviteSeitanInvitelinkHappy(t, false /* implicitAdmin */)
-	// testTeamInviteSeitanHappy(t, true /* implicitAdmin */)
+	testTeamInviteSeitanHappy(t, true /* implicitAdmin */)
 }
 
 func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
@@ -36,7 +36,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 		t.Logf("Created subteam %v %v", teamID, teamName)
 	}
 
-	maxUses, err := keybase1.NewTeamInviteMaxUses(false /* infiniteUses */, 3)
+	maxUses, err := keybase1.NewTeamInviteFiniteUses(3)
 	require.NoError(t, err)
 	etime := keybase1.ToUnixTime(time.Now().Add(24 * time.Hour))
 	link, err := alice.teamsClient.TeamCreateSeitanInvitelink(context.TODO(), keybase1.TeamCreateSeitanInvitelinkArg{

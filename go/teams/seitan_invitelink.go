@@ -10,6 +10,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+// documented in go/teams/seitan.go
 const SeitanEncodedIKeyInvitelinkLength = 28
 const seitanEncodedIKeyInvitelinkPlusOffset = 7
 

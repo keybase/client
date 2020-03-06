@@ -2676,10 +2676,7 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 // multiple use, with infinite number of uses.
 const TeamMaxUsesInfinite = -1
 
-func NewTeamInviteMaxUses(infiniteUses bool, maxUses int) (v TeamInviteMaxUses, err error) {
-	if infiniteUses {
-		return TeamMaxUsesInfinite, nil
-	}
+func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
 	if maxUses <= 0 {
 		return v, errors.New("non-infinite uses with nonpositive maxUses")
 	}

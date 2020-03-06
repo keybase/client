@@ -25,7 +25,7 @@ func newCmdTeamGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	return cli.Command{
 		Name:         "generate-invite-token",
 		ArgumentHelp: "<team name>",
-		Usage:        "Generate an invite token that you can send via SMS, iMessage, or similar.",
+		Usage:        "Generate an invite token that you can send via iMessage, or similar.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateSeitanRunner(g)
 			cl.ChooseCommand(cmd, "generate-invite-token", c)
