@@ -142,6 +142,9 @@ module.exports = {
   get InfoNote() {
     return require('./info-note').default
   },
+  get InlineDropdown() {
+    return require('./dropdown').InlineDropdown
+  },
   get Input() {
     return require('./input').default
   },

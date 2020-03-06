@@ -6,6 +6,7 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
 
@@ -82,7 +83,7 @@ const RoleSelector = () => {
     dispatch(TeamsGen.createSetAddMembersWizardRole({role: newRole}))
   }
   return (
-    <Kb.Box2 direction="horizontal" gap="tiny">
+    <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
       <Kb.Text type="BodySmall">Invite as: </Kb.Text>
       <FloatingRolePicker
         open={showingMenu}
@@ -90,9 +91,11 @@ const RoleSelector = () => {
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
       >
-        <Kb.Text type="BodySmallSemibold" onClick={() => setShowingMenu(true)}>
-          {storeRole}
-        </Kb.Text>
+        <Kb.InlineDropdown
+          type="BodySmallSemibold"
+          label={capitalize(storeRole) + 's'}
+          onPress={() => setShowingMenu(true)}
+        />
       </FloatingRolePicker>
     </Kb.Box2>
   )
