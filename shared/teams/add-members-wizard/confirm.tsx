@@ -48,9 +48,9 @@ const AddMembersConfirm = () => {
             <Kb.Text type="BodySmall">Your invitees will be added to 3 channels.</Kb.Text>
             <Kb.Text type="BodySmall">
               {/* TODO: Hook this up when default channels settings are hooked up */}
-              <Kb.Text type="BodySmallSemibold">#general</Kb.Text>,{' '}
-              <Kb.Text type="BodySmallSemibold">#random</Kb.Text>, and{' '}
-              <Kb.Text type="BodySmallSemibold">#hellos</Kb.Text>.{' '}
+              <Kb.Text type="BodySmallBold">#general</Kb.Text>,{' '}
+              <Kb.Text type="BodySmallBold">#random</Kb.Text>, and{' '}
+              <Kb.Text type="BodySmallBold">#hellos</Kb.Text>.{' '}
               <Kb.Text type="BodySmallPrimaryLink">Change this</Kb.Text>
             </Kb.Text>
           </Kb.Box2>
@@ -184,16 +184,19 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   addingMembers: Styles.platformStyles({
     common: {
+      backgroundColor: Styles.globalColors.blueGreyDark,
+      borderRadius: Styles.borderRadius,
+    },
+    isElectron: {
       ...Styles.padding(
         Styles.globalMargins.tiny,
         Styles.globalMargins.small,
         Styles.globalMargins.tiny,
         Styles.globalMargins.tiny
       ),
-      backgroundColor: Styles.globalColors.blueGreyDark,
-      borderRadius: Styles.borderRadius,
+      maxHeight: 168,
     },
-    isElectron: {maxHeight: 168},
+    isMobile: {padding: Styles.globalMargins.tiny},
   }),
   body: {
     padding: Styles.globalMargins.small,
