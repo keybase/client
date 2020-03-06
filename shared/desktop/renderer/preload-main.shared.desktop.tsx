@@ -152,6 +152,7 @@ target.KB = {
   },
   path: {
     basename: path.basename,
+    dirname: path.dirname,
     extname: path.extname,
     join: path.join,
     resolve: path.resolve,
