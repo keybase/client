@@ -77,7 +77,7 @@ const AddPhone = (props: Props) => {
               autoFocus={idx === 0}
               defaultCountry={defaultCountry}
               onChangeNumber={(phoneNumber, valid) => setPhoneNumber(idx, phoneNumber, valid)}
-              onClear={() => removePhoneNumber(idx)}
+              onClear={phoneNumbers.length === 1 ? undefined : () => removePhoneNumber(idx)}
             />
           ))}
           <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />

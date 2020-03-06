@@ -60,7 +60,7 @@ const CreateChannel = (props: Props) => {
         {channels.map((value, idx) => (
           <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" tooltip="" onClick={onAdd} style={styles.addButton} />
+        <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
         {numChannels === 0 && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
