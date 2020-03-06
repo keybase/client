@@ -997,7 +997,10 @@ func (i *Indexer) doFullIndex(
 	if err != nil {
 		return err
 	}
-	i.progress.startIndex(m.tlfID, md.DiskUsage(), indexFull)
+	err = i.progress.startIndex(m.tlfID, md.DiskUsage(), indexFull)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		progErr := i.progress.finishIndex(m.tlfID)
 		if progErr != nil {
@@ -1062,7 +1065,10 @@ func (i *Indexer) doIncrementalIndex(
 		return err
 	}
 
-	i.progress.startIndex(m.tlfID, refSize, indexIncremental)
+	err = i.progress.startIndex(m.tlfID, refSize, indexIncremental)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		progErr := i.progress.finishIndex(m.tlfID)
 		if progErr != nil {
