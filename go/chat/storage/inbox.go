@@ -5,12 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"os"
-	"path/filepath"
-	"sort"
 	"time"
-
-	"github.com/keybase/client/go/encrypteddb"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -22,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 28
+const inboxVersion = 29
 
 type InboxFlushMode int
 
@@ -64,19 +59,15 @@ func (q inboxDiskQuery) match(other inboxDiskQuery) bool {
 	return q.queryMatch(other) && q.Pagination.Eq(other.Pagination)
 }
 
-type inboxDiskData struct {
-	Version       int                        `codec:"V"`
-	ServerVersion int                        `codec:"S"`
-	InboxVersion  chat1.InboxVers            `codec:"I"`
-	Conversations []types.RemoteConversation `codec:"C"`
-	Queries       []inboxDiskQuery           `codec:"Q"`
+type inboxDiskIndex struct {
+	ConversationIDs []chat1.ConversationID `codec:"C"`
+	Queries         []inboxDiskQuery       `codec:"Q"`
 }
 
-type SharedInboxItem struct {
-	ConvID      chat1.ConvIDStr
-	Name        string
-	Public      bool
-	MembersType chat1.ConversationMembersType
+type inboxDiskVersions struct {
+	Version       int             `codec:"V"`
+	ServerVersion int             `codec:"S"`
+	InboxVersion  chat1.InboxVers `codec:"I"`
 }
 
 type InboxLayoutChangedNotifier interface {
@@ -110,14 +101,7 @@ type Inbox struct {
 	*baseBox
 	utils.DebugLabeler
 
-	flushMode      InboxFlushMode
 	layoutNotifier InboxLayoutChangedNotifier
-}
-
-func FlushMode(mode InboxFlushMode) func(*Inbox) {
-	return func(i *Inbox) {
-		i.SetFlushMode(mode)
-	}
 }
 
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
@@ -125,7 +109,6 @@ func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   utils.NewDebugLabeler(g.ExternalG(), "Inbox", false),
 		baseBox:        newBaseBox(g),
-		flushMode:      InboxFlushModeActive,
 		layoutNotifier: dummyInboxLayoutChangedNotifier{},
 	}
 	for _, c := range config {
@@ -134,33 +117,43 @@ func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	return i
 }
 
-func (i *Inbox) SetFlushMode(mode InboxFlushMode) {
-	i.flushMode = mode
-}
-
 func (i *Inbox) SetInboxLayoutChangedNotifier(notifier InboxLayoutChangedNotifier) {
 	i.layoutNotifier = notifier
 }
 
-func (i *Inbox) dbKey(uid gregor1.UID) libkb.DbKey {
+func (i *Inbox) dbVersionsKey(uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatInbox,
 		Key: fmt.Sprintf("ib:%s", uid),
 	}
 }
 
-func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory bool) (inboxDiskData, Error) {
-	var ibox inboxDiskData
+func (i *Inbox) dbIndexKey(uid gregor1.UID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBChatInboxIndex,
+		Key: fmt.Sprintf("ib:%s", uid),
+	}
+}
+
+func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBChatInboxConvs,
+		Key: fmt.Sprintf("ib:%s:%s", uid, convID.DbShortFormString()),
+	}
+}
+
+func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemory bool) (inboxDiskVersions, Error) {
+	var ibox inboxDiskVersions
 	// Check context for an aborted request
 	if err := isAbortedRequest(ctx); err != nil {
 		return ibox, err
 	}
 	// Check in memory cache first
-	if memibox := inboxMemCache.Get(uid); useInMemory && memibox != nil {
-		i.Debug(ctx, "hit in memory cache")
+	if memibox := inboxMemCache.GetVersions(uid); useInMemory && memibox != nil {
+		i.Debug(ctx, "readDiskVersions: hit in memory cache")
 		ibox = *memibox
 	} else {
-		found, err := i.readDiskBox(ctx, i.dbKey(uid), &ibox)
+		found, err := i.readDiskBox(ctx, i.dbVersionsKey(uid), &ibox)
 		if err != nil {
 			if _, ok := err.(libkb.LoginRequiredError); ok {
 				return ibox, MiscError{Msg: err.Error()}
@@ -172,12 +165,12 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory 
 			return ibox, MissError{}
 		}
 		if useInMemory {
-			inboxMemCache.Put(uid, &ibox)
+			inboxMemCache.PutVersions(uid, &ibox)
 		}
 	}
 	// Check on disk server version against known server version
 	if _, err := i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
-		i.Debug(ctx, "server version match error, clearing: %s", err)
+		i.Debug(ctx, "readDiskVersions: server version match error, clearing: %s", err)
 		if cerr := i.Clear(ctx, uid); cerr != nil {
 			return ibox, cerr
 		}
@@ -185,7 +178,8 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory 
 	}
 	// Check on disk version against configured
 	if ibox.Version != inboxVersion {
-		i.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
+		i.Debug(ctx,
+			"readDiskVersions: on disk version not equal to program version, clearing: disk :%d program: %d",
 			ibox.Version, inboxVersion)
 		if cerr := i.Clear(ctx, uid); cerr != nil {
 			return ibox, cerr
@@ -193,115 +187,120 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory 
 		return ibox, MissError{}
 	}
 
-	i.Debug(ctx, "readDiskInbox: version: %d disk version: %d server version: %d convs: %d",
-		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
+	i.Debug(ctx, "readDiskVersions: version: %d disk version: %d server version: %d",
+		ibox.InboxVersion, ibox.Version, ibox.ServerVersion)
 
 	return ibox, nil
 }
 
-func (i *Inbox) sharedInboxFile(ctx context.Context, uid gregor1.UID) (*encrypteddb.EncryptedFile, error) {
-	dir := filepath.Join(i.G().GetEnv().GetSharedDataDir(), "sharedinbox", uid.String())
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return nil, err
-	}
-	return encrypteddb.NewFile(i.G().ExternalG(), filepath.Join(dir, "flatinbox.mpack"),
-		func(ctx context.Context) ([32]byte, error) {
-			return GetSecretBoxKey(ctx, i.G().ExternalG())
-		}), nil
-}
-
-func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, uid gregor1.UID) {
-	defer i.Trace(ctx, func() error { return nil }, fmt.Sprintf("writeMobileSharedInbox(%s)", uid))()
-	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
-	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" ||
-		i.G().GetAppType() != libkb.MobileAppType {
-		return
-	}
-	var writable []SharedInboxItem
-	sort.Sort(utils.RemoteConvByMtime(ibox.Conversations))
-	for _, rc := range ibox.Conversations {
-		if rc.Conv.GetTopicType() != chat1.TopicType_CHAT {
-			continue
-		}
-		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
-			// need local metadata for channel names, so skip if we don't have it
-			continue
-		}
-		name := utils.GetRemoteConvDisplayName(rc)
-		if len(name) == 0 {
-			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.ConvIDStr)
-			continue
-		}
-		writable = append(writable, SharedInboxItem{
-			ConvID:      rc.ConvIDStr,
-			Name:        name,
-			Public:      rc.Conv.IsPublic(),
-			MembersType: rc.Conv.GetMembersType(),
-		})
-		if len(writable) > 200 {
-			break
-		}
-	}
-	sif, err := i.sharedInboxFile(ctx, uid)
-	if err != nil {
-		i.Debug(ctx, "writeMobileSharedInbox: failed to get shared inbox file: %s", err)
-		return
-	}
-	if err := sif.Put(ctx, writable); err != nil {
-		i.Debug(ctx, "writeMobileSharedInbox: failed to write: %s", err)
-	}
-}
-
-func (i *Inbox) flushLocked(ctx context.Context, uid gregor1.UID) (err Error) {
-	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("flushLocked(%s)", uid))()
-	ibox := inboxMemCache.Get(uid)
-	if ibox == nil {
-		i.Debug(ctx, "flushLocked: no inbox in memory, not doing anything")
-		return nil
-	}
-	i.Debug(ctx, "flushLocked: version: %d disk version: %d server version: %d convs: %d",
-		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
-	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
-		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
-	}
-	i.writeMobileSharedInbox(ctx, *ibox, uid)
-	return nil
-}
-
-func (i *Inbox) Flush(ctx context.Context, uid gregor1.UID) (err Error) {
-	locks.Inbox.Lock()
-	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Flush(%s)", uid))()
-	return i.flushLocked(ctx, uid)
-}
-
-func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxDiskData) Error {
+func (i *Inbox) writeDiskVersions(ctx context.Context, uid gregor1.UID, ibox inboxDiskVersions) Error {
 	// Get latest server version
 	vers, err := i.G().ServerCacheVersions.Fetch(ctx)
 	if err != nil {
-		return NewInternalError(ctx, i.DebugLabeler, "failed to fetch server versions: %s", err.Error())
+		return NewInternalError(ctx, i.DebugLabeler, "failed to fetch server versions: %s", err)
 	}
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
-	i.summarizeConvs(ibox.Conversations)
-	i.Debug(ctx, "writeDiskInbox: uid: %s version: %d disk version: %d server version: %d convs: %d",
-		uid, ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
-	inboxMemCache.Put(uid, &ibox)
-	switch i.flushMode {
-	case InboxFlushModeActive:
-		return i.flushLocked(ctx, uid)
-	case InboxFlushModeDelegate:
-		return nil
+	i.Debug(ctx, "writeDiskVersions: uid: %s version: %d disk version: %d server version: %d",
+		uid, ibox.InboxVersion, ibox.Version, ibox.ServerVersion)
+	inboxMemCache.PutVersions(uid, &ibox)
+	if err := i.writeDiskBox(ctx, i.dbVersionsKey(uid), ibox); err != nil {
+		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox versions: %s", err)
 	}
 	return nil
 }
 
-type ByDatabaseOrder []types.RemoteConversation
+func (i *Inbox) readDiskIndex(ctx context.Context, uid gregor1.UID, useInMemory bool) (inboxDiskIndex, Error) {
+	var ibox inboxDiskIndex
+	// Check context for an aborted request
+	if err := isAbortedRequest(ctx); err != nil {
+		return ibox, err
+	}
+	// Check in memory cache first
+	if memibox := inboxMemCache.GetIndex(uid); useInMemory && memibox != nil {
+		i.Debug(ctx, "hit in memory cache")
+		ibox = *memibox
+	} else {
+		found, err := i.readDiskBox(ctx, i.dbIndexKey(uid), &ibox)
+		if err != nil {
+			if _, ok := err.(libkb.LoginRequiredError); ok {
+				return ibox, MiscError{Msg: err.Error()}
+			}
+			return ibox, NewInternalError(ctx, i.DebugLabeler,
+				"failed to read inbox: uid: %d err: %s", uid, err)
+		}
+		if !found {
+			return ibox, MissError{}
+		}
+		if useInMemory {
+			inboxMemCache.PutIndex(uid, &ibox)
+		}
+	}
+	i.Debug(ctx, "readDiskIndex: convs: %d queries: %d", len(ibox.ConversationIDs), len(ibox.Queries))
+	return ibox, nil
+}
 
-func (a ByDatabaseOrder) Len() int      { return len(a) }
-func (a ByDatabaseOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a ByDatabaseOrder) Less(i, j int) bool {
-	return utils.DBConvLess(a[i], a[j])
+func (i *Inbox) writeDiskIndex(ctx context.Context, uid gregor1.UID, ibox inboxDiskIndex) Error {
+	i.Debug(ctx, "writeDiskIndex: convs: %d queries: %d", len(ibox.ConversationIDs), len(ibox.Queries))
+	inboxMemCache.PutIndex(uid, &ibox)
+	if err := i.writeDiskBox(ctx, i.dbIndexKey(uid), ibox); err != nil {
+		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox index: %s", err)
+	}
+	return nil
+}
+
+func (i *Inbox) readConvs(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID) (res []types.RemoteConversation, err Error) {
+	res = make([]types.RemoteConversation, 0, len(convIDs))
+	memHits := make(map[chat1.ConvIDStr]bool, len(convIDs))
+	for _, convID := range convIDs {
+		if conv := inboxMemCache.GetConv(uid, convID); conv != nil {
+			res = append(res, *conv)
+			memHits[convID.ConvIDStr()] = true
+		}
+	}
+	for _, convID := range convIDs {
+		if memHits[convID.ConvIDStr()] {
+			continue
+		}
+		var conv types.RemoteConversation
+		found, err := i.readDiskBox(ctx, i.dbConvKey(uid, convID), &conv)
+		if err != nil {
+			if _, ok := err.(libkb.LoginRequiredError); ok {
+				return res, MiscError{Msg: err.Error()}
+			}
+			return res, NewInternalError(ctx, i.DebugLabeler,
+				"failed to read inbox: uid: %d err: %s", uid, err)
+		}
+		if !found {
+			return res, MissError{}
+		}
+		res = append(res, conv)
+	}
+	return res, nil
+}
+
+func (i *Inbox) readConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res types.RemoteConversation, err Error) {
+	convs, err := i.readConvs(ctx, uid, []chat1.ConversationID{convID})
+	if err != nil {
+		return res, err
+	}
+	return convs[0], nil
+}
+
+func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation) Error {
+	for _, conv := range convs {
+		i.Debug(ctx, "writeConvs: writing conv: %s", conv.ConvIDStr)
+		inboxMemCache.PutConv(uid, conv)
+		if err := i.writeDiskBox(ctx, i.dbConvKey(uid, conv.GetConvID()), conv); err != nil {
+			return NewInternalError(ctx, i.DebugLabeler, "failed to write conv: %s err: %s", conv.ConvIDStr,
+				err)
+		}
+	}
+	return nil
+}
+
+func (i *Inbox) writeConv(ctx context.Context, uid gregor1.UID, conv types.RemoteConversation) Error {
+	return i.writeConv(ctx, uid, []types.RemoteConversation{conv})
 }
 
 func (i *Inbox) summarizeConv(rc *types.RemoteConversation) {
@@ -413,11 +412,6 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			}
 			switch convLocal.GetMembersType() {
 			case chat1.ConversationMembersType_TEAM:
-				// Only write out participant names for general channel for teams, only thing needed
-				// by frontend
-				if topicName == globals.DefaultTeamTopic {
-					rcm.WriterNames = convLocal.AllNames()
-				}
 			default:
 				rcm.WriterNames = convLocal.AllNames()
 				rcm.FullNamesForSearch = convLocal.FullNamesForSearch()
@@ -482,29 +476,6 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 
 	// Write out new inbox
 	return i.writeDiskInbox(ctx, uid, data)
-}
-
-func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
-	convIDs []chat1.ConversationID) bool {
-	if len(convIDs) == 1 { // fast path for single convID case
-		for _, conv := range ibox.Conversations {
-			if conv.GetConvID().Eq(convIDs[0]) {
-				return true
-			}
-		}
-		return false
-	}
-
-	m := make(map[chat1.ConvIDStr]struct{}, len(ibox.Conversations))
-	for _, conv := range ibox.Conversations {
-		m[conv.ConvIDStr] = struct{}{}
-	}
-	for _, convID := range convIDs {
-		if _, ok := m[convID.ConvIDStr()]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 func (i *Inbox) queryNameExists(ctx context.Context, ibox inboxDiskData,
