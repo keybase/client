@@ -3787,6 +3787,15 @@
       ],
       "response": null
     },
+    "untrustedTeamExists": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "boolean"
+    },
     "teamRename": {
       "request": [
         {

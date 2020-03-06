@@ -38,6 +38,13 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 	}
 }
 
+func (h *TeamsHandler) UntrustedTeamExists(ctx context.Context, teamName keybase1.TeamName) (res bool, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UntrustedTeamExists(%s)", teamName), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetUntrustedTeamExists(mctx, teamName)
+}
+
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	arg2 := keybase1.TeamCreateWithSettingsArg{

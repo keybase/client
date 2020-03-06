@@ -3880,6 +3880,10 @@ type TeamSetBotSettingsArg struct {
 	BotSettings TeamBotSettings `codec:"botSettings" json:"botSettings"`
 }
 
+type UntrustedTeamExistsArg struct {
+	TeamName TeamName `codec:"teamName" json:"teamName"`
+}
+
 type TeamRenameArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	PrevName  TeamName `codec:"prevName" json:"prevName"`
@@ -4117,6 +4121,7 @@ type TeamsInterface interface {
 	TeamEditMembers(context.Context, TeamEditMembersArg) (TeamEditMembersResult, error)
 	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
 	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
+	UntrustedTeamExists(context.Context, TeamName) (bool, error)
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
@@ -4508,6 +4513,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamSetBotSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"untrustedTeamExists": {
+				MakeArg: func() interface{} {
+					var ret [1]UntrustedTeamExistsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UntrustedTeamExistsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UntrustedTeamExistsArg)(nil), args)
+						return
+					}
+					ret, err = i.UntrustedTeamExists(ctx, typedArgs[0].TeamName)
 					return
 				},
 			},
@@ -5222,6 +5242,12 @@ func (c TeamsClient) TeamGetBotSettings(ctx context.Context, __arg TeamGetBotSet
 
 func (c TeamsClient) TeamSetBotSettings(ctx context.Context, __arg TeamSetBotSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) UntrustedTeamExists(ctx context.Context, teamName TeamName) (res bool, err error) {
+	__arg := UntrustedTeamExistsArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "keybase.1.teams.untrustedTeamExists", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
