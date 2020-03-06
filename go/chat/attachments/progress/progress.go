@@ -8,6 +8,7 @@ import (
 
 // desktop requested 1 update per second:
 const durationBetweenUpdates = 1 * time.Second
+const maxDurationBetweenUpdates = 1 * time.Second
 
 type ProgressWriter struct {
 	complete       int64
@@ -41,21 +42,43 @@ func (p *ProgressWriter) Update(n int) {
 }
 
 func (p *ProgressWriter) report() {
-	percent := (100 * p.complete) / p.total
-	if percent <= p.lastReport {
-		return
-	}
 	now := time.Now()
-	if now.Sub(p.lastReportTime) < p.updateDuration {
+	dur := now.Sub(p.lastReportTime)
+
+	// if it has been longer than maxDurationBetweenUpdates,
+	// then send an update regardless
+	if dur >= maxDurationBetweenUpdates {
+		p.notify(now)
 		return
 	}
 
+	// if the percentage hasn't changed, then don't update.
+	if p.percent() <= p.lastReport {
+		return
+	}
+
+	// if it has been less than p.updateDuration since last
+	// report, then don't do anything.
+	if dur < p.updateDuration {
+		return
+	}
+
+	p.notify(now)
+}
+
+func (p *ProgressWriter) notify(now time.Time) {
 	if p.progress != nil {
 		p.progress(p.complete, p.total)
 	}
-
-	p.lastReport = percent
+	p.lastReport = p.percent()
 	p.lastReportTime = now
+}
+
+func (p *ProgressWriter) percent() int64 {
+	if p.total == 0 {
+		return 0
+	}
+	return (100 * p.complete) / p.total
 }
 
 // send 0% progress
