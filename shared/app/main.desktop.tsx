@@ -16,4 +16,5 @@ const Main = (_: Props) => {
   )
 }
 
-export default hot(Main)
+const maybeHotMain = __HOT__ ? hot(Main) : Main
+export default maybeHotMain
