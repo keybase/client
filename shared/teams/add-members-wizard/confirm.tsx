@@ -11,18 +11,17 @@ import {ModalTitle} from '../common'
 const AddMembersConfirm = () => {
   const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
+  const noun = addingMembers.length === 1 ? 'person' : 'people'
 
   return (
     <Kb.Modal
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
-        title: (
-          <ModalTitle
-            teamname={teamname}
-            title={`Inviting ${addingMembers.length} ${addingMembers.length === 1 ? 'person' : 'people'}`}
-          />
-        ),
+        title: <ModalTitle teamname={teamname} title={`Inviting ${addingMembers.length} ${noun}`} />,
+      }}
+      footer={{
+        content: <Kb.Button fullWidth={true} label={`Invite ${addingMembers.length} ${noun} & finish`} />,
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
