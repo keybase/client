@@ -85,7 +85,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
     //
     // Windows looks like:
     // ["Keybase.exe", "--somearg", "--someotherarg", "actuallink"]
-    for (let link of commandLine.slice(1, 9)) {
+    for (let link of commandLine.slice(1)) {
       if (isRelevantDeepLink(link)) {
         mainWindowDispatch(DeeplinksGen.createLink({link}))
         return
