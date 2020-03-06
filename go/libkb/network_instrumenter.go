@@ -95,6 +95,9 @@ func (s *DiskInstrumentationStorage) Start(ctx context.Context) {
 	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Start", func() error { return nil })()
 	s.Lock()
 	defer s.Unlock()
+	if s.stopCh != nil {
+		return
+	}
 	s.stopCh = make(chan struct{})
 	s.eg.Go(func() error { return s.flushLoop(s.stopCh) })
 }
