@@ -365,6 +365,16 @@
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
+    },
+    "setTeamWizardTeamType": {
+      "teamType": "Types.TeamWizardTeamType"
+    },
+    "setTeamWizardNameDescription": {
+      "teamname": "string",
+      "description": "string",
+      "openTeam": "boolean",
+      "openTeamJoinRole": "Types.TeamRoleType",
+      "showcase": "boolean"
     }
   }
 }
