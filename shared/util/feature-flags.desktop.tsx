@@ -15,6 +15,7 @@ const ff: FeatureFlags = {
   teamInvites: false,
   teamsRedesign: false,
   webOfTrust: false,
+  whyDidYouRender: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {

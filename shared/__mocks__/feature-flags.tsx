@@ -14,6 +14,7 @@ const ff: FeatureFlags = {
   teamInvites: false,
   teamsRedesign: true,
   webOfTrust: false,
+  whyDidYouRender: false,
 }
 
 console.warn('feature flag mock in effect')
