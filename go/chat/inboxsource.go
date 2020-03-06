@@ -524,7 +524,6 @@ func NewHybridInboxSource(g *globals.Context,
 
 func (s *HybridInboxSource) createInbox() *storage.Inbox {
 	return storage.NewInbox(s.G(),
-		storage.FlushMode(storage.InboxFlushModeDelegate),
 		storage.LayoutChangedNotifier(s.G().UIInboxLoader))
 }
 

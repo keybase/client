@@ -37,7 +37,7 @@ func (i *inboxMemCacheImpl) GetVersions(uid gregor1.UID) *inboxDiskVersions {
 func (i *inboxMemCacheImpl) PutVersions(uid gregor1.UID, ibox *inboxDiskVersions) {
 	i.Lock()
 	defer i.Unlock()
-	i.datMap[uid.String()] = ibox
+	i.versMap[uid.String()] = ibox
 }
 
 func (i *inboxMemCacheImpl) GetIndex(uid gregor1.UID) *inboxDiskIndex {
@@ -63,7 +63,7 @@ func (i *inboxMemCacheImpl) GetConv(uid gregor1.UID, convID chat1.ConversationID
 	i.RLock()
 	defer i.RUnlock()
 	if conv, ok := i.convMap[i.convKey(uid, convID)]; ok {
-		return conv
+		return &conv
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func (i *inboxMemCacheImpl) GetConv(uid gregor1.UID, convID chat1.ConversationID
 func (i *inboxMemCacheImpl) PutConv(uid gregor1.UID, conv types.RemoteConversation) {
 	i.Lock()
 	defer i.Unlock()
-	i.indexMap[i.convKey(uid, conv.GetConvID())] = conv
+	i.convMap[i.convKey(uid, conv.GetConvID())] = conv
 }
 
 func (i *inboxMemCacheImpl) Clear(uid gregor1.UID) {
