@@ -90,6 +90,14 @@ func (c testBlockServerRemoteConfig) DiskBlockCache() DiskBlockCache {
 	return c.diskBlockCache
 }
 
+func (c testBlockServerRemoteConfig) Mode() InitMode {
+	return modeTest{}
+}
+
+func (c testBlockServerRemoteConfig) IsTestMode() bool {
+	return true
+}
+
 // Test that putting a block, and getting it back, works
 func TestBServerRemotePutAndGet(t *testing.T) {
 	currentUID := keybase1.MakeTestUID(1)

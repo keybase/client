@@ -304,6 +304,7 @@ type blockServerRemoteConfig interface {
 	signerGetter
 	currentSessionGetterGetter
 	logMaker
+	initModeGetter
 }
 
 // BlockServerRemote implements the BlockServer interface and
@@ -626,6 +627,9 @@ func (b *BlockServerRemote) IsUnflushed(
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
+	if b.config.Mode().InitialDelayForBackgroundWork() == 0 {
+		ctx = rpc.WithFireNow(ctx)
+	}
 	b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo")
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
