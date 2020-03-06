@@ -596,8 +596,15 @@ const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathM
   }
 }
 
-const letResetUserBackIn = async ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) => {
-  await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
+const letResetUserBackIn = async (action: FsGen.LetResetUserBackInPayload) => {
+  try {
+    return await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({
+      id: action.payload.id,
+      username: action.payload.username,
+    })
+  } catch (error) {
+    return makeUnretriableErrorHandler(action, Constants.defaultPath)(error)
+  }
 }
 
 const updateFsBadge = (state: Container.TypedState) => {
@@ -859,6 +866,15 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
     if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       // We'll handle this error in loadAdditionalTLF instead.
       return
+    }
+    if (err?.code === RPCTypes.StatusCode.scidentifiesfailed) {
+      // This is specifically to address the situation where when user tries to
+      // remove a shared TLF from their favorites but another user of the TLF has
+      // deleted their account the subscribePath call cauused from the popup will
+      // get SCIdentifiesFailed error. We can't do anything here so just move on.
+      // (Ideally we'd be able to tell it's becaue the user was deleted, but we
+      // don't have that from Go right now.)
+      return null
     }
     return errorToActionOrThrow(err, action.payload.path)
   }

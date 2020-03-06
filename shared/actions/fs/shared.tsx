@@ -8,7 +8,11 @@ const noAccessErrorCodes = [RPCTypes.StatusCode.scsimplefsnoaccess, RPCTypes.Sta
 export const errorToActionOrThrow = (
   error: any,
   path?: Types.Path
-): FsGen.CheckKbfsDaemonRpcStatusPayload | FsGen.SetPathSoftErrorPayload | FsGen.SetTlfSoftErrorPayload => {
+):
+  | FsGen.RedbarPayload
+  | FsGen.CheckKbfsDaemonRpcStatusPayload
+  | FsGen.SetPathSoftErrorPayload
+  | FsGen.SetTlfSoftErrorPayload => {
   if (error?.code === RPCTypes.StatusCode.sckbfsclienttimeout) {
     return FsGen.createCheckKbfsDaemonRpcStatus()
   }
@@ -20,6 +24,10 @@ export const errorToActionOrThrow = (
     if (tlfPath) {
       return FsGen.createSetTlfSoftError({path: tlfPath, softError: Types.SoftError.NoAccess})
     }
+  }
+  if (error?.code === RPCTypes.StatusCode.scdeleted) {
+    // The user is deleted. Let user know and move on.
+    return FsGen.createRedbar({error: 'A user in this shared folder has deleted their account.'})
   }
   throw error
 }
