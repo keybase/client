@@ -8,6 +8,7 @@ export type FeatureFlags = {
   teamInvites: boolean
   teamsRedesign: boolean
   webOfTrust: boolean
+  whyDidYouRender: boolean
 }
 
 declare const ff: FeatureFlags
