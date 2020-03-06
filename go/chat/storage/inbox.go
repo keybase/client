@@ -403,7 +403,40 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "MergeLocalMetadata")()
-
+	for _, convLocal := range convs {
+		conv, err := i.readConv(ctx, uid, convLocal.GetConvID())
+		if err != nil {
+			i.Debug(ctx, "MergeLocalMetadata: skipping metadata for %s: err: %s", convLocal.GetConvID(),
+				err)
+			continue
+		}
+		// Don't write this out for error convos
+		if convLocal.Error != nil || convLocal.GetTopicType() != chat1.TopicType_CHAT {
+			continue
+		}
+		topicName := convLocal.Info.TopicName
+		snippetDecoration, snippet := utils.GetConvSnippet(convLocal,
+			i.G().GetEnv().GetUsername().String())
+		rcm := &types.RemoteConversationMetadata{
+			Name:              convLocal.Info.TlfName,
+			TopicName:         topicName,
+			Headline:          convLocal.Info.Headline,
+			Snippet:           snippet,
+			SnippetDecoration: snippetDecoration,
+		}
+		switch convLocal.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			rcm.WriterNames = convLocal.AllNames()
+			rcm.FullNamesForSearch = convLocal.FullNamesForSearch()
+			rcm.ResetParticipants = convLocal.Info.ResetNames
+		}
+		conv.LocalMetadata = rcm
+		if err := i.writeConv(ctx, uid, conv); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Merge add/updates conversations into the inbox. If a given conversation is either missing
