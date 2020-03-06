@@ -116,16 +116,35 @@ const RoleSelector = () => {
 
 const AddingMembers = () => {
   const addingMembers = Container.useSelector(s => s.teams.addMembersWizard.addingMembers)
+  const [expanded, setExpanded] = React.useState(false)
+  const showDivider = Styles.isMobile && addingMembers.length > 4
+  const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
+  const belowDivider = Container.isMobile && expanded ? addingMembers.slice(4) : []
   const content = (
-    <Kb.Box2 direction="vertical" gap="xtiny">
-      {addingMembers.map(toAdd => (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
+      {aboveDivider.map(toAdd => (
         <AddingMember key={toAdd.assertion} {...toAdd} />
       ))}
+      {showDivider && (
+        <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
+          <Kb.Box2
+            direction="horizontal"
+            alignSelf="stretch"
+            style={styles.addingMemberDivider}
+            centerChildren={true}
+          >
+            <Kb.Text type="BodySemibold" negative={true}>
+              {expanded ? 'Show less' : `+${addingMembers.length - 4} more`}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      )}
+      {expanded && belowDivider.map(toAdd => <AddingMember key={toAdd.assertion} {...toAdd} />)}
     </Kb.Box2>
   )
   if (Styles.isMobile) {
     return (
-      <Kb.Box2 direction="vertical" style={styles.addingMembers}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.addingMembers}>
         {content}
       </Kb.Box2>
     )
@@ -148,11 +167,20 @@ const AddingMember = (props: Types.AddingMember) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  addingMember: {
-    backgroundColor: Styles.globalColors.white,
+  addingMember: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: Styles.borderRadius,
+      justifyContent: 'space-between',
+    },
+    isElectron: {height: 32, paddingLeft: Styles.globalMargins.tiny, paddingRight: Styles.globalMargins.tiny},
+    isMobile: {height: 40, paddingLeft: Styles.globalMargins.tiny, paddingRight: Styles.globalMargins.xsmall},
+  }),
+  addingMemberDivider: {
+    backgroundColor: Styles.globalColors.black_20,
     borderRadius: Styles.borderRadius,
-    justifyContent: 'space-between',
-    padding: Styles.globalMargins.tiny,
+    height: 40,
+    justifyContent: 'center',
   },
   addingMembers: Styles.platformStyles({
     common: {
