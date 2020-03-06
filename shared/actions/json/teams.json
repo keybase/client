@@ -357,6 +357,10 @@
       "_description": "Setup store and navigate to start of add members wizard.",
       "teamID": "Types.TeamID"
     },
+    "setAddMembersWizardRole": {
+      "_description": "Set the role for the add members wizard.",
+      "role": ["Types.TeamRoleType", "undefined"]
+    },
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"
     },

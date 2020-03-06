@@ -47,6 +47,7 @@ export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
+export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
@@ -209,6 +210,7 @@ type _SaveChannelMembershipPayload = {
   readonly newChannelState: Types.ChannelMembershipState
 }
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
+type _SetAddMembersWizardRolePayload = {readonly role: Types.TeamRoleType | undefined}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetChannelSelectedPayload = {
@@ -411,6 +413,12 @@ export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSu
   payload,
   type: setSubteamFilter,
 })
+/**
+ * Set the role for the add members wizard.
+ */
+export const createSetAddMembersWizardRole = (
+  payload: _SetAddMembersWizardRolePayload
+): SetAddMembersWizardRolePayload => ({payload, type: setAddMembersWizardRole})
 /**
  * Set welcome message for new team members
  */
@@ -818,6 +826,10 @@ export type SaveTeamRetentionPolicyPayload = {
   readonly payload: _SaveTeamRetentionPolicyPayload
   readonly type: typeof saveTeamRetentionPolicy
 }
+export type SetAddMembersWizardRolePayload = {
+  readonly payload: _SetAddMembersWizardRolePayload
+  readonly type: typeof setAddMembersWizardRole
+}
 export type SetAddUserToTeamsResultsPayload = {
   readonly payload: _SetAddUserToTeamsResultsPayload
   readonly type: typeof setAddUserToTeamsResults
@@ -1035,6 +1047,7 @@ export type Actions =
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
+  | SetAddMembersWizardRolePayload
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
   | SetChannelSelectedPayload
