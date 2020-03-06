@@ -191,14 +191,6 @@ renameLoop:
 		errors.New("too many rename attempts")
 }
 
-func (m *uploadManager) getDirToDeleteRLocked(sourceLocalPath string) *string {
-	sourceParent := filepath.Dir(sourceLocalPath)
-	if m.tempPaths[sourceParent] {
-		return &sourceParent
-	}
-	return nil
-}
-
 func (m *uploadManager) start(ctx context.Context, sourceLocalPath string,
 	targetParentPath keybase1.KBFSPath) (uploadID string, err error) {
 	opid, dstPath, err := m.doStart(ctx, sourceLocalPath, targetParentPath.Path)
@@ -233,12 +225,12 @@ func (m *uploadManager) start(ctx context.Context, sourceLocalPath string,
 	return uploadID, nil
 }
 
-func (m *uploadManager) cancel(ctx context.Context, uploadID string) {
+func (m *uploadManager) cancel(ctx context.Context, uploadID string) error {
 	upload, ok := m.getUpload(uploadID)
 	if !ok {
-		return
+		return nil
 	}
-	m.k.SimpleFSCancel(ctx, upload.opid)
+	return m.k.SimpleFSCancel(ctx, upload.opid)
 }
 
 func (m *uploadManager) dismiss(uploadID string) error {
