@@ -6,6 +6,24 @@ export const fakeTeamID = 'fakeTeamID'
 const teamID2 = 'faketeamID2'
 const teamID3 = 'faketeamID3'
 export const fakeTeamIDs = [fakeTeamID, teamID2, teamID3]
+
+const fakeChannelMap = new Map([
+  ['0', {...Constants.initialChannelInfo, channelname: 'general'}],
+  ['1', {...Constants.initialChannelInfo, channelname: 'random'}],
+  ['2', {...Constants.initialChannelInfo, channelname: 'hellos'}],
+  ['3', {...Constants.initialChannelInfo, channelname: 'NY_MemorialDay', description: 'zapu is in town'}],
+  ['4', {...Constants.initialChannelInfo, channelname: 'sandwiches', description: 'the best foods'}],
+  ['5', {...Constants.initialChannelInfo, channelname: 'soups', description: 'the worst foods'}],
+  ['6', {...Constants.initialChannelInfo, channelname: 'stir-fry'}],
+  ['7', {...Constants.initialChannelInfo, channelname: 'ice-cream'}],
+  ['8', {...Constants.initialChannelInfo, channelname: 'salad'}],
+  ['9', {...Constants.initialChannelInfo, channelname: 'veg'}],
+  ['10', {...Constants.initialChannelInfo, channelname: 'plate-presentation'}],
+  ['11', {...Constants.initialChannelInfo, channelname: 'team-sqawk'}],
+  ['12', {...Constants.initialChannelInfo, channelname: 'team-birbs'}],
+  ['13', {...Constants.initialChannelInfo, channelname: 'team-beasts'}],
+  ['14', {...Constants.initialChannelInfo, channelname: 'team-dogs-of-the-sea-and-other-creatures'}],
+])
 export const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
   draftState.teams = {
     ...Constants.makeState(),
@@ -23,37 +41,30 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
           ]),
         },
       ],
+      [
+        teamID3,
+        {
+          ...Constants.emptyTeamDetails,
+          members: new Map([
+            ['andonuts', {fullName: '', status: 'active', type: 'owner', username: 'andonuts'}],
+          ]),
+        },
+      ],
     ]),
     teamIDToChannelInfos: new Map([
-      [
-        fakeTeamID,
-        new Map([
-          ['0', {...Constants.initialChannelInfo, channelname: 'general'}],
-          ['1', {...Constants.initialChannelInfo, channelname: 'random'}],
-          ['2', {...Constants.initialChannelInfo, channelname: 'hellos'}],
-          [
-            '3',
-            {...Constants.initialChannelInfo, channelname: 'NY_MemorialDay', description: 'zapu is in town'},
-          ],
-          ['4', {...Constants.initialChannelInfo, channelname: 'sandwiches', description: 'the best foods'}],
-          ['5', {...Constants.initialChannelInfo, channelname: 'soups', description: 'the worst foods'}],
-          ['6', {...Constants.initialChannelInfo, channelname: 'stir-fry'}],
-          ['7', {...Constants.initialChannelInfo, channelname: 'ice-cream'}],
-          ['8', {...Constants.initialChannelInfo, channelname: 'salad'}],
-          ['9', {...Constants.initialChannelInfo, channelname: 'veg'}],
-          ['10', {...Constants.initialChannelInfo, channelname: 'plate-presentation'}],
-          ['11', {...Constants.initialChannelInfo, channelname: 'team-sqawk'}],
-          ['12', {...Constants.initialChannelInfo, channelname: 'team-birbs'}],
-          ['13', {...Constants.initialChannelInfo, channelname: 'team-beasts'}],
-          ['14', {...Constants.initialChannelInfo, channelname: 'team-dogs-of-the-sea-and-other-creatures'}],
-        ]),
-      ],
+      [fakeTeamID, fakeChannelMap],
+      [teamID2, fakeChannelMap],
+      [teamID3, fakeChannelMap],
     ]),
     teamMeta: new Map([
       [fakeTeamID, Constants.makeTeamMeta({memberCount: 32, teamname: 'keybase_storybook'})],
       [teamID2, Constants.makeTeamMeta({isOpen: true, memberCount: 11947, teamname: 'fan_club'})],
       [teamID3, Constants.makeTeamMeta({isOpen: false, memberCount: 234, teamname: 'club_penguin'})],
     ]),
+    teamRoleMap: {
+      ...draftState.teams.teamRoleMap,
+      roles: new Map([[teamID3, {implicitAdmin: false, role: 'admin'}]]),
+    },
   }
   draftState.config = {
     ...draftState.config,

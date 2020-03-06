@@ -5,7 +5,7 @@ import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
-import TeamEditChannel from './channel/container'
+import TeamEditChannel from './channel'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
@@ -24,7 +24,7 @@ import flags from '../util/feature-flags'
 export const newRoutes = {
   team: {getScreen: (): TeamScreenType => require('./team/container').default},
   teamChannel: {
-    getScreen: (): typeof TeamEditChannel => require('./channel/container').default,
+    getScreen: (): typeof TeamEditChannel => require('./channel').default,
   },
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}

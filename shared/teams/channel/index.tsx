@@ -4,67 +4,206 @@ import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import ChannelTabs from './tabs/container'
+import * as Constants from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat2'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as UsersGen from '../../actions/users-gen'
+import * as BotsGen from '../../actions/bots-gen'
+import {SectionBase} from '../../common-adapters/section-list'
+import SelectionPopup from '../common/selection-popup'
+import ChannelTabs from './tabs'
+import ChannelHeader from './header'
 import {TabKey} from './tabs'
-import {Row} from './rows'
-import renderRow from './rows/render'
-export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
+import ChannelMemberRow from './rows/member-row'
+import BotRow from '../team/rows/bot-row/bot/container'
 
-export type TabProps = {
-  selectedTab: TabKey
-  setSelectedTab: (t: TabKey) => void
-}
-
-export type Props = {
+export type OwnProps = Container.RouteProps<{
   teamID: Types.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
-  sections: Sections
+  selectedTab?: TabKey
+}>
+
+const useLoadDataForChannelPage = (
+  teamID: Types.TeamID,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  selectedTab: TabKey,
+  meta: ChatTypes.ConversationMeta,
+  participants: string[],
+  bots: string[]
+) => {
+  const dispatch = Container.useDispatch()
+  const prevSelectedTab = Container.usePrevious(selectedTab)
+  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
+  React.useEffect(() => {
+    if (selectedTab !== prevSelectedTab && selectedTab === 'members') {
+      if (meta.conversationIDKey === 'EMPTY') {
+        dispatch(
+          Chat2Gen.createMetaRequestTrusted({
+            conversationIDKeys: [conversationIDKey],
+            reason: 'ensureChannelMeta',
+          })
+        )
+      }
+      dispatch(TeamsGen.createGetMembers({teamID}))
+      dispatch(UsersGen.createGetBlockState({usernames: participants}))
+    }
+  }, [
+    selectedTab,
+    dispatch,
+    conversationIDKey,
+    prevSelectedTab,
+    meta.conversationIDKey,
+    participants,
+    teamID,
+  ])
+  React.useEffect(() => {
+    if (selectedTab !== prevSelectedTab && selectedTab === 'bots') {
+      // Load any bots that aren't in the featured bots map already
+      bots
+        .filter(botUsername => !featuredBotsMap.has(botUsername))
+        .map(botUsername => dispatch(BotsGen.createSearchFeaturedBots({query: botUsername})))
+    }
+  }, [selectedTab, dispatch, conversationIDKey, prevSelectedTab, bots, featuredBotsMap])
 }
 
-const Channel = (props: Props & TabProps) => {
-  const {teamID, conversationIDKey, selectedTab, setSelectedTab} = props
-  const renderItem = ({item}: {item: Row}) => {
-    switch (item.type) {
-      case 'tabs':
-        return (
-          <ChannelTabs
-            teamID={teamID}
-            conversationIDKey={conversationIDKey}
-            selectedTab={selectedTab}
-            setSelectedTab={setSelectedTab}
-          />
-        )
-      case 'settings':
-      case 'header':
-      case 'divider':
-      case 'member':
-      case 'bot':
-      case 'bot-add':
-      case 'loading':
-        return renderRow(item, teamID, conversationIDKey)
-      default: {
-        throw new Error(`Impossible case encountered in channel page list: ${item}`)
-      }
+// keep track during session
+const lastSelectedTabs: {[T: string]: TabKey} = {}
+const defaultTab: TabKey = 'members'
+
+// TODO: consider using this for the teams/team/tabs state code
+const useTabsState = (
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  providedTab?: TabKey
+): [TabKey, (t: TabKey) => void] => {
+  const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
+  const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
+  const setSelectedTab = React.useCallback(
+    t => {
+      lastSelectedTabs[conversationIDKey] = t
+      _setSelectedTab(t)
+    },
+    [conversationIDKey, _setSelectedTab]
+  )
+
+  const prevConvID = Container.usePrevious(conversationIDKey)
+
+  React.useEffect(() => {
+    if (conversationIDKey !== prevConvID) {
+      setSelectedTab(defaultSelectedTab)
     }
+  }, [conversationIDKey, prevConvID, setSelectedTab, defaultSelectedTab])
+  return [selectedTab, setSelectedTab]
+}
+
+const emptyMap = new Map()
+const Channel = (props: OwnProps) => {
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
+  const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
+
+  // Tabs stuff
+  const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
+
+  // Actual data
+  const {bots, participants} = Container.useSelector(state =>
+    ChatConstants.getBotsAndParticipants(state, conversationIDKey)
+  )
+  const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
+  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID) ?? emptyMap)
+
+  // Load data upon choosing a tab
+  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, participants, bots)
+
+  // Make the actual sections (consider farming this out into another function or file)
+  const headerSection = {
+    data: ['header', 'tabs'],
+    key: 'headerSection',
+    renderItem: ({item}) =>
+      item === 'header' ? (
+        <ChannelHeader teamID={teamID} conversationIDKey={conversationIDKey} />
+      ) : (
+        <ChannelTabs
+          admin={yourOperations.manageMembers}
+          teamID={teamID}
+          conversationIDKey={conversationIDKey}
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
+        />
+      ),
   }
 
-  const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
+  const sections: Array<SectionBase<string> & {title?: string}> = [headerSection]
+  switch (selectedTab) {
+    case 'members':
+      sections.push({
+        data: participants,
+        key: 'membersSection',
+        renderItem: ({index, item}) => (
+          <ChannelMemberRow
+            conversationIDKey={conversationIDKey}
+            teamID={teamID}
+            username={item}
+            firstItem={index === 0}
+          />
+        ),
+        title: `Members (${participants.length})`,
+      })
+      break
+    case 'bots': {
+      const botsInTeamNotInConv = [...teamMembers.values()]
+        .map(p => p.username)
+        .filter(
+          p =>
+            Constants.userIsRoleInTeamWithInfo(teamMembers, p, 'restrictedbot') ||
+            Constants.userIsRoleInTeamWithInfo(teamMembers, p, 'bot')
+        )
+        .filter(p => !bots.includes(p))
+        .sort((l, r) => l.localeCompare(r))
+
+      sections.push({
+        data: bots,
+        key: 'botsInThisConv',
+        renderItem: ({item}) => <BotRow teamID={teamID} username={item} />,
+        title: 'In this conversation:',
+      })
+      sections.push({
+        data: botsInTeamNotInConv,
+        key: 'botsInThisTeam',
+        renderItem: ({item}) => <BotRow teamID={teamID} username={item} />,
+        title: 'In this team:',
+      })
+      break
+    }
+
+    // TODO: consider adding featured bots here, pending getting an actual design for this tab
+  }
+
+  const renderSectionHeader = ({section}) =>
+    section.title ? <Kb.SectionDivider label={section.title} /> : null
 
   return (
     <Kb.Box style={styles.container}>
       {Styles.isMobile && <MobileHeader />}
       <Kb.SectionList
         alwaysVounceVertical={false}
-        renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
-        sections={props.sections}
+        sections={sections}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
+      />
+      <SelectionPopup
+        selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
+        conversationIDKey={conversationIDKey}
       />
     </Kb.Box>
   )
 }
+Channel.navigationOptions = () => ({
+  headerHideBorder: true,
+})
 
 const MobileHeader = () => {
   const dispatch = Container.useDispatch()

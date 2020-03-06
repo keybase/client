@@ -1,72 +1,37 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as ChatConstants from '../../../constants/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as UsersGen from '../../../actions/users-gen'
 import flags from '../../../util/feature-flags'
 import {Tab as TabType} from '../../../common-adapters/tabs'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
-export type OwnProps = {
+export type Props = {
+  admin: boolean
   teamID: Types.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
   selectedTab: TabKey
   setSelectedTab: (t: TabKey) => void
 }
 
-export type Props = OwnProps & {
-  admin: boolean
-  error?: string
-  loadBots: () => void
-  loading: boolean
-}
-
 const ChannelTabs = (props: Props) => {
-  const {conversationIDKey, selectedTab, setSelectedTab, teamID} = props
-  const previousTab = Container.usePrevious(selectedTab)
-  const {participants} = Container.useSelector(state =>
-    ChatConstants.getBotsAndParticipants(state, conversationIDKey)
+  const {selectedTab, setSelectedTab, teamID} = props
+  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const error = Container.useSelector(state => state.teams.errorInAddToTeam)
+  const waiting = Container.useAnyWaiting(
+    Constants.teamWaitingKey(teamMeta.teamname),
+    Constants.teamTarsWaitingKey(teamMeta.teamname)
   )
-  const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    if (previousTab !== selectedTab && selectedTab === 'members') {
-      if (meta.conversationIDKey === 'EMPTY') {
-        dispatch(
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys: [conversationIDKey],
-            reason: 'ensureChannelMeta',
-          })
-        )
-      }
-      dispatch(TeamsGen.createGetMembers({teamID}))
-      dispatch(UsersGen.createGetBlockState({usernames: participants}))
-    }
-  }, [conversationIDKey, dispatch, meta, participants, previousTab, selectedTab, teamID])
-
   const tabs: Array<TabType<TabKey>> = [
     {title: 'members' as const},
     {title: 'attachments' as const},
     ...(flags.botUI ? [{title: 'bots' as const}] : []),
     ...(props.admin ? [{title: 'settings' as const}] : []),
   ]
-
-  const onSelect = (tab: TabKey) => {
-    if (tab !== 'loading') {
-      if (tab === 'bots') {
-        props.loadBots()
-      }
-      setSelectedTab(tab)
-    } else {
-      setSelectedTab('members')
-    }
-  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -75,13 +40,13 @@ const ChannelTabs = (props: Props) => {
           clickableBoxStyle={styles.clickableBox}
           tabs={tabs}
           selectedTab={selectedTab}
-          onSelect={onSelect}
+          onSelect={setSelectedTab}
           style={styles.tabContainer}
           tabStyle={styles.tab}
-          showProgressIndicator={!Styles.isMobile && props.loading}
+          showProgressIndicator={!Styles.isMobile && waiting}
         />
       </Kb.Box>
-      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+      {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
     </Kb.Box2>
   )
 }
