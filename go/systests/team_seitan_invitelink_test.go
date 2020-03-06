@@ -12,7 +12,7 @@ import (
 
 func TestTeamInviteSeitanInvitelinkHappy(t *testing.T) {
 	testTeamInviteSeitanInvitelinkHappy(t, false /* implicitAdmin */)
-	testTeamInviteSeitanHappy(t, true /* implicitAdmin */)
+	testTeamInviteSeitanInvitelinkHappy(t, true /* implicitAdmin */)
 }
 
 func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
