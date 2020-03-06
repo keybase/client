@@ -141,8 +141,12 @@ export type NewTeamWizardState = {
   openTeamJoinRole: TeamRoleType
   showcase: boolean
 }
+
+export type AddingMember = {assertion: string; role: TeamRoleType}
 export type AddMembersWizardState = {
   justFinished: boolean
+  addingMembers: Array<AddingMember>
+  role: TeamRoleType | undefined // undefined -> role set individually
   teamID: TeamID
 }
 

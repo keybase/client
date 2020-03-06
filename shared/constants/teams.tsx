@@ -167,7 +167,12 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
-export const addMembersWizardEmptyState = {justFinished: false, teamID: Types.noTeamID}
+export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
+  addingMembers: [],
+  justFinished: false,
+  role: 'writer',
+  teamID: Types.noTeamID,
+}
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
