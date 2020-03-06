@@ -5,19 +5,28 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
 
 const AddMembersConfirm = () => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+
   const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
+  const onClose = () => dispatch(RouteTreeGen.createClearModals())
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+
   return (
     <Kb.Modal
+      onClose={onClose}
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
+        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamname={teamname} title={`Inviting ${addingMembers.length} ${noun}`} />,
       }}
       footer={{
