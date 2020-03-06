@@ -77,8 +77,9 @@ type DiskInstrumentationStorage struct {
 	src     keybase1.NetworkSource
 	storage map[string]keybase1.InstrumentationStat
 
-	eg     errgroup.Group
-	stopCh chan struct{}
+	eg      errgroup.Group
+	stopCh  chan struct{}
+	started bool
 }
 
 var _ rpc.NetworkInstrumenterStorage = (*DiskInstrumentationStorage)(nil)
@@ -95,10 +96,11 @@ func (s *DiskInstrumentationStorage) Start(ctx context.Context) {
 	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Start", func() error { return nil })()
 	s.Lock()
 	defer s.Unlock()
-	if s.stopCh != nil {
+	if s.started {
 		return
 	}
 	s.stopCh = make(chan struct{})
+	s.started = true
 	s.eg.Go(func() error { return s.flushLoop(s.stopCh) })
 }
 
@@ -107,9 +109,9 @@ func (s *DiskInstrumentationStorage) Stop(ctx context.Context) chan struct{} {
 	s.Lock()
 	defer s.Unlock()
 	ch := make(chan struct{})
-	if s.stopCh != nil {
+	if s.started {
 		close(s.stopCh)
-		s.stopCh = nil
+		s.started = false
 		go func() {
 			if err := s.eg.Wait(); err != nil {
 				s.G().Log.Debug("DiskInstrumentationStorage: flush: unable to wait for shutdown: %v", err)
