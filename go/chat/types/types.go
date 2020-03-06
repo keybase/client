@@ -104,6 +104,17 @@ type RemoteConversation struct {
 	LocalMtime     gregor1.Time                `codec:"t"`
 }
 
+func NewEmptyRemoteConversation(convID chat1.ConversationID) RemoteConversation {
+	return RemoteConversation{
+		Conv: chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		},
+		ConvIDStr: convID.ConvIDStr(),
+	}
+}
+
 func (rc RemoteConversation) GetMtime() gregor1.Time {
 	res := rc.Conv.GetMtime()
 	if res > rc.LocalMtime {

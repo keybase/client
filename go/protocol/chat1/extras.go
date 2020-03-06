@@ -201,9 +201,7 @@ var deletableMessageTypesByDelete = []MessageType{
 var nonDeletableMessageTypesByDeleteHistory = []MessageType{
 	MessageType_NONE,
 	MessageType_DELETE,
-	MessageType_METADATA,
 	MessageType_TLFNAME,
-	MessageType_HEADLINE,
 	MessageType_DELETEHISTORY,
 }
 
