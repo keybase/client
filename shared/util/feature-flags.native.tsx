@@ -7,25 +7,13 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  audioAttachments: true,
-  botUI: true,
-  chatIndexProfilingEnabled: false,
   connectThrashCheck: false,
-  cryptoTab: false,
-  dbCleanEnabled: false,
-  fastAccountSwitch: true,
   foldersInProfileTab: false,
-  lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
-  openTeamSearch: true,
-  outOfDateBanner: false,
-  proofProviders: true,
-  stellarExternalPartners: true,
   tabletSupport: true,
   teamInvites: false,
   teamsRedesign: false,
-  userBlocking: true,
   webOfTrust: false,
 }
 

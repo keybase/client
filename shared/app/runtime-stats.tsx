@@ -6,7 +6,6 @@ import {isIPhoneX} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 // @ts-ignore
 import lagRadar from 'lag-radar'
-import flags from '../util/feature-flags'
 
 type Props = {
   stats: RPCTypes.RuntimeStats
@@ -204,7 +203,7 @@ const LogStats = (props: {num?: number}) => {
 }
 
 const RuntimeStatsDesktop = ({stats}: Props) => {
-  const [showRadar, setShowRadar] = React.useState(flags.lagRadar)
+  const [showRadar, setShowRadar] = React.useState(false)
   const refContainer = React.useCallback(
     node => {
       radarNode = node
