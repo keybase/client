@@ -27,12 +27,36 @@ const AddMembersConfirm = () => {
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <AddingMembers />
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.controls}>
-            <Kb.Text type="Body">Hi 1</Kb.Text>
+            <AddMoreMembers />
             <Kb.Text type="Body">Hi 2</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
+  )
+}
+
+const AddMoreMembers = () => {
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (
+    <Kb.FloatingMenu
+      attachTo={getAttachmentRef}
+      closeOnSelect={true}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+      items={[{title: 'From Keybase'}, {title: 'By email address'}, {title: 'By phone number'}]}
+    />
+  ))
+  return (
+    <>
+      <Kb.Button
+        mode="Secondary"
+        small={true}
+        label="Add people"
+        onClick={toggleShowingPopup}
+        ref={popupAnchor}
+      />
+      {popup}
+    </>
   )
 }
 
