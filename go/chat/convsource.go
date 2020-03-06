@@ -390,7 +390,7 @@ func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) error {
+	conv types.RemoteConversation, uid gregor1.UID, expunge chat1.Expunge) error {
 	return nil
 }
 
@@ -1068,32 +1068,24 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 
 // Expunge from storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) Expunge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (err error) {
+	conv types.RemoteConversation, uid gregor1.UID, expunge chat1.Expunge) (err error) {
+	convID := conv.GetConvID()
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
 	if expunge.Upto == 0 {
 		// just get out of here as quickly as possible with a 0 upto
 		return nil
 	}
-
 	_, err = s.lockTab.Acquire(ctx, uid, convID)
 	if err != nil {
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
-	switch err {
-	case nil:
-	case utils.ErrGetUnverifiedConvNotFound:
-		conv = types.NewEmptyRemoteConversation(convID)
-	default:
-		return err
-	}
+
 	mergeRes, err := s.storage.Expunge(ctx, conv, uid, expunge)
 	if err != nil {
 		return err
 	}
-
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	return nil
 }

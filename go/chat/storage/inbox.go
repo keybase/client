@@ -200,7 +200,7 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 	if _, err := i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
 		i.Debug(ctx, "readDiskVersions: server version match error, clearing: %s", err)
 		if cerr := i.Clear(ctx, uid); cerr != nil {
-			return ibox, cerr
+			i.Debug(ctx, "readDiskVersions: failed to clear after server mismatch: %s", cerr)
 		}
 		return ibox, MissError{}
 	}
@@ -210,7 +210,7 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 			"readDiskVersions: on disk version not equal to program version, clearing: disk :%d program: %d",
 			ibox.Version, inboxVersion)
 		if cerr := i.Clear(ctx, uid); cerr != nil {
-			return ibox, cerr
+			i.Debug(ctx, "readDiskVersions: failed to clear after inbox mismatch: %s", cerr)
 		}
 		return ibox, MissError{}
 	}
