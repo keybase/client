@@ -7,10 +7,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"sync"
 	"time"
+
+	pkgErrors "github.com/pkg/errors"
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
@@ -380,7 +383,6 @@ type Connection struct {
 
 	firstConnectDelayDuration     time.Duration
 	initialReconnectBackoffWindow func() time.Duration
-	disableCtxFireNow             bool
 	connectDelayTimer             CancellableTimer
 
 	// for tests
@@ -416,10 +418,6 @@ type ConnectionOpts struct {
 	// connection" to be treated as a reconnect. If this is set,
 	// FirstConnectDelayDuration is ineffective.
 	ForceInitialBackoff bool
-	// If DisableCtxFireNow is set to true, WithFireNow is ignored and the
-	// delay timer can only be fast forwarded with
-	// FastForwardConnectDelayTimer.
-	DisableCtxFireNow bool
 	// DialerTimeout is the Timeout used in net.Dialer when initiating new
 	// connections. Zero value is passed as-is to net.Dialer, which means no
 	// timeout. Note that OS may impose its own timeout.
@@ -579,7 +577,6 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		doCommandBackoff:              commandBackoff,
 		firstConnectDelayDuration:     opts.FirstConnectDelayDuration,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
-		disableCtxFireNow:             opts.DisableCtxFireNow,
 		wef:                           opts.WrapErrorFunc,
 		tagsFunc:                      opts.TagsFunc,
 		log:                           log,
@@ -662,8 +659,9 @@ func (c *Connection) DoCommand(ctx context.Context, name string, timeout time.Du
 		defer timeoutCancel()
 	}
 	for {
-		if !c.disableCtxFireNow && (c.firstConnectDelayDuration != 0 ||
+		if (c.firstConnectDelayDuration != 0 ||
 			c.initialReconnectBackoffWindow != nil) && isWithFireNow(ctx) {
+			c.log.Debug("SONGGAO: firenow", LogField{Key: "stack", Value: fmt.Sprintf("%+v", pkgErrors.WithStack(errors.New("lol")))})
 			c.connectDelayTimer.FireNow()
 		}
 

@@ -84,7 +84,6 @@ func newBlockServerRemoteClientHandler(kbCtx Context, name string, log logger.Lo
 		DialerTimeout:                 dialerTimeout,
 		FirstConnectDelayDuration:     bserveFirstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return bserverReconnectBackoffWindow },
-		// DisableCtxFireNow:             true, //TODO set to isMobile
 	}
 	b.initNewConnection()
 	return b
@@ -627,7 +626,6 @@ func (b *BlockServerRemote) IsUnflushed(
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
-	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo")
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
