@@ -246,6 +246,18 @@ func (mr *MockBlockServerMockRecorder) ArchiveBlockReferences(arg0, arg1, arg2 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveBlockReferences", reflect.TypeOf((*MockBlockServer)(nil).ArchiveBlockReferences), arg0, arg1, arg2)
 }
 
+// FastForwardBackoff mocks base method
+func (m *MockBlockServer) FastForwardBackoff() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "FastForwardBackoff")
+}
+
+// FastForwardBackoff indicates an expected call of FastForwardBackoff
+func (mr *MockBlockServerMockRecorder) FastForwardBackoff() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FastForwardBackoff", reflect.TypeOf((*MockBlockServer)(nil).FastForwardBackoff))
+}
+
 // Get mocks base method
 func (m *MockBlockServer) Get(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID, arg3 kbfsblock.Context, arg4 DiskBlockCacheType) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	m.ctrl.T.Helper()

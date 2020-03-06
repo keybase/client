@@ -1664,8 +1664,8 @@ type MDServer interface {
 	CheckReachability(ctx context.Context)
 
 	// FastForwardBackoff fast forwards any existing backoff timer for
-	// reconnects. If MD server is connected at the time this is called, it's
-	// essentially a no-op.
+	// connecting to the mdserver. If mdserver is connected at the time this
+	// is called, it's essentially a no-op.
 	FastForwardBackoff()
 
 	// FindNextMD finds the serialized (and possibly encrypted) root
@@ -1703,6 +1703,11 @@ type mdServerLocal interface {
 // matches the hash of the buffer; and 2) enforcing writer quotas.
 type BlockServer interface {
 	authTokenRefreshHandler
+
+	// FastForwardBackoff fast forwards any existing backoff timer for
+	// connecting to bserver. If bserver is connected at the time this is
+	// called, it's essentially a no-op.
+	FastForwardBackoff()
 
 	// Get gets the (encrypted) block data associated with the given
 	// block ID and context, uses the provided block key to decrypt

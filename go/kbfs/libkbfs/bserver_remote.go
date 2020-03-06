@@ -84,6 +84,7 @@ func newBlockServerRemoteClientHandler(kbCtx Context, name string, log logger.Lo
 		DialerTimeout:                 dialerTimeout,
 		FirstConnectDelayDuration:     bserveFirstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return bserverReconnectBackoffWindow },
+		// DisableCtxFireNow:             true, //TODO set to isMobile
 	}
 	b.initNewConnection()
 	return b
@@ -292,6 +293,12 @@ func (b *blockServerRemoteClientHandler) pingOnce(ctx context.Context) {
 	}
 }
 
+func (b *blockServerRemoteClientHandler) fastForwardBackoff() {
+	b.connMu.RLock()
+	defer b.connMu.RUnlock()
+	b.conn.FastForwardConnectDelayTimer()
+}
+
 type blockServerRemoteConfig interface {
 	diskBlockCacheGetter
 	codecGetter
@@ -369,6 +376,13 @@ func newBlockServerRemoteWithClient(kbCtx Context, config blockServerRemoteConfi
 		},
 	}
 	return bs
+}
+
+// FastForwardBackoff implements the BlockServerinterface for
+// BlockServerRemote.
+func (b *BlockServerRemote) FastForwardBackoff() {
+	b.getConn.fastForwardBackoff()
+	b.putConn.fastForwardBackoff()
 }
 
 // RemoteAddress returns the remote bserver this client is talking to

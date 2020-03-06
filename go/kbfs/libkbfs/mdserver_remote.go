@@ -124,6 +124,7 @@ func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
 		DialerTimeout:                 dialerTimeout,
 		FirstConnectDelayDuration:     mdserveFirstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return mdserverReconnectBackoffWindow },
+		// DisableCtxFireNow:             true, //TODO set to isMobile
 	}
 	mdServer.initNewConnection()
 
@@ -485,7 +486,7 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 	} else {
 		md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 			"dial succeeded; fast forwarding any pending reconnect")
-		md.conn.FastForwardInitialBackoffTimer()
+		md.conn.FastForwardConnectDelayTimer()
 	}
 	if conn != nil {
 		conn.Close()
@@ -1416,7 +1417,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 func (md *MDServerRemote) FastForwardBackoff() {
 	md.connMu.RLock()
 	defer md.connMu.RUnlock()
-	md.conn.FastForwardInitialBackoffTimer()
+	md.conn.FastForwardConnectDelayTimer()
 }
 
 // FindNextMD implements the MDServer interface for MDServerRemote.

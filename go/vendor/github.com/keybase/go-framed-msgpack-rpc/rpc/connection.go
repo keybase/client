@@ -380,6 +380,7 @@ type Connection struct {
 
 	firstConnectDelayDuration     time.Duration
 	initialReconnectBackoffWindow func() time.Duration
+	disableCtxFireNow             bool
 	connectDelayTimer             CancellableTimer
 
 	// for tests
@@ -412,8 +413,13 @@ type ConnectionOpts struct {
 	// As the name suggests, we normally skip the "initial reconnect backoff"
 	// the very first time we try to connect. However, some callers instantiate
 	// new Connection objects after a disconnect, and they need the "first
-	// connection" to be treated as a reconnect.
+	// connection" to be treated as a reconnect. If this is set,
+	// FirstConnectDelayDuration is ineffective.
 	ForceInitialBackoff bool
+	// If DisableCtxFireNow is set to true, WithFireNow is ignored and the
+	// delay timer can only be fast forwarded with
+	// FastForwardConnectDelayTimer.
+	DisableCtxFireNow bool
 	// DialerTimeout is the Timeout used in net.Dialer when initiating new
 	// connections. Zero value is passed as-is to net.Dialer, which means no
 	// timeout. Note that OS may impose its own timeout.
@@ -573,6 +579,7 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		doCommandBackoff:              commandBackoff,
 		firstConnectDelayDuration:     opts.FirstConnectDelayDuration,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
+		disableCtxFireNow:             opts.DisableCtxFireNow,
 		wef:                           opts.WrapErrorFunc,
 		tagsFunc:                      opts.TagsFunc,
 		log:                           log,
@@ -655,7 +662,7 @@ func (c *Connection) DoCommand(ctx context.Context, name string, timeout time.Du
 		defer timeoutCancel()
 	}
 	for {
-		if (c.firstConnectDelayDuration != 0 ||
+		if !c.disableCtxFireNow && (c.firstConnectDelayDuration != 0 ||
 			c.initialReconnectBackoffWindow != nil) && isWithFireNow(ctx) {
 			c.connectDelayTimer.FireNow()
 		}
@@ -895,9 +902,10 @@ func (c *Connection) Shutdown() {
 	}
 }
 
-// FastForwardInitialBackoffTimer causes any pending reconnect to happen
+// FastForwardConnectDelayTimer causes any pending reconnect to happen
 // immediately.
-func (c *Connection) FastForwardInitialBackoffTimer() {
+func (c *Connection) FastForwardConnectDelayTimer() {
+	c.log.Debug("FastForwardConnectDelayTimer")
 	c.connectDelayTimer.FireNow()
 }
 
