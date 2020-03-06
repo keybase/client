@@ -148,6 +148,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.inputType = inputType
     op.input = value
     op.outputValid = outputValid
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
 
     // Reset output when file input changes
     // Prompt for destination dir
@@ -161,6 +163,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     const op = draftState[operation]
     op.outputValid = false
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
   },
   [CryptoGen.saltpackDone]: (draftState, action) => {
     const {operation} = action.payload
