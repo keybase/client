@@ -711,6 +711,12 @@
           "name": "untrustedTeamRole"
         },
         {
+          "type": "gregor1.Time",
+          "name": "latestCtime",
+          "mpackkey": "l",
+          "jsonkey": "l"
+        },
+        {
           "type": [
             null,
             "ConversationJourneycardInfo"
