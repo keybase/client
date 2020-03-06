@@ -79,6 +79,9 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
+  teamsContactsTeamBuilder: {
+    getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
+  },
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
