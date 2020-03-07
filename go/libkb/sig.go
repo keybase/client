@@ -182,5 +182,5 @@ func (ps *ParsedSig) ID() keybase1.SigID {
 }
 
 func IsPGPSig(s string) bool {
-	return strings.HasPrefix(s, "-----BEGIN PGP MESSAGE-----\n")
+	return strings.HasPrefix(s, "-----BEGIN PGP MESSAGE-----")
 }
