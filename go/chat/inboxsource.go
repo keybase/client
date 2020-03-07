@@ -1326,6 +1326,14 @@ func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, ver
 		s.Debug(ctx, "NewMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
 		return nil, nil
 	}
+	if msg.ClientHeader.Sender.Eq(uid) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+		teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+		if err != nil {
+			s.Debug(ctx, "Push: failed to get team ID: %v", err)
+		} else {
+			go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), uid, teamID, convID)
+		}
+	}
 	return conv, nil
 }
 

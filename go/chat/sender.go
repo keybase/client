@@ -1179,7 +1179,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
 	} else {
-		if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
+		if cerr = s.G().ConvSource.PushUnboxed(ctx, conv, boxed.ClientHeader.Sender,
 			[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
 			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
 		}

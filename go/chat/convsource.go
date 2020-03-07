@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -295,7 +294,7 @@ func (s *RemoteConversationSource) ReleaseConversationLock(ctx context.Context, 
 	convID chat1.ConversationID) {
 }
 
-func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
+func (s *RemoteConversationSource) Push(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 	// Do nothing here, we don't care about pushed messages
 
@@ -304,7 +303,7 @@ func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.Conver
 	return chat1.MessageUnboxed{}, true, nil
 }
 
-func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
@@ -390,7 +389,7 @@ func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
-	conv types.RemoteConversation, uid gregor1.UID, expunge chat1.Expunge) error {
+	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) error {
 	return nil
 }
 
@@ -467,26 +466,21 @@ func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1
 	}
 }
 
-func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
+func (s *HybridConversationSource) Push(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
+	convID := conv.GetConvID()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return decmsg, continuousUpdate, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-
-	// Grab conversation information before pushing
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return decmsg, continuousUpdate, err
-	}
 
 	// Check to see if we are "appending" this message to the current record.
 	if continuousUpdate, err = s.isContinuousPush(ctx, convID, uid, msg.GetMessageID()); err != nil {
 		return decmsg, continuousUpdate, err
 	}
 
-	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv.Conv, nil)
+	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv, nil)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -502,16 +496,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	// Add to the local storage
-	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}, chat1.GetThreadReason_GENERAL); err != nil {
+	if err = s.mergeMaybeNotify(ctx, conv, uid, []chat1.MessageUnboxed{decmsg}, chat1.GetThreadReason_GENERAL); err != nil {
 		return decmsg, continuousUpdate, err
-	}
-	if msg.ClientHeader.Sender.Eq(uid) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
-		teamID, err := keybase1.TeamIDFromString(conv.Conv.Metadata.IdTriple.Tlfid.String())
-		if err != nil {
-			s.Debug(ctx, "Push: failed to get team ID: %v", err)
-		} else {
-			go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), uid, teamID, convID)
-		}
 	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
@@ -521,14 +507,15 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	return decmsg, continuousUpdate, nil
 }
 
-func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+func (s *HybridConversationSource) PushUnboxed(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "PushUnboxed")()
+	convID := conv.GetConvID()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-	if err = s.mergeMaybeNotify(ctx, convID, uid, msgs, chat1.GetThreadReason_PUSH); err != nil {
+	if err = s.mergeMaybeNotify(ctx, conv, uid, msgs, chat1.GetThreadReason_PUSH); err != nil {
 		return err
 	}
 	return nil
@@ -679,7 +666,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
-	if err = s.mergeMaybeNotify(ctx, convID, uid, thread.Messages, reason); err != nil {
+	if err = s.mergeMaybeNotify(ctx, rconv, uid, thread.Messages, reason); err != nil {
 		s.Debug(ctx, "Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
@@ -863,7 +850,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 			reason = *threadReason
 		}
 		// Write out messages
-		if err := s.mergeMaybeNotify(ctx, convID, uid, rmsgsUnboxed, reason); err != nil {
+		if err := s.mergeMaybeNotify(ctx, conv, uid, rmsgsUnboxed, reason); err != nil {
 			return nil, err
 		}
 	}
@@ -922,7 +909,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	}
 	if len(merges) > 0 {
 		sort.Sort(utils.ByMsgUnboxedMsgID(merges))
-		if err := s.mergeMaybeNotify(ctx, convID, uid, merges, chat1.GetThreadReason_GENERAL); err != nil {
+		if err := s.mergeMaybeNotify(ctx, utils.RemoteConv(conv), uid, merges, chat1.GetThreadReason_GENERAL); err != nil {
 			return res, err
 		}
 	}
@@ -1068,7 +1055,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 
 // Expunge from storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) Expunge(ctx context.Context,
-	conv types.RemoteConversation, uid gregor1.UID, expunge chat1.Expunge) (err error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	convID := conv.GetConvID()
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
@@ -1093,7 +1080,8 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 
 // Merge with storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, reason chat1.GetThreadReason) error {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed, reason chat1.GetThreadReason) error {
+	convID := conv.GetConvID()
 	switch globals.CtxUnboxMode(ctx) {
 	case types.UnboxModeFull:
 		s.Debug(ctx, "mergeMaybeNotify: full mode, merging %d messages", len(msgs))
@@ -1102,21 +1090,13 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 		globals.CtxAddMessageCacheSkips(ctx, convID, msgs)
 		return nil
 	}
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
-	switch err {
-	case nil:
-	case utils.ErrGetUnverifiedConvNotFound:
-		conv = types.NewEmptyRemoteConversation(convID)
-	default:
-		return err
-	}
 
 	mergeRes, err := s.storage.Merge(ctx, conv, uid, msgs)
 	if err != nil {
 		return err
 	}
 
-	// skip frontend notifications during background loads
+	// skip notifications during background loads
 	if reason == chat1.GetThreadReason_BACKGROUNDCONVLOAD {
 		return nil
 	}
