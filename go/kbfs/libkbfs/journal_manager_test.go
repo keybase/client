@@ -72,7 +72,7 @@ func setupJournalManagerTest(t *testing.T) (
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	quotaUsage = config.getQuotaUsage(session.UID.AsUserOrTeam())
+	quotaUsage = config.GetQuotaUsage(session.UID.AsUserOrTeam())
 
 	setupSucceeded = true
 	return tempdir, ctx, cancel, config, quotaUsage, jManager
@@ -157,7 +157,7 @@ func TestJournalManagerOverQuotaError(t *testing.T) {
 	require.NoError(t, err)
 	AddTeamWriterForTestOrBust(t, config, teamID, session.UID)
 	AddTeamWriterForTestOrBust(t, config, subteamID, session.UID)
-	teamQuotaUsage := config.getQuotaUsage(teamID.AsUserOrTeam())
+	teamQuotaUsage := config.GetQuotaUsage(teamID.AsUserOrTeam())
 
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
 	config.SetBlockServer(qbs)
