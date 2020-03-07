@@ -31,7 +31,6 @@ export default Container.connect(
     badgeNumbers: state.notifications.navBadges,
     fsCriticalUpdate: state.fs.criticalUpdate,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
-    isWalletsNew: state.chat2.isWalletsNew,
     username: state.config.username,
   }),
   (dispatch, ownProps: OwnProps) => ({
@@ -89,7 +88,6 @@ export default Container.connect(
     badgeNumbers: stateProps.badgeNumbers,
     fsCriticalUpdate: stateProps.fsCriticalUpdate,
     fullname: stateProps.fullname,
-    isWalletsNew: stateProps.isWalletsNew,
     onAddAccount: dispatchProps.onAddAccount,
     onHelp: dispatchProps.onHelp,
     onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),

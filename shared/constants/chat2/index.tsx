@@ -65,10 +65,8 @@ export const makeState = (): Types.State => ({
   inboxLayout: null,
   inboxNumSmallRows: 5,
   inboxSearch: undefined,
-  inboxShowNew: false,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
-  isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
@@ -356,7 +354,6 @@ export const getBotsAndParticipants = (
   return {bots, participants}
 }
 
-export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyLeaveConversation = 'chat:leaveConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'
