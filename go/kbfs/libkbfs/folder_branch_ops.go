@@ -407,7 +407,6 @@ func newFolderBranchOps(
 	ctx context.Context, appStateUpdater env.AppStateUpdater,
 	config Config, fb data.FolderBranch,
 	bType branchType,
-	quotaUsage *EventuallyConsistentQuotaUsage,
 	serviceStatus *kbfsCurrentStatus, favs *Favorites,
 	syncedTlfObservers *syncedTlfObserverList) *folderBranchOps {
 	var nodeCache NodeCache
@@ -466,7 +465,7 @@ func newFolderBranchOps(
 		serviceStatus:      serviceStatus,
 		favs:               favs,
 		status: newFolderBranchStatusKeeper(
-			config, nodeCache, quotaUsage, fb.Tlf.Bytes()),
+			config, nodeCache, fb.Tlf.Bytes()),
 		mdWriterLock: mdWriterLock,
 		headLock:     headLock,
 		syncLock:     syncLock,

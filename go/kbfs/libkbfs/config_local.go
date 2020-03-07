@@ -1206,7 +1206,8 @@ func (c *ConfigLocal) journalizeBcaches(jManager *JournalManager) error {
 	return nil
 }
 
-func (c *ConfigLocal) getQuotaUsage(
+// GetQuotaUsage implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetQuotaUsage(
 	chargedTo keybase1.UserOrTeamID) *EventuallyConsistentQuotaUsage {
 	c.lock.RLock()
 	quota, ok := c.quotaUsage[chargedTo]
@@ -1242,7 +1243,7 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	}
 
 	params := makeDefaultBackpressureDiskLimiterParams(
-		configRoot, c.getQuotaUsage, c.diskBlockCacheFraction, c.syncBlockCacheFraction)
+		configRoot, c.GetQuotaUsage, c.diskBlockCacheFraction, c.syncBlockCacheFraction)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
