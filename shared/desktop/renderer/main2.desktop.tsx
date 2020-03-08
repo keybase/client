@@ -196,4 +196,6 @@ const load = () => {
   render()
 }
 
-load()
+setTimeout(() => {
+  load()
+}, 5000)

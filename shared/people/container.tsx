@@ -46,11 +46,15 @@ export class LoadOnMount extends React.PureComponent<Props> {
     },
     underNotch: true,
   }
+  constructor(props) {
+    super(props)
+    console.log('aaa constu', props)
+  }
   _onReload = () => this.props.getData(false)
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)
   _onClickUser = (username: string) => this.props.onClickUser(username)
   render() {
-    console.log('aaa', this.props)
+    console.log('aaa render', this.props)
     return (
       <Kb.Reloadable
         waitingKeys={Constants.getPeopleDataWaitingKey}
