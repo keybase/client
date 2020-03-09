@@ -696,7 +696,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		ConvIDs: convIDs,
 	})
 	if err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
+		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v, charging forward", err)
 	}
 	// convID -> isRead
 	readConvMap := make(map[chat1.ConvIDStr]bool)
