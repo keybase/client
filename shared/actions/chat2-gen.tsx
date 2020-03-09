@@ -50,7 +50,6 @@ export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
-export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -139,7 +138,6 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setGeneralConvFromTeamID = 'chat2:setGeneralConvFromTeamID'
 export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
-export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setLoadedBotPage = 'chat2:setLoadedBotPage'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
@@ -150,7 +148,6 @@ export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
-export const setWalletsOld = 'chat2:setWalletsOld'
 export const showInfoPanel = 'chat2:showInfoPanel'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const stopAudioRecording = 'chat2:stopAudioRecording'
@@ -312,7 +309,6 @@ type _GiphyToggleWindowPayload = {
   readonly show: boolean
   readonly clearInput: boolean
 }
-type _HandleSeeingWalletsPayload = void
 type _HideConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _IgnorePinnedMessagePayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _InboxRefreshPayload = {
@@ -681,7 +677,6 @@ type _SetGeneralConvFromTeamIDPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
 }
 type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
-type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
 type _SetLoadedBotPagePayload = {readonly page: number}
 type _SetMaybeMentionInfoPayload = {readonly name: string; readonly info: RPCChatTypes.UIMaybeMentionInfo}
 type _SetMinWriterRolePayload = {
@@ -718,7 +713,6 @@ type _SetUnsentTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text?: HiddenString
 }
-type _SetWalletsOldPayload = void
 type _ShowInfoPanelPayload = {
   readonly tab?: 'settings' | 'members' | 'attachments' | 'bots'
   readonly show: boolean
@@ -1128,13 +1122,6 @@ export const createSetMaybeMentionInfo = (
   payload: _SetMaybeMentionInfoPayload
 ): SetMaybeMentionInfoPayload => ({payload, type: setMaybeMentionInfo})
 /**
- * Set that wallets in chat is not new.
- */
-export const createSetWalletsOld = (payload: _SetWalletsOldPayload): SetWalletsOldPayload => ({
-  payload,
-  type: setWalletsOld,
-})
-/**
  * Set the bottom banner on a new conversation as dismissed
  */
 export const createDismissBottomBanner = (
@@ -1244,12 +1231,6 @@ export const createUpdateReactions = (payload: _UpdateReactionsPayload): UpdateR
   type: updateReactions,
 })
 /**
- * The user has interacted with wallets in chat.
- */
-export const createHandleSeeingWallets = (
-  payload: _HandleSeeingWalletsPayload
-): HandleSeeingWalletsPayload => ({payload, type: handleSeeingWallets})
-/**
  * Toggle /giphy text to trigger preview window
  */
 export const createToggleGiphyPrefill = (payload: _ToggleGiphyPrefillPayload): ToggleGiphyPrefillPayload => ({
@@ -1349,13 +1330,6 @@ export const createPaymentInfoReceived = (
 export const createRequestInfoReceived = (
   payload: _RequestInfoReceivedPayload
 ): RequestInfoReceivedPayload => ({payload, type: requestInfoReceived})
-/**
- * We've seen chat search before
- */
-export const createSetInboxShowIsNew = (payload: _SetInboxShowIsNewPayload): SetInboxShowIsNewPayload => ({
-  payload,
-  type: setInboxShowIsNew,
-})
 /**
  * Where we want our focus for keypresses
  */
@@ -1858,10 +1832,6 @@ export type GiphyToggleWindowPayload = {
   readonly payload: _GiphyToggleWindowPayload
   readonly type: typeof giphyToggleWindow
 }
-export type HandleSeeingWalletsPayload = {
-  readonly payload: _HandleSeeingWalletsPayload
-  readonly type: typeof handleSeeingWallets
-}
 export type HideConversationPayload = {
   readonly payload: _HideConversationPayload
   readonly type: typeof hideConversation
@@ -2175,10 +2145,6 @@ export type SetInboxNumSmallRowsPayload = {
   readonly payload: _SetInboxNumSmallRowsPayload
   readonly type: typeof setInboxNumSmallRows
 }
-export type SetInboxShowIsNewPayload = {
-  readonly payload: _SetInboxShowIsNewPayload
-  readonly type: typeof setInboxShowIsNew
-}
 export type SetLoadedBotPagePayload = {
   readonly payload: _SetLoadedBotPagePayload
   readonly type: typeof setLoadedBotPage
@@ -2218,10 +2184,6 @@ export type SetThreadSearchStatusPayload = {
 export type SetUnsentTextPayload = {
   readonly payload: _SetUnsentTextPayload
   readonly type: typeof setUnsentText
-}
-export type SetWalletsOldPayload = {
-  readonly payload: _SetWalletsOldPayload
-  readonly type: typeof setWalletsOld
 }
 export type ShowInfoPanelPayload = {
   readonly payload: _ShowInfoPanelPayload
@@ -2383,7 +2345,6 @@ export type Actions =
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
-  | HandleSeeingWalletsPayload
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | InboxRefreshPayload
@@ -2472,7 +2433,6 @@ export type Actions =
   | SetExplodingModeLockPayload
   | SetGeneralConvFromTeamIDPayload
   | SetInboxNumSmallRowsPayload
-  | SetInboxShowIsNewPayload
   | SetLoadedBotPagePayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
@@ -2483,7 +2443,6 @@ export type Actions =
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
-  | SetWalletsOldPayload
   | ShowInfoPanelPayload
   | StaticConfigLoadedPayload
   | StopAudioRecordingPayload

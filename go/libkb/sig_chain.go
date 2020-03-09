@@ -312,7 +312,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 
 		var link *ChainLink
 		if link, err = ImportLinkFromServer(m, sc, value, selfUID); err != nil {
-			m.Debug("ImportLinkFromServer error: %s", err)
+			m.Debug("ImportLinkFromServer error (offset=%d): %s", offset, err)
 			return
 		}
 		if link.GetSeqno() <= low {

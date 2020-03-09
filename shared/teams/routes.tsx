@@ -21,6 +21,7 @@ import TeamAddToChannels from './team/member/add-to-channels'
 import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
+import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
@@ -37,6 +38,9 @@ export const newRoutes = {
 const addWizardRoutes = {
   teamAddToTeamFromWhere: {
     getScreen: (): typeof TeamAddToTeamFromWhere => require('./add-members-wizard/add-from-where').default,
+  },
+  teamAddToTeamPhone: {
+    getScreen: (): typeof TeamAddToTeamPhone => require('./add-members-wizard/add-phone').default,
   },
 }
 

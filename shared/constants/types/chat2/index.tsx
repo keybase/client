@@ -222,10 +222,8 @@ export type State = {
   readonly inboxHasLoaded: boolean // if we've ever loaded,
   readonly inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   readonly inboxSearch?: InboxSearchInfo
-  readonly inboxShowNew: boolean // mark search as new,
   readonly infoPanelShowing: boolean
   readonly infoPanelSelectedTab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
-  readonly isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   readonly lastCoord?: Coordinate
   readonly maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   readonly messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,

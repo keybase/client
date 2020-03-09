@@ -14,7 +14,6 @@ export type Props = {
   badgeNumbers: Map<Tabs.Tab, number>
   fsCriticalUpdate: boolean
   fullname: string
-  isWalletsNew?: boolean
   onAddAccount: () => void
   onHelp: () => void
   onProfileClick: () => void

@@ -943,6 +943,10 @@ export type MessageTypes = {
     inParam: void
     outParam: Boolean
   }
+  'keybase.1.log.perfLogPoint': {
+    inParam: {readonly msg: String}
+    outParam: void
+  }
   'keybase.1.logUi.log': {
     inParam: {readonly level: LogLevel; readonly text: Text}
     outParam: void
@@ -2879,6 +2883,7 @@ export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration;
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
 export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath: String; readonly originalSize: Int; readonly scaledPath?: String | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
+export type IndexProgressRecord = {readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesSoFar: Int64}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
@@ -3079,6 +3084,7 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
+export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: Array<Folder> | null}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
 export type SimpleFSSearchHit = {readonly path: String}
@@ -3664,6 +3670,7 @@ export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keyb
 export const kbfsMountGetKBFSPathInfoRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetKBFSPathInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetPreferredMountDirsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetPreferredMountDirs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountWaitForMountsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.WaitForMounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.WaitForMounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.WaitForMounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const logPerfLogPointRpcPromise = (params: MessageTypes['keybase.1.log.perfLogPoint']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.log.perfLogPoint']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.log.perfLogPoint', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginAccountDeleteRpcPromise = (params: MessageTypes['keybase.1.login.accountDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.accountDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.accountDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginDeprovisionRpcPromise = (params: MessageTypes['keybase.1.login.deprovision']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.deprovision']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.deprovision', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginGetConfiguredAccountsRpcPromise = (params: MessageTypes['keybase.1.login.getConfiguredAccounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.getConfiguredAccounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.getConfiguredAccounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3912,7 +3919,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.kvstore.listKVEntries'
 // 'keybase.1.kvstore.delKVEntry'
 // 'keybase.1.log.registerLogger'
-// 'keybase.1.log.perfLogPoint'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
 // 'keybase.1.login.loginWithPaperKey'
@@ -4117,6 +4123,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.SimpleFS.simpleFSGetStats'
 // 'keybase.1.SimpleFS.simpleFSSearch'
 // 'keybase.1.SimpleFS.simpleFSResetIndex'
+// 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

@@ -27,12 +27,10 @@ export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black' | 'yello
 type WithIconProps =
   | {
       icon?: never
-      tooltip?: string
     }
   | {
       icon: IconType
       iconColor?: Styles.Color
-      tooltip: string
     }
 
 // Either type or backgroundColor must be set
@@ -55,6 +53,7 @@ type DefaultProps = {
   style?: Styles.StylesCrossPlatform
   subLabel?: string
   subLabelStyle?: Styles.StylesCrossPlatform
+  tooltip?: string
   type?: ButtonType
   waiting?: boolean
 }
