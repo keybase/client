@@ -5,8 +5,7 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
+import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
@@ -72,6 +71,7 @@ const AddMoreMembers = () => {
   const nav = Container.useSafeNavigation()
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
+  const onAddContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
   const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (
@@ -82,6 +82,7 @@ const AddMoreMembers = () => {
       visible={showingPopup}
       items={[
         {onClick: onAddKeybase, title: 'From Keybase'},
+        ...(Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
         {onClick: onAddEmail, title: 'By email address'},
         {onClick: onAddPhone, title: 'By phone number'},
       ]}
