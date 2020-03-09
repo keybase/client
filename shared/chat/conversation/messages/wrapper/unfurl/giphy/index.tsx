@@ -37,6 +37,7 @@ class UnfurlGiphy extends React.Component<Props> {
                 type="iconfont-close"
                 onClick={this.props.onClose}
                 className="unfurl-closebox"
+                padding="xtiny"
                 fontSize={12}
               />
             )}

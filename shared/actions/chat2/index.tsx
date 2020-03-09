@@ -2991,34 +2991,6 @@ function* setConvExplodingMode(
   }
 }
 
-function* handleSeeingWallets(
-  _: Container.TypedState,
-  __: Chat2Gen.HandleSeeingWalletsPayload,
-  logger: Saga.SagaLogger
-) {
-  const gregorState: Saga.RPCPromiseType<typeof RPCTypes.gregorGetStateRpcPromise> = yield RPCTypes.gregorGetStateRpcPromise()
-  const seenWallets = gregorState.items?.some(
-    i => i.item && i.item.category === Constants.seenWalletsGregorKey
-  )
-  if (seenWallets) {
-    logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
-    return
-  }
-  try {
-    logger.info('handleSeeingWallets: setting seenWalletsGregorKey')
-    yield RPCTypes.gregorUpdateCategoryRpcPromise({
-      body: 'true',
-      category: Constants.seenWalletsGregorKey,
-      dtime: {offset: 0, time: 0},
-    })
-    logger.info('handleSeeingWallets: successfully set seenWalletsGregorKey')
-  } catch (err) {
-    logger.error(
-      `handleSeeingWallets: failed to set seenWalletsGregorKey. Local state might not persist on restart. Error: ${err.message}`
-    )
-  }
-}
-
 function* loadStaticConfig(
   state: Container.TypedState,
   action: ConfigGen.DaemonHandshakePayload,
@@ -3328,15 +3300,6 @@ const gregorPushState = (
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
 
-  const seenWallets = items.some(i => i.item.category === Constants.seenWalletsGregorKey)
-  if (seenWallets && state.chat2.isWalletsNew) {
-    logger.info('chat.gregorPushState: got seenWallets and we thought they were new, updating store.')
-    actions.push(Chat2Gen.createSetWalletsOld())
-  }
-
-  const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
-  actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
-
   const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
   if (blockButtons || state.chat2.blockButtonsMap.size > 0) {
     const shouldKeepExistingBlockButtons = new Map<string, boolean>()
@@ -3440,10 +3403,6 @@ const addUserToChannel = async (action: Chat2Gen.AddUserToChannelPayload, logger
     return false
   }
 }
-
-const onMarkInboxSearchOld = (state: Container.TypedState) =>
-  state.chat2.inboxShowNew &&
-  GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
 
 const dismissBlockButtons = async (action: Chat2Gen.DismissBlockButtonsPayload, logger: Saga.SagaLogger) => {
   try {
@@ -3840,10 +3799,6 @@ function* chat2Saga() {
     Chat2Gen.setConvExplodingMode,
     setConvExplodingMode
   )
-  yield* Saga.chainGenerator<Chat2Gen.HandleSeeingWalletsPayload>(
-    Chat2Gen.handleSeeingWallets,
-    handleSeeingWallets
-  )
   yield* Saga.chainAction2(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
   yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
@@ -3889,7 +3844,6 @@ function* chat2Saga() {
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
-  yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld)
   yield* Saga.chainAction2(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   yield* Saga.chainAction2(Chat2Gen.inboxSearchNameResults, onInboxSearchNameResults)
   yield* Saga.chainAction2(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult)

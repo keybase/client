@@ -178,10 +178,11 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
-	if err = outbox.AppendToThread(ctx, conv.GetConvID(), thread); err != nil {
-		if _, ok := err.(storage.MissError); !ok {
-			return err
-		}
+	err = outbox.AppendToThread(ctx, conv.GetConvID(), thread)
+	switch err.(type) {
+	case nil, storage.MissError:
+	default:
+		return err
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
@@ -389,7 +390,7 @@ func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) error {
+	conv types.RemoteConversation, uid gregor1.UID, expunge chat1.Expunge) error {
 	return nil
 }
 
@@ -1067,8 +1068,9 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 
 // Expunge from storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) Expunge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (err error) {
+	conv types.RemoteConversation, uid gregor1.UID, expunge chat1.Expunge) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
+	convID := conv.GetConvID()
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
 	if expunge.Upto == 0 {
 		// just get out of here as quickly as possible with a 0 upto
@@ -1080,7 +1082,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
-	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
+	mergeRes, err := s.storage.Expunge(ctx, conv, uid, expunge)
 	if err != nil {
 		return err
 	}
@@ -1100,8 +1102,16 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 		globals.CtxAddMessageCacheSkips(ctx, convID, msgs)
 		return nil
 	}
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	switch err {
+	case nil:
+	case utils.ErrGetUnverifiedConvNotFound:
+		conv = types.NewEmptyRemoteConversation(convID)
+	default:
+		return err
+	}
 
-	mergeRes, err := s.storage.Merge(ctx, convID, uid, msgs)
+	mergeRes, err := s.storage.Merge(ctx, conv, uid, msgs)
 	if err != nil {
 		return err
 	}

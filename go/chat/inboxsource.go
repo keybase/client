@@ -917,7 +917,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
-			err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+			err := s.G().ConvSource.Expunge(ctx, utils.RemoteConv(conv), uid, *expunge)
 			if err != nil {
 				return types.Inbox{}, err
 			}

@@ -7,7 +7,6 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
-import flags from '../../../util/feature-flags'
 
 type Props = {
   followThem: boolean
@@ -171,7 +170,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {icon: 'iconfont-folder-open', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {icon: 'iconfont-folder-public', onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {icon: 'iconfont-wave', onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    flags.userBlocking && {
+    {
       danger: true,
       icon: 'iconfont-remove',
       onClick: p.onManageBlocking,

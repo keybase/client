@@ -11,7 +11,6 @@ import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
 import {TeamAvatar} from '../avatars'
 import Rover from './background'
-import flags from '../../util/feature-flags'
 import TeamInfo from '../../profile/user/teams/teaminfo'
 
 type NameResult = {
@@ -218,9 +217,7 @@ class InboxSearch extends React.Component<Props, State> {
     const textResults = this.state.textCollapsed ? [] : this.props.textResults
     const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.getOpenTeamsResults()
 
-    const indexOffset = flags.openTeamSearch
-      ? openTeamsResults.length + nameResults.length
-      : nameResults.length
+    const indexOffset = openTeamsResults.length + nameResults.length
 
     if (this.props.nameResultsUnread && !this.state.nameCollapsed && nameResults.length === 0) {
       nameResults.push(emptyUnreadPlaceholder)
@@ -238,21 +235,17 @@ class InboxSearch extends React.Component<Props, State> {
         status: this.props.nameStatus,
         title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
-      ...(flags.openTeamSearch
-        ? [
-            {
-              data: openTeamsResults,
-              indexOffset: nameResults.length,
-              isCollapsed: this.state.openTeamsCollapsed,
-              onCollapse: this.toggleCollapseOpenTeams,
-              onSelect: this.selectText,
-              renderHeader: this.renderTeamHeader,
-              renderItem: this.renderOpenTeams,
-              status: this.props.openTeamsStatus,
-              title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
-            },
-          ]
-        : []),
+      {
+        data: openTeamsResults,
+        indexOffset: nameResults.length,
+        isCollapsed: this.state.openTeamsCollapsed,
+        onCollapse: this.toggleCollapseOpenTeams,
+        onSelect: this.selectText,
+        renderHeader: this.renderTeamHeader,
+        renderItem: this.renderOpenTeams,
+        status: this.props.openTeamsStatus,
+        title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
+      },
       ...(!this.props.nameResultsUnread
         ? [
             {

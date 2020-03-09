@@ -54,7 +54,11 @@ export default Container.connect(
     // TODO: can we just do this by invite ID always?
 
     return {
-      label: user.email || user.username || user.name || user.phone,
+      label:
+        (user.email && `[${user.email}]@email`) ||
+        user.username ||
+        user.name ||
+        (user.phone && `${user.phone}@phone`),
       onCancelInvite,
       role: user.role,
     }

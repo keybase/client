@@ -160,8 +160,6 @@ export type TypedActionsMap = {
   'chat2:setConvExplodingMode': chat2.SetConvExplodingModePayload
   'chat2:setExplodingModeLock': chat2.SetExplodingModeLockPayload
   'chat2:updateConvExplodingModes': chat2.UpdateConvExplodingModesPayload
-  'chat2:setWalletsOld': chat2.SetWalletsOldPayload
-  'chat2:handleSeeingWallets': chat2.HandleSeeingWalletsPayload
   'chat2:staticConfigLoaded': chat2.StaticConfigLoadedPayload
   'chat2:setMinWriterRole': chat2.SetMinWriterRolePayload
   'chat2:saveMinWriterRole': chat2.SaveMinWriterRolePayload
@@ -209,7 +207,6 @@ export type TypedActionsMap = {
   'chat2:inboxSearchSetIndexPercent': chat2.InboxSearchSetIndexPercentPayload
   'chat2:setMaybeMentionInfo': chat2.SetMaybeMentionInfoPayload
   'chat2:tabSelected': chat2.TabSelectedPayload
-  'chat2:setInboxShowIsNew': chat2.SetInboxShowIsNewPayload
   'chat2:resolveMaybeMention': chat2.ResolveMaybeMentionPayload
   'chat2:loadAttachmentView': chat2.LoadAttachmentViewPayload
   'chat2:addAttachmentViewMessage': chat2.AddAttachmentViewMessagePayload
@@ -973,8 +970,11 @@ export type TypedActionsMap = {
   'teams:setWelcomeMessage': teams.SetWelcomeMessagePayload
   'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
   'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
+  'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
+  'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
+  'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateUserReset': tracker2.UpdateUserResetPayload
