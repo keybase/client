@@ -372,6 +372,9 @@
     "cancelAddMembersWizard": {
       "_description": "Nav away from add members wizard and clear related state."
     },
+    "finishAddMembersWizard": {
+      "_description": "Nav away from add members wizard and clear related statee."
+    },
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"
     },

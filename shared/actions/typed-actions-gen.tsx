@@ -973,6 +973,7 @@ export type TypedActionsMap = {
   'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
+  'teams:finishAddMembersWizard': teams.FinishAddMembersWizardPayload
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload

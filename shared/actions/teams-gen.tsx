@@ -28,6 +28,7 @@ export const deleteChannelInfo = 'teams:deleteChannelInfo'
 export const deleteTeam = 'teams:deleteTeam'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
+export const finishAddMembersWizard = 'teams:finishAddMembersWizard'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getMembers = 'teams:getMembers'
@@ -161,6 +162,7 @@ type _EditMembershipPayload = {
   readonly role: Types.TeamRoleType
 }
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
+type _FinishAddMembersWizardPayload = void
 type _GetChannelInfoPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly teamID: Types.TeamID
@@ -417,6 +419,12 @@ export const createLoadedWelcomeMessage = (
 export const createCancelAddMembersWizard = (
   payload: _CancelAddMembersWizardPayload
 ): CancelAddMembersWizardPayload => ({payload, type: cancelAddMembersWizard})
+/**
+ * Nav away from add members wizard and clear related statee.
+ */
+export const createFinishAddMembersWizard = (
+  payload: _FinishAddMembersWizardPayload
+): FinishAddMembersWizardPayload => ({payload, type: finishAddMembersWizard})
 /**
  * Remove a pending member from the add members wizard.
  */
@@ -804,6 +812,10 @@ export type EditTeamDescriptionPayload = {
   readonly payload: _EditTeamDescriptionPayload
   readonly type: typeof editTeamDescription
 }
+export type FinishAddMembersWizardPayload = {
+  readonly payload: _FinishAddMembersWizardPayload
+  readonly type: typeof finishAddMembersWizard
+}
 export type GetChannelInfoPayload = {
   readonly payload: _GetChannelInfoPayload
   readonly type: typeof getChannelInfo
@@ -1064,6 +1076,7 @@ export type Actions =
   | DeleteTeamPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
+  | FinishAddMembersWizardPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
   | GetMembersPayload
