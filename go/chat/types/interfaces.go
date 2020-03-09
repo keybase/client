@@ -75,6 +75,7 @@ type UnboxConversationInfo interface {
 	GetExpunge() *chat1.Expunge
 	GetMaxDeletedUpTo() chat1.MessageID
 	IsPublic() bool
+	GetMaxMessage(chat1.MessageType) (chat1.MessageSummary, error)
 }
 
 type ConversationSource interface {
@@ -83,7 +84,7 @@ type ConversationSource interface {
 
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
-	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+	PushUnboxed(ctx context.Context, conv UnboxConversationInfo,
 		uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
 		ri func() chat1.RemoteInterface, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
@@ -101,7 +102,7 @@ type ConversationSource interface {
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
 		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
-	Expunge(ctx context.Context, conv RemoteConversation,
+	Expunge(ctx context.Context, conv UnboxConversationInfo,
 		uid gregor1.UID, expunge chat1.Expunge) error
 	EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error)
