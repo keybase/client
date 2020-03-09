@@ -10,6 +10,7 @@ import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../action
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
+import {pluralize} from '../../util/string'
 
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
@@ -157,6 +158,7 @@ const RoleSelector = () => {
         selectedRole={role}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
+        confirmLabel={`Add as ${pluralize(role)}`}
       >
         <Kb.InlineDropdown
           type="BodySmallSemibold"
