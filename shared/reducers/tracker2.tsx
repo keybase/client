@@ -127,6 +127,16 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...rest,
     })
   },
+  [Tracker2Gen.errorLoadingNonUserProfile]: (draftState, action) => {
+    const d = draftState.usernameToDetails.get(action.payload.assertion)
+    if (d) {
+      const newDetails = {
+        ...d,
+        state: 'notAUserYet' as const,
+      }
+      draftState.usernameToDetails.set(action.payload.assertion, newDetails)
+    }
+  },
   // This allows the server to send us a notification to *remove* (not add)
   // arbitrary followers from arbitrary tracker2 results, so we can hide
   // blocked users from follower lists.

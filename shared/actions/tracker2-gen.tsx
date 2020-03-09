@@ -7,6 +7,7 @@ export const resetStore = 'common:resetStore' // not a part of tracker2 but is h
 export const typePrefix = 'tracker2:'
 export const changeFollow = 'tracker2:changeFollow'
 export const closeTracker = 'tracker2:closeTracker'
+export const errorLoadingNonUserProfile = 'tracker2:errorLoadingNonUserProfile'
 export const getProofSuggestions = 'tracker2:getProofSuggestions'
 export const ignore = 'tracker2:ignore'
 export const load = 'tracker2:load'
@@ -23,6 +24,7 @@ export const updatedDetails = 'tracker2:updatedDetails'
 // Payload Types
 type _ChangeFollowPayload = {readonly guiID: string; readonly follow: boolean}
 type _CloseTrackerPayload = {readonly guiID: string}
+type _ErrorLoadingNonUserProfilePayload = {readonly assertion: string; readonly error: string}
 type _GetProofSuggestionsPayload = void
 type _IgnorePayload = {readonly guiID: string}
 type _LoadNonUserProfilePayload = {readonly assertion: string}
@@ -91,6 +93,9 @@ export const createCloseTracker = (payload: _CloseTrackerPayload): CloseTrackerP
   payload,
   type: closeTracker,
 })
+export const createErrorLoadingNonUserProfile = (
+  payload: _ErrorLoadingNonUserProfilePayload
+): ErrorLoadingNonUserProfilePayload => ({payload, type: errorLoadingNonUserProfile})
 export const createGetProofSuggestions = (
   payload: _GetProofSuggestionsPayload
 ): GetProofSuggestionsPayload => ({payload, type: getProofSuggestions})
@@ -130,6 +135,10 @@ export const createUpdatedDetails = (payload: _UpdatedDetailsPayload): UpdatedDe
 // Action Payloads
 export type ChangeFollowPayload = {readonly payload: _ChangeFollowPayload; readonly type: typeof changeFollow}
 export type CloseTrackerPayload = {readonly payload: _CloseTrackerPayload; readonly type: typeof closeTracker}
+export type ErrorLoadingNonUserProfilePayload = {
+  readonly payload: _ErrorLoadingNonUserProfilePayload
+  readonly type: typeof errorLoadingNonUserProfile
+}
 export type GetProofSuggestionsPayload = {
   readonly payload: _GetProofSuggestionsPayload
   readonly type: typeof getProofSuggestions
@@ -172,6 +181,7 @@ export type UpdatedDetailsPayload = {
 export type Actions =
   | ChangeFollowPayload
   | CloseTrackerPayload
+  | ErrorLoadingNonUserProfilePayload
   | GetProofSuggestionsPayload
   | IgnorePayload
   | LoadNonUserProfilePayload
