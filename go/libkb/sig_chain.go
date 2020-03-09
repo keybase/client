@@ -293,12 +293,22 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	// has not interacted with the deleted user. The idea being if you have
 	// interacted (chatted, etc) with this user you should still verify their
 	// sigchain. Otherwise you can ignore it.
-	if val, err := jsonparserw.GetInt(body, "status", "code"); err == nil {
-		if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
-			// Do not bother trying to read the sigchain - user is
-			// deleted.
-			return nil, UserDeletedError{}
-		}
+	var val int64
+	val, err = jsonparserw.GetInt(body, "status", "code")
+
+	// Server should always reply with a valid status code
+	if err != nil {
+		return nil, err
+	}
+
+	if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
+		// Do not bother trying to read the sigchain - user is
+		// deleted.
+		return nil, UserDeletedError{}
+	}
+
+	if keybase1.StatusCode(val) != keybase1.StatusCode_SCOk {
+		m.Debug("SigChain#LoadServerBody: got unexpected status code (%d) but continuing", val)
 	}
 
 	foundTail := false
@@ -307,12 +317,13 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	var tail *ChainLink
 
 	numEntries := 0
+	var travErr error
 
-	_, err = jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+	_, travErr = jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
 		if link, err = ImportLinkFromServer(m, sc, value, selfUID); err != nil {
-			m.Debug("ImportLinkFromServer error (offset=%d): %s", offset, err)
+			m.Debug("ImportLinkFromServer error at link %d: %s", numEntries+1, err)
 			return
 		}
 		if link.GetSeqno() <= low {
@@ -329,6 +340,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		links = append(links, link)
 		if !foundTail && t != nil {
 			if foundTail, err = link.checkAgainstMerkleTree(t); err != nil {
+				m.Debug("checkAgainstMerkleTree failure error at link %d: %s", numEntries+1, err)
 				return
 			}
 		}
@@ -336,8 +348,14 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		tail = link
 		numEntries++
 	}, "sigs")
+
 	if err != nil {
+		m.Debug("SigChain#LoadServerBody: failing due to bad chainlink: %s", err)
 		return nil, err
+	}
+	if travErr != nil {
+		m.Debug("SigChain#LoadServerBody: traverse error: %s", travErr)
+		return nil, travErr
 	}
 
 	m.Debug("| Got back %d new entries", numEntries)
