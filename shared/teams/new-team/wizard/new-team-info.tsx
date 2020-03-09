@@ -22,12 +22,18 @@ const NewTeamInfo = () => {
   const [teamNameTaken, setTeamNameTaken] = React.useState(false)
   const checkTeamNameTaken = Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise)
   React.useEffect(() => {
-    if (name !== '') {
-      checkTeamNameTaken([{teamName: name.split('.') as RPCTypes.TeamName}], setTeamNameTaken, e =>
-        setTeamNameTakenError(e.message)
+    if (name.length >= 3) {
+      checkTeamNameTaken(
+        [{teamName: {parts: name.split('.')}}],
+        taken => {
+          setTeamNameTaken(taken)
+          // setTeamNameTakenError('')
+        },
+        e => setTeamNameTakenError(e.message)
       )
     } else {
       setTeamNameTaken(false)
+      setTeamNameTakenError(null)
     }
   }, [name, setTeamNameTaken, checkTeamNameTaken])
 
