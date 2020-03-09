@@ -318,14 +318,29 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 
 	numEntries := 0
 	var travErr error
+	var linkErr error
 
 	_, travErr = jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(m, sc, value, selfUID); err != nil {
-			m.Debug("ImportLinkFromServer error at link %d: %s", numEntries+1, err)
+		var tmpErr error
+
+		if inErr != nil {
+			m.Debug("ImportLinkFromServer: jsonparser failed with error %s", inErr)
+			linkErr = inErr
 			return
 		}
+
+		// NOTE: there isn't a good way to signal to ArrayEach to early-out of the traversal.
+		// If we do hit such an error, we set linkErr with the last-error wins strategy.
+		// And any linkErr being set is enough to kill the chain reconstruction.
+		link, tmpErr = ImportLinkFromServer(m, sc, value, selfUID)
+		if tmpErr != nil {
+			m.Debug("ImportLinkFromServer error at link %d: %s", numEntries+1, tmpErr)
+			linkErr = tmpErr
+			return
+		}
+
 		if link.GetSeqno() <= low {
 			return
 		}
@@ -338,9 +353,11 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 			link.isOwnNewLinkFromServer = true
 		}
 		links = append(links, link)
-		if !foundTail && t != nil {
-			if foundTail, err = link.checkAgainstMerkleTree(t); err != nil {
-				m.Debug("checkAgainstMerkleTree failure error at link %d: %s", numEntries+1, err)
+		if !foundTail && t != nil && !link.IsStubbed() {
+			foundTail, tmpErr = link.checkAgainstMerkleTree(t)
+			if tmpErr != nil {
+				m.Debug("checkAgainstMerkleTree failure error at link %d: %s", numEntries+1, tmpErr)
+				linkErr = tmpErr
 				return
 			}
 		}
@@ -349,8 +366,11 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		numEntries++
 	}, "sigs")
 
-	if err != nil {
-		m.Debug("SigChain#LoadServerBody: failing due to bad chainlink: %s", err)
+	// We hit this error condition if there was an error iterating through the chain above.
+	// Note that ArrayEach doesn't allow a better to propagate an error, so we use this locally
+	// scoped error to signal that one of the links failed to import. Last writer wins here.
+	if linkErr != nil {
+		m.Debug("SigChain#LoadServerBody: failing due to bad chainlink: %s", linkErr)
 		return nil, err
 	}
 	if travErr != nil {
