@@ -9,6 +9,7 @@ import {RetentionPolicy} from '../constants/types/retention-policy'
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
 export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
+export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
@@ -100,6 +101,7 @@ export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
 type _AddMembersWizardPushMembersPayload = {readonly members: Array<Types.AddingMember>}
+type _AddMembersWizardRemoveMemberPayload = {readonly assertion: string}
 type _AddParticipantPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -407,6 +409,12 @@ export const createLoadWelcomeMessage = (payload: _LoadWelcomeMessagePayload): L
 export const createLoadedWelcomeMessage = (
   payload: _LoadedWelcomeMessagePayload
 ): LoadedWelcomeMessagePayload => ({payload, type: loadedWelcomeMessage})
+/**
+ * Remove a pending member from the add members wizard.
+ */
+export const createAddMembersWizardRemoveMember = (
+  payload: _AddMembersWizardRemoveMemberPayload
+): AddMembersWizardRemoveMemberPayload => ({payload, type: addMembersWizardRemoveMember})
 /**
  * Rename a subteam
  */
@@ -721,6 +729,10 @@ export type AddMembersWizardPushMembersPayload = {
   readonly payload: _AddMembersWizardPushMembersPayload
   readonly type: typeof addMembersWizardPushMembers
 }
+export type AddMembersWizardRemoveMemberPayload = {
+  readonly payload: _AddMembersWizardRemoveMemberPayload
+  readonly type: typeof addMembersWizardRemoveMember
+}
 export type AddParticipantPayload = {
   readonly payload: _AddParticipantPayload
   readonly type: typeof addParticipant
@@ -1021,6 +1033,7 @@ export type UploadTeamAvatarPayload = {
 // prettier-ignore
 export type Actions =
   | AddMembersWizardPushMembersPayload
+  | AddMembersWizardRemoveMemberPayload
   | AddParticipantPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload

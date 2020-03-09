@@ -136,7 +136,7 @@ const AddingMembers = () => {
   const content = (
     <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
-        <AddingMember key={toAdd.assertion} {...toAdd} />
+        <AddingMember key={toAdd.assertion} {...toAdd} lastMember={addingMembers.length === 1} />
       ))}
       {showDivider && (
         <Kb.ClickableBox onClick={toggleExpanded}>
@@ -165,8 +165,10 @@ const AddingMembers = () => {
   return <Kb.ScrollView style={styles.addingMembers}>{content}</Kb.ScrollView>
 }
 
-const AddingMember = (props: Types.AddingMember) => {
-  const {role, teamID} = Container.useSelector(s => s.teams.addMembersWizard)
+const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
+  const dispatch = Container.useDispatch()
+  const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+  const {role} = Container.useSelector(s => s.teams.addMembersWizard)
   const showDropdown = role === undefined
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
@@ -174,7 +176,7 @@ const AddingMember = (props: Types.AddingMember) => {
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.assertion]} />
       </Kb.Box2>
-      <Kb.Icon type="iconfont-remove" sizeType="Small" />
+      {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
     </Kb.Box2>
   )
 }
