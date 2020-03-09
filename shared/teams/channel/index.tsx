@@ -97,7 +97,7 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const emptyMap = new Map()
+const emptyMapForUseSelector = new Map()
 const Channel = (props: OwnProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
@@ -108,7 +108,9 @@ const Channel = (props: OwnProps) => {
   )
   const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
-  const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID) ?? emptyMap)
+  const teamMembers = Container.useSelector(
+    state => state.teams.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector
+  )
 
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, participants, bots)
