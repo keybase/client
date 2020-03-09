@@ -89,7 +89,7 @@ const getBaseHeight = (path: Types.Path) => {
     Styles.statusBarHeight +
     44 +
     (path === Constants.defaultPath
-      ? 0
+      ? Styles.headerExtraHeight
       : (Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
   )
 }
