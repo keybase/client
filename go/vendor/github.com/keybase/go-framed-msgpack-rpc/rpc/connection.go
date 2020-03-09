@@ -7,13 +7,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"sync"
 	"time"
-
-	pkgErrors "github.com/pkg/errors"
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
@@ -661,7 +658,6 @@ func (c *Connection) DoCommand(ctx context.Context, name string, timeout time.Du
 	for {
 		if (c.firstConnectDelayDuration != 0 ||
 			c.initialReconnectBackoffWindow != nil) && isWithFireNow(ctx) {
-			c.log.Debug("SONGGAO: firenow", LogField{Key: "stack", Value: fmt.Sprintf("%+v", pkgErrors.WithStack(errors.New("lol")))})
 			c.connectDelayTimer.FireNow()
 		}
 
@@ -903,7 +899,6 @@ func (c *Connection) Shutdown() {
 // FastForwardConnectDelayTimer causes any pending reconnect to happen
 // immediately.
 func (c *Connection) FastForwardConnectDelayTimer() {
-	c.log.Debug("FastForwardConnectDelayTimer")
 	c.connectDelayTimer.FireNow()
 }
 
