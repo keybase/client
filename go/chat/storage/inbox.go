@@ -672,7 +672,7 @@ func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err Error) {
 		err = NewInternalError(ctx, i.DebugLabeler, msg)
 		i.Debug(ctx, msg)
 	}
-	return nil
+	return err
 }
 
 func (i *Inbox) ClearInMemory(ctx context.Context, uid gregor1.UID) (err Error) {
