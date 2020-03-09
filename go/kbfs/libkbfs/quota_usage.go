@@ -220,7 +220,6 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 	switch err {
 	case nil:
 	case context.DeadlineExceeded:
-		q.log.CDebugf(ctx, "SONGGAO deadlineexceeded")
 		go q.doBackgroundFetch()
 		if quotaInfoFromCache != nil {
 			q.log.CDebugf(ctx, "Can't contact server; using cached quota")

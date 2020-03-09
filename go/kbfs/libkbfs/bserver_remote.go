@@ -627,6 +627,10 @@ func (b *BlockServerRemote) IsUnflushed(
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
+	// This method called when kbfs process starts up. So if
+	// InitialDelayForBackgroundWork is set for the mode (usually means we're
+	// on mobile), don't set "fire now" in context, to avoid unintionally fast
+	// forwarding the delay timer for connecting to bserver.
 	if b.config.Mode().InitialDelayForBackgroundWork() == 0 {
 		ctx = rpc.WithFireNow(ctx)
 	}

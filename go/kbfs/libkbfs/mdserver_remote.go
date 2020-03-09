@@ -122,7 +122,7 @@ func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
-		FirstConnectDelayDuration:     mdserveFirstConnectDelay,
+		FirstConnectDelayDuration:     mdserverFirstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return mdserverReconnectBackoffWindow },
 	}
 	mdServer.initNewConnection()
@@ -482,10 +482,6 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 			md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect (%s), but not reconnecting", err.Error())
 		}
-	} else {
-		md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
-			"dial succeeded; fast forwarding any pending reconnect")
-		// md.conn.FastForwardConnectDelayTimer()
 	}
 	if conn != nil {
 		conn.Close()
