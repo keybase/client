@@ -72,6 +72,7 @@ func (i *inboxDiskIndex) mergeConvs(convIDs []chat1.ConversationID) {
 	for _, convID := range i.ConversationIDs {
 		delete(m, convID.String())
 	}
+	fmt.Printf("DBG: existing: %d new: %d\n", len(i.ConversationIDs), len(m))
 	for _, convID := range m {
 		i.ConversationIDs = append(i.ConversationIDs, convID)
 	}
@@ -316,6 +317,7 @@ func (i *Inbox) readConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 }
 
 func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation) Error {
+	i.summarizeConvs(convs)
 	for _, conv := range convs {
 		existing, err := i.readConv(ctx, uid, conv.GetConvID())
 		if err == nil && existing.GetVersion() > conv.GetVersion() {
@@ -399,7 +401,7 @@ func (i *Inbox) readDiskVersionsIndexMissOk(ctx context.Context, uid gregor1.UID
 			return vers, index, err
 		}
 	}
-	if index, err := i.readDiskIndex(ctx, uid, true); err != nil {
+	if index, err = i.readDiskIndex(ctx, uid, true); err != nil {
 		if _, ok := err.(MissError); !ok {
 			return vers, index, err
 		}
@@ -494,7 +496,7 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 	} else {
 		i.Debug(ctx, "Merge: using given version: %d", vers)
 	}
-	i.Debug(ctx, "Merge: merging inbox: vers: %d", vers)
+	i.Debug(ctx, "Merge: merging inbox: vers: %d convs: %d", vers, len(iboxIndex.ConversationIDs))
 	// Write out new inbox
 	return i.writeDiskVersions(ctx, uid, inboxDiskVersions{
 		Version:      inboxVersion,
@@ -729,11 +731,34 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 	_, err = i.readConv(ctx, uid, conv.GetConvID())
 	known := err == nil
 	if !known {
-		if err := i.writeConv(ctx, uid, utils.RemoteConv(conv)); err != nil {
-			return err
-		}
 		iboxIndex, err := i.readDiskIndex(ctx, uid, true)
 		if err != nil {
+			return err
+		}
+		// Find any conversations this guy might supersede and set supersededBy pointer
+		if len(conv.Metadata.Supersedes) > 0 {
+			for _, convID := range iboxIndex.ConversationIDs {
+				iconv, err := i.readConv(ctx, uid, convID)
+				if err != nil {
+					return err
+				}
+				if iconv.Conv.Metadata.FinalizeInfo == nil {
+					continue
+				}
+				for _, super := range conv.Metadata.Supersedes {
+					if iconv.GetConvID().Eq(super.ConversationID) {
+						i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
+							iconv.ConvIDStr, conv.GetConvID())
+						iconv.Conv.Metadata.SupersededBy = append(iconv.Conv.Metadata.SupersededBy, conv.Metadata)
+						iconv.Conv.Metadata.Version = vers.ToConvVers()
+						if err := i.writeConv(ctx, uid, iconv); err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+		if err := i.writeConv(ctx, uid, utils.RemoteConv(conv)); err != nil {
 			return err
 		}
 		// only chat convs for layout changed
