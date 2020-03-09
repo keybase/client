@@ -9,14 +9,9 @@ type DesktopProps = {
 
 export interface SectionBase<ItemT> {
   data: ReadonlyArray<ItemT>
-
   key?: string
-
   renderItem?: ({index: number, item: ItemT}) => React.ReactNode | null
-
-  ItemSeparatorComponent?: React.ComponentType<any> | null
-
-  keyExtractor?: (item: ItemT, index: number) => string
+  // There exist mobile-only keyExtractor and ItemSeparatorComponent here, not included because I think they would create more confusion than usefulness and a mobile-only situation can import the native sectionlist anyway.
 }
 
 type PartialProps<ItemT> = {sections: Array<SectionBase<ItemT>>}

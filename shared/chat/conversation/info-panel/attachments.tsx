@@ -636,8 +636,10 @@ export const useAttachmentSections = (p: Props, loadImmediately: boolean, useFle
         break
     }
   }
+
   return sections
 }
+
 export default (p: Props) => {
   const sections = useAttachmentSections(p, true, false)
   return (

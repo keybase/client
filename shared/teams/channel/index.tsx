@@ -104,7 +104,7 @@ const Channel = (props: OwnProps) => {
   const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
 
   const {bots, participants} = Container.useSelector(state =>
-    ChatConstants.getBotsAndParticipants(state, conversationIDKey)
+    ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */)
   )
   const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
@@ -133,8 +133,8 @@ const Channel = (props: OwnProps) => {
 
   const attachmentSections = useAttachmentSections(
     {commonSections: [], conversationIDKey, renderTabs: () => null},
-    selectedTab === 'attachments',
-    true
+    selectedTab === 'attachments', // load data immediately
+    true // variable width
   )
 
   const sections: Array<SectionBase<any> & {title?: string}> = [headerSection]
