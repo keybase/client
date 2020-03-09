@@ -11,6 +11,7 @@ if (__DEV__ && flags.whyDidYouRender) {
   const whyDidYouRender = require('@welldone-software/why-did-you-render/dist/no-classes-transpile/umd/whyDidYouRender.min.js')
   const ReactRedux = require('react-redux')
   whyDidYouRender(React, {
+    exclude: [/Box/],
     trackAllPureComponents: true,
     trackExtraHooks: [[ReactRedux, 'useSelector']],
   })

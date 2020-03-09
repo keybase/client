@@ -5,7 +5,7 @@ import {Box} from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {IconType} from '../icon'
 import Text, {TextType, StylesTextCrossPlatform, AllowedColors} from '../text'
-import ConnectedUsernames from '../usernames/container'
+import ConnectedUsernames from '../usernames'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
