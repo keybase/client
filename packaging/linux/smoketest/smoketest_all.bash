@@ -25,9 +25,7 @@ for platform in */; do
         vagrant up
         vagrant rsync
         set +e
-        ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" \
-            -i .vagrant/machines/default/virtualbox/private_key \
-            -Y -p "$(cat port)" vagrant@localhost <<EOF
+        ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i .vagrant/machines/default/virtualbox/private_key -Y -p "$(cat port)" vagrant@localhost <<"EOF"
                 /vagrant/smoketest.bash "$version" "$datetime" "$revision"
                 exit
 EOF

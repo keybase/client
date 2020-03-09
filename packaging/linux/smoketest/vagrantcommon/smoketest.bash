@@ -16,6 +16,13 @@ version=$1
 datetime=$2
 revision=$3
 
+# Electron 8 upgraded to a version of Chromium that needs some flags for x forwarding to work
+# properly.
+# Source: https://bugs.chromium.org/p/chromium/issues/detail?id=1048186
+export QT_X11_NO_MITSHM=1
+export _X11_NO_MITSHM=1
+export _MITSHM=0
+
 if command -v apt; then
     curl --output ./keybase_amd64.deb --silent --fail "https://s3.amazonaws.com/tests.keybase.io/linux_binaries/deb/keybase_${version}-${datetime}.${revision}_amd64.deb"
     echo vagrant | sudo -S apt -y install ./keybase_amd64.deb
