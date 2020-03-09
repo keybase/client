@@ -987,7 +987,7 @@ type ConversationReaderInfo struct {
 	MaxMsgid          MessageID                    `codec:"maxMsgid" json:"maxMsgid"`
 	Status            ConversationMemberStatus     `codec:"status" json:"status"`
 	UntrustedTeamRole keybase1.TeamRole            `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
-	LatestCtime       gregor1.Time                 `codec:"l" json:"l"`
+	LastSendTime      gregor1.Time                 `codec:"l" json:"l"`
 	Journeycard       *ConversationJourneycardInfo `codec:"jc,omitempty" json:"jc,omitempty"`
 }
 
@@ -998,7 +998,7 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 		MaxMsgid:          o.MaxMsgid.DeepCopy(),
 		Status:            o.Status.DeepCopy(),
 		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
-		LatestCtime:       o.LatestCtime.DeepCopy(),
+		LastSendTime:      o.LastSendTime.DeepCopy(),
 		Journeycard: (func(x *ConversationJourneycardInfo) *ConversationJourneycardInfo {
 			if x == nil {
 				return nil

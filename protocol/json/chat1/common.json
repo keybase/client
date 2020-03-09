@@ -712,7 +712,7 @@
         },
         {
           "type": "gregor1.Time",
-          "name": "latestCtime",
+          "name": "lastSendTime",
           "mpackkey": "l",
           "jsonkey": "l"
         },
