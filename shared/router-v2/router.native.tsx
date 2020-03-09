@@ -55,17 +55,13 @@ const defaultNavigationOptions: any = {
     borderBottomWidth: 1,
     borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
+    ...(Styles.isTablet ? {height: 44 + tabletHeaderExtraHeight} : {}),
   },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
     </Kb.Text>
   ),
-}
-
-if (Styles.isTablet) {
-  // Set height after the fact since literal `height: undefined` would wreck phones.
-  defaultNavigationOptions.headerStyle.height = 44 + tabletHeaderExtraHeight
 }
 
 // workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
