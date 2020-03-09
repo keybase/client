@@ -2680,6 +2680,16 @@ func (e TeamInviteMaxUses) IsValid() bool {
 	return e > 0 || e == TeamMaxUsesInfinite
 }
 
+func (e *TeamInviteMaxUses) String(alreadyUsed int) string {
+	if e == nil {
+		return "1/1 uses left"
+	}
+	if e.IsInfiniteUses() {
+		return "unlimited uses left"
+	}
+	return fmt.Sprintf("%d/%d uses left", int(*e)-alreadyUsed, int(*e))
+}
+
 func (e TeamInviteMaxUses) IsUsedUp(alreadyUsed int) bool {
 	if !e.IsValid() {
 		return true

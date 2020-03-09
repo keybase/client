@@ -371,7 +371,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 		uids = append(uids, member.UserID)
 	}
 	for _, invite := range res.AnnotatedActiveInvites {
-		uids = append(uids, invite.Inviter.Uid)
+		uids = append(uids, invite.Invite.Inviter.Uid)
 	}
 
 	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids,
@@ -402,7 +402,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 		}
 	}
 	for i, invite := range res.AnnotatedActiveInvites {
-		if pkg, ok := namePkgs[invite.Inviter.Uid]; ok {
+		if pkg, ok := namePkgs[invite.Invite.Inviter.Uid]; ok {
 			invite.InviterUsername = pkg.NormalizedUsername.String()
 			res.AnnotatedActiveInvites[i] = invite
 		}
@@ -483,16 +483,44 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 	}
 }
 
+func AnnotateInvitelink(mctx libkb.MetaContext, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteName, err error) {
+	pkey, err := SeitanDecodePKey(string(invite.Name))
+	if err != nil {
+		return name, err
+	}
+	keyAndLabel, err := pkey.DecryptKeyAndLabel(mctx.Ctx(), team)
+	if err != nil {
+		return name, err
+	}
+
+	version, err := keyAndLabel.V()
+	if err != nil {
+		return name, err
+	}
+	if version != keybase1.SeitanKeyAndLabelVersion_Invitelink {
+		return name, fmt.Errorf("AnnotateInvitelink: version not an invitelink: %v", version)
+	}
+
+	serverRoot, err := mctx.G().Env.GetServerURI()
+	if err != nil {
+		return name, err
+	}
+
+	ikey := keyAndLabel.Invitelink().I
+	name = keybase1.TeamInviteName(fmt.Sprintf("%s/invite#id=%s,i=%s", serverRoot, invite.Id, ikey))
+	return name, err
+}
+
 type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
 
-func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (AnnotatedInviteMap, error) {
+func AnnotateInvites(mctx libkb.MetaContext, team *Team) (AnnotatedInviteMap, error) {
 	invites := team.chain().inner.ActiveInvites
 	teamName := team.Name().String()
 
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
-	upakLoader := g.GetUPAKLoader()
+	upakLoader := mctx.G().GetUPAKLoader()
 	for id, invite := range invites {
-		username, err := upakLoader.LookupUsername(ctx, invite.Inviter.Uid)
+		username, err := upakLoader.LookupUsername(mctx.Ctx(), invite.Inviter.Uid)
 		if err != nil {
 			return annotatedInvites, err
 		}
@@ -504,7 +532,8 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 		}
 		var uv keybase1.UserVersion
 		status := keybase1.TeamMemberStatus_ACTIVE
-		if category == keybase1.TeamInviteCategory_KEYBASE {
+		switch category {
+		case keybase1.TeamInviteCategory_KEYBASE:
 			// "keybase" invites (i.e. pukless users) have user version for name
 			var err error
 			uv, err = invite.KeybaseUserVersion()
@@ -522,27 +551,33 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 				status = keybase1.TeamMemberStatus_DELETED
 			}
 			name = keybase1.TeamInviteName(up.Username)
-		} else if category == keybase1.TeamInviteCategory_SEITAN {
-			name, err = AnnotateSeitanInvite(ctx, team, invite)
+		case keybase1.TeamInviteCategory_SEITAN:
+			name, err = AnnotateSeitanInvite(mctx.Ctx(), team, invite)
 			if err != nil {
 				// There are seitan invites in the wild from before
 				// https://github.com/keybase/client/pull/9816 These can no
 				// longer be decrypted, we hide them.
-				g.Log.CDebugf(ctx, "error annotating seitan invite (%v): %v", id, err)
+				mctx.Debug("error annotating seitan invite (%v): %v", id, err)
 				continue
 			}
+		case keybase1.TeamInviteCategory_INVITELINK:
+			name, err = AnnotateInvitelink(mctx, team, invite)
+			if err != nil {
+				mctx.Warning("error annotating invitelink (%v): %v", id, err)
+				continue
+			}
+		default:
 		}
 
+		displayInvite := invite.DeepCopy()
+		displayInvite.Name = name
 		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
-			Role:            invite.Role,
-			Id:              invite.Id,
-			Type:            invite.Type,
-			Name:            name,
-			Uv:              uv,
-			Inviter:         invite.Inviter,
+			Invite:          displayInvite,
 			InviterUsername: username.String(),
+			InviteeUv:       uv,
 			TeamName:        teamName,
-			Status:          status,
+			Status:          &status,
+			UsedInvites:     team.chain().inner.UsedInvites[invite.Id],
 		}
 	}
 	return annotatedInvites, nil
@@ -563,7 +598,7 @@ func addKeybaseInviteToRes(ctx context.Context, memb keybase1.TeamMemberDetails,
 // UIDMapper, so it's fast but may be wrong. It also puts any keybase
 // invites to members set which reference should be passed as argument.
 // PUKless members also will not be present in returned AnnotatedInviteMap.
-func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team *Team,
+func AnnotateInvitesUIDMapper(mctx libkb.MetaContext, team *Team,
 	members *keybase1.TeamMembersDetails) (AnnotatedInviteMap, error) {
 	invites := team.chain().inner.ActiveInvites
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
@@ -590,16 +625,16 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 		}
 	}
 
-	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids,
+	namePkgs, err := uidmap.MapUIDsReturnMap(mctx.Ctx(), mctx.G().UIDMapper, mctx.G(), uids,
 		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
 	if err != nil {
 		// UIDMap returned an error, but there may be useful data in the result.
-		g.Log.CDebugf(ctx, "AnnotateInvitesUIDMapper: MapUIDsReturnMap returned: %v", err)
+		mctx.Debug("AnnotateInvitesUIDMapper: MapUIDsReturnMap returned: %v", err)
 	}
 
 	teamName := team.Name().String()
 	for id, invite := range invites {
-		username := namePkgs[invite.Inviter.Uid].NormalizedUsername
+		inviterUsername := namePkgs[invite.Inviter.Uid].NormalizedUsername
 
 		name := invite.Name
 		category, err := invite.Type.C()
@@ -607,7 +642,8 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 			return nil, err
 		}
 		var uv keybase1.UserVersion
-		if category == keybase1.TeamInviteCategory_KEYBASE {
+		switch category {
+		case keybase1.TeamInviteCategory_KEYBASE:
 			// "keybase" invites (i.e. pukless users) have user version for name
 			uv, err := invite.KeybaseUserVersion()
 			if err != nil {
@@ -636,37 +672,43 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 
 			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
-				members.Owners = addKeybaseInviteToRes(ctx, details, members.Owners)
+				members.Owners = addKeybaseInviteToRes(mctx.Ctx(), details, members.Owners)
 			case keybase1.TeamRole_ADMIN:
-				members.Admins = addKeybaseInviteToRes(ctx, details, members.Admins)
+				members.Admins = addKeybaseInviteToRes(mctx.Ctx(), details, members.Admins)
 			case keybase1.TeamRole_WRITER:
-				members.Writers = addKeybaseInviteToRes(ctx, details, members.Writers)
+				members.Writers = addKeybaseInviteToRes(mctx.Ctx(), details, members.Writers)
 			case keybase1.TeamRole_READER:
-				members.Readers = addKeybaseInviteToRes(ctx, details, members.Readers)
+				members.Readers = addKeybaseInviteToRes(mctx.Ctx(), details, members.Readers)
 			}
 
 			// Continue to skip adding this invite to annotatedInvites
 			continue
-		} else if category == keybase1.TeamInviteCategory_SEITAN {
-			name, err = AnnotateSeitanInvite(ctx, team, invite)
+		case keybase1.TeamInviteCategory_SEITAN:
+			name, err = AnnotateSeitanInvite(mctx.Ctx(), team, invite)
 			if err != nil {
 				// There are seitan invites in the wild from before
 				// https://github.com/keybase/client/pull/9816 These can no
 				// longer be decrypted, we hide them.
-				g.Log.CDebugf(ctx, "error annotating seitan invite (%v): %v", id, err)
+				mctx.Debug("error annotating seitan invite (%v): %v", id, err)
 				continue
 			}
+		case keybase1.TeamInviteCategory_INVITELINK:
+			name, err = AnnotateInvitelink(mctx, team, invite)
+			if err != nil {
+				mctx.Warning("error annotating invitelink (%v): %v", id, err)
+				continue
+			}
+		default:
 		}
 
+		displayInvite := invite.DeepCopy()
+		displayInvite.Name = name
 		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
-			Role:            invite.Role,
-			Id:              invite.Id,
-			Type:            invite.Type,
-			Name:            name,
-			Uv:              uv,
-			Inviter:         invite.Inviter,
-			InviterUsername: username.String(),
+			Invite:          displayInvite,
+			InviteeUv:       uv,
+			InviterUsername: inviterUsername.String(),
 			TeamName:        teamName,
+			UsedInvites:     team.chain().inner.UsedInvites[invite.Id],
 		}
 	}
 
@@ -682,7 +724,8 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 			continue
 		}
 
-		if category == keybase1.TeamInviteCategory_KEYBASE {
+		switch category {
+		case keybase1.TeamInviteCategory_KEYBASE:
 			// Treat KEYBASE invites (for PUK-less users) as
 			// team members.
 			uv, err := invite.KeybaseUserVersion()
@@ -701,16 +744,11 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 				Implicit:       nil,
 				Status:         keybase1.TeamMemberStatus_ACTIVE,
 			})
-		} else if category == keybase1.TeamInviteCategory_SEITAN {
-			// no-op - do not parse seitans. We shouldn't even
-			// see them - they should all be stubbed out.
-		} else {
+		case keybase1.TeamInviteCategory_SEITAN, keybase1.TeamInviteCategory_INVITELINK:
+			// Don't show seitans or links in this view.
+		default:
 			res.AnnotatedActiveInvites[invID] = keybase1.AnnotatedTeamInvite{
-				Role:     invite.Role,
-				Id:       invite.Id,
-				Type:     invite.Type,
-				Name:     invite.Name,
-				Inviter:  invite.Inviter,
+				Invite:   invite,
 				TeamName: team.Name().String(),
 			}
 		}

@@ -45,7 +45,7 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 	if err != nil {
 		return res, err
 	}
-	det, err := details(ctx, g, t, tracer)
+	det, err := details(mctx, t, tracer)
 	if err != nil {
 		return res, err
 	}
@@ -135,7 +135,7 @@ func DetailsByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID
 	if err != nil {
 		return res, err
 	}
-	return details(ctx, g, t, tracer)
+	return details(libkb.NewMetaContext(ctx, g), t, tracer)
 }
 
 // Details returns TeamDetails for team name. Keybase-type invites are
@@ -154,26 +154,26 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keyb
 	if err != nil {
 		return res, err
 	}
-	return details(ctx, g, t, tracer)
+	return details(libkb.NewMetaContext(ctx, g), t, tracer)
 }
 
-func details(ctx context.Context, g *libkb.GlobalContext, t *Team, tracer profiling.TimeTracer) (res keybase1.TeamDetails, err error) {
+func details(mctx libkb.MetaContext, t *Team, tracer profiling.TimeTracer) (res keybase1.TeamDetails, err error) {
 	res.KeyGeneration = t.Generation()
 	tracer.Stage("members")
-	res.Members, err = MembersDetails(ctx, g, t)
+	res.Members, err = MembersDetails(mctx.Ctx(), mctx.G(), t)
 	if err != nil {
 		return res, err
 	}
 
 	tracer.Stage("invites")
-	annotatedInvites, err := AnnotateInvitesUIDMapper(ctx, g, t, &res.Members)
+	annotatedInvites, err := AnnotateInvitesUIDMapper(mctx, t, &res.Members)
 	if err != nil {
 		return res, err
 	}
 	res.AnnotatedActiveInvites = annotatedInvites
 
-	membersHideDeletedUsers(ctx, g, &res.Members)
-	membersHideInactiveDuplicates(ctx, g, &res.Members)
+	membersHideDeletedUsers(mctx.Ctx(), mctx.G(), &res.Members)
+	membersHideInactiveDuplicates(mctx.Ctx(), mctx.G(), &res.Members)
 
 	res.Settings.Open = t.IsOpen()
 	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
@@ -194,7 +194,7 @@ func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 		return nil, err
 	}
 
-	return userVersionsToDetails(ctx, g, uvs, nil)
+	return userVersionsToDetails(libkb.NewMetaContext(ctx, g), uvs, nil)
 }
 
 func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
@@ -257,32 +257,34 @@ func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, 
 }
 
 func MembersDetails(ctx context.Context, g *libkb.GlobalContext, t *Team) (ret keybase1.TeamMembersDetails, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+
 	m, err := t.Members()
 	if err != nil {
 		return ret, err
 	}
 
-	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners, t)
+	ret.Owners, err = userVersionsToDetails(mctx, m.Owners, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins, t)
+	ret.Admins, err = userVersionsToDetails(mctx, m.Admins, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers, t)
+	ret.Writers, err = userVersionsToDetails(mctx, m.Writers, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers, t)
+	ret.Readers, err = userVersionsToDetails(mctx, m.Readers, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.Bots, err = userVersionsToDetails(ctx, g, m.Bots, t)
+	ret.Bots, err = userVersionsToDetails(mctx, m.Bots, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.RestrictedBots, err = userVersionsToDetails(ctx, g, m.RestrictedBots, t)
+	ret.RestrictedBots, err = userVersionsToDetails(mctx, m.RestrictedBots, t)
 	if err != nil {
 		return ret, err
 	}
@@ -292,12 +294,12 @@ func MembersDetails(ctx context.Context, g *libkb.GlobalContext, t *Team) (ret k
 // userVersionsToDetails returns a slice of TeamMemberDetails objects, to be
 // used in relation to a specific team. The *Team parameter is optional, and
 // used to compute the joinTime in which the user joined the team.
-func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, t *Team) (ret []keybase1.TeamMemberDetails, err error) {
+func userVersionsToDetails(mctx libkb.MetaContext, uvs []keybase1.UserVersion, t *Team) (ret []keybase1.TeamMemberDetails, err error) {
 	uids := make([]keybase1.UID, len(uvs))
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
 	}
-	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids,
+	packages, err := mctx.G().UIDMapper.MapUIDsToUsernamePackages(mctx.Ctx(), mctx.G(), uids,
 		defaultFullnameFreshness, defaultNetworkTimeBudget, true /* forceNetworkForFullNames */)
 	if err != nil {
 		return nil, err

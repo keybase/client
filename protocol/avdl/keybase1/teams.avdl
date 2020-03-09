@@ -230,8 +230,7 @@ protocol teams {
     // here.
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
     // If added UserVersion uses a multi-use invite, store the inviteID->UV pair
-    // here. This only applies to multi-use invites (invites with max_uses field).
-    // Any other invite should use completedInvites.
+    // here. This applies to new-style invites (invites with max_uses field).
     array<TeamUsedInvite> usedInvites;
   }
 
@@ -623,22 +622,28 @@ protocol teams {
     TeamRole role;
     TeamInviteID id;
     TeamInviteType type;
+
+    // For seitan invites and invitelink invites, the invite name is rewritten
+    // from an encrypted blob to a human-readable name.
     TeamInviteName name;
+
     UserVersion inviter;
     union { null, TeamInviteMaxUses } maxUses;
     union { null, UnixTime } etime;
   }
 
   record AnnotatedTeamInvite {
-    TeamRole role;
-    TeamInviteID id;
-    TeamInviteType type;
-    TeamInviteName name;
-    UserVersion uv;
-    UserVersion inviter;
+    TeamInvite invite;
+
     string inviterUsername;
+    UserVersion inviteeUv;
     string teamName;
-    TeamMemberStatus status;
+
+    // null for multiuse invites
+    union { null, TeamMemberStatus } status;
+
+    // non-empty for multiuse unvites
+    array<TeamUsedInviteLog> usedInvites;
   }
 
   record TeamEncryptedKBFSKeyset {

@@ -96,6 +96,11 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		c.TeamInviteMaxUses, err = keybase1.NewTeamInviteFiniteUses(1)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

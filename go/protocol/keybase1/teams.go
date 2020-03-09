@@ -1761,28 +1761,38 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 }
 
 type AnnotatedTeamInvite struct {
-	Role            TeamRole         `codec:"role" json:"role"`
-	Id              TeamInviteID     `codec:"id" json:"id"`
-	Type            TeamInviteType   `codec:"type" json:"type"`
-	Name            TeamInviteName   `codec:"name" json:"name"`
-	Uv              UserVersion      `codec:"uv" json:"uv"`
-	Inviter         UserVersion      `codec:"inviter" json:"inviter"`
-	InviterUsername string           `codec:"inviterUsername" json:"inviterUsername"`
-	TeamName        string           `codec:"teamName" json:"teamName"`
-	Status          TeamMemberStatus `codec:"status" json:"status"`
+	Invite          TeamInvite          `codec:"invite" json:"invite"`
+	InviterUsername string              `codec:"inviterUsername" json:"inviterUsername"`
+	InviteeUv       UserVersion         `codec:"inviteeUv" json:"inviteeUv"`
+	TeamName        string              `codec:"teamName" json:"teamName"`
+	Status          *TeamMemberStatus   `codec:"status,omitempty" json:"status,omitempty"`
+	UsedInvites     []TeamUsedInviteLog `codec:"usedInvites" json:"usedInvites"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 	return AnnotatedTeamInvite{
-		Role:            o.Role.DeepCopy(),
-		Id:              o.Id.DeepCopy(),
-		Type:            o.Type.DeepCopy(),
-		Name:            o.Name.DeepCopy(),
-		Uv:              o.Uv.DeepCopy(),
-		Inviter:         o.Inviter.DeepCopy(),
+		Invite:          o.Invite.DeepCopy(),
 		InviterUsername: o.InviterUsername,
+		InviteeUv:       o.InviteeUv.DeepCopy(),
 		TeamName:        o.TeamName,
-		Status:          o.Status.DeepCopy(),
+		Status: (func(x *TeamMemberStatus) *TeamMemberStatus {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Status),
+		UsedInvites: (func(x []TeamUsedInviteLog) []TeamUsedInviteLog {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamUsedInviteLog, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UsedInvites),
 	}
 }
 

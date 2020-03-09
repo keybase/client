@@ -1372,40 +1372,34 @@
       "name": "AnnotatedTeamInvite",
       "fields": [
         {
-          "type": "TeamRole",
-          "name": "role"
-        },
-        {
-          "type": "TeamInviteID",
-          "name": "id"
-        },
-        {
-          "type": "TeamInviteType",
-          "name": "type"
-        },
-        {
-          "type": "TeamInviteName",
-          "name": "name"
-        },
-        {
-          "type": "UserVersion",
-          "name": "uv"
-        },
-        {
-          "type": "UserVersion",
-          "name": "inviter"
+          "type": "TeamInvite",
+          "name": "invite"
         },
         {
           "type": "string",
           "name": "inviterUsername"
         },
         {
+          "type": "UserVersion",
+          "name": "inviteeUv"
+        },
+        {
           "type": "string",
           "name": "teamName"
         },
         {
-          "type": "TeamMemberStatus",
+          "type": [
+            null,
+            "TeamMemberStatus"
+          ],
           "name": "status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamUsedInviteLog"
+          },
+          "name": "usedInvites"
         }
       ]
     },
