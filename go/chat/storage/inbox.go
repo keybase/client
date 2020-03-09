@@ -318,7 +318,7 @@ func (i *Inbox) readConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation) Error {
 	for _, conv := range convs {
 		existing, err := i.readConv(ctx, uid, conv.GetConvID())
-		if err == nil || existing.GetVersion() > conv.GetVersion() {
+		if err == nil && existing.GetVersion() > conv.GetVersion() {
 			i.Debug(ctx, "writeConvs: skipping write because of newer stored version: convID: %s old: %d new: %d", conv.ConvIDStr, existing.GetVersion(), conv.GetVersion())
 			continue
 		}
@@ -334,6 +334,14 @@ func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.R
 
 func (i *Inbox) writeConv(ctx context.Context, uid gregor1.UID, conv types.RemoteConversation) Error {
 	return i.writeConvs(ctx, uid, []types.RemoteConversation{conv})
+}
+
+type ByDatabaseOrder []types.RemoteConversation
+
+func (a ByDatabaseOrder) Len() int      { return len(a) }
+func (a ByDatabaseOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByDatabaseOrder) Less(i, j int) bool {
+	return utils.DBConvLess(a[i], a[j])
 }
 
 func (i *Inbox) summarizeConv(rc *types.RemoteConversation) {
