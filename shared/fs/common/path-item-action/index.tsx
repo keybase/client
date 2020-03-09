@@ -106,9 +106,11 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           marginTop: 12,
+          width: 280,
         },
         isMobile: {
           marginTop: undefined,
+          width: '100%',
         },
       }),
     } as const)

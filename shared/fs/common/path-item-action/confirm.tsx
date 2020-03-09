@@ -37,7 +37,6 @@ export default (props: Props) => (
     closeOnSelect={false}
     closeText="Cancel"
     containerStyle={props.floatingMenuProps.containerStyle}
-    wide={true}
     attachTo={props.floatingMenuProps.attachTo}
     visible={props.floatingMenuProps.visible}
     onHidden={props.floatingMenuProps.hide}
