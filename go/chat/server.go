@@ -2968,7 +2968,7 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 		return res, err
 	}
 
-	var providedUIDs []keybase1.UID
+	providedUIDs := make([]keybase1.UID, 0, len(usernames))
 	for _, username := range usernames {
 		providedUIDs = append(providedUIDs, libkb.GetUIDByUsername(h.G().GlobalContext, username))
 	}
