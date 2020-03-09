@@ -73,6 +73,7 @@ const AddMoreMembers = () => {
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
+  const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}
@@ -81,7 +82,7 @@ const AddMoreMembers = () => {
       visible={showingPopup}
       items={[
         {onClick: onAddKeybase, title: 'From Keybase'},
-        {title: 'By email address'},
+        {onClick: onAddEmail, title: 'By email address'},
         {onClick: onAddPhone, title: 'By phone number'},
       ]}
     />

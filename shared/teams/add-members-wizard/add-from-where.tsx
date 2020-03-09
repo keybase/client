@@ -23,6 +23,7 @@ const AddFromWhere = (props: Props) => {
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
+  const onContinueEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
   return (
     <Kb.Modal
       allowOverflow={true}
@@ -73,7 +74,7 @@ const AddFromWhere = (props: Props) => {
           icon="icon-teams-add-email-list-64"
           title="A list of email addresses"
           description="Enter one or multiple email addresses."
-          onClick={() => {} /* TODO add nav */}
+          onClick={onContinueEmail}
         />
         {Styles.isMobile && (
           <Kb.RichButton
