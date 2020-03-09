@@ -1010,5 +1010,7 @@ func transformSaltpackError(err *error) {
 	case *os.PathError:
 		// this should remove the path from the error
 		*err = e.Unwrap()
+	default:
+		// golangci-lint/gocritic, you really drive me crazy sometimes...
 	}
 }
