@@ -2002,7 +2002,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s is new-style in implicit team", id))
 			}
 			if res.MaxUses == nil {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s is new-style type but has no max-uses", key))
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s is new-style but has no max-uses", key))
 			}
 			if !res.MaxUses.IsValid() {
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid max_uses %d", id, *res.MaxUses))
