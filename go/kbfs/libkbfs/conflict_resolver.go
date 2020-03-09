@@ -3645,7 +3645,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			mostRecentMergedMD = mergedMDs[len(mergedMDs)-1]
 		} else {
 			branchPoint := unmergedMDs[0].Revision() - 1
-			mostRecentMergedMD, err = getSingleMD(ctx, cr.config, cr.fbo.id(),
+			mostRecentMergedMD, err = GetSingleMD(ctx, cr.config, cr.fbo.id(),
 				kbfsmd.NullBranchID, branchPoint, kbfsmd.Merged, nil)
 			if err != nil {
 				return

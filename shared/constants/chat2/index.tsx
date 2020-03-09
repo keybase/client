@@ -21,7 +21,6 @@ import HiddenString from '../../util/hidden-string'
 import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
 import * as TeamTypes from '../types/teams'
-import flags from '../../util/feature-flags'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
@@ -66,10 +65,8 @@ export const makeState = (): Types.State => ({
   inboxLayout: null,
   inboxNumSmallRows: 5,
   inboxSearch: undefined,
-  inboxShowNew: false,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
-  isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
@@ -172,9 +169,7 @@ export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingIn
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   const {selectedIndex, nameResults, openTeamsResults, textResults} = inboxSearch
-  const firstTextResultIdx = flags.openTeamSearch
-    ? openTeamsResults.length + nameResults.length
-    : nameResults.length
+  const firstTextResultIdx = openTeamsResults.length + nameResults.length
   const firstOpenTeamResultIdx = nameResults.length
 
   if (selectedIndex < firstOpenTeamResultIdx) {
@@ -189,7 +184,7 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
         query: undefined,
       }
     }
-  } else if (flags.openTeamSearch && selectedIndex < firstTextResultIdx) {
+  } else if (selectedIndex < firstTextResultIdx) {
     return null
   } else if (selectedIndex >= firstTextResultIdx) {
     const result = textResults[selectedIndex - firstTextResultIdx]
@@ -336,7 +331,7 @@ export const getBotsAndParticipants = (
       return l
     }, [])
   }
-  participants = flags.botUI ? participants.filter(p => !bots.includes(p)) : participants
+  participants = participants.filter(p => !bots.includes(p))
   participants = sort
     ? participants
         .map(p => ({
@@ -359,7 +354,6 @@ export const getBotsAndParticipants = (
   return {bots, participants}
 }
 
-export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyLeaveConversation = 'chat:leaveConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'

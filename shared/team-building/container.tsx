@@ -50,6 +50,7 @@ type OwnProps = {
   showServiceResultCount: boolean
   teamID?: TeamTypes.TeamID
   title: string
+  justContacts: boolean
 }
 
 type LocalState = {
@@ -226,7 +227,10 @@ const makeDebouncedSearch = (time: number) =>
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamID}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch: Container.TypedDispatch,
+  {namespace, teamID, justContacts}: OwnProps
+) => ({
   _onAdd: (user: Types.User) =>
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
@@ -239,7 +243,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
   },
   fetchUserRecs: () =>
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
+    dispatch(
+      TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2' || justContacts, namespace})
+    ),
   onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
@@ -393,7 +399,8 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 export const sortAndSplitRecommendations = memoize(
   (
     results: Unpacked<typeof deriveSearchResults>,
-    showingContactsButton: boolean
+    showingContactsButton: boolean,
+    contactsOnly: boolean
   ): Array<SearchRecSection> | null => {
     if (!results) return null
 
@@ -417,6 +424,9 @@ export const sortAndSplitRecommendations = memoize(
     const recSectionIdx = sections.length - 1
     const numSectionIdx = recSectionIdx + 27
     results.forEach(rec => {
+      if (contactsOnly && !rec.contact) {
+        return
+      }
       if (!rec.contact) {
         sections[recSectionIdx].data.push(rec)
         return
@@ -517,7 +527,7 @@ const mergeProps = (
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
   const recommendationsSections = showRecs
-    ? sortAndSplitRecommendations(recommendations, showingContactsButton)
+    ? sortAndSplitRecommendations(recommendations, showingContactsButton, ownProps.justContacts)
     : null
   const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
 
@@ -590,6 +600,7 @@ const mergeProps = (
     goButtonLabel: ownProps.goButtonLabel,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
+    justContacts: ownProps.justContacts,
     namespace: ownProps.namespace,
     onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
@@ -647,6 +658,7 @@ type RealOwnProps = Container.RouteProps<{
   teamID?: TeamTypes.TeamID
   filterServices?: Array<Types.ServiceIdWithContact>
   title: string
+  justContacts: boolean
 }>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
@@ -683,6 +695,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
         teamID={Container.getRouteProps(this.props, 'teamID', undefined)}
         filterServices={Container.getRouteProps(this.props, 'filterServices', undefined)}
+        justContacts={Container.getRouteProps(this.props, 'justContacts', false)}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}

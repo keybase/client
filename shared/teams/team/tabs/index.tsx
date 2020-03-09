@@ -34,7 +34,7 @@ const TeamTabs = (props: TeamTabsProps) => {
           },
         ]
       : []),
-    ...(flags.botUI ? [{title: 'bots' as const}] : []),
+    {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
     {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
   ]

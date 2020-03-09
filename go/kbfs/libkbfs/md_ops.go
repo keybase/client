@@ -717,7 +717,7 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 		// extra work by downloading the same MDs twice (for those
 		// that aren't yet in the cache).  That should be so rare that
 		// it's not worth optimizing.
-		rmd, err := getSingleMD(ctx, md.config, rmds.MD.TlfID(),
+		rmd, err := GetSingleMD(ctx, md.config, rmds.MD.TlfID(),
 			rmds.MD.BID(), prevRev, rmds.MD.MergedStatus(), nil)
 		if err != nil {
 			return err

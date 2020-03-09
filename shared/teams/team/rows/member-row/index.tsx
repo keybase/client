@@ -210,7 +210,7 @@ export const TeamMemberRow = (props: Props) => {
         containerStyleOverride={styles.listItemMargin}
         type="Large"
         body={body}
-        firstItem={isOwner}
+        firstItem={isOwner /*TODO: make this accurate */}
         style={selected ? styles.selected : undefined}
         onClick={anySelected ? () => onSelect(!selected) : props.onClick}
       />

@@ -390,6 +390,11 @@ func (s SimpleFSMock) SimpleFSResetIndex(ctx context.Context) error {
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSGetIndexProgress(
+	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
+	return keybase1.SimpleFSIndexProgress{}, nil
+}
+
 /*
  file source cases:
  1. file

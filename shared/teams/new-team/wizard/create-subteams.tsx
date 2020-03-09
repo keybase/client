@@ -68,7 +68,7 @@ const CreateSubteams = (props: Props) => {
             key={idx}
           />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" tooltip="" onClick={onAdd} style={styles.addButton} />
+        <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
       </Kb.Box2>
     </Kb.Modal>
   )

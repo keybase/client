@@ -7,7 +7,6 @@ import * as IconUtils from '../../../common-adapters/icon.shared'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import flags from '../../../util/feature-flags'
 
 type OwnProps = Container.RouteProps
 
@@ -76,7 +75,7 @@ const mapStateToProps = (state: Container.TypedState) => {
     name,
     saveCurrencyWaiting,
     secretKey,
-    showExternalPartners: flags.stellarExternalPartners,
+    showExternalPartners: true,
     thisDeviceIsLockedOut,
     user,
   }

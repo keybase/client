@@ -5,7 +5,6 @@ import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import flags from '../../../util/feature-flags'
 import {Tab as TabType} from '../../../common-adapters/tabs'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
@@ -29,7 +28,7 @@ const ChannelTabs = (props: Props) => {
   const tabs: Array<TabType<TabKey>> = [
     {title: 'members' as const},
     {title: 'attachments' as const},
-    ...(flags.botUI ? [{title: 'bots' as const}] : []),
+    {title: 'bots' as const},
     ...(props.admin ? [{title: 'settings' as const}] : []),
   ]
 
