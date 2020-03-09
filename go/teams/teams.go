@@ -2827,3 +2827,24 @@ func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info 
 
 	return teamInfo, nil
 }
+
+func GetUntrustedTeamExists(mctx libkb.MetaContext, name keybase1.TeamName) (exists bool, err error) {
+	type resType struct {
+		libkb.AppStatusEmbed
+		Exists bool `json:"exists"`
+	}
+	var res resType
+	err = mctx.G().API.GetDecode(mctx, libkb.APIArg{
+		Endpoint:    "team/exists",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"teamName": libkb.S{Val: name.String()},
+		},
+	}, &res)
+	if err != nil {
+		mctx.Debug("GetUntrustedTeamInfo: failed to get team info: %s", err)
+		return false, err
+	}
+
+	return res.Exists, nil
+}
