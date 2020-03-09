@@ -1281,7 +1281,8 @@
         "EMAIL_3",
         "SBS_4",
         "SEITAN_5",
-        "PHONE_6"
+        "PHONE_6",
+        "INVITELINK_7"
       ]
     },
     {
@@ -2015,6 +2016,12 @@
     },
     {
       "type": "record",
+      "name": "SeitanIKeyInvitelink",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "SeitanPubKey",
       "fields": [],
       "typedef": "string"
@@ -2030,7 +2037,8 @@
       "name": "SeitanKeyAndLabelVersion",
       "symbols": [
         "V1_1",
-        "V2_2"
+        "V2_2",
+        "Invitelink_3"
       ]
     },
     {
@@ -2054,6 +2062,13 @@
             "def": false
           },
           "body": "SeitanKeyAndLabelVersion2"
+        },
+        {
+          "label": {
+            "name": "Invitelink",
+            "def": false
+          },
+          "body": "SeitanKeyAndLabelInvitelink"
         },
         {
           "label": {
@@ -2092,10 +2107,25 @@
       ]
     },
     {
+      "type": "record",
+      "name": "SeitanKeyAndLabelInvitelink",
+      "fields": [
+        {
+          "type": "SeitanIKeyInvitelink",
+          "name": "i"
+        },
+        {
+          "type": "SeitanKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "SeitanKeyLabelType",
       "symbols": [
-        "SMS_1"
+        "SMS_1",
+        "GENERIC_2"
       ]
     },
     {
@@ -2112,6 +2142,13 @@
             "def": false
           },
           "body": "SeitanKeyLabelSms"
+        },
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "SeitanKeyLabelGeneric"
         },
         {
           "label": {
@@ -2132,6 +2169,16 @@
         {
           "type": "string",
           "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanKeyLabelGeneric",
+      "fields": [
+        {
+          "type": "string",
+          "name": "l"
         }
       ]
     },
@@ -2895,6 +2942,35 @@
             "items": "UserRolePair"
           },
           "name": "failures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Invitelink",
+      "fields": [
+        {
+          "type": "SeitanIKeyInvitelink",
+          "name": "ikey"
+        },
+        {
+          "type": "string",
+          "name": "webLink"
+        },
+        {
+          "type": "string",
+          "name": "deepLink"
+        },
+        {
+          "type": "TeamInviteMaxUses",
+          "name": "maxUses"
+        },
+        {
+          "type": [
+            null,
+            "UnixTime"
+          ],
+          "name": "etime"
         }
       ]
     },
@@ -3787,6 +3863,15 @@
       ],
       "response": null
     },
+    "untrustedTeamExists": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "boolean"
+    },
     "teamRename": {
       "request": [
         {
@@ -3961,7 +4046,7 @@
           "type": "int"
         },
         {
-          "name": "name",
+          "name": "teamname",
           "type": "string"
         },
         {
@@ -3982,7 +4067,7 @@
           "type": "int"
         },
         {
-          "name": "name",
+          "name": "teamname",
           "type": "string"
         },
         {
@@ -3995,6 +4080,34 @@
         }
       ],
       "response": "SeitanIKeyV2"
+    },
+    "teamCreateSeitanInvitelink": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamname",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "maxUses",
+          "type": "TeamInviteMaxUses"
+        },
+        {
+          "name": "etime",
+          "type": [
+            null,
+            "UnixTime"
+          ]
+        }
+      ],
+      "response": "Invitelink"
     },
     "teamAddEmailsBulk": {
       "request": [

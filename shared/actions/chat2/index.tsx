@@ -99,22 +99,6 @@ const inboxRefresh = (
   return actions
 }
 
-const inboxLoadMoreSmalls = async (_: unknown, logger: Saga.SagaLogger) => {
-  try {
-    await RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise()
-  } catch (err) {
-    logger.info(`inboxLoadMoreSmalls: failed to increase smalls: ${err.message}`)
-  }
-}
-
-const inboxResetSmalls = async (_: unknown, logger: Saga.SagaLogger) => {
-  try {
-    await RPCChatTypes.localRequestInboxSmallResetRpcPromise()
-  } catch (err) {
-    logger.info(`inboxResetSmalls: failed to reset smalls: ${err.message}`)
-  }
-}
-
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: Container.TypedState, ids: Array<Types.ConversationIDKey>) =>
   ids.filter(id => (state.chat2.metaMap.get(id) ?? {trustedState: 'untrusted'}).trustedState === 'untrusted')
@@ -2408,14 +2392,32 @@ function* loadSuggestionData(
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamID = meta.teamID
-  // If this is an impteam, there are no channel infos to load.
+  // If this is an impteam, try to refresh mutual team info
   if (!meta.teamname) {
+    yield Saga.put(Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey}))
     return
   }
   // This only happens when user enters '#' which isn't that often. If this
   // becomes a problem, we can make a notification from service for when
   // channels change, and skip the load here if nothing has changed yet.
   yield Saga.put(TeamsGen.createGetChannels({teamID}))
+}
+
+const refreshMutualTeamsInConv = async (
+  state: Container.TypedState,
+  action: Chat2Gen.RefreshMutualTeamsInConvPayload
+) => {
+  const {conversationIDKey} = action.payload
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
+  const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
+    {usernames: otherParticipants},
+    Constants.waitingKeyMutualTeams(conversationIDKey)
+  )
+  return [
+    ...(results.teamIDs?.map(teamID => TeamsGen.createGetChannels({teamID})) ?? []),
+    Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []}),
+  ]
 }
 
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
@@ -2991,34 +2993,6 @@ function* setConvExplodingMode(
   }
 }
 
-function* handleSeeingWallets(
-  _: Container.TypedState,
-  __: Chat2Gen.HandleSeeingWalletsPayload,
-  logger: Saga.SagaLogger
-) {
-  const gregorState: Saga.RPCPromiseType<typeof RPCTypes.gregorGetStateRpcPromise> = yield RPCTypes.gregorGetStateRpcPromise()
-  const seenWallets = gregorState.items?.some(
-    i => i.item && i.item.category === Constants.seenWalletsGregorKey
-  )
-  if (seenWallets) {
-    logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
-    return
-  }
-  try {
-    logger.info('handleSeeingWallets: setting seenWalletsGregorKey')
-    yield RPCTypes.gregorUpdateCategoryRpcPromise({
-      body: 'true',
-      category: Constants.seenWalletsGregorKey,
-      dtime: {offset: 0, time: 0},
-    })
-    logger.info('handleSeeingWallets: successfully set seenWalletsGregorKey')
-  } catch (err) {
-    logger.error(
-      `handleSeeingWallets: failed to set seenWalletsGregorKey. Local state might not persist on restart. Error: ${err.message}`
-    )
-  }
-}
-
 function* loadStaticConfig(
   state: Container.TypedState,
   action: ConfigGen.DaemonHandshakePayload,
@@ -3328,15 +3302,6 @@ const gregorPushState = (
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
 
-  const seenWallets = items.some(i => i.item.category === Constants.seenWalletsGregorKey)
-  if (seenWallets && state.chat2.isWalletsNew) {
-    logger.info('chat.gregorPushState: got seenWallets and we thought they were new, updating store.')
-    actions.push(Chat2Gen.createSetWalletsOld())
-  }
-
-  const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
-  actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
-
   const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
   if (blockButtons || state.chat2.blockButtonsMap.size > 0) {
     const shouldKeepExistingBlockButtons = new Map<string, boolean>()
@@ -3440,10 +3405,6 @@ const addUserToChannel = async (action: Chat2Gen.AddUserToChannelPayload, logger
     return false
   }
 }
-
-const onMarkInboxSearchOld = (state: Container.TypedState) =>
-  state.chat2.inboxShowNew &&
-  GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
 
 const dismissBlockButtons = async (action: Chat2Gen.DismissBlockButtonsPayload, logger: Saga.SagaLogger) => {
   try {
@@ -3698,8 +3659,6 @@ function* chat2Saga() {
   // Refresh the inbox
   yield* Saga.chainAction2([Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale], inboxRefresh)
   yield* Saga.chainAction2([Chat2Gen.selectConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
-  yield* Saga.chainAction(Chat2Gen.loadMoreSmalls, inboxLoadMoreSmalls)
-  yield* Saga.chainAction(Chat2Gen.resetSmalls, inboxResetSmalls)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
@@ -3840,10 +3799,6 @@ function* chat2Saga() {
     Chat2Gen.setConvExplodingMode,
     setConvExplodingMode
   )
-  yield* Saga.chainGenerator<Chat2Gen.HandleSeeingWalletsPayload>(
-    Chat2Gen.handleSeeingWallets,
-    handleSeeingWallets
-  )
   yield* Saga.chainAction2(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
   yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
@@ -3855,6 +3810,8 @@ function* chat2Saga() {
     Chat2Gen.channelSuggestionsTriggered,
     loadSuggestionData
   )
+
+  yield* Saga.chainAction2(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
   yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)
@@ -3889,7 +3846,6 @@ function* chat2Saga() {
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
-  yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld)
   yield* Saga.chainAction2(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   yield* Saga.chainAction2(Chat2Gen.inboxSearchNameResults, onInboxSearchNameResults)
   yield* Saga.chainAction2(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult)

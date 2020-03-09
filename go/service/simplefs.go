@@ -810,3 +810,15 @@ func (s *SimpleFSHandler) SimpleFSResetIndex(ctx context.Context) error {
 	// clean up the storage as needed.
 	return cli.SimpleFSResetIndex(ctx)
 }
+
+// SimpleFSGetIndexProgress implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetIndexProgress(
+	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSIndexProgress{}, err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSGetIndexProgress(ctx)
+}

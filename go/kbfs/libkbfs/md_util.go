@@ -173,10 +173,11 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.Branch
 	return rmds, nil
 }
 
-// getSingleMD returns an MD that is required to exist.
-func getSingleMD(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
-	rev kbfsmd.Revision, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
-	ImmutableRootMetadata, error) {
+// GetSingleMD returns an MD that is required to exist.
+func GetSingleMD(
+	ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
+	rev kbfsmd.Revision, mStatus kbfsmd.MergeStatus,
+	lockBeforeGet *keybase1.LockID) (ImmutableRootMetadata, error) {
 	rmds, err := getMDRange(
 		ctx, config, id, bid, rev, rev, mStatus, lockBeforeGet)
 	if err != nil {
@@ -812,13 +813,15 @@ func (ci ChangeItem) String() string {
 
 // GetChangesBetweenRevisions returns a list of all the changes
 // between the two given revisions (after `oldRev`, up to and
-// including `newRev`).
+// including `newRev`). Also returns the sum of all the newly ref'd
+// block sizes (in bytes), as a crude estimate of how big this change
+// set is.
 func GetChangesBetweenRevisions(
 	ctx context.Context, config Config, id tlf.ID,
 	oldRev, newRev kbfsmd.Revision) (
-	changes []*ChangeItem, err error) {
+	changes []*ChangeItem, refSize uint64, err error) {
 	if newRev <= oldRev {
-		return nil, errors.Errorf(
+		return nil, 0, errors.Errorf(
 			"Can't get changes between %d and %d", oldRev, newRev)
 	}
 
@@ -826,23 +829,23 @@ func GetChangesBetweenRevisions(
 		ctx, config, id, kbfsmd.NullBranchID, oldRev+1, newRev,
 		kbfsmd.Merged, nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	fbo, err := getOpsSafe(config, id)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	chains, err := newCRChainsForIRMDs(
 		ctx, config.Codec(), config, rmds, &fbo.blocks, true)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	err = fbo.blocks.populateChainPaths(
 		ctx, config.MakeLogger(""), chains, true)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	// The crChains creation process splits up a rename op into
@@ -858,10 +861,11 @@ func GetChangesBetweenRevisions(
 			ops[soFar+i] = op.deepCopy()
 		}
 		soFar += len(rmd.data.Changes.Ops)
+		refSize += rmd.RefBytes()
 	}
 	err = chains.revertRenames(ops)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	// Create the change items for each chain.  Use the following
@@ -916,7 +920,7 @@ func GetChangesBetweenRevisions(
 				item.Type = ChangeTypeRename
 				err := item.addUnrefs(chains, op)
 				if err != nil {
-					return nil, err
+					return nil, 0, err
 				}
 				// Don't force there to be a pointer for the node,
 				// since it could be a symlink.
@@ -927,14 +931,14 @@ func GetChangesBetweenRevisions(
 				// Find the original block pointers for each unref.
 				err := item.addUnrefs(chains, op)
 				if err != nil {
-					return nil, err
+					return nil, 0, err
 				}
 				unrefs := op.Unrefs()
 				if len(unrefs) > 0 {
 					unref := unrefs[0]
 					ptr, err := chains.originalFromMostRecentOrSame(unref)
 					if err != nil {
-						return nil, err
+						return nil, 0, err
 					}
 					item.CurrPath = item.CurrPath.ChildPath(
 						realOp.obfuscatedOldName(), ptr, fbo.makeObfuscator())
@@ -968,7 +972,7 @@ func GetChangesBetweenRevisions(
 					oldPtr, err := chains.originalFromMostRecentOrSame(
 						currPath.TailPointer())
 					if err != nil {
-						return nil, err
+						return nil, 0, err
 					}
 					item := &ChangeItem{
 						Type:     ChangeTypeWrite,
@@ -985,5 +989,6 @@ func GetChangesBetweenRevisions(
 	for _, itemSlice := range items {
 		changes = append(changes, itemSlice...)
 	}
-	return changes, nil
+
+	return changes, refSize, nil
 }

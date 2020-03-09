@@ -227,11 +227,13 @@ func (o Identify3Row) DeepCopy() Identify3Row {
 }
 
 type Identify3Summary struct {
-	NumProofsToCheck int `codec:"numProofsToCheck" json:"numProofsToCheck"`
+	GuiID            Identify3GUIID `codec:"guiID" json:"guiID"`
+	NumProofsToCheck int            `codec:"numProofsToCheck" json:"numProofsToCheck"`
 }
 
 func (o Identify3Summary) DeepCopy() Identify3Summary {
 	return Identify3Summary{
+		GuiID:            o.GuiID.DeepCopy(),
 		NumProofsToCheck: o.NumProofsToCheck,
 	}
 }

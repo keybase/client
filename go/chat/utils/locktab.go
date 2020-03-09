@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -146,7 +147,7 @@ func (c *ConversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 				return true, err
 			}
 			c.Debug(ctx, "Acquire: deadlock condition detected, sleeping and trying again: attempt: %d", i)
-			time.Sleep(sleep)
+			time.Sleep(libkb.RandomJitter(sleep))
 			continue
 		}
 		return blocked, nil

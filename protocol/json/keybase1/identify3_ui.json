@@ -150,6 +150,10 @@
       "name": "Identify3Summary",
       "fields": [
         {
+          "type": "Identify3GUIID",
+          "name": "guiID"
+        },
+        {
           "type": "int",
           "name": "numProofsToCheck"
         }

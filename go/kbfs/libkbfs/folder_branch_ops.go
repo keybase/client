@@ -2484,7 +2484,7 @@ func (fbo *folderBranchOps) getMostRecentFullyMergedMD(ctx context.Context) (
 	}
 
 	// Otherwise, use the specified revision.
-	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID,
+	rmd, err := GetSingleMD(ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID,
 		mergedRev, kbfsmd.Merged, nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -7032,7 +7032,7 @@ func (fbo *folderBranchOps) getLatestMergedMD(
 	if rev == kbfsmd.RevisionUninitialized {
 		return ImmutableRootMetadata{}, nil
 	}
-	return getSingleMD(
+	return GetSingleMD(
 		ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID, rev, kbfsmd.Merged, nil)
 }
 
@@ -7174,7 +7174,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	// the updates.
 	fbo.setBranchIDLocked(lState, kbfsmd.NullBranchID)
 
-	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID,
+	rmd, err := GetSingleMD(ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID,
 		currHead, kbfsmd.Merged, nil)
 	if err != nil {
 		return nil, err
@@ -8474,7 +8474,7 @@ func (fbo *folderBranchOps) handleMDFlush(
 	}()
 
 	// Get that revision.
-	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID,
+	rmd, err := GetSingleMD(ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID,
 		rev, kbfsmd.Merged, nil)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
@@ -9766,7 +9766,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 		// `defer` above kick one off.
 		latestMergedRev := fbo.getLatestMergedRevision(lState)
 		if maxRev == latestMergedRev {
-			rmd, err = getSingleMD(
+			rmd, err = GetSingleMD(
 				ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID, maxRev,
 				kbfsmd.Merged, nil)
 			if err != nil {
