@@ -197,7 +197,6 @@ const styles = Styles.styleSheetCreate(
       }),
       containerBig: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Big')},
       containerClosed: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Closed')},
-      containerSmall: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Small')},
       containerOverlay: {
         ...Styles.globalStyles.flexBoxColumn,
         bottom: 0,
@@ -207,6 +206,7 @@ const styles = Styles.styleSheetCreate(
         top: 0,
         zIndex: 1000,
       },
+      containerSmall: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Small')},
       details: {
         backgroundColor: Styles.globalColors.black,
         color: Styles.globalColors.white_75,
