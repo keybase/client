@@ -108,17 +108,26 @@ const getCachedUsernames = memoize(
 )
 
 export default () => {
-  const state = Container.useSelector(s => s)
-  const {desktopAppBadgeCount, navBadges, widgetBadge} = state.notifications
-  const {daemonHandshakeState, loggedIn, outOfDate, username} = state.config
-  const {httpSrvAddress, httpSrvToken} = state.config
-  const {avatarRefreshCounter: _arc, followers: _followers, following: _following} = state.config
-  const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = state.fs
-  const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = state.chat2
-  const {infoMap: _infoMap} = state.users
+  const notifications = Container.useSelector(s => s.notifications)
+  const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
+
+  const config = Container.useSelector(s => s.config)
+  const {daemonHandshakeState, loggedIn, outOfDate, username} = config
+  const {httpSrvAddress, httpSrvToken} = config
+  const {avatarRefreshCounter: _arc, followers: _followers, following: _following} = config
+
+  const fs = Container.useSelector(s => s.fs)
+  const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
+
+  const chat2 = Container.useSelector(s => s.chat2)
+  const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
+
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
+
+  const users = Container.useSelector(s => s.users)
+  const {infoMap: _infoMap} = users
 
   const remoteTlfUpdates = React.useMemo(() => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)), [
     tlfUpdates,
