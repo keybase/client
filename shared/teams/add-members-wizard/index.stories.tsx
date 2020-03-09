@@ -45,7 +45,7 @@ const load = () => {
     .add('Add from where (new team)', () => <AddFromWhere {...fromWhereNewProps} />)
     .add('Enable contacts', () => <EnableContacts onClose={Sb.action('onClose')} />)
     .add('Add by email', () => <AddEmail teamID={fakeTeamID} errorMessage="" />)
-    .add('Add by phone', () => <AddPhone {...Sb.createNavigator({teamID: fakeTeamID})} />)
+    .add('Add by phone', () => <AddPhone />)
     .add('Confirm', () => <AddMembersConfirm />)
 }
 

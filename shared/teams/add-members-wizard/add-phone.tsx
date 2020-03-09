@@ -3,18 +3,13 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle} from '../common'
 
-type Props = Container.RouteProps<{
-  teamID: Types.TeamID
-}>
-
-const AddPhone = (props: Props) => {
+const AddPhone = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

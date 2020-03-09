@@ -21,8 +21,7 @@ const AddFromWhere = (props: Props) => {
 
   const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-  const onContinuePhone = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamAddToTeamPhone'}]}))
+  const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
   return (
     <Kb.Modal
