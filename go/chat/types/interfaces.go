@@ -82,7 +82,7 @@ type ConversationSource interface {
 	AcquireConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	ReleaseConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 
-	Push(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID,
+	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
 	PushUnboxed(ctx context.Context, conv UnboxConversationInfo,
 		uid gregor1.UID, msg []chat1.MessageUnboxed) error

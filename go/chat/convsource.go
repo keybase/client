@@ -294,7 +294,7 @@ func (s *RemoteConversationSource) ReleaseConversationLock(ctx context.Context, 
 	convID chat1.ConversationID) {
 }
 
-func (s *RemoteConversationSource) Push(ctx context.Context, conv types.UnboxConversationInfo,
+func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 	// Do nothing here, we don't care about pushed messages
 
@@ -466,14 +466,19 @@ func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1
 	}
 }
 
-func (s *HybridConversationSource) Push(ctx context.Context, conv types.UnboxConversationInfo,
+func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
-	convID := conv.GetConvID()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return decmsg, continuousUpdate, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+
+	// Grab conversation information before pushing
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return decmsg, continuousUpdate, err
+	}
 
 	// Check to see if we are "appending" this message to the current record.
 	if continuousUpdate, err = s.isContinuousPush(ctx, convID, uid, msg.GetMessageID()); err != nil {
