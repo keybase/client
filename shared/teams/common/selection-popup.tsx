@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
 
 type UnselectableTab = string
@@ -213,7 +214,6 @@ const ActionsWrapper = ({children}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
   const members = Container.useSelector(s => s.teams.teamSelectedMembers.get(teamID))
   const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
   if (!members) {
@@ -224,7 +224,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   // Members tab functions
   const onAddToChannel = () =>
     dispatch(
-      nav.safeNavigateAppendPayload({
+      RouteTreeGen.createNavigateAppend({
         path: [{props: {teamID, usernames: [...members]}, selected: 'teamAddToChannels'}],
       })
     )
