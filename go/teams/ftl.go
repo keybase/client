@@ -1011,10 +1011,12 @@ func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state 
 	if last == nil {
 		return NewAuditError("cannot run audit, no last chain data")
 	}
-	auditMode := keybase1.AuditMode_STANDARD
-	if arg.HiddenChainIsOptional {
-		auditMode = keybase1.AuditMode_STANDARD_NO_HIDDEN
-	}
+	// TODO reenable hidden audits after Y2K-1550 is fixed.
+	// auditMode := keybase1.AuditMode_STANDARD
+	// if arg.HiddenChainIsOptional {
+	// 	auditMode = keybase1.AuditMode_STANDARD_NO_HIDDEN
+	// }
+	auditMode := keybase1.AuditMode_STANDARD_NO_HIDDEN
 	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head.Seqno, state.Chain.LinkIDs, hiddenChain.GetOuter(), last.Seqno, hiddenChain.GetLastCommittedSeqno(), lastMerkleRoot, auditMode)
 }
 
