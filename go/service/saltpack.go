@@ -914,7 +914,8 @@ func zipDir(directory string, prog *progress.ProgressWriter) io.ReadCloser {
 	}
 
 	go func() {
-		err := filepath.Walk(directory, func(path string, info os.FileInfo, inErr error) error {
+		err := filepath.Walk(directory, func(path string, info os.FileInfo, inErr error) (outErr error) {
+			defer transformSaltpackError(&outErr)
 			if inErr != nil {
 				return inErr
 			}
