@@ -1395,17 +1395,19 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 	return ikey, err
 }
 
-func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v", t.Name(), role), func() error { return err })()
+func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
+	maxUses keybase1.TeamInviteMaxUses,
+	etime *keybase1.UnixTime) (ikey keybase1.SeitanIKeyInvitelink, err error) {
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
 
 	// Experimental code: we are figuring out how to do invite links.
 
-	ikey, err = GenerateIKeyV2()
+	ikey, err = GenerateSeitanIKeyInvitelink()
 	if err != nil {
 		return ikey, err
 	}
 
-	sikey, err := ikey.GenerateSIKey()
+	sikey, err := GenerateSIKeyInvitelink(ikey)
 	if err != nil {
 		return ikey, err
 	}
@@ -1415,16 +1417,19 @@ func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRol
 		return ikey, err
 	}
 
-	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
+	// label is hardcoded for now, but could change in the future
+	label := keybase1.NewSeitanKeyLabelWithGeneric(keybase1.SeitanKeyLabelGeneric{L: "link"})
+
+	_, encoded, err := GeneratePackedEncryptedKeyInvitelink(ctx, ikey, t, label)
 	if err != nil {
 		return ikey, err
 	}
 
-	maxUses := keybase1.TeamInviteMaxUses(10)
 	invite := SCTeamInvite{
-		Type:    "seitan_invite_token",
+		Type:    "invitelink",
 		Name:    keybase1.TeamInviteName(encoded),
 		ID:      inviteID,
+		Etime:   etime,
 		MaxUses: &maxUses,
 	}
 
@@ -1440,7 +1445,6 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	if err != nil {
 		return err
 	}
-
 	if existing {
 		return libkb.ExistsError{Msg: "An invite for this user already exists."}
 	}
@@ -2688,6 +2692,8 @@ func TeamInviteTypeFromString(mctx libkb.MetaContext, inviteTypeStr string) (key
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_SEITAN), nil
 	case "phone":
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_PHONE), nil
+	case "invitelink":
+		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_INVITELINK), nil
 	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
 		return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
 	default:

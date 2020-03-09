@@ -604,7 +604,8 @@ protocol teams {
     EMAIL_3,
     SBS_4,
     SEITAN_5,
-    PHONE_6
+    PHONE_6,
+    INVITELINK_7
   }
 
   variant TeamInviteType switch (TeamInviteCategory c) {
@@ -914,6 +915,9 @@ protocol teams {
   record SeitanIKey {}
 
   @typedef("string")
+  record SeitanIKeyInvitelink {}
+
+  @typedef("string")
   record SeitanPubKey {}
 
   // The secret shared with the recipient.
@@ -923,12 +927,14 @@ protocol teams {
 
   enum SeitanKeyAndLabelVersion {
     V1_1,
-    V2_2
+    V2_2,
+    Invitelink_3
   }
 
   variant SeitanKeyAndLabel switch (SeitanKeyAndLabelVersion v) {
     case V1: SeitanKeyAndLabelVersion1;
     case V2: SeitanKeyAndLabelVersion2;
+    case Invitelink: SeitanKeyAndLabelInvitelink;
     default: void;
   }
 
@@ -942,18 +948,29 @@ protocol teams {
     SeitanKeyLabel l;
   }
 
+  record SeitanKeyAndLabelInvitelink {
+    SeitanIKeyInvitelink i;
+    SeitanKeyLabel l;
+  }
+
   enum SeitanKeyLabelType {
-    SMS_1
+    SMS_1,
+    GENERIC_2
   }
 
   variant SeitanKeyLabel switch (SeitanKeyLabelType t) {
     case SMS: SeitanKeyLabelSms;
+    case GENERIC: SeitanKeyLabelGeneric;
     default: void;
   }
 
   record SeitanKeyLabelSms {
     string f; // FullName
     string n; // Number
+  }
+
+  record SeitanKeyLabelGeneric {
+    string l; // generic label
   }
 
   record TeamSeitanRequest {
@@ -1345,9 +1362,20 @@ protocol teams {
 
   void teamSetSettings(int sessionID, TeamID teamID, TeamSettings settings);
 
-  SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+  SeitanIKey teamCreateSeitanToken(int sessionID, string teamname, TeamRole role, SeitanKeyLabel label);
 
-  SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+  SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string teamname, TeamRole role, SeitanKeyLabel label);
+
+  record Invitelink {
+    SeitanIKeyInvitelink ikey;
+    string webLink;
+    string deepLink;
+    TeamInviteMaxUses maxUses;
+    union { null, UnixTime } etime;
+  }
+
+  Invitelink teamCreateSeitanInvitelink(int sessionID, string teamname, TeamRole role,
+    TeamInviteMaxUses maxUses, union { null, UnixTime } etime);
 
   record BulkRes {
     array<string> malformed;

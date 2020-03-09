@@ -1372,7 +1372,7 @@ export type MessageTypes = {
     outParam: TeamCreateResult
   }
   'keybase.1.teams.teamCreateSeitanTokenV2': {
-    inParam: {readonly name: String; readonly role: TeamRole; readonly label: SeitanKeyLabel}
+    inParam: {readonly teamname: String; readonly role: TeamRole; readonly label: SeitanKeyLabel}
     outParam: SeitanIKeyV2
   }
   'keybase.1.teams.teamDelete': {
@@ -2239,10 +2239,12 @@ export enum SaltpackSenderType {
 export enum SeitanKeyAndLabelVersion {
   v1 = 1,
   v2 = 2,
+  invitelink = 3,
 }
 
 export enum SeitanKeyLabelType {
   sms = 1,
+  generic = 2,
 }
 
 export enum SeqType {
@@ -2565,6 +2567,7 @@ export enum TeamInviteCategory {
   sbs = 4,
   seitan = 5,
   phone = 6,
+  invitelink = 7,
 }
 
 export enum TeamMemberStatus {
@@ -2887,6 +2890,7 @@ export type IndexProgressRecord = {readonly endEstimate: Time; readonly bytesTot
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
+export type Invitelink = {readonly ikey: SeitanIKeyInvitelink; readonly webLink: String; readonly deepLink: String; readonly maxUses: TeamInviteMaxUses; readonly etime?: UnixTime | null}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -3058,11 +3062,14 @@ export type SecretKeys = {readonly signing: NaclSigningKeyPrivate; readonly encr
 export type SecretResponse = {readonly secret: Bytes; readonly phrase: String}
 export type SeitanAKey = String
 export type SeitanIKey = String
+export type SeitanIKeyInvitelink = String
 export type SeitanIKeyV2 = String
-export type SeitanKeyAndLabel = {v: SeitanKeyAndLabelVersion.v1; v1: SeitanKeyAndLabelVersion1} | {v: SeitanKeyAndLabelVersion.v2; v2: SeitanKeyAndLabelVersion2}
+export type SeitanKeyAndLabel = {v: SeitanKeyAndLabelVersion.v1; v1: SeitanKeyAndLabelVersion1} | {v: SeitanKeyAndLabelVersion.v2; v2: SeitanKeyAndLabelVersion2} | {v: SeitanKeyAndLabelVersion.invitelink; invitelink: SeitanKeyAndLabelInvitelink}
+export type SeitanKeyAndLabelInvitelink = {readonly i: SeitanIKeyInvitelink; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion1 = {readonly i: SeitanIKey; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion2 = {readonly k: SeitanPubKey; readonly l: SeitanKeyLabel}
-export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms}
+export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms} | {t: SeitanKeyLabelType.generic; generic: SeitanKeyLabelGeneric}
+export type SeitanKeyLabelGeneric = {readonly l: String}
 export type SeitanKeyLabelSms = {readonly f: String; readonly n: String}
 export type SeitanPubKey = String
 export type SelectKeyRes = {readonly keyID: String; readonly doSecretPush: Boolean}
@@ -3146,7 +3153,7 @@ export type TeamInviteID = String
 export type TeamInviteMaxUses = Int
 export type TeamInviteName = String
 export type TeamInviteSocialNetwork = String
-export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone}
+export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone} | {c: TeamInviteCategory.invitelink}
 export type TeamInvitee = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly role: TeamRole}
 export type TeamJoinRequest = {readonly name: String; readonly username: String; readonly fullName: FullName; readonly ctime: UnixTime}
 export type TeamKBFSKeyRefresher = {readonly generation: Int; readonly appType: TeamApplication}
@@ -4143,6 +4150,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamRequestAccess'
 // 'keybase.1.teams.teamTree'
 // 'keybase.1.teams.teamCreateSeitanToken'
+// 'keybase.1.teams.teamCreateSeitanInvitelink'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'
 // 'keybase.1.teams.loadTeamPlusApplicationKeys'
