@@ -65,7 +65,7 @@ type inboxDiskIndex struct {
 }
 
 func (i *inboxDiskIndex) mergeConvs(convIDs []chat1.ConversationID) {
-	m := make(map[string]chat1.ConversationID)
+	m := make(map[string]chat1.ConversationID, len(convIDs))
 	for _, convID := range convIDs {
 		m[convID.String()] = convID
 	}
@@ -311,6 +311,9 @@ func (i *Inbox) readConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 	convs, err := i.readConvs(ctx, uid, []chat1.ConversationID{convID})
 	if err != nil {
 		return res, err
+	}
+	if len(convs) == 0 {
+		return res, MissError{}
 	}
 	return convs[0], nil
 }
@@ -645,27 +648,29 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	return iboxVers.InboxVersion, res, nil
 }
 
-func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err Error) {
+func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err error) {
 	defer i.Trace(ctx, func() error { return err }, "Clear")()
+	var iboxIndex inboxDiskIndex
 	inboxMemCache.Clear(uid)
-	iboxIndex, err := i.readDiskIndex(ctx, uid, true)
-	if err != nil {
+	if iboxIndex, err = i.readDiskIndex(ctx, uid, true); err != nil {
 		i.Debug(ctx, "Clear: failed to read index: %s", err)
-		return err
 	}
 	for _, convID := range iboxIndex.ConversationIDs {
 		if ierr := i.G().LocalChatDb.Delete(i.dbConvKey(uid, convID)); ierr != nil {
-			return NewInternalError(ctx, i.DebugLabeler,
-				"error clearing conv: convID: %s err: %s", convID, ierr)
+			msg := fmt.Sprintf("error clearing conv: convID: %s err: %s", convID, ierr)
+			err = NewInternalError(ctx, i.DebugLabeler, msg)
+			i.Debug(ctx, msg)
 		}
 	}
 	if ierr := i.G().LocalChatDb.Delete(i.dbVersionsKey(uid)); ierr != nil {
-		return NewInternalError(ctx, i.DebugLabeler,
-			"error clearing inbox versions: err: %s", ierr)
+		msg := fmt.Sprintf("error clearing inbox versions: err: %s", ierr)
+		err = NewInternalError(ctx, i.DebugLabeler, msg)
+		i.Debug(ctx, msg)
 	}
 	if ierr := i.G().LocalChatDb.Delete(i.dbIndexKey(uid)); ierr != nil {
-		return NewInternalError(ctx, i.DebugLabeler,
-			"error clearing inbox index: err: %s", ierr)
+		msg := fmt.Sprintf("error clearing inbox index: err: %s", ierr)
+		err = NewInternalError(ctx, i.DebugLabeler, msg)
+		i.Debug(ctx, msg)
 	}
 	return nil
 }
