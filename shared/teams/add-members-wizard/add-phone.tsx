@@ -6,7 +6,6 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
 import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle} from '../common'
-import PhoneInput from '../../signup/phone-number/phone-input'
 
 type Props = Container.RouteProps<{
   teamID: Types.TeamID
@@ -72,7 +71,7 @@ const AddPhone = (props: Props) => {
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="xsmall" fullWidth={true} alignItems="flex-start">
           {phoneNumbers.map((pn, idx) => (
-            <PhoneInput
+            <Kb.PhoneInput
               key={pn.key}
               autoFocus={idx === 0}
               defaultCountry={defaultCountry}
