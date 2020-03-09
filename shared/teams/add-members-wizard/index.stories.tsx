@@ -6,7 +6,6 @@ import AddFromWhere from './add-from-where'
 import EnableContacts from './enable-contacts'
 import AddEmail from './add-email'
 import AddPhone from './add-phone'
-import AddFromWhere from './add-from-where'
 import AddMembersConfirm from './confirm'
 
 const fakeTeamID = 'fakeTeamID'
