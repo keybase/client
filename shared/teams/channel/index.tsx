@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import SelectionPopup from '../common/selection-popup'
 import ChannelTabs from './tabs/container'
 import {TabKey} from './tabs'
 import {Row} from './rows'
@@ -49,6 +50,7 @@ const Channel = (props: Props & TabProps) => {
   }
 
   const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
+  const selectionPopupTabName = props.selectedTab === 'members' ? 'channelMembers' : ''
 
   return (
     <Kb.Box style={styles.container}>
@@ -62,6 +64,7 @@ const Channel = (props: Props & TabProps) => {
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
       />
+      <SelectionPopup selectedTab={selectionPopupTabName} conversationIDKey={conversationIDKey} />
     </Kb.Box>
   )
 }
