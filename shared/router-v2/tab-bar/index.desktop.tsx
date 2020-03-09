@@ -184,7 +184,8 @@ type TabProps = {
 
 type AnimationState = 'none' | 'encrypt' | 'decrypt'
 
-const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) => {
+const Tab = React.memo((props: TabProps) => {
+  const {tab, index, selectedTab, onTabClick, badge} = props
   const [hovering, setHovering] = React.useState(false)
   const isCrypto = tab === Tabs.cryptoTab
   const tabData = data[tab]
@@ -216,8 +217,15 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
 
   React.useEffect(() => {
     if (!isCrypto) return
-    setAnimationState(hovering ? 'decrypt' : 'encrypt')
-  }, [isCrypto, hovering])
+
+    if (hovering) {
+      setAnimationState('decrypt')
+    } else {
+      if (animationState === 'decrypt') {
+        setAnimationState('encrypt')
+      }
+    }
+  }, [isCrypto, hovering, animationState])
 
   let animatedLabel: string | React.ReactNode
   if (isCrypto) {
