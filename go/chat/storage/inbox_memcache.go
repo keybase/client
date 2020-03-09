@@ -79,7 +79,7 @@ func (i *inboxMemCacheImpl) Clear(uid gregor1.UID) {
 	defer i.Unlock()
 	delete(i.versMap, uid.String())
 	delete(i.indexMap, uid.String())
-	delete(i.convMap, uid.String())
+	i.convMap = make(map[string]types.RemoteConversation)
 }
 
 func (i *inboxMemCacheImpl) clearCache() {
