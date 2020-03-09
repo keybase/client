@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -66,11 +65,6 @@ func (m *uploadManager) makeContext() (ctx context.Context) {
 }
 
 func (m *uploadManager) makeTempDir() (tempDirPath string, err error) {
-	buf := make([]byte, 12)
-	err = kbfscrypto.RandRead(buf)
-	if err != nil {
-		return "", err
-	}
 	cacheDirAbs, err := filepath.Abs(m.cacheDir)
 	if err != nil {
 		return "", err
@@ -100,12 +94,13 @@ func (m *uploadManager) getUpload(uploadID string) (upload, bool) {
 	return u, ok
 }
 
-func (m *uploadManager) waitForDownload(uploadID string) {
+func (m *uploadManager) waitForCopy(uploadID string) {
 	upload, ok := m.getUpload(uploadID)
 	if !ok {
 		return
 	}
 	defer func() {
+		m.publisher.PublishChange(keybase1.SubscriptionTopic_UPLOAD_STATUS)
 		if upload.dirToDelete == nil {
 			return
 		}
@@ -114,7 +109,6 @@ func (m *uploadManager) waitForDownload(uploadID string) {
 		}
 
 	}()
-	defer m.publisher.PublishChange(keybase1.SubscriptionTopic_UPLOAD_STATUS)
 
 	err := m.k.SimpleFSWait(m.makeContext(), upload.opid)
 	if err != nil {
@@ -220,7 +214,7 @@ func (m *uploadManager) start(ctx context.Context, sourceLocalPath string,
 
 	// If we start having tests on this we'll need proper shutdown mechanism
 	// for these goroutines.
-	go m.waitForDownload(uploadID)
+	go m.waitForCopy(uploadID)
 
 	return uploadID, nil
 }
