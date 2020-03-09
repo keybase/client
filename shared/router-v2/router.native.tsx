@@ -23,7 +23,6 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
 import {getPersistenceFunctions} from './persist.native'
 import Loading from '../login/loading'
-import {tabletHeaderExtraHeight} from '../constants/router2'
 
 const {createStackNavigator} = Stack
 
@@ -55,7 +54,8 @@ const defaultNavigationOptions: any = {
     borderBottomWidth: 1,
     borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
-    ...(Styles.isTablet ? {height: 44 + tabletHeaderExtraHeight} : {}),
+    // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
+    ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
   },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>

@@ -8,7 +8,6 @@ import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import {Action, Props, LeftActionProps} from '.'
 import {hoistNonReactStatic} from '../../util/container'
-import {tabletHeaderExtraHeight} from '../../constants/router2'
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -286,7 +285,7 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 44,
     },
     isTablet: {
-      height: 40 + tabletHeaderExtraHeight,
+      height: 40 + Styles.headerExtraHeight,
     },
   }),
   innerWrapper: {

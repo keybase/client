@@ -39,9 +39,9 @@ const shimNewRoute = (Original: any) => {
       } else {
         usesNav2Header = true
         if (Styles.isIPhoneX) {
-          headerHeight = 88
+          headerHeight = 88 + Styles.headerExtraHeight
         } else {
-          headerHeight = 64 + (Styles.isTablet ? tabletHeaderExtraHeight : 0)
+          headerHeight = 64 + Styles.headerExtraHeight
         }
       }
     }
