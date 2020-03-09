@@ -584,7 +584,13 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				nm.Message, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
-			decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, conv, gregor1.UID(uid), nm.Message)
+			var unboxInfo types.UnboxConversationInfo
+			if conv == nil {
+				unboxInfo = types.NewEmptyRemoteConversation(nm.ConvID)
+			} else {
+				unboxInfo = conv
+			}
+			decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, unboxInfo, gregor1.UID(uid), nm.Message)
 			if pushErr != nil {
 				g.Debug(ctx, "chat activity: unable to push message: %v", pushErr)
 			}
