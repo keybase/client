@@ -382,13 +382,13 @@ type FetchResult struct {
 
 // Merge requires msgs to be sorted by descending message ID
 func (s *Storage) Merge(ctx context.Context,
-	conv types.RemoteConversation, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Merge")()
 	return s.MergeHelper(ctx, conv, uid, msgs, nil)
 }
 
 func (s *Storage) Expunge(ctx context.Context,
-	conv types.RemoteConversation, uid gregor1.UID, expunge chat1.Expunge) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	// Merge with no messages, just the expunge.
 	return s.MergeHelper(ctx, conv, uid, nil, &expunge)
@@ -397,7 +397,7 @@ func (s *Storage) Expunge(ctx context.Context,
 // MergeHelper requires msgs to be sorted by descending message ID
 // expunge is optional
 func (s *Storage) MergeHelper(ctx context.Context,
-	conv types.RemoteConversation, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "MergeHelper")()
 	convID := conv.GetConvID()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
@@ -717,7 +717,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 // Shortcircuits so it's ok to call a lot.
 // The actual effect will be to delete upto the max of `expungeExplicit` (which can be nil)
 //   and the DeleteHistory-type messages.
-func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.RemoteConversation,
+func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, expungeExplicit *chat1.Expunge) (*chat1.Expunge, Error) {
 
 	de := func(format string, args ...interface{}) {
@@ -798,7 +798,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.RemoteConv
 // Apply a delete history.
 // Returns a non-nil expunge if deletes happened.
 // Always runs through local messages.
-func (s *Storage) applyExpunge(ctx context.Context, conv types.RemoteConversation,
+func (s *Storage) applyExpunge(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, expunge chat1.Expunge) (*chat1.Expunge, Error) {
 
 	convID := conv.GetConvID()
@@ -845,7 +845,7 @@ func (s *Storage) applyExpunge(ctx context.Context, conv types.RemoteConversatio
 		switch mtype {
 		case chat1.MessageType_METADATA,
 			chat1.MessageType_HEADLINE:
-			maxMsg, err := conv.Conv.GetMaxMessage(mtype)
+			maxMsg, err := conv.GetMaxMessage(mtype)
 			if err != nil {
 				de("delh: %v, not expunging %v", err, msg.DebugString())
 				continue

@@ -946,7 +946,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				if err != nil {
 					return err
 				}
-				if err := t.G().ConvSource.PushUnboxed(ctx, skip.ConvID, uid, resolved); err != nil {
+				if err := t.G().ConvSource.PushUnboxed(ctx, rconv, uid, resolved); err != nil {
 					return err
 				}
 				if !skip.ConvID.Eq(convID) {

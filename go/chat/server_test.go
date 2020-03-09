@@ -3199,12 +3199,15 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		msgIDs := []chat1.MessageID{editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
+		tc := ctc.world.Tcs[users[0].Username]
+		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
+		require.NoError(t, err)
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
@@ -3263,7 +3266,8 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_DELETE)
 		msgIDs = []chat1.MessageID{deleteMsgID, editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
+
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 		cb = make(chan struct{})
 		go func() {
@@ -3526,12 +3530,16 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID3, editMsgID2, msgID2, editMsgID1, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg3})
+
+		tc := ctc.world.Tcs[users[0].Username]
+		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
+		require.NoError(t, err)
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg3})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
@@ -3628,7 +3636,10 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID2, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
+		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
+		require.NoError(t, err)
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
