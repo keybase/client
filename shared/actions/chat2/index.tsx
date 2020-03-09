@@ -2392,14 +2392,32 @@ function* loadSuggestionData(
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamID = meta.teamID
-  // If this is an impteam, there are no channel infos to load.
+  // If this is an impteam, try to refresh mutual team info
   if (!meta.teamname) {
+    yield Saga.put(Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey}))
     return
   }
   // This only happens when user enters '#' which isn't that often. If this
   // becomes a problem, we can make a notification from service for when
   // channels change, and skip the load here if nothing has changed yet.
   yield Saga.put(TeamsGen.createGetChannels({teamID}))
+}
+
+const refreshMutualTeamsInConv = async (
+  state: Container.TypedState,
+  action: Chat2Gen.RefreshMutualTeamsInConvPayload
+) => {
+  const {conversationIDKey} = action.payload
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
+  const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
+    {usernames: otherParticipants},
+    Constants.waitingKeyMutualTeams(conversationIDKey)
+  )
+  return [
+    ...(results.teamIDs?.map(teamID => TeamsGen.createGetChannels({teamID})) ?? []),
+    Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []}),
+  ]
 }
 
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
@@ -3792,6 +3810,8 @@ function* chat2Saga() {
     Chat2Gen.channelSuggestionsTriggered,
     loadSuggestionData
   )
+
+  yield* Saga.chainAction2(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
   yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)

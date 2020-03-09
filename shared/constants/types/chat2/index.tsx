@@ -232,6 +232,7 @@ export type State = {
   readonly metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   readonly moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   readonly mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
+  readonly mutualTeamMap: Map<Common.ConversationIDKey, Array<Team.TeamID>>
   readonly orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   readonly participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   readonly paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
