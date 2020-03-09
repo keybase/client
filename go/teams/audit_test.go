@@ -3,6 +3,7 @@ package teams
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -540,6 +541,8 @@ func TestFailedProbesAreRetried(t *testing.T) {
 	makePaperKey(t, tcs[B])
 	makePaperKey(t, tcs[A])
 	makePaperKey(t, tcs[B])
+	makePaperKey(t, tcs[A])
+	makePaperKey(t, tcs[B])
 
 	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
 	require.NoError(t, err)
@@ -549,6 +552,10 @@ func TestFailedProbesAreRetried(t *testing.T) {
 	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
 	headMerkleSeqno := team.MainChain().Chain.HeadMerkle.Seqno
 	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
+	firstWithHiddenS, err := m[A].G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m[A])
+	require.NoError(t, err)
+	firstWithHidden := firstWithHiddenS
+	t.Logf("firstWithHidden: %v", firstWithHidden)
 
 	for i := headMerkleSeqno; i <= latestRootSeqno; i++ {
 		leaf, _, hiddenResp, err := m[B].G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m[B], teamID.AsUserOrTeam(), i, hidden.ProcessHiddenResponseFunc)
@@ -569,16 +576,19 @@ func TestFailedProbesAreRetried(t *testing.T) {
 	require.Nil(t, history)
 
 	merkle := m[B].G().GetMerkleClient()
+	rand := m[B].G().GetRandom()
 
+	// first we corrupt postProbes and test that those are retried
 	corruptMerkle := CorruptingMerkleClient{
 		MerkleClientInterface: merkle,
 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
-			if *root.Seqno() >= headMerkleSeqno {
+			if *root.Seqno() > headMerkleSeqno {
 				if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
 					leaf.Private.LinkID[0] ^= 0xff
 					t.Logf("Corruptor: altering LINKID for %v", leaf.Private.Seqno)
 				} else {
+					t.Logf("Corruptor: introducing leaf at roor %v", *root.Seqno())
 					leaf = &libkb.MerkleGenericLeaf{
 						LeafID:  teamID.AsUserOrTeam(),
 						Private: &libkb.MerkleTriple{Seqno: keybase1.Seqno(100)},
@@ -589,6 +599,8 @@ func TestFailedProbesAreRetried(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	// the first two are for preprobes, the last for post probes
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{int64(firstWithHidden) - 1, int64(firstWithHidden + 1), int64(headMerkleSeqno) + 1, int64(headMerkleSeqno) + 2}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -597,30 +609,36 @@ func TestFailedProbesAreRetried(t *testing.T) {
 	history, err = auditor.getFromCache(m[B], teamID, lru)
 	require.NoError(t, err)
 	require.Len(t, history.PreProbesToRetry, 0)
-	require.True(t, len(history.PostProbesToRetry) > 0)
+	require.Len(t, history.PostProbesToRetry, 2)
+	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+1)
+	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+2)
 
+	var probesToTestLock sync.Mutex
 	probesToTest := make(map[keybase1.Seqno]bool)
-	numProbes := 0
-	for _, probe := range history.PostProbesToRetry {
-		probesToTest[probe] = true
-		numProbes++
-	}
+	probesToTestLock.Lock()
+	probesToTest[headMerkleSeqno+1] = true
+	probesToTest[headMerkleSeqno+2] = true
+	numProbes := 2
+	probesToTestLock.Unlock()
 
 	corruptMerkle = CorruptingMerkleClient{
 		MerkleClientInterface: merkle,
 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
 			probeSeqno := *root.Seqno()
-			if probeSeqno >= headMerkleSeqno {
+			if probeSeqno > headMerkleSeqno {
 				if probesToTest[probeSeqno] {
 					t.Logf("PostProbes: Seqno %v was retried", probeSeqno)
+					probesToTestLock.Lock()
 					probesToTest[probeSeqno] = false
 					numProbes--
+					probesToTestLock.Unlock()
 				}
 				if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
 					leaf.Private.LinkID[0] ^= 0xff
 					t.Logf("Corruptor: altering LINKID for %v", leaf.Private.Seqno)
 				} else {
+					t.Logf("Corruptor: introducing leaf at roor %v", *root.Seqno())
 					leaf = &libkb.MerkleGenericLeaf{
 						LeafID:  teamID.AsUserOrTeam(),
 						Private: &libkb.MerkleTriple{Seqno: keybase1.Seqno(100)},
@@ -631,6 +649,8 @@ func TestFailedProbesAreRetried(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	// note that the postProbes we will sample now are different from the ones which we failed on the first time, so we can test we are actually retrying those.
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{int64(firstWithHidden) - 1, int64(firstWithHidden + 1), int64(headMerkleSeqno) + 3, int64(headMerkleSeqno) + 4}})
 
 	// repeat a second time and make sure that we retry the same probes
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
@@ -638,20 +658,7 @@ func TestFailedProbesAreRetried(t *testing.T) {
 	require.IsType(t, AuditError{}, err)
 	require.Zero(t, numProbes, "not all probes were retried")
 
-	// repeat a third time
-	probesToTest = make(map[keybase1.Seqno]bool)
-	numProbes = 0
-	for _, probe := range history.PostProbesToRetry {
-		probesToTest[probe] = true
-		numProbes++
-	}
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Zero(t, numProbes, "not all probes were retried")
-
 	// now test the preprobes are saved and retried on failure
-
 	corruptMerkle = CorruptingMerkleClient{
 		MerkleClientInterface: merkle,
 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
@@ -672,6 +679,7 @@ func TestFailedProbesAreRetried(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{int64(firstWithHidden) - 1, int64(firstWithHidden + 1), int64(headMerkleSeqno) + 3, int64(headMerkleSeqno) + 4}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -680,26 +688,34 @@ func TestFailedProbesAreRetried(t *testing.T) {
 
 	history, err = auditor.getFromCache(m[B], teamID, lru)
 	require.NoError(t, err)
-	require.True(t, len(history.PreProbesToRetry) > 0)
-	require.True(t, len(history.PostProbesToRetry) > 0)
+	require.Len(t, history.PreProbesToRetry, 2)
+	require.Contains(t, history.PreProbesToRetry, firstWithHidden-1)
+	require.Contains(t, history.PreProbesToRetry, firstWithHidden+1)
+
+	// the old failed postprobes are still in the cache
+	require.Len(t, history.PostProbesToRetry, 2)
+	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+1)
+	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+2)
 
 	probesToTest = make(map[keybase1.Seqno]bool)
-	numProbes = 0
-	for _, probe := range history.PreProbesToRetry {
-		probesToTest[probe] = true
-		numProbes++
-	}
+	probesToTestLock.Lock()
+	probesToTest[firstWithHidden-1] = true
+	probesToTest[firstWithHidden+1] = true
+	probesToTestLock.Unlock()
+	numProbes = 2
 
 	corruptMerkle = CorruptingMerkleClient{
 		MerkleClientInterface: merkle,
 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
 			probeSeqno := *root.Seqno()
-			if probeSeqno < headMerkleSeqno {
+			if probeSeqno <= headMerkleSeqno {
 				if probesToTest[probeSeqno] {
 					t.Logf("PreProbes: Seqno %v was retried", probeSeqno)
+					probesToTestLock.Lock()
 					probesToTest[probeSeqno] = false
 					numProbes--
+					probesToTestLock.Unlock()
 				}
 				if leaf == nil {
 					leaf = &libkb.MerkleGenericLeaf{
@@ -718,6 +734,7 @@ func TestFailedProbesAreRetried(t *testing.T) {
 		},
 	}
 	m[B].G().SetMerkleClient(corruptMerkle)
+	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{int64(firstWithHidden) - 2, int64(firstWithHidden) + 2, int64(headMerkleSeqno) + 3, int64(headMerkleSeqno) + 4}})
 
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.Error(t, err)
@@ -726,23 +743,18 @@ func TestFailedProbesAreRetried(t *testing.T) {
 
 	history, err = auditor.getFromCache(m[B], teamID, lru)
 	require.NoError(t, err)
-	require.True(t, len(history.PreProbesToRetry) > 0)
-	require.True(t, len(history.PostProbesToRetry) > 0)
+	require.Len(t, history.PreProbesToRetry, 2)
+	require.Contains(t, history.PreProbesToRetry, firstWithHidden-1)
+	require.Contains(t, history.PreProbesToRetry, firstWithHidden+1)
 
-	probesToTest = make(map[keybase1.Seqno]bool)
-	numProbes = 0
-	for _, probe := range history.PreProbesToRetry {
-		probesToTest[probe] = true
-		numProbes++
-	}
-
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Zero(t, numProbes, "not all probes were retried")
+	// the old failed postprobes are still in the cache
+	require.Len(t, history.PostProbesToRetry, 2)
+	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+1)
+	require.Contains(t, history.PostProbesToRetry, headMerkleSeqno+2)
 
 	// now stop any corruption and ensure the audit succeeds
 	m[B].G().SetMerkleClient(merkle)
+	m[B].G().SetRandom(rand)
 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
 	require.NoError(t, err)
 }

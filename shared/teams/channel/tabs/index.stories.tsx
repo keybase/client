@@ -1,23 +1,21 @@
 import * as React from 'react'
-import {action, storiesOf} from '../../../stories/storybook'
+import {action, storiesOf, updateStoreDecorator} from '../../../stories/storybook'
 import ChannelTabs from '.'
+import {store, fakeTeamIDs} from '../../stories'
 
 const commonProps = {
   admin: false,
-  conversationIDKey: 'Cool Conversation',
-  loadBots: action('loadBots'),
-  loading: false,
-  memberCount: 12,
+  conversationIDKey: '5',
   selectedTab: 'members' as const,
   setSelectedTab: action('setSelectedTab'),
-  teamID: 'Cool Team 😎 ID',
 }
 
 const load = () => {
   storiesOf('Channels/Tabs', module)
-    .add('Standard', () => <ChannelTabs {...commonProps} />)
-    .add('Loading', () => <ChannelTabs {...commonProps} loading={true} />)
-    .add('Admin', () => <ChannelTabs {...commonProps} admin={true} />)
+    .addDecorator(updateStoreDecorator(store, () => {}))
+    .add('Standard', () => <ChannelTabs {...commonProps} teamID={fakeTeamIDs[0]} />)
+    .add('Loading', () => <ChannelTabs {...commonProps} teamID={fakeTeamIDs[1]} />)
+    .add('Admin', () => <ChannelTabs {...commonProps} teamID={fakeTeamIDs[2]} admin={true} />)
 }
 
 export default load

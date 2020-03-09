@@ -93,6 +93,7 @@ class UpdatePassword extends Component<Props, State> {
 
     return (
       <Kb.Modal
+        backgroundStyle={styles.passwordBackground}
         banners={[
           !!notification && (
             <Kb.Banner color="yellow">
@@ -142,7 +143,12 @@ class UpdatePassword extends Component<Props, State> {
         }}
         onClose={this.props.onCancel}
       >
-        <Kb.Box2 centerChildren={true} direction="vertical" fullHeight={true} style={styles.container}>
+        <Kb.Box2
+          centerChildren={!Styles.isTablet}
+          direction="vertical"
+          fullHeight={true}
+          style={styles.container}
+        >
           <Kb.Text type="Body" style={styles.bodyText} center={true}>
             A password is required for you to sign out and sign back in.
           </Kb.Text>
@@ -212,6 +218,11 @@ const styles = Styles.styleSheetCreate(
         paddingBottom: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.small,
       },
+      passwordBackground: Styles.platformStyles({
+        isTablet: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+      }),
       passwordFormat: {
         alignSelf: 'flex-start',
         marginTop: Styles.globalMargins.xtiny,

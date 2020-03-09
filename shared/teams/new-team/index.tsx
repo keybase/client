@@ -4,8 +4,6 @@ import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import openUrl from '../../util/open-url'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
-import TeamPurpose from './wizard/team-purpose'
 
 const openSubteamInfo = () => openUrl('https://keybase.io/docs/teams/design')
 
@@ -36,10 +34,6 @@ const CreateNewTeam = (props: Props) => {
   React.useEffect(() => () => onClearError(), [onClearError])
 
   const modalHeader = Kb.useModalHeaderTitleAndCancel('Create a team', props.onCancel)
-
-  if (flags.teamsRedesign) {
-    return <TeamPurpose />
-  }
 
   return (
     <Kb.Modal

@@ -2660,6 +2660,16 @@ func (k *SimpleFS) SimpleFSGetFolder(
 	return k.config.KBFSOps().GetFolderWithFavFlags(ctx, tlfHandle)
 }
 
+func (k *SimpleFS) getFolder(
+	ctx context.Context, tlfID tlf.ID, md libkbfs.SyncedTlfMD,
+	session idutil.SessionInfo) (keybase1.Folder, error) {
+	return keybase1.Folder{
+		Name:       string(md.Handle.GetPreferredFormat(session.Name)),
+		FolderType: tlfID.Type().FolderType(),
+		Private:    tlfID.Type() != tlf.Public,
+	}, nil
+}
+
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 	identifyBehavior *keybase1.TLFIdentifyBehavior) (
@@ -2700,14 +2710,13 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 		}
 
 		if config.Mode == keybase1.FolderSyncMode_DISABLED {
-			panic(fmt.Sprintf(
-				"Folder %s has sync unexpectedly disabled", tlfID))
+			return keybase1.SyncConfigAndStatusRes{}, errors.Errorf(
+				"Folder %s has sync unexpectedly disabled", tlfID)
 		}
 
-		f := keybase1.Folder{
-			Name:       string(md.Handle.GetPreferredFormat(session.Name)),
-			FolderType: tlfID.Type().FolderType(),
-			Private:    tlfID.Type() != tlf.Public,
+		f, err := k.getFolder(ctx, tlfID, md, session)
+		if err != nil {
+			return keybase1.SyncConfigAndStatusRes{}, err
 		}
 
 		res.Folders[i].Folder = f
@@ -3298,6 +3307,64 @@ func (k *SimpleFS) SimpleFSResetIndex(ctx context.Context) error {
 	}
 
 	return k.indexer.ResetIndex(ctx)
+}
+
+// SimpleFSGetIndexProgress implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetIndexProgress(
+	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
+	if k.indexer == nil {
+		return keybase1.SimpleFSIndexProgress{}, errors.New(
+			"Indexing not enabled")
+	}
+
+	p := k.indexer.Progress()
+	currProg, overallProg, currTlf, queuedTlfs := p.GetStatus()
+	res.CurrProgress = currProg
+	res.OverallProgress = overallProg
+
+	if currTlf == tlf.NullID && len(queuedTlfs) == 0 {
+		return res, nil
+	}
+
+	// All indexing folders should also be synced.
+	tlfMDs := k.config.KBFSOps().GetAllSyncedTlfMDs(ctx)
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return keybase1.SimpleFSIndexProgress{}, err
+	}
+	session, err := idutil.GetCurrentSessionIfPossible(ctx, kbpki, true)
+	if err != nil {
+		return keybase1.SimpleFSIndexProgress{}, err
+	}
+
+	if currTlf != tlf.NullID {
+		md, ok := tlfMDs[currTlf]
+		if !ok {
+			return keybase1.SimpleFSIndexProgress{}, errors.Errorf(
+				"Folder %s is not currently syncing", currTlf)
+		}
+		f, err := k.getFolder(ctx, currTlf, md, session)
+		if err != nil {
+			return keybase1.SimpleFSIndexProgress{}, err
+		}
+		res.CurrFolder = f
+	}
+
+	res.FoldersLeft = make([]keybase1.Folder, 0, len(queuedTlfs))
+	for _, id := range queuedTlfs {
+		md, ok := tlfMDs[id]
+		if !ok {
+			return keybase1.SimpleFSIndexProgress{}, errors.Errorf(
+				"Folder %s is not currently syncing", id)
+		}
+		f, err := k.getFolder(ctx, id, md, session)
+		if err != nil {
+			return keybase1.SimpleFSIndexProgress{}, err
+		}
+		res.FoldersLeft = append(res.FoldersLeft, f)
+	}
+
+	return res, nil
 }
 
 // Shutdown shuts down SimpleFS.

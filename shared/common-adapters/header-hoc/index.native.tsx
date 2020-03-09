@@ -284,6 +284,9 @@ const styles = Styles.styleSheetCreate(() => ({
     isIOS: {
       height: 44,
     },
+    isTablet: {
+      height: 40 + Styles.headerExtraHeight,
+    },
   }),
   innerWrapper: {
     ...Styles.globalStyles.fillAbsolute,

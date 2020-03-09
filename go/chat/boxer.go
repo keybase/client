@@ -227,6 +227,10 @@ func (b *basicUnboxConversationInfo) IsPublic() bool {
 	return b.visibility == keybase1.TLFVisibility_PUBLIC
 }
 
+func (b *basicUnboxConversationInfo) GetMaxMessage(chat1.MessageType) (chat1.MessageSummary, error) {
+	return chat1.MessageSummary{}, nil
+}
+
 type extraInboxUnboxConversationInfo struct {
 	convID      chat1.ConversationID
 	membersType chat1.ConversationMembersType
@@ -266,6 +270,10 @@ func (p *extraInboxUnboxConversationInfo) GetMaxDeletedUpTo() chat1.MessageID {
 
 func (p *extraInboxUnboxConversationInfo) IsPublic() bool {
 	return p.visibility == keybase1.TLFVisibility_PUBLIC
+}
+
+func (p *extraInboxUnboxConversationInfo) GetMaxMessage(chat1.MessageType) (chat1.MessageSummary, error) {
+	return chat1.MessageSummary{}, nil
 }
 
 func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,

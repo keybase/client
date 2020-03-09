@@ -11,6 +11,6 @@ export function infoPanelWidth() {
   } else if (Styles.isMobile) {
     return infoPanelWidthPhone
   } else {
-    return infoPanelWidthPhone
+    return infoPanelWidthElectron
   }
 }

@@ -1,0 +1,6 @@
+{
+  "assumeChangesOnlyAffectDirectDependencies": true,
+  "extends": "./tsconfig.base.json",
+  "tsBuildInfoFile": "./.tsOuts/.tsOutFaster/cache",
+  "include": ["./**/*"]
+}

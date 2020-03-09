@@ -667,4 +667,21 @@ protocol SimpleFS {
   SimpleFSSearchResults simpleFSSearch(string query, int numResults, int startingFrom);
 
   void simpleFSResetIndex();
+
+  record IndexProgressRecord {
+    Time endEstimate;
+    int64 bytesTotal;
+    int64 bytesSoFar;
+}
+
+  record SimpleFSIndexProgress {
+    IndexProgressRecord overallProgress;
+
+    Folder currFolder;
+    IndexProgressRecord currProgress;
+
+    array<Folder> foldersLeft;
+  }
+
+  SimpleFSIndexProgress simpleFSGetIndexProgress();
 }

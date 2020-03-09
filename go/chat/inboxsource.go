@@ -696,7 +696,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		ConvIDs: convIDs,
 	})
 	if err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
+		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v, charging forward", err)
 	}
 	// convID -> isRead
 	readConvMap := make(map[chat1.ConvIDStr]bool)
@@ -917,7 +917,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
-			err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+			err := s.G().ConvSource.Expunge(ctx, utils.RemoteConv(conv), uid, *expunge)
 			if err != nil {
 				return types.Inbox{}, err
 			}
