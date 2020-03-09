@@ -72,7 +72,7 @@ declare var KB: {
     }
   }
   kb: {
-    darwinCopyToTmp: (p: string) => Promise<string>
+    darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
     darwinCopyToChatTempUploadFile: (
       p: string
     ) => Promise<{

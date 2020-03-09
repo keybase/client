@@ -21,10 +21,21 @@ const kbProcess = {
   type,
 }
 
-const darwinCopyToTmp = isDarwin
+const darwinCopyToKBFSTempUploadFile = isDarwin
   ? async (originalFilePath: string) => {
-      const cacheRoot = `${env['HOME'] || ''}/Library/Caches/Keybase/`
-      const dir = await fs.mkdtemp(path.join(cacheRoot, 'keybase-copyToTmp-'))
+      const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = (params: void, waitingKey?: any) =>
+        new Promise<any>((resolve, reject) => {
+          if (!engine) {
+            throw new Error('Preload missing engine')
+          }
+          engine!._rpcOutgoing({
+            callback: (error, result) => (error ? reject(error) : resolve(result)),
+            method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',
+            params,
+            waitingKey,
+          })
+        })
+      const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
       const dst = path.join(dir, path.basename(originalFilePath))
       await fs.copyFile(originalFilePath, dst)
       return dst
@@ -144,7 +155,7 @@ target.KB = {
   },
   kb: {
     darwinCopyToChatTempUploadFile,
-    darwinCopyToTmp,
+    darwinCopyToKBFSTempUploadFile,
     setEngine,
   },
   os: {
