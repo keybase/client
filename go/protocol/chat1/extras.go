@@ -2520,6 +2520,10 @@ func (r *SetDefaultTeamChannelsLocalRes) SetRateLimits(rl []RateLimit) {
 	}
 }
 
+func (i EphemeralPurgeInfo) IsNil() bool {
+	return i.IsActive == false && i.NextPurgeTime == 0 && i.MinUnexplodedID <= 1
+}
+
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
