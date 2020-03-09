@@ -1099,9 +1099,9 @@ func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEm
 	}
 	var htime, otime gregor1.Time
 	switch emptyMode {
-	case types.InboxSourceSearchEmptyModeAllBySenderCtime:
-		htime = utils.GetConvLatestCtime(h.conv)
-		otime = utils.GetConvLatestCtime(o.conv)
+	case types.InboxSourceSearchEmptyModeAllBySendCtime:
+		htime = utils.GetConvLastSendTime(h.conv)
+		otime = utils.GetConvLastSendTime(o.conv)
 	default:
 		htime = utils.GetConvMtime(h.conv)
 		otime = utils.GetConvMtime(o.conv)

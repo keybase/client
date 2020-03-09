@@ -3234,7 +3234,7 @@ func (h *Server) SimpleSearchInboxConvNames(ctx context.Context, query string) (
 	}
 	username := h.G().GetEnv().GetUsername().String()
 	allConvs, err := h.G().InboxSource.Search(ctx, uid, query,
-		100, types.InboxSourceSearchEmptyModeAllBySenderCtime)
+		100, types.InboxSourceSearchEmptyModeAllBySendCtime)
 	if err != nil {
 		return res, err
 	}

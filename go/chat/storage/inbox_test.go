@@ -393,7 +393,7 @@ func TestInboxNewMessage(t *testing.T) {
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "conv not promoted")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
-	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LatestCtime)
+	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LastSendTime)
 	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 	maxMsg, err := res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -420,7 +420,7 @@ func TestInboxNewMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(3), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
-	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LatestCtime)
+	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LastSendTime)
 	require.Equal(t, []gregor1.UID{uid2, uid1, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -486,7 +486,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(1), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
-	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LatestCtime)
+	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LastSendTime)
 	require.NoError(t, inbox.ReadMessage(context.TODO(), uid, 3, conv.GetConvID(), 2))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
@@ -494,7 +494,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
-	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LatestCtime)
+	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LastSendTime)
 
 	err = inbox.ReadMessage(context.TODO(), uid, 10, conv.GetConvID(), 3)
 	require.IsType(t, VersionMismatchError{}, err)

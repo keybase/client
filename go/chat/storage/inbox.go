@@ -948,7 +948,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	if conv.Conv.ReaderInfo.ReadMsgid == conv.Conv.ReaderInfo.MaxMsgid &&
 		bytes.Equal(msg.ClientHeader.Sender.Bytes(), uid) {
 		conv.Conv.ReaderInfo.ReadMsgid = msg.GetMessageID()
-		conv.Conv.ReaderInfo.LatestCtime = msg.Ctime()
+		conv.Conv.ReaderInfo.LastSendTime = msg.Ctime()
 	}
 	conv.Conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
 	conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
