@@ -53,17 +53,17 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 	switch seitanVersion {
 	case teams.SeitanVersion1:
 		ikey, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-			Name:  teamName.String(),
-			Role:  keybase1.TeamRole_WRITER,
-			Label: label,
+			Teamname: teamName.String(),
+			Role:     keybase1.TeamRole_WRITER,
+			Label:    label,
 		})
 		token = string(ikey)
 		require.NoError(t, err)
 	case teams.SeitanVersion2:
 		ikey, err := own.teamsClient.TeamCreateSeitanTokenV2(context.TODO(), keybase1.TeamCreateSeitanTokenV2Arg{
-			Name:  teamName.String(),
-			Role:  keybase1.TeamRole_WRITER,
-			Label: label,
+			Teamname: teamName.String(),
+			Role:     keybase1.TeamRole_WRITER,
+			Label:    label,
 		})
 		token = string(ikey)
 		require.NoError(t, err)
@@ -116,8 +116,8 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 	t.Logf("Created team %q", teamName.String())
 
 	token, err := own.teamsClient.TeamCreateSeitanTokenV2(context.Background(), keybase1.TeamCreateSeitanTokenV2Arg{
-		Name: teamName.String(),
-		Role: keybase1.TeamRole_WRITER,
+		Teamname: teamName.String(),
+		Role:     keybase1.TeamRole_WRITER,
 	})
 	require.NoError(t, err)
 
@@ -199,15 +199,15 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion teams.SeitanVersi
 	switch seitanVersion {
 	case teams.SeitanVersion1:
 		_, err = own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-			Name:  teamName.String(),
-			Role:  keybase1.TeamRole_WRITER,
-			Label: label,
+			Teamname: teamName.String(),
+			Role:     keybase1.TeamRole_WRITER,
+			Label:    label,
 		})
 	case teams.SeitanVersion2:
 		_, err = own.teamsClient.TeamCreateSeitanTokenV2(context.TODO(), keybase1.TeamCreateSeitanTokenV2Arg{
-			Name:  teamName.String(),
-			Role:  keybase1.TeamRole_WRITER,
-			Label: label,
+			Teamname: teamName.String(),
+			Role:     keybase1.TeamRole_WRITER,
+			Label:    label,
 		})
 	default:
 		t.Logf("Invalid seitan version %v", seitanVersion)
@@ -287,8 +287,8 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 
 	addSeitanV2 := func(F, N string, role keybase1.TeamRole) keybase1.SeitanIKeyV2 {
 		ikeyV2, err := ann.teamsClient.TeamCreateSeitanTokenV2(context.Background(), keybase1.TeamCreateSeitanTokenV2Arg{
-			Name: teamName.String(),
-			Role: role,
+			Teamname: teamName.String(),
+			Role:     role,
 			Label: keybase1.NewSeitanKeyLabelWithSms(keybase1.SeitanKeyLabelSms{
 				F: F,
 				N: N,
@@ -409,17 +409,17 @@ func testTeamInviteSeitanPukless(t *testing.T, seitanVersion teams.SeitanVersion
 	switch seitanVersion {
 	case teams.SeitanVersion1:
 		ikey, err := bee.teamsClient.TeamCreateSeitanToken(context.Background(), keybase1.TeamCreateSeitanTokenArg{
-			Name:  teamName.String(),
-			Role:  keybase1.TeamRole_WRITER,
-			Label: label,
+			Teamname: teamName.String(),
+			Role:     keybase1.TeamRole_WRITER,
+			Label:    label,
 		})
 		token = string(ikey)
 		require.NoError(t, err)
 	case teams.SeitanVersion2:
 		ikey, err := bee.teamsClient.TeamCreateSeitanTokenV2(context.Background(), keybase1.TeamCreateSeitanTokenV2Arg{
-			Name:  teamName.String(),
-			Role:  keybase1.TeamRole_WRITER,
-			Label: label,
+			Teamname: teamName.String(),
+			Role:     keybase1.TeamRole_WRITER,
+			Label:    label,
 		})
 		token = string(ikey)
 		require.NoError(t, err)

@@ -1072,6 +1072,14 @@ protocol local {
   }
   GetChannelMembershipsLocalRes getChannelMembershipsLocal(keybase1.TeamID teamID, gregor1.UID uid);
 
+
+  record GetMutualTeamsLocalRes {
+    array<keybase1.TeamID> teamIDs;
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  GetMutualTeamsLocalRes getMutualTeamsLocal(array<string> usernames);
+
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.
   record SetAppNotificationSettingsLocalRes {

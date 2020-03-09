@@ -301,13 +301,13 @@ func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 	mctx = mctx.WithCtx(s.reconnectSlot.Use(mctx.Ctx()))
 	mctx, cancel := cancelOnMobileBackground(mctx)
 	defer cancel()
-	if err := libkb.Sleep(mctx.Ctx(), 4*time.Second); err != nil {
+	if err := libkb.Sleep(mctx.Ctx(), libkb.RandomJitter(4*time.Second)); err != nil {
 		mctx.Debug("Stellar.handleReconnect canceled")
 		return
 	}
 	if libkb.IsMobilePlatform() {
 		// sleep some more on mobile
-		if err := libkb.Sleep(mctx.Ctx(), 4*time.Second); err != nil {
+		if err := libkb.Sleep(mctx.Ctx(), libkb.RandomJitter(4*time.Second)); err != nil {
 			mctx.Debug("Stellar.handleReconnect canceled")
 			return
 		}

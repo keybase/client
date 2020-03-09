@@ -236,7 +236,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 
 	t.Log("Check single revision")
 	tlfID := rootNode.GetFolderBranch().Tlf
-	changes, err := GetChangesBetweenRevisions(
+	changes, _, err := GetChangesBetweenRevisions(
 		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(2))
 	require.NoError(t, err)
 	checkChanges(
@@ -246,7 +246,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 		})
 
 	t.Log("Check multiple revisions")
-	changes, err = GetChangesBetweenRevisions(
+	changes, _, err = GetChangesBetweenRevisions(
 		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(5))
 	require.NoError(t, err)
 	checkChanges(
@@ -258,7 +258,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 		})
 
 	t.Log("Check rename")
-	changes, err = GetChangesBetweenRevisions(
+	changes, _, err = GetChangesBetweenRevisions(
 		ctx, config, tlfID, kbfsmd.Revision(5), kbfsmd.Revision(6))
 	require.NoError(t, err)
 	checkChanges(
@@ -269,7 +269,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 		})
 
 	t.Log("Check internal rename")
-	changes, err = GetChangesBetweenRevisions(
+	changes, _, err = GetChangesBetweenRevisions(
 		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(6))
 	require.NoError(t, err)
 	checkChanges(
@@ -281,7 +281,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 		})
 
 	t.Log("Check delete")
-	changes, err = GetChangesBetweenRevisions(
+	changes, _, err = GetChangesBetweenRevisions(
 		ctx, config, tlfID, kbfsmd.Revision(6), kbfsmd.Revision(7))
 	require.NoError(t, err)
 	checkChanges(
@@ -291,7 +291,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 		})
 
 	t.Log("Check full sequence")
-	changes, err = GetChangesBetweenRevisions(
+	changes, _, err = GetChangesBetweenRevisions(
 		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(7))
 	require.NoError(t, err)
 	checkChanges(

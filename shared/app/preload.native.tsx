@@ -33,6 +33,7 @@ global.KB = {
   },
   path: {
     basename: invalidPreload,
+    dirname: invalidPreload,
     extname: invalidPreload,
     join: invalidPreload,
     resolve: invalidPreload,

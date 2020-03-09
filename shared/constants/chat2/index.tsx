@@ -65,10 +65,8 @@ export const makeState = (): Types.State => ({
   inboxLayout: null,
   inboxNumSmallRows: 5,
   inboxSearch: undefined,
-  inboxShowNew: false,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
-  isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
@@ -77,6 +75,7 @@ export const makeState = (): Types.State => ({
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
   mutedMap: new Map(),
+  mutualTeamMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
   paymentConfirmInfo: undefined,
@@ -356,7 +355,6 @@ export const getBotsAndParticipants = (
   return {bots, participants}
 }
 
-export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyLeaveConversation = 'chat:leaveConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'
@@ -381,6 +379,8 @@ export const waitingKeyConvStatusChange = (conversationIDKey: Types.Conversation
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))

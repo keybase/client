@@ -917,9 +917,28 @@ func zipDir(directory string, prog *progress.ProgressWriter) io.ReadCloser {
 				return nil
 			}
 
+			if (info.Mode() & os.ModeSymlink) != 0 {
+				// figure out the destination of the link
+				dest, err := os.Readlink(path)
+				if err != nil {
+					return err
+				}
+				header.Name = stripped
+				zw, err := w.CreateHeader(header)
+				if err != nil {
+					return err
+				}
+				// the body of the entry is the link destination
+				_, err = zw.Write([]byte(dest))
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
 			// make a regular file and copy all the data into it.
 			header.Name = stripped
-			w, err := w.CreateHeader(header)
+			zw, err := w.CreateHeader(header)
 			if err != nil {
 				return err
 			}
@@ -929,7 +948,7 @@ func zipDir(directory string, prog *progress.ProgressWriter) io.ReadCloser {
 			}
 			defer f.Close()
 			tr := io.TeeReader(bufio.NewReader(f), prog)
-			_, err = io.Copy(w, tr)
+			_, err = io.Copy(zw, tr)
 			if err != nil {
 				return err
 			}

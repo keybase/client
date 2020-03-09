@@ -309,6 +309,8 @@ func TestTeamPlayerInviteMaxUses(t *testing.T) {
 	}
 }
 
+var singleUse = keybase1.TeamInviteMaxUses(1)
+
 func TestTeamPlayerEtime(t *testing.T) {
 	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
 	defer tc.Cleanup()
@@ -320,6 +322,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 	badEtime := []keybase1.UnixTime{0, -100}
 	for _, v := range badEtime {
 		invite.Etime = &v
+		invite.MaxUses = &singleUse
 		section.Invites = &SCTeamInvites{
 			Readers: &[]SCTeamInvite{invite},
 		}
@@ -333,6 +336,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 
 	etime := keybase1.ToUnixTime(time.Now())
 	invite.Etime = &etime
+	invite.MaxUses = &singleUse
 	section.Invites = &SCTeamInvites{
 		Readers: &[]SCTeamInvite{invite},
 	}
@@ -360,21 +364,7 @@ func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 	_, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		section, me, nil /* merkleRoot */)
 	requirePrecheckError(t, err)
-	require.Contains(t, err.Error(), "has max_uses in implicit team")
-	require.Contains(t, err.Error(), inviteID)
-
-	// Transmutate invite into invite with expiration time instead of max_uses
-	etime := keybase1.ToUnixTime(time.Now())
-	invite.MaxUses = nil
-	invite.Etime = &etime
-	section.Invites = &SCTeamInvites{
-		Readers: &[]SCTeamInvite{invite},
-	}
-
-	_, err = appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
-		section, me, nil /* merkleRoot */)
-	requirePrecheckError(t, err)
-	require.Contains(t, err.Error(), "has etime in implicit team")
+	require.Contains(t, err.Error(), "is new-style in implicit team")
 	require.Contains(t, err.Error(), inviteID)
 }
 
@@ -512,7 +502,7 @@ func TestTeamPlayerBadUsedInvites(t *testing.T) {
 		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
 		requirePrecheckError(t, err)
-		require.Contains(t, err.Error(), "`used_invites` for an invite that did not have `max_uses`")
+		require.Contains(t, err.Error(), "`used_invites` for a non-new-style invite")
 	}
 }
 
@@ -550,7 +540,7 @@ func TestTeamPlayerBadCompletedInvites(t *testing.T) {
 	_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 		teamSectionCM, me, nil /* merkleRoot */)
 	requirePrecheckError(t, err)
-	require.Contains(t, err.Error(), "`completed_invites` for an invite with `max_uses`")
+	require.Contains(t, err.Error(), "`completed_invites` for a new-style invite")
 	require.Contains(t, err.Error(), inviteID)
 }
 

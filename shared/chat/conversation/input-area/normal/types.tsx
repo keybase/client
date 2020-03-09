@@ -56,7 +56,10 @@ export type InputProps = {
     fullName: string
     teamname?: string
   }>
-  suggestChannels: Array<string>
+  suggestChannels: Array<{
+    channelname: string
+    teamname?: string
+  }>
   suggestChannelsLoading: boolean
   suggestAllChannels: Array<{
     teamname: string
