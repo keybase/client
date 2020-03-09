@@ -122,7 +122,7 @@ const PickAsset = (props: Props) => {
             <Kb.Box2 direction="horizontal" gap="xtiny">
               <Kb.ConnectedUsernames
                 type="BodyTinyBold"
-                usernames={[username]}
+                usernames={username}
                 colorBroken={true}
                 colorFollowing={true}
                 underline={false}

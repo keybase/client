@@ -471,7 +471,7 @@ class Input extends React.Component<InputProps, InputState> {
         <Kb.ConnectedUsernames
           type="BodyBold"
           colorFollowing={true}
-          usernames={[username]}
+          usernames={username}
           withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>
