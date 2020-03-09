@@ -40,6 +40,7 @@ export const editTeambuildingDraft = (
       const {query, service, users} = action.payload
       const results = mapGetEnsureValue(draftState.searchResults, query, new Map())
       const old = mapGetEnsureValue(results, service, [])
+      old.splice(0, old.length)
       old.push(...users)
     },
     [TeamBuildingGen.finishTeamBuilding]: draftState => {
@@ -67,7 +68,6 @@ export const editTeambuildingDraft = (
       draftState.searchLimit = limit
       draftState.searchQuery = trim(query)
       draftState.selectedService = service
-      draftState.searchResults.get(query)?.delete(service)
     },
   }
 
