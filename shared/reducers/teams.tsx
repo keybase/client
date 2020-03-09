@@ -341,6 +341,9 @@ export default Container.makeReducer<
       draftState.addMembersWizard.addingMembers.splice(idx, 1)
     }
   },
+  [TeamsGen.cancelAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState}
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)

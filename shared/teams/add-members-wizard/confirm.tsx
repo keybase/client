@@ -19,16 +19,19 @@ const AddMembersConfirm = () => {
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
 
   return (
     <Kb.Modal
-      onClose={onClose}
+      onClose={onLeave}
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: (
+          <Kb.Text type="BodyBigLink" onClick={onLeave}>
+            Cancel
+          </Kb.Text>
+        ),
         title: <ModalTitle teamname={teamname} title={`Inviting ${addingMembers.length} ${noun}`} />,
       }}
       footer={{
@@ -59,6 +62,9 @@ const AddMembersConfirm = () => {
       </Kb.Box2>
     </Kb.Modal>
   )
+}
+AddMembersConfirm.navigationOptions = {
+  gesturesEnabled: false,
 }
 
 const AddMoreMembers = () => {

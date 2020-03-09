@@ -1394,6 +1394,7 @@ const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
   })
 
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
+const cancelAddMembersWizard = () => RouteTreeGen.createClearModals()
 
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
@@ -1483,6 +1484,7 @@ const teamsSaga = function*() {
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
   yield* Saga.chainAction(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
+  yield* Saga.chainAction(TeamsGen.cancelAddMembersWizard, cancelAddMembersWizard)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

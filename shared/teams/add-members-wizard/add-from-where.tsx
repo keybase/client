@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
@@ -18,7 +19,7 @@ const AddFromWhere = (props: Props) => {
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
 
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamAddToTeamPhone'}]}))
