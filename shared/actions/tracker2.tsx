@@ -154,6 +154,20 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
   } catch (err) {
     if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
       yield Saga.put(Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'}))
+    } else if (err.code === RPCTypes.StatusCode.scnotfound) {
+      // we're on the profile page for a user that does not exist. Currently the only way
+      // to get here is with an invalid link or deeplink.
+      yield Saga.put(
+        DeeplinksGen.createSetKeybaseLinkError({
+          error: `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`,
+        })
+      )
+      yield Saga.put(RouteTreeGen.createNavigateUp())
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        })
+      )
     }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
@@ -305,19 +319,9 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
     return false
   } catch (e) {
     logger.warn(`Error loading non user profile: ${e.message}`)
-    return Tracker2Gen.createErrorLoadingNonUserProfile({assertion, error: e.message})
+    return false
   }
 }
-
-const showBadUsernameDeeplinkError = (action: Tracker2Gen.ErrorLoadingNonUserProfilePayload) => [
-  DeeplinksGen.createSetKeybaseLinkError({
-    error: `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`,
-  }),
-  RouteTreeGen.createNavigateUp(),
-  RouteTreeGen.createNavigateAppend({
-    path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-  }),
-]
 
 const refreshTrackerBlock = async (action: Tracker2Gen.UpdatedDetailsPayload) =>
   UsersGen.createGetBlockState({
@@ -344,7 +348,7 @@ function* tracker2Saga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersUserChanged, refreshSelf)
   yield* Saga.chainAction(Tracker2Gen.loadNonUserProfile, loadNonUserProfile)
   yield* Saga.chainAction(Tracker2Gen.updatedDetails, refreshTrackerBlock)
-  yield* Saga.chainAction(Tracker2Gen.errorLoadingNonUserProfile, showBadUsernameDeeplinkError)
+  // yield* Saga.chainAction(Tracker2Gen.errorLoadingNonUserProfile, showBadUsernameDeeplinkError)
 }
 
 export default tracker2Saga

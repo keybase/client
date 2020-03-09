@@ -73,10 +73,6 @@
       "siteIconDarkmode": "Array<Types.SiteIcon>",
       "siteIconFull": "Array<Types.SiteIcon>",
       "siteIconFullDarkmode": "Array<Types.SiteIcon>"
-    },
-    "errorLoadingNonUserProfile": {
-      "assertion": "string",
-      "error": "string"
     }
   }
 }

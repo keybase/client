@@ -989,7 +989,6 @@ export type TypedActionsMap = {
   'tracker2:showUser': tracker2.ShowUserPayload
   'tracker2:loadNonUserProfile': tracker2.LoadNonUserProfilePayload
   'tracker2:loadedNonUserProfile': tracker2.LoadedNonUserProfilePayload
-  'tracker2:errorLoadingNonUserProfile': tracker2.ErrorLoadingNonUserProfilePayload
   'unlock-folders:checkPaperKey': unlockfolders.CheckPaperKeyPayload
   'unlock-folders:openPopup': unlockfolders.OpenPopupPayload
   'unlock-folders:closePopup': unlockfolders.ClosePopupPayload
