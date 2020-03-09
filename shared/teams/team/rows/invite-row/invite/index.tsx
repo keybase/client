@@ -69,7 +69,6 @@ const _TeamInviteMenu = (props: Kb.PropsWithOverlay<{onCancelInvite?: () => void
         type="Dim"
         small={true}
         icon="iconfont-ellipsis"
-        tooltip=""
         onClick={props.toggleShowingMenu}
       />
       <Kb.FloatingMenu

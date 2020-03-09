@@ -127,7 +127,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           small={true}
           icon="iconfont-ellipsis"
           iconColor={Styles.globalColors.blue}
-          tooltip=""
           ref={popupAnchor}
           onClick={toggleShowingPopup}
         />
