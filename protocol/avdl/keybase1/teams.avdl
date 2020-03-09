@@ -1329,6 +1329,8 @@ protocol teams {
   TeamBotSettings teamGetBotSettings(int sessionID, string name, string username);
   void teamSetBotSettings(int sessionID, string name, string username, TeamBotSettings botSettings);
 
+  boolean untrustedTeamExists(TeamName teamName);
+
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
 
   void teamAcceptInvite(int sessionID, string token);

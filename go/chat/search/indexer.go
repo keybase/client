@@ -276,7 +276,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			// block until we are told to resume or stop.
 			select {
 			case <-ch:
-				time.Sleep(idx.resumeWait)
+				time.Sleep(libkb.RandomJitter(idx.resumeWait))
 			case <-idx.stopCh:
 				stopSync(ctx)
 				return nil
