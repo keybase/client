@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -503,6 +504,14 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	// Add to the local storage
 	if err = s.mergeMaybeNotify(ctx, conv, uid, []chat1.MessageUnboxed{decmsg}, chat1.GetThreadReason_GENERAL); err != nil {
 		return decmsg, continuousUpdate, err
+	}
+	if msg.ClientHeader.Sender.Eq(uid) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+		teamID, err := keybase1.TeamIDFromString(conv.Conv.Metadata.IdTriple.Tlfid.String())
+		if err != nil {
+			s.Debug(ctx, "Push: failed to get team ID: %v", err)
+		} else {
+			go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), uid, teamID, convID)
+		}
 	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
