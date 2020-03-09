@@ -330,10 +330,12 @@ type GetTeamQuotaInfoArg struct {
 }
 
 type GetUserQuotaInfo2Arg struct {
+	IncludeFolders bool `codec:"includeFolders" json:"includeFolders"`
 }
 
 type GetTeamQuotaInfo2Arg struct {
-	Tid TeamID `codec:"tid" json:"tid"`
+	Tid            TeamID `codec:"tid" json:"tid"`
+	IncludeFolders bool   `codec:"includeFolders" json:"includeFolders"`
 }
 
 type BlockPingArg struct {
@@ -354,8 +356,8 @@ type BlockInterface interface {
 	GetReferenceCount(context.Context, GetReferenceCountArg) (ReferenceCountRes, error)
 	GetUserQuotaInfo(context.Context) ([]byte, error)
 	GetTeamQuotaInfo(context.Context, TeamID) ([]byte, error)
-	GetUserQuotaInfo2(context.Context) (BlockQuotaInfo, error)
-	GetTeamQuotaInfo2(context.Context, TeamID) (BlockQuotaInfo, error)
+	GetUserQuotaInfo2(context.Context, bool) (BlockQuotaInfo, error)
+	GetTeamQuotaInfo2(context.Context, GetTeamQuotaInfo2Arg) (BlockQuotaInfo, error)
 	BlockPing(context.Context) (BlockPingResponse, error)
 }
 
@@ -569,7 +571,12 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetUserQuotaInfo2(ctx)
+					typedArgs, ok := args.(*[1]GetUserQuotaInfo2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUserQuotaInfo2Arg)(nil), args)
+						return
+					}
+					ret, err = i.GetUserQuotaInfo2(ctx, typedArgs[0].IncludeFolders)
 					return
 				},
 			},
@@ -584,7 +591,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetTeamQuotaInfo2Arg)(nil), args)
 						return
 					}
-					ret, err = i.GetTeamQuotaInfo2(ctx, typedArgs[0].Tid)
+					ret, err = i.GetTeamQuotaInfo2(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -678,13 +685,13 @@ func (c BlockClient) GetTeamQuotaInfo(ctx context.Context, tid TeamID) (res []by
 	return
 }
 
-func (c BlockClient) GetUserQuotaInfo2(ctx context.Context) (res BlockQuotaInfo, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.block.getUserQuotaInfo2", []interface{}{GetUserQuotaInfo2Arg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+func (c BlockClient) GetUserQuotaInfo2(ctx context.Context, includeFolders bool) (res BlockQuotaInfo, err error) {
+	__arg := GetUserQuotaInfo2Arg{IncludeFolders: includeFolders}
+	err = c.Cli.CallCompressed(ctx, "keybase.1.block.getUserQuotaInfo2", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
-func (c BlockClient) GetTeamQuotaInfo2(ctx context.Context, tid TeamID) (res BlockQuotaInfo, err error) {
-	__arg := GetTeamQuotaInfo2Arg{Tid: tid}
+func (c BlockClient) GetTeamQuotaInfo2(ctx context.Context, __arg GetTeamQuotaInfo2Arg) (res BlockQuotaInfo, err error) {
 	err = c.Cli.CallCompressed(ctx, "keybase.1.block.getTeamQuotaInfo2", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
