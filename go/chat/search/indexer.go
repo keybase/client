@@ -276,7 +276,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			// block until we are told to resume or stop.
 			select {
 			case <-ch:
-				time.Sleep(idx.resumeWait)
+				time.Sleep(libkb.RandomJitter(idx.resumeWait))
 			case <-idx.stopCh:
 				stopSync(ctx)
 				return nil
@@ -541,7 +541,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
-		msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, idx.uid, missingIDs, &reason, nil)
+		msgs, err := idx.G().ConvSource.GetMessages(ctx, rconv, idx.uid, missingIDs, &reason, nil)
 		if err != nil {
 			if utils.IsPermanentErr(err) {
 				return 0, err

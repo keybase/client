@@ -32,7 +32,7 @@ type SeitanIKeyV2 string
 // Seitan tokens, since we don't mistakenly want to send botched Seitan
 // tokens to the server.
 func IsSeitany(s string) bool {
-	return len(s) > seitanEncodedIKeyV2PlusOffset && strings.IndexByte(s, '+') > 1
+	return len(s) > seitanEncodedIKeyInvitelinkPlusOffset && strings.IndexByte(s, '+') > 1
 }
 
 func ParseSeitanVersion(s string) (version SeitanVersion, err error) {
@@ -42,12 +42,14 @@ func ParseSeitanVersion(s string) (version SeitanVersion, err error) {
 		return SeitanVersion1, nil
 	} else if s[seitanEncodedIKeyV2PlusOffset] == '+' {
 		return SeitanVersion2, nil
+	} else if s[seitanEncodedIKeyInvitelinkPlusOffset] == '+' {
+		return SeitanVersionInvitelink, nil
 	}
 	return version, errors.New("Invalid token, invalid '+' position")
 }
 
 func GenerateIKeyV2() (ikey SeitanIKeyV2, err error) {
-	str, err := generateIKey(seitanEncodedIKeyV2PlusOffset)
+	str, err := generateIKey(SeitanEncodedIKeyLength, seitanEncodedIKeyV2PlusOffset)
 	if err != nil {
 		return ikey, err
 	}
@@ -86,16 +88,18 @@ func (ikey SeitanIKeyV2) GenerateSIKey() (sikey SeitanSIKeyV2, err error) {
 	return sikey, nil
 }
 
-func (sikey SeitanSIKeyV2) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
-	type InviteStagePayload struct {
-		Stage   string        `codec:"stage" json:"stage"`
-		Version SeitanVersion `codec:"version" json:"version"`
-	}
+type SeitanVersionedInviteStagePayload struct {
+	Stage   string        `codec:"stage" json:"stage"`
+	Version SeitanVersion `codec:"version" json:"version"`
+}
 
-	payload, err := msgpack.Encode(InviteStagePayload{
-		Stage:   "invite_id",
-		Version: SeitanVersion2,
-	})
+func NewSeitanInviteIDPayload(version SeitanVersion) SeitanVersionedInviteStagePayload {
+	return SeitanVersionedInviteStagePayload{Stage: "invite_id", Version: version}
+}
+
+func (sikey SeitanSIKeyV2) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
+
+	payload, err := msgpack.Encode(NewSeitanInviteIDPayload(SeitanVersion2))
 	if err != nil {
 		return id, err
 	}

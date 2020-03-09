@@ -153,7 +153,13 @@ const InputContainer = (props: Props) => {
       },
     ],
     suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating,
-    suggestChannels: ['general', 'random', 'spelunky', 'music', 'vidya-games'],
+    suggestChannels: [
+      {channelname: 'general'},
+      {channelname: 'random'},
+      {channelname: 'spelunky'},
+      {channelname: 'music'},
+      {channelname: 'vidya-games'},
+    ],
     suggestChannelsLoading: true,
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},

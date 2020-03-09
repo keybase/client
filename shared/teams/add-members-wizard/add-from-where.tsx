@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
+import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 type Props = Container.RouteProps<{
@@ -22,6 +22,9 @@ const AddFromWhere = (props: Props) => {
 
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
+  const onContinuePhone = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamAddToTeamPhone'}]}))
+  const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder())
   return (
     <Kb.Modal
       allowOverflow={true}
@@ -79,14 +82,14 @@ const AddFromWhere = (props: Props) => {
             icon="icon-teams-add-phone-contacts-64"
             title="From your contacts"
             description="Add your friends, family, or colleagues."
-            onClick={() => {} /* TODO add nav */}
+            onClick={onAddFromContacts}
           />
         )}
         <Kb.RichButton
           icon="icon-teams-add-number-list-64"
           title="A list of phone numbers"
           description="Enter one or multiple phone numbers"
-          onClick={() => {} /* TODO add nav */}
+          onClick={onContinuePhone}
         />
       </Kb.Box2>
     </Kb.Modal>

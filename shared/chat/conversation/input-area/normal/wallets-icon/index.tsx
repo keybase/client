@@ -3,7 +3,6 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
 export type WalletsIconProps = {
-  isNew: boolean
   onSend: () => void
   onRequest: () => void
   size: number
@@ -16,20 +15,17 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
     style={Styles.collapseStyles([styles.container, props.style])}
   >
     <Kb.Icon type="iconfont-dollar-sign" fontSize={props.size} onClick={props.toggleShowingMenu} />
-    {props.isNew && <Kb.Box style={styles.newBadge} />}
     <Kb.FloatingMenu
       closeOnSelect={true}
       attachTo={props.getAttachmentRef}
       items={[
         {
           icon: 'iconfont-stellar-send',
-          newTag: props.isNew,
           onClick: props.onSend,
           title: 'Send Lumens (XLM)',
         },
         {
           icon: 'iconfont-stellar-request',
-          newTag: props.isNew,
           onClick: props.onRequest,
           title: 'Request Lumens (XLM)',
         },

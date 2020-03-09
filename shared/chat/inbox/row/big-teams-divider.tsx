@@ -1,36 +1,41 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as RowSizes from '../sizes'
-import {BigTeamsLabel} from '../big-teams-label'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as RowSizes from './sizes'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import {BigTeamsLabel} from './big-teams-label'
 
 type Props = {
-  badgeCount: number
   toggle: () => void
 }
 
-const DividerBox = Styles.styled(Kb.Box)(() => ({
-  ...(Styles.isMobile
-    ? {backgroundColor: Styles.globalColors.fastBlank}
-    : {
-        ':hover': {
-          color: Styles.globalColors.black_50,
-        },
-        color: Styles.globalColors.black_20,
-      }),
-}))
-
-const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
-  <Kb.ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>
-    <DividerBox style={styles.dividerBox}>
-      <BigTeamsLabel />
-      {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
-      <Kb.Box style={styles.icon}>
-        <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Styles.isMobile ? 20 : 16} />
-      </Kb.Box>
-    </DividerBox>
-  </Kb.ClickableBox>
-)
+const BigTeamsDivider = React.memo((props: Props) => {
+  const {toggle} = props
+  const badgeCount = Container.useSelector(state => state.chat2.bigTeamBadgeCount)
+  return (
+    <Kb.ClickableBox
+      title="Teams with multiple channels."
+      onClick={() => {
+        RPCChatTypes.localRequestInboxSmallResetRpcPromise().catch(() => {})
+        toggle()
+      }}
+      style={styles.container}
+    >
+      <Kb.Box2
+        direction="horizontal"
+        style={styles.dividerBox}
+        className="color_black_20 hover_color_black_50"
+      >
+        <BigTeamsLabel />
+        {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
+        <Kb.Box style={styles.icon}>
+          <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Styles.isMobile ? 20 : 16} />
+        </Kb.Box>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -71,6 +76,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
         },
         isMobile: {
+          backgroundColor: Styles.globalColors.fastBlank,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
         },
@@ -85,4 +91,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export {BigTeamsDivider, BigTeamsLabel}
+export default BigTeamsDivider

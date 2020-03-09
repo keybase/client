@@ -66,6 +66,7 @@ protocol identify3Ui {
   }
 
   record Identify3Summary {
+    Identify3GUIID guiID;          // id used to tie these things together
     int numProofsToCheck;
   }
 

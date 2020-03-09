@@ -158,7 +158,6 @@ const TeamRequestRowNew = (props: Props) => {
             type="Dim"
             small={true}
             icon="iconfont-ellipsis"
-            tooltip=""
             style={styles.ignoreButton}
             onClick={toggleShowingPopup}
             ref={popupAnchor}

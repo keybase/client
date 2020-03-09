@@ -1179,7 +1179,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
 	} else {
-		if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
+		if cerr = s.G().ConvSource.PushUnboxed(ctx, conv, boxed.ClientHeader.Sender,
 			[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
 			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
 		}
@@ -1454,14 +1454,14 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	s.msgSentCh <- struct{}{}
 	// Only update mtime badgable messages
 	if obr.Msg.IsBadgableType() {
-		go func() {
+		go func(ctx context.Context) {
 			update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
 			if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
-				s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+				s.Debug(ctx, "Queue: unable to update local mtime %v", obr.Ctime.Time())
 			}
 			time.Sleep(250 * time.Millisecond)
 			s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
-		}()
+		}(globals.BackgroundChatCtx(ctx, s.G()))
 	}
 	return obr, nil
 }

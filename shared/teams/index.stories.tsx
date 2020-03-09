@@ -16,6 +16,7 @@ import member from './team/member/index.stories'
 import teamRow from './main/team-row.stories'
 import newTeamWizard from './new-team/wizard/index.stories'
 import addMembersWizard from './add-members-wizard/index.stories'
+import channels from './channel/index.stories'
 
 const load = () => {
   main()
@@ -36,6 +37,7 @@ const load = () => {
   teamRow()
   newTeamWizard()
   addMembersWizard()
+  channels()
 }
 
 export default load

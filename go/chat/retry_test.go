@@ -69,10 +69,10 @@ func TestFetchRetry(t *testing.T) {
 			ConvIDs: convIDs,
 		})
 	require.NoError(t, err)
-	require.NotNil(t, inbox.Convs[0].Error)
-	require.Nil(t, inbox.Convs[2].Error)
+	require.NotNil(t, inbox.Convs[2].Error)
+	require.Nil(t, inbox.Convs[0].Error)
 	tc.ChatG.FetchRetrier.Failure(ctx, uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[0].GetConvID(), nil, ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), nil, ThreadLoad))
 
 	// Advance clock and check for errors on all conversations
 	t.Logf("advancing clock and checking for stale")

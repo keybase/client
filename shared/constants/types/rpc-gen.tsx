@@ -943,6 +943,10 @@ export type MessageTypes = {
     inParam: void
     outParam: Boolean
   }
+  'keybase.1.log.perfLogPoint': {
+    inParam: {readonly msg: String}
+    outParam: void
+  }
   'keybase.1.logUi.log': {
     inParam: {readonly level: LogLevel; readonly text: Text}
     outParam: void
@@ -1368,7 +1372,7 @@ export type MessageTypes = {
     outParam: TeamCreateResult
   }
   'keybase.1.teams.teamCreateSeitanTokenV2': {
-    inParam: {readonly name: String; readonly role: TeamRole; readonly label: SeitanKeyLabel}
+    inParam: {readonly teamname: String; readonly role: TeamRole; readonly label: SeitanKeyLabel}
     outParam: SeitanIKeyV2
   }
   'keybase.1.teams.teamDelete': {
@@ -2235,10 +2239,12 @@ export enum SaltpackSenderType {
 export enum SeitanKeyAndLabelVersion {
   v1 = 1,
   v2 = 2,
+  invitelink = 3,
 }
 
 export enum SeitanKeyLabelType {
   sms = 1,
+  generic = 2,
 }
 
 export enum SeqType {
@@ -2561,6 +2567,7 @@ export enum TeamInviteCategory {
   sbs = 4,
   seitan = 5,
   phone = 6,
+  invitelink = 7,
 }
 
 export enum TeamMemberStatus {
@@ -2695,6 +2702,7 @@ export type BinaryLinkID = Bytes
 export type BlockIdCombo = {readonly blockHash: String; readonly chargedTo: UserOrTeamID; readonly blockType: BlockType}
 export type BlockIdCount = {readonly id: BlockIdCombo; readonly liveCount: Int}
 export type BlockPingResponse = {}
+export type BlockQuotaInfo = {readonly folders?: Array<FolderUsageStat> | null; readonly total: UsageStat; readonly limit: Int64; readonly gitLimit: Int64}
 export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo; readonly nonce: BlockRefNonce; readonly chargedTo: UserOrTeamID}
 export type BlockReferenceCount = {readonly ref: BlockReference; readonly liveCount: Int}
@@ -2803,6 +2811,7 @@ export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: 
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncStatus = {readonly localDiskBytesAvailable: Int64; readonly localDiskBytesTotal: Int64; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress; readonly storedBytesTotal: Int64; readonly outOfSyncSpace: Boolean}
+export type FolderUsageStat = {readonly folderID: String; readonly stats: UsageStat}
 export type FolderWithFavFlags = {readonly folder: Folder; readonly isFavorite: Boolean; readonly isIgnored: Boolean; readonly isNew: Boolean}
 export type FullName = String
 export type FullNamePackage = {readonly version: FullNamePackageVersion; readonly fullName: FullName; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly cachedAt: Time}
@@ -2863,7 +2872,7 @@ export type Identify3Assertion = String
 export type Identify3GUIID = String
 export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null}
 export type Identify3RowMeta = {readonly color: Identify3RowColor; readonly label: String}
-export type Identify3Summary = {readonly numProofsToCheck: Int}
+export type Identify3Summary = {readonly guiID: Identify3GUIID; readonly numProofsToCheck: Int}
 export type IdentifyKey = {readonly pgpFingerprint: Bytes; readonly KID: KID; readonly trackDiff?: TrackDiff | null; readonly breaksTracking: Boolean; readonly sigID: SigID}
 export type IdentifyLiteRes = {readonly ul: UserOrTeamLite; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type IdentifyOutcome = {readonly username: String; readonly status?: Status | null; readonly warnings?: Array<String> | null; readonly trackUsed?: TrackSummary | null; readonly trackStatus: TrackStatus; readonly numTrackFailures: Int; readonly numTrackChanges: Int; readonly numProofFailures: Int; readonly numRevoked: Int; readonly numProofSuccesses: Int; readonly revoked?: Array<TrackDiff> | null; readonly trackOptions: TrackOptions; readonly forPGPPull: Boolean; readonly reason: IdentifyReason}
@@ -2879,9 +2888,11 @@ export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration;
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
 export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath: String; readonly originalSize: Int; readonly scaledPath?: String | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
+export type IndexProgressRecord = {readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesSoFar: Int64}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
+export type Invitelink = {readonly ikey: SeitanIKeyInvitelink; readonly webLink: String; readonly deepLink: String; readonly maxUses: TeamInviteMaxUses; readonly etime?: UnixTime | null}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -3053,11 +3064,14 @@ export type SecretKeys = {readonly signing: NaclSigningKeyPrivate; readonly encr
 export type SecretResponse = {readonly secret: Bytes; readonly phrase: String}
 export type SeitanAKey = String
 export type SeitanIKey = String
+export type SeitanIKeyInvitelink = String
 export type SeitanIKeyV2 = String
-export type SeitanKeyAndLabel = {v: SeitanKeyAndLabelVersion.v1; v1: SeitanKeyAndLabelVersion1} | {v: SeitanKeyAndLabelVersion.v2; v2: SeitanKeyAndLabelVersion2}
+export type SeitanKeyAndLabel = {v: SeitanKeyAndLabelVersion.v1; v1: SeitanKeyAndLabelVersion1} | {v: SeitanKeyAndLabelVersion.v2; v2: SeitanKeyAndLabelVersion2} | {v: SeitanKeyAndLabelVersion.invitelink; invitelink: SeitanKeyAndLabelInvitelink}
+export type SeitanKeyAndLabelInvitelink = {readonly i: SeitanIKeyInvitelink; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion1 = {readonly i: SeitanIKey; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion2 = {readonly k: SeitanPubKey; readonly l: SeitanKeyLabel}
-export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms}
+export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms} | {t: SeitanKeyLabelType.generic; generic: SeitanKeyLabelGeneric}
+export type SeitanKeyLabelGeneric = {readonly l: String}
 export type SeitanKeyLabelSms = {readonly f: String; readonly n: String}
 export type SeitanPubKey = String
 export type SelectKeyRes = {readonly keyID: String; readonly doSecretPush: Boolean}
@@ -3079,6 +3093,7 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
+export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: Array<Folder> | null}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
 export type SimpleFSSearchHit = {readonly path: String}
@@ -3140,7 +3155,7 @@ export type TeamInviteID = String
 export type TeamInviteMaxUses = Int
 export type TeamInviteName = String
 export type TeamInviteSocialNetwork = String
-export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone}
+export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone} | {c: TeamInviteCategory.invitelink}
 export type TeamInvitee = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly role: TeamRole}
 export type TeamJoinRequest = {readonly name: String; readonly username: String; readonly fullName: FullName; readonly ctime: UnixTime}
 export type TeamKBFSKeyRefresher = {readonly generation: Int; readonly appType: TeamApplication}
@@ -3211,6 +3226,8 @@ export type UpdateDetails = {readonly message: String}
 export type UpdateInfo = {readonly status: UpdateInfoStatus; readonly message: String}
 export type UpdateInfo2 = {status: UpdateInfoStatus2.ok} | {status: UpdateInfoStatus2.suggested; suggested: UpdateDetails} | {status: UpdateInfoStatus2.critical; critical: UpdateDetails}
 export type UpdaterStatus = {readonly log: String}
+export type UsageStat = {readonly bytes: UsageStatRecord; readonly blocks: UsageStatRecord; readonly mtime: Time}
+export type UsageStatRecord = {readonly write: Int64; readonly archive: Int64; readonly read: Int64; readonly mdWrite: Int64; readonly gitWrite: Int64; readonly gitArchive: Int64}
 export type User = {readonly uid: UID; readonly username: String}
 export type UserBlock = {readonly username: String; readonly chatBlocked: Boolean; readonly followBlocked: Boolean; readonly createTime?: Time | null; readonly modifyTime?: Time | null}
 export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null}
@@ -3664,6 +3681,7 @@ export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keyb
 export const kbfsMountGetKBFSPathInfoRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetKBFSPathInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetPreferredMountDirsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetPreferredMountDirs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountWaitForMountsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.WaitForMounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.WaitForMounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.WaitForMounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const logPerfLogPointRpcPromise = (params: MessageTypes['keybase.1.log.perfLogPoint']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.log.perfLogPoint']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.log.perfLogPoint', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginAccountDeleteRpcPromise = (params: MessageTypes['keybase.1.login.accountDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.accountDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.accountDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginDeprovisionRpcPromise = (params: MessageTypes['keybase.1.login.deprovision']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.deprovision']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.deprovision', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginGetConfiguredAccountsRpcPromise = (params: MessageTypes['keybase.1.login.getConfiguredAccounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.getConfiguredAccounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.getConfiguredAccounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3788,6 +3806,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.block.getReferenceCount'
 // 'keybase.1.block.getUserQuotaInfo'
 // 'keybase.1.block.getTeamQuotaInfo'
+// 'keybase.1.block.getUserQuotaInfo2'
+// 'keybase.1.block.getTeamQuotaInfo2'
 // 'keybase.1.block.blockPing'
 // 'keybase.1.bot.botTokenList'
 // 'keybase.1.bot.botTokenCreate'
@@ -3912,7 +3932,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.kvstore.listKVEntries'
 // 'keybase.1.kvstore.delKVEntry'
 // 'keybase.1.log.registerLogger'
-// 'keybase.1.log.perfLogPoint'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
 // 'keybase.1.login.loginWithPaperKey'
@@ -4117,6 +4136,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.SimpleFS.simpleFSGetStats'
 // 'keybase.1.SimpleFS.simpleFSSearch'
 // 'keybase.1.SimpleFS.simpleFSResetIndex'
+// 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'
@@ -4132,10 +4152,12 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamEditMembers'
 // 'keybase.1.teams.teamGetBotSettings'
 // 'keybase.1.teams.teamSetBotSettings'
+// 'keybase.1.teams.untrustedTeamExists'
 // 'keybase.1.teams.teamAcceptInvite'
 // 'keybase.1.teams.teamRequestAccess'
 // 'keybase.1.teams.teamTree'
 // 'keybase.1.teams.teamCreateSeitanToken'
+// 'keybase.1.teams.teamCreateSeitanInvitelink'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'
 // 'keybase.1.teams.loadTeamPlusApplicationKeys'
