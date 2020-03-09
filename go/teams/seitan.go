@@ -39,8 +39,9 @@ const base30BitMask = byte(0x1f)
 type SeitanVersion uint
 
 const (
-	SeitanVersion1 SeitanVersion = 1
-	SeitanVersion2 SeitanVersion = 2
+	SeitanVersion1          SeitanVersion = 1
+	SeitanVersion2          SeitanVersion = 2
+	SeitanVersionInvitelink SeitanVersion = 3
 )
 
 // "Invite Key"
@@ -56,7 +57,7 @@ type SeitanPKey struct {
 	EncryptedKeyAndLabel []byte // keybase1.SeitanKeyAndLabel MsgPacked and encrypted
 }
 
-func generateIKey(plusOffset int) (str string, err error) {
+func generateIKey(length int, plusOffset int) (str string, err error) {
 
 	alphabet := []byte(KBase30EncodeStd)
 	randEncodingByte := func() (byte, error) {
@@ -74,7 +75,7 @@ func generateIKey(plusOffset int) (str string, err error) {
 	}
 
 	var buf []byte
-	for i := 0; i < SeitanEncodedIKeyLength; i++ {
+	for i := 0; i < length; i++ {
 		if i == plusOffset {
 			buf = append(buf, '+')
 		} else {
@@ -89,17 +90,17 @@ func generateIKey(plusOffset int) (str string, err error) {
 }
 
 func GenerateIKey() (ikey SeitanIKey, err error) {
-	str, err := generateIKey(seitanEncodedIKeyPlusOffset)
+	str, err := generateIKey(SeitanEncodedIKeyLength, seitanEncodedIKeyPlusOffset)
 	if err != nil {
 		return ikey, err
 	}
 	return SeitanIKey(str), err
 }
 
-var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
+var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,28}`)
 
 // Returns the string that might be the token, and whether the content looked like a token paste.
-func ParseSeitanTokenFromPaste(token string) (string, bool) {
+func ParseSeitanTokenFromPaste(token string) (parsed string, isSeitany bool) {
 	// If the person pasted the whole seitan SMS message in, then let's parse out the token
 	if strings.Contains(token, "token: ") {
 		m := tokenPasteRegexp.FindStringSubmatch(token)
@@ -270,26 +271,9 @@ func (pkey SeitanPKey) DecryptKeyAndLabel(ctx context.Context, team *Team) (ret 
 // "Acceptance Key"
 type SeitanAKey []byte
 
-func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
-	type AKeyPayload struct {
-		Stage       string         `codec:"stage" json:"stage"`
-		UID         keybase1.UID   `codec:"uid" json:"uid"`
-		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
-		CTime       int64          `codec:"ctime" json:"ctime"`
-	}
-
-	payload, err := msgpack.Encode(AKeyPayload{
-		Stage:       "accept",
-		UID:         uid,
-		EldestSeqno: eldestSeqno,
-		CTime:       unixTime,
-	})
-	if err != nil {
-		return akey, encoded, err
-	}
-
-	mac := hmac.New(sha512.New, sikey[:])
-	_, err = mac.Write(payload)
+func generateAcceptanceKey(akeyPayload []byte, sikey []byte) (akey SeitanAKey, encoded string, err error) {
+	mac := hmac.New(sha512.New, sikey)
+	_, err = mac.Write(akeyPayload)
 	if err != nil {
 		return akey, encoded, err
 	}
@@ -298,4 +282,24 @@ func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno key
 	akey = out[:32]
 	encoded = base64.StdEncoding.EncodeToString(akey)
 	return akey, encoded, nil
+}
+
+func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
+	type AKeyPayload struct {
+		Stage       string         `codec:"stage" json:"stage"`
+		UID         keybase1.UID   `codec:"uid" json:"uid"`
+		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
+		CTime       int64          `codec:"ctime" json:"ctime"`
+	}
+
+	akeyPayload, err := msgpack.Encode(AKeyPayload{
+		Stage:       "accept",
+		UID:         uid,
+		EldestSeqno: eldestSeqno,
+		CTime:       unixTime,
+	})
+	if err != nil {
+		return akey, encoded, err
+	}
+	return generateAcceptanceKey(akeyPayload, sikey[:])
 }

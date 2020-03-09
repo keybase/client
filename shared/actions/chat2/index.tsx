@@ -99,22 +99,6 @@ const inboxRefresh = (
   return actions
 }
 
-const inboxLoadMoreSmalls = async (_: unknown, logger: Saga.SagaLogger) => {
-  try {
-    await RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise()
-  } catch (err) {
-    logger.info(`inboxLoadMoreSmalls: failed to increase smalls: ${err.message}`)
-  }
-}
-
-const inboxResetSmalls = async (_: unknown, logger: Saga.SagaLogger) => {
-  try {
-    await RPCChatTypes.localRequestInboxSmallResetRpcPromise()
-  } catch (err) {
-    logger.info(`inboxResetSmalls: failed to reset smalls: ${err.message}`)
-  }
-}
-
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: Container.TypedState, ids: Array<Types.ConversationIDKey>) =>
   ids.filter(id => (state.chat2.metaMap.get(id) ?? {trustedState: 'untrusted'}).trustedState === 'untrusted')
@@ -3657,8 +3641,6 @@ function* chat2Saga() {
   // Refresh the inbox
   yield* Saga.chainAction2([Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale], inboxRefresh)
   yield* Saga.chainAction2([Chat2Gen.selectConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
-  yield* Saga.chainAction(Chat2Gen.loadMoreSmalls, inboxLoadMoreSmalls)
-  yield* Saga.chainAction(Chat2Gen.resetSmalls, inboxResetSmalls)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process

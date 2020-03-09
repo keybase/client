@@ -2676,12 +2676,29 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 // multiple use, with infinite number of uses.
 const TeamMaxUsesInfinite = -1
 
+func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
+	if maxUses <= 0 {
+		return v, errors.New("non-infinite uses with nonpositive maxUses")
+	}
+	return TeamInviteMaxUses(maxUses), nil
+}
+
 func (e TeamInviteMaxUses) IsInfiniteUses() bool {
 	return e == TeamMaxUsesInfinite
 }
 
 func (e TeamInviteMaxUses) IsValid() bool {
 	return e > 0 || e == TeamMaxUsesInfinite
+}
+
+func (e TeamInviteMaxUses) IsUsedUp(alreadyUsed int) bool {
+	if !e.IsValid() {
+		return true
+	}
+	if e == TeamMaxUsesInfinite {
+		return false
+	}
+	return alreadyUsed >= int(e)
 }
 
 func (m MemberInfo) TeamName() (TeamName, error) {
@@ -2859,6 +2876,9 @@ func (req *TeamChangeReq) RestrictedBotUVs() (ret []UserVersion) {
 	return ret
 }
 
+// CompleteInviteID adds to the `completed_invites` field, and signals that the
+// invite can never be used again. It's used for SBS, Keybase, SeitanV1, and
+// SeitanV2 invites.
 func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	if req.CompletedInvites == nil {
 		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
@@ -2866,11 +2886,10 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 	req.CompletedInvites[inviteID] = uv
 }
 
+// UseInviteID adds to the `used_invites` field. It is used for SeitanInvitelink invites,
+// which can be used multiple times.
 func (req *TeamChangeReq) UseInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
-	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{
-		InviteID: inviteID,
-		Uv:       uv,
-	})
+	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{InviteID: inviteID, Uv: uv})
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
@@ -3990,4 +4009,8 @@ func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
 					append(t.Readers,
 						append(t.RestrictedBots,
 							append(t.Writers)...)...)...)...)...)...)
+}
+
+func (t SeitanIKeyInvitelink) String() string {
+	return string(t)
 }

@@ -517,6 +517,7 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 		return err
 	}
 
+	// Fallback to legacy email TOFU token
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
@@ -624,7 +625,7 @@ func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.T
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return "", err
 	}
-	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
+	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Teamname, arg.Role, arg.Label)
 }
 
 func (h *TeamsHandler) TeamCreateSeitanTokenV2(ctx context.Context, arg keybase1.TeamCreateSeitanTokenV2Arg) (token keybase1.SeitanIKeyV2, err error) {
@@ -632,7 +633,17 @@ func (h *TeamsHandler) TeamCreateSeitanTokenV2(ctx context.Context, arg keybase1
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return "", err
 	}
-	return teams.CreateSeitanTokenV2(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
+	return teams.CreateSeitanTokenV2(ctx, h.G().ExternalG(), arg.Teamname, arg.Role, arg.Label)
+}
+
+func (h *TeamsHandler) TeamCreateSeitanInvitelink(ctx context.Context,
+	arg keybase1.TeamCreateSeitanInvitelinkArg) (invitelink keybase1.Invitelink, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
+		return invitelink, err
+	}
+	return teams.CreateInvitelink(ctx, h.G().ExternalG(), arg.Teamname, arg.Role, arg.MaxUses,
+		arg.Etime)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
