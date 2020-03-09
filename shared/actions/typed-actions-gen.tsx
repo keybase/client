@@ -970,6 +970,7 @@ export type TypedActionsMap = {
   'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
   'teams:startAddMembersWizard': teams.StartAddMembersWizardPayload
   'teams:setAddMembersWizardRole': teams.SetAddMembersWizardRolePayload
+  'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload

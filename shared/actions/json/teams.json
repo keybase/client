@@ -361,6 +361,10 @@
       "_description": "Set the role for the add members wizard.",
       "role": ["Types.TeamRoleType", "undefined"]
     },
+    "addMembersWizardPushMembers": {
+      "_description": "Add pending members to the add members wizard and show the confirm screen.",
+      "members": "Array<Types.AddingMember>"
+    },
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"
     },

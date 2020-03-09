@@ -6,6 +6,7 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
@@ -61,13 +62,21 @@ const AddMembersConfirm = () => {
 }
 
 const AddMoreMembers = () => {
+  const dispatch = Container.useDispatch()
+  // const nav = Container.useSafeNavigation()
+  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}
       closeOnSelect={true}
       onHidden={toggleShowingPopup}
       visible={showingPopup}
-      items={[{title: 'From Keybase'}, {title: 'By email address'}, {title: 'By phone number'}]}
+      items={[
+        {onClick: onAddKeybase, title: 'From Keybase'},
+        {title: 'By email address'},
+        {title: 'By phone number'},
+      ]}
     />
   ))
   return (

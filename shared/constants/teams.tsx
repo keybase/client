@@ -859,3 +859,16 @@ export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: T
         latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
       }
     : newVersion
+
+export const dedupAddingMembeers = (
+  _existing: Array<Types.AddingMember>,
+  toAdds: Array<Types.AddingMember>
+) => {
+  const existing = [..._existing]
+  for (const toAdd of toAdds) {
+    if (!existing.find(m => m.assertion === toAdd.assertion)) {
+      existing.unshift(toAdd)
+    }
+  }
+  return existing
+}

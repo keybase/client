@@ -25,6 +25,7 @@ import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import {RPCError} from '../util/errors'
+import flags from '../util/feature-flags'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -1301,6 +1302,14 @@ function addThemToTeamFromTeamBuilder(
     logger.error("Trying to add them to a team, but I don't know what the teamID is.")
     return
   }
+  if (flags.teamsRedesign) {
+    return [
+      TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
+      TeamsGen.createAddMembersWizardPushMembers({
+        members: [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'})),
+      }),
+    ]
+  }
 
   const role = state.teams.teamBuilding.selectedRole
   const sendChatNotification = state.teams.teamBuilding.sendNotification
@@ -1381,8 +1390,10 @@ const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescript
 
 const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {teamID: action.payload.teamID}, selected: 'teamAddToTeamFromWhere'}],
+    path: ['teamAddToTeamFromWhere'],
   })
+
+const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
@@ -1471,6 +1482,7 @@ const teamsSaga = function*() {
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
+  yield* Saga.chainAction(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

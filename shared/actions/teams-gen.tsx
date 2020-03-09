@@ -8,6 +8,7 @@ import {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
+export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
 export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
@@ -98,6 +99,7 @@ export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
+type _AddMembersWizardPushMembersPayload = {readonly members: Array<Types.AddingMember>}
 type _AddParticipantPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -349,6 +351,12 @@ type _UploadTeamAvatarPayload = {
 }
 
 // Action Creators
+/**
+ * Add pending members to the add members wizard and show the confirm screen.
+ */
+export const createAddMembersWizardPushMembers = (
+  payload: _AddMembersWizardPushMembersPayload
+): AddMembersWizardPushMembersPayload => ({payload, type: addMembersWizardPushMembers})
 /**
  * Don't eagerly reload team list anymore.
  */
@@ -709,6 +717,10 @@ export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload): Uploa
 })
 
 // Action Payloads
+export type AddMembersWizardPushMembersPayload = {
+  readonly payload: _AddMembersWizardPushMembersPayload
+  readonly type: typeof addMembersWizardPushMembers
+}
 export type AddParticipantPayload = {
   readonly payload: _AddParticipantPayload
   readonly type: typeof addParticipant
@@ -1008,6 +1020,7 @@ export type UploadTeamAvatarPayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddMembersWizardPushMembersPayload
   | AddParticipantPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
