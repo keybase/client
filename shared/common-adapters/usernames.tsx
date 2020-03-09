@@ -39,7 +39,7 @@ export type Props = {
   title?: string
   type: TextType
   underline?: boolean
-  usernames: Array<string>
+  usernames: Array<string> | string
   withProfileCardPopup?: boolean
 }
 
@@ -172,7 +172,8 @@ const _Usernames = (props: Props) => {
   const following = Container.useSelector(state => state.config.following)
   const infoMap = Container.useSelector(state => state.users.infoMap)
 
-  const users = props.usernames.reduce<Array<User>>((arr, username) => {
+  const usernamesArray = typeof props.usernames === 'string' ? [props.usernames] : props.usernames
+  const users = usernamesArray.reduce<Array<User>>((arr, username) => {
     const isYou = you === username
     if (!props.skipSelf || !isYou) {
       arr.push({

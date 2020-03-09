@@ -19,7 +19,7 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 }
 
 type AvatarProps = {
-  participants: Array<string>
+  participants: Array<string> | string
   isHovered: boolean
   isLocked: boolean
   isMuted: boolean
@@ -127,9 +127,11 @@ class Avatars extends React.Component<AvatarProps> {
   render() {
     const {participants, isHovered, isLocked, isMuted, isSelected, backgroundColor, singleSize} = this.props
 
-    const avatarCount = Math.min(2, participants.length)
+    const participantsArray = typeof participants === 'string' ? [participants] : participants
+
+    const avatarCount = Math.min(2, participantsArray.length)
     const opacity = isLocked ? 0.4 : 1
-    const avatarProps = participants.slice(0, 2).map(
+    const avatarProps = participantsArray.slice(0, 2).map(
       (username, idx) =>
         ({
           borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),

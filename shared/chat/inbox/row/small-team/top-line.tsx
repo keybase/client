@@ -16,7 +16,7 @@ type Props = {
   iconHoverColor: string
   isSelected: boolean
   onForceHideMenu: () => void
-  participants: Array<string>
+  participants: Array<string> | string
   showBold: boolean
   showGear: boolean
   backgroundColor?: string
@@ -98,7 +98,11 @@ class _SimpleTopLine extends React.Component<Props> {
                   Styles.isMobile && this.props.backgroundColor
                 )}
                 usernames={this.props.participants}
-                title={this.props.participants.join(', ')}
+                title={
+                  typeof this.props.participants === 'string'
+                    ? this.props.participants
+                    : this.props.participants.join(', ')
+                }
               />
             )}
           </Kb.Box>
