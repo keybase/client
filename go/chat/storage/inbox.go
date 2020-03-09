@@ -648,7 +648,7 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	return iboxVers.InboxVersion, res, nil
 }
 
-func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err error) {
+func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err Error) {
 	defer i.Trace(ctx, func() error { return err }, "Clear")()
 	var iboxIndex inboxDiskIndex
 	inboxMemCache.Clear(uid)
