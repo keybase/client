@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 29
+const inboxVersion = 30
 
 type InboxFlushMode int
 
@@ -72,7 +72,6 @@ func (i *inboxDiskIndex) mergeConvs(convIDs []chat1.ConversationID) {
 	for _, convID := range i.ConversationIDs {
 		delete(m, convID.String())
 	}
-	fmt.Printf("DBG: existing: %d new: %d\n", len(i.ConversationIDs), len(m))
 	for _, convID := range m {
 		i.ConversationIDs = append(i.ConversationIDs, convID)
 	}
@@ -153,21 +152,21 @@ func (i *Inbox) SetInboxLayoutChangedNotifier(notifier InboxLayoutChangedNotifie
 func (i *Inbox) dbVersionsKey(uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatInbox,
-		Key: fmt.Sprintf("ib:%s", uid),
+		Key: uid.String(),
 	}
 }
 
 func (i *Inbox) dbIndexKey(uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatInboxIndex,
-		Key: fmt.Sprintf("ib:%s", uid),
+		Key: uid.String(),
 	}
 }
 
 func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatInboxConvs,
-		Key: fmt.Sprintf("ib:%s:%s", uid, convID.DbShortFormString()),
+		Key: uid.String() + convID.DbShortFormString(),
 	}
 }
 
