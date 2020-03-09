@@ -181,6 +181,7 @@ const TabBar = (props: Props) => {
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
+  // TODO move this logic into the sagas
   const onTabClick = (tab: Tabs.AppTab) => {
     if (selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
@@ -221,7 +222,7 @@ const TabBar = (props: Props) => {
             key={t}
             tab={t}
             index={i}
-            selectedTab={selectedTab}
+            isSelected={selectedTab === t}
             onTabClick={onTabClick}
             badge={
               t === Tabs.fsTab && fsCriticalUpdate ? (badgeNumbers.get(t) ?? 0) + 1 : badgeNumbers.get(t)
@@ -237,7 +238,7 @@ const TabBar = (props: Props) => {
 type TabProps = {
   tab: Tabs.AppTab
   index: number
-  selectedTab: Tabs.Tab
+  isSelected: boolean
   onTabClick: (t: Tabs.AppTab) => void
   badge?: number
 }
@@ -245,7 +246,7 @@ type TabProps = {
 type AnimationState = 'none' | 'encrypt' | 'decrypt'
 
 const Tab = React.memo((props: TabProps) => {
-  const {tab, index, selectedTab, onTabClick, badge} = props
+  const {tab, index, isSelected, onTabClick, badge} = props
   const [hovering, setHovering] = React.useState(false)
   const isCrypto = tab === Tabs.cryptoTab
   const tabData = data[tab]
@@ -321,7 +322,7 @@ const Tab = React.memo((props: TabProps) => {
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
-          className={tab === selectedTab ? 'tab-selected' : 'tab'}
+          className={isSelected ? 'tab-selected' : 'tab'}
           style={styles.tab}
         >
           <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
