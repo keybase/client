@@ -3,7 +3,7 @@ import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import * as React from 'react'
-import TabBar from './tab-bar/container.desktop'
+import TabBar from './tab-bar'
 import {
   NavigationViewProps,
   createNavigator,
