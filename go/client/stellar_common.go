@@ -153,6 +153,9 @@ func transformStellarCLIError(err *error) {
 	if err == nil {
 		return
 	}
+	if *err == nil {
+		return
+	}
 	switch e := (*err).(type) {
 	case libkb.AppStatusError:
 		if e.Code == libkb.SCStellarNeedDisclaimer {
