@@ -2847,10 +2847,8 @@ func GetUntrustedTeamExists(mctx libkb.MetaContext, name keybase1.TeamName) (tea
 		return teamExistsResult, err
 	}
 
-	teamExistsResult = keybase1.UntrustedTeamExistsResult{
+	return keybase1.UntrustedTeamExistsResult{
 		Exists: res.Exists,
 		Status: res.Sc,
-	}
-
-	return teamExistsResult, nil
+	}, nil
 }
