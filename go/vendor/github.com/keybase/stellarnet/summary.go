@@ -39,6 +39,9 @@ func opBodySummary(op xdr.Operation, pastTense bool) string {
 	case xdr.OperationTypePathPaymentStrictReceive:
 		iop := op.Body.MustPathPaymentStrictReceiveOp()
 		return fmt.Sprintf("%s %s to account %s using at most %s", tense("Pay", "Paid"), XDRAssetAmountSummary(iop.DestAmount, iop.DestAsset), iop.Destination.Address(), XDRAssetAmountSummary(iop.SendMax, iop.SendAsset))
+	case xdr.OperationTypePathPaymentStrictSend:
+		iop := op.Body.MustPathPaymentStrictSendOp()
+		return fmt.Sprintf("%s at least %s to account %s using %s", tense("Pay", "Paid"), XDRAssetAmountSummary(iop.DestMin, iop.DestAsset), iop.Destination.Address(), XDRAssetAmountSummary(iop.SendAmount, iop.SendAsset))
 	case xdr.OperationTypeManageSellOffer:
 		iop := op.Body.MustManageSellOfferOp()
 		switch {

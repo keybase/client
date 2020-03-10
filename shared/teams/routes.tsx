@@ -5,7 +5,7 @@ import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
-import TeamEditChannel from './channel/container'
+import TeamEditChannel from './channel'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
@@ -18,13 +18,16 @@ import TeamReallyRemoveMember from './team/really-remove-member'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
+import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
+import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
+import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
   team: {getScreen: (): TeamScreenType => require('./team/container').default},
   teamChannel: {
-    getScreen: (): typeof TeamEditChannel => require('./channel/container').default,
+    getScreen: (): typeof TeamEditChannel => require('./channel').default,
   },
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
@@ -35,6 +38,9 @@ export const newRoutes = {
 const addWizardRoutes = {
   teamAddToTeamFromWhere: {
     getScreen: (): typeof TeamAddToTeamFromWhere => require('./add-members-wizard/add-from-where').default,
+  },
+  teamAddToTeamPhone: {
+    getScreen: (): typeof TeamAddToTeamPhone => require('./add-members-wizard/add-phone').default,
   },
 }
 
@@ -79,6 +85,15 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
+  teamWizard1TeamPurpose: {
+    getScreen: (): typeof TeamWizardTeamPurpose => require('./new-team/wizard/team-purpose').default,
+  },
+  teamWizard2TeamInfo: {
+    getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
+  },
+  teamsContactsTeamBuilder: {
+    getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
+  },
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },

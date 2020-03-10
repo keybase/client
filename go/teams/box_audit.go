@@ -1218,11 +1218,7 @@ func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID 
 		// We don't fire this immediately since likely everyone else on the team is going to try the same thing;
 		// So randomly backoff and maybe someone is going to win, and we won't all race to fix it.
 		base := libkb.TeamBackoffBeforeAuditOnNeedRotate
-		dur, err := libkb.RandomJitter(base)
-		if err != nil {
-			dur = base
-			mctx.Info("Failed to get random jitter for sleep, just failing back to original duration")
-		}
+		dur := libkb.RandomJitter(base)
 		mctx.Debug("Sleeping %s random jitter before auditing the team", dur)
 		mctx.G().Clock().Sleep(dur)
 	}

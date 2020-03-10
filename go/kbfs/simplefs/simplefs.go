@@ -131,6 +131,7 @@ type SimpleFS struct {
 	onlineStatusTracker libkbfs.OnlineStatusTracker
 
 	downloadManager *downloadManager
+	uploadManager   *uploadManager
 
 	httpClient *http.Client
 }
@@ -220,6 +221,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		httpClient:          &http.Client{},
 	}
 	k.downloadManager = newDownloadManager(k)
+	k.uploadManager = newUploadManager(k)
 	return k
 }
 
@@ -1244,7 +1246,7 @@ func (k *SimpleFS) doCopyFromSource(
 	ctx context.Context, opID keybase1.OpID,
 	srcFS billy.Filesystem, srcFI os.FileInfo,
 	dstPath keybase1.Path, dstFS billy.Filesystem,
-	finalDstElem string) (err error) {
+	finalDstElem string, overwriteExistingFiles bool) (err error) {
 	defer func() {
 		if err == nil {
 			k.updateReadProgress(opID, 0, 1)
@@ -1262,8 +1264,11 @@ func (k *SimpleFS) doCopyFromSource(
 	}
 	defer src.Close()
 
-	dst, err := dstFS.OpenFile(
-		finalDstElem, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	mode := os.O_RDWR | os.O_CREATE | os.O_EXCL
+	if overwriteExistingFiles {
+		mode = os.O_RDWR | os.O_CREATE | os.O_TRUNC
+	}
+	dst, err := dstFS.OpenFile(finalDstElem, mode, 0600)
 	if err != nil {
 		return err
 	}
@@ -1288,7 +1293,7 @@ func (k *SimpleFS) doCopyFromSource(
 
 func (k *SimpleFS) doCopy(
 	ctx context.Context, opID keybase1.OpID,
-	srcPath, destPath keybase1.Path) (err error) {
+	srcPath, destPath keybase1.Path, overwriteExistingFiles bool) (err error) {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
@@ -1310,8 +1315,8 @@ func (k *SimpleFS) doCopy(
 		return err
 	}
 
-	return k.doCopyFromSource(
-		ctx, opID, srcFS, srcFI, destPath, destFS, finalDestElem)
+	return k.doCopyFromSource(ctx, opID,
+		srcFS, srcFI, destPath, destFS, finalDestElem, overwriteExistingFiles)
 }
 
 // SimpleFSCopy - Begin copy of file or directory
@@ -1321,7 +1326,7 @@ func (k *SimpleFS) SimpleFSCopy(
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
-			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
+			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 		})
 }
 
@@ -1367,8 +1372,8 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 	return p
 }
 
-func (k *SimpleFS) doCopyRecursive(
-	ctx context.Context, opID keybase1.OpID, src, dest keybase1.Path) error {
+func (k *SimpleFS) doCopyRecursive(ctx context.Context,
+	opID keybase1.OpID, src, dest keybase1.Path, overwriteExistingFiles bool) error {
 	// Get the full byte/file count.
 	srcFS, finalSrcElem, err := k.getFSIfExists(ctx, src)
 	if err != nil {
@@ -1391,7 +1396,7 @@ func (k *SimpleFS) doCopyRecursive(
 		k.setProgressTotals(opID, bytes, files+1)
 	} else {
 		// No need for recursive.
-		return k.doCopy(ctx, opID, src, dest)
+		return k.doCopy(ctx, opID, src, dest, overwriteExistingFiles)
 	}
 
 	destFS, finalDestElem, err := k.getFS(ctx, dest)
@@ -1423,7 +1428,7 @@ func (k *SimpleFS) doCopyRecursive(
 
 		err = k.doCopyFromSource(
 			ctx, opID, node.srcFS, srcFI, node.dest, node.destFS,
-			node.destFinalElem)
+			node.destFinalElem, overwriteExistingFiles)
 		if err != nil {
 			return err
 		}
@@ -1467,7 +1472,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
-			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
+			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 		})
 }
 
@@ -1571,7 +1576,7 @@ func (k *SimpleFS) SimpleFSMove(
 				return fs.Rename(srcPath, destPath)
 			}
 
-			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
+			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 			if err != nil {
 				return err
 			}
@@ -2660,6 +2665,16 @@ func (k *SimpleFS) SimpleFSGetFolder(
 	return k.config.KBFSOps().GetFolderWithFavFlags(ctx, tlfHandle)
 }
 
+func (k *SimpleFS) getFolder(
+	ctx context.Context, tlfID tlf.ID, md libkbfs.SyncedTlfMD,
+	session idutil.SessionInfo) (keybase1.Folder, error) {
+	return keybase1.Folder{
+		Name:       string(md.Handle.GetPreferredFormat(session.Name)),
+		FolderType: tlfID.Type().FolderType(),
+		Private:    tlfID.Type() != tlf.Public,
+	}, nil
+}
+
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 	identifyBehavior *keybase1.TLFIdentifyBehavior) (
@@ -2700,14 +2715,13 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 		}
 
 		if config.Mode == keybase1.FolderSyncMode_DISABLED {
-			panic(fmt.Sprintf(
-				"Folder %s has sync unexpectedly disabled", tlfID))
+			return keybase1.SyncConfigAndStatusRes{}, errors.Errorf(
+				"Folder %s has sync unexpectedly disabled", tlfID)
 		}
 
-		f := keybase1.Folder{
-			Name:       string(md.Handle.GetPreferredFormat(session.Name)),
-			FolderType: tlfID.Type().FolderType(),
-			Private:    tlfID.Type() != tlf.Public,
+		f, err := k.getFolder(ctx, tlfID, md, session)
+		if err != nil {
+			return keybase1.SyncConfigAndStatusRes{}, err
 		}
 
 		res.Folders[i].Folder = f
@@ -3289,6 +3303,103 @@ func (k *SimpleFS) SimpleFSSearch(
 	}
 	res.NextResult = nextResult
 	return res, nil
+}
+
+// SimpleFSResetIndex implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSResetIndex(ctx context.Context) error {
+	if k.indexer == nil {
+		return errors.New("Indexing not enabled")
+	}
+
+	return k.indexer.ResetIndex(ctx)
+}
+
+// SimpleFSGetIndexProgress implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetIndexProgress(
+	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
+	if k.indexer == nil {
+		return keybase1.SimpleFSIndexProgress{}, errors.New(
+			"Indexing not enabled")
+	}
+
+	p := k.indexer.Progress()
+	currProg, overallProg, currTlf, queuedTlfs := p.GetStatus()
+	res.CurrProgress = currProg
+	res.OverallProgress = overallProg
+
+	if currTlf == tlf.NullID && len(queuedTlfs) == 0 {
+		return res, nil
+	}
+
+	// All indexing folders should also be synced.
+	tlfMDs := k.config.KBFSOps().GetAllSyncedTlfMDs(ctx)
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return keybase1.SimpleFSIndexProgress{}, err
+	}
+	session, err := idutil.GetCurrentSessionIfPossible(ctx, kbpki, true)
+	if err != nil {
+		return keybase1.SimpleFSIndexProgress{}, err
+	}
+
+	if currTlf != tlf.NullID {
+		md, ok := tlfMDs[currTlf]
+		if !ok {
+			return keybase1.SimpleFSIndexProgress{}, errors.Errorf(
+				"Folder %s is not currently syncing", currTlf)
+		}
+		f, err := k.getFolder(ctx, currTlf, md, session)
+		if err != nil {
+			return keybase1.SimpleFSIndexProgress{}, err
+		}
+		res.CurrFolder = f
+	}
+
+	res.FoldersLeft = make([]keybase1.Folder, 0, len(queuedTlfs))
+	for _, id := range queuedTlfs {
+		md, ok := tlfMDs[id]
+		if !ok {
+			return keybase1.SimpleFSIndexProgress{}, errors.Errorf(
+				"Folder %s is not currently syncing", id)
+		}
+		f, err := k.getFolder(ctx, id, md, session)
+		if err != nil {
+			return keybase1.SimpleFSIndexProgress{}, err
+		}
+		res.FoldersLeft = append(res.FoldersLeft, f)
+	}
+
+	return res, nil
+}
+
+// SimpleFSMakeTempDirForUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSMakeTempDirForUpload(
+	ctx context.Context) (dirPath string, err error) {
+	return k.uploadManager.makeTempDir()
+}
+
+// SimpleFSStartUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSStartUpload(ctx context.Context,
+	arg keybase1.SimpleFSStartUploadArg) (uploadID string, err error) {
+	return k.uploadManager.start(ctx, arg.SourceLocalPath, arg.TargetParentPath)
+}
+
+// SimpleFSGetUploadStatus implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetUploadStatus(
+	ctx context.Context) (status []keybase1.UploadState, err error) {
+	return k.uploadManager.getUploads(), nil
+}
+
+// SimpleFSCancelUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSCancelUpload(
+	ctx context.Context, uploadID string) (err error) {
+	return k.uploadManager.cancel(ctx, uploadID)
+}
+
+// SimpleFSDismissUpload implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSDismissUpload(
+	ctx context.Context, uploadID string) (err error) {
+	return k.uploadManager.dismiss(uploadID)
 }
 
 // Shutdown shuts down SimpleFS.

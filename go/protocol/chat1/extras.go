@@ -201,9 +201,7 @@ var deletableMessageTypesByDelete = []MessageType{
 var nonDeletableMessageTypesByDeleteHistory = []MessageType{
 	MessageType_NONE,
 	MessageType_DELETE,
-	MessageType_METADATA,
 	MessageType_TLFNAME,
-	MessageType_HEADLINE,
 	MessageType_DELETEHISTORY,
 }
 
@@ -1090,6 +1088,10 @@ func (m MessageBoxed) GetMessageID() MessageID {
 	return m.ServerHeader.MessageID
 }
 
+func (m MessageBoxed) Ctime() gregor1.Time {
+	return m.ServerHeader.Ctime
+}
+
 func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
@@ -1772,6 +1774,10 @@ func (r *GetChannelMembershipsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetMutualTeamsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -2174,6 +2180,14 @@ func (r *GetChannelMembershipsLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetChannelMembershipsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetMutualTeamsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetMutualTeamsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

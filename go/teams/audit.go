@@ -726,6 +726,10 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	history.PriorMerkleSeqno = headMerkleSeqno
 	history.Tails[maxChainSeqno] = chain[maxChainSeqno]
 	if maxHiddenSeqno != 0 {
+		if hiddenChain[maxHiddenSeqno].IsNil() {
+			m.Debug("hiddenChain on audit for team %s: %+v", id, hiddenChain)
+			return NewAuditError("Logic error while auditing %s: trying to save an audit with maxHiddenSeqno=%v, but the hiddenChain does not have the corresponding link.", id, maxHiddenSeqno)
+		}
 		history.HiddenTails[maxHiddenSeqno] = hiddenChain[maxHiddenSeqno]
 	}
 

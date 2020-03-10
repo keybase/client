@@ -62,8 +62,8 @@ js_tests() {
     git diff --exit-code actions
     check_rc $? 'unexpected generated actions changes, did you forget to run yarn build-actions?' 1
 
-    echo 'yarn tsc (ci)'
-    yarn tsc --project ./tsconfig.ci.json 
+    echo 'yarn tsc'
+    yarn tsc --project ./tsconfig.json 
     check_rc $? 'tsc failed!' 1
 
     echo 'yarn lint'

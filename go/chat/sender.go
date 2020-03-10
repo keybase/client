@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/url"
 	"sync"
 	"time"
 
@@ -1180,7 +1179,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
 	} else {
-		if cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender,
+		if cerr = s.G().ConvSource.PushUnboxed(ctx, conv, boxed.ClientHeader.Sender,
 			[]chat1.MessageUnboxed{unboxedMsg}); cerr != nil {
 			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
 		}
@@ -1280,6 +1279,7 @@ type Deliverer struct {
 	utils.DebugLabeler
 
 	sender        types.Sender
+	serverConn    types.ServerConnection
 	outbox        *storage.Outbox
 	identNotifier types.IdentifyNotifier
 	shutdownCh    chan chan struct{}
@@ -1299,7 +1299,7 @@ type Deliverer struct {
 
 var _ types.MessageDeliverer = (*Deliverer)(nil)
 
-func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
+func NewDeliverer(g *globals.Context, sender types.Sender, serverConn types.ServerConnection) *Deliverer {
 	d := &Deliverer{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "Deliverer", false),
@@ -1310,6 +1310,7 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		identNotifier:    NewCachingIdentifyNotifier(g),
 		clock:            clockwork.NewRealClock(),
 		notifyFailureChs: make(map[string]chan []chat1.OutboxRecord),
+		serverConn:       serverConn,
 	}
 
 	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
@@ -1453,14 +1454,14 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	s.msgSentCh <- struct{}{}
 	// Only update mtime badgable messages
 	if obr.Msg.IsBadgableType() {
-		go func() {
+		go func(ctx context.Context) {
 			update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
 			if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
-				s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+				s.Debug(ctx, "Queue: unable to update local mtime %v", obr.Ctime.Time())
 			}
 			time.Sleep(250 * time.Millisecond)
 			s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
-		}()
+		}(globals.BackgroundChatCtx(ctx, s.G()))
 	}
 	return obr, nil
 }
@@ -1540,17 +1541,11 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 			return typ, err, true
 		}
 		return 0, err, false
-	case *url.Error:
-		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
-	case *net.DNSError:
-		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
-	case *net.OpError:
-		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
-	case net.InvalidAddrError:
-		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
-	case net.UnknownNetworkError:
-		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case net.Error:
+		s.Debug(ctx, "doNotRetryFailure: generic net error, reconnecting to the server: %s(%T)", berr, berr)
+		if _, rerr := s.serverConn.Reconnect(ctx); rerr != nil {
+			s.Debug(ctx, "doNotRetryFailure: failed to reconnect: %s", rerr)
+		}
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	}
 	switch err {

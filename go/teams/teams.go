@@ -1092,7 +1092,7 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	ratchet, err := t.makeRatchet(ctx)
+	parentRatchet, err := parentTeam.makeRatchet(ctx)
 	if err != nil {
 		return err
 	}
@@ -1105,7 +1105,7 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 		Admin:    admin,
 		Public:   t.IsPublic(),
 		Entropy:  entropy,
-		Ratchets: ratchet.ToTeamSection(),
+		Ratchets: parentRatchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -1121,6 +1121,10 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 		return err
 	}
 
+	subRatchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
 	subSection := SCTeamSection{
 		ID:   SCTeamID(t.ID),
 		Name: &subteamName, // weird this is required
@@ -1129,8 +1133,9 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 			Seqno:   parentTeam.chain().GetLatestSeqno() + 1, // the seqno of the *new* parent link
 			SeqType: seqTypeForTeamPublicness(parentTeam.IsPublic()),
 		},
-		Public: t.IsPublic(),
-		Admin:  admin,
+		Public:   t.IsPublic(),
+		Admin:    admin,
+		Ratchets: subRatchet.ToTeamSection(),
 	}
 	sigSub, latestSeqno, err := t.sigTeamItem(ctx, subSection, libkb.LinkTypeDeleteUpPointer, mr)
 	if err != nil {
@@ -1139,7 +1144,19 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigParent, sigSub}
-	ratchet.AddToJSONPayload(payload)
+
+	var ratchetSet hidden.RatchetBlindingKeySet
+	if parentRatchet != nil {
+		ratchetSet.Add(*parentRatchet)
+	}
+	if subRatchet != nil {
+		ratchetSet.Add(*subRatchet)
+	}
+	err = ratchetSet.AddToJSONPayload(payload)
+	if err != nil {
+		return err
+	}
+
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
@@ -1378,17 +1395,19 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 	return ikey, err
 }
 
-func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v", t.Name(), role), func() error { return err })()
+func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
+	maxUses keybase1.TeamInviteMaxUses,
+	etime *keybase1.UnixTime) (ikey keybase1.SeitanIKeyInvitelink, err error) {
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
 
 	// Experimental code: we are figuring out how to do invite links.
 
-	ikey, err = GenerateIKeyV2()
+	ikey, err = GenerateSeitanIKeyInvitelink()
 	if err != nil {
 		return ikey, err
 	}
 
-	sikey, err := ikey.GenerateSIKey()
+	sikey, err := GenerateSIKeyInvitelink(ikey)
 	if err != nil {
 		return ikey, err
 	}
@@ -1398,16 +1417,19 @@ func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRol
 		return ikey, err
 	}
 
-	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
+	// label is hardcoded for now, but could change in the future
+	label := keybase1.NewSeitanKeyLabelWithGeneric(keybase1.SeitanKeyLabelGeneric{L: "link"})
+
+	_, encoded, err := GeneratePackedEncryptedKeyInvitelink(ctx, ikey, t, label)
 	if err != nil {
 		return ikey, err
 	}
 
-	maxUses := keybase1.TeamInviteMaxUses(10)
 	invite := SCTeamInvite{
-		Type:    "seitan_invite_token",
+		Type:    "invitelink",
 		Name:    keybase1.TeamInviteName(encoded),
 		ID:      inviteID,
+		Etime:   etime,
 		MaxUses: &maxUses,
 	}
 
@@ -1423,7 +1445,6 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	if err != nil {
 		return err
 	}
-
 	if existing {
 		return libkb.ExistsError{Msg: "An invite for this user already exists."}
 	}
@@ -2671,6 +2692,8 @@ func TeamInviteTypeFromString(mctx libkb.MetaContext, inviteTypeStr string) (key
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_SEITAN), nil
 	case "phone":
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_PHONE), nil
+	case "invitelink":
+		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_INVITELINK), nil
 	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
 		return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
 	default:
@@ -2803,4 +2826,25 @@ func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info 
 	}
 
 	return teamInfo, nil
+}
+
+func GetUntrustedTeamExists(mctx libkb.MetaContext, name keybase1.TeamName) (exists bool, err error) {
+	type resType struct {
+		libkb.AppStatusEmbed
+		Exists bool `json:"exists"`
+	}
+	var res resType
+	err = mctx.G().API.GetDecode(mctx, libkb.APIArg{
+		Endpoint:    "team/exists",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"teamName": libkb.S{Val: name.String()},
+		},
+	}, &res)
+	if err != nil {
+		mctx.Debug("GetUntrustedTeamInfo: failed to get team info: %s", err)
+		return false, err
+	}
+
+	return res.Exists, nil
 }

@@ -7,7 +7,7 @@ import upperFirst from 'lodash/upperFirst'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as TeamsConstants from '../../constants/teams'
 
-type OwnProps = Container.RouteProps<{teamID: TeamsTypes.TeamID}>
+type OwnProps = Container.RouteProps<{navToChatOnSuccess?: boolean; teamID: TeamsTypes.TeamID}>
 
 type Props = {
   _onCreateChannel: (o: {channelname: string; description: string; teamID: TeamsTypes.TeamID}) => void
@@ -54,7 +54,7 @@ export default Container.connect(
       teamname: TeamsConstants.getTeamNameFromID(state, teamID) ?? '',
     }
   },
-  dispatch => ({
+  (dispatch, ownProps: OwnProps) => ({
     _onCreateChannel: ({
       channelname,
       description,
@@ -63,7 +63,15 @@ export default Container.connect(
       channelname: string
       description: string
       teamID: TeamsTypes.TeamID
-    }) => dispatch(TeamsGen.createCreateChannel({channelname, description, teamID})),
+    }) =>
+      dispatch(
+        TeamsGen.createCreateChannel({
+          channelname,
+          description,
+          navToChatOnSuccess: Container.getRouteProps(ownProps, 'navToChatOnSuccess', undefined) ?? true,
+          teamID,
+        })
+      ),
     _onSetChannelCreationError: (error: string) => dispatch(TeamsGen.createSetChannelCreationError({error})),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),

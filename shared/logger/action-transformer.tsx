@@ -3,6 +3,7 @@
 
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as PushGen from '../actions/push-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -33,6 +34,15 @@ const actionTransformMap = {
   [ConfigGen.changedFocus]: nullTransform,
   [EngineGen.chat1NotifyChatChatTypingUpdate]: nullTransform,
 
+  [PushGen.notification]: (a: PushGen.NotificationPayload) => {
+    const {notification} = a.payload
+    // @ts-ignore
+    const {conversationIDKey, type, userInteraction} = notification
+    return {
+      payload: {conversationIDKey, type, userInteraction},
+      type: a.type,
+    }
+  },
   [Chat2Gen.selectConversation]: fullOutput,
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.updateMoreToLoad]: fullOutput,

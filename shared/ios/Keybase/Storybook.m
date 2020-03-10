@@ -10,6 +10,9 @@
 #import <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 
+// change me to turn on storybook mode
+const BOOL IS_STORYBOOK = false;
+
 @implementation Storybook
 
 #pragma mark - RCTBridgeModule
@@ -23,8 +26,7 @@ RCT_EXPORT_MODULE(Storybook);
 
 - (NSDictionary *)constantsToExport
 {
-  // Set this to true to enable storybook mode
-  return @{@"isStorybook": @false};
+  return @{@"isStorybook": @(IS_STORYBOOK)};
 }
 
 @end

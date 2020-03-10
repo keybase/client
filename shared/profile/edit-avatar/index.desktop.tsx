@@ -304,10 +304,10 @@ class EditAvatar extends React.Component<Props, State> {
         <Kb.Modal
           onClose={this.props.onClose}
           header={{
-            leftButton: this.props.createdTeam ? (
+            leftButton: this.props.wizard ? (
               <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />
             ) : null,
-            rightButton: this.props.createdTeam ? (
+            rightButton: this.props.wizard ? (
               <Kb.Button
                 label="Skip"
                 mode="Secondary"
@@ -353,7 +353,7 @@ class EditAvatar extends React.Component<Props, State> {
             onMouseDown={this.onMouseDown}
             onMouseMove={this.onMouseMove}
           >
-            {this.props.createdTeam && (
+            {this.props.createdTeam && !this.props.wizard && (
               <Kb.Box style={styles.createdBanner}>
                 <Kb.Text type="BodySmallSemibold" negative={true}>
                   Hoorah! Your team {this.props.teamname} was created.
@@ -613,9 +613,10 @@ const HoverBox = Styles.styled(Kb.Box)(() => ({
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.padding(Styles.globalMargins.xlarge, 0),
     alignItems: 'center',
-    minWidth: flags.teamsRedesign ? 0 : 460,
-    paddingBottom: Styles.globalMargins.xlarge,
+    height: flags.teamsRedesign ? 420 : undefined,
+    minWidth: flags.teamsRedesign ? undefined : 460,
   },
   cover: {zIndex: EDIT_AVATAR_ZINDEX},
   createdBanner: {

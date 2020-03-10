@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
-import PhoneInput from '../signup/phone-number/phone-input'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
@@ -60,7 +59,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     <>
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-          <PhoneInput
+          <Kb.PhoneInput
             // Supply a key to force reset the PhoneInput state after a user is added
             key={phoneInputKey}
             autoFocus={true}

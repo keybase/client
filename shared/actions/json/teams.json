@@ -37,7 +37,8 @@
     "createChannel": {
       "teamID": "Types.TeamID",
       "channelname": "string",
-      "description": "string | null"
+      "description": "string | null",
+      "navToChatOnSuccess": "boolean"
     },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
@@ -352,6 +353,9 @@
       "teamID": "Types.TeamID",
       "message": "RPCChatTypes.WelcomeMessageDisplay"
     },
+    "setJustFinishedAddMembersWizard": {
+      "justFinished": "boolean"
+    },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",
       "filter": "string",
@@ -361,6 +365,16 @@
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
+    },
+    "setTeamWizardTeamType": {
+      "teamType": "Types.TeamWizardTeamType"
+    },
+    "setTeamWizardNameDescription": {
+      "teamname": "string",
+      "description": "string",
+      "openTeam": "boolean",
+      "openTeamJoinRole": "Types.TeamRoleType",
+      "showcase": "boolean"
     }
   }
 }

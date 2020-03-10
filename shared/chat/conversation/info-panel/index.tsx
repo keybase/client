@@ -13,6 +13,7 @@ import AttachmentsList from './attachments'
 import {MaybeTeamRoleType} from 'constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
+import {Tab as TabType} from '../../../common-adapters/tabs'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
@@ -27,16 +28,8 @@ type InfoPanelProps = {
   yourRole: MaybeTeamRoleType
 } & HeaderHocProps
 
-const TabText = ({selected, text}: {selected: boolean; text: string}) => (
-  <Kb.Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : undefined}>
-    {text}
-  </Kb.Text>
-)
-
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
-  private isSelected = (s: Panel) => s === this.props.selectedTab
-
-  private getTabPanels = (): Array<Panel> => {
+  private getTabs = (): Array<TabType<Panel>> => {
     var showSettings = !this.props.isPreview
     if (flags.teamsRedesign) {
       showSettings =
@@ -46,58 +39,21 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     }
 
     return [
-      'members' as const,
-      'attachments' as const,
-      ...(flags.botUI ? ['bots' as const] : []),
-      ...(showSettings ? ['settings' as const] : []),
+      {title: 'members' as const},
+      {title: 'attachments' as const},
+      {title: 'bots' as const},
+      ...(showSettings ? [{title: 'settings' as const}] : []),
     ]
-  }
-
-  private getTabs = () =>
-    this.getTabPanels().map(p => {
-      switch (p) {
-        case 'settings':
-          return (
-            <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
-              <TabText selected={this.isSelected('settings')} text="Settings" />
-            </Kb.Box2>
-          )
-        case 'members':
-          return (
-            <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
-              <TabText selected={this.isSelected('members')} text="Members" />
-            </Kb.Box2>
-          )
-        case 'attachments':
-          return (
-            <Kb.Box2 key="attachments" style={styles.tabTextContainer} direction="horizontal">
-              <TabText selected={this.isSelected('attachments')} text="Attachments" />
-            </Kb.Box2>
-          )
-        case 'bots':
-          return (
-            <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
-              <TabText selected={this.isSelected('bots')} text="Bots" />
-            </Kb.Box2>
-          )
-        default:
-          return null
-      }
-    })
-
-  private onSelectTab = (_tab: React.ReactNode, idx: number) => {
-    this.props.onSelectTab(this.getTabPanels()[idx] ?? ('members' as const))
   }
 
   private renderTabs = () => {
     const tabs = this.getTabs()
-    const selected = tabs.find((tab: any) => tab && this.isSelected(tab.key)) || null
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Tabs
           tabs={tabs}
-          selected={selected}
-          onSelect={this.onSelectTab}
+          selectedTab={this.props.selectedTab}
+          onSelect={this.props.onSelectTab}
           style={styles.tabContainer}
           tabStyle={styles.tab}
         />
@@ -236,15 +192,6 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'hidden',
         },
       }),
-      tabTextContainer: Styles.platformStyles({
-        common: {
-          justifyContent: 'center',
-        },
-        isElectron: {
-          whiteSpace: 'nowrap',
-        },
-      }),
-      tabTextSelected: {color: Styles.globalColors.black},
     } as const)
 )
 

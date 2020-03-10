@@ -6,7 +6,6 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
-import PhoneInput from '../../signup/phone-number/phone-input'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 const ForgotUsername = () => {
@@ -84,7 +83,7 @@ const ForgotUsername = () => {
           selected={!emailSelected}
         />
         {!emailSelected && (
-          <PhoneInput
+          <Kb.PhoneInput
             autoFocus={true}
             defaultCountry={defaultCountry}
             onChangeNumber={(phoneNumber, valid) => {

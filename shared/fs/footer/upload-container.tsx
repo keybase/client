@@ -5,7 +5,6 @@ import {compose, namedConnect} from '../../util/container'
 import Upload, {UploadProps} from './upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
 import * as Constants from '../../constants/fs'
-import * as Kbfs from '../common'
 
 const mapStateToProps = state => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
@@ -73,6 +72,5 @@ export default compose(
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
   UploadCountdownHOC
 )((props: UploadProps) => {
-  Kbfs.useFsJournalStatus()
   return <Upload {...props} />
 })

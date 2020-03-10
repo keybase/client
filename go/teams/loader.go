@@ -989,6 +989,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if (role.IsRestrictedBot() || arg.readSubteamID != nil) && auditMode == keybase1.AuditMode_STANDARD {
 			auditMode = keybase1.AuditMode_STANDARD_NO_HIDDEN
 		}
+
 		err = l.audit(ctx, readSubteamID, &ret.Chain, hiddenPackage.ChainData(), lastMerkleRoot, auditMode)
 		if err != nil {
 			return nil, err

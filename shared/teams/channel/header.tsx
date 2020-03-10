@@ -9,7 +9,7 @@ import {ConversationIDKey} from '../../constants/types/chat2'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
-
+import * as TeamsGen from '../../actions/teams-gen'
 type HeaderTitleProps = {
   teamID: TeamID
   conversationIDKey: ConversationIDKey
@@ -29,12 +29,21 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
   )
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const canDelete = yourOperations.deleteChannel
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onEditChannel = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
         path: [{props: {conversationIDKey, teamID}, selected: 'chatEditChannel'}],
+      })
+    )
+  const onAddMembers = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        // TODO: this route does not exist yet
+        path: [{props: {conversationIDKey, teamID}, selected: 'teamAddToChannel'}],
       })
     )
   const onNavToTeam = () =>
@@ -62,6 +71,27 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
+  const onDeleteChannel = () => {
+    dispatch(nav.safeNavigateUpPayload())
+    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
+  }
+
+  const menuItems: Array<Kb.MenuItem> = [
+    {onClick: () => {}, title: 'Audience stats'},
+    // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
+    // It's included in the other place this menu appears.
+    ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
+  ]
+  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={menuItems}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+    />
+  ))
+
   const bottomDescriptorsAndButtons = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={!Styles.isMobile}>
       {!!description && (
@@ -86,16 +116,22 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         {!Styles.isMobile && (
           <Kb.Button
             label="Add members"
-            onClick={undefined /* TODO */}
+            onClick={onAddMembers}
             small={true}
             mode="Secondary"
             style={styles.addMembersButton}
           />
         )}
-        <Kb.Button mode="Secondary" small={true}>
-          <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
-        </Kb.Button>
-        {/* TODO: Channel Menu */}
+        <Kb.Button
+          mode="Secondary"
+          small={true}
+          icon="iconfont-ellipsis"
+          iconColor={Styles.globalColors.blue}
+          ref={popupAnchor}
+          onClick={toggleShowingPopup}
+        />
+        {/*TODO: why does the popup take up space and move the info icon over to the right?*/}
+        {popup}
       </Kb.Box2>
     </Kb.Box2>
   )
