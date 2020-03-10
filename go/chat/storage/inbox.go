@@ -170,6 +170,16 @@ func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.Db
 	}
 }
 
+func (i *Inbox) maybeNuke(ctx context.Context, ef func() Error, uid gregor1.UID) {
+	err := ef()
+	if err != nil && err.ShouldClear() {
+		i.Debug(ctx, "maybeNuke: nuking on err: %v", err)
+		if ierr := i.Clear(ctx, uid); ierr != nil {
+			i.Debug(ctx, "maybeNuke: unable to clear box on error! err: %s", ierr)
+		}
+	}
+}
+
 func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemory bool) (inboxDiskVersions, Error) {
 	var ibox inboxDiskVersions
 	// Check context for an aborted request
@@ -456,9 +466,10 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 // we ignore it. If the inbox is currently blank, then we write down the given inbox version.
 func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convsIn []chat1.Conversation, query *chat1.GetInboxQuery) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "Merge")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "Merge")()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "Merge: vers: %d convs: %d", vers, len(convsIn))
 	if len(convsIn) == 1 {
@@ -562,6 +573,7 @@ func (i *Inbox) ReadAll(ctx context.Context, uid gregor1.UID, useInMemory bool) 
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "ReadAll")()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	iboxIndex, err := i.readDiskIndex(ctx, uid, useInMemory)
 	if err != nil {
@@ -604,6 +616,8 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Read(%s)", uid))()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
+
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -709,6 +723,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 	defer i.Trace(ctx, func() error { return err }, "NewConversation")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	layoutChanged := true
 	defer func() {
 		if layoutChanged {
@@ -822,6 +837,7 @@ func (i *Inbox) UpdateInboxVersion(ctx context.Context, uid gregor1.UID, vers ch
 	defer i.Trace(ctx, func() error { return err }, "UpdateInboxVersion")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	ibox, err := i.readDiskVersions(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -852,6 +868,7 @@ func (i *Inbox) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, 
 	defer i.Trace(ctx, func() error { return err }, "IncrementLocalConvVersion")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	conv, found, err := i.getConv(ctx, uid, convID)
 	if err != nil {
 		return err
@@ -869,6 +886,7 @@ func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1
 	defer i.Trace(ctx, func() error { return err }, "MarkLocalRead")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	conv, found, err := i.getConv(ctx, uid, convID)
 	if err != nil {
 		return err
@@ -885,6 +903,7 @@ func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 	text *string) (modified bool, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	conv, found, err := i.getConv(ctx, uid, convID)
 	if err != nil {
 		return false, err
@@ -907,6 +926,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	defer i.Trace(ctx, func() error { return err }, "NewMessage")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "NewMessage: vers: %d convID: %s", vers, convID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1007,6 +1027,7 @@ func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 	defer i.Trace(ctx, func() error { return err }, "ReadMessage")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "ReadMessage: vers: %d convID: %s", vers, convID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1054,6 +1075,7 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 	defer i.Trace(ctx, func() error { return err }, "SetStatus")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "set status")
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
@@ -1097,6 +1119,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
 	defer i.Trace(ctx, func() error { return err }, "SetAppNotificationSettings")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "SetAppNotificationSettings: vers: %d convID: %s", vers, convID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1145,6 +1168,7 @@ func (i *Inbox) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVe
 	defer i.Trace(ctx, func() error { return err }, "Expunge")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "Expunge: vers: %d convID: %s", vers, convID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1195,6 +1219,7 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 	defer i.Trace(ctx, func() error { return err }, "SubteamRename")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	var layoutConvs []types.RemoteConversation
 	defer func() {
 		i.layoutNotifier.UpdateLayoutFromSubteamRename(ctx, layoutConvs)
@@ -1241,6 +1266,7 @@ func (i *Inbox) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.Trace(ctx, func() error { return err }, "SetConvRetention")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "SetConvRetention: vers: %d convID: %s", vers, convID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1282,6 +1308,7 @@ func (i *Inbox) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.Trace(ctx, func() error { return err }, "SetTeamRetention")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "SetTeamRetention: vers: %d teamID: %s", vers, teamID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1326,6 +1353,7 @@ func (i *Inbox) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1
 	defer i.Trace(ctx, func() error { return err }, "SetConvSettings")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "SetConvSettings: vers: %d convID: %s", vers, convID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1363,6 +1391,7 @@ func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers 
 	defer i.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "UpgradeKBFSToImpteam: vers: %d convID: %s", vers, convID)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1399,6 +1428,7 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 	defer i.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "team type")
 
 	i.Debug(ctx, "TeamTypeChanged: vers: %d convID: %s typ: %v", vers, convID, teamType)
@@ -1438,6 +1468,7 @@ func (i *Inbox) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 	defer i.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	i.Debug(ctx, "TlfFinalize: vers: %d convIDs: %v finalizeInfo: %v", vers, convIDs, finalizeInfo)
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1480,6 +1511,7 @@ func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxV
 	defer i.Trace(ctx, func() error { return err }, "Version")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	ibox, err := i.readDiskVersions(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -1494,6 +1526,7 @@ func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, e
 	defer i.Trace(ctx, func() error { return err }, "ServerVersion")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	ibox, err := i.readDiskVersions(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -1521,6 +1554,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	defer i.Trace(ctx, func() error { return err }, "Sync")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "sync")
 
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -1609,6 +1643,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	layoutChanged := false
 	defer func() {
 		if layoutChanged {
@@ -1808,6 +1843,7 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	defer i.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	if len(convUpdates) == 0 {
 		return nil
@@ -1863,6 +1899,7 @@ func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 	defer i.Trace(ctx, func() error { return err }, "UpdateLocalMtime")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 	var convs []types.RemoteConversation
 	defer func() {
 		for _, conv := range convs {
