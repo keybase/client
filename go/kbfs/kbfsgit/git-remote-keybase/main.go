@@ -55,7 +55,7 @@ func getLocalGitDir() (gitDir string) {
 }
 
 func start() (startErr *libfs.Error) {
-	kbCtx := env.NewContext()
+	kbCtx := env.NewContextWithPerfLog(libkb.GitPerfLogFileName)
 
 	switch kbCtx.GetRunMode() {
 	case kbconst.ProductionRunMode:

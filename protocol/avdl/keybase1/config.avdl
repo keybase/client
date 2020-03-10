@@ -112,6 +112,7 @@ protocol config {
     boolean running;
     string pid;
     string log;
+    string perfLog;
     string mount;
   }
 
@@ -131,6 +132,7 @@ protocol config {
 
   record GitStatus {
     string log;
+    string perfLog;
   }
 
   record FullStatus {

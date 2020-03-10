@@ -86,10 +86,7 @@ func NewContextFromGlobalContext(g *libkb.GlobalContext) *KBFSContext {
 	return c
 }
 
-// NewContext constructs a context. This should only be called once in
-// main functions.
-func NewContext() *KBFSContext {
-	g := libkb.NewGlobalContextInit()
+func newContextFromG(g *libkb.GlobalContext) *KBFSContext {
 	err := g.ConfigureConfig()
 	if err != nil {
 		panic(err)
@@ -107,6 +104,28 @@ func NewContext() *KBFSContext {
 		panic(err)
 	}
 	return NewContextFromGlobalContext(g)
+}
+
+// NewContext constructs a context. This should only be called once in
+// main functions.
+func NewContext() *KBFSContext {
+	g := libkb.NewGlobalContextInit()
+	return newContextFromG(g)
+}
+
+// NewContextWithPerfLog constructs a context with a specific perf
+// log. This should only be called once in main functions.
+func NewContextWithPerfLog(logName string) *KBFSContext {
+	g := libkb.NewGlobalContextInit()
+
+	// Override the perf file for this process, before logging is
+	// initialized.
+	if os.Getenv("KEYBASE_PERF_LOG_FILE") == "" {
+		os.Setenv("KEYBASE_PERF_LOG_FILE", filepath.Join(
+			g.Env.GetLogDir(), logName))
+	}
+
+	return newContextFromG(g)
 }
 
 // GetLogDir returns log dir
