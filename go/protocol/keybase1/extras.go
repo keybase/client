@@ -853,7 +853,10 @@ func FromTime(t Time) time.Time {
 	if t == 0 {
 		return time.Time{}
 	}
-	return time.Unix(0, int64(t)*1000000)
+	// t is in millisecond.
+	tSec := int64(t) / 1000
+	tNanoSecOffset := (int64(t) - tSec*1000) * 1000000
+	return time.Unix(tSec, tNanoSecOffset)
 }
 
 func (t Time) Time() time.Time {
@@ -873,12 +876,11 @@ func (t Time) UnixMicroseconds() int64 {
 }
 
 func ToTime(t time.Time) Time {
-	// the result of calling UnixNano on the zero Time is undefined.
-	// https://golang.org/pkg/time/#Time.UnixNano
 	if t.IsZero() {
 		return 0
 	}
-	return Time(t.UnixNano() / 1000000)
+
+	return Time(t.Unix()*1000 + (int64(t.Nanosecond()) / 1000000))
 }
 
 func ToTimePtr(t *time.Time) *Time {
@@ -903,7 +905,10 @@ func FormatTime(t Time) string {
 }
 
 func FromUnixTime(u UnixTime) time.Time {
-	return FromTime(Time(u * 1000))
+	if u == 0 {
+		return time.Time{}
+	}
+	return time.Unix(int64(u), 0)
 }
 
 func (u UnixTime) Time() time.Time {

@@ -33,6 +33,30 @@ func TestTime(t *testing.T) {
 	}
 }
 
+func TestTimeConversions(t *testing.T) {
+	times := []time.Time{
+		time.Time{},
+		time.Now(),
+		time.Now().AddDate(1000, 0, 0),  // in a thousand years
+		time.Now().AddDate(10000, 0, 0), // in 10 thousand years
+		time.Now().AddDate(-3000, 0, 0), // 3 thousand years ago
+	}
+
+	assertEqualTimes := func(t1, t2 time.Time) {
+		require.Equal(t, t1.Unix(), t2.Unix(), "expected %v and %v to be equal", t1, t2)
+	}
+
+	for _, tm := range times {
+		kbTime := ToTime(tm)
+		tRev := FromTime(kbTime)
+		assertEqualTimes(tm, tRev)
+
+		kbUnixTime := ToUnixTime(tm)
+		tUnixRev := FromUnixTime(kbUnixTime)
+		assertEqualTimes(tm, tUnixRev)
+	}
+}
+
 // IsUser and co. should return false and
 // not crash on arbitrary input.
 func TestUserOrTeamIDChecking(t *testing.T) {
