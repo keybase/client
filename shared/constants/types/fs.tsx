@@ -352,8 +352,7 @@ export type Downloads = {
 }
 
 export type Uploads = {
-  readonly writingToJournal: Set<Path>
-  readonly errors: Map<Path, FsError>
+  readonly writingToJournal: Map<Path, RPCTypes.UploadState>
   readonly totalSyncingBytes: number
   readonly endEstimate?: number
   readonly syncingPaths: Set<Path>

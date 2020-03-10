@@ -803,9 +803,8 @@ export const getUploadIconForTlfType = (
 
   const prefix = Types.pathToString(Types.getTlfTypePathFromTlfType(tlfType))
   if (
-    [uploads.syncingPaths, uploads.writingToJournal].some(s =>
-      [...s].some(p => Types.pathToString(p).startsWith(prefix))
-    )
+    [...uploads.syncingPaths].some(p => Types.pathToString(p).startsWith(prefix)) ||
+    [...uploads.writingToJournal.keys()].some(p => Types.pathToString(p).startsWith(prefix))
   ) {
     return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
       ? Types.UploadIcon.AwaitingToUpload

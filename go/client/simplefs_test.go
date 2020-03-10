@@ -357,6 +357,30 @@ func (s SimpleFSMock) SimpleFSConfigureDownload(
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSMakeTempDirForUpload(
+	ctx context.Context) (dirPath string, err error) {
+	return "", nil
+}
+
+func (s SimpleFSMock) SimpleFSStartUpload(ctx context.Context,
+	arg keybase1.SimpleFSStartUploadArg) (uploadID string, err error) {
+	return "", nil
+}
+
+func (s SimpleFSMock) SimpleFSGetUploadStatus(
+	ctx context.Context) (status []keybase1.UploadState, err error) {
+	return nil, nil
+}
+
+func (s SimpleFSMock) SimpleFSCancelUpload(
+	ctx context.Context, uploadID string) (err error) {
+	return nil
+}
+
+func (s SimpleFSMock) SimpleFSDismissUpload(
+	ctx context.Context, uploadID string) (err error) {
+	return nil
+}
 func (s SimpleFSMock) SimpleFSGetGUIFileContext(ctx context.Context,
 	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
 	return keybase1.GUIFileContext{}, nil
