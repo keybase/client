@@ -177,7 +177,7 @@
       "teamname": "string"
     },
     "editMembership": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "username": "string",
       "role": "Types.TeamRoleType"
     },
@@ -365,6 +365,14 @@
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
+    },
+    "getMemberSubteamDetails": {
+      "teamID": "Types.TeamID",
+      "username": "string"
+    },
+    "setMemberSubteamDetails": {
+      "username": "string",
+      "memberships": "Map<Types.TeamID, Types.MemberInfo>"
     },
     "setTeamWizardTeamType": {
       "teamType": "Types.TeamWizardTeamType"

@@ -27,6 +27,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
+export const getMemberSubteamDetails = 'teams:getMemberSubteamDetails'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -54,6 +55,7 @@ export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberPublicity = 'teams:setMemberPublicity'
+export const setMemberSubteamDetails = 'teams:setMemberSubteamDetails'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
@@ -148,7 +150,7 @@ type _DeleteChannelInfoPayload = {
 }
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly username: string
   readonly role: Types.TeamRoleType
 }
@@ -158,6 +160,7 @@ type _GetChannelInfoPayload = {
   readonly teamID: Types.TeamID
 }
 type _GetChannelsPayload = {readonly teamID: Types.TeamID}
+type _GetMemberSubteamDetailsPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
@@ -220,6 +223,10 @@ type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
+type _SetMemberSubteamDetailsPayload = {
+  readonly username: string
+  readonly memberships: Map<Types.TeamID, Types.MemberInfo>
+}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
@@ -512,6 +519,9 @@ export const createEditMembership = (payload: _EditMembershipPayload): EditMembe
 export const createEditTeamDescription = (
   payload: _EditTeamDescriptionPayload
 ): EditTeamDescriptionPayload => ({payload, type: editTeamDescription})
+export const createGetMemberSubteamDetails = (
+  payload: _GetMemberSubteamDetailsPayload
+): GetMemberSubteamDetailsPayload => ({payload, type: getMemberSubteamDetails})
 export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
   payload,
   type: getMembers,
@@ -568,6 +578,9 @@ export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload): S
   payload,
   type: setMemberPublicity,
 })
+export const createSetMemberSubteamDetails = (
+  payload: _SetMemberSubteamDetailsPayload
+): SetMemberSubteamDetailsPayload => ({payload, type: setMemberSubteamDetails})
 export const createSetMembers = (payload: _SetMembersPayload): SetMembersPayload => ({
   payload,
   type: setMembers,
@@ -757,6 +770,10 @@ export type GetChannelInfoPayload = {
   readonly type: typeof getChannelInfo
 }
 export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
+export type GetMemberSubteamDetailsPayload = {
+  readonly payload: _GetMemberSubteamDetailsPayload
+  readonly type: typeof getMemberSubteamDetails
+}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
 export type GetTeamProfileAddListPayload = {
   readonly payload: _GetTeamProfileAddListPayload
@@ -837,6 +854,10 @@ export type SetJustFinishedAddMembersWizardPayload = {
 export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
   readonly type: typeof setMemberPublicity
+}
+export type SetMemberSubteamDetailsPayload = {
+  readonly payload: _SetMemberSubteamDetailsPayload
+  readonly type: typeof setMemberSubteamDetails
 }
 export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: typeof setMembers}
 export type SetNewTeamInfoPayload = {
@@ -1003,6 +1024,7 @@ export type Actions =
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
+  | GetMemberSubteamDetailsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamRetentionPolicyPayload
@@ -1030,6 +1052,7 @@ export type Actions =
   | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
   | SetMemberPublicityPayload
+  | SetMemberSubteamDetailsPayload
   | SetMembersPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload
