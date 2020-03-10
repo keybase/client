@@ -93,21 +93,27 @@ const styles = Styles.styleSheetCreate(() => ({
     // Apply margins to buttons so that when they wrap there is vertical space between them
     marginTop: Styles.globalMargins.xsmall,
   },
-  contentContainer: {
-    ...Styles.globalStyles.rounded,
-    backgroundColor: Styles.globalColors.white,
-    flexShrink: 1,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  contentContainer: Styles.platformStyles({
+    common: {
+        ...Styles.globalStyles.rounded,
+        backgroundColor: Styles.globalColors.white,
+        flexShrink: 1,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+    isTablet: {
+      maxWidth: 460,
+    }
+  }), 
   image: {
     alignSelf: 'center',
     maxHeight: 150,
     maxWidth: 300,
   },
   imageContainer: {
+    alignSelf: Styles.isTablet ? 'flex-start' : undefined,
     marginTop: Styles.globalMargins.tiny,
   },
   rowContainer: {
