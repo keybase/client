@@ -13,7 +13,7 @@ const ff: FeatureFlags = {
   newTeamBuildingForChatAllowMakeTeam: false,
   tabletSupport: false, // Whether tablet support is public. Changes some UI on non-tablets.
   teamInvites: false,
-  teamsRedesign: false,
+  teamsRedesign: true,
   webOfTrust: false,
   whyDidYouRender: false,
 }

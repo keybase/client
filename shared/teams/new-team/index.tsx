@@ -82,7 +82,7 @@ const CreateNewTeam = (props: Props) => {
           autoFocus={!Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
         />
         {isSubteam && (
-          <Kb.Text type="BodySmall" style={!name && Styles.globalStyles.opacity0}>
+          <Kb.Text type="BodySmall" style={!name ? Styles.globalStyles.opacity0 : undefined}>
             This team will be named{' '}
             <Kb.Text type="BodySmallSemibold" style={styles.wordBreak}>
               {props.baseTeam}.{name}

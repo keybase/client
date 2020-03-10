@@ -635,7 +635,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
             small={true}
             type="Success"
-            style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+            style={!this.props.teamSoFar.length ? styles.hide : undefined} // Need to hide this so modal can measure correctly
           />
         ) : (
           undefined

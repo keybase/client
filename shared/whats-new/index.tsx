@@ -29,7 +29,7 @@ const Wrapper = ({children}: {children: React.ReactNode}) => (
     alignItems="flex-start"
     alignSelf="flex-start"
     fullHeight={true}
-    style={!Styles.isMobile && styles.popupContainer}
+    style={!Styles.isMobile ? styles.popupContainer : undefined}
   >
     <Kb.Box2
       direction="vertical"

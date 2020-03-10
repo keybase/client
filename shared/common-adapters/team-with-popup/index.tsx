@@ -64,7 +64,7 @@ export const TeamWithPopup = (props: Props) => {
       direction="horizontal"
       onMouseOver={onShowPopup}
       onMouseLeave={onHidePopup}
-      style={inline && styles.inlineStyle}
+      style={inline ? styles.inlineStyle : undefined}
     >
       <Kb.Text type={type} ref={popupRef}>
         <Kb.Text type={type}>{prefix}</Kb.Text>

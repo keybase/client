@@ -193,8 +193,8 @@ const ServicesIcons = (props: {
             <Kb.Icon
               sizeType="Small"
               type={serviceIdToIconFont(serviceName)}
-              style={Styles.isMobile && iconStyle}
-              boxStyle={!Styles.isMobile && iconStyle}
+              style={Styles.isMobile ? iconStyle : undefined}
+              boxStyle={!Styles.isMobile ? iconStyle : undefined}
             />
           </Kb.WithTooltip>
         )

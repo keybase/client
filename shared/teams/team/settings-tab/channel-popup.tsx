@@ -44,7 +44,7 @@ const ChannelPopup = (props: Props) => {
           <Kb.Text
             type="BodyBigLink"
             onClick={selected.size ? onAdd : undefined}
-            style={!selected.size && styles.addDisabled}
+            style={!selected.size ? styles.addDisabled : undefined}
           >
             Add{!!selected.size && ` (${selected.size})`}
           </Kb.Text>

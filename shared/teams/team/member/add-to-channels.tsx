@@ -129,7 +129,7 @@ const AddToChannels = (props: Props) => {
           undefined
         ),
         rightButton: Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
+          <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected ? styles.disabled : undefined}>
             Add
           </Kb.Text>
         ) : (

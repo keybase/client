@@ -105,14 +105,14 @@ type StyleKeys =
   | 'zIndex'
 
 export type _StylesDesktop = Pick<CSSProperties, StyleKeys> & _StylesDesktopOverride
-export type StylesDesktop = _StylesDesktop | undefined | null | false | Array<StylesDesktop>
+export type StylesDesktop = _StylesDesktop | undefined | null | Array<StylesDesktop>
 
 type _StylesMobileOverride = {
   textAlignVertical?: 'auto' | 'top' | 'bottom' | 'center'
 }
 
 export type _StylesMobile = ViewStyle & TextStyle & ImageStyle & _StylesMobileOverride
-export type StylesMobile = _StylesMobile | undefined | null | false | Array<StylesMobile>
+export type StylesMobile = _StylesMobile | undefined | null | Array<StylesMobile>
 
 // override some problematic styles
 type _StylesCrossPlatformOverride = {
@@ -133,12 +133,11 @@ export type _StylesCrossPlatform = {
     : never
 }
 
-export type StylesCrossPlatform = _StylesCrossPlatform | undefined | null | false | Array<StylesCrossPlatform>
+export type StylesCrossPlatform = _StylesCrossPlatform | undefined | null | Array<StylesCrossPlatform>
 
 export type _CustomStyles<K extends string, C> = Omit<_StylesCrossPlatform, K> & C
 export type CustomStyles<K extends string, C> =
   | _CustomStyles<K, C>
   | undefined
   | null
-  | false
   | Array<CustomStyles<K, C>>
