@@ -519,6 +519,13 @@ def testGoBuilds(prefix, packagesToTest) {
       timeout(activity: true, time: 720, unit: 'SECONDS') {
         sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
       }
+    } else {
+      println("Running golangci-lint on all non-KBFS code")
+      dir('go') {
+        timeout(activity: true, time: 720, unit: 'SECONDS') {
+          sh "make golangci-lint-nonkbfs"
+        }
+      }
     }
 
     // Windows `gofmt` pukes on CRLF.

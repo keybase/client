@@ -51,7 +51,3 @@ func (i *baseBox) maybeNuke(err Error, key libkb.DbKey) {
 		}
 	}
 }
-
-func (i *baseBox) maybeNukeFn(ef func() Error, key libkb.DbKey) {
-	i.maybeNuke(ef(), key)
-}

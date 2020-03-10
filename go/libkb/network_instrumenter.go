@@ -231,7 +231,7 @@ func (s *DiskInstrumentationStorage) Stats(ctx context.Context) (res []keybase1.
 }
 
 var tagLogBlacklist = map[string]struct{}{
-	"Call gregor.1.incoming.ping": struct{}{},
+	"Call gregor.1.incoming.ping": {},
 }
 
 func (s *DiskInstrumentationStorage) logRecord(ctx context.Context, tag string, record rpc.InstrumentationRecord) {

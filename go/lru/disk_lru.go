@@ -445,7 +445,10 @@ func (d *DiskLRU) getPath(entry DiskLRUEntry) (res string, ok bool) {
 	if _, ok = entry.Value.(map[string]interface{}); ok {
 		var pathable Pathable
 		jstr, _ := json.Marshal(entry.Value)
-		json.Unmarshal(jstr, &pathable)
+		err := json.Unmarshal(jstr, &pathable)
+		if err != nil {
+			return "", false
+		}
 		path := pathable.Path
 		if len(path) == 0 {
 			return "", false
