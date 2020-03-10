@@ -36,6 +36,8 @@ type Logs struct {
 	Service    string
 	EK         string
 	Perf       string
+	KbfsPerf   string
+	GitPerf    string
 	Updater    string
 	Start      string
 	Install    string
@@ -281,7 +283,16 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 		// so we have more comprehensive coverage there.
 		l.svcLog = tail(l.G().Log, "service", logs.Service, numBytes*AvgCompressionRatio)
 		l.ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
-		l.perfLog = tail(l.G().Log, "perf", logs.Perf, numBytes)
+
+		{
+			// Scope these logs so they can be GC'd after this block.
+			servicePerfLog := tail(l.G().Log, "perf", logs.Perf, numBytes)
+			kbfsPerfLog := tail(l.G().Log, "kbfsPerf", logs.KbfsPerf, numBytes)
+			gitPerfLog := tail(l.G().Log, "gitPerf", logs.GitPerf, numBytes)
+			l.perfLog = zipLogs(
+				numBytes, servicePerfLog, kbfsPerfLog, gitPerfLog)
+		}
+
 		l.kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes*AvgCompressionRatio)
 		l.desktopLog = tail(l.G().Log, "gui", logs.GUI, numBytes)
 		l.updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)

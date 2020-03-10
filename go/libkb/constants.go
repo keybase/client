@@ -599,13 +599,15 @@ const (
 )
 
 const (
-	ServiceLogFileName = "keybase.service.log"
-	EKLogFileName      = "keybase.ek.log"
-	PerfLogFileName    = "keybase.perf.log"
-	KBFSLogFileName    = kbconst.KBFSLogFileName
-	GitLogFileName     = "keybase.git.log"
-	UpdaterLogFileName = "keybase.updater.log"
-	GUILogFileName     = "Keybase.app.log"
+	ServiceLogFileName  = "keybase.service.log"
+	EKLogFileName       = "keybase.ek.log"
+	PerfLogFileName     = "keybase.perf.log"
+	KBFSLogFileName     = kbconst.KBFSLogFileName
+	KBFSPerfLogFileName = "keybase.kbfs.perf.log"
+	GitLogFileName      = "keybase.git.log"
+	GitPerfLogFileName  = "keybase.git.perf.log"
+	UpdaterLogFileName  = "keybase.updater.log"
+	GUILogFileName      = "Keybase.app.log"
 	// StartLogFileName is where services can log to (on startup) before they handle their own logging
 	StartLogFileName = "keybase.start.log"
 )
