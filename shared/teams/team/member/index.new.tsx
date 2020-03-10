@@ -59,8 +59,7 @@ const TeamMember = (props: OwnProps) => {
   // Load up the memberships when the page is opened
   React.useEffect(() => {
     dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [teamID, username, dispatch])
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )
@@ -256,10 +255,9 @@ const SubteamInRow = (props: SubteamInRowProps) => {
         <Kb.Avatar teamname={props.subteam.teamname} size={32} />
         <Kb.Box2 direction="vertical" alignItems="flex-start">
           <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
-          <Kb.Text type="BodySmall">
-            Joined{' '}
-            {props.membership.joinTime ? formatTimeForTeamMember(props.membership.joinTime) : 'this team'}
-          </Kb.Text>
+          {!!props.membership.joinTime && (
+            <Kb.Text type="BodySmall">Joined {formatTimeForTeamMember(props.membership.joinTime)}</Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
       {expanded && (
