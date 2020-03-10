@@ -26,7 +26,7 @@ const Activity = ({level}: {level: Types.ActivityLevel}) =>
         color={level === 'active' ? Styles.globalColors.greenDark : Styles.globalColors.black_50}
         sizeType="Small"
       />
-      <Kb.Text type="BodySmall" style={level === 'active' && styles.activityActive}>
+      <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
         {activityToLabel[level]}
       </Kb.Text>
     </Kb.Box2>
