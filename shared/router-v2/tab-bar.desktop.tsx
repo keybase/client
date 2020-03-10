@@ -208,31 +208,27 @@ const TabBar = (props: Props) => {
     }
   }
 
-  return (
-    !!username && (
-      <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
-        <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
-          <Kb.HotKey hotKeys={hotKeys} onHotKey={(cmd: string) => onTabClick(keysMap[cmd])} />
-          <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
-          <Header />
-          <Kb.Divider style={styles.divider} />
-        </Kb.Box2>
-        {tabs.map((t, i) => (
-          <Tab
-            key={t}
-            tab={t}
-            index={i}
-            isSelected={selectedTab === t}
-            onTabClick={onTabClick}
-            badge={
-              t === Tabs.fsTab && fsCriticalUpdate ? (badgeNumbers.get(t) ?? 0) + 1 : badgeNumbers.get(t)
-            }
-          />
-        ))}
-        <RuntimeStats />
+  return username ? (
+    <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
+      <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
+        <Kb.HotKey hotKeys={hotKeys} onHotKey={(cmd: string) => onTabClick(keysMap[cmd])} />
+        <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
+        <Header />
+        <Kb.Divider style={styles.divider} />
       </Kb.Box2>
-    )
-  )
+      {tabs.map((t, i) => (
+        <Tab
+          key={t}
+          tab={t}
+          index={i}
+          isSelected={selectedTab === t}
+          onTabClick={onTabClick}
+          badge={t === Tabs.fsTab && fsCriticalUpdate ? (badgeNumbers.get(t) ?? 0) + 1 : badgeNumbers.get(t)}
+        />
+      ))}
+      <RuntimeStats />
+    </Kb.Box2>
+  ) : null
 }
 
 type TabProps = {
