@@ -436,7 +436,7 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext,
 	return res, nil
 }
 
-func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteName, err error) {
+func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteDisplayName, err error) {
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return name, err
@@ -477,13 +477,13 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 		} else if sms.N != "" {
 			smsName = sms.N
 		}
-		return keybase1.TeamInviteName(smsName), nil
+		return keybase1.TeamInviteDisplayName(smsName), nil
 	default:
 		return "", nil
 	}
 }
 
-func AnnotateInvitelink(mctx libkb.MetaContext, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteName, err error) {
+func AnnotateInvitelink(mctx libkb.MetaContext, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteDisplayName, err error) {
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return name, err
@@ -507,7 +507,7 @@ func AnnotateInvitelink(mctx libkb.MetaContext, team *Team, invite keybase1.Team
 	}
 
 	ikey := keyAndLabel.Invitelink().I
-	name = keybase1.TeamInviteName(fmt.Sprintf("%s/invite#i=%s", serverRoot, ikey))
+	name = keybase1.TeamInviteDisplayName(fmt.Sprintf("%s/invite#i=%s", serverRoot, ikey))
 	return name, err
 }
 
@@ -532,14 +532,12 @@ func AnnotateTeamUsedInviteLogPoints(points []keybase1.TeamUsedInviteLogPoint, n
 	return ret
 }
 
-// AnnotateInvitesUIDMapper annotates team invites using UIDMapper,
-// so it's fast but may be wrong/stale regarding full names.
-// If members is passed, the function will add in PUKless invites to the
-// members struct.
-// If redactPUKless is true, the function will not include
-// Keybase-type invites in the returned map.
-func AnnotateInvitesUIDMapper(mctx libkb.MetaContext, team *Team,
-	members *keybase1.TeamMembersDetails, redactPUKless bool) (AnnotatedInviteMap, error) {
+// AnnotateInvitesNoPUKless annotates team invites using UIDMapper, so it's
+// fast but may be wrong/stale regarding full names.
+// The function will add in PUKless invites to the members struct, which is
+// passed by pointer, and will not include them in the returned map.
+func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
+	members *keybase1.TeamMembersDetails) (AnnotatedInviteMap, error) {
 
 	invites := team.chain().inner.ActiveInvites
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
@@ -573,19 +571,20 @@ func AnnotateInvitesUIDMapper(mctx libkb.MetaContext, team *Team,
 		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
 	if err != nil {
 		// UIDMap returned an error, but there may be useful data in the result.
-		mctx.Debug("AnnotateInvitesUIDMapper: MapUIDsReturnMap returned: %v", err)
+		mctx.Debug("AnnotateInvitesNoPUKless: MapUIDsReturnMap returned: %v", err)
 	}
 
 	teamName := team.Name().String()
 	for id, invite := range invites {
 		inviterUsername := namePkgs[invite.Inviter.Uid].NormalizedUsername
 
-		name := invite.Name
+		displayName := keybase1.TeamInviteDisplayName(invite.Name)
 		category, err := invite.Type.C()
 		if err != nil {
 			return nil, err
 		}
 		var uv keybase1.UserVersion
+		var status *keybase1.TeamMemberStatus
 		switch category {
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// "keybase" invites (i.e. pukless users) have user version for name
@@ -604,6 +603,10 @@ func AnnotateInvitesUIDMapper(mctx libkb.MetaContext, team *Team,
 					status = keybase1.TeamMemberStatus_DELETED
 				}
 				fullName = pkg.FullName.FullName
+			}
+
+			if pkg.NormalizedUsername.IsNil() {
+				return nil, fmt.Errorf("failed to get username from UIDMapper for uv %v", uv)
 			}
 
 			details := keybase1.TeamMemberDetails{
@@ -626,13 +629,10 @@ func AnnotateInvitesUIDMapper(mctx libkb.MetaContext, team *Team,
 					members.Readers = addKeybaseInviteToRes(mctx.Ctx(), details, members.Readers)
 				}
 			}
-
-			if redactPUKless {
-				// Continue to skip adding this invite to annotatedInvites
-				continue
-			}
+			// Continue to skip adding this invite to annotatedInvites
+			continue
 		case keybase1.TeamInviteCategory_SEITAN:
-			name, err = AnnotateSeitanInvite(mctx.Ctx(), team, invite)
+			displayName, err = AnnotateSeitanInvite(mctx.Ctx(), team, invite)
 			if err != nil {
 				// There are seitan invites in the wild from before
 				// https://github.com/keybase/client/pull/9816 These can no
@@ -641,7 +641,7 @@ func AnnotateInvitesUIDMapper(mctx libkb.MetaContext, team *Team,
 				continue
 			}
 		case keybase1.TeamInviteCategory_INVITELINK:
-			name, err = AnnotateInvitelink(mctx, team, invite)
+			displayName, err = AnnotateInvitelink(mctx, team, invite)
 			if err != nil {
 				mctx.Warning("error annotating invitelink (%v): %v", id, err)
 				continue
@@ -649,13 +649,13 @@ func AnnotateInvitesUIDMapper(mctx libkb.MetaContext, team *Team,
 		default:
 		}
 
-		displayInvite := invite.DeepCopy()
-		displayInvite.Name = name
 		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
-			Invite:          displayInvite,
+			Invite:          invite,
+			DisplayName:     displayName,
 			InviteeUv:       uv,
 			InviterUsername: inviterUsername.String(),
 			TeamName:        teamName,
+			Status:          status,
 			UsedInvites:     AnnotateTeamUsedInviteLogPoints(team.chain().inner.UsedInvites[invite.Id], namePkgs),
 		}
 	}

@@ -379,74 +379,72 @@ func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) 
 	}
 
 	// Add the invites
-	chainInvites := t.chain().inner.ActiveInvites
-	inviteMap, err := AnnotateInvitesUIDMapper(libkb.NewMetaContext(ctx, t.G()), t, nil, false)
-	if err != nil {
-		return res, err
-	}
 	isFullyResolved := true
-	for inviteID := range chainInvites {
-		invite, ok := inviteMap[inviteID]
-		if !ok {
-			// this should never happen
-			return res, fmt.Errorf("missing invite: %v", inviteID)
-		}
-		invtyp, err := invite.Invite.Type.C()
+	for _, invite := range t.chain().inner.ActiveInvites {
+		invtyp, err := invite.Type.C()
 		if err != nil {
 			continue
 		}
 		switch invtyp {
 		case keybase1.TeamInviteCategory_SBS:
 			sa := keybase1.SocialAssertion{
-				User:    string(invite.Invite.Name),
-				Service: keybase1.SocialAssertionService(string(invite.Invite.Type.Sbs())),
+				User:    string(invite.Name),
+				Service: keybase1.SocialAssertionService(string(invite.Type.Sbs())),
 			}
-			switch invite.Invite.Role {
+			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
 				impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
 			case keybase1.TeamRole_READER:
 				impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
 			default:
-				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Invite.Role, invite.Invite.Id)
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
 			}
 			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// Check to make sure we don't already have the user in the name
-			iname := string(invite.Invite.Name)
-			if seenKBUsers[iname] {
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				return res, err
+			}
+			normalizedUsername, err := t.G().GetUPAKLoader().LookupUsername(ctx, uv.Uid)
+			if err != nil {
+				return res, err
+			}
+			username := normalizedUsername.String()
+
+			if seenKBUsers[username] {
 				continue
 			}
-			seenKBUsers[iname] = true
-			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
-			switch invite.Invite.Role {
+			seenKBUsers[username] = true
+			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
-				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, iname)
+				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, username)
 			case keybase1.TeamRole_READER:
-				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, iname)
+				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, username)
 			default:
-				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Invite.Role,
-					invite.Invite.Id)
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role,
+					invite.Id)
 			}
 		case keybase1.TeamInviteCategory_PHONE, keybase1.TeamInviteCategory_EMAIL:
-			typ, err := invite.Invite.Type.String()
+			typ, err := invite.Type.String()
 			if err != nil {
 				return res, fmt.Errorf("Failed to handle invite type %v: %s", invtyp, err)
 			}
 			sa := keybase1.SocialAssertion{
-				User:    string(invite.Invite.Name),
+				User:    string(invite.Name),
 				Service: keybase1.SocialAssertionService(typ),
 			}
-			switch invite.Invite.Role {
+			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
 				impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
 			case keybase1.TeamRole_READER:
 				impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
 			default:
-				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Invite.Role, invite.Invite.Id)
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
 			}
 			isFullyResolved = false
 		case keybase1.TeamInviteCategory_UNKNOWN:
-			return res, fmt.Errorf("unknown invite type in implicit team: %q", invite.Invite.Type.Unknown())
+			return res, fmt.Errorf("unknown invite type in implicit team: %q", invite.Type.Unknown())
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}

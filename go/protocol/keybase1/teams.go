@@ -1726,6 +1726,12 @@ func (o TeamInviteName) DeepCopy() TeamInviteName {
 	return o
 }
 
+type TeamInviteDisplayName string
+
+func (o TeamInviteDisplayName) DeepCopy() TeamInviteDisplayName {
+	return o
+}
+
 type TeamInvite struct {
 	Role    TeamRole           `codec:"role" json:"role"`
 	Id      TeamInviteID       `codec:"id" json:"id"`
@@ -1762,6 +1768,7 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 
 type AnnotatedTeamInvite struct {
 	Invite          TeamInvite                        `codec:"invite" json:"invite"`
+	DisplayName     TeamInviteDisplayName             `codec:"displayName" json:"displayName"`
 	InviterUsername string                            `codec:"inviterUsername" json:"inviterUsername"`
 	InviteeUv       UserVersion                       `codec:"inviteeUv" json:"inviteeUv"`
 	TeamName        string                            `codec:"teamName" json:"teamName"`
@@ -1772,6 +1779,7 @@ type AnnotatedTeamInvite struct {
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 	return AnnotatedTeamInvite{
 		Invite:          o.Invite.DeepCopy(),
+		DisplayName:     o.DisplayName.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		InviteeUv:       o.InviteeUv.DeepCopy(),
 		TeamName:        o.TeamName,

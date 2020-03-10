@@ -1329,6 +1329,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteDisplayName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TeamInvite",
       "fields": [
         {
@@ -1374,6 +1380,10 @@
         {
           "type": "TeamInvite",
           "name": "invite"
+        },
+        {
+          "type": "TeamInviteDisplayName",
+          "name": "displayName"
         },
         {
           "type": "string",

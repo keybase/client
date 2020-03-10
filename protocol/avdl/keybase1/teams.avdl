@@ -618,15 +618,17 @@ protocol teams {
   @typedef("string")
   record TeamInviteName {}
 
+  // For Keybase, Seitan, Invitelink, etc. invites, we want to show a different
+  // invite name than what is in the sigchain (which may be an encoded
+  // userversion or a messagepack blob, e.g.)
+  @typedef("string")
+  record TeamInviteDisplayName {}
+
   record TeamInvite {
     TeamRole role;
     TeamInviteID id;
     TeamInviteType type;
-
-    // For seitan invites and invitelink invites, the invite name is rewritten
-    // from an encrypted blob to a human-readable name.
     TeamInviteName name;
-
     UserVersion inviter;
     union { null, TeamInviteMaxUses } maxUses;
     union { null, UnixTime } etime;
@@ -635,6 +637,7 @@ protocol teams {
   record AnnotatedTeamInvite {
     TeamInvite invite;
 
+    TeamInviteDisplayName displayName;
     string inviterUsername;
     UserVersion inviteeUv;
     string teamName;
@@ -642,7 +645,7 @@ protocol teams {
     // null for multiuse invites
     union { null, TeamMemberStatus } status;
 
-    // non-empty for multiuse unvites
+    // non-empty for multiuse invites
     array<AnnotatedTeamUsedInviteLogPoint> usedInvites;
   }
 

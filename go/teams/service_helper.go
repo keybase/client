@@ -166,11 +166,10 @@ func details(mctx libkb.MetaContext, t *Team, tracer profiling.TimeTracer) (res 
 	}
 
 	tracer.Stage("invites")
-	annotatedInvites, err := AnnotateInvitesUIDMapper(mctx, t, &res.Members, true)
+	res.AnnotatedActiveInvites, err = AnnotateInvitesNoPUKless(mctx, t, &res.Members)
 	if err != nil {
 		return res, err
 	}
-	res.AnnotatedActiveInvites = annotatedInvites
 
 	membersHideDeletedUsers(mctx.Ctx(), mctx.G(), &res.Members)
 	membersHideInactiveDuplicates(mctx.Ctx(), mctx.G(), &res.Members)
