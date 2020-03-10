@@ -29,12 +29,9 @@
       "name": "Confidence",
       "fields": [
         {
-          "type": {
-            "type": "array",
-            "items": "UID"
-          },
-          "name": "vouchedBy",
-          "jsonkey": "vouched_by,omitempty"
+          "type": "UsernameVerificationType",
+          "name": "usernameVerifiedVia",
+          "jsonkey": "username_verified_via,omitempty"
         },
         {
           "type": {
@@ -44,18 +41,8 @@
           "name": "proofs"
         },
         {
-          "type": "UsernameVerificationType",
-          "name": "usernameVerifiedVia",
-          "jsonkey": "username_verified_via,omitempty"
-        },
-        {
           "type": "string",
           "name": "other"
-        },
-        {
-          "type": "int",
-          "name": "knownOnKeybaseDays",
-          "jsonkey": "known_on_keybase_days,omitempty"
         }
       ]
     },

@@ -52,26 +52,14 @@ func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
 }
 
 type Confidence struct {
-	VouchedBy           []UID                    `codec:"vouchedBy" json:"vouched_by,omitempty"`
-	Proofs              []SigID                  `codec:"proofs" json:"proofs"`
 	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"username_verified_via,omitempty"`
+	Proofs              []SigID                  `codec:"proofs" json:"proofs"`
 	Other               string                   `codec:"other" json:"other"`
-	KnownOnKeybaseDays  int                      `codec:"knownOnKeybaseDays" json:"known_on_keybase_days,omitempty"`
 }
 
 func (o Confidence) DeepCopy() Confidence {
 	return Confidence{
-		VouchedBy: (func(x []UID) []UID {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UID, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.VouchedBy),
+		UsernameVerifiedVia: o.UsernameVerifiedVia.DeepCopy(),
 		Proofs: (func(x []SigID) []SigID {
 			if x == nil {
 				return nil
@@ -83,9 +71,7 @@ func (o Confidence) DeepCopy() Confidence {
 			}
 			return ret
 		})(o.Proofs),
-		UsernameVerifiedVia: o.UsernameVerifiedVia.DeepCopy(),
-		Other:               o.Other,
-		KnownOnKeybaseDays:  o.KnownOnKeybaseDays,
+		Other: o.Other,
 	}
 }
 

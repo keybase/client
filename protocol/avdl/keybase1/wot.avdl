@@ -12,21 +12,15 @@ protocol wot {
   }
 
   // How the voucher knows they have the right vouchee.
-  // In order of descending quality.
-  // One of: in_person, proofs, video, audio, other_chat, familiarity, other
-  // Keep in sync with server: helpers/wot.ts
+  // See extras.go for values
   @typedef("string")
   record UsernameVerificationType {}
 
   record Confidence {
-    @jsonkey("vouched_by,omitempty")
-    array<UID> vouchedBy;
-    array<SigID> proofs;
     @jsonkey("username_verified_via,omitempty")
     UsernameVerificationType usernameVerifiedVia;
+    array<SigID> proofs;
     string other;
-    @jsonkey("known_on_keybase_days,omitempty")
-    int knownOnKeybaseDays;
   }
 
   void wotVouch(int sessionID, UserVersion uv /* vouchee */, array<string> vouchTexts, Confidence confidence);

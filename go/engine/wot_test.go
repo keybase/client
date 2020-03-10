@@ -84,11 +84,7 @@ func TestWebOfTrustVouch(t *testing.T) {
 	arg = &WotVouchArg{
 		Vouchee:    fu3.User.ToUserVersion(),
 		VouchTexts: []string{"charlie rocks"},
-		Confidence: keybase1.Confidence{
-			UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
-			VouchedBy:           []keybase1.UID{keybase1.UID("c4c565570e7e87cafd077509abf5f619")}, // t_doug
-			KnownOnKeybaseDays:  78,
-		},
+		Confidence: confidence,
 	}
 	eng = NewWotVouch(tc1.G, arg)
 	err = RunEngine2(mctx, eng)
@@ -169,11 +165,6 @@ func TestWebOfTrustPending(t *testing.T) {
 	t.Log("alice and charlie follow each other")
 
 	vouchTexts = []string{"alice is wondibar and doug agrees"}
-	confidence := keybase1.Confidence{
-		UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
-		VouchedBy:           []keybase1.UID{keybase1.UID("c4c565570e7e87cafd077509abf5f619")}, // t_doug
-		KnownOnKeybaseDays:  78,
-	}
 	arg = &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		VouchTexts: vouchTexts,
@@ -223,11 +214,6 @@ func TestWebOfTrustAccept(t *testing.T) {
 	t.Log("alice and bob follow each other")
 
 	vouchTexts := []string{"alice is wondibar and doug agrees"}
-	confidence := keybase1.Confidence{
-		UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
-		VouchedBy:           []keybase1.UID{keybase1.UID("c4c565570e7e87cafd077509abf5f619")}, // t_doug
-		KnownOnKeybaseDays:  25,
-	}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		VouchTexts: vouchTexts,
@@ -403,4 +389,9 @@ func TestWebOfTrustSigBug(t *testing.T) {
 	require.NoError(t, err)
 	bobVouch = vouches[0]
 	require.Equal(t, bobVouch.Status, keybase1.WotStatusType_PROPOSED)
+}
+
+var confidence = keybase1.Confidence{
+	UsernameVerifiedVia: keybase1.UsernameVerificationType_PROOFS,
+	Proofs:              []keybase1.SigID{keybase1.SigID("24786764ee0861eb134925fe967c03975fba5df02edfabcf4048c71d8cb8623c0f")},
 }
