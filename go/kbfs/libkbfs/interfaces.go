@@ -2035,6 +2035,9 @@ type InitMode interface {
 	// IndexingEnabled indicates whether or not synced TLFs are
 	// indexed and searchable.
 	IndexingEnabled() bool
+	// DelayInitialConnect indicates whether the initial connection to KBFS
+	// servers should be delayed.
+	DelayInitialConnect() bool
 
 	ldbutils.DbWriteBufferSizeGetter
 }

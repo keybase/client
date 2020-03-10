@@ -117,12 +117,16 @@ func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
 		kbfsmd.ServerTokenServer, kbfsmd.ServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
+	firstConnectDelay := time.Duration(0)
+	if config.Mode().DelayInitialConnect() {
+		firstConnectDelay = libkb.RandomJitter(mdserverFirstConnectDelay)
+	}
 	mdServer.connOpts = rpc.ConnectionOpts{
 		WrapErrorFunc:                 libkb.WrapError,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
-		FirstConnectDelayDuration:     libkb.RandomJitter(mdserverFirstConnectDelay),
+		FirstConnectDelayDuration:     firstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return mdserverReconnectBackoffWindow },
 	}
 	mdServer.initNewConnection()

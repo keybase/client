@@ -49,7 +49,8 @@ type blockServerRemoteClientHandler struct {
 	client keybase1.BlockInterface
 }
 
-func newBlockServerRemoteClientHandler(kbCtx Context, name string, log logger.Logger,
+func newBlockServerRemoteClientHandler(
+	kbCtx Context, initMode InitMode, name string, log logger.Logger,
 	signer kbfscrypto.Signer, csg idutil.CurrentSessionGetter,
 	srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
@@ -76,13 +77,17 @@ func newBlockServerRemoteClientHandler(kbCtx Context, name string, log logger.Lo
 		"libkbfs_bserver_remote", VersionString(), b)
 
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
+	firstConnectDelay := time.Duration(0)
+	if initMode.DelayInitialConnect() {
+		firstConnectDelay = libkb.RandomJitter(bserverFirstConnectDelay)
+	}
 	b.connOpts = rpc.ConnectionOpts{
 		DontConnectNow:                true, // connect only on-demand
 		WrapErrorFunc:                 libkb.WrapError,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
-		FirstConnectDelayDuration:     libkb.RandomJitter(bserveFirstConnectDelay),
+		FirstConnectDelayDuration:     firstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return bserverReconnectBackoffWindow },
 	}
 	b.initNewConnection()
@@ -339,10 +344,10 @@ func NewBlockServerRemote(kbCtx Context, config blockServerRemoteConfig,
 	// reads.  This allows small reads to avoid getting trapped behind
 	// large asynchronous writes.  TODO: use some real network QoS to
 	// achieve better prioritization within the actual network.
-	bs.putConn = newBlockServerRemoteClientHandler(kbCtx,
+	bs.putConn = newBlockServerRemoteClientHandler(kbCtx, config.Mode(),
 		"BlockServerRemotePut", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
-	bs.getConn = newBlockServerRemoteClientHandler(kbCtx,
+	bs.getConn = newBlockServerRemoteClientHandler(kbCtx, config.Mode(),
 		"BlockServerRemoteGet", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
 
@@ -628,10 +633,10 @@ func (b *BlockServerRemote) IsUnflushed(
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
 	// This method called when kbfs process starts up. So if
-	// InitialDelayForBackgroundWork is set for the mode (usually means we're
-	// on mobile), don't set "fire now" in context, to avoid unintionally fast
+	// DelayInitialConnect() is set for the mode (usually means we're on
+	// mobile), don't set "fire now" in context, to avoid unintionally fast
 	// forwarding the delay timer for connecting to bserver.
-	if b.config.Mode().InitialDelayForBackgroundWork() == 0 {
+	if !b.config.Mode().DelayInitialConnect() {
 		ctx = rpc.WithFireNow(ctx)
 	}
 	b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo")

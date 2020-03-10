@@ -27,9 +27,9 @@ const mdserverFirstConnectDelay = time.Second * 10
 // wait randomly for before reconnecting to MD server.
 const mdserverReconnectBackoffWindow = time.Hour
 
-// bserveFirstConnectDelay is the duration we wait for before we try to
+// bserverFirstConnectDelay is the duration we wait for before we try to
 // connect to mdserver for the first time..
-const bserveFirstConnectDelay = time.Second * 10
+const bserverFirstConnectDelay = time.Second * 10
 
 // bserverReconnectBackoffWindow is a backoff window within which we try to
 // wait randomly for before reconnecting to bserver.
