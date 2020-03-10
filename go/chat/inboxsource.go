@@ -483,15 +483,11 @@ type HybridInboxSource struct {
 	started               bool
 	stopCh                chan struct{}
 	eg                    errgroup.Group
-	flushDelay            time.Duration
-	forceFlushCh          chan struct{}
 	readOutbox            *storage.ReadOutbox
 	readFlushDelay        time.Duration
 	readFlushCh           chan struct{}
 	searchStatusMap       map[chat1.ConversationStatus]bool
 	searchMemberStatusMap map[chat1.ConversationMemberStatus]bool
-
-	testFlushCh chan struct{} // testing only
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -502,10 +498,8 @@ func NewHybridInboxSource(g *globals.Context,
 	s := &HybridInboxSource{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   labeler,
-		flushDelay:     time.Minute,
 		readFlushDelay: 5 * time.Second,
 		readFlushCh:    make(chan struct{}, 10),
-		forceFlushCh:   make(chan struct{}, 100),
 	}
 	s.searchStatusMap = map[chat1.ConversationStatus]bool{
 		chat1.ConversationStatus_UNFILED:  true,
@@ -524,7 +518,6 @@ func NewHybridInboxSource(g *globals.Context,
 
 func (s *HybridInboxSource) createInbox() *storage.Inbox {
 	return storage.NewInbox(s.G(),
-		storage.FlushMode(storage.InboxFlushModeDelegate),
 		storage.LayoutChangedNotifier(s.G().UIInboxLoader))
 }
 
@@ -550,7 +543,6 @@ func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	s.started = true
 	s.uid = uid
 	s.readOutbox = storage.NewReadOutbox(s.G(), uid)
-	s.eg.Go(func() error { return s.inboxFlushLoop(uid, s.stopCh) })
 	s.eg.Go(func() error { return s.markAsReadDeliverLoop(uid, s.stopCh) })
 }
 
@@ -838,44 +830,6 @@ func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	return nil
 }
 
-func (s *HybridInboxSource) forceFlush(ctx context.Context) {
-	select {
-	case s.forceFlushCh <- struct{}{}:
-	default:
-		s.Debug(ctx, "forceFlush: channel full, dropping...")
-	}
-}
-
-func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) error {
-	ctx := globals.ChatCtx(context.Background(), s.G(),
-		keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
-	appState := s.G().MobileAppState.State()
-	doFlush := func() {
-		s.createInbox().Flush(ctx, uid)
-		if s.testFlushCh != nil {
-			s.testFlushCh <- struct{}{}
-		}
-	}
-	for {
-		select {
-		case <-s.forceFlushCh:
-			doFlush()
-		case <-s.G().Clock().After(s.flushDelay):
-			doFlush()
-		case appState = <-s.G().MobileAppState.NextUpdate(&appState):
-			switch appState {
-			case keybase1.MobileAppState_BACKGROUND:
-				doFlush()
-			default:
-				// Nothing to do for other app states.
-			}
-		case <-stopCh:
-			doFlush()
-			return nil
-		}
-	}
-}
-
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
 	query *chat1.GetInboxQuery) (res types.Inbox, err error) {
 	defer s.Trace(ctx, func() error { return err }, "fetchRemoteInbox")()
@@ -1089,7 +1043,7 @@ func (h convSearchHit) hitScore() (score int) {
 	return score
 }
 
-func (h convSearchHit) less(o convSearchHit) bool {
+func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
 	hScore := h.hitScore()
 	oScore := o.hitScore()
 	if hScore < oScore {
@@ -1097,8 +1051,15 @@ func (h convSearchHit) less(o convSearchHit) bool {
 	} else if hScore > oScore {
 		return false
 	}
-	htime := utils.GetConvMtime(h.conv)
-	otime := utils.GetConvMtime(o.conv)
+	var htime, otime gregor1.Time
+	switch emptyMode {
+	case types.InboxSourceSearchEmptyModeAllBySendCtime:
+		htime = utils.GetConvLastSendTime(h.conv)
+		otime = utils.GetConvLastSendTime(o.conv)
+	default:
+		htime = utils.GetConvMtime(h.conv)
+		otime = utils.GetConvMtime(o.conv)
+	}
 	return htime.Before(otime)
 }
 
@@ -1146,7 +1107,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 				}
 				res.hits = []nameContainsQueryRes{cqe}
 			}
-		case types.InboxSourceSearchEmptyModeAll:
+		default:
 			res.hits = []nameContainsQueryRes{nameContainsQueryExact}
 		}
 		return res
@@ -1215,7 +1176,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		hits = append(hits, hit)
 	}
 	sort.Slice(hits, func(i, j int) bool {
-		return hits[j].less(hits[i])
+		return hits[j].less(hits[i], emptyMode)
 	})
 	res = make([]types.RemoteConversation, len(hits))
 	for i, hit := range hits {

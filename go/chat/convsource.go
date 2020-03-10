@@ -1077,7 +1077,6 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		// just get out of here as quickly as possible with a 0 upto
 		return nil
 	}
-
 	_, err = s.lockTab.Acquire(ctx, uid, convID)
 	if err != nil {
 		return err
@@ -1087,7 +1086,6 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	if err != nil {
 		return err
 	}
-
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	return nil
 }

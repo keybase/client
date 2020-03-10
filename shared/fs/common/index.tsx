@@ -19,7 +19,6 @@ export {
   useFsFileContext,
   useFsDownloadInfo,
   useFsDownloadStatus,
-  useFsJournalStatus,
   useFsOnlineStatus,
   useFsPathInfo,
   useFsPathMetadata,

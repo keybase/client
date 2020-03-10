@@ -3296,13 +3296,14 @@ func (h *Server) GetTeamRoleInConversation(ctx context.Context, arg chat1.GetTea
 
 func (h *Server) SimpleSearchInboxConvNames(ctx context.Context, query string) (res []chat1.SimpleSearchInboxConvNamesHit, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
-	defer h.Trace(ctx, func() error { return err }, "AddBotConvSearch")()
+	defer h.Trace(ctx, func() error { return err }, "SimpleSearchInboxConvNames")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
 	username := h.G().GetEnv().GetUsername().String()
-	allConvs, err := h.G().InboxSource.Search(ctx, uid, query, 100, types.InboxSourceSearchEmptyModeAll)
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, query,
+		100, types.InboxSourceSearchEmptyModeAllBySendCtime)
 	if err != nil {
 		return res, err
 	}

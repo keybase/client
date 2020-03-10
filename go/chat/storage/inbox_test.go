@@ -2,12 +2,9 @@ package storage
 
 import (
 	"context"
-	"fmt"
-	"os"
-	"runtime"
 	"sort"
-	"strings"
 	"testing"
+	"time"
 
 	"encoding/hex"
 
@@ -64,6 +61,7 @@ func makeInboxMsg(id chat1.MessageID, typ chat1.MessageType) chat1.MessageBoxed 
 		},
 		ServerHeader: &chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 	}
 }
@@ -391,6 +389,7 @@ func TestInboxNewMessage(t *testing.T) {
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "conv not promoted")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LastSendTime)
 	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 	maxMsg, err := res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -407,16 +406,17 @@ func TestInboxNewMessage(t *testing.T) {
 	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 
 	// Send another one from a diff User
-	msg = makeInboxMsg(3, chat1.MessageType_TEXT)
-	msg.ClientHeader.Sender = uid2
+	msg2 := makeInboxMsg(3, chat1.MessageType_TEXT)
+	msg2.ClientHeader.Sender = uid2
 	convID = conv.GetConvID()
-	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 4, conv.GetConvID(), msg, nil))
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 4, conv.GetConvID(), msg2, nil))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(3), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, msg.Ctime(), res[0].Conv.ReaderInfo.LastSendTime)
 	require.Equal(t, []gregor1.UID{uid2, uid1, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -435,20 +435,20 @@ func TestInboxNewMessage(t *testing.T) {
 	delete := makeInboxMsg(5, chat1.MessageType_DELETE)
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 0, conv.GetConvID(), delete, nil))
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 6, conv.GetConvID(), delete,
-		[]chat1.MessageSummary{msg.Summary()}))
+		[]chat1.MessageSummary{msg2.Summary()}))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
 	})
 	require.NoError(t, err)
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
-	require.Equal(t, msg.GetMessageID(), maxMsg.GetMessageID())
+	require.Equal(t, msg2.GetMessageID(), maxMsg.GetMessageID())
 	delete = makeInboxMsg(6, chat1.MessageType_DELETE)
 	err = inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), delete, nil)
 	require.Error(t, err)
 	require.IsType(t, VersionMismatchError{}, err)
 
-	err = inbox.NewMessage(context.TODO(), uid, 10, conv.GetConvID(), msg, nil)
+	err = inbox.NewMessage(context.TODO(), uid, 10, conv.GetConvID(), msg2, nil)
 	require.IsType(t, VersionMismatchError{}, err)
 }
 
@@ -482,6 +482,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(1), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LastSendTime)
 	require.NoError(t, inbox.ReadMessage(context.TODO(), uid, 3, conv.GetConvID(), 2))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
@@ -489,6 +490,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.Equal(t, gregor1.Time(0), res[0].Conv.ReaderInfo.LastSendTime)
 
 	err = inbox.ReadMessage(context.TODO(), uid, 10, conv.GetConvID(), 3)
 	require.IsType(t, VersionMismatchError{}, err)
@@ -686,7 +688,7 @@ func TestInboxServerVersion(t *testing.T) {
 	require.IsType(t, MissError{}, err)
 
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil))
-	idata, err := inbox.readDiskInbox(context.TODO(), uid, true)
+	idata, err := inbox.readDiskVersions(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, 5, idata.ServerVersion)
 }
@@ -711,58 +713,6 @@ func TestInboxKBFSUpgrade(t *testing.T) {
 	require.Equal(t, 1, len(res), "length")
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "id")
 	require.Equal(t, chat1.ConversationMembersType_IMPTEAMUPGRADE, res[0].Conv.Metadata.MembersType)
-}
-
-func TestMobileSharedInbox(t *testing.T) {
-	if runtime.GOOS != "darwin" {
-		t.Skip()
-	}
-	tc, inbox, uid := setupInboxTest(t, "shared")
-	defer tc.Cleanup()
-	tp := tc.G.Env.Test
-	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
-		HomeDir:             tc.Context().GetEnv().GetHome(),
-		MobileSharedHomeDir: "x",
-	}, nil, tc.Context().GetLog)
-	tc.G.Env.Test = tp
-	require.NoError(t, os.MkdirAll(tc.G.Env.GetConfigDir(), os.ModePerm))
-	numConvs := 10
-	var convs []types.RemoteConversation
-	var teamConvID chat1.ConversationID
-	for i := numConvs - 1; i >= 0; i-- {
-		conv := makeConvo(gregor1.Time(i), 1, 1)
-		if i == 5 {
-			conv.Conv.Metadata.TeamType = chat1.TeamType_COMPLEX
-			conv.Conv.MaxMsgSummaries[0].TlfName = "team"
-			teamConvID = conv.GetConvID()
-		} else {
-			conv.Conv.MaxMsgSummaries[0].TlfName = fmt.Sprintf("msg:%d", i)
-		}
-		convs = append(convs, conv)
-	}
-	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil))
-	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
-	require.NoError(t, err)
-	for index, conv := range diskIbox.Conversations {
-		if conv.GetConvID().Eq(teamConvID) {
-			diskIbox.Conversations[index].LocalMetadata = &types.RemoteConversationMetadata{
-				TopicName: "mike",
-			}
-			break
-		}
-	}
-	require.NoError(t, inbox.writeDiskInbox(context.TODO(), uid, diskIbox))
-	sharedInbox, err := inbox.ReadShared(context.TODO(), uid)
-	require.NoError(t, err)
-	require.Equal(t, numConvs, len(sharedInbox))
-	convs = diskIbox.Conversations
-	for i := 0; i < numConvs; i++ {
-		require.Equal(t, convs[i].GetConvID().ConvIDStr(), sharedInbox[i].ConvID)
-		require.Equal(t, utils.GetRemoteConvDisplayName(convs[i]), sharedInbox[i].Name)
-		if convs[i].GetConvID().Eq(teamConvID) {
-			require.True(t, strings.Contains(sharedInbox[i].Name, "#"))
-		}
-	}
 }
 
 func makeUID(t *testing.T) gregor1.UID {
@@ -881,8 +831,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[5].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			convs[5].Conv.Metadata.Version = chat1.ConversationVers(2)
-		}
-		if c.GetConvID().Eq(convs[6].GetConvID()) {
+		} else if c.GetConvID().Eq(convs[6].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, c.Conv.ReaderInfo.Status)
 			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[6].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
@@ -941,12 +890,12 @@ func TestInboxMembershipUpdate(t *testing.T) {
 // TestInboxCacheOnLogout checks that calling OnLogout() clears the cache.
 func TestInboxCacheOnLogout(t *testing.T) {
 	uid := keybase1.MakeTestUID(3)
-	inboxMemCache.Put(gregor1.UID(uid), &inboxDiskData{})
-	require.NotEmpty(t, len(inboxMemCache.datMap))
+	inboxMemCache.PutVersions(gregor1.UID(uid), &inboxDiskVersions{})
+	require.NotEmpty(t, len(inboxMemCache.versMap))
 	err := inboxMemCache.OnLogout(libkb.NewMetaContextTODO(nil))
 	require.NoError(t, err)
-	require.Nil(t, inboxMemCache.Get(gregor1.UID(uid)))
-	require.Empty(t, len(inboxMemCache.datMap))
+	require.Nil(t, inboxMemCache.GetVersions(gregor1.UID(uid)))
+	require.Empty(t, len(inboxMemCache.versMap))
 }
 
 func TestUpdateLocalMtime(t *testing.T) {
@@ -972,12 +921,18 @@ func TestUpdateLocalMtime(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
+	diskIndex, err := inbox.readDiskIndex(context.TODO(), uid, true)
 	require.NoError(t, err)
+	convs = nil
+	for _, convID := range diskIndex.ConversationIDs {
+		conv, err := inbox.readConv(context.TODO(), uid, convID)
+		require.NoError(t, err)
+		convs = append(convs, conv)
+	}
 
-	sort.Slice(diskIbox.Conversations, func(i, j int) bool {
-		return diskIbox.Conversations[i].GetMtime() > diskIbox.Conversations[j].GetMtime()
+	sort.Slice(convs, func(i, j int) bool {
+		return convs[i].GetMtime() > convs[j].GetMtime()
 	})
-	require.Equal(t, mtime1, diskIbox.Conversations[0].GetMtime())
-	require.Equal(t, mtime2, diskIbox.Conversations[1].GetMtime())
+	require.Equal(t, mtime1, convs[0].GetMtime())
+	require.Equal(t, mtime2, convs[1].GetMtime())
 }

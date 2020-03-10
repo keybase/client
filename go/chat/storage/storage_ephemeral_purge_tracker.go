@@ -199,7 +199,7 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	t.Lock()
 	defer t.Unlock()
 
-	if purgeInfo == nil {
+	if purgeInfo == nil || purgeInfo.IsNil() {
 		return nil
 	}
 
@@ -212,6 +212,7 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 		if curPurgeInfo.IsActive {
 			purgeInfo.IsActive = true
 		}
+
 		if purgeInfo.MinUnexplodedID == 0 || curPurgeInfo.MinUnexplodedID < purgeInfo.MinUnexplodedID {
 			purgeInfo.MinUnexplodedID = curPurgeInfo.MinUnexplodedID
 		}

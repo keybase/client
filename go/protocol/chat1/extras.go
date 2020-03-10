@@ -1088,6 +1088,10 @@ func (m MessageBoxed) GetMessageID() MessageID {
 	return m.ServerHeader.MessageID
 }
 
+func (m MessageBoxed) Ctime() gregor1.Time {
+	return m.ServerHeader.Ctime
+}
+
 func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
@@ -2530,6 +2534,10 @@ func (r *SetDefaultTeamChannelsLocalRes) SetRateLimits(rl []RateLimit) {
 	if len(rl) > 0 {
 		r.RateLimit = &rl[0]
 	}
+}
+
+func (i EphemeralPurgeInfo) IsNil() bool {
+	return i.IsActive == false && i.NextPurgeTime == 0 && i.MinUnexplodedID <= 1
 }
 
 func (i EphemeralPurgeInfo) String() string {

@@ -23,7 +23,7 @@ global.KB = {
   },
   kb: {
     darwinCopyToChatTempUploadFile: () => invalidPreload(),
-    darwinCopyToTmp: () => invalidPreload(),
+    darwinCopyToKBFSTempUploadFile: () => invalidPreload(),
     setEngine: () => {},
   },
   os: {

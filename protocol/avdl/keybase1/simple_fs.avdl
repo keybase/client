@@ -194,12 +194,14 @@ protocol SimpleFS {
     OpID opID;
     Path src;
     Path dest;
+    boolean overwriteExistingFiles;
   }
 
   record MoveArgs {
     OpID opID;
     Path src;
     Path dest;
+    boolean overwriteExistingFiles;
   }
 
   record GetRevisionsArgs {
@@ -269,9 +271,9 @@ protocol SimpleFS {
   SimpleFSListResult simpleFSReadList(OpID opID);
 
   /**
-   Begin copy of file or directory 
+   Begin copy of file or directory.
    */
-  void simpleFSCopy(OpID opID, Path src, Path dest);
+  void simpleFSCopy(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
 
   /**
@@ -281,13 +283,18 @@ protocol SimpleFS {
 
   /**
    Begin recursive copy of directory 
+
+   overwriteExistingFiles controls whether an existing file from `src` will
+   overwrite a file with the same name in `dest`; if `false`, an error will be
+   returned in that case.  For directories that share a name, the copy will
+   continue recursively into the directory without causing an error.
    */
-  void simpleFSCopyRecursive(OpID opID, Path src, Path dest);
+  void simpleFSCopyRecursive(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
   /**
    Begin move of file or directory, from/to KBFS only
    */
-  void simpleFSMove(OpID opID, Path src, Path dest);
+  void simpleFSMove(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
   /**
    Rename file or directory, KBFS side only
@@ -563,7 +570,8 @@ protocol SimpleFS {
     DOWNLOAD_STATUS_3,
     FILES_TAB_BADGE_4,
     OVERALL_SYNC_STATUS_5,
-    SETTINGS_6
+    SETTINGS_6,
+    UPLOAD_STATUS_7
   }
   enum PathSubscriptionTopic {
     CHILDREN_0,
@@ -619,6 +627,44 @@ protocol SimpleFS {
   // and non-regular downloads.
   void simpleFSDismissDownload(string downloadID);
   void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
+
+  record UploadState {
+    string uploadID;
+    KBFSPath targetPath;
+    union{null, string} error;
+    boolean canceled;
+  }
+
+  // Returns a local path to an empty directory that caller can use to stage
+  // data for upload. Useful for uploading protected stuff on macOS such as
+  // drag/drop from Mail.app or screenshots, where only the target app's
+  // process can read the data. Note that the temp dir created here is only
+  // good for a single upload. See comment in simpleFSStartUpload.
+  string simpleFSMakeTempDirForUpload();
+
+  // Returns an upload ID that can be used in the other upload RPCs.
+  //
+  // sourceLocalPath can be either a file or a directory.
+  //
+  // If sourceLocalPath is inside a temporary dir created using
+  // simpleFSMakeTempDirForUpload, this associates the upload with that
+  // temporary dir, and when the upload is done the temporary directory will be
+  // deleted. If the upload errors or is canceled, the temporary directory
+  // is also deleted.
+  //
+  // If a file exists in targetParentPath under the same basename as
+  // sourceLocalPath, a suffix is automatically added to avoid accidental
+  // overwriting. For directories there's no guarantee, and it's possible under
+  // a race condition this can end up merging new and old directories.
+  string simpleFSStartUpload(string sourceLocalPath, KBFSPath targetParentPath);
+
+  array<UploadState> simpleFSGetUploadStatus();
+
+  void simpleFSCancelUpload(string uploadID);
+
+  // Remove errored or canceled uploads. Successful uploads are automatically
+  // dismissed when they are done.
+  void simpleFSDismissUpload(string uploadID);
 
   // FilesTabBadge is the badge we show on the Files tab, to indicate
   // attention-seeking status across entire KBFS.

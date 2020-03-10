@@ -47,6 +47,9 @@ func NewBlockServerMemory(log logger.Logger) *BlockServerMemory {
 
 var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 
+// FastForwardBackoff implements the BlockServer interface.
+func (b *BlockServerMemory) FastForwardBackoff() {}
+
 // Get implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
