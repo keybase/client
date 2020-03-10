@@ -628,7 +628,13 @@ protocol teams {
     TeamRole role;
     TeamInviteID id;
     TeamInviteType type;
+
+    // For SBS, name is the username (`type` will specify the service)
+    // for phone/email, name is the number/address
+    // for keybase-type invite, name is the percent-form UV
+    // for seitan or invitelink, name is the messagepack encoded pkey
     TeamInviteName name;
+
     UserVersion inviter;
     union { null, TeamInviteMaxUses } maxUses;
     union { null, UnixTime } etime;

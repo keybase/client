@@ -694,22 +694,23 @@ export const annotatedInvitesToInviteInfo = (
   invites: Array<RPCTypes.AnnotatedTeamInvite>
 ): Array<Types.InviteInfo> =>
   Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
-    const role = teamRoleByEnum[invite.role]
+    const role = teamRoleByEnum[invite.invite.role]
     if (!role || role === 'none') {
       return arr
     }
 
     let username = ''
-    const t = invite.type
-    if (t.c === RPCTypes.TeamInviteCategory.sbs) {
-      const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
-      username = `${invite.name}@${sbs}`
+    if (invite.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
+      username = invite.displayName
     }
     arr.push({
-      email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
-      id: invite.id,
-      name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.name : '',
+      email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
+      id: invite.invite.id,
+      name:
+        invite.invite.type.c in [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink]
+          ? invite.displayName
+          : '',
+      phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
       role,
       username,
     })

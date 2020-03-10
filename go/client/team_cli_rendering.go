@@ -79,23 +79,6 @@ func (c *teamMembersRenderer) outputRole(team, role string, members []keybase1.T
 	}
 }
 
-func (c *teamMembersRenderer) formatInviteName(annotatedInvite keybase1.AnnotatedTeamInvite) (res string) {
-	invite := annotatedInvite.Invite
-	res = string(invite.Name)
-	category, err := invite.Type.C()
-	if err == nil {
-		switch category {
-		case keybase1.TeamInviteCategory_SBS:
-			res = fmt.Sprintf("%s@%s", invite.Name, string(invite.Type.Sbs()))
-		case keybase1.TeamInviteCategory_SEITAN:
-			if res == "" {
-				res = "<token without label>"
-			}
-		}
-	}
-	return res
-}
-
 func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
 	for _, annotatedInvite := range invites {
 		invite := annotatedInvite.Invite
@@ -129,8 +112,9 @@ func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]ke
 		usesLeft := invite.MaxUses.String(len(annotatedInvite.UsedInvites))
 
 		fmtstring := "%s\t%s*\t%s\t%s\t%s\t%s\n"
-		fmt.Fprintf(c.tabw, fmtstring, annotatedInvite.TeamName, strings.ToLower(invite.Role.String()),
-			c.formatInviteName(annotatedInvite), etime, usesLeft, trailer)
+		fmt.Fprintf(c.tabw, fmtstring, annotatedInvite.TeamName,
+			strings.ToLower(invite.Role.String()), annotatedInvite.DisplayName,
+			etime, usesLeft, trailer)
 	}
 }
 

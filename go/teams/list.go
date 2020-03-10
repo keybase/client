@@ -478,8 +478,10 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 			smsName = sms.N
 		}
 		return keybase1.TeamInviteDisplayName(smsName), nil
+	case keybase1.SeitanKeyLabelType_GENERIC:
+		return keybase1.TeamInviteDisplayName(label.Generic().L), nil
 	default:
-		return "", nil
+		return keybase1.TeamInviteDisplayName("<token without label>"), nil
 	}
 }
 
@@ -578,7 +580,9 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 	for id, invite := range invites {
 		inviterUsername := namePkgs[invite.Inviter.Uid].NormalizedUsername
 
+		// default displayName; overridden by some invite types later
 		displayName := keybase1.TeamInviteDisplayName(invite.Name)
+
 		category, err := invite.Type.C()
 		if err != nil {
 			return nil, err
@@ -586,6 +590,8 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 		var uv keybase1.UserVersion
 		var status *keybase1.TeamMemberStatus
 		switch category {
+		case keybase1.TeamInviteCategory_SBS:
+			displayName = keybase1.TeamInviteDisplayName(fmt.Sprintf("%s@%s", invite.Name, string(invite.Type.Sbs())))
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// "keybase" invites (i.e. pukless users) have user version for name
 			uv, err := invite.KeybaseUserVersion()
@@ -608,6 +614,8 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 			if pkg.NormalizedUsername.IsNil() {
 				return nil, fmt.Errorf("failed to get username from UIDMapper for uv %v", uv)
 			}
+
+			displayName = keybase1.TeamInviteDisplayName(pkg.NormalizedUsername.String())
 
 			details := keybase1.TeamMemberDetails{
 				Uv:       uv,
