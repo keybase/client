@@ -2987,22 +2987,7 @@
         },
         {
           "type": "string",
-          "name": "webLink"
-        },
-        {
-          "type": "string",
-          "name": "deepLink"
-        },
-        {
-          "type": "TeamInviteMaxUses",
-          "name": "maxUses"
-        },
-        {
-          "type": [
-            null,
-            "UnixTime"
-          ],
-          "name": "etime"
+          "name": "url"
         }
       ]
     },

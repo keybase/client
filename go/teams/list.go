@@ -436,6 +436,8 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext,
 	return res, nil
 }
 
+const blankSeitanLabel = "<token without label>"
+
 func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteDisplayName, err error) {
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
@@ -469,7 +471,7 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 	switch labelType {
 	case keybase1.SeitanKeyLabelType_SMS:
 		sms := label.Sms()
-		var smsName string
+		smsName := blankSeitanLabel
 		if sms.F != "" && sms.N != "" {
 			smsName = fmt.Sprintf("%s (%s)", sms.F, sms.N)
 		} else if sms.F != "" {
@@ -481,7 +483,7 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 	case keybase1.SeitanKeyLabelType_GENERIC:
 		return keybase1.TeamInviteDisplayName(label.Generic().L), nil
 	default:
-		return keybase1.TeamInviteDisplayName("<token without label>"), nil
+		return keybase1.TeamInviteDisplayName(blankSeitanLabel), nil
 	}
 }
 
@@ -503,14 +505,15 @@ func AnnotateInvitelink(mctx libkb.MetaContext, team *Team, invite keybase1.Team
 		return name, fmt.Errorf("AnnotateInvitelink: version not an invitelink: %v", version)
 	}
 
-	serverRoot, err := mctx.G().Env.GetServerURI()
+	ikey := keyAndLabel.Invitelink().I
+
+	url, err := GenerateInvitelinkURL(mctx, ikey)
 	if err != nil {
 		return name, err
 	}
 
-	ikey := keyAndLabel.Invitelink().I
-	name = keybase1.TeamInviteDisplayName(fmt.Sprintf("%s/invite#i=%s", serverRoot, ikey))
-	return name, err
+	name = keybase1.TeamInviteDisplayName(url)
+	return name, nil
 }
 
 type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
@@ -537,7 +540,7 @@ func AnnotateTeamUsedInviteLogPoints(points []keybase1.TeamUsedInviteLogPoint, n
 // AnnotateInvitesNoPUKless annotates team invites using UIDMapper, so it's
 // fast but may be wrong/stale regarding full names.
 // The function will add in PUKless invites to the members struct, which is
-// passed by pointer, and will not include them in the returned map.
+// passed by pointer (if not nil), and will not include them in the returned map.
 func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 	members *keybase1.TeamMembersDetails) (AnnotatedInviteMap, error) {
 

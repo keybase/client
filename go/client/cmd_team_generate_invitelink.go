@@ -125,11 +125,11 @@ func (c *CmdTeamGenerateInvitelink) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf(`Generated link: %q.
-Users can join the team by visiting that link.
+	dui.Printf(`Generated link: %s.
+Users can join the team by visiting that link and following the instructions.
 If they already have Keybase installed, they can run 'keybase team accept-invite --token %s'.
-Or they can go to the teams tab in the app, press "Join a team", and enter the link there.
-`, res.Ikey, res.Ikey)
+Or they can go to the teams tab in the app, press "Join a team", and enter the url there.
+`, res.Url, res.Ikey)
 
 	return nil
 }
@@ -143,4 +143,4 @@ func (c *CmdTeamGenerateInvitelink) GetUsage() libkb.Usage {
 }
 
 const teamGenerateInvitelinkDoc = `"keybase generate-invitelink" allows you to create a multi-use,
-expiring, cryptographically secure link and token that someone can use to join a team.`
+possibly expiring link that someone can use to join a team.`

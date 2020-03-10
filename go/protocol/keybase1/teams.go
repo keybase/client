@@ -3476,26 +3476,14 @@ func (o UntrustedTeamExistsResult) DeepCopy() UntrustedTeamExistsResult {
 }
 
 type Invitelink struct {
-	Ikey     SeitanIKeyInvitelink `codec:"ikey" json:"ikey"`
-	WebLink  string               `codec:"webLink" json:"webLink"`
-	DeepLink string               `codec:"deepLink" json:"deepLink"`
-	MaxUses  TeamInviteMaxUses    `codec:"maxUses" json:"maxUses"`
-	Etime    *UnixTime            `codec:"etime,omitempty" json:"etime,omitempty"`
+	Ikey SeitanIKeyInvitelink `codec:"ikey" json:"ikey"`
+	Url  string               `codec:"url" json:"url"`
 }
 
 func (o Invitelink) DeepCopy() Invitelink {
 	return Invitelink{
-		Ikey:     o.Ikey.DeepCopy(),
-		WebLink:  o.WebLink,
-		DeepLink: o.DeepLink,
-		MaxUses:  o.MaxUses.DeepCopy(),
-		Etime: (func(x *UnixTime) *UnixTime {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Etime),
+		Ikey: o.Ikey.DeepCopy(),
+		Url:  o.Url,
 	}
 }
 

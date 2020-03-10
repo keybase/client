@@ -1394,10 +1394,7 @@ protocol teams {
 
   record Invitelink {
     SeitanIKeyInvitelink ikey;
-    string webLink;
-    string deepLink;
-    TeamInviteMaxUses maxUses;
-    union { null, UnixTime } etime;
+    string url;
   }
 
   Invitelink teamCreateSeitanInvitelink(int sessionID, string teamname, TeamRole role,

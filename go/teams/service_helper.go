@@ -1948,20 +1948,22 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 	return keybase1.SeitanIKeyV2(ikey), err
 }
 
-func CreateInvitelink(ctx context.Context, g *libkb.GlobalContext, teamname string,
+func CreateInvitelink(mctx libkb.MetaContext, teamname string,
 	role keybase1.TeamRole, maxUses keybase1.TeamInviteMaxUses,
 	etime *keybase1.UnixTime) (invitelink keybase1.Invitelink, err error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	t, err := GetForTeamManagementByStringName(mctx.Ctx(), mctx.G(), teamname, true)
 	if err != nil {
 		return invitelink, err
 	}
-	ikey, err := t.InviteInvitelink(ctx, role, maxUses, etime)
+	ikey, err := t.InviteInvitelink(mctx.Ctx(), role, maxUses, etime)
 	if err != nil {
 		return invitelink, err
 	}
-
-	// TODO fill in other fields
-	return keybase1.Invitelink{Ikey: ikey}, err
+	url, err := GenerateInvitelinkURL(mctx, ikey)
+	if err != nil {
+		return invitelink, err
+	}
+	return keybase1.Invitelink{Ikey: ikey, Url: url}, err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.

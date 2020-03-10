@@ -1396,7 +1396,7 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
 	maxUses keybase1.TeamInviteMaxUses,
 	etime *keybase1.UnixTime) (ikey keybase1.SeitanIKeyInvitelink, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
 
 	// Experimental code: we are figuring out how to do invite links.
 
