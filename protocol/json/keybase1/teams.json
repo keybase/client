@@ -2947,6 +2947,20 @@
     },
     {
       "type": "record",
+      "name": "UntrustedTeamExistsResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "exists"
+        },
+        {
+          "type": "StatusCode",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Invitelink",
       "fields": [
         {
@@ -3870,7 +3884,7 @@
           "type": "TeamName"
         }
       ],
-      "response": "boolean"
+      "response": "UntrustedTeamExistsResult"
     },
     "teamRename": {
       "request": [

@@ -3433,6 +3433,18 @@ func (o TeamEditMembersResult) DeepCopy() TeamEditMembersResult {
 	}
 }
 
+type UntrustedTeamExistsResult struct {
+	Exists bool       `codec:"exists" json:"exists"`
+	Status StatusCode `codec:"status" json:"status"`
+}
+
+func (o UntrustedTeamExistsResult) DeepCopy() UntrustedTeamExistsResult {
+	return UntrustedTeamExistsResult{
+		Exists: o.Exists,
+		Status: o.Status.DeepCopy(),
+	}
+}
+
 type Invitelink struct {
 	Ikey     SeitanIKeyInvitelink `codec:"ikey" json:"ikey"`
 	WebLink  string               `codec:"webLink" json:"webLink"`
@@ -4250,7 +4262,7 @@ type TeamsInterface interface {
 	TeamEditMembers(context.Context, TeamEditMembersArg) (TeamEditMembersResult, error)
 	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
 	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
-	UntrustedTeamExists(context.Context, TeamName) (bool, error)
+	UntrustedTeamExists(context.Context, TeamName) (UntrustedTeamExistsResult, error)
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
@@ -5390,7 +5402,7 @@ func (c TeamsClient) TeamSetBotSettings(ctx context.Context, __arg TeamSetBotSet
 	return
 }
 
-func (c TeamsClient) UntrustedTeamExists(ctx context.Context, teamName TeamName) (res bool, err error) {
+func (c TeamsClient) UntrustedTeamExists(ctx context.Context, teamName TeamName) (res UntrustedTeamExistsResult, err error) {
 	__arg := UntrustedTeamExistsArg{TeamName: teamName}
 	err = c.Cli.Call(ctx, "keybase.1.teams.untrustedTeamExists", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return

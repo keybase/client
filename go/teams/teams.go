@@ -2828,10 +2828,11 @@ func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info 
 	return teamInfo, nil
 }
 
-func GetUntrustedTeamExists(mctx libkb.MetaContext, name keybase1.TeamName) (exists bool, err error) {
+func GetUntrustedTeamExists(mctx libkb.MetaContext, name keybase1.TeamName) (teamExistsResult keybase1.UntrustedTeamExistsResult, err error) {
 	type resType struct {
 		libkb.AppStatusEmbed
-		Exists bool `json:"exists"`
+		Exists bool                `json:"exists"`
+		Sc     keybase1.StatusCode `json:"sc"`
 	}
 	var res resType
 	err = mctx.G().API.GetDecode(mctx, libkb.APIArg{
@@ -2843,8 +2844,13 @@ func GetUntrustedTeamExists(mctx libkb.MetaContext, name keybase1.TeamName) (exi
 	}, &res)
 	if err != nil {
 		mctx.Debug("GetUntrustedTeamInfo: failed to get team info: %s", err)
-		return false, err
+		return teamExistsResult, err
 	}
 
-	return res.Exists, nil
+	teamExistsResult = keybase1.UntrustedTeamExistsResult{
+		Exists: res.Exists,
+		Status: res.Sc,
+	}
+
+	return teamExistsResult, nil
 }
