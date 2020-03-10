@@ -31,7 +31,7 @@ type WithIconProps =
   | {
       icon: IconType
       iconColor?: Styles.Color
-      tooltip: string
+      tooltip?: string
       label?: never
     }
   | {
