@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {StylesTextCrossPlatform} from '../../common-adapters/text'
+import {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
 import {MessageText, MessageAttachment} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
@@ -45,7 +45,7 @@ export type StyleOverride = {
 
 export type Props = {
   children?: string
-  lineClamp?: number
+  lineClamp?: LineClampType
   selectable?: boolean // desktop - applies to outer container only
   smallStandaloneEmoji?: boolean // don't increase font size for a standalone emoji
   preview?: boolean // if true render a simplified version

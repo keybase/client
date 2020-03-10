@@ -68,7 +68,7 @@ module.exports = {
     // explicitly
     require('./profile-card').default
 
-    return require('./usernames/container').default
+    return require('./usernames').default
   },
   get CopyText() {
     return require('./copy-text').default

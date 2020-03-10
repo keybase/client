@@ -82,7 +82,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
                 onUsernameClicked="profile"
                 colorFollowing={true}
                 colorYou={true}
-                usernames={[author]}
+                usernames={author}
                 underline={true}
                 type="BodySmallBold"
               />
@@ -102,7 +102,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
                   onUsernameClicked="profile"
                   colorFollowing={true}
                   colorYou={true}
-                  usernames={[botUsername]}
+                  usernames={botUsername}
                   underline={true}
                   type="BodySmallBold"
                 />

@@ -1,24 +1,15 @@
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
+import * as React from 'react'
 import logger from '../logger'
-import React, {Component} from 'react'
-import shallowEqual from 'shallowequal'
 import {iconMeta} from './icon.constants-gen'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import invert from 'lodash/invert'
 import {Props, IconType} from './icon'
 
-class Icon extends Component<Props, void> {
+class Icon extends React.PureComponent<Props, void> {
   static defaultProps = {
     sizeType: 'Default',
-  }
-  shouldComponentUpdate(nextProps: Props): boolean {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (key === 'style') {
-        return shallowEqual(obj, oth)
-      }
-      return undefined
-    })
   }
 
   render() {

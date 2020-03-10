@@ -16,7 +16,7 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
     <Box style={styles.row}>
       <Avatar username={username} size={48} style={{marginRight: Styles.globalMargins.small, padding: 4}} />
       <Box style={styles.innerRow}>
-        <ConnectedUsernames inline={true} backgroundMode="Terminal" type="BodyBold" usernames={[username]} />
+        <ConnectedUsernames inline={true} backgroundMode="Terminal" type="BodyBold" usernames={username} />
         <Text
           type="BodySmall"
           negative={true}

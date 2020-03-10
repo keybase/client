@@ -455,3 +455,12 @@ body {
 .selectionPopup {
   transition: bottom 0.5s;
 }
+
+.selectable {
+    cursor: text;
+    user-select: text;
+}
+
+.clickable {
+  cursor: pointer;
+}

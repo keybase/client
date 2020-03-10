@@ -23,7 +23,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
         <Kb.Avatar username={username} size={48} />
       </Kb.Box>
       <Kb.Box2 direction="vertical" style={styles.rightBox}>
-        <Kb.ConnectedUsernames colorFollowing={true} type="BodyBold" usernames={[username]} />
+        <Kb.ConnectedUsernames colorFollowing={true} type="BodyBold" usernames={username} />
         <Kb.Text type="BodySmall">{label}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
           <FollowButton username={username} small={true} />
