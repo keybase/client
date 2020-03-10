@@ -1,6 +1,4 @@
-Chat:
-• Replies will automatically notify who you're replying to
-
-Misc:
-• Configure a HTTP or SOCKS proxy in advanced settings
-• Support user lookup by phone number
+• Keybase for iPad is here!
+• The Crypto tab can open and save .saltpack files
+• You can now search for open teams using chat search
+• Many performance improvements and bug fixes
