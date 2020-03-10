@@ -59,6 +59,7 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 			}))
 	require.NoError(t, err)
 
+	waiter0, done0 := waitForCall(t, 4*time.Second)
 	waiter1, done1 := waitForCall(t, 4*time.Second)
 	waiter2, done2 := waitForCall(t, 4*time.Second)
 	waiter3, done3 := waitForCall(t, 4*time.Second)
@@ -91,7 +92,7 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		keybase1.PathSubscriptionTopic_STAT, nil)
 	require.NoError(t, err)
 	notifier.EXPECT().OnPathChange(sid1, "/keybase/private/jdoe",
-		keybase1.PathSubscriptionTopic_CHILDREN)
+		keybase1.PathSubscriptionTopic_CHILDREN).Do(done0)
 	notifier.EXPECT().OnPathChange(sid2, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_STAT).Do(done1)
 	_, _, err = config.KBFSOps().CreateDir(
@@ -99,7 +100,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	require.NoError(t, err)
 
 	// These waits are needed to avoid races.
-	t.Logf("Waiting for last notification (done1) before unsubscribing.")
+	t.Logf("Waiting for last notifications (done0 and done1) before unsubscribing.")
+	waiter0()
 	waiter1()
 
 	t.Logf("Unsubscribe sid1, and make another dir. We should only get a notification for STAT.")
