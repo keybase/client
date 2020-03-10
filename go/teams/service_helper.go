@@ -166,7 +166,7 @@ func details(mctx libkb.MetaContext, t *Team, tracer profiling.TimeTracer) (res 
 	}
 
 	tracer.Stage("invites")
-	annotatedInvites, err := AnnotateInvitesUIDMapper(mctx, t, &res.Members)
+	annotatedInvites, err := AnnotateInvitesUIDMapper(mctx, t, &res.Members, true)
 	if err != nil {
 		return res, err
 	}

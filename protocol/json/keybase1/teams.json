@@ -1397,7 +1397,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamUsedInviteLog"
+            "items": "AnnotatedTeamUsedInviteLogPoint"
           },
           "name": "usedInvites"
         }
@@ -1608,7 +1608,7 @@
             "type": "map",
             "values": {
               "type": "array",
-              "items": "TeamUsedInviteLog"
+              "items": "TeamUsedInviteLogPoint"
             },
             "keys": "TeamInviteID"
           },
@@ -1698,7 +1698,21 @@
     },
     {
       "type": "record",
-      "name": "TeamUsedInviteLog",
+      "name": "AnnotatedTeamUsedInviteLogPoint",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "TeamUsedInviteLogPoint",
+          "name": "teamUsedInviteLogPoint"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamUsedInviteLogPoint",
       "fields": [
         {
           "type": "UserVersion",

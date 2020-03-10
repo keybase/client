@@ -643,7 +643,7 @@ protocol teams {
     union { null, TeamMemberStatus } status;
 
     // non-empty for multiuse unvites
-    array<TeamUsedInviteLog> usedInvites;
+    array<AnnotatedTeamUsedInviteLogPoint> usedInvites;
   }
 
   record TeamEncryptedKBFSKeyset {
@@ -740,7 +740,7 @@ protocol teams {
 
     // Invite uses. If an invite can be used multiple times, usedInvite
     // field is used, and this usage is saved here.
-    map<TeamInviteID,array<TeamUsedInviteLog>> usedInvites;
+    map<TeamInviteID,array<TeamUsedInviteLogPoint>> usedInvites;
 
     // Whether this is an open team.
     boolean open;
@@ -785,7 +785,12 @@ protocol teams {
     SignatureMetadata sigMeta;
   }
 
-  record TeamUsedInviteLog {
+  record AnnotatedTeamUsedInviteLogPoint {
+    string username;
+    TeamUsedInviteLogPoint teamUsedInviteLogPoint;
+  }
+
+  record TeamUsedInviteLogPoint {
     UserVersion uv;
     // index into TeamSigChainState.userLog[uv][]
     int logPoint;

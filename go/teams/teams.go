@@ -380,7 +380,7 @@ func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) 
 
 	// Add the invites
 	chainInvites := t.chain().inner.ActiveInvites
-	inviteMap, err := AnnotateInvites(libkb.NewMetaContext(ctx, t.G()), t)
+	inviteMap, err := AnnotateInvitesUIDMapper(libkb.NewMetaContext(ctx, t.G()), t, nil, false)
 	if err != nil {
 		return res, err
 	}

@@ -1761,12 +1761,12 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 }
 
 type AnnotatedTeamInvite struct {
-	Invite          TeamInvite          `codec:"invite" json:"invite"`
-	InviterUsername string              `codec:"inviterUsername" json:"inviterUsername"`
-	InviteeUv       UserVersion         `codec:"inviteeUv" json:"inviteeUv"`
-	TeamName        string              `codec:"teamName" json:"teamName"`
-	Status          *TeamMemberStatus   `codec:"status,omitempty" json:"status,omitempty"`
-	UsedInvites     []TeamUsedInviteLog `codec:"usedInvites" json:"usedInvites"`
+	Invite          TeamInvite                        `codec:"invite" json:"invite"`
+	InviterUsername string                            `codec:"inviterUsername" json:"inviterUsername"`
+	InviteeUv       UserVersion                       `codec:"inviteeUv" json:"inviteeUv"`
+	TeamName        string                            `codec:"teamName" json:"teamName"`
+	Status          *TeamMemberStatus                 `codec:"status,omitempty" json:"status,omitempty"`
+	UsedInvites     []AnnotatedTeamUsedInviteLogPoint `codec:"usedInvites" json:"usedInvites"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
@@ -1782,11 +1782,11 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Status),
-		UsedInvites: (func(x []TeamUsedInviteLog) []TeamUsedInviteLog {
+		UsedInvites: (func(x []AnnotatedTeamUsedInviteLogPoint) []AnnotatedTeamUsedInviteLogPoint {
 			if x == nil {
 				return nil
 			}
-			ret := make([]TeamUsedInviteLog, len(x))
+			ret := make([]AnnotatedTeamUsedInviteLogPoint, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -1880,7 +1880,7 @@ type TeamSigChainState struct {
 	StubbedLinks            map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
 	ActiveInvites           map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
 	ObsoleteInvites         map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
-	UsedInvites             map[TeamInviteID][]TeamUsedInviteLog              `codec:"usedInvites" json:"usedInvites"`
+	UsedInvites             map[TeamInviteID][]TeamUsedInviteLogPoint         `codec:"usedInvites" json:"usedInvites"`
 	Open                    bool                                              `codec:"open" json:"open"`
 	OpenTeamJoinAs          TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
 	Bots                    map[UserVersion]TeamBotSettings                   `codec:"bots" json:"bots"`
@@ -2026,18 +2026,18 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ObsoleteInvites),
-		UsedInvites: (func(x map[TeamInviteID][]TeamUsedInviteLog) map[TeamInviteID][]TeamUsedInviteLog {
+		UsedInvites: (func(x map[TeamInviteID][]TeamUsedInviteLogPoint) map[TeamInviteID][]TeamUsedInviteLogPoint {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[TeamInviteID][]TeamUsedInviteLog, len(x))
+			ret := make(map[TeamInviteID][]TeamUsedInviteLogPoint, len(x))
 			for k, v := range x {
 				kCopy := k.DeepCopy()
-				vCopy := (func(x []TeamUsedInviteLog) []TeamUsedInviteLog {
+				vCopy := (func(x []TeamUsedInviteLogPoint) []TeamUsedInviteLogPoint {
 					if x == nil {
 						return nil
 					}
-					ret := make([]TeamUsedInviteLog, len(x))
+					ret := make([]TeamUsedInviteLogPoint, len(x))
 					for i, v := range x {
 						vCopy := v.DeepCopy()
 						ret[i] = vCopy
@@ -2137,13 +2137,25 @@ func (o UserLogPoint) DeepCopy() UserLogPoint {
 	}
 }
 
-type TeamUsedInviteLog struct {
+type AnnotatedTeamUsedInviteLogPoint struct {
+	Username               string                 `codec:"username" json:"username"`
+	TeamUsedInviteLogPoint TeamUsedInviteLogPoint `codec:"teamUsedInviteLogPoint" json:"teamUsedInviteLogPoint"`
+}
+
+func (o AnnotatedTeamUsedInviteLogPoint) DeepCopy() AnnotatedTeamUsedInviteLogPoint {
+	return AnnotatedTeamUsedInviteLogPoint{
+		Username:               o.Username,
+		TeamUsedInviteLogPoint: o.TeamUsedInviteLogPoint.DeepCopy(),
+	}
+}
+
+type TeamUsedInviteLogPoint struct {
 	Uv       UserVersion `codec:"uv" json:"uv"`
 	LogPoint int         `codec:"logPoint" json:"logPoint"`
 }
 
-func (o TeamUsedInviteLog) DeepCopy() TeamUsedInviteLog {
-	return TeamUsedInviteLog{
+func (o TeamUsedInviteLogPoint) DeepCopy() TeamUsedInviteLogPoint {
+	return TeamUsedInviteLogPoint{
 		Uv:       o.Uv.DeepCopy(),
 		LogPoint: o.LogPoint,
 	}
