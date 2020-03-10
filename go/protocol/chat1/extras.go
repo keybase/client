@@ -1088,6 +1088,10 @@ func (m MessageBoxed) GetMessageID() MessageID {
 	return m.ServerHeader.MessageID
 }
 
+func (m MessageBoxed) Ctime() gregor1.Time {
+	return m.ServerHeader.Ctime
+}
+
 func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
