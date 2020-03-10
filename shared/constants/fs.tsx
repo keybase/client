@@ -195,10 +195,10 @@ export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
   const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
   return {
-    statusCode: error?.code || 0,
     errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction: erroredAction || placeholderAction,
     retriableAction,
+    statusCode: error?.code || 0,
     time: time || Date.now(),
   }
 }
