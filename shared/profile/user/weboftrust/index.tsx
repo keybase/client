@@ -40,7 +40,7 @@ const WebOfTrust = (props: Props) => (
             <Kb.Text type="BodySmall">signed by </Kb.Text>
             <Kb.ConnectedUsernames
               type={Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
-              usernames={[props.attestingUser]}
+              usernames={props.attestingUser}
               colorBroken={true}
               colorFollowing={true}
               style={styles.username}

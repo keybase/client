@@ -120,7 +120,7 @@ const Header = (props: HeaderProps) =>
             colorFollowing={true}
             colorYou={true}
             inline={true}
-            usernames={[props.sender]}
+            usernames={props.sender}
             type="BodySmallBold"
           />
         </Kb.Box2>

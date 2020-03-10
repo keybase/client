@@ -161,7 +161,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           this.showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
         ])}
         type="BodySmallBold"
-        usernames={[this.props.showUsername]}
+        usernames={this.props.showUsername}
       />
     )
     if (this.props.showUsername) {

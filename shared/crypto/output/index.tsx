@@ -82,7 +82,7 @@ export const SignedSender = (props: SignedSenderProps) => {
               <Kb.ConnectedUsernames
                 key="username"
                 type={usernameType}
-                usernames={[signedByUsername.stringValue()]}
+                usernames={signedByUsername.stringValue()}
                 colorFollowing={true}
                 colorYou={true}
               />,
@@ -91,7 +91,7 @@ export const SignedSender = (props: SignedSenderProps) => {
             <Kb.Box2 key="signedByUsername" direction="vertical">
               <Kb.ConnectedUsernames
                 type={usernameType}
-                usernames={[signedByUsername.stringValue()]}
+                usernames={signedByUsername.stringValue()}
                 colorFollowing={true}
                 colorYou={true}
               />

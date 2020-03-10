@@ -87,7 +87,7 @@ const MessagePopupHeader = (props: {
             onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
-            usernames={[author]}
+            usernames={author}
             underline={true}
             type="BodySmallBold"
           />
@@ -108,7 +108,7 @@ const MessagePopupHeader = (props: {
               onUsernameClicked="profile"
               colorFollowing={true}
               colorYou={true}
-              usernames={[botUsername]}
+              usernames={botUsername}
               underline={true}
               type="BodySmallBold"
             />

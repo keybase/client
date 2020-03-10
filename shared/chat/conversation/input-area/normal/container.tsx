@@ -69,7 +69,10 @@ const getChannelSuggestions = (
     if (!convID) {
       return noChannel
     }
-    const mutualTeams = state.chat2.mutualTeamMap.get(convID) ?? []
+    const mutualTeams = state.chat2.mutualTeamMap.get(convID)
+    if (!mutualTeams) {
+      return noChannel
+    }
     return mutualTeams.reduce<Array<{channelname: string; teamname: string}>>((arr, id) => {
       const teamname = TeamsConstants.getTeamNameFromID(state, id)
       if (!teamname) {
