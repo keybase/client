@@ -18,7 +18,15 @@ type Props = Container.RouteProps<{
 }>
 
 const getChannelsForList = memoize((channels: Map<string, Types.ChannelInfo>) =>
-  [...channels.values()].filter(c => c.channelname !== 'general')
+  [...channels.values()].sort((a, b) =>
+    a.channelname === b.channelname
+      ? 0
+      : a.channelname === 'general'
+      ? -1
+      : b.channelname === 'general'
+      ? 1
+      : a.channelname.localeCompare(b.channelname)
+  )
 )
 
 const AddToChannels = (props: Props) => {
@@ -32,16 +40,15 @@ const AddToChannels = (props: Props) => {
   }, [dispatch, teamID])
 
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const channelInfos = getChannelsForList(
-    Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
-  )
+  const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  const channelInfosFiltered = getChannelsForList(channelInfos)
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
   const channels = filterLCase
-    ? channelInfos.filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : channelInfos
+    ? channelInfosFiltered.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channelInfosFiltered
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
@@ -61,7 +68,8 @@ const AddToChannels = (props: Props) => {
       setSelected(new Set(selected))
     }
   }
-  const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.conversationIDKey)))
+  const onSelectAll = () =>
+    setSelected(new Set([...channelInfosFiltered.values()].map(c => c.conversationIDKey)))
   const onSelectNone = () => setSelected(new Set())
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
@@ -94,7 +102,7 @@ const AddToChannels = (props: Props) => {
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channelInfos.length
+        const allSelected = selected.size === channelInfosFiltered.length
         return (
           <HeaderRow
             key="{header}"
@@ -175,7 +183,10 @@ const AddToChannels = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channelInfos.length} ${pluralize('channel', channelInfos.length)}`}
+            placeholderText={`Search ${channelInfosFiltered.length} ${pluralize(
+              'channel',
+              channelInfosFiltered.length
+            )}`}
             icon="iconfont-search"
             onChange={setFilter}
             size="full-width"
@@ -218,7 +229,7 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
         <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
           #{channelname}
         </Kb.Text>
-        <Kb.CheckCircle checked={selected} onCheck={onSelect} />
+        <Kb.CheckCircle checked={selected} onCheck={onSelect} disabled={channelname === 'general'} />
       </Kb.Box2>
     </Kb.ClickableBox>
   ) : (
