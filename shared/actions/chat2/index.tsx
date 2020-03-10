@@ -2391,18 +2391,19 @@ function* loadSuggestionData(
 ) {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  const teamID = meta.teamID
   // If this is an impteam, try to refresh mutual team info
   if (!meta.teamname) {
     yield Saga.put(Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey}))
     return
   }
+  // TODO: do we keep the stuff in the store for this?
   // This only happens when user enters '#' which isn't that often. If this
   // becomes a problem, we can make a notification from service for when
   // channels change, and skip the load here if nothing has changed yet.
-  yield Saga.put(TeamsGen.createGetChannels({teamID}))
+  // yield Saga.put(TeamsGen.createGetChannels({teamID}))
 }
 
+// TODO: urgh what to do about this whole situation
 const refreshMutualTeamsInConv = async (
   state: Container.TypedState,
   action: Chat2Gen.RefreshMutualTeamsInConvPayload
@@ -2415,7 +2416,7 @@ const refreshMutualTeamsInConv = async (
     Constants.waitingKeyMutualTeams(conversationIDKey)
   )
   return [
-    ...(results.teamIDs?.map(teamID => TeamsGen.createGetChannels({teamID})) ?? []),
+    // ...(results.teamIDs?.map(teamID => TeamsGen.createGetChannels({teamID})) ?? []),
     Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []}),
   ]
 }

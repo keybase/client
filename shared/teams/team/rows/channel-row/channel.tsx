@@ -11,7 +11,7 @@ import {Activity} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
-  channel: Types.ChannelInfo
+  channel: ChatTypes.ConversationMeta
   teamID: Types.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
 }

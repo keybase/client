@@ -3,13 +3,13 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import {Activity, ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
+import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = Container.RouteProps<{
   teamID: Types.TeamID
@@ -17,7 +17,7 @@ type Props = Container.RouteProps<{
   test: React.ReactElement
 }>
 
-const getChannelsForList = memoize((channels: Map<string, Types.ChannelInfo>) =>
+const getChannelsForList = memoize((channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>) =>
   [...channels.values()].filter(c => c.channelname !== 'general')
 )
 
@@ -27,21 +27,15 @@ const AddToChannels = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const usernames = Container.getRouteProps(props, 'usernames', [])
 
-  React.useEffect(() => {
-    dispatch(TeamsGen.createGetChannels({teamID}))
-  }, [dispatch, teamID])
-
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const channelInfos = getChannelsForList(
-    Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
-  )
+  const channelMetas = getChannelsForList(useAllChannelMetas(teamID))
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
   const channels = filterLCase
-    ? channelInfos.filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : channelInfos
+    ? channelMetas.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channelMetas
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
@@ -61,7 +55,7 @@ const AddToChannels = (props: Props) => {
       setSelected(new Set(selected))
     }
   }
-  const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.conversationIDKey)))
+  const onSelectAll = () => setSelected(new Set([...channelMetas.values()].map(c => c.conversationIDKey)))
   const onSelectNone = () => setSelected(new Set())
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
@@ -94,7 +88,7 @@ const AddToChannels = (props: Props) => {
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channelInfos.length
+        const allSelected = selected.size === channelMetas.length
         return (
           <HeaderRow
             key="{header}"
@@ -175,7 +169,7 @@ const AddToChannels = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channelInfos.length} ${pluralize('channel', channelInfos.length)}`}
+            placeholderText={`Search ${channelMetas.length} ${pluralize('channel', channelMetas.length)}`}
             icon="iconfont-search"
             onChange={setFilter}
             size="full-width"

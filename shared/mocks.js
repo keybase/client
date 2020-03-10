@@ -10,6 +10,7 @@ module.exports = {
     '@msgpack': '<rootDir>/node_modules/@msgpack/msgpack/dist.es5/msgpack.js',
     '\\.(jpg|png|gif|ttf|css)$': '<rootDir>/__mocks__/file-mock.tsx',
     '^electron$': '<rootDir>/__mocks__/electron.tsx',
+    'channel-hooks': '<rootDir>/teams/common/__mocks__/channel-hooks.tsx',
     'constants/platform': '<rootDir>/__mocks__/platform.tsx',
     'desktop/app/resolve-root': '<rootDir>/__mocks__/resolve-root.tsx',
     'engine/saga$': '<rootDir>/__mocks__/engine-saga.tsx',
@@ -34,5 +35,7 @@ module.exports = {
     [/route-tree$/, '/../__mocks__/empty'],
     [/typed-connect/, '/../util/__mocks__/typed-connect'],
     [/util\/saga/, '/../__mocks__/saga'],
+    // TODO: this is not compatible with both mock places
+    [/channel-hooks/, '/../../teams/common/__mocks__/channel-hooks'],
   ],
 }

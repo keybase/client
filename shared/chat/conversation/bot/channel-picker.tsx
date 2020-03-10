@@ -2,11 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as TeamTypes from '../../../constants/types/teams'
+import * as Types from '../../../constants/types/chat2'
 import {memoize} from '../../../util/memoize'
 import {makeInsertMatcher} from '../../../util/string'
 
 type Props = {
-  channelInfos: Map<string, TeamTypes.ChannelInfo>
+  channelMetas: Map<Types.ConversationIDKey, Types.ConversationMeta>
   installInConvs: string[]
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: string[]) => void
@@ -15,20 +16,20 @@ type Props = {
   teamName: string
 }
 
-const getChannels = memoize((channelInfos: Map<string, TeamTypes.ChannelInfo>, searchText: string) =>
-  [...channelInfos.entries()]
-    .filter(([_, channelInfo]) => {
-      if (!searchText) {
-        return true // no search text means show all
-      }
-      return (
-        // match channel name for search as subsequence (like the identity modal)
-        // match channel desc by strict substring (less noise in results)
-        channelInfo.channelname.match(makeInsertMatcher(searchText)) ||
-        channelInfo.description.match(new RegExp(searchText, 'i'))
-      )
-    })
-    .sort((a, b) => a[1].channelname.localeCompare(b[1].channelname))
+const getChannels = memoize(
+  (channelMetas: Map<Types.ConversationIDKey, Types.ConversationMeta>, searchText: string) =>
+    [...channelMetas.values()]
+      .filter(({channelname, description}) => {
+        if (!searchText) {
+          return true // no search text means show all
+        }
+        return (
+          // match channel name for search as subsequence (like the identity modal)
+          // match channel desc by strict substring (less noise in results)
+          channelname.match(makeInsertMatcher(searchText)) || description.match(new RegExp(searchText, 'i'))
+        )
+      })
+      .sort((a, b) => a.channelname.localeCompare(b.channelname))
 )
 
 const toggleChannel = (convID: string, installInConvs: string[]) => {
@@ -40,12 +41,13 @@ const toggleChannel = (convID: string, installInConvs: string[]) => {
 }
 
 type RowProps = {
+  description: string
   disabled: boolean
+  name: string
   onToggle: () => void
   selected: boolean
-  channelInfo: TeamTypes.ChannelInfo
 }
-const Row = ({disabled, onToggle, selected, channelInfo}: RowProps) => (
+const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
   <Kb.ListItem2
     type="Small"
     firstItem={false}
@@ -56,21 +58,24 @@ const Row = ({disabled, onToggle, selected, channelInfo}: RowProps) => (
             #
           </Kb.Text>
           <Kb.Text type="Body" style={styles.channelText}>
-            {channelInfo.channelname}
+            {name}
           </Kb.Text>
         </Kb.Box2>
-        {!!channelInfo.description && (
+        {!!description && (
           <Kb.Text type="Body" lineClamp={1} style={{color: Styles.globalColors.black_50}}>
-            {channelInfo.description}
+            {description}
           </Kb.Text>
         )}
       </Kb.Box2>
     }
-    action={<Kb.CheckCircle checked={selected} onCheck={onToggle} disabled={disabled} />}
+    onClick={disabled ? undefined : onToggle}
+    action={
+      <Kb.CheckCircle checked={selected} onCheck={disabled ? undefined : onToggle} disabled={disabled} />
+    }
   />
 )
 const ChannelPicker = (props: Props) => {
-  const {channelInfos, installInConvs, setInstallInConvs, setDisableDone} = props
+  const {installInConvs, setInstallInConvs, setDisableDone} = props
   const [allSelected, setAllSelected] = React.useState(installInConvs.length === 0)
   const [searchText, setSearchText] = React.useState('')
   React.useEffect(() => {
@@ -87,13 +92,14 @@ const ChannelPicker = (props: Props) => {
     setDisableDone(false)
   }, [allSelected, installInConvs, setDisableDone])
 
-  const rows = getChannels(channelInfos, searchText).map(([convID, channelInfo]) => (
+  const rows = getChannels(props.channelMetas, searchText).map(meta => (
     <Row
       disabled={allSelected}
-      key={convID}
-      onToggle={() => setInstallInConvs(toggleChannel(convID, installInConvs))}
-      selected={installInConvs.includes(convID) || allSelected}
-      channelInfo={channelInfo}
+      key={meta.conversationIDKey}
+      onToggle={() => setInstallInConvs(toggleChannel(meta.conversationIDKey, installInConvs))}
+      selected={installInConvs.includes(meta.conversationIDKey) || allSelected}
+      name={meta.channelname}
+      description={meta.description}
     />
   ))
 
@@ -116,6 +122,7 @@ const ChannelPicker = (props: Props) => {
             type="Small"
             firstItem={true}
             body={<Kb.Text type="BodyBold">All channels</Kb.Text>}
+            onClick={() => setAllSelected(!allSelected)}
             action={<Kb.CheckCircle checked={allSelected} onCheck={() => setAllSelected(!allSelected)} />}
           />
         </Kb.Box2>

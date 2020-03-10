@@ -49,15 +49,6 @@
       "message": "string",
       "malformed": "Array<string>"
     },
-    "getChannelInfo": {
-      "_description": "Fetches the channel information for a single channel in a team from the server.",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "teamID": "Types.TeamID"
-    },
-    "getChannels": {
-      "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
-      "teamID": "Types.TeamID"
-    },
     "setChannelSelected": {
       "_description": "Sets whether a channel is selected on the team page",
       "teamID": "Types.TeamID",
@@ -256,15 +247,6 @@
       "teamID": "Types.TeamID",
       "teamOperation": "Types.TeamOperations"
     },
-    "setTeamChannelInfo": {
-      "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "channelInfo": "Types.ChannelInfo"
-    },
-    "setTeamChannels": {
-      "teamID": "Types.TeamID",
-      "channelInfos": "Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
-    },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
       "teamNameToID": "Map<Types.Teamname, string>",
@@ -305,10 +287,6 @@
       "newTopic": "string"
     },
     "deleteChannelConfirmed": {
-      "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey"
-    },
-    "deleteChannelInfo": {
       "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },

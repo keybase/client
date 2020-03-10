@@ -627,79 +627,6 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
   )
 }
 
-const getChannelInfo = async (
-  state: TypedState,
-  action: TeamsGen.GetChannelInfoPayload,
-  logger: Saga.SagaLogger
-) => {
-  const {teamID, conversationIDKey} = action.payload
-  const results = await RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise(
-    {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      query: ChatConstants.makeInboxQuery([conversationIDKey]),
-    },
-    Constants.teamWaitingKey(Constants.getTeamNameFromID(state, teamID) ?? '')
-  )
-  const convs = results.conversations || []
-  if (convs.length !== 1) {
-    logger.warn(`Could not get channel info`)
-    return false
-  }
-
-  const meta = ChatConstants.inboxUIItemToConversationMeta(state, convs[0])
-  if (!meta) {
-    logger.warn('Could not convert channel info to meta')
-    return false
-  }
-
-  const channelInfo = {
-    channelname: meta.channelname,
-    conversationIDKey,
-    description: meta.description,
-    memberStatus: convs[0].memberStatus,
-    mtime: meta.timestamp,
-  }
-
-  return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamID})
-}
-
-const getChannels = async (
-  state: TypedState,
-  action: TeamsGen.GetChannelsPayload,
-  logger: Saga.SagaLogger
-) => {
-  const teamID: Types.TeamID = action.payload.teamID
-  const teamname = Constants.getTeamNameFromID(state, teamID)
-
-  if (!teamname) {
-    logger.warn('Could not get team name in getChannels')
-    return false
-  }
-
-  const results = await RPCChatTypes.localGetTLFConversationsLocalRpcPromise(
-    {
-      membersType: RPCChatTypes.ConversationMembersType.team,
-      tlfName: teamname,
-      topicType: RPCChatTypes.TopicType.chat,
-    },
-    Constants.getChannelsWaitingKey(teamID)
-  )
-  const convs = results.convs || []
-  const channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> = new Map()
-  convs.forEach(conv => {
-    const convID = ChatTypes.stringToConversationIDKey(conv.convID)
-    channelInfos.set(convID, {
-      channelname: conv.channel,
-      conversationIDKey: convID,
-      description: conv.headline,
-      memberStatus: conv.memberStatus,
-      mtime: conv.time,
-    })
-  })
-
-  return TeamsGen.createSetTeamChannels({channelInfos, teamID})
-}
-
 function* getTeams(
   state: TypedState,
   action: ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload,
@@ -795,7 +722,7 @@ const _leaveConversation = function*(
 
 function* saveChannelMembership(state: TypedState, action: TeamsGen.SaveChannelMembershipPayload) {
   const {teamID, oldChannelState, newChannelState} = action.payload
-  const waitingKey = Constants.teamWaitingKey(Constants.getTeamNameFromID(state, teamID) ?? '')
+  const waitingKey = Constants.teamWaitingKeyByID(teamID, state)
 
   const calls: Array<any> = []
   for (const convIDKeyStr in newChannelState) {
@@ -812,9 +739,6 @@ function* saveChannelMembership(state: TypedState, action: TeamsGen.SaveChannelM
   }
 
   yield Saga.all(calls)
-  if (calls.length) {
-    yield Saga.put(TeamsGen.createGetChannels({teamID}))
-  }
 }
 
 function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload, logger: Saga.SagaLogger) {
@@ -1085,11 +1009,8 @@ const updateTopic = async (state: TypedState, action: TeamsGen.UpdateTopicPayloa
     tlfPublic: false,
   }
 
-  await RPCChatTypes.localPostHeadlineRpcPromise(
-    param,
-    Constants.teamWaitingKey(Constants.getTeamNameFromID(state, teamID) ?? '')
-  )
-  return TeamsGen.createSetUpdatedTopic({conversationIDKey, newTopic, teamID})
+  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKeyByID(teamID, state))
+  return []
 }
 
 function* addTeamWithChosenChannels(
@@ -1176,11 +1097,8 @@ const updateChannelname = async (state: TypedState, action: TeamsGen.UpdateChann
   }
 
   try {
-    await RPCChatTypes.localPostMetadataRpcPromise(
-      param,
-      Constants.teamWaitingKey(Constants.getTeamNameFromID(state, teamID) ?? '')
-    )
-    return TeamsGen.createSetUpdatedChannelName({conversationIDKey, newChannelName, teamID})
+    await RPCChatTypes.localPostMetadataRpcPromise(param, Constants.teamWaitingKeyByID(teamID, state))
+    return false
   } catch (error) {
     return TeamsGen.createSetChannelCreationError({error: error.desc})
   }
@@ -1196,9 +1114,9 @@ const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.Delete
       confirmed: true,
       convID: ChatTypes.keyToConversationID(conversationIDKey),
     },
-    Constants.teamWaitingKey(Constants.getTeamNameFromID(state, teamID) ?? '')
+    Constants.teamWaitingKeyByID(teamID, state)
   )
-  return TeamsGen.createDeleteChannelInfo({conversationIDKey, teamID})
+  return false
 }
 
 const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaLogger) => {
@@ -1425,8 +1343,6 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.loadTeam, loadTeam)
   yield* Saga.chainAction(TeamsGen.getMembers, getMembers)
   yield* Saga.chainAction2(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
-  yield* Saga.chainAction2(TeamsGen.getChannelInfo, getChannelInfo)
-  yield* Saga.chainAction2(TeamsGen.getChannels, getChannels)
   yield* Saga.chainGenerator<
     ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
   >([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)

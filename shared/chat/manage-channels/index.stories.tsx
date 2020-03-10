@@ -167,7 +167,6 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={false}
-          loadChannelInfo={Sb.action('loadChannelInfo')}
         />
       </Box>
     ))
@@ -188,7 +187,6 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={true}
           waitingForGetInfo={false}
-          loadChannelInfo={Sb.action('loadChannelInfo')}
         />
       </Box>
     ))
@@ -209,7 +207,6 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={true}
-          loadChannelInfo={Sb.action('loadChannelInfo')}
         />
       </Box>
     ))
@@ -230,7 +227,6 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={true}
-          loadChannelInfo={Sb.action('loadChannelInfo')}
         />
       </Box>
     ))
