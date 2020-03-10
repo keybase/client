@@ -80,7 +80,7 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 		tic, err := invite.Invite.Type.C()
 		require.NoError(t, err)
 		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, tic)
-		require.Equal(t, keybase1.TeamInviteName("bugs (0000)"), invite.Invite.Name)
+		require.Equal(t, keybase1.TeamInviteDisplayName("bugs (0000)"), invite.DisplayName)
 	}
 
 	roo.kickTeamRekeyd()
@@ -228,7 +228,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion teams.SeitanVersi
 	for key, aInvite := range details.AnnotatedActiveInvites {
 		invite := aInvite.Invite
 		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
-		require.EqualValues(t, fmt.Sprintf("%s (%s)", labelSms.F, labelSms.N), invite.Name)
+		require.EqualValues(t, fmt.Sprintf("%s (%s)", labelSms.F, labelSms.N), aInvite.DisplayName)
 
 		category, err := invite.Type.C()
 		require.NoError(t, err)
