@@ -50,8 +50,12 @@ class _SimpleTopLine extends React.Component<Props> {
     return Styles.collapseStyles([styles.teamTextStyle, showBold && styles.bold, {color: usernameColor}])
   })
 
-  private timestampStyle = memoize((showBold, subColor) => {
-    return Styles.collapseStyles([showBold && styles.bold, styles.timestamp, subColor && {color: subColor}])
+  private timestampStyle = memoize((showBold: boolean, subColor: undefined | boolean | string) => {
+    return Styles.collapseStyles([
+      showBold && styles.bold,
+      styles.timestamp,
+      subColor !== false && {color: subColor},
+    ])
   })
 
   render() {
