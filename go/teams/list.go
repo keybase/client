@@ -572,8 +572,8 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 		}
 	}
 
-	namePkgs, err := uidmap.MapUIDsReturnMap(mctx.Ctx(), mctx.G().UIDMapper, mctx.G(), uids,
-		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
+	namePkgs, err := uidmap.MapUIDsReturnMapMctx(mctx, uids, defaultFullnameFreshness,
+		defaultNetworkTimeBudget, true)
 	if err != nil {
 		// UIDMap returned an error, but there may be useful data in the result.
 		mctx.Debug("AnnotateInvitesNoPUKless: MapUIDsReturnMap returned: %v", err)
