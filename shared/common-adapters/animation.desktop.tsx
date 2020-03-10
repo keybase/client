@@ -1,18 +1,31 @@
 import * as React from 'react'
 import Box from './box'
-import {Props} from './animation'
+import {Props, AnimationType} from './animation'
 
 const defaultDimension = 16
 
-const Animation = (props: Props) => {
+const _typeToData = new Map()
+
+const getOptions = (type: AnimationType) => {
+  const existing = _typeToData.get(type)
+  if (existing) {
+    return existing
+  }
   const animationData = require('./animation-data.json')
+
+  const options = {animationData: animationData[type]}
+  _typeToData.set(type, options)
+  return options
+}
+
+const Animation = (props: Props) => {
   // jest doesnt' support canvas out of the box, so lets just not do anything
   if (__STORYSHOT__) {
     return (
       <Box>
         {JSON.stringify({
           height: props.height || defaultDimension,
-          options: {animationData: animationData[props.animationType]},
+          options: getOptions(props.animationType),
           style: props.style,
           width: props.width || defaultDimension,
         })}
@@ -24,7 +37,7 @@ const Animation = (props: Props) => {
   return (
     <Box className={props.className} style={props.containerStyle}>
       <Lottie
-        options={{animationData: animationData[props.animationType]}}
+        options={getOptions(props.animationType)}
         width={props.width || defaultDimension}
         height={props.height || defaultDimension}
         style={props.style}

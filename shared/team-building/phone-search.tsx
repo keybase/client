@@ -92,7 +92,7 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => (
         inline={true}
         onUsernameClicked="profile"
         type="BodySmallBold"
-        usernames={[username]}
+        usernames={username}
       />{' '}
       on Keybase.
     </Kb.Text>

@@ -39,10 +39,18 @@ class Text extends React.Component<Props> {
   _className(props: Props) {
     const meta = metaData()[props.type]
     return Styles.classNames(`text_${props.type}`, props.className, {
-      underline: props.underline,
+      clickable: !!props.onClick,
+      color_white: props.negative,
+      underline: props.underline || (meta.isLink && props.negative),
       'underline-never': props.underlineNever,
       // eslint-disable-next-line sort-keys
       'hover-underline': meta.isLink && !props.negative,
+      lineClamp1: props.lineClamp === 1,
+      lineClamp2: props.lineClamp === 2,
+      lineClamp3: props.lineClamp === 3,
+      lineClamp4: props.lineClamp === 4,
+      lineClamp5: props.lineClamp === 5,
+      selectable: props.selectable,
       text_center: props.center,
     })
   }
@@ -60,58 +68,18 @@ class Text extends React.Component<Props> {
       throw new Error('Missing type on Text')
     }
 
-    const style = Styles.collapseStyles([
-      fastGetStyle(
-        this.props.type,
-        this.props.selectable || null,
-        this.props.negative,
-        this.props.lineClamp,
-        !!this.props.onClick
-      ),
-      this.props.style,
-    ])
-
     return (
       <span
         title={this.props.title || undefined}
         ref={this.props.allowHighlightText ? this._spanRef : null}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick) || undefined}
-        style={style}
+        // @ts-ignore TODO fix styles
+        style={this.props.style}
       >
         {this.props.children}
       </span>
     )
-  }
-}
-
-// Only used by this file, other things (input etc) refer to this. TODO likely discuss and change how this works
-function fastGetStyle(
-  type: TextType,
-  selectable: boolean | null,
-  negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null
-) {
-  const meta = metaData()[type]
-  // positive color is in css
-  const colorStyle = negative ? {color: Styles.globalColors.white} : null
-  const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
-  const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
-  const selectableStyle = selectable
-    ? {
-        cursor: 'text',
-        userSelect: 'text',
-      }
-    : null
-  const textDecoration = meta.isLink && negative ? {textDecoration: 'underline'} : null
-
-  return {
-    ...colorStyle,
-    ...lineClampStyle,
-    ...clickableStyle,
-    ...selectableStyle,
-    ...textDecoration,
   }
 }
 

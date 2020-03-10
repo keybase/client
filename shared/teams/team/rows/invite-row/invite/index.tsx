@@ -22,7 +22,7 @@ const TeamInviteRowOld = (props: Props) => {
           type="BodyBold"
           colorFollowing={true}
           inline={true}
-          usernames={[label]}
+          usernames={label}
         />
         <Kb.Text type="BodySmall">{role && typeToLabel[role]}</Kb.Text>
       </Kb.Box2>

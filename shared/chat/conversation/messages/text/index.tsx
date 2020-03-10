@@ -3,6 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import {useMemo} from '../../../../util/memoize'
 
 export type ReplyProps = {
   deleted: boolean
@@ -118,10 +119,11 @@ export type Props = {
 }
 
 const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
+  const wrappedMeta = useMemo(() => ({message}), [message])
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing, isHighlighted)}
-      meta={{message}}
+      meta={wrappedMeta}
       styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined}
       allowFontScaling={true}
     >

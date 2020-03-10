@@ -36,7 +36,7 @@ const InviteAddedToTeamNotice = (props: Props) => {
         {props.you === inviter ? (
           'you'
         ) : (
-          <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
+          <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={inviter} />
         )}
         {roleLabel && ` as a "${roleLabel.toLowerCase()}"`}.{' '}
       </Kb.Text>

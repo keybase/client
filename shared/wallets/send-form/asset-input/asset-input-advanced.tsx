@@ -36,7 +36,7 @@ export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
           <>
             <Kb.Avatar username={buildingAdvanced.recipient} size={16} style={styles.avatar} />
             <Kb.ConnectedUsernames
-              usernames={[buildingAdvanced.recipient]}
+              usernames={buildingAdvanced.recipient}
               type="BodyTinyBold"
               colorBroken={true}
               colorFollowing={true}
