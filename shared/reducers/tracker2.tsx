@@ -175,9 +175,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.hidFromFollowers = hidFromFollowers
   },
   [EngineGen.keybase1Identify3UiIdentify3Summary]: (draftState, action) => {
-    // TODO need core side updated, guid missing
-    const {guiID, summary} = action.payload.params
-    const {numProofsToCheck} = summary
+    const {summary} = action.payload.params
+    const {numProofsToCheck, guiID} = summary
     const username = Constants.guiIDToUsername(draftState, guiID)
     if (!username) {
       return
