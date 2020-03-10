@@ -91,8 +91,13 @@ func TestBackgroundPurge(t *testing.T) {
 
 	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
 		purgeInfo, err := chatStorage.GetPurgeInfo(ctx, uid, convID)
-		require.NoError(t, err)
-		require.Equal(t, expectedPurgeInfo, purgeInfo)
+		if expectedPurgeInfo.IsNil() {
+			require.Error(t, err)
+			require.IsType(t, storage.MissError{}, err)
+		} else {
+			require.NoError(t, err)
+			require.Equal(t, expectedPurgeInfo, purgeInfo)
+		}
 	}
 
 	assertEphemeralPurgeNotifInfo := func(convID chat1.ConversationID, msgIDs []chat1.MessageID, localVers chat1.LocalConversationVers) {
@@ -173,7 +178,7 @@ func TestBackgroundPurge(t *testing.T) {
 	})
 	assertTrackerState(conv2.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv2.ConvID,
-		MinUnexplodedID: 1,
+		MinUnexplodedID: msgs[1].GetMessageID(),
 		NextPurgeTime:   msgs[1].Valid().Etime(),
 		IsActive:        true,
 	})

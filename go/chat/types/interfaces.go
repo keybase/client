@@ -102,8 +102,7 @@ type ConversationSource interface {
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
 		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
-	Expunge(ctx context.Context, conv UnboxConversationInfo,
-		uid gregor1.UID, expunge chat1.Expunge) error
+	Expunge(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) error
 	EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error)
 
