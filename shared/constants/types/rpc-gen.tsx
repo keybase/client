@@ -2433,6 +2433,7 @@ export enum StatusCode {
   scnoop = 2638,
   scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
+  scteambadnamereserveddb = 2650,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,
   scteammemberexists = 2665,
@@ -3237,6 +3238,7 @@ export type UPKLiteV1AllIncarnations = {readonly current: UPKLiteV1; readonly pa
 export type UnboxAnyRes = {readonly kid: KID; readonly plaintext: Bytes32; readonly index: Int}
 export type UninstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status}
 export type UnixTime = Long
+export type UntrustedTeamExistsResult = {readonly exists: Boolean; readonly status: StatusCode}
 export type UntrustedTeamInfo = {readonly name: TeamName; readonly inTeam: Boolean; readonly open: Boolean; readonly description: String; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int; readonly publicMembers?: Array<TeamMemberRole> | null}
 export type UpPointer = {readonly ourSeqno: Seqno; readonly parentID: TeamID; readonly parentSeqno: Seqno; readonly deletion: Boolean}
 export type UpdateDetails = {readonly message: String}
