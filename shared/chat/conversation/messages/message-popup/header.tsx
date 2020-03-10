@@ -149,6 +149,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
+          paddingBottom: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.small,
         },
         isMobile: {
