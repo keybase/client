@@ -39,7 +39,7 @@ export const editTeambuildingDraft = (
     [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
       const {query, service, users} = action.payload
       const results = mapGetEnsureValue(draftState.searchResults, query, new Map())
-      results.set(service, [...users])
+      results.set(service, users)
     },
     [TeamBuildingGen.finishTeamBuilding]: draftState => {
       draftState.error = ''
