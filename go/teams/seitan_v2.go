@@ -32,7 +32,7 @@ type SeitanIKeyV2 string
 // Seitan tokens, since we don't mistakenly want to send botched Seitan
 // tokens to the server.
 func IsSeitany(s string) bool {
-	return len(s) > seitanEncodedIKeyInvitelinkPlusOffset && strings.IndexByte(s, '+') > 1
+	return len(s) > seitanEncodedIKeyPlusOffset && strings.IndexByte(s, '+') > 1
 }
 
 func ParseSeitanVersion(s string) (version SeitanVersion, err error) {

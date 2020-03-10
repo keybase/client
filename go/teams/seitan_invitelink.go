@@ -4,8 +4,10 @@ import (
 	"context"
 	cryptorand "crypto/rand"
 	"fmt"
+	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -99,4 +101,24 @@ func GenerateSeitanInvitelinkAcceptanceKey(sikey []byte, uid keybase1.UID, eldes
 		return akey, encoded, err
 	}
 	return generateAcceptanceKey(akeyPayload, sikey)
+}
+
+// bound from SeitanEncodedIKeyInvitelinkLength
+var invitelinkIKeyRxx = regexp.MustCompile(`/invite#i=([a-z0-9+]{16,28})`)
+
+func GenerateInvitelinkURLPrefix(mctx libkb.MetaContext) (string, error) {
+	serverRoot, err := mctx.G().Env.GetServerURI()
+	if err != nil {
+		return "", err
+	}
+	// NOTE: if you change this url, change invitelinkIKeyRxx too!
+	return fmt.Sprintf("%s/invite#i=", serverRoot), nil
+}
+
+func GenerateInvitelinkURL(mctx libkb.MetaContext, ikey keybase1.SeitanIKeyInvitelink) (string, error) {
+	prefix, err := GenerateInvitelinkURLPrefix(mctx)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s%s", prefix, ikey), nil
 }
