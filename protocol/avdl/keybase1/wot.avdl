@@ -11,7 +11,10 @@ protocol wot {
     REVOKED_4
   }
 
-  // none (""), audio, video, email, other_chat, in_person
+  // How the voucher knows they have the right vouchee.
+  // In order of descending quality.
+  // One of: in_person, proofs, video, audio, other_chat, familiarity, other
+  // Keep in sync with server: helpers/wot.ts
   @typedef("string")
   record UsernameVerificationType {}
 
