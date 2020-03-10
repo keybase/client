@@ -76,11 +76,11 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 	details := own.teamGetDetails(teamName.String())
 	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for _, invite := range details.AnnotatedActiveInvites {
-		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
-		tic, err := invite.Type.C()
+		require.Equal(t, keybase1.TeamRole_WRITER, invite.Invite.Role)
+		tic, err := invite.Invite.Type.C()
 		require.NoError(t, err)
 		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, tic)
-		require.Equal(t, keybase1.TeamInviteName("bugs (0000)"), invite.Name)
+		require.Equal(t, keybase1.TeamInviteName("bugs (0000)"), invite.Invite.Name)
 	}
 
 	roo.kickTeamRekeyd()
@@ -225,7 +225,8 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion teams.SeitanVersi
 	var inviteID keybase1.TeamInviteID
 
 	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
-	for key, invite := range details.AnnotatedActiveInvites {
+	for key, aInvite := range details.AnnotatedActiveInvites {
+		invite := aInvite.Invite
 		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
 		require.EqualValues(t, fmt.Sprintf("%s (%s)", labelSms.F, labelSms.N), invite.Name)
 
@@ -235,10 +236,10 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion teams.SeitanVersi
 
 		// Test rest of the params, unrelated to Seitan.
 		require.Equal(t, key, invite.Id)
-		require.Equal(t, keybase1.UserVersion{}, invite.Uv)
+		require.Equal(t, keybase1.UserVersion{}, aInvite.InviteeUv)
 		require.Equal(t, keybase1.UserVersion{Uid: own.uid, EldestSeqno: 1}, invite.Inviter)
-		require.Equal(t, own.username, invite.InviterUsername)
-		require.Equal(t, teamName.String(), invite.TeamName)
+		require.Equal(t, own.username, aInvite.InviterUsername)
+		require.Equal(t, teamName.String(), aInvite.TeamName)
 
 		inviteID = invite.Id
 	}

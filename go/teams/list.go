@@ -618,8 +618,6 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 				return nil, fmt.Errorf("failed to get username from UIDMapper for uv %v", uv)
 			}
 
-			displayName = keybase1.TeamInviteDisplayName(pkg.NormalizedUsername.String())
-
 			details := keybase1.TeamMemberDetails{
 				Uv:       uv,
 				Username: pkg.NormalizedUsername.String(),
