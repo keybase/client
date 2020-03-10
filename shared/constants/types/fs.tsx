@@ -23,6 +23,7 @@ export type FsError = {
   readonly time: number
   readonly errorMessage: string
   readonly erroredAction: any // FsGen.Actions | EngineGen.Actions // using this type in the actions itself causes an explosive loop
+  readonly statusCode?: RPCTypes.StatusCode
   readonly retriableAction?: any // FsGen.Actions | EngineGen.Actions
 }
 

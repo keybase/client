@@ -59,6 +59,7 @@ const (
 // simpleFSError wraps errors for SimpleFS
 type simpleFSError struct {
 	reason string
+	code   keybase1.StatusCode
 }
 
 // Error implements the error interface for simpleFSError
@@ -66,17 +67,38 @@ func (e simpleFSError) Error() string { return e.reason }
 
 // ToStatus implements the keybase1.ToStatusAble interface for simpleFSError
 func (e simpleFSError) ToStatus() keybase1.Status {
+	code := e.code
+	if code == 0 {
+		code = keybase1.StatusCode_SCGeneric
+	}
 	return keybase1.Status{
 		Name: e.reason,
-		Code: int(keybase1.StatusCode_SCGeneric),
+		Code: int(code),
 		Desc: e.Error(),
 	}
 }
 
-var errOnlyRemotePathSupported = simpleFSError{"Only remote paths are supported for this operation"}
-var errInvalidRemotePath = simpleFSError{"Invalid remote path"}
-var errNoSuchHandle = simpleFSError{"No such handle"}
-var errNoResult = simpleFSError{"Async result not found"}
+var errOnlyRemotePathSupported = simpleFSError{reason: "Only remote paths are supported for this operation"}
+var errInvalidRemotePath = simpleFSError{reason: "Invalid remote path"}
+var errNoSuchHandle = simpleFSError{reason: "No such handle"}
+var errNoResult = simpleFSError{reason: "Async result not found"}
+var errNameExists = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNameExists, reason: "name exists"}
+var errDirNotEmpty = simpleFSError{code: keybase1.StatusCode_SCSimpleFSDirNotEmpty, reason: "dir not empty"}
+
+func translateErr(err error) error {
+	cause := errors.Cause(err)
+	if cause == os.ErrExist {
+		return errNameExists
+	}
+	switch cause.(type) {
+	case data.NameExistsError:
+		return errNameExists
+	case libkbfs.DirNotEmptyError:
+		return errDirNotEmpty
+	default:
+		return err
+	}
+}
 
 type newFSFunc func(
 	context.Context, libkbfs.Config, *tlfhandle.Handle, data.BranchName,
@@ -394,10 +416,10 @@ func (k *SimpleFS) branchNameFromPath(
 			}
 			return data.MakeRevBranchName(rev), nil
 		default:
-			return "", simpleFSError{"Invalid archived type for branch name"}
+			return "", simpleFSError{reason: "Invalid archived type for branch name"}
 		}
 	default:
-		return "", simpleFSError{"Invalid path type for branch name"}
+		return "", simpleFSError{reason: "Invalid path type for branch name"}
 	}
 }
 
@@ -478,7 +500,7 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 		fs = osfs.New(stdpath.Dir(path.Local()))
 		return fs, stdpath.Base(path.Local()), nil
 	default:
-		return nil, "", simpleFSError{"Invalid path type"}
+		return nil, "", simpleFSError{reason: "Invalid path type"}
 	}
 }
 
@@ -1326,6 +1348,7 @@ func (k *SimpleFS) SimpleFSCopy(
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
+			defer func() { err = translateErr(err) }()
 			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 		})
 }
@@ -1472,6 +1495,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
+			defer func() { err = translateErr(err) }()
 			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest, arg.OverwriteExistingFiles)
 		})
 }
@@ -1558,6 +1582,7 @@ func (k *SimpleFS) SimpleFSMove(
 		keybase1.NewOpDescriptionWithMove(keybase1.MoveArgs(arg)),
 		&arg.Src, &arg.Dest,
 		func(ctx context.Context) (err error) {
+			defer func() { err = translateErr(err) }()
 			sameTlf, srcPath, destPath, tlfHandle, err := k.pathsForSameTlfMove(
 				ctx, arg.Src, arg.Dest)
 			if err != nil {
@@ -1571,6 +1596,28 @@ func (k *SimpleFS) SimpleFSMove(
 					keybase1.MDPriorityNormal)
 				if err != nil {
 					return err
+				}
+
+				if !arg.OverwriteExistingFiles {
+					// If srcPath is a file, use fs.Create to make a
+					// placeholder to avoid overwriting an existing file. This
+					// doesn't avoid conflicts when journal flushes, but
+					// protects from overwriting over an existing file without
+					// causing conflicts.  We don't need to do it for
+					// directories since libkbfs makes sure we can't rename
+					// over a non-empty directory.
+					fi, err := fs.Stat(srcPath)
+					if err != nil {
+						return err
+					}
+					if !fi.IsDir() {
+						if f, err := fs.OpenFile(destPath,
+							os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600); err != nil {
+							return err
+						} else if err = f.Close(); err != nil {
+							return err
+						}
+					}
 				}
 
 				return fs.Rename(srcPath, destPath)
@@ -1653,7 +1700,7 @@ func (k *SimpleFS) SimpleFSRename(
 		return err
 	}
 	if tDest != t || tlfName != tlfNameDest {
-		return simpleFSError{"Cannot rename across top-level folders"}
+		return simpleFSError{reason: "Cannot rename across top-level folders"}
 	}
 
 	err = fs.Rename(
@@ -1962,7 +2009,7 @@ func (k *SimpleFS) getRevisionsFromPath(
 	fipr, ok := fi.Sys().(libfs.PrevRevisionsGetter)
 	if !ok {
 		return nil, nil, nil,
-			simpleFSError{"Cannot get revisions for non-KBFS path"}
+			simpleFSError{reason: "Cannot get revisions for non-KBFS path"}
 	}
 	return fs, fi, fipr.PrevRevisions(), nil
 }
@@ -1982,7 +2029,7 @@ func (k *SimpleFS) doGetRevisions(
 		return nil, err
 	}
 	if len(prs) == 0 {
-		return nil, simpleFSError{"No previous revisions"}
+		return nil, simpleFSError{reason: "No previous revisions"}
 	}
 
 	var currRev keybase1.DirentWithRevision
@@ -2049,7 +2096,7 @@ func (k *SimpleFS) doGetRevisions(
 					// must be _some_ revision in between the last
 					// revision and the one in the next slot, that we
 					// should uncover by looking up `lastRevision-1`.
-					return nil, simpleFSError{fmt.Sprintf(
+					return nil, simpleFSError{reason: fmt.Sprintf(
 						"Revision %s unexpectedly lists no previous revisions",
 						lastRevision-1)}
 				}
@@ -2072,8 +2119,7 @@ func (k *SimpleFS) doGetRevisions(
 			expectedCount++
 		}
 	default:
-		return nil, simpleFSError{
-			fmt.Sprintf("Unknown span type: %s", spanType)}
+		return nil, simpleFSError{reason: fmt.Sprintf("Unknown span type: %s", spanType)}
 	}
 
 	if len(revPaths) < 4 {

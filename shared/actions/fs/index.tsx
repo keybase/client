@@ -549,13 +549,23 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
       }
     case Types.EditType.Rename:
       try {
+        const opID = Constants.makeUUID()
         await RPCTypes.SimpleFSSimpleFSMoveRpcPromise({
           dest: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
-          opID: Constants.makeUUID(),
+          opID,
+          overwriteExistingFiles: false,
           src: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
         })
+        await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
         return FsGen.createEditSuccess({editID})
       } catch (e) {
+        if (
+          [RPCTypes.StatusCode.scsimplefsnameexists, RPCTypes.StatusCode.scsimplefsdirnotempty].includes(
+            e.code
+          )
+        ) {
+          return makeUnretriableErrorHandler(action, edit.parentPath)(e)
+        }
         return makeRetriableErrorHandler(action, edit.parentPath)(e)
       }
   }

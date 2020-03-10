@@ -195,6 +195,7 @@ export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
   const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
   return {
+    statusCode: error?.code || 0,
     errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction: erroredAction || placeholderAction,
     retriableAction,
@@ -1035,4 +1036,34 @@ export const erroredActionToMessage = (
     default:
       return errorIsTimeout ? timeoutExplain : 'An unexplainable error has occurred.'
   }
+}
+
+export const erroredActionToMessageWithEdits = (edits: Types.Edits, error: Types.FsError): string => {
+  if (error.erroredAction.type === FsGen.commitEdit) {
+    const edit = edits.get(error.erroredAction.payload.editID) || emptyNewFolder
+    let actionStr = ''
+    switch (edit.type) {
+      case Types.EditType.NewFolder:
+        actionStr = 'make a new folder'
+        break
+      case Types.EditType.Rename:
+        actionStr = 'rename'
+        break
+      default:
+        ;((_: never) => {})(edit.type)
+    }
+    let errorMsg = ''
+    switch (error.statusCode) {
+      case RPCTypes.StatusCode.scsimplefsnameexists:
+        errorMsg = 'name already exists'
+        break
+      case RPCTypes.StatusCode.scsimplefsdirnotempty:
+        errorMsg = "folder already exists and it's not empty"
+        break
+      default:
+        errorMsg = 'unknown error'
+    }
+    return `Failed to ${actionStr}: ${errorMsg}`
+  }
+  return erroredActionToMessage(error.erroredAction, error.errorMessage)
 }

@@ -250,6 +250,8 @@ const (
 	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
 	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
 	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
+	StatusCode_SCSimpleFSNameExists                        StatusCode = 5101
+	StatusCode_SCSimpleFSDirNotEmpty                       StatusCode = 5102
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -494,6 +496,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeambotKeyOldBoxedGeneration":              3801,
 	"SCTeambotKeyBadGeneration":                   3802,
 	"SCAirdropRegisterFailedMisc":                 4207,
+	"SCSimpleFSNameExists":                        5101,
+	"SCSimpleFSDirNotEmpty":                       5102,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -736,6 +740,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3801: "SCTeambotKeyOldBoxedGeneration",
 	3802: "SCTeambotKeyBadGeneration",
 	4207: "SCAirdropRegisterFailedMisc",
+	5101: "SCSimpleFSNameExists",
+	5102: "SCSimpleFSDirNotEmpty",
 }
 
 func (e StatusCode) String() string {

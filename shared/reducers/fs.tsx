@@ -112,11 +112,9 @@ const reduceFsError = (draftState: Draft<Types.State>, action: FsGen.FsErrorPayl
   switch (erroredAction.type) {
     case FsGen.commitEdit:
       withFsErrorBar(draftState, action)
-      updateExistingEdit(
-        draftState,
-        erroredAction.payload.editID,
-        draftEdit => (draftEdit.status = Types.EditStatusType.Failed)
-      )
+      updateExistingEdit(draftState, erroredAction.payload.editID, draftEdit => {
+        draftEdit.status = Types.EditStatusType.Failed
+      })
       return
     case FsGen.saveMedia:
     case FsGen.shareNative:

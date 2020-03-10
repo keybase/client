@@ -12,8 +12,18 @@ type Props = {
 }
 
 const Editing = ({editID}: Props) => {
+  const errors = Container.useSelector(state => state.fs.errors)
   const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(FsGen.createDiscardEdit({editID}))
+  const onCancel = () => {
+    dispatch(FsGen.createDiscardEdit({editID}))
+    // Also dismiss any errors associated with this edit.
+    ;[...errors]
+      .filter(
+        ([_, error]) =>
+          error.erroredAction.type === FsGen.commitEdit && editID === error.erroredAction.payload.editID
+      )
+      .forEach(([key]) => dispatch(FsGen.createDismissFsError({key})))
+  }
   const onSubmit = () => dispatch(FsGen.createCommitEdit({editID}))
   const edit = Container.useSelector(state => state.fs.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
