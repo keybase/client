@@ -76,5 +76,38 @@ protocol block {
   bytes getUserQuotaInfo();
   bytes getTeamQuotaInfo(TeamID tid);
 
+  record UsageStatRecord {
+    int64 write;
+    int64 archive;
+    int64 read;
+    int64 mdWrite;
+    int64 gitWrite;
+    int64 gitArchive;
+  }
+
+  record UsageStat {
+    UsageStatRecord bytes;
+    UsageStatRecord blocks;
+    Time mtime;
+  }
+
+  record FolderUsageStat{
+    string folderID;
+    UsageStat stats;
+  }
+
+  record BlockQuotaInfo{
+    array<FolderUsageStat> folders;
+    UsageStat total;
+    int64 limit;
+    int64 gitLimit;
+  }
+
+  @compression_type("gzip")
+  BlockQuotaInfo getUserQuotaInfo2();
+
+  @compression_type("gzip")
+  BlockQuotaInfo getTeamQuotaInfo2(TeamID tid);
+
   BlockPingResponse blockPing();
 }

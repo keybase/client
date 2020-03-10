@@ -842,10 +842,10 @@
 			"revisionTime": "2020-01-23T00:39:47Z"
 		},
 		{
-			"checksumSHA1": "wVxPwraD/RPx0b+Z70N9cgyBbcY=",
+			"checksumSHA1": "zgpsAORgf6VAzF0yBB/Z3SLPPOk=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
-			"revisionTime": "2020-02-20T20:58:49Z"
+			"revision": "a1327b90a382c895fb8dfa15d63ead435d11e7ab",
+			"revisionTime": "2020-03-09T18:03:39Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -956,16 +956,16 @@
 			"revisionTime": "2018-03-01T23:53:30Z"
 		},
 		{
-			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
+			"checksumSHA1": "5pmXwOy9jB8chFU+JjG0G3Il8yE=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
-			"revisionTime": "2020-02-24T21:58:29Z"
+			"revision": "6fcc57755f35fd21109d656057901b3c0eccd3e9",
+			"revisionTime": "2020-02-28T19:22:15Z"
 		},
 		{
-			"checksumSHA1": "NstCqfXwErGgU2i+UYTShuA9Avs=",
+			"checksumSHA1": "uR+QsoTqF59Ur57qgaodzx/T58Q=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "1be38d16ac5ce6ed546e40e344aba535c9fb6705",
-			"revisionTime": "2020-02-24T21:58:29Z"
+			"revision": "6fcc57755f35fd21109d656057901b3c0eccd3e9",
+			"revisionTime": "2020-02-28T19:22:15Z"
 		},
 		{
 			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",
@@ -998,10 +998,10 @@
 			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "2Ugw7+GeWu1gQZdi2bOYrlfBmZg=",
+			"checksumSHA1": "sR551pREqAZR8JfBSqm0E0UNBJ4=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "d20076acadfe92728f14d2c40b93721a6b69d369",
-			"revisionTime": "2020-01-22T16:21:55Z"
+			"revision": "384fcdcd888ef6a4f5319a93c4c2785d841ba30d",
+			"revisionTime": "2020-03-06T21:56:55Z"
 		},
 		{
 			"checksumSHA1": "B/Qlhpd96i6Sx0DdhSzbHUdG47U=",

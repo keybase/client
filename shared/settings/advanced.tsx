@@ -3,13 +3,11 @@ import * as Constants from '../constants/settings'
 import * as Container from '../util/container'
 import * as FSGen from '../actions/fs-gen'
 import * as Kb from '../common-adapters'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
-import flags from '../util/feature-flags'
 import {ProxySettings} from './proxy/container'
 import {anyErrors, anyWaiting} from '../constants/waiting'
 import {isMobile, isLinux, isWindows} from '../constants/platform'
@@ -198,9 +196,7 @@ const processorProfileDurationSeconds = 30
 
 const Developer = () => {
   const dispatch = Container.useDispatch()
-  const [cleanTook, setCleanTook] = React.useState(-1)
   const [clickCount, setClickCount] = React.useState(0)
-  const [indexTook, setIndexTook] = React.useState(-1)
 
   const onExtraKBFSLogging = () => dispatch(FSGen.createSetDebugLevel({level: 'vlog2'}))
   const onToggleRuntimeStats = () => dispatch(ConfigGen.createToggleRuntimeStats())
@@ -265,35 +261,6 @@ const Developer = () => {
             Trace and profile files are included in logs sent with feedback.
           </Kb.Text>
         </>
-      )}
-      {flags.chatIndexProfilingEnabled && (
-        <Kb.Button
-          label={`Chat Index: ${indexTook}ms`}
-          onClick={() => {
-            setIndexTook(-1)
-            const start = Date.now()
-            RPCChatTypes.localProfileChatSearchRpcPromise({
-              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-            }).then(() => setIndexTook(Date.now() - start))
-          }}
-          mode="Secondary"
-          style={styles.developerButtons}
-        />
-      )}
-      {flags.dbCleanEnabled && (
-        <Kb.Button
-          label={`DB clean: ${cleanTook}ms`}
-          onClick={() => {
-            setCleanTook(-1)
-            const start = Date.now()
-            RPCTypes.ctlDbCleanRpcPromise({
-              dbType: RPCTypes.DbType.main, // core db
-              force: true,
-            }).then(() => setCleanTook(Date.now() - start))
-          }}
-          mode="Secondary"
-          style={styles.developerButtons}
-        />
       )}
       <Kb.Box style={styles.filler} />
     </Kb.Box>

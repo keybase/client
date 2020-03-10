@@ -44,6 +44,7 @@ const UnfurlGeneric = (props: Props) => {
               type="iconfont-close"
               onClick={onClose}
               style={styles.closeBox}
+              padding="xtiny"
               className="unfurl-closebox"
               fontSize={12}
             />

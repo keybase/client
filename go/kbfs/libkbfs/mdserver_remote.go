@@ -117,11 +117,16 @@ func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
 		kbfsmd.ServerTokenServer, kbfsmd.ServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
+	firstConnectDelay := time.Duration(0)
+	if config.Mode().DelayInitialConnect() {
+		firstConnectDelay = libkb.RandomJitter(mdserverFirstConnectDelay)
+	}
 	mdServer.connOpts = rpc.ConnectionOpts{
 		WrapErrorFunc:                 libkb.WrapError,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
+		FirstConnectDelayDuration:     firstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return mdserverReconnectBackoffWindow },
 	}
 	mdServer.initNewConnection()
@@ -481,10 +486,6 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 			md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect (%s), but not reconnecting", err.Error())
 		}
-	} else {
-		md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
-			"dial succeeded; fast forwarding any pending reconnect")
-		md.conn.FastForwardInitialBackoffTimer()
 	}
 	if conn != nil {
 		conn.Close()
@@ -1415,7 +1416,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 func (md *MDServerRemote) FastForwardBackoff() {
 	md.connMu.RLock()
 	defer md.connMu.RUnlock()
-	md.conn.FastForwardInitialBackoffTimer()
+	md.conn.FastForwardConnectDelayTimer()
 }
 
 // FindNextMD implements the MDServer interface for MDServerRemote.

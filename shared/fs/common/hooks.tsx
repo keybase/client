@@ -96,14 +96,6 @@ export const useFsTlf = (path: Types.Path) => {
   }, [active, dispatch, tlfPath])
 }
 
-export const useFsJournalStatus = () => {
-  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.journalStatus)
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    dispatch(FsGen.createPollJournalStatus())
-  }, [dispatch])
-}
-
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
   const dispatch = useDispatchWithKbfsDaemonConnectoinGuard()

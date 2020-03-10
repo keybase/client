@@ -173,6 +173,11 @@ fix_bad_config_perms() {
 
 fix_bad_config_perms
 
+# Associate Keybase with .saltpack files.
+if command -v update-mime-database &> /dev/null ; then
+  update-mime-database /usr/share/mime
+fi
+
 # Update the GTK icon cache, if possible.
 if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor

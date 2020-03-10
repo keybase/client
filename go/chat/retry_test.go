@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 	"time"
 
@@ -52,6 +53,9 @@ func TestFetchRetry(t *testing.T) {
 	convs = append(convs, conv)
 	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username)
 	convs = append(convs, conv)
+	sort.Slice(convs, func(i, j int) bool {
+		return convs[i].GetConvID().Less(convs[j].GetConvID())
+	})
 	for _, conv := range convs {
 		convIDs = append(convIDs, conv.GetConvID())
 	}
@@ -69,10 +73,14 @@ func TestFetchRetry(t *testing.T) {
 			ConvIDs: convIDs,
 		})
 	require.NoError(t, err)
-	require.NotNil(t, inbox.Convs[2].Error)
-	require.Nil(t, inbox.Convs[0].Error)
+	sort.Slice(inbox.Convs, func(i, j int) bool {
+		return inbox.Convs[i].GetConvID().Less(inbox.Convs[j].GetConvID())
+	})
+	require.NotNil(t, inbox.Convs[0].Error)
+	require.Nil(t, inbox.Convs[1].Error)
+	require.Nil(t, inbox.Convs[2].Error)
 	tc.ChatG.FetchRetrier.Failure(ctx, uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), nil, ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[0].GetConvID(), nil, ThreadLoad))
 
 	// Advance clock and check for errors on all conversations
 	t.Logf("advancing clock and checking for stale")
@@ -94,7 +102,7 @@ func TestFetchRetry(t *testing.T) {
 
 	t.Logf("trying to use Force")
 	tc.ChatG.FetchRetrier.Failure(ctx, uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), nil, ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[0].GetConvID(), nil, ThreadLoad))
 	tc.ChatG.FetchRetrier.Force(ctx)
 	select {
 	case cids := <-list.threadsStale:

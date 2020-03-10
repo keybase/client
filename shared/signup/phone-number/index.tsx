@@ -5,7 +5,6 @@ import * as Platform from '../../constants/platform'
 import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import {SignupScreen, errorBanner} from '../common'
-import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
@@ -84,7 +83,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
     >
       <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
-        <PhoneInput
+        <Kb.PhoneInput
           autoFocus={props.autoFocus}
           defaultCountry={props.defaultCountry}
           style={styles.input}

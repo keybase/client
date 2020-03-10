@@ -48,11 +48,27 @@ export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
           filterServices: flags.teamsRedesign
             ? ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
             : undefined,
+          goButtonLabel: 'Add',
           namespace: 'teams',
           teamID,
           title: '',
         },
         selected: 'teamsTeamBuilder',
+      },
+    ],
+  })
+
+export const appendTeamsContactsTeamBuilder = () =>
+  RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {
+          filterServices: [],
+          justContacts: true,
+          namespace: 'teams',
+          title: 'Add members',
+        },
+        selected: 'teamsContactsTeamBuilder',
       },
     ],
   })

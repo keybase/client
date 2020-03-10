@@ -207,6 +207,13 @@ func (t TeamSigChainState) GetUserLastJoinTime(user keybase1.UserVersion) (time 
 	return t.inner.GetUserLastJoinTime(user)
 }
 
+// NewStyle invites are completed in the `used_invites` field in the change
+// membership link, can optionally specify an expiration time, and a maximum
+// number of uses (potentially infinite).
+func IsNewStyleInvite(invite keybase1.TeamInvite) (bool, error) {
+	return invite.MaxUses != nil, nil
+}
+
 // assertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
 // Figure out when this admin permission was revoked, if at all. If the promotion event
 // wasn't found as specified, then return an AdminPermissionError. In addition, we return
@@ -656,6 +663,10 @@ func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ k
 	return nil, libkb.NotFoundError{}
 }
 
+// FindActiveInviteByID returns potentially expired invites that have not been
+// explicitly cancelled, since the sigchain player is agnostic to the concept
+// of time. We treat invite expiration times as advisory for admin clients
+// completing invites, but do not check them in the sigchain player.
 func (t *TeamSigChainState) FindActiveInviteByID(id keybase1.TeamInviteID) (keybase1.TeamInvite, bool) {
 	invite, found := t.inner.ActiveInvites[id]
 	return invite, found
@@ -1981,22 +1992,28 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 		if byName[key] {
 			return nil, nil, NewInviteError(fmt.Sprintf("Invite %s appears twice in invite set", key))
 		}
-		if res.MaxUses != nil {
+
+		isNewStyle, err := IsNewStyleInvite(res)
+		if err != nil {
+			return nil, nil, NewInviteError(fmt.Sprintf("failed to check if invite is new-style: %s", err))
+		}
+		if isNewStyle {
 			if options.implicitTeam {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has max_uses in implicit team", id))
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s is new-style in implicit team", id))
+			}
+			if res.MaxUses == nil {
+				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s is new-style but has no max-uses", key))
 			}
 			if !res.MaxUses.IsValid() {
 				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid max_uses %d", id, *res.MaxUses))
 			}
-		}
-		if res.Etime != nil {
-			if options.implicitTeam {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has etime in implicit team", id))
-			}
-			if *res.Etime <= 0 {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid etime %d", id, *res.Etime))
+			if res.Etime != nil {
+				if *res.Etime <= 0 {
+					return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid etime %d", id, *res.Etime))
+				}
 			}
 		}
+
 		byName[key] = true
 		byID[id] = true
 		additions[res.Role] = append(additions[res.Role], res)
@@ -2225,13 +2242,19 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 	for id := range completed {
 		invite, ok := stateToUpdate.inner.ActiveInvites[id]
 		if !ok {
-			// Invite doesn't exist - that's likely an error, but we've allowed
-			// this for so long that we have to prove that no team has done
-			// this in order to change this.
+			// Invite doesn't exist or we don't know about it because invite
+			// links were stubbed. We could do a similar check here that we do
+			// in teamSigchainPlayer.useInvites, but we haven't been doing it
+			// in the past, so we might have links with issues like that in the
+			// wild.
 			continue
 		}
-		if invite.MaxUses != nil {
-			return fmt.Errorf("`completed_invites` for an invite with `max_uses`: %s", id)
+		isNewStyle, err := IsNewStyleInvite(invite)
+		if err != nil {
+			return err
+		}
+		if isNewStyle {
+			return fmt.Errorf("`completed_invites` for a new-style invite (id: %q)", id)
 		}
 		stateToUpdate.informCompletedInvite(id)
 	}
@@ -2251,41 +2274,62 @@ func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 }
 
 func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, used []SCMapInviteIDUVPair) error {
+	if len(used) == 0 {
+		return nil
+	}
+
+	hasStubbedLinks := stateToUpdate.HasAnyStubbedLinks()
 	for _, pair := range used {
 		inviteID, err := pair.InviteID.TeamInviteID()
 		if err != nil {
 			return err
 		}
-		invite, ok := stateToUpdate.inner.ActiveInvites[inviteID]
-		if !ok {
-			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
-		}
-		if invite.MaxUses == nil {
-			return fmt.Errorf("`used_invites` for an invite that did not have `max_uses`: %s", inviteID)
-		}
-		maxUses := *invite.MaxUses
-		uses := len(stateToUpdate.inner.UsedInvites[inviteID])
-		if !maxUses.IsInfiniteUses() && uses >= int(maxUses) {
-			return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
-		}
 		uv, err := keybase1.ParseUserVersion(pair.UV)
 		if err != nil {
 			return err
 		}
-		var foundUV bool
-		for _, updatedUV := range roleUpdates[invite.Role] {
-			if uv.Eq(updatedUV) {
-				foundUV = true
-				break
+
+		invite, foundInvite := stateToUpdate.inner.ActiveInvites[inviteID]
+		if foundInvite {
+			isNewStyle, err := IsNewStyleInvite(invite)
+			if err != nil {
+				return err
 			}
+			if !isNewStyle {
+				return fmt.Errorf("`used_invites` for a non-new-style invite (id: %q)", inviteID)
+			}
+
+			maxUses := invite.MaxUses
+			alreadyUsed := len(stateToUpdate.inner.UsedInvites[inviteID])
+			// Note that we append to stateToUpdate.inner.UsedInvites at the end of this for loop,
+			// so alreadyUsed updates correctly when processing multiple invite pairs.
+			if maxUses.IsUsedUp(alreadyUsed) {
+				return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
+			}
+
+			// We explicitly don't check invite.Etime here; it's used as a hint for admins.
+			// but not checked in the sigchain player.
+
+			// If we have the invite, also check if invite role matches role
+			// added.
+			var foundUV bool
+			for _, updatedUV := range roleUpdates[invite.Role] {
+				if uv.Eq(updatedUV) {
+					foundUV = true
+					break
+				}
+			}
+			if !foundUV {
+				return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV, invite.Role.HumanString())
+			}
+		} else if !hasStubbedLinks {
+			// We couldn't find the invite, and we have no stubbed links, which
+			// means that inviteID is invalid.
+			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 		}
-		if !foundUV {
-			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV, invite.Role.HumanString())
-		}
+
 		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
 		if logPoint < 0 {
-			// This check is redundant, but better to be safe here instead of
-			// storing wrong index to UserLog.
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
 		}
 		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],

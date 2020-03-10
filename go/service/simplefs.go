@@ -799,3 +799,86 @@ func (s *SimpleFSHandler) SimpleFSSearch(
 	defer cancel()
 	return cli.SimpleFSSearch(ctx, arg)
 }
+
+// SimpleFSResetIndex implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSResetIndex(ctx context.Context) error {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
+	// Don't use a timeout for resetting the index; let it completely
+	// clean up the storage as needed.
+	return cli.SimpleFSResetIndex(ctx)
+}
+
+// SimpleFSGetIndexProgress implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetIndexProgress(
+	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSIndexProgress{}, err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSGetIndexProgress(ctx)
+}
+
+// SimpleFSStartUpload implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSStartUpload(ctx context.Context,
+	arg keybase1.SimpleFSStartUploadArg) (uploadID string, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSStartUpload(ctx, arg)
+}
+
+// SimpleFSMakeTempDirForUpload implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSMakeTempDirForUpload(
+	ctx context.Context) (dirPath string, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSMakeTempDirForUpload(ctx)
+}
+
+// SimpleFSGetUploadStatus implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetUploadStatus(
+	ctx context.Context) (status []keybase1.UploadState, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSGetUploadStatus(ctx)
+}
+
+// SimpleFSCancelUpload implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSCancelUpload(
+	ctx context.Context, uploadID string) (err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSCancelUpload(ctx, uploadID)
+}
+
+// SimpleFSDismissUpload implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSDismissUpload(
+	ctx context.Context, uploadID string) (err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSDismissUpload(ctx, uploadID)
+}

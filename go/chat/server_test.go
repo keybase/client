@@ -91,8 +91,12 @@ func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
 	return nil
 }
 
-func (g *gregorTestConnection) GetClient() chat1.RemoteClient {
+func (g *gregorTestConnection) GetClient() chat1.RemoteInterface {
 	return chat1.RemoteClient{Cli: g.cli}
+}
+
+func (g *gregorTestConnection) Reconnect(ctx context.Context) (bool, error) {
+	return false, nil
 }
 
 func (g *gregorTestConnection) OnConnect(ctx context.Context, conn *rpc.Connection,
@@ -369,11 +373,13 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	var tlf *kbtest.TlfMock
 	var ri chat1.RemoteInterface
+	var serverConn types.ServerConnection
 	if useRemoteMock {
 		mockRemote := kbtest.NewChatRemoteMock(c.world)
 		mockRemote.SetCurrentUser(user.User.GetUID().ToBytes())
 		tlf = kbtest.NewTlfMock(c.world)
 		ri = mockRemote
+		serverConn = kbtest.NewChatRemoteMockServerConnection(mockRemote)
 		ctx = newTestContextWithTlfMock(tc, tlf)
 	} else {
 		ctx = newTestContext(tc)
@@ -384,6 +390,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		g.GregorState = gh
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
+		serverConn = gh
 	}
 
 	h.boxer = NewBoxer(g)
@@ -417,7 +424,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	tc.G.SetService()
 	baseSender := NewBlockingSender(g, h.boxer, func() chat1.RemoteInterface { return ri })
-	deliverer := NewDeliverer(g, baseSender)
+	deliverer := NewDeliverer(g, baseSender, serverConn)
 	deliverer.SetClock(c.world.Fc)
 	if useRemoteMock {
 		deliverer.setTestingNameInfoSource(tlf)
@@ -2686,7 +2693,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(res.Conversations), "no conv found")
+		require.Equal(t, 1, len(res.Conversations), "no conv found for %v", mt)
 		require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
 
 		t.Logf("simple post")
@@ -3192,12 +3199,15 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		msgIDs := []chat1.MessageID{editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
+		tc := ctc.world.Tcs[users[0].Username]
+		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
+		require.NoError(t, err)
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
@@ -3256,7 +3266,8 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_DELETE)
 		msgIDs = []chat1.MessageID{deleteMsgID, editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
+
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 		cb = make(chan struct{})
 		go func() {
@@ -3519,12 +3530,16 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID3, editMsgID2, msgID2, editMsgID1, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg3})
+
+		tc := ctc.world.Tcs[users[0].Username]
+		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
+		require.NoError(t, err)
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg3})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
 		uiThreadLoader := NewUIThreadLoader(tc.Context(), func() chat1.RemoteInterface { return ri })
 		uiThreadLoader.clock = clock
@@ -3621,7 +3636,10 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID2, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
+		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
+		require.NoError(t, err)
+		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
@@ -4793,6 +4811,58 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 			require.Equal(t, 1, len(getChannelsRes.Channels))
 			require.Equal(t, globals.DefaultTeamTopic, getChannelsRes.Channels[0].TopicName)
 		}
+	})
+}
+
+func TestChatSrvMutualTeamsLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvChatMembershipsLocal", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		t.Logf("create team only one user is in")
+		conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		teamID1, err := ctc.as(t, users[0]).chatLocalHandler().TeamIDFromTLFName(ctx, chat1.TeamIDFromTLFNameArg{
+			TlfName:     conv1.TlfName,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		})
+		require.NoError(t, err)
+		t.Logf("teamID 1: %s", teamID1)
+		t.Logf("check that users share no mutual teams")
+		emptyMutualTeamsRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMutualTeamsLocal(ctx, []string{users[1].Username})
+		require.NoError(t, err)
+		require.Equal(t, 0, len(emptyMutualTeamsRes.TeamIDs))
+
+		t.Logf("create team with both users")
+		conv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		teamID2, err := ctc.as(t, users[0]).chatLocalHandler().TeamIDFromTLFName(ctx, chat1.TeamIDFromTLFNameArg{
+			TlfName:     conv2.TlfName,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		})
+		require.NoError(t, err)
+		t.Logf("check that users have 1 mutual team")
+
+		getMutualTeamsRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMutualTeamsLocal(ctx, []string{users[1].Username})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(getMutualTeamsRes.TeamIDs))
+		require.Equal(t, teamID2, getMutualTeamsRes.TeamIDs[0])
 	})
 }
 

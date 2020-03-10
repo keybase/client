@@ -120,7 +120,7 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext) {
 				// resources with other background tasks. libkb.BgTicker
 				// handles this internally, so we only need to throttle on
 				// MobileAppState change.
-				time.Sleep(time.Second)
+				time.Sleep(libkb.RandomJitter(time.Second))
 				runIfNeeded(false /* force */)
 			}
 		case <-e.stopCh:

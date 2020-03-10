@@ -1161,9 +1161,10 @@ func TestMoveBetweenTlfs(t *testing.T) {
 	opid, err = sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
-		OpID: opid,
-		Src:  pathDir,
-		Dest: pathPublic,
+		OpID:                   opid,
+		Src:                    pathDir,
+		Dest:                   pathPublic,
+		OverwriteExistingFiles: true,
 	})
 	require.NoError(t, err)
 	checkPendingOp(

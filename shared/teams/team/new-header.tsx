@@ -13,6 +13,8 @@ import capitalize from 'lodash/capitalize'
 import {Activity} from '../common'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import flags from '../../util/feature-flags'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as Types from '../../constants/types/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
@@ -28,6 +30,51 @@ const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
       fullWidth={true}
       style={styles.addPeopleButton}
     />
+  )
+}
+type FeatureTeamCardProps = {teamID: Types.TeamID}
+const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
+  const dispatch = Container.useDispatch()
+  const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
+  const onNoThanks = React.useCallback(
+    () => dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false})),
+    [dispatch]
+  )
+  // Automatically dismiss this when the user navigates away
+  React.useEffect(() => onNoThanks, [onNoThanks])
+  const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
+  return (
+    <Kb.Box2
+      direction="vertical"
+      gap={Styles.isMobile ? 'xtiny' : 'tiny'}
+      style={styles.addInviteAsFeatureTeamBox}
+      className="addInviteAndLinkBox"
+      alignItems="flex-start"
+      alignSelf="flex-end"
+    >
+      <Kb.Box style={styles.illustration}>
+        <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
+      </Kb.Box>
+      <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
+      <Kb.Text type="BodySmall">So your friends or coworkers know of your team's existence.</Kb.Text>
+      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+        <Kb.Button
+          label="Yes, feature it"
+          type="Success"
+          onClick={onFeature}
+          small={true}
+          style={Styles.globalStyles.flexOne}
+          waiting={waiting}
+        />
+        <Kb.Button
+          label="Later"
+          type="Dim"
+          onClick={onNoThanks}
+          small={true}
+          style={Styles.globalStyles.flexOne}
+        />
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -48,6 +95,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
   const activityLevel = 'active' // TODO plumbing
   const newMemberCount = 0 // TODO plumbing
 
@@ -167,41 +215,44 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const addInviteAndLinkBox = (
-    <Kb.Box2
-      direction="vertical"
-      gap={Styles.isMobile ? 'xtiny' : 'tiny'}
-      style={styles.addInviteAndLinkBox}
-      className="addInviteAndLinkBox"
-      alignItems="center"
-      alignSelf="flex-end"
-    >
-      <AddPeopleButton teamID={props.teamID} />
-      {flags.teamInvites && (
-        <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'}>
-          {Styles.isMobile ? 'or' : 'or share a link:'}
-        </Kb.Text>
-      )}
-      {flags.teamInvites &&
-        (Styles.isMobile ? (
-          <Kb.Button
-            label="Generate invite link"
-            onClick={callbacks.onManageInvites}
-            style={Styles.globalStyles.flexGrow}
-            mode="Secondary"
-            fullWidth={true}
-          />
-        ) : (
-          <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-            <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
-            <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
-            <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
-              Manage invite links
-            </Kb.Text>
-          </Kb.Box2>
-        ))}
-    </Kb.Box2>
-  )
+  const addInviteAndLinkBox =
+    justFinishedAddWizard && !meta.showcasing ? (
+      <FeatureTeamCard teamID={props.teamID} />
+    ) : (
+      <Kb.Box2
+        direction="vertical"
+        gap={Styles.isMobile ? 'xtiny' : 'tiny'}
+        style={styles.addInviteAndLinkBox}
+        className="addInviteAndLinkBox"
+        alignItems="center"
+        alignSelf="flex-end"
+      >
+        <AddPeopleButton teamID={props.teamID} />
+        {flags.teamInvites && (
+          <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'}>
+            {Styles.isMobile ? 'or' : 'or share a link:'}
+          </Kb.Text>
+        )}
+        {flags.teamInvites &&
+          (Styles.isMobile ? (
+            <Kb.Button
+              label="Generate invite link"
+              onClick={callbacks.onManageInvites}
+              style={Styles.globalStyles.flexGrow}
+              mode="Secondary"
+              fullWidth={true}
+            />
+          ) : (
+            <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
+              <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
+              <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
+              <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
+                Manage invite links
+              </Kb.Text>
+            </Kb.Box2>
+          ))}
+      </Kb.Box2>
+    )
 
   if (Styles.isMobile) {
     return (
@@ -317,6 +368,27 @@ const styles = Styles.styleSheetCreate(
           margin: Styles.globalMargins.tiny,
         },
       }),
+      addInviteAsFeatureTeamBox: Styles.platformStyles({
+        common: {
+          borderColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          flexShrink: 0,
+          padding: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          borderRadius: 4,
+          height: 184,
+          marginBottom: Styles.globalMargins.xsmall,
+          marginRight: Styles.globalMargins.small,
+          width: 220,
+        },
+        isMobile: {
+          borderRadius: 8,
+          flexGrow: 1,
+          margin: Styles.globalMargins.tiny,
+        },
+      }),
       addPeopleButton: {
         flexGrow: 0,
       },
@@ -351,6 +423,7 @@ const styles = Styles.styleSheetCreate(
       header: {
         flexShrink: 1,
       },
+      illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
       marginBottomRightTiny: {
         marginBottom: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,

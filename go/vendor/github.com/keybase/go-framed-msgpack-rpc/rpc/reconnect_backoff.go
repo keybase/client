@@ -50,9 +50,9 @@ func (o fireOnce) wait() {
 	<-o.ch
 }
 
-// CancellableRandomTimer can be used to wait on a random backoff timer. A
-// pointer to a zero value of CancellableRandomTimer if usable.
-type CancellableRandomTimer struct {
+// CancellableTimer can be used to wait on a random backoff timer. A
+// pointer to a zero value of CancellableTimer if usable.
+type CancellableTimer struct {
 	mu sync.Mutex
 	// A *time.Timer is not enough here since we need to be able to cancel the
 	// timer and fire the signal (as opposed to the Stop() method on time.Timer
@@ -61,26 +61,38 @@ type CancellableRandomTimer struct {
 	fo fireOnce
 }
 
-func (b *CancellableRandomTimer) swap(newFo fireOnce) (oldFo fireOnce) {
+func (b *CancellableTimer) swap(newFo fireOnce) (oldFo fireOnce) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.fo, oldFo = newFo, b.fo
 	return oldFo
 }
 
-func (b *CancellableRandomTimer) get() fireOnce {
+func (b *CancellableTimer) get() fireOnce {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.fo
 }
 
-// Start starts a random backoff timer. The timer is fast-forward-able with
-// b.FireNow(). Use b.Wait() to wait for the timer.
+// StartConstant starts a backoff timer. The timer is fast-forward-able
+// with b.FireNow(). Use b.Wait() to wait for the timer.
 //
 // It's OK to call b.Start() multiple times. It essentially resets the timer to
 // a new value, i.e., any pending b.Wait() waits until the last effective timer
 // completes.
-func (b *CancellableRandomTimer) Start(maxWait time.Duration) time.Duration {
+func (b *CancellableTimer) StartConstant(waitDur time.Duration) {
+	f := newFireOnce()
+	b.swap(f).fire()
+	time.AfterFunc(waitDur, f.fire)
+}
+
+// StartRandom starts a random backoff timer. The timer is fast-forward-able
+// with b.FireNow(). Use b.Wait() to wait for the timer.
+//
+// It's OK to call b.Start() multiple times. It essentially resets the timer to
+// a new value, i.e., any pending b.Wait() waits until the last effective timer
+// completes.
+func (b *CancellableTimer) StartRandom(maxWait time.Duration) time.Duration {
 	f := newFireOnce()
 	b.swap(f).fire()
 
@@ -103,7 +115,7 @@ func (b *CancellableRandomTimer) Start(maxWait time.Duration) time.Duration {
 // the wait, it waits until the new timer completes (no matter it's sonner or
 // later than the old timer). If FireNow() is called, Wait() returns
 // immediately.
-func (b *CancellableRandomTimer) Wait() {
+func (b *CancellableTimer) Wait() {
 	var oldF fireOnce
 	f := b.get()
 	for f != oldF {
@@ -114,7 +126,7 @@ func (b *CancellableRandomTimer) Wait() {
 
 // FireNow fast-forwards any existing timer so that any Wait() calls on b wakes
 // up immediately. If no timer exists, this is a no-op.
-func (b *CancellableRandomTimer) FireNow() {
+func (b *CancellableTimer) FireNow() {
 	b.swap(fireOnce{}).fire()
 }
 

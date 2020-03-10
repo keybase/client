@@ -160,8 +160,6 @@ export type TypedActionsMap = {
   'chat2:setConvExplodingMode': chat2.SetConvExplodingModePayload
   'chat2:setExplodingModeLock': chat2.SetExplodingModeLockPayload
   'chat2:updateConvExplodingModes': chat2.UpdateConvExplodingModesPayload
-  'chat2:setWalletsOld': chat2.SetWalletsOldPayload
-  'chat2:handleSeeingWallets': chat2.HandleSeeingWalletsPayload
   'chat2:staticConfigLoaded': chat2.StaticConfigLoadedPayload
   'chat2:setMinWriterRole': chat2.SetMinWriterRolePayload
   'chat2:saveMinWriterRole': chat2.SaveMinWriterRolePayload
@@ -209,7 +207,6 @@ export type TypedActionsMap = {
   'chat2:inboxSearchSetIndexPercent': chat2.InboxSearchSetIndexPercentPayload
   'chat2:setMaybeMentionInfo': chat2.SetMaybeMentionInfoPayload
   'chat2:tabSelected': chat2.TabSelectedPayload
-  'chat2:setInboxShowIsNew': chat2.SetInboxShowIsNewPayload
   'chat2:resolveMaybeMention': chat2.ResolveMaybeMentionPayload
   'chat2:loadAttachmentView': chat2.LoadAttachmentViewPayload
   'chat2:addAttachmentViewMessage': chat2.AddAttachmentViewMessagePayload
@@ -244,8 +241,6 @@ export type TypedActionsMap = {
   'chat2:setBotSettings': chat2.SetBotSettingsPayload
   'chat2:removeBotMember': chat2.RemoveBotMemberPayload
   'chat2:editBotSettings': chat2.EditBotSettingsPayload
-  'chat2:loadMoreSmalls': chat2.LoadMoreSmallsPayload
-  'chat2:resetSmalls': chat2.ResetSmallsPayload
   'chat2:setParticipants': chat2.SetParticipantsPayload
   'chat2:findGeneralConvIDFromTeamID': chat2.FindGeneralConvIDFromTeamIDPayload
   'chat2:setGeneralConvFromTeamID': chat2.SetGeneralConvFromTeamIDPayload
@@ -254,6 +249,8 @@ export type TypedActionsMap = {
   'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
   'chat2:addToMessageMap': chat2.AddToMessageMapPayload
+  'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
+  'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -419,6 +416,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1GregorUIPushOutOfBandMessages': enginegen.Keybase1GregorUIPushOutOfBandMessagesPayload
   'engine-gen:keybase1HomeUIHomeUIRefresh': enginegen.Keybase1HomeUIHomeUIRefreshPayload
   'engine-gen:keybase1Identify3UiIdentify3ShowTracker': enginegen.Keybase1Identify3UiIdentify3ShowTrackerPayload
+  'engine-gen:keybase1Identify3UiIdentify3Summary': enginegen.Keybase1Identify3UiIdentify3SummaryPayload
   'engine-gen:keybase1Identify3UiIdentify3UpdateRow': enginegen.Keybase1Identify3UiIdentify3UpdateRowPayload
   'engine-gen:keybase1Identify3UiIdentify3UserReset': enginegen.Keybase1Identify3UiIdentify3UserResetPayload
   'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard': enginegen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
@@ -574,8 +572,9 @@ export type TypedActionsMap = {
   'fs:saveMedia': fs.SaveMediaPayload
   'fs:upload': fs.UploadPayload
   'fs:uploadFromDragAndDrop': fs.UploadFromDragAndDropPayload
-  'fs:uploadStarted': fs.UploadStartedPayload
-  'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
+  'fs:loadUploadStatus': fs.LoadUploadStatusPayload
+  'fs:loadedUploadStatus': fs.LoadedUploadStatusPayload
+  'fs:dismissUpload': fs.DismissUploadPayload
   'fs:journalUpdate': fs.JournalUpdatePayload
   'fs:openLocalPathInSystemFileManager': fs.OpenLocalPathInSystemFileManagerPayload
   'fs:openPathInSystemFileManager': fs.OpenPathInSystemFileManagerPayload
@@ -972,10 +971,13 @@ export type TypedActionsMap = {
   'teams:setWelcomeMessage': teams.SetWelcomeMessagePayload
   'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
   'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
+  'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
   'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
+  'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
+  'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateUserReset': tracker2.UpdateUserResetPayload

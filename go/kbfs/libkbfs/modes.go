@@ -199,6 +199,10 @@ func (md modeDefault) IndexingEnabled() bool {
 	return false
 }
 
+func (md modeDefault) DelayInitialConnect() bool {
+	return false
+}
+
 func (md modeDefault) DbWriteBufferSize() int {
 	return 10 * opt.MiB // 10 MB
 }
@@ -374,6 +378,10 @@ func (mm modeMinimal) BackgroundWorkPeriod() time.Duration {
 }
 
 func (mm modeMinimal) IndexingEnabled() bool {
+	return false
+}
+
+func (mm modeMinimal) DelayInitialConnect() bool {
 	return false
 }
 
@@ -603,6 +611,10 @@ func (mc modeConstrained) BackgroundWorkPeriod() time.Duration {
 	return 5 * time.Second
 }
 
+func (mc modeConstrained) DelayInitialConnect() bool {
+	return true
+}
+
 func (mc modeConstrained) DbWriteBufferSize() int {
 	return 100 * opt.KiB // 100 KB
 }
@@ -663,6 +675,10 @@ type modeTestSearch struct {
 
 func (mts modeTestSearch) IndexingEnabled() bool {
 	return true
+}
+
+func (mts modeTestSearch) DelayInitialConnect() bool {
+	return false
 }
 
 // Wrapper for tests.

@@ -127,6 +127,7 @@ function* handleLoudMessage(notification: Types.PushNotification) {
   }
   // We only care if the user clicked while in session
   if (!notification.userInteraction) {
+    logger.warn('push ignore non userInteraction')
     return
   }
 
@@ -144,6 +145,7 @@ function* handleLoudMessage(notification: Types.PushNotification) {
   yield Saga.put(RouteTreeGen.createClearModals())
   yield Saga.put(RouteTreeGen.createResetStack({actions, index, tab: 'tabs.chatTab'}))
   yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
+  logger.warn('push selecting ', conversationIDKey)
   yield Saga.put(
     Chat2Gen.createSelectConversation({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
   )

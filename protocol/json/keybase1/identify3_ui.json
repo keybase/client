@@ -144,6 +144,20 @@
           "name": "kid"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "Identify3Summary",
+      "fields": [
+        {
+          "type": "Identify3GUIID",
+          "name": "guiID"
+        },
+        {
+          "type": "int",
+          "name": "numProofsToCheck"
+        }
+      ]
     }
   ],
   "messages": {
@@ -168,6 +182,16 @@
         }
       ],
       "response": null
+    },
+    "identify3Summary": {
+      "request": [
+        {
+          "name": "summary",
+          "type": "Identify3Summary"
+        }
+      ],
+      "response": null,
+      "oneway": true
     },
     "identify3UpdateRow": {
       "request": [

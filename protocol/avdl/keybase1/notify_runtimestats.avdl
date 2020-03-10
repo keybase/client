@@ -35,7 +35,9 @@ protocol NotifyRuntimeStats {
   enum PerfEventType {
     NETWORK_0,
     TEAMBOXAUDIT_1,
-    TEAMAUDIT_2
+    TEAMAUDIT_2,
+    USERCHAIN_3,
+    TEAMCHAIN_4
   }
 
   record PerfEvent {

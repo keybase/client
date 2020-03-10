@@ -55,6 +55,11 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 	}
 }
 
+// FastForwardBackoff implements the BlockServer interface.
+func (b BlockServerMeasured) FastForwardBackoff() {
+	b.delegate.FastForwardBackoff()
+}
+
 // Get implements the BlockServer interface for BlockServerMeasured.
 func (b BlockServerMeasured) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,

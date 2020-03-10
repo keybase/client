@@ -92,54 +92,54 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
             />
           </Kb.Box>
           {this.props.path && (
-            <Kb.Box
-              style={Styles.collapseStyles([
-                this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
-                this.isLoaded() ? null : styles.contentsHidden,
-              ])}
-              key={this.props.path}
-            >
-              {!this.state.isZoomed ? (
-                <Arrow left={true} onClick={this.props.onPreviousAttachment} />
-              ) : (
-                undefined
-              )}
+            <Kb.BoxGrow>
               <Kb.Box
                 style={Styles.collapseStyles([
                   this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
+                  this.isLoaded() ? null : styles.contentsHidden,
                 ])}
-                onClick={() => {
-                  if (!this.props.isVideo) {
-                    this.setState(p => ({isZoomed: !p.isZoomed}))
-                  }
-                }}
                 key={this.props.path}
               >
-                {!this.props.isVideo ? (
-                  <Kb.OrientedImage
-                    src={this.props.path}
-                    style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
-                    onLoad={() => {
-                      if (this.mounted) {
-                        this.setLoaded(this.props.path)
-                      }
-                    }}
-                  />
+                {!this.state.isZoomed ? (
+                  <Arrow left={true} onClick={this.props.onPreviousAttachment} />
                 ) : (
-                  <video
-                    style={styles.videoFit}
-                    onLoadedMetadata={() => this.setLoaded(this.props.path)}
-                    controlsList="nodownload nofullscreen noremoteplayback"
-                    controls={true}
-                    ref={this.vidRef}
-                  >
-                    <source src={this.props.path} />
-                    <style>{showPlayButton}</style>
-                  </video>
+                  undefined
                 )}
+                <Kb.Box
+                  style={Styles.globalStyles.flexGrow}
+                  onClick={() => {
+                    if (!this.props.isVideo) {
+                      this.setState(p => ({isZoomed: !p.isZoomed}))
+                    }
+                  }}
+                  key={this.props.path}
+                >
+                  {!this.props.isVideo ? (
+                    <Kb.OrientedImage
+                      src={this.props.path}
+                      style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
+                      onLoad={() => {
+                        if (this.mounted) {
+                          this.setLoaded(this.props.path)
+                        }
+                      }}
+                    />
+                  ) : (
+                    <video
+                      style={styles.videoFit}
+                      onLoadedMetadata={() => this.setLoaded(this.props.path)}
+                      controlsList="nodownload nofullscreen noremoteplayback"
+                      controls={true}
+                      ref={this.vidRef}
+                    >
+                      <source src={this.props.path} />
+                      <style>{showPlayButton}</style>
+                    </video>
+                  )}
+                </Kb.Box>
+                {!this.state.isZoomed && <Arrow left={false} onClick={this.props.onNextAttachment} />}
               </Kb.Box>
-              {!this.state.isZoomed && <Arrow left={false} onClick={this.props.onNextAttachment} />}
-            </Kb.Box>
+            </Kb.BoxGrow>
           )}
           {!this.isLoaded() && (
             <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} centerChildren={true}>
@@ -199,6 +199,7 @@ const styles = Styles.styleSheetCreate(
           alignSelf: 'center',
           borderRadius: 36,
           cursor: 'pointer',
+          flexShrink: 0,
           height: 36,
           justifyContent: 'center',
           margin: Styles.globalMargins.small,
@@ -208,7 +209,14 @@ const styles = Styles.styleSheetCreate(
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
       contentsHidden: {display: 'none'},
-      contentsZoom: Styles.platformStyles({isElectron: {display: 'block', flex: 1, overflow: 'auto'}}),
+      contentsZoom: Styles.platformStyles({
+        isElectron: {
+          display: 'block',
+          height: '100%',
+          overflow: 'auto',
+          width: '100%',
+        },
+      }),
       error: {
         color: Styles.globalColors.redDark,
       },

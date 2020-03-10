@@ -1,7 +1,17 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {isIOS, isMobile} from '../../constants/platform'
+import * as Styles from '../styles'
+import Emoji from './emoji'
+import Text from './text'
+import {Box2} from './box'
+import FloatingMenu from './floating-menu'
+import SearchFilter from './search-filter'
+import PlainInput from './plain-input'
+import FloatingPicker from './floating-picker'
+import OverlayParentHOC, {PropsWithOverlay} from './overlay/parent-hoc'
+import ProgressIndicator from './progress-indicator'
+import ClickableBox from './clickable-box'
+import Icon from './icon'
+import {isIOS, isMobile} from '../constants/platform'
 import {
   countryData,
   CountryData,
@@ -9,8 +19,22 @@ import {
   areaCodeIsCanadian,
   AsYouTypeFormatter,
   validateNumber,
-} from '../../util/phone-numbers'
-import {memoize} from '../../util/memoize'
+} from '../util/phone-numbers'
+import {memoize} from '../util/memoize'
+
+const Kb = {
+  Box2,
+  ClickableBox,
+  Emoji,
+  FloatingMenu,
+  FloatingPicker,
+  Icon,
+  OverlayParentHOC,
+  PlainInput,
+  ProgressIndicator,
+  SearchFilter,
+  Text,
+}
 
 const normalizeCountryCode = (countryCode: string) =>
   countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode
@@ -238,6 +262,7 @@ type Props = {
   defaultCountry?: string
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onEnterKeyDown?: () => void
+  onClear?: () => void
   style?: Styles.StylesCrossPlatform
 }
 
@@ -249,7 +274,7 @@ type State = {
   focused: boolean
 }
 
-class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
+class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
   state = {
     country: this.props.defaultCountry,
     focused: false,
@@ -258,7 +283,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     prefix: this.props.defaultCountry && getCallingCode(this.props.defaultCountry).slice(1),
   }
   private countrySelectorRef = React.createRef<CountrySelector>()
-  private phoneInputRef = React.createRef<Kb.PlainInput>()
+  private phoneInputRef = React.createRef<PlainInput>()
 
   private setFormattedPhoneNumber = (formatted: string) =>
     this.setState(s => {
@@ -548,6 +573,9 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               maxLength={17}
               textContentType="telephoneNumber"
             />
+            {this.props.onClear && (
+              <Kb.Icon type="iconfont-remove" onClick={this.props.onClear} style={styles.clearIcon} />
+            )}
           </Kb.Box2>
         </Kb.Box2>
         <CountrySelector
@@ -567,6 +595,9 @@ const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      clearIcon: {
+        marginRight: Styles.globalMargins.tiny,
+      },
       container: Styles.platformStyles({
         isElectron: {
           backgroundColor: Styles.globalColors.white,

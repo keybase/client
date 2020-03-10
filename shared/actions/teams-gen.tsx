@@ -53,6 +53,7 @@ export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
+export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMemberSubteamDetails = 'teams:setMemberSubteamDetails'
 export const setMembers = 'teams:setMembers'
@@ -77,6 +78,8 @@ export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnown
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamVersion = 'teams:setTeamVersion'
+export const setTeamWizardNameDescription = 'teams:setTeamWizardNameDescription'
+export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
@@ -125,6 +128,7 @@ type _CreateChannelPayload = {
   readonly teamID: Types.TeamID
   readonly channelname: string
   readonly description: string | null
+  readonly navToChatOnSuccess: boolean
 }
 type _CreateNewTeamFromConversationPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -217,6 +221,7 @@ type _SetChannelSelectedPayload = {
 }
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
+type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
 type _SetMemberSubteamDetailsPayload = {
   readonly username: string
@@ -284,6 +289,14 @@ type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
+type _SetTeamWizardNameDescriptionPayload = {
+  readonly teamname: string
+  readonly description: string
+  readonly openTeam: boolean
+  readonly openTeamJoinRole: Types.TeamRoleType
+  readonly showcase: boolean
+}
+type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
 type _SetUpdatedChannelNamePayload = {
   readonly teamID: Types.TeamID
@@ -558,6 +571,9 @@ export const createSetEditDescriptionError = (
 export const createSetEmailInviteError = (
   payload: _SetEmailInviteErrorPayload
 ): SetEmailInviteErrorPayload => ({payload, type: setEmailInviteError})
+export const createSetJustFinishedAddMembersWizard = (
+  payload: _SetJustFinishedAddMembersWizardPayload
+): SetJustFinishedAddMembersWizardPayload => ({payload, type: setJustFinishedAddMembersWizard})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload): SetMemberPublicityPayload => ({
   payload,
   type: setMemberPublicity,
@@ -641,6 +657,12 @@ export const createSetTeamVersion = (payload: _SetTeamVersionPayload): SetTeamVe
   payload,
   type: setTeamVersion,
 })
+export const createSetTeamWizardNameDescription = (
+  payload: _SetTeamWizardNameDescriptionPayload
+): SetTeamWizardNameDescriptionPayload => ({payload, type: setTeamWizardNameDescription})
+export const createSetTeamWizardTeamType = (
+  payload: _SetTeamWizardTeamTypePayload
+): SetTeamWizardTeamTypePayload => ({payload, type: setTeamWizardTeamType})
 export const createSetTeamsWithChosenChannels = (
   payload: _SetTeamsWithChosenChannelsPayload
 ): SetTeamsWithChosenChannelsPayload => ({payload, type: setTeamsWithChosenChannels})
@@ -825,6 +847,10 @@ export type SetEmailInviteErrorPayload = {
   readonly payload: _SetEmailInviteErrorPayload
   readonly type: typeof setEmailInviteError
 }
+export type SetJustFinishedAddMembersWizardPayload = {
+  readonly payload: _SetJustFinishedAddMembersWizardPayload
+  readonly type: typeof setJustFinishedAddMembersWizard
+}
 export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
   readonly type: typeof setMemberPublicity
@@ -911,6 +937,14 @@ export type SetTeamSawSubteamsBannerPayload = {
 export type SetTeamVersionPayload = {
   readonly payload: _SetTeamVersionPayload
   readonly type: typeof setTeamVersion
+}
+export type SetTeamWizardNameDescriptionPayload = {
+  readonly payload: _SetTeamWizardNameDescriptionPayload
+  readonly type: typeof setTeamWizardNameDescription
+}
+export type SetTeamWizardTeamTypePayload = {
+  readonly payload: _SetTeamWizardTeamTypePayload
+  readonly type: typeof setTeamWizardTeamType
 }
 export type SetTeamsWithChosenChannelsPayload = {
   readonly payload: _SetTeamsWithChosenChannelsPayload
@@ -1016,6 +1050,7 @@ export type Actions =
   | SetChannelSelectedPayload
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
+  | SetJustFinishedAddMembersWizardPayload
   | SetMemberPublicityPayload
   | SetMemberSubteamDetailsPayload
   | SetMembersPayload
@@ -1040,6 +1075,8 @@ export type Actions =
   | SetTeamSawChatBannerPayload
   | SetTeamSawSubteamsBannerPayload
   | SetTeamVersionPayload
+  | SetTeamWizardNameDescriptionPayload
+  | SetTeamWizardTeamTypePayload
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload

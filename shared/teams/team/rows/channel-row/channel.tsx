@@ -40,6 +40,13 @@ const ChannelRow = (props: ChannelRowProps) => {
     dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
   const onNavToChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamChannel'}]}))
+  const onNavToSettings = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [{props: {...props, selectedTab: 'settings' as const}, selected: 'teamChannel'}],
+      })
+    )
+
   const onDeleteChannel = () => dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
   const checkCircle = (
     <Kb.CheckCircle
@@ -73,7 +80,7 @@ const ChannelRow = (props: ChannelRowProps) => {
 
   const menuItems: Array<Kb.MenuItem> = [
     {onClick: () => {}, title: 'Audience stats'},
-    {onClick: () => {}, title: 'Settings'},
+    {onClick: onNavToSettings, title: 'Settings'},
     ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
   ]
   const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (

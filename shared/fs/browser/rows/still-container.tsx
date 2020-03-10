@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Container from '../../../util/container'
+import * as FsGen from '../../../actions/fs-gen'
 import OpenHOC from '../../common/open-hoc'
 import Still from './still'
 
@@ -18,13 +19,16 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
       _pathItemActionMenu: state.fs.pathItemActionMenu,
       _uploads: state.fs.uploads,
     }),
-    dispatch => ({_retry: dispatch}),
-    (stateProps, dispatchProps, {path, destinationPickerIndex}: OwnProps) => {
+    (dispatch: Container.Dispatch) => ({
+      dismissUploadError: (uploadID: string) => dispatch(FsGen.createDismissUpload({uploadID})),
+    }),
+    (stateProps, dispatchProps, {path}: OwnProps) => {
       const {_downloads, _pathItem, _pathItemActionMenu} = stateProps
-      const uploadRetriableAction = (stateProps._uploads.errors.get(path) || Constants.emptyError)
-        .retriableAction
+      const writingToJournalUploadState = stateProps._uploads.writingToJournal.get(path)
       return {
-        destinationPickerIndex,
+        dismissUploadError: writingToJournalUploadState?.error
+          ? () => dispatchProps.dismissUploadError(writingToJournalUploadState.uploadID)
+          : undefined,
         intentIfDownloading: Constants.getDownloadIntent(path, _downloads, _pathItemActionMenu),
         isEmpty:
           _pathItem.type === Types.PathType.Folder &&
@@ -32,11 +36,8 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
           !_pathItem.children.size,
         path,
         type: _pathItem.type,
-        uploadErrorRetry: uploadRetriableAction
-          ? () => dispatchProps._retry(uploadRetriableAction)
-          : undefined,
         uploading: stateProps._uploads.syncingPaths.has(path),
-        writingToJournal: stateProps._uploads.writingToJournal.has(path),
+        writingToJournal: !!writingToJournalUploadState,
       }
     }
   )(OpenHOC(ComposedComponent)))(Still)

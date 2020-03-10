@@ -27,6 +27,7 @@ export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
   const teamname = getTeamNameFromID(state, teamID) ?? ''
   return teamWaitingKey(teamname)
 }
+export const setMemberPublicityWaitingKey = (teamID: Types.TeamID) => `teamMemberPub:${teamID}`
 export const teamGetWaitingKey = (teamID: Types.TeamID) => `teamGet:${teamID}`
 export const teamTarsWaitingKey = (teamID: Types.TeamID) => `teamTars:${teamID}`
 export const teamCreationWaitingKey = 'teamCreate'
@@ -172,6 +173,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 })
 
 const emptyState: Types.State = {
+  addMembersWizard: {justFinished: false},
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
@@ -188,6 +190,15 @@ const emptyState: Types.State = {
   errorInTeamJoin: '',
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
+  newTeamWizard: {
+    description: '',
+    name: '',
+    open: false,
+    openTeamJoinRole: 'writer',
+    showcase: false,
+    teamNameTaken: false,
+    teamType: 'other',
+  },
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -715,12 +726,11 @@ export const annotatedInvitesToInviteInfo = (
       const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
       username = `${invite.name}@${sbs}`
     }
-    const {e164ToDisplay} = require('../util/phone-numbers')
     arr.push({
       email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
       id: invite.id,
       name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.name : '',
       role,
       username,
     })

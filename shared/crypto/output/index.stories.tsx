@@ -90,12 +90,24 @@ const load = () => {
       Sb.updateStoreDecorator(store, draftState => {
         const {encrypt} = draftState.crypto
         encrypt.outputStatus = undefined
+        encrypt.inProgress = false
+        encrypt.bytesComplete = 0
+        encrypt.bytesTotal = 1073741824
+      })
+    )
+    .add('Progress - Hidden', () => <Output operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Progress', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt} = draftState.crypto
+        encrypt.outputStatus = undefined
         encrypt.inProgress = true
         encrypt.bytesComplete = 0
         encrypt.bytesTotal = 1073741824
       })
     )
-    .add('Progress - None', () => <Output operation={Constants.Operations.Encrypt} />)
+    .add('Progress - Zero', () => <Output operation={Constants.Operations.Encrypt} />)
 
   Sb.storiesOf('Crypto/Output Progress', module)
     .addDecorator(

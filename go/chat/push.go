@@ -784,7 +784,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: expunge: convID: %s expunge: %v",
 				nm.ConvID, nm.Expunge)
 			uid := m.UID().Bytes()
-			if err = g.G().ConvSource.Expunge(ctx, nm.ConvID, uid, nm.Expunge); err != nil {
+			conv, err := utils.GetUnverifiedConv(ctx, g.G(), uid, nm.ConvID, types.InboxSourceDataSourceAll)
+			switch err {
+			case nil:
+			case utils.ErrGetUnverifiedConvNotFound:
+				conv = types.NewEmptyRemoteConversation(convID)
+			default:
+				return err
+			}
+			if err = g.G().ConvSource.Expunge(ctx, conv, uid, nm.Expunge); err != nil {
 				g.Debug(ctx, "chat activity: unable to update conv: %v", err)
 			}
 			if _, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {

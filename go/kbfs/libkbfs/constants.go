@@ -19,9 +19,17 @@ const rekeyRecheckInterval = 30 * time.Second
 // rekeyInitialTTL is the maximum number rechecks each rekey request can trigger.
 const rekeyInitialTTL = 4
 
+// mdserverFirstConnectDelay is the duration we wait for before we try to
+// connect to mdserver for the first time..
+const mdserverFirstConnectDelay = time.Second * 10
+
 // mdserverReconnectBackoffWindow is a backoff window within which we try to
 // wait randomly for before reconnecting to MD server.
 const mdserverReconnectBackoffWindow = time.Hour
+
+// bserverFirstConnectDelay is the duration we wait for before we try to
+// connect to mdserver for the first time..
+const bserverFirstConnectDelay = time.Second * 10
 
 // bserverReconnectBackoffWindow is a backoff window within which we try to
 // wait randomly for before reconnecting to bserver.

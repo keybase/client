@@ -9,6 +9,7 @@ import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as FsConstants from '../constants/fs'
 import * as Container from '../util/container'
+import shallowEqual from 'shallowequal'
 import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -16,7 +17,7 @@ import {Props} from './router'
 import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createSwitchNavigator} from '@react-navigation/core'
+import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import debounce from 'lodash/debounce'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
@@ -53,6 +54,8 @@ const defaultNavigationOptions: any = {
     borderBottomWidth: 1,
     borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
+    // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
+    ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
   },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
@@ -60,6 +63,7 @@ const defaultNavigationOptions: any = {
     </Kb.Text>
   ),
 }
+
 // workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
@@ -133,7 +137,7 @@ const BlankScreen = () => null
 const VanillaTabNavigator = createBottomTabNavigator(
   tabs.reduce(
     (map, tab) => {
-      map[tab] = createStackNavigator(Shim.shim(routes), {
+      const Stack = createStackNavigator(Shim.shim(routes), {
         bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
         cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
         defaultNavigationOptions,
@@ -155,6 +159,34 @@ const VanillaTabNavigator = createBottomTabNavigator(
           },
         }),
       })
+      class CustomStackNavigator extends React.Component<any> {
+        static router = {
+          ...Stack.router,
+          getStateForAction: (action, lastState) => {
+            // disallow dupe pushes or replaces. We have logic for this in oldActionToNewActions but it can be
+            // racy, this should work no matter what as this is effectively the reducer for the state
+            const nextState = Stack.router.getStateForAction(action, lastState)
+
+            const visiblePath = Constants._getStackPathHelper([], nextState)
+            const last = visiblePath?.[visiblePath.length - 1]
+            const nextLast = visiblePath?.[visiblePath.length - 2]
+
+            // last two are dupes?
+            if (last?.routeName === nextLast?.routeName && shallowEqual(last?.params, nextLast?.params)) {
+              // just pop it
+              return Stack.router.getStateForAction(StackActions.pop({}), nextState)
+            }
+
+            return nextState
+          },
+        }
+
+        render() {
+          const {navigation} = this.props
+          return <Stack navigation={navigation} />
+        }
+      }
+      map[tab] = CustomStackNavigator
       return map
     },
     // Start with a blank screen w/o a tab icon so we dont' render the people tab on start always

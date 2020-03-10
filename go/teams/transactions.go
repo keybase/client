@@ -29,6 +29,10 @@ type AddMemberTx struct {
 	// completedInvites is used to mark completed invites, so they are
 	// skipped in sweeping methods.
 	completedInvites map[keybase1.TeamInviteID]bool
+
+	// keep track of how many multiple-use invites have been used so far
+	usedInviteCount map[keybase1.TeamInviteID]int
+
 	// lastChangeForUID holds index of last tx.payloads payload that
 	// affects given uid.
 	lastChangeForUID map[keybase1.UID]int
@@ -58,6 +62,7 @@ func CreateAddMemberTx(t *Team) *AddMemberTx {
 		team:             t,
 		completedInvites: make(map[keybase1.TeamInviteID]bool),
 		lastChangeForUID: make(map[keybase1.UID]int),
+		usedInviteCount:  make(map[keybase1.TeamInviteID]int),
 	}
 }
 
@@ -582,13 +587,42 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertionOrEmail(ctx context.Context, 
 	return tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, assertion, role, botSettings)
 }
 
-func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
+func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, g *libkb.GlobalContext, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
 	payload := tx.findChangeReqForUV(uv)
 	if payload == nil {
 		return fmt.Errorf("could not find uv %v in transaction", uv)
 	}
 
-	payload.CompleteInviteID(inviteID, uv.PercentForm())
+	invite, found := tx.team.chain().FindActiveInviteByID(inviteID)
+	if !found {
+		return fmt.Errorf("failed to find invite being used")
+	}
+
+	isNewStyle, err := IsNewStyleInvite(invite)
+	if err != nil {
+		return err
+	}
+
+	if isNewStyle {
+		alreadyUsedBeforeTransaction := len(tx.team.chain().inner.UsedInvites[inviteID])
+		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
+		if invite.MaxUses.IsUsedUp(alreadyUsed) {
+			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
+		}
+
+		if invite.Etime != nil {
+			now := g.Clock().Now()
+			etime := keybase1.FromUnixTime(*invite.Etime)
+			if now.After(etime) {
+				return fmt.Errorf("invite expired at %v which is before the current time of %v; rejecting", etime, now)
+			}
+		}
+
+		payload.UseInviteID(inviteID, uv.PercentForm())
+		tx.usedInviteCount[inviteID]++
+	} else {
+		payload.CompleteInviteID(inviteID, uv.PercentForm())
+	}
 	return nil
 }
 
@@ -840,6 +874,8 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 
 			section.CompletedInvites = payload.CompletedInvites
+			section.UsedInvites = makeSCMapInviteIDUVMap(payload.UsedInvites)
+
 			sections = append(sections, section)
 
 			// If there are additions, then there will be a new key involved.

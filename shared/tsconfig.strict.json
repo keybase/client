@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "assumeChangesOnlyAffectDirectDependencies": false,
     "noImplicitAny": true,
     "tsBuildInfoFile": "./.tsOuts/.tsOutStrict/cache",
     "outDir": "./.tsOuts/.tsOutStrict/emit"

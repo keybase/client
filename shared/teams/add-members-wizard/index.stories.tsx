@@ -2,9 +2,10 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import AddFromWhere from './add-from-where'
 import EnableContacts from './enable-contacts'
 import AddEmail from './add-email'
-import AddFromWhere from './add-from-where'
+import AddPhone from './add-phone'
 
 const fakeTeamID = 'fakeTeamID'
 const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
@@ -16,6 +17,7 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
     ...draftState.config,
     username: 'andonuts',
   }
+  draftState.settings.phoneNumbers.defaultCountry = 'FR'
 })
 
 const fromWhereProps = Sb.createNavigator({teamID: fakeTeamID})
@@ -28,6 +30,7 @@ const load = () => {
     .add('Add from where (new team)', () => <AddFromWhere {...fromWhereNewProps} />)
     .add('Enable contacts', () => <EnableContacts onClose={Sb.action('onClose')} />)
     .add('Add by email', () => <AddEmail teamID={fakeTeamID} errorMessage="" />)
+    .add('Add by phone', () => <AddPhone {...Sb.createNavigator({teamID: fakeTeamID})} />)
 }
 
 export default load

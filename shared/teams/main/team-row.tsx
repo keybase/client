@@ -99,7 +99,6 @@ const TeamRow = (props: Props) => {
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"
-              tooltip=""
               ref={popupAnchor}
             />
           </Kb.Box2>

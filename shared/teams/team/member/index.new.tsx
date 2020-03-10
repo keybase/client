@@ -429,7 +429,6 @@ const BlockDropdown = (props: {username: string}) => {
       <Kb.Button
         small={true}
         icon="iconfont-ellipsis"
-        tooltip=""
         onClick={() => setShowingPopup(true)}
         mode="Secondary"
         ref={popupAnchor}

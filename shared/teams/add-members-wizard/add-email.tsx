@@ -45,10 +45,10 @@ const AddEmail = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Styles.isMobile ? 'tiny' : 'xsmall'}
       >
-        <Kb.Text type="BodySemibold">Enter one or multiple email addresses:</Kb.Text>
-        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
+        <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
           <Kb.LabeledInput
             autoFocus={true}
             error={!!props.errorMessage}
@@ -61,7 +61,7 @@ const AddEmail = (props: Props) => {
             value={invitees}
           />
           {!!props.errorMessage && (
-            <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
+            <Kb.Text type="BodySmall" style={styles.errorText}>
               {props.errorMessage}
             </Kb.Text>
           )}
@@ -77,7 +77,6 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
-      borderRadius: 4,
     },
     isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},
@@ -85,6 +84,7 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.small,
   },
+  errorText: {color: Styles.globalColors.redDark},
   wordBreak: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

@@ -201,9 +201,7 @@ var deletableMessageTypesByDelete = []MessageType{
 var nonDeletableMessageTypesByDeleteHistory = []MessageType{
 	MessageType_NONE,
 	MessageType_DELETE,
-	MessageType_METADATA,
 	MessageType_TLFNAME,
-	MessageType_HEADLINE,
 	MessageType_DELETEHISTORY,
 }
 
@@ -270,6 +268,23 @@ func BadgeableMessageTypes() []MessageType {
 // Used for filtering empty convs out of the the inbox.
 func NonEmptyConvMessageTypes() []MessageType {
 	return badgeableMessageTypes
+}
+
+var snippetMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_DELETEHISTORY,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
+// Snippet chat messages can be the snippet of a conversation.
+func SnippetChatMessageTypes() []MessageType {
+	return snippetMessageTypes
 }
 
 var editableMessageTypesByEdit = []MessageType{
@@ -1073,6 +1088,10 @@ func (m MessageBoxed) GetMessageID() MessageID {
 	return m.ServerHeader.MessageID
 }
 
+func (m MessageBoxed) Ctime() gregor1.Time {
+	return m.ServerHeader.Ctime
+}
+
 func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
@@ -1755,6 +1774,10 @@ func (r *GetChannelMembershipsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetMutualTeamsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -2160,6 +2183,14 @@ func (r *GetChannelMembershipsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *GetMutualTeamsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetMutualTeamsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *SetAppNotificationSettingsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2503,6 +2534,10 @@ func (r *SetDefaultTeamChannelsLocalRes) SetRateLimits(rl []RateLimit) {
 	if len(rl) > 0 {
 		r.RateLimit = &rl[0]
 	}
+}
+
+func (i EphemeralPurgeInfo) IsNil() bool {
+	return i.IsActive == false && i.NextPurgeTime == 0 && i.MinUnexplodedID <= 1
 }
 
 func (i EphemeralPurgeInfo) String() string {

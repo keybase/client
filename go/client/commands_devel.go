@@ -26,7 +26,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdTestFSNotify(cl, g),
 		newCmdTlf(cl, g),
 		NewCmdScanProofs(cl, g),
-		newCmdTeamGenerateSeitan(cl, g),
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
 		NewCmdContacts(cl, g),
@@ -46,7 +45,9 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 }
 
 func getBuildSpecificTeamCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
-	return nil
+	return []cli.Command{
+		newCmdTeamGenerateInvitelink(cl, g),
+	}
 }
 
 func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
@@ -74,6 +75,8 @@ func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 		NewCmdSimpleFSUpgrade(cl, g),
 		NewCmdSimpleFSForceConflict(cl, g),
 		NewCmdSimpleFSSearch(cl, g),
+		NewCmdSimpleFSResetIndex(cl, g),
+		NewCmdSimpleFSIndexProgress(cl, g),
 	}
 }
 
