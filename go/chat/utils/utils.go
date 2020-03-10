@@ -944,6 +944,17 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 	return h.Sum(nil), nil
 }
 
+func GetConvLastSendTime(rc types.RemoteConversation) gregor1.Time {
+	conv := rc.Conv
+	if conv.ReaderInfo == nil {
+		return 0
+	}
+	if conv.ReaderInfo.LastSendTime == 0 {
+		return GetConvMtime(rc)
+	}
+	return conv.ReaderInfo.LastSendTime
+}
+
 func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 	conv := rc.Conv
 	var summaries []chat1.MessageSummary
