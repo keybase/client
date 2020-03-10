@@ -95,18 +95,18 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   contentContainer: Styles.platformStyles({
     common: {
-        ...Styles.globalStyles.rounded,
-        backgroundColor: Styles.globalColors.white,
-        flexShrink: 1,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
-      },
+      ...Styles.globalStyles.rounded,
+      backgroundColor: Styles.globalColors.white,
+      flexShrink: 1,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
     isTablet: {
       maxWidth: 460,
-    }
-  }), 
+    },
+  }),
   image: {
     alignSelf: 'center',
     maxHeight: 150,
