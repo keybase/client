@@ -40,7 +40,7 @@ const getAddedUsernames = (usernames: Array<string>) => {
         onUsernameClicked="profile"
         colorFollowing={true}
         underline={true}
-        usernames={[username]}
+        usernames={username}
         key={username}
       />,
       idx < users.length - (othersStr ? 1 : 2) ? ', ' : ''

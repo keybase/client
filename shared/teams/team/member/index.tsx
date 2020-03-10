@@ -96,7 +96,7 @@ export const TeamMember = (props: Props) => {
         <Kb.ConnectedUsernames
           type="HeaderBig"
           colorFollowing={!(you && you.username === user.username)} // De-colorize if this is own member page
-          usernames={[user.username]}
+          usernames={user.username}
           onUsernameClicked={props.onOpenProfile}
         />
         <Kb.Text type="BodySmall">

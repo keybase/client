@@ -97,7 +97,7 @@ export const Bot = (props: BotProps) => {
       ) : (
         <Kb.ConnectedUsernames
           inline={true}
-          usernames={[ownerUser ?? botUsername]}
+          usernames={ownerUser ?? botUsername}
           type="BodySmall"
           withProfileCardPopup={true}
           onUsernameClicked="profile"

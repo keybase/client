@@ -37,7 +37,7 @@ const FollowNotification = (props: Props) => {
   const usernameComponent = (
     <Kb.ConnectedUsernames
       {...connectedUsernamesProps}
-      usernames={[username]}
+      usernames={username}
       onUsernameClicked={props.onClickUser}
     />
   )

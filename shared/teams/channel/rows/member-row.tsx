@@ -119,7 +119,7 @@ const ChannelMemberRow = (props: Props) => {
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
         <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-          <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
+          <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
         </Kb.Box>
 
         <Kb.Box style={styles.nameContainerInner}>

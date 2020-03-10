@@ -273,7 +273,7 @@ export const TeamMemberHeader = (props: Props) => {
             <Kb.Box2 direction="horizontal" gap="small">
               <Kb.Avatar size={64} username={username} />
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
-                <Kb.ConnectedUsernames type="Header" usernames={[username]} />
+                <Kb.ConnectedUsernames type="Header" usernames={username} />
                 {!!member.fullName && (
                   <Kb.Text type="BodySemibold" lineClamp={1}>
                     {member.fullName}
