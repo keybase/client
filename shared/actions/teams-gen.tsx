@@ -420,7 +420,7 @@ export const createCancelAddMembersWizard = (
   payload: _CancelAddMembersWizardPayload
 ): CancelAddMembersWizardPayload => ({payload, type: cancelAddMembersWizard})
 /**
- * Nav away from add members wizard and clear related statee.
+ * Nav away from add members wizard and clear related state.
  */
 export const createFinishAddMembersWizard = (
   payload: _FinishAddMembersWizardPayload
