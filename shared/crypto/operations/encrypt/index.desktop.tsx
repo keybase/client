@@ -1,13 +1,13 @@
 import * as React from 'react'
-import * as CryptoGen from '../../actions/crypto-gen'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/crypto'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import openURL from '../../util/open-url'
-import {Input, DragAndDrop, OperationBanner} from '../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../output'
-import Recipients from '../recipients'
+import * as CryptoGen from '../../../actions/crypto-gen'
+import * as Kb from '../../../common-adapters'
+import * as Constants from '../../../constants/crypto'
+import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import openURL from '../../../util/open-url'
+import {DragAndDrop, Input, OperationBanner} from '../../input'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
+import Recipients from '../../recipients'
 
 const operation = Constants.Operations.Encrypt
 
@@ -79,6 +79,33 @@ const EncryptOutputBanner = () => {
   )
 }
 
+const EncryptInput = () => {
+  return (
+    <>
+      <OperationBanner
+        operation={operation}
+        infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
+      />
+      <Recipients />
+      <Kb.Box2 direction="vertical" fullHeight={true}>
+        <Input operation={operation} />
+        <EncryptOptions />
+      </Kb.Box2>
+    </>
+  )
+}
+
+const EncryptOutput = () => {
+  return (
+    <Kb.Box2 direction="vertical" fullHeight={true}>
+      <EncryptOutputBanner />
+      <SignedSender operation={operation} />
+      <OperationOutput operation={operation} />
+      <OutputBar operation={operation} />
+    </Kb.Box2>
+  )
+}
+
 const Encrypt = () => {
   return (
     <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
@@ -112,4 +139,5 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
+export {EncryptInput, EncryptOutput}
 export default Encrypt

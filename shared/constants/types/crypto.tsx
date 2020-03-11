@@ -23,8 +23,10 @@ export type CryptoSubTab = EncryptTab | DecryptTab | SignTab | VerifyTab
 
 export type Tab = {
   title: TabTitles
+  description: string
   tab: CryptoSubTab
   icon: IconType
+  illustration: IconType
 }
 
 export type TextType = 'cipher' | 'plain'

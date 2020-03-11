@@ -5,6 +5,7 @@ import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
 import {memoize} from '../../util/memoize'
 import NavRow from './nav-row'
+import Props from '.'
 
 type Props = {
   children?: React.ReactNode
@@ -31,7 +32,7 @@ class SubNav extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.operationsListContainer}>
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
           <Kb.BoxGrow>
             <Kb.List
               items={this.getRows(this.props.routeSelected)}
@@ -51,7 +52,7 @@ const styles = Styles.styleSheetCreate(() => ({
   list: {
     ...Styles.globalStyles.fullHeight,
   },
-  operationsListContainer: {
+  listContainer: {
     backgroundColor: Styles.globalColors.blueGrey,
     borderStyle: 'solid',
     flexGrow: 0,

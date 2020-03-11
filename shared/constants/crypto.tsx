@@ -46,22 +46,30 @@ export const TabTitles: {[k in Types.CryptoSubTab]: Types.TabTitles} = {
 
 export const Tabs: Array<Types.Tab> = [
   {
+    description: 'Encrypt to anyone, even if they’re not on Keybase yet.',
     icon: 'iconfont-lock',
+    illustration: 'icon-encrypt-64',
     tab: encryptTab,
     title: TabTitles[encryptTab],
   },
   {
+    description: 'Decrypt messages encrypted with Saltpack.',
     icon: 'iconfont-unlock',
+    illustration: 'icon-decrypt-64',
     tab: decryptTab,
     title: TabTitles[decryptTab],
   },
   {
+    description: 'Add your cryptographic signature to a message.',
     icon: 'iconfont-check',
+    illustration: 'icon-sign-64',
     tab: signTab,
     title: TabTitles[signTab],
   },
   {
+    description: 'Verify a signed message.',
     icon: 'iconfont-verify',
+    illustration: 'icon-verify-64',
     tab: verifyTab,
     title: TabTitles[verifyTab],
   },

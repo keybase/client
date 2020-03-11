@@ -9,19 +9,23 @@ import {IconType} from '../../common-adapters/icon.constants-gen'
 type Props = {
   title: string
   tab: Types.CryptoSubTab
-  icon: IconType
-  isSelected: boolean
+  // Desktop only
+  icon?: IconType
+  isSelected?: boolean
+  // Moible only
+  description?: string
+  illustration?: IconType
 }
 
-const OperationRow = (props: Props) => {
-  const {tab, isSelected, title, icon} = props
+const NavRow = (props: Props) => {
+  const {tab, isSelected, title, icon, illustration, description} = props
   const dispatch = Container.useDispatch()
 
   const onSelect = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [tab], replace: true}))
   }
 
-  return (
+  const desktopRow = icon ? (
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
@@ -62,7 +66,14 @@ const OperationRow = (props: Props) => {
         }
       />
     </Kb.Box2>
-  )
+  ) : null
+
+  const mobileRow =
+    description && illustration ? (
+      <Kb.RichButton title={title} description={description} icon={illustration} onClick={onSelect} />
+    ) : null
+
+  return Styles.isMobile ? mobileRow : desktopRow
 }
 
 const rowHeight = 50
@@ -82,4 +93,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default OperationRow
+export default NavRow
