@@ -867,14 +867,6 @@ func (t Time) UnixSeconds() int64 {
 	return t.Time().Unix()
 }
 
-func (t Time) UnixMilliseconds() int64 {
-	return t.Time().UnixNano() / 1e6
-}
-
-func (t Time) UnixMicroseconds() int64 {
-	return t.Time().UnixNano() / 1e3
-}
-
 func ToTime(t time.Time) Time {
 	if t.IsZero() {
 		return 0
@@ -917,14 +909,6 @@ func (u UnixTime) Time() time.Time {
 
 func (u UnixTime) UnixSeconds() int64 {
 	return int64(u)
-}
-
-func (u UnixTime) UnixMilliseconds() int64 {
-	return int64(u) * 1000
-}
-
-func (u UnixTime) UnixMicroseconds() int64 {
-	return int64(u) * 1000000
 }
 
 func ToUnixTime(t time.Time) UnixTime {
