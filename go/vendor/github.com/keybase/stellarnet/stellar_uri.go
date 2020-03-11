@@ -126,6 +126,7 @@ type ValidatedStellarURI struct {
 	MemoType             string
 	Signed               bool
 	ReplaceSourceAccount bool
+	ReplaceSeqnum        bool
 	UnknownReplaceFields bool
 }
 
@@ -410,9 +411,12 @@ func (u *unvalidatedURI) newValidated(op string) *ValidatedStellarURI {
 		fieldsAndHints := strings.Split(pieces[0], ",")
 		for _, f := range fieldsAndHints {
 			parts := strings.Split(f, ":")
-			if parts[0] == "sourceAccount" {
+			switch parts[0] {
+			case "sourceAccount":
 				v.ReplaceSourceAccount = true
-			} else {
+			case "seqNum":
+				v.ReplaceSeqnum = true
+			default:
 				v.UnknownReplaceFields = true
 			}
 		}
