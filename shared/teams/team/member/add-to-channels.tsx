@@ -17,17 +17,20 @@ type Props = Container.RouteProps<{
   test: React.ReactElement
 }>
 
-const getChannelsForList = memoize((channels: Map<string, Types.ChannelInfo>) =>
-  [...channels.values()].sort((a, b) =>
-    a.channelname === b.channelname
-      ? 0
-      : a.channelname === 'general'
-      ? -1
-      : b.channelname === 'general'
-      ? 1
-      : a.channelname.localeCompare(b.channelname)
+const getChannelsForList = memoize((channels: Map<string, Types.ChannelInfo>) => {
+  const processed = [...channels.values()].reduce(
+    ({list, general}: {general: Types.ChannelInfo; list: Array<Types.ChannelInfo>}, c) =>
+      c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
+    {general: Constants.initialChannelInfo, list: []}
   )
-)
+  const {list, general} = processed
+  const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
+  return {
+    channelInfoGeneral: general,
+    channelInfosAll: [general, ...sortedList],
+    channelInfosFiltered: sortedList,
+  }
+})
 
 const AddToChannels = (props: Props) => {
   const dispatch = Container.useDispatch()
@@ -41,14 +44,14 @@ const AddToChannels = (props: Props) => {
 
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
-  const channelInfosFiltered = getChannelsForList(channelInfos)
+  const {channelInfosAll, channelInfosFiltered, channelInfoGeneral} = getChannelsForList(channelInfos)
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
   const channels = filterLCase
-    ? channelInfosFiltered.filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : channelInfosFiltered
+    ? channelInfosAll.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channelInfosAll
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
@@ -60,6 +63,7 @@ const AddToChannels = (props: Props) => {
   ]
   const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
   const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
+    if (convIDKey === channelInfoGeneral.conversationIDKey) return
     if (selected.has(convIDKey)) {
       selected.delete(convIDKey)
       setSelected(new Set(selected))
@@ -118,7 +122,10 @@ const AddToChannels = (props: Props) => {
             key={item.channelname}
             channelname={item.channelname}
             numMembers={item.numMembers}
-            selected={selected.has(item.conversationIDKey)}
+            selected={
+              selected.has(item.conversationIDKey) ||
+              item.conversationIDKey === channelInfoGeneral.conversationIDKey
+            }
             onSelect={() => onSelect(item.conversationIDKey)}
           />
         )
