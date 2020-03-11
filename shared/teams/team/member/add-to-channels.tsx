@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
@@ -121,6 +122,7 @@ const AddToChannels = (props: Props) => {
           <ChannelRow
             key={item.channelname}
             channelname={item.channelname}
+            conversationIDKey={item.conversationIDKey}
             numMembers={item.numMembers}
             selected={
               selected.has(item.conversationIDKey) ||
@@ -229,13 +231,35 @@ const HeaderRow = ({onCreate, onSelectAll, onSelectNone}) => (
   </Kb.Box2>
 )
 
-const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
-  Styles.isMobile ? (
+const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSelect}) => {
+  const numParticipants = Container.useSelector(
+    s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
+  )
+  const activityLevel = 'active' // TODO: plumbing
+  return Styles.isMobile ? (
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
-        <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
-          #{channelname}
-        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.channelContent}>
+          <Kb.Box2
+            direction="horizontal"
+            gap="small"
+            alignSelf="flex-start"
+            style={Styles.globalStyles.flexOne}
+          >
+            <Kb.Text type="Body" lineClamp={1}>
+              #{channelname}
+            </Kb.Text>
+            <Kb.Meta
+              color={Styles.globalColors.black_50}
+              icon="iconfont-people"
+              iconColor={Styles.globalColors.black_20}
+              title={numParticipants}
+              backgroundColor={Styles.globalColors.black_10}
+              style={styles.meta}
+            />
+          </Kb.Box2>
+          <Activity level={activityLevel} />
+        </Kb.Box2>
         <Kb.CheckCircle checked={selected} onCheck={onSelect} disabled={channelname === 'general'} />
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -272,14 +296,22 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
       containerStyleOverride={{marginLeft: 16, marginRight: 8}}
     />
   )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
+  channelContent: {flexGrow: 1},
   disabled: {opacity: 0.4},
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
   item: Styles.platformStyles({
-    common: {justifyContent: 'space-between', ...Styles.padding(0, Styles.globalMargins.small)},
-    isElectron: {height: 56},
-    isMobile: {height: 48},
+    common: {justifyContent: 'space-between'},
+    isElectron: {
+      height: 56,
+      ...Styles.padding(0, Styles.globalMargins.small),
+    },
+    isMobile: {
+      flexGrow: 1,
+      ...Styles.padding(Styles.globalMargins.small),
+    },
   }),
   listContainer: Styles.platformStyles({
     isElectron: {
@@ -287,6 +319,9 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isMobile: Styles.globalStyles.flexOne,
   }),
+  meta: {
+    ...Styles.padding(3, 6),
+  },
   searchFilterContainer: Styles.platformStyles({
     isElectron: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
   }),
