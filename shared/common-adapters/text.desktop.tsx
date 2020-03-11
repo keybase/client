@@ -74,8 +74,8 @@ class Text extends React.Component<Props> {
         ref={this.props.allowHighlightText ? this._spanRef : null}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick) || undefined}
-        // @ts-ignore TODO fix styles
-        style={this.props.style}
+        // @ts-ignore TODO CrossPlatformStyles isn't compat with the underlying components
+        style={Styles.collapseStyles([this.props.style])}
       >
         {this.props.children}
       </span>
