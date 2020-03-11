@@ -55,7 +55,10 @@ const useAutocompleter = <T extends React.Component>(
   const numItems = itemsFiltered.length
   const selectedItem = itemsFiltered[selected]
   const onKeyDown = React.useCallback(
-    evt => {
+    (evt, isComposingIME) => {
+      if (isComposingIME) {
+        return
+      }
       let diff = 0
       switch (evt.key) {
         case 'ArrowDown':

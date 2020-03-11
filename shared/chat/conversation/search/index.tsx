@@ -142,7 +142,10 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
     }
   }
   private inputRef = React.createRef<Kb.PlainInput>()
-  private onKeyDown = (e: React.KeyboardEvent) => {
+  private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
+    if (isComposingIME) {
+      return
+    }
     switch (e.key) {
       case 'Escape':
         this.props.selfHide()

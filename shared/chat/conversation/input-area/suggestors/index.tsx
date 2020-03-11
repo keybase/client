@@ -244,6 +244,10 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _onKeyDown = (evt: React.KeyboardEvent, ici: boolean) => {
+      if (ici) {
+        return
+      }
+
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
         this._checkTrigger()
       }

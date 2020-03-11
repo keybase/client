@@ -90,7 +90,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 
   _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
-    this._commonOnKeyDown(e)
+    !isComposingIME && this._commonOnKeyDown(e)
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
 

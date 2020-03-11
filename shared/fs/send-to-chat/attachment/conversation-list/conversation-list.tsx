@@ -117,7 +117,10 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
           icon="iconfont-search"
           waiting={props.waiting}
           focusOnMount={true}
-          onKeyDown={(e: React.KeyboardEvent) => {
+          onKeyDown={(e: React.KeyboardEvent, isComposingIME: boolean) => {
+            if (isComposingIME) {
+              return
+            }
             switch (e.key) {
               case 'ArrowDown':
                 if (props.selected < props.results.length - 1) {

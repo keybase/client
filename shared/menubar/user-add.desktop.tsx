@@ -60,7 +60,10 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
         style={{flex: 1}}
         onChangeText={onUpdateText}
         value={text}
-        onKeyDown={event => {
+        onKeyDown={(event, isComposingIME) => {
+          if (isComposingIME) {
+            return
+          }
           if (event.key === 'Enter') {
             onSubmit()
           } else if (event.key === 'Escape') {
