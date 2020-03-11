@@ -112,10 +112,14 @@ const styles = Styles.styleSheetCreate(() => ({
     maxHeight: 150,
     maxWidth: 300,
   },
-  imageContainer: {
-    alignSelf: Styles.isTablet ? 'flex-start' : undefined,
-    marginTop: Styles.globalMargins.tiny,
-  },
+  imageContainer: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.tiny,
+    },
+    isTablet: {
+      alignSelf: 'flex-start',
+    },
+  }),
   rowContainer: {
     alignSelf: 'flex-start',
   },
