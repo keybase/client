@@ -257,7 +257,7 @@ export const assertionToDisplay = (assertion: string): string => {
     }
     // phone number
     try {
-      const {e164ToDisplay} = require('../../util/phone-numbers')
+      const {e164ToDisplay} = require('../util/phone-numbers')
       return e164ToDisplay('+' + noSuffix)
     } catch (e) {
       return '+' + noSuffix

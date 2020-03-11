@@ -47,7 +47,7 @@ const AddPhone = () => {
   const onContinue = () =>
     dispatch(
       TeamsGen.createAddMembersWizardPushMembers({
-        members: phoneNumbers.map(pn => ({assertion: `+${pn.phoneNumber}@phone`, role: 'writer'})),
+        members: phoneNumbers.map(pn => ({assertion: `${pn.phoneNumber}@phone`, role: 'writer'})),
       })
     )
 
