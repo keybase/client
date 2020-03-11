@@ -64,7 +64,6 @@ class _DeleteChannel extends React.Component<Props, State> {
           attachTo={this.props.getAttachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
-          containerStyle={styles.menuContainer}
         />
       </Kb.Box2>
     )
@@ -94,7 +93,6 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   headerTextBottom: {color: Styles.globalColors.black_50},
   headerTextTop: {color: Styles.globalColors.black},
-  menuContainer: {width: 196},
   trashIcon: {marginRight: Styles.globalMargins.tiny},
 }))
 
