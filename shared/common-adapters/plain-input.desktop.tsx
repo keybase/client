@@ -16,6 +16,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _isComposingIME: boolean = false
 
   static defaultProps = {
+    allowKeyboardEvents: true,
     textType: 'Body',
   }
 
@@ -162,7 +163,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     let commonProps: any = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoFocus: this.props.autoFocus,
-      className: this.props.className,
+      className: Styles.classNames(this.props.allowKeyboardEvents && 'mousetrap', this.props.className),
       onBlur: this._onBlur,
       onChange: this._onChange,
       onClick: this.props.onClick,
