@@ -18,9 +18,7 @@ import * as Types from '../../constants/types/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const onAdd = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamAddToTeamFromWhere'}]}))
+  const onAdd = () => dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
   return (
     <Kb.Button
       label="Add/Invite people"

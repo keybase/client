@@ -40,7 +40,7 @@ const RichButton = (props: Props) => {
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} gap="xtiny">
         <Kb.Text
           className="hover_contained_color_blueDark"
-          style={isPressing && styles.mobileTitle}
+          style={isPressing ? styles.mobileTitle : undefined}
           type="BodySemibold"
         >
           {props.title}

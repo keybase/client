@@ -9,6 +9,7 @@ import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
 import {e164ToDisplay} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
+import flags from '../util/feature-flags'
 
 type Props = {
   allowPhoneEmail: boolean
@@ -108,7 +109,7 @@ const TeamBox = (props: Props) => {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={{marginLeft: 'auto'}}>
         {!!props.teamSoFar.length &&
-          (props.rolePickerProps ? (
+          (props.rolePickerProps && !flags.teamsRedesign ? (
             <FloatingRolePicker
               open={props.rolePickerProps.showRolePicker}
               onConfirm={() => {
