@@ -99,6 +99,8 @@ const suggestorToMarker = {
 }
 
 const suggestorKeyExtractors = {
+  channels: ({channelname, teamname}: {channelname: string; teamname?: string}) =>
+    teamname ? `${teamname}#${channelname}` : channelname,
   commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
   emoji: (item: {id: string}) => item.id,
   users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
@@ -469,7 +471,7 @@ class Input extends React.Component<InputProps, InputState> {
         <Kb.ConnectedUsernames
           type="BodyBold"
           colorFollowing={true}
-          usernames={[username]}
+          usernames={username}
           withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>
@@ -504,34 +506,45 @@ class Input extends React.Component<InputProps, InputState> {
   _getChannelSuggestions = (filter: string) => {
     const fil = filter.toLowerCase()
     return {
-      data: this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort(),
+      data: this.props.suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
       loading: this.props.suggestChannelsLoading,
       useSpaces: false,
     }
   }
 
-  _renderChannelSuggestion = (channelname: string, selected: boolean) => (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        styles.suggestionBase,
-        styles.fixSuggestionHeight,
-        {
-          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-        },
-      ])}
-    >
-      <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
-    </Kb.Box2>
-  )
+  _renderChannelSuggestion = (
+    {channelname, teamname}: {channelname: string; teamname?: string},
+    selected: boolean
+  ) =>
+    teamname ? (
+      this._renderTeamSuggestion(teamname, channelname, selected)
+    ) : (
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          styles.suggestionBase,
+          styles.fixSuggestionHeight,
+          {
+            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+          },
+        ])}
+      >
+        <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
+      </Kb.Box2>
+    )
 
   _transformChannelSuggestion = (
-    channelname: string,
+    {channelname, teamname}: {channelname: string; teamname?: string},
     marker: string,
     tData: TransformerData,
     preview: boolean
-  ) => standardTransformer(`${marker}${channelname}`, tData, preview)
+  ) =>
+    standardTransformer(
+      teamname ? `@${teamname}${marker}${channelname}` : `${marker}${channelname}`,
+      tData,
+      preview
+    )
 
   _getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
     return command.username ? '!' : '/'

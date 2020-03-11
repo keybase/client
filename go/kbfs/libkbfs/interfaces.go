@@ -1664,8 +1664,8 @@ type MDServer interface {
 	CheckReachability(ctx context.Context)
 
 	// FastForwardBackoff fast forwards any existing backoff timer for
-	// reconnects. If MD server is connected at the time this is called, it's
-	// essentially a no-op.
+	// connecting to the mdserver. If mdserver is connected at the time this
+	// is called, it's essentially a no-op.
 	FastForwardBackoff()
 
 	// FindNextMD finds the serialized (and possibly encrypted) root
@@ -1703,6 +1703,11 @@ type mdServerLocal interface {
 // matches the hash of the buffer; and 2) enforcing writer quotas.
 type BlockServer interface {
 	authTokenRefreshHandler
+
+	// FastForwardBackoff fast forwards any existing backoff timer for
+	// connecting to bserver. If bserver is connected at the time this is
+	// called, it's essentially a no-op.
+	FastForwardBackoff()
 
 	// Get gets the (encrypted) block data associated with the given
 	// block ID and context, uses the provided block key to decrypt
@@ -2030,6 +2035,9 @@ type InitMode interface {
 	// IndexingEnabled indicates whether or not synced TLFs are
 	// indexed and searchable.
 	IndexingEnabled() bool
+	// DelayInitialConnect indicates whether the initial connection to KBFS
+	// servers should be delayed.
+	DelayInitialConnect() bool
 
 	ldbutils.DbWriteBufferSizeGetter
 }
@@ -2216,6 +2224,7 @@ type Config interface {
 	SetRekeyWithPromptWaitTime(time.Duration)
 	// PrefetchStatus returns the prefetch status of a block.
 	PrefetchStatus(context.Context, tlf.ID, data.BlockPointer) PrefetchStatus
+	GetQuotaUsage(keybase1.UserOrTeamID) *EventuallyConsistentQuotaUsage
 
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving

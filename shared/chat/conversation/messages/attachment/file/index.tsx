@@ -4,6 +4,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import * as Styles from '../../../../../styles'
 import {ShowToastAfterSaving} from '../shared'
+import {useMemo} from '../../../../../util/memoize'
 
 type Props = {
   arrowColor: string
@@ -21,6 +22,8 @@ type Props = {
 const FileAttachment = React.memo((props: Props) => {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
   const iconType = 'icon-file-32'
+  const {message} = props
+  const wrappedMeta = useMemo(() => ({message}), [message])
   return (
     <>
       <ShowToastAfterSaving transferState={props.transferState} />
@@ -34,7 +37,7 @@ const FileAttachment = React.memo((props: Props) => {
                 {props.fileName}
               </Kb.Text>
             ) : (
-              <Kb.Markdown meta={{message: props.message}} selectable={true}>
+              <Kb.Markdown meta={wrappedMeta} selectable={true}>
                 {props.title}
               </Kb.Markdown>
             )}
@@ -92,12 +95,12 @@ const styles = Styles.styleSheetCreate(
       },
       downloadedIconWrapperStyle: {
         ...Styles.globalStyles.flexBoxCenter,
+        ...Styles.padding(3, 0, 3, 3),
         backgroundColor: Styles.globalColors.white,
         borderRadius: 20,
         bottom: 0,
-        padding: 3,
         position: 'absolute',
-        right: 0,
+        right: Styles.globalMargins.small,
       },
       error: {color: Styles.globalColors.redDark},
       iconStyle: {

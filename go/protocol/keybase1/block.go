@@ -187,6 +187,78 @@ func (o BlockPingResponse) DeepCopy() BlockPingResponse {
 	return BlockPingResponse{}
 }
 
+type UsageStatRecord struct {
+	Write      int64 `codec:"write" json:"write"`
+	Archive    int64 `codec:"archive" json:"archive"`
+	Read       int64 `codec:"read" json:"read"`
+	MdWrite    int64 `codec:"mdWrite" json:"mdWrite"`
+	GitWrite   int64 `codec:"gitWrite" json:"gitWrite"`
+	GitArchive int64 `codec:"gitArchive" json:"gitArchive"`
+}
+
+func (o UsageStatRecord) DeepCopy() UsageStatRecord {
+	return UsageStatRecord{
+		Write:      o.Write,
+		Archive:    o.Archive,
+		Read:       o.Read,
+		MdWrite:    o.MdWrite,
+		GitWrite:   o.GitWrite,
+		GitArchive: o.GitArchive,
+	}
+}
+
+type UsageStat struct {
+	Bytes  UsageStatRecord `codec:"bytes" json:"bytes"`
+	Blocks UsageStatRecord `codec:"blocks" json:"blocks"`
+	Mtime  Time            `codec:"mtime" json:"mtime"`
+}
+
+func (o UsageStat) DeepCopy() UsageStat {
+	return UsageStat{
+		Bytes:  o.Bytes.DeepCopy(),
+		Blocks: o.Blocks.DeepCopy(),
+		Mtime:  o.Mtime.DeepCopy(),
+	}
+}
+
+type FolderUsageStat struct {
+	FolderID string    `codec:"folderID" json:"folderID"`
+	Stats    UsageStat `codec:"stats" json:"stats"`
+}
+
+func (o FolderUsageStat) DeepCopy() FolderUsageStat {
+	return FolderUsageStat{
+		FolderID: o.FolderID,
+		Stats:    o.Stats.DeepCopy(),
+	}
+}
+
+type BlockQuotaInfo struct {
+	Folders  []FolderUsageStat `codec:"folders" json:"folders"`
+	Total    UsageStat         `codec:"total" json:"total"`
+	Limit    int64             `codec:"limit" json:"limit"`
+	GitLimit int64             `codec:"gitLimit" json:"gitLimit"`
+}
+
+func (o BlockQuotaInfo) DeepCopy() BlockQuotaInfo {
+	return BlockQuotaInfo{
+		Folders: (func(x []FolderUsageStat) []FolderUsageStat {
+			if x == nil {
+				return nil
+			}
+			ret := make([]FolderUsageStat, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Folders),
+		Total:    o.Total.DeepCopy(),
+		Limit:    o.Limit,
+		GitLimit: o.GitLimit,
+	}
+}
+
 type GetSessionChallengeArg struct {
 }
 
@@ -257,6 +329,15 @@ type GetTeamQuotaInfoArg struct {
 	Tid TeamID `codec:"tid" json:"tid"`
 }
 
+type GetUserQuotaInfo2Arg struct {
+	IncludeFolders bool `codec:"includeFolders" json:"includeFolders"`
+}
+
+type GetTeamQuotaInfo2Arg struct {
+	Tid            TeamID `codec:"tid" json:"tid"`
+	IncludeFolders bool   `codec:"includeFolders" json:"includeFolders"`
+}
+
 type BlockPingArg struct {
 }
 
@@ -275,6 +356,8 @@ type BlockInterface interface {
 	GetReferenceCount(context.Context, GetReferenceCountArg) (ReferenceCountRes, error)
 	GetUserQuotaInfo(context.Context) ([]byte, error)
 	GetTeamQuotaInfo(context.Context, TeamID) ([]byte, error)
+	GetUserQuotaInfo2(context.Context, bool) (BlockQuotaInfo, error)
+	GetTeamQuotaInfo2(context.Context, GetTeamQuotaInfo2Arg) (BlockQuotaInfo, error)
 	BlockPing(context.Context) (BlockPingResponse, error)
 }
 
@@ -482,6 +565,36 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getUserQuotaInfo2": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUserQuotaInfo2Arg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUserQuotaInfo2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUserQuotaInfo2Arg)(nil), args)
+						return
+					}
+					ret, err = i.GetUserQuotaInfo2(ctx, typedArgs[0].IncludeFolders)
+					return
+				},
+			},
+			"getTeamQuotaInfo2": {
+				MakeArg: func() interface{} {
+					var ret [1]GetTeamQuotaInfo2Arg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetTeamQuotaInfo2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetTeamQuotaInfo2Arg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamQuotaInfo2(ctx, typedArgs[0])
+					return
+				},
+			},
 			"blockPing": {
 				MakeArg: func() interface{} {
 					var ret [1]BlockPingArg
@@ -569,6 +682,17 @@ func (c BlockClient) GetUserQuotaInfo(ctx context.Context) (res []byte, err erro
 func (c BlockClient) GetTeamQuotaInfo(ctx context.Context, tid TeamID) (res []byte, err error) {
 	__arg := GetTeamQuotaInfoArg{Tid: tid}
 	err = c.Cli.Call(ctx, "keybase.1.block.getTeamQuotaInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c BlockClient) GetUserQuotaInfo2(ctx context.Context, includeFolders bool) (res BlockQuotaInfo, err error) {
+	__arg := GetUserQuotaInfo2Arg{IncludeFolders: includeFolders}
+	err = c.Cli.CallCompressed(ctx, "keybase.1.block.getUserQuotaInfo2", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c BlockClient) GetTeamQuotaInfo2(ctx context.Context, __arg GetTeamQuotaInfo2Arg) (res BlockQuotaInfo, err error) {
+	err = c.Cli.CallCompressed(ctx, "keybase.1.block.getTeamQuotaInfo2", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 

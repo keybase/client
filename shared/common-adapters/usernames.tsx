@@ -1,7 +1,11 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
-import Text, {TextType, Background, StylesTextCrossPlatform, AllowedColors} from '../text'
-import {backgroundModeIsNegative} from '../text.shared'
+import * as Container from '../util/container'
+import * as Styles from '../styles'
+import * as ProfileGen from '../actions/profile-gen'
+import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as UsersConstants from '../constants/users'
+import Text, {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType} from './text'
+import {backgroundModeIsNegative} from './text.shared'
 
 export type User = {
   username: string
@@ -12,29 +16,30 @@ export type User = {
 }
 
 export type Props = {
-  onUsernameClicked?: (username: string) => void
-  users: Array<User>
   backgroundMode?: Background
   colorBroken?: boolean
   colorFollowing?: boolean
-  notFollowingColorOverride?: AllowedColors
   colorYou?: boolean | AllowedColors
   commaColor?: AllowedColors
   containerStyle?: Styles.StylesCrossPlatform
   inline?: boolean
   inlineGrammar?: boolean
   joinerStyle?: Styles.StylesCrossPlatform
-  lineClamp?: number
+  lineClamp?: LineClampType
+  notFollowingColorOverride?: AllowedColors
+  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
   prefix?: string | null
   redColor?: AllowedColors
   selectable?: boolean
   showAnd?: boolean
+  skipSelf?: boolean
   style?: StylesTextCrossPlatform
   suffix?: string | null
   suffixType?: TextType
   title?: string
   type: TextType
   underline?: boolean
+  usernames: Array<string> | string
   withProfileCardPopup?: boolean
 }
 
@@ -46,7 +51,12 @@ const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 let WithProfileCardPopup: React.ComponentType<any> | null
 export const _setWithProfileCardPopup = (Comp: React.ComponentType<any>) => (WithProfileCardPopup = Comp)
 
-const UsernameText = (props: Props) => {
+const UsernameText = (
+  props: Omit<Props, 'users' | 'onUsernameClicked'> & {
+    onUsernameClicked: undefined | ((s: string) => void)
+    users: Array<User>
+  }
+) => {
   const derivedJoinerStyle = Styles.collapseStyles([
     props.joinerStyle,
     styles.joinerStyle,
@@ -85,7 +95,7 @@ const UsernameText = (props: Props) => {
         // Make sure onClick is undefined when _onUsernameClicked is, so
         // as to not override any existing onClick handler from containers
         // on native. (See DESKTOP-3963.)
-        const _onUsernameClicked = props.onUsernameClicked
+        const onUsernameClicked = props.onUsernameClicked
         const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
         const renderText = (onLongPress?: () => void) => (
           // type is set to Body here to prevent unwanted hover behaviors
@@ -105,10 +115,10 @@ const UsernameText = (props: Props) => {
               selectable={props.selectable}
               onLongPress={onLongPress}
               onClick={
-                _onUsernameClicked
+                onUsernameClicked
                   ? evt => {
                       evt && evt.stopPropagation()
-                      _onUsernameClicked(u.username)
+                      onUsernameClicked(u.username)
                     }
                   : undefined
               }
@@ -150,14 +160,52 @@ UsernameText.defaultProps = {
   withProfileCardPopup: true,
 }
 
-const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
+const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
 
 const _Usernames = (props: Props) => {
   const containerStyle = props.inline ? styles.inlineStyle : styles.nonInlineStyle
-  const rwers = props.users.filter(u => !u.readOnly)
-  const readers = props.users.filter(u => !!u.readOnly)
   const bgMode = props.backgroundMode || null
   const isNegative = backgroundModeIsNegative(bgMode)
+
+  const dispatch = Container.useDispatch()
+
+  const onOpenProfile = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
+  const onOpenTracker = (username: string) =>
+    dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+  const you = Container.useSelector(state => state.config.username)
+  const following = Container.useSelector(state => state.config.following)
+  const infoMap = Container.useSelector(state => state.users.infoMap)
+
+  const usernamesArray = typeof props.usernames === 'string' ? [props.usernames] : props.usernames
+  const users = usernamesArray.reduce<Array<User>>((arr, username) => {
+    const isYou = you === username
+    if (!props.skipSelf || !isYou) {
+      arr.push({
+        broken: UsersConstants.getIsBroken(infoMap, username) || false,
+        following: following.has(username),
+        username,
+        you: isYou,
+      })
+    }
+    return arr
+  }, [])
+
+  const rwers = users.filter(u => !u.readOnly)
+  const readers = users.filter(u => !!u.readOnly)
+
+  let onUsernameClicked: undefined | ((s: string) => void)
+  switch (props.onUsernameClicked) {
+    case 'tracker':
+      onUsernameClicked = onOpenTracker
+      break
+    case 'profile':
+      onUsernameClicked = onOpenProfile
+      break
+    default:
+      if (typeof props.onUsernameClicked === 'function') {
+        onUsernameClicked = props.onUsernameClicked
+      }
+  }
 
   return (
     <Text
@@ -174,7 +222,7 @@ const _Usernames = (props: Props) => {
           {props.prefix}
         </Text>
       )}
-      <UsernameText {...props} users={rwers} />
+      <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={rwers} />
       {!!readers.length && (
         <Text
           type={props.type}
@@ -184,7 +232,7 @@ const _Usernames = (props: Props) => {
           #
         </Text>
       )}
-      <UsernameText {...props} users={readers} />
+      <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={readers} />
       {!!props.suffix && (
         <Text
           type={props.suffixType || props.type}
@@ -246,4 +294,5 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export {UsernameText, Usernames}
+export {UsernameText}
+export default Usernames

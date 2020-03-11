@@ -85,3 +85,4 @@ export {default as classNames} from 'classnames'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
+export const headerExtraHeight = isTablet ? 16 : 0

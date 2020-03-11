@@ -986,10 +986,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		auditMode := arg.auditMode
 		// in case of restricted bots or recursive loads, do not audit the
 		// hidden chain (as we might not have permission to see it).
-
-		// TODO reenable hidden audits after Y2K-1550 is fixed.
-		//if (role.IsRestrictedBot() || arg.readSubteamID != nil) && auditMode == keybase1.AuditMode_STANDARD {
-		if auditMode == keybase1.AuditMode_STANDARD {
+		if (role.IsRestrictedBot() || arg.readSubteamID != nil) && auditMode == keybase1.AuditMode_STANDARD {
 			auditMode = keybase1.AuditMode_STANDARD_NO_HIDDEN
 		}
 

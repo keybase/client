@@ -394,15 +394,15 @@ const uploadAvatar = async (action: TeamsGen.UploadTeamAvatarPayload, logger: Sa
   }
 }
 
-const editMembership = async (action: TeamsGen.EditMembershipPayload) => {
-  const {teamname, username, role} = action.payload
+const editMembership = async (state: TypedState, action: TeamsGen.EditMembershipPayload) => {
+  const {teamID, username, role} = action.payload
   await RPCTypes.teamsTeamEditMemberRpcPromise(
     {
-      name: teamname,
+      name: Constants.getTeamNameFromID(state, teamID) ?? '',
       role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
       username,
     },
-    Constants.teamWaitingKey(teamname)
+    [Constants.teamWaitingKeyByID(teamID, state), Constants.editMembershipWaitingKey(teamID, username)]
   )
 }
 
@@ -1376,6 +1376,41 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
+async function getMemberSubteamDetails(
+  action: TeamsGen.GetMemberSubteamDetailsPayload,
+  logger: Saga.SagaLogger
+) {
+  const {teamID, username} = action.payload
+
+  let memberships: RPCTypes.AnnotatedSubteamMemberDetails[]
+  try {
+    const lookup = await RPCTypes.teamsGetUserSubteamMembershipsRpcPromise(
+      {
+        teamID,
+        username,
+      },
+      Constants.loadSubteamMembershipsWaitingKey(teamID, username)
+    )
+    if (!lookup) {
+      logger.info(`getMemberSubteamDetails: retrieved no results for ${teamID}:${username}`)
+      return null
+    }
+    memberships = lookup
+  } catch (e) {
+    logger.info(`getMemberSubteamDetails: unable to get details for ${teamID}:${username}: ${e.toString()}`)
+    return null
+  }
+
+  const res = new Map<string, Types.MemberInfo>()
+  for (const membership of memberships) {
+    res.set(membership.teamID, Constants.subteamDetailsToMemberInfo(username, membership))
+  }
+  return TeamsGen.createSetMemberSubteamDetails({
+    memberships: res,
+    username,
+  })
+}
+
 const setTeamWizardTeamType = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
 const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescriptionPayload) =>
@@ -1429,7 +1464,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.ignoreRequest, ignoreRequest)
   yield* Saga.chainAction2(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
-  yield* Saga.chainAction(TeamsGen.editMembership, editMembership)
+  yield* Saga.chainAction2(TeamsGen.editMembership, editMembership)
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
   yield* Saga.chainGenerator<TeamsGen.RemovePendingInvitePayload>(
     TeamsGen.removePendingInvite,
@@ -1477,6 +1512,8 @@ const teamsSaga = function*() {
 
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
   yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
+
+  yield* Saga.chainAction(TeamsGen.getMemberSubteamDetails, getMemberSubteamDetails)
 
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
   yield* Saga.chainAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)

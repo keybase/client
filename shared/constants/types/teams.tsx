@@ -54,6 +54,7 @@ export type ChannelInfo = {
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type MemberInfo = {
   fullName: string
+  joinTime?: number
   status: MemberStatus
   type: TeamRoleType
   username: string
@@ -189,6 +190,7 @@ export type State = {
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
   readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
+  readonly teamMemberToSubteams: Map<TeamID, Map<string, MemberInfo>>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   readonly teamnames: Set<Teamname> // TODO remove

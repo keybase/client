@@ -842,10 +842,10 @@
 			"revisionTime": "2020-01-23T00:39:47Z"
 		},
 		{
-			"checksumSHA1": "wVxPwraD/RPx0b+Z70N9cgyBbcY=",
+			"checksumSHA1": "zgpsAORgf6VAzF0yBB/Z3SLPPOk=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
-			"revisionTime": "2020-02-20T20:58:49Z"
+			"revision": "a1327b90a382c895fb8dfa15d63ead435d11e7ab",
+			"revisionTime": "2020-03-09T18:03:39Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -962,10 +962,10 @@
 			"revisionTime": "2020-02-28T19:22:15Z"
 		},
 		{
-			"checksumSHA1": "uR+QsoTqF59Ur57qgaodzx/T58Q=",
+			"checksumSHA1": "6wE2n8X5VnQVwZHDDv0dPekOh6E=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "6fcc57755f35fd21109d656057901b3c0eccd3e9",
-			"revisionTime": "2020-02-28T19:22:15Z"
+			"revision": "ea1e58fecd5d6253a8b21d6adebebc645db2541a",
+			"revisionTime": "2020-03-09T16:21:19Z"
 		},
 		{
 			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",

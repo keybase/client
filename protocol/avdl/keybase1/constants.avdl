@@ -150,6 +150,7 @@ protocol constants {
     SCNoOp_2638,
     SCTeamInviteBadCancel_2645,
     SCTeamInviteBadToken_2646,
+    SCTeamBadNameReservedDB_2650,
     SCTeamTarDuplicate_2663,
     SCTeamTarNotFound_2664,
     SCTeamMemberExists_2665,

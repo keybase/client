@@ -70,6 +70,7 @@ export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
+export const loadedMutualTeams = 'chat2:loadedMutualTeams'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -111,6 +112,7 @@ export const previewConversation = 'chat2:previewConversation'
 export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
 export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
 export const refreshBotSettings = 'chat2:refreshBotSettings'
+export const refreshMutualTeamsInConv = 'chat2:refreshMutualTeamsInConv'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
@@ -361,6 +363,10 @@ type _LoadMessagesCenteredPayload = {
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LoadNextBotPagePayload = {readonly pageSize: number}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LoadedMutualTeamsPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly teamIDs: Array<TeamsTypes.TeamID>
+}
 type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
@@ -559,6 +565,7 @@ type _RefreshBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
 }
+type _RefreshMutualTeamsInConvPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _RemoveBotMemberPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -1016,6 +1023,12 @@ export const createThreadSearchResults = (
 export const createSetGeneralConvFromTeamID = (
   payload: _SetGeneralConvFromTeamIDPayload
 ): SetGeneralConvFromTeamIDPayload => ({payload, type: setGeneralConvFromTeamID})
+/**
+ * Refresh loaded mutual teams for a conversation
+ */
+export const createRefreshMutualTeamsInConv = (
+  payload: _RefreshMutualTeamsInConvPayload
+): RefreshMutualTeamsInConvPayload => ({payload, type: refreshMutualTeamsInConv})
 /**
  * Refresh role in conversation
  */
@@ -1488,6 +1501,10 @@ export const createLoadNewerMessagesDueToScroll = (
 export const createLoadOlderMessagesDueToScroll = (
   payload: _LoadOlderMessagesDueToScrollPayload
 ): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
+export const createLoadedMutualTeams = (payload: _LoadedMutualTeamsPayload): LoadedMutualTeamsPayload => ({
+  payload,
+  type: loadedMutualTeams,
+})
 export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
   payload,
   type: lockAudioRecording,
@@ -1885,6 +1902,10 @@ export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
 }
+export type LoadedMutualTeamsPayload = {
+  readonly payload: _LoadedMutualTeamsPayload
+  readonly type: typeof loadedMutualTeams
+}
 export type LockAudioRecordingPayload = {
   readonly payload: _LockAudioRecordingPayload
   readonly type: typeof lockAudioRecording
@@ -2027,6 +2048,10 @@ export type RefreshBotRoleInConvPayload = {
 export type RefreshBotSettingsPayload = {
   readonly payload: _RefreshBotSettingsPayload
   readonly type: typeof refreshBotSettings
+}
+export type RefreshMutualTeamsInConvPayload = {
+  readonly payload: _RefreshMutualTeamsInConvPayload
+  readonly type: typeof refreshMutualTeamsInConv
 }
 export type RemoveBotMemberPayload = {
   readonly payload: _RemoveBotMemberPayload
@@ -2342,6 +2367,7 @@ export type Actions =
   | LoadNewerMessagesDueToScrollPayload
   | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
+  | LoadedMutualTeamsPayload
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
@@ -2383,6 +2409,7 @@ export type Actions =
   | RefreshBotPublicCommandsPayload
   | RefreshBotRoleInConvPayload
   | RefreshBotSettingsPayload
+  | RefreshMutualTeamsInConvPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
   | RequestInfoReceivedPayload

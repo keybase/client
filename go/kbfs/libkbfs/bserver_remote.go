@@ -49,7 +49,8 @@ type blockServerRemoteClientHandler struct {
 	client keybase1.BlockInterface
 }
 
-func newBlockServerRemoteClientHandler(kbCtx Context, name string, log logger.Logger,
+func newBlockServerRemoteClientHandler(
+	kbCtx Context, initMode InitMode, name string, log logger.Logger,
 	signer kbfscrypto.Signer, csg idutil.CurrentSessionGetter,
 	srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
@@ -76,12 +77,17 @@ func newBlockServerRemoteClientHandler(kbCtx Context, name string, log logger.Lo
 		"libkbfs_bserver_remote", VersionString(), b)
 
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
+	firstConnectDelay := time.Duration(0)
+	if initMode.DelayInitialConnect() {
+		firstConnectDelay = libkb.RandomJitter(bserverFirstConnectDelay)
+	}
 	b.connOpts = rpc.ConnectionOpts{
 		DontConnectNow:                true, // connect only on-demand
 		WrapErrorFunc:                 libkb.WrapError,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
+		FirstConnectDelayDuration:     firstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return bserverReconnectBackoffWindow },
 	}
 	b.initNewConnection()
@@ -291,12 +297,19 @@ func (b *blockServerRemoteClientHandler) pingOnce(ctx context.Context) {
 	}
 }
 
+func (b *blockServerRemoteClientHandler) fastForwardBackoff() {
+	b.connMu.RLock()
+	defer b.connMu.RUnlock()
+	b.conn.FastForwardConnectDelayTimer()
+}
+
 type blockServerRemoteConfig interface {
 	diskBlockCacheGetter
 	codecGetter
 	signerGetter
 	currentSessionGetterGetter
 	logMaker
+	initModeGetter
 }
 
 // BlockServerRemote implements the BlockServer interface and
@@ -331,10 +344,10 @@ func NewBlockServerRemote(kbCtx Context, config blockServerRemoteConfig,
 	// reads.  This allows small reads to avoid getting trapped behind
 	// large asynchronous writes.  TODO: use some real network QoS to
 	// achieve better prioritization within the actual network.
-	bs.putConn = newBlockServerRemoteClientHandler(kbCtx,
+	bs.putConn = newBlockServerRemoteClientHandler(kbCtx, config.Mode(),
 		"BlockServerRemotePut", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
-	bs.getConn = newBlockServerRemoteClientHandler(kbCtx,
+	bs.getConn = newBlockServerRemoteClientHandler(kbCtx, config.Mode(),
 		"BlockServerRemoteGet", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
 
@@ -368,6 +381,13 @@ func newBlockServerRemoteWithClient(kbCtx Context, config blockServerRemoteConfi
 		},
 	}
 	return bs
+}
+
+// FastForwardBackoff implements the BlockServerinterface for
+// BlockServerRemote.
+func (b *BlockServerRemote) FastForwardBackoff() {
+	b.getConn.fastForwardBackoff()
+	b.putConn.fastForwardBackoff()
 }
 
 // RemoteAddress returns the remote bserver this client is talking to
@@ -612,13 +632,23 @@ func (b *BlockServerRemote) IsUnflushed(
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
-	ctx = rpc.WithFireNow(ctx)
+	// This method called when kbfs process starts up. So if
+	// DelayInitialConnect() is set for the mode (usually means we're on
+	// mobile), don't set "fire now" in context, to avoid unintionally fast
+	// forwarding the delay timer for connecting to bserver.
+	if !b.config.Mode().DelayInitialConnect() {
+		ctx = rpc.WithFireNow(ctx)
+	}
 	b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo")
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
 	}()
-	res, err := b.getConn.getClient().GetUserQuotaInfo(ctx)
-	return kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
+	res, err := b.getConn.getClient().GetUserQuotaInfo2(
+		ctx, false /* no TLFs */)
+	if err != nil {
+		return nil, err
+	}
+	return kbfsblock.QuotaInfoFromProtocol(res), nil
 }
 
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerRemote
@@ -630,8 +660,15 @@ func (b *BlockServerRemote) GetTeamQuotaInfo(
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo done (err=%v)", err)
 	}()
-	res, err := b.getConn.getClient().GetTeamQuotaInfo(ctx, tid)
-	return kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
+	arg := keybase1.GetTeamQuotaInfo2Arg{
+		Tid:            tid,
+		IncludeFolders: false,
+	}
+	res, err := b.getConn.getClient().GetTeamQuotaInfo2(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+	return kbfsblock.QuotaInfoFromProtocol(res), nil
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

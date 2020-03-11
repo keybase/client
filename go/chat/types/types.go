@@ -74,6 +74,7 @@ type InboxSourceSearchEmptyMode int
 const (
 	InboxSourceSearchEmptyModeUnread InboxSourceSearchEmptyMode = iota
 	InboxSourceSearchEmptyModeAll
+	InboxSourceSearchEmptyModeAllBySendCtime
 )
 
 type InboxSourceDataSourceTyp int
@@ -154,6 +155,10 @@ func (rc RemoteConversation) GetTopicName() string {
 	return ""
 }
 
+func (rc RemoteConversation) GetMaxMessage(typ chat1.MessageType) (chat1.MessageSummary, error) {
+	return rc.Conv.GetMaxMessage(typ)
+}
+
 func (rc RemoteConversation) GetTopicType() chat1.TopicType {
 	return rc.Conv.GetTopicType()
 }
@@ -164,6 +169,22 @@ func (rc RemoteConversation) IsLocallyRead() bool {
 
 func (rc RemoteConversation) MaxVisibleMsgID() chat1.MessageID {
 	return rc.Conv.MaxVisibleMsgID()
+}
+
+func (rc RemoteConversation) GetExpunge() *chat1.Expunge {
+	return rc.Conv.GetExpunge()
+}
+
+func (rc RemoteConversation) GetFinalizeInfo() *chat1.ConversationFinalizeInfo {
+	return rc.Conv.GetFinalizeInfo()
+}
+
+func (rc RemoteConversation) GetMaxDeletedUpTo() chat1.MessageID {
+	return rc.Conv.GetMaxDeletedUpTo()
+}
+
+func (rc RemoteConversation) IsPublic() bool {
+	return rc.Conv.IsPublic()
 }
 
 type UnboxMode int

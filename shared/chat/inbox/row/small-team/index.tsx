@@ -30,7 +30,7 @@ export type Props = {
   onMuteConversation: () => void
   onSelectConversation: () => void
   participantNeedToRekey: boolean
-  participants: Array<string>
+  participants: Array<string> | string
   showBold: boolean
   snippet: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
@@ -128,7 +128,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                   hasBadge={props.hasBadge}
                   iconHoverColor={props.iconHoverColor}
                   isSelected={props.isSelected}
-                  participants={props.teamname ? [props.teamname] : props.participants}
+                  participants={props.teamname ? props.teamname : props.participants}
                   showBold={props.showBold}
                   showGear={!props.isInWidget}
                   forceShowMenu={this.state.showMenu}

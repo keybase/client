@@ -9,53 +9,119 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import logger from '../../../logger'
 import {pluralize} from '../../../util/string'
 import {FloatingRolePicker} from '../../role-picker'
+import RoleButton from '../../role-button'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {TeamDetailsSubscriber} from '../../subscriber'
+import {formatTimeForTeamMember} from '../../../util/timestamp'
 
 type Props = {
   teamID: Types.TeamID
   username: string
 }
 type OwnProps = Container.RouteProps<Props>
+type MetaPlusMembership = {
+  key: string
+  teamMeta: Types.TeamMeta
+  memberInfo: Types.MemberInfo
+}
+
+const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
+  const subteamsAll = [...Constants.getTeamDetails(state, teamID).subteams.values()]
+  let subteamsNotIn: Array<Types.TeamMeta> = []
+  let subteamsIn: Array<MetaPlusMembership> = []
+  subteamsAll.unshift(teamID)
+  for (const subteamID of subteamsAll) {
+    const subteamMeta = Constants.getTeamMeta(state, subteamID)
+    const subteamMembership = Constants.getTeamMembership(state, subteamID, username)
+
+    if (subteamMembership) {
+      subteamsIn.push({
+        key: `member:${username}:${subteamMeta.teamname}`,
+        memberInfo: subteamMembership,
+        teamMeta: subteamMeta,
+      })
+    } else {
+      subteamsNotIn.push(subteamMeta)
+    }
+  }
+  return {
+    subteamsIn,
+    subteamsNotIn,
+  }
+}
 
 const TeamMember = (props: OwnProps) => {
+  const dispatch = Container.useDispatch()
   const username = Container.getRouteProps(props, 'username', '')
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const loading = Container.useAnyWaiting(Constants.loadSubteamMembershipsWaitingKey(teamID, username))
+
+  // Load up the memberships when the page is opened
+  React.useEffect(() => {
+    dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
+  }, [teamID, username, dispatch])
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
-    Constants.getSubteamsInNotIn(state, teamID, username)
+    getSubteamsInNotIn(state, teamID, username)
   )
-  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
+
+  const [expandedSet, setExpandedSet] = React.useState(
+    new Set<string>([teamID])
+  )
+
+  if (loading) {
+    return (
+      <Kb.Box2
+        direction="horizontal"
+        fullHeight={true}
+        fullWidth={true}
+        centerChildren={true}
+        alignItems="center"
+      >
+        <Kb.ProgressIndicator type="Huge" />
+      </Kb.Box2>
+    )
+  }
+
   const sections = [
-    {
-      data: subteamsIn,
-      key: 'section-subteams',
-      renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
-        <SubteamInRow
-          teamID={teamID}
-          subteam={item}
-          idx={index}
-          username={username}
-          expanded={expandedSet.has(item.teamname)}
-          setExpanded={newExpanded => {
-            if (newExpanded) {
-              expandedSet.add(item.teamname)
-            } else {
-              expandedSet.delete(item.teamname)
-            }
-            setExpandedSet(new Set([...expandedSet]))
-          }}
-        />
-      ),
-      title: `${username} is in:`,
-    },
-    {
-      data: subteamsNotIn,
-      key: 'section-add-subteams',
-      renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
-        <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
-      ),
-      title: `Add ${username} to:`,
-    },
+    ...(subteamsIn.length > 0
+      ? [
+          {
+            data: subteamsIn,
+            key: 'section-subteams',
+            renderItem: ({item, index}: {item: MetaPlusMembership; index: number}) => (
+              <SubteamInRow
+                teamID={teamID}
+                subteam={item.teamMeta}
+                membership={item.memberInfo}
+                idx={index}
+                username={username}
+                expanded={expandedSet.has(item.teamMeta.id)}
+                setExpanded={newExpanded => {
+                  if (newExpanded) {
+                    expandedSet.add(item.teamMeta.id)
+                  } else {
+                    expandedSet.delete(item.teamMeta.id)
+                  }
+                  setExpandedSet(new Set([...expandedSet]))
+                }}
+              />
+            ),
+            title: `${username} is in:`,
+          },
+        ]
+      : []),
+    ...(subteamsNotIn.length > 0
+      ? [
+          {
+            data: subteamsNotIn,
+            key: 'section-add-subteams',
+            renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
+              <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
+            ),
+            title: `Add ${username} to:`,
+          },
+        ]
+      : []),
   ]
   return (
     <Kb.SectionList
@@ -92,6 +158,7 @@ type SubteamNotInRowProps = {
   idx: number
 }
 type SubteamInRowProps = SubteamNotInRowProps & {
+  membership: Types.MemberInfo
   expanded: boolean
   setExpanded: (b: boolean) => void
 }
@@ -167,7 +234,19 @@ const SubteamInRow = (props: SubteamInRowProps) => {
     />
   )
 
-  // TODO(Y2K-1291): get this data
+  const [role, setRole] = React.useState<Types.TeamRoleType>(props.membership.type)
+  const [open, setOpen] = React.useState(false)
+  const onChangeRole = (role: Types.TeamRoleType) => {
+    dispatch(TeamsGen.createEditMembership({role, teamID: props.subteam.id, username: props.username}))
+    setOpen(false)
+  }
+  const disabledRoles = Container.useSelector(state =>
+    Constants.getDisabledReasonsForRolePicker(state, props.subteam.id, props.username)
+  )
+  const changingRole = Container.useAnyWaiting(
+    Constants.editMembershipWaitingKey(props.subteam.id, props.username)
+  )
+
   const channels = ['general', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'mmm']
   const channelsJoined = channels.join(', #')
   const body = (
@@ -176,7 +255,9 @@ const SubteamInRow = (props: SubteamInRowProps) => {
         <Kb.Avatar teamname={props.subteam.teamname} size={32} />
         <Kb.Box2 direction="vertical" alignItems="flex-start">
           <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
-          <Kb.Text type="BodySmall">Joined Feb 1944 {/* TODO: where to get this data? */}</Kb.Text>
+          {!!props.membership.joinTime && (
+            <Kb.Text type="BodySmall">Joined {formatTimeForTeamMember(props.membership.joinTime)}</Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
       {expanded && (
@@ -195,15 +276,47 @@ const SubteamInRow = (props: SubteamInRowProps) => {
       {expanded && (
         <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
           <Kb.Button mode="Secondary" onClick={onAddToChannels} label="Add to Channels" />
-          {/* TODO: icon on this button */}
-          <Kb.Button mode="Secondary" type="Danger" onClick={onKickOut} label="Kick out" />
+          <Kb.Button
+            mode="Secondary"
+            icon="iconfont-block"
+            type="Danger"
+            onClick={onKickOut}
+            label="Kick out"
+          />
         </Kb.Box2>
       )}
+      <TeamDetailsSubscriber teamID={props.subteam.id} />
     </Kb.Box2>
   )
+  const action = (
+    <FloatingRolePicker
+      selectedRole={role}
+      onSelectRole={setRole}
+      onConfirm={onChangeRole}
+      onCancel={() => setOpen(false)}
+      position="bottom left"
+      open={open}
+      disabledRoles={disabledRoles}
+    >
+      <RoleButton
+        containerStyle={styles.roleButtonContainer}
+        loading={changingRole}
+        onClick={() => setOpen(true)}
+        selectedRole={props.membership.type}
+      />
+    </FloatingRolePicker>
+  )
+
   const height = expanded ? (Styles.isMobile ? 208 : 140) : undefined
   return (
-    <Kb.ListItem2 statusIcon={icon} body={body} firstItem={props.idx === 0} type="Large" height={height} />
+    <Kb.ListItem2
+      statusIcon={icon}
+      body={body}
+      action={action}
+      firstItem={props.idx === 0}
+      type="Large"
+      height={height}
+    />
   )
 }
 
@@ -273,13 +386,15 @@ export const TeamMemberHeader = (props: Props) => {
             <Kb.Box2 direction="horizontal" gap="small">
               <Kb.Avatar size={64} username={username} />
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
-                <Kb.ConnectedUsernames type="Header" usernames={[username]} />
+                <Kb.ConnectedUsernames type="Header" usernames={username} />
                 {!!member.fullName && (
                   <Kb.Text type="BodySemibold" lineClamp={1}>
                     {member.fullName}
                   </Kb.Text>
                 )}
-                <Kb.Text type="BodySmall">Joined 1m ago{/* TODO Y2K-1378 */}</Kb.Text>
+                <Kb.Text type="BodySmall">
+                  Joined {member.joinTime ? formatTimeForTeamMember(member.joinTime) : 'this team'}
+                </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
             {!Styles.isMobile && buttons}
@@ -352,6 +467,9 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   listItem: {
     marginLeft: Styles.globalMargins.tiny,
+  },
+  roleButtonContainer: {
+    paddingRight: 0,
   },
 }))
 

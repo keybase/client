@@ -249,6 +249,8 @@ export type TypedActionsMap = {
   'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
   'chat2:addToMessageMap': chat2.AddToMessageMapPayload
+  'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
+  'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -570,8 +572,9 @@ export type TypedActionsMap = {
   'fs:saveMedia': fs.SaveMediaPayload
   'fs:upload': fs.UploadPayload
   'fs:uploadFromDragAndDrop': fs.UploadFromDragAndDropPayload
-  'fs:uploadStarted': fs.UploadStartedPayload
-  'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
+  'fs:loadUploadStatus': fs.LoadUploadStatusPayload
+  'fs:loadedUploadStatus': fs.LoadedUploadStatusPayload
+  'fs:dismissUpload': fs.DismissUploadPayload
   'fs:journalUpdate': fs.JournalUpdatePayload
   'fs:openLocalPathInSystemFileManager': fs.OpenLocalPathInSystemFileManagerPayload
   'fs:openPathInSystemFileManager': fs.OpenPathInSystemFileManagerPayload
@@ -977,6 +980,8 @@ export type TypedActionsMap = {
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
+  'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
+  'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
   'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
   'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
   'tracker2:load': tracker2.LoadPayload

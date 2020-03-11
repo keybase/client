@@ -121,6 +121,9 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 	return storage, nil
 }
 
+// FastForwardBackoff implements the BlockServer interface.
+func (b *BlockServerDisk) FastForwardBackoff() {}
+
 // Get implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,

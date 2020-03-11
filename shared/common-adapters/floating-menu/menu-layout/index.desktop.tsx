@@ -10,7 +10,9 @@ import ProgressIndicator from '../../progress-indicator'
 import * as Styles from '../../../styles'
 
 class MenuLayout extends Component<MenuLayoutProps> {
-  private renderDivider = (index: number) => <Divider style={styles.divider} key={index} />
+  private renderDivider = (index: number) => (
+    <Divider style={index === 0 ? styles.dividerFirst : styles.divider} key={index} />
+  )
 
   private renderMenuItem = (item: MenuItem, index: number) => {
     let hoverClassName
@@ -89,6 +91,14 @@ class MenuLayout extends Component<MenuLayoutProps> {
     .menu-hover-danger:hover .subtitle { color: ${Styles.globalColors.white}; }
     `
 
+    const items = this.props.items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
+      if (item === 'Divider' && arr.length && arr[arr.length - 1] === 'Divider') {
+        return arr
+      }
+      item && arr.push(item)
+      return arr
+    }, [])
+
     return (
       <Box
         onClick={event => {
@@ -101,16 +111,11 @@ class MenuLayout extends Component<MenuLayoutProps> {
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
           {/* Display menu items */}
-          {this.props.items.length > 0 && (
+          {items.some(item => item !== 'Divider') && (
             <Box style={Styles.collapseStyles([styles.menuItemList, this.props.listStyle])}>
-              {this.props.items
-                .reduce<Array<'Divider' | MenuItem>>((arr, item) => {
-                  item && arr.push(item)
-                  return arr
-                }, [])
-                .map((item, index) =>
-                  item === 'Divider' ? this.renderDivider(index) : this.renderMenuItem(item, index)
-                )}
+              {items.map((item, index) =>
+                item === 'Divider' ? this.renderDivider(index) : this.renderMenuItem(item, index)
+              )}
             </Box>
           )}
         </Box>
@@ -129,6 +134,9 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: 8,
         marginTop: 8,
+      },
+      dividerFirst: {
+        marginBottom: 8,
       },
       horizBox: {...Styles.globalStyles.flexBoxRow},
       icon: {marginLeft: Styles.globalMargins.xtiny},

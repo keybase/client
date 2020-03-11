@@ -268,11 +268,15 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSDismissDownload': {
     inParam: {readonly downloadID: String}
+    outParam: void
+  }
+  'keybase.1.SimpleFS.simpleFSDismissUpload': {
+    inParam: {readonly uploadID: String}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSFinishResolvingConflict': {
@@ -307,6 +311,10 @@ export type MessageTypes = {
     inParam: void
     outParam: KbfsOnlineStatus
   }
+  'keybase.1.SimpleFS.simpleFSGetUploadStatus': {
+    inParam: void
+    outParam: Array<UploadState> | null
+  }
   'keybase.1.SimpleFS.simpleFSList': {
     inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean}
     outParam: void
@@ -319,8 +327,12 @@ export type MessageTypes = {
     inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean; readonly depth: Int}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload': {
+    inParam: void
+    outParam: String
+  }
   'keybase.1.SimpleFS.simpleFSMove': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSOpen': {
@@ -357,6 +369,10 @@ export type MessageTypes = {
   }
   'keybase.1.SimpleFS.simpleFSStartDownload': {
     inParam: {readonly path: KBFSPath; readonly isRegularDownload: Boolean}
+    outParam: String
+  }
+  'keybase.1.SimpleFS.simpleFSStartUpload': {
+    inParam: {readonly sourceLocalPath: String; readonly targetParentPath: KBFSPath}
     outParam: String
   }
   'keybase.1.SimpleFS.simpleFSStat': {
@@ -1338,6 +1354,10 @@ export type MessageTypes = {
   'keybase.1.teams.getTeamRoleMap': {
     inParam: void
     outParam: TeamRoleMapAndVersion
+  }
+  'keybase.1.teams.getUserSubteamMemberships': {
+    inParam: {readonly teamID: TeamID; readonly username: String}
+    outParam: Array<AnnotatedSubteamMemberDetails> | null
   }
   'keybase.1.teams.setTarsDisabled': {
     inParam: {readonly teamID: TeamID; readonly disabled: Boolean}
@@ -2417,6 +2437,7 @@ export enum StatusCode {
   scnoop = 2638,
   scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
+  scteambadnamereserveddb = 2650,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,
   scteammemberexists = 2665,
@@ -2517,6 +2538,7 @@ export enum SubscriptionTopic {
   filesTabBadge = 4,
   overallSyncStatus = 5,
   settings = 6,
+  uploadStatus = 7,
 }
 
 export enum TLFIdentifyBehavior {
@@ -2702,6 +2724,7 @@ export type BinaryLinkID = Bytes
 export type BlockIdCombo = {readonly blockHash: String; readonly chargedTo: UserOrTeamID; readonly blockType: BlockType}
 export type BlockIdCount = {readonly id: BlockIdCombo; readonly liveCount: Int}
 export type BlockPingResponse = {}
+export type BlockQuotaInfo = {readonly folders?: Array<FolderUsageStat> | null; readonly total: UsageStat; readonly limit: Int64; readonly gitLimit: Int64}
 export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo; readonly nonce: BlockRefNonce; readonly chargedTo: UserOrTeamID}
 export type BlockReferenceCount = {readonly ref: BlockReference; readonly liveCount: Int}
@@ -2737,7 +2760,7 @@ export type Contact = {readonly name: String; readonly components?: Array<Contac
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type ContactListResolutionResult = {readonly newlyResolved?: Array<ProcessedContact> | null; readonly resolved?: Array<ProcessedContact> | null}
 export type ContactSettings = {readonly version?: Int | null; readonly allowFolloweeDegrees: Int; readonly allowGoodTeams: Boolean; readonly enabled: Boolean; readonly teams?: Array<TeamContactSettings> | null}
-export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
+export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
 export type CryptKey = {readonly KeyGeneration: Int; readonly Key: Bytes32}
 export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; readonly address: String; readonly sigID: SigID; readonly type: String; readonly family: String}
 export type CsrfToken = String
@@ -2810,6 +2833,7 @@ export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: 
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncStatus = {readonly localDiskBytesAvailable: Int64; readonly localDiskBytesTotal: Int64; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress; readonly storedBytesTotal: Int64; readonly outOfSyncSpace: Boolean}
+export type FolderUsageStat = {readonly folderID: String; readonly stats: UsageStat}
 export type FolderWithFavFlags = {readonly folder: Folder; readonly isFavorite: Boolean; readonly isIgnored: Boolean; readonly isNew: Boolean}
 export type FullName = String
 export type FullNamePackage = {readonly version: FullNamePackageVersion; readonly fullName: FullName; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly cachedAt: Time}
@@ -2947,7 +2971,7 @@ export type MerkleStoreKitHash = String
 export type MerkleStoreSupportedVersion = Int
 export type MerkleTreeLocation = {readonly leaf: UserOrTeamID; readonly loc: SigChainLocation}
 export type MetadataResponse = {readonly folderID: String; readonly mdBlocks?: Array<MDBlock> | null}
-export type MoveArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
+export type MoveArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
 export type NaclDHKeyPrivate = string | null
 export type NaclDHKeyPublic = string | null
 export type NaclSigningKeyPrivate = string | null
@@ -3218,12 +3242,16 @@ export type UPKLiteV1AllIncarnations = {readonly current: UPKLiteV1; readonly pa
 export type UnboxAnyRes = {readonly kid: KID; readonly plaintext: Bytes32; readonly index: Int}
 export type UninstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status}
 export type UnixTime = Long
+export type UntrustedTeamExistsResult = {readonly exists: Boolean; readonly status: StatusCode}
 export type UntrustedTeamInfo = {readonly name: TeamName; readonly inTeam: Boolean; readonly open: Boolean; readonly description: String; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int; readonly publicMembers?: Array<TeamMemberRole> | null}
 export type UpPointer = {readonly ourSeqno: Seqno; readonly parentID: TeamID; readonly parentSeqno: Seqno; readonly deletion: Boolean}
 export type UpdateDetails = {readonly message: String}
 export type UpdateInfo = {readonly status: UpdateInfoStatus; readonly message: String}
 export type UpdateInfo2 = {status: UpdateInfoStatus2.ok} | {status: UpdateInfoStatus2.suggested; suggested: UpdateDetails} | {status: UpdateInfoStatus2.critical; critical: UpdateDetails}
 export type UpdaterStatus = {readonly log: String}
+export type UploadState = {readonly uploadID: String; readonly targetPath: KBFSPath; readonly error?: String | null; readonly canceled: Boolean}
+export type UsageStat = {readonly bytes: UsageStatRecord; readonly blocks: UsageStatRecord; readonly mtime: Time}
+export type UsageStatRecord = {readonly write: Int64; readonly archive: Int64; readonly read: Int64; readonly mdWrite: Int64; readonly gitWrite: Int64; readonly gitArchive: Int64}
 export type User = {readonly uid: UID; readonly username: String}
 export type UserBlock = {readonly username: String; readonly chatBlocked: Boolean; readonly followBlocked: Boolean; readonly createTime?: Time | null; readonly modifyTime?: Time | null}
 export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null}
@@ -3544,6 +3572,7 @@ export const SimpleFSSimpleFSClearConflictStateRpcPromise = (params: MessageType
 export const SimpleFSSimpleFSConfigureDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSConfigureDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSConfigureDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSConfigureDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCopyRecursive']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCopyRecursive']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCopyRecursive', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSDismissDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSDismissDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSDismissDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSDismissDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSDismissUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSDismissUpload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadInfoRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3552,9 +3581,11 @@ export const SimpleFSSimpleFSGetFilesTabBadgeRpcPromise = (params: MessageTypes[
 export const SimpleFSSimpleFSGetFolderRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetFolder']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetFolder']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetFolder', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetGUIFileContextRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetGUIFileContext']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetGUIFileContext']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetGUIFileContext', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetOnlineStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetOnlineStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetOnlineStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetOnlineStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSGetUploadStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetUploadStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetUploadStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetUploadStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListFavoritesRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSListFavorites']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSListFavorites']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSListFavorites', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListRecursiveToDepthRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSListRecursiveToDepth']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSListRecursiveToDepth']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSMakeTempDirForUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSMoveRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSMove']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSMove']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSMove', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSOpenRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSOpen']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSOpen']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSOpen', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSReadListRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSReadList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSReadList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSReadList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3565,6 +3596,7 @@ export const SimpleFSSimpleFSSetNotificationThresholdRpcPromise = (params: Messa
 export const SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSettingsRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStartDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStartDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSStartUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStartUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStartUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStartUpload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStatRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStat']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStat']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStat', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSubscribeNonPathRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSubscribeNonPath']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSubscribeNonPath']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSubscribeNonPath', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSubscribePathRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSubscribePath']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSubscribePath']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSubscribePath', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3727,6 +3759,7 @@ export const teamsGetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.t
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamAndMemberShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamAndMemberShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamAndMemberShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamIDRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamRoleMapRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamRoleMap']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamRoleMap']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamRoleMap', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsGetUserSubteamMembershipsRpcPromise = (params: MessageTypes['keybase.1.teams.getUserSubteamMemberships']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getUserSubteamMemberships']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getUserSubteamMemberships', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.teams.setTarsDisabled']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTarsDisabled']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTarsDisabled', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTeamMemberShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.setTeamMemberShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTeamMemberShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTeamMemberShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTeamShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.setTeamShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTeamShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTeamShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3802,6 +3835,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.block.getReferenceCount'
 // 'keybase.1.block.getUserQuotaInfo'
 // 'keybase.1.block.getTeamQuotaInfo'
+// 'keybase.1.block.getUserQuotaInfo2'
+// 'keybase.1.block.getTeamQuotaInfo2'
 // 'keybase.1.block.blockPing'
 // 'keybase.1.bot.botTokenList'
 // 'keybase.1.bot.botTokenCreate'
@@ -4128,6 +4163,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.SimpleFS.simpleFSObfuscatePath'
 // 'keybase.1.SimpleFS.simpleFSDeobfuscatePath'
 // 'keybase.1.SimpleFS.simpleFSGetStats'
+// 'keybase.1.SimpleFS.simpleFSCancelUpload'
 // 'keybase.1.SimpleFS.simpleFSSearch'
 // 'keybase.1.SimpleFS.simpleFSResetIndex'
 // 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
@@ -4166,7 +4202,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamName'
 // 'keybase.1.teams.ftl'
-// 'keybase.1.teams.getUserSubteamMemberships'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
 // 'keybase.1.teamSearch.teamSearch'

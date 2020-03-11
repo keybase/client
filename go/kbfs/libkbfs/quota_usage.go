@@ -254,6 +254,7 @@ func (q *EventuallyConsistentQuotaUsage) Get(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
 	timestamp time.Time, usageBytes, archiveBytes, limitBytes int64,
 	err error) {
+	q.log.CDebugf(ctx, "%+v", errors.New("HERE"))
 	c := q.getCached()
 	err = q.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
 	if err != nil {

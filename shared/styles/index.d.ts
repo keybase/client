@@ -129,6 +129,7 @@ export declare const isDarkMode: () => boolean
 export declare const isIPhoneX: boolean
 export declare const dimensionWidth: number
 export declare const dimensionHeight: number
+export declare const headerExtraHeight: number
 
 export {platformStyles, globalMargins, backgroundModeToColor, backgroundModeToTextColor} from './shared'
 export {

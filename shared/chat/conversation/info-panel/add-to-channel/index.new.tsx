@@ -129,11 +129,7 @@ const AddToChannel = (props: Props) => {
                 hideHover={alreadyIn}
                 body={
                   <Kb.Box2 direction="vertical" alignItems="flex-start">
-                    <Kb.ConnectedUsernames
-                      type="BodyBold"
-                      colorFollowing={true}
-                      usernames={[item.username]}
-                    />
+                    <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={item.username} />
                     <Kb.Text type="BodySmall" lineClamp={1}>
                       {alreadyIn && <Kb.Text type="BodySmall">Already in{!!item.fullName && ' • '}</Kb.Text>}
                       {item.fullName}

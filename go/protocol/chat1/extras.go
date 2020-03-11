@@ -1088,6 +1088,10 @@ func (m MessageBoxed) GetMessageID() MessageID {
 	return m.ServerHeader.MessageID
 }
 
+func (m MessageBoxed) Ctime() gregor1.Time {
+	return m.ServerHeader.Ctime
+}
+
 func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
@@ -1770,6 +1774,10 @@ func (r *GetChannelMembershipsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetMutualTeamsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -2175,6 +2183,14 @@ func (r *GetChannelMembershipsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *GetMutualTeamsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetMutualTeamsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *SetAppNotificationSettingsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2518,6 +2534,10 @@ func (r *SetDefaultTeamChannelsLocalRes) SetRateLimits(rl []RateLimit) {
 	if len(rl) > 0 {
 		r.RateLimit = &rl[0]
 	}
+}
+
+func (i EphemeralPurgeInfo) IsNil() bool {
+	return i.IsActive == false && i.NextPurgeTime == 0 && i.MinUnexplodedID <= 1
 }
 
 func (i EphemeralPurgeInfo) String() string {

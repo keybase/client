@@ -286,6 +286,8 @@
     MessageID maxMsgid; // The max message ID in the convo
     ConversationMemberStatus status; // The status of the membership to the convo
     keybase1.TeamRole untrustedTeamRole; // gregor's view of your role in the team. This value is purely server trust, use with caution.
+    @mpackkey("l") @jsonkey("l")
+    gregor1.Time lastSendTime; // last time the user has sent a message.
     @mpackkey("jc") @jsonkey("jc")
     union { null, ConversationJourneycardInfo } journeycard;
   }

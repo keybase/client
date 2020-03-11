@@ -52,6 +52,10 @@ export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${te
 export const teamRenameWaitingKey = 'teams:rename'
 export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
 export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
+export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `loadSubteamMemberships:${teamID};${username}`
+export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `editMembership:${teamID};${username}`
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
@@ -85,11 +89,12 @@ export const rpcDetailsToMemberInfos = (
     const key = typeToKey[type]
     // @ts-ignore
     const members: Array<RPCTypes.TeamMemberDetails> = (allRoleMembers[key] || []) as any
-    members.forEach(({fullName, status, username}) => {
+    members.forEach(({fullName, joinTime, status, username}) => {
       infos.push([
         username,
         {
           fullName,
+          joinTime: joinTime || undefined,
           status: rpcMemberStatusToStatus[status],
           type,
           username,
@@ -218,6 +223,7 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
+  teamMemberToSubteams: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
@@ -686,6 +692,12 @@ export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
 export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
+export const getTeamMembership = (
+  state: TypedState,
+  teamID: Types.TeamID,
+  username: string
+): Types.MemberInfo | null => state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
+
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
 ): Map<Types.TeamID, Types.TeamMeta> => {
@@ -754,6 +766,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
     const maybeRole = teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
+      joinTime: member.details.joinTime || undefined,
       status: rpcMemberStatusToStatus[status],
       type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
       username,
@@ -771,6 +784,20 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
       teamShowcased: t.showcase.isShowcased,
     },
     subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
+  }
+}
+
+export const subteamDetailsToMemberInfo = (
+  username: string,
+  t: RPCTypes.AnnotatedSubteamMemberDetails
+): Types.MemberInfo => {
+  const maybeRole = teamRoleByEnum[t.role]
+  return {
+    fullName: t.details.fullName,
+    joinTime: t.details.joinTime || undefined,
+    status: rpcMemberStatusToStatus[t.details.status],
+    type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
+    username,
   }
 }
 

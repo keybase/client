@@ -15,6 +15,7 @@ import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
+  firstItem: boolean
   teamID: Types.TeamID
   username: string
 }
@@ -71,11 +72,10 @@ const ChannelMemberRow = (props: Props) => {
 
   const roleLabel = !!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
-  const isOwner = teamMemberInfo.type == 'owner'
 
   const dispatch = Container.useDispatch()
   const channelSelectedMembers = Container.useSelector(state =>
-    state.teams.channelSelectedMembers.get(teamID)
+    state.teams.channelSelectedMembers.get(conversationIDKey)
   )
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
@@ -119,7 +119,7 @@ const ChannelMemberRow = (props: Props) => {
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
         <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-          <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
+          <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
         </Kb.Box>
 
         <Kb.Box style={styles.nameContainerInner}>
@@ -231,7 +231,7 @@ const ChannelMemberRow = (props: Props) => {
       containerStyleOverride={styles.listItemMargin}
       type="Large"
       body={body}
-      firstItem={isOwner}
+      firstItem={props.firstItem}
       style={memberSelected ? styles.selected : undefined}
       onClick={anySelected ? () => onSelect(!memberSelected) : onEditMember}
     />
