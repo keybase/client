@@ -5,33 +5,72 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RPCGen from '../../constants/types/rpc-gen'
+import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
+import {pluralize} from '../../util/string'
 
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
+  const {teamID, role, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
+
+  const [waiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const onComplete = () => {
+    setWaiting(true)
+    addMembers(
+      [
+        {
+          sendChatNotification: true,
+          teamID,
+          users: addingMembers.map(member => ({
+            assertionOrEmail: member.assertion,
+            role: RPCGen.TeamRole[role || 'writer'], // TODO Y2K-1560 handle individual roles
+          })),
+        },
+      ],
+      _ => {
+        // TODO handle users not added?
+        dispatch(TeamsGen.createFinishAddMembersWizard())
+      },
+      err => {
+        setWaiting(false)
+        setError(err.message)
+      }
+    )
+  }
 
   return (
     <Kb.Modal
-      onClose={onClose}
+      onClose={onLeave}
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: (
+          <Kb.Text type="BodyBigLink" onClick={onLeave}>
+            Cancel
+          </Kb.Text>
+        ),
         title: <ModalTitle teamname={teamname} title={`Inviting ${addingMembers.length} ${noun}`} />,
       }}
       footer={{
-        content: <Kb.Button fullWidth={true} label={`Invite ${addingMembers.length} ${noun} & finish`} />,
+        content: (
+          <Kb.Button
+            fullWidth={true}
+            label={`Invite ${addingMembers.length} ${noun} & finish`}
+            waiting={waiting}
+            onClick={onComplete}
+          />
+        ),
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
@@ -55,19 +94,35 @@ const AddMembersConfirm = () => {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
+        {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
     </Kb.Modal>
   )
 }
+AddMembersConfirm.navigationOptions = {
+  gesturesEnabled: false,
+}
 
 const AddMoreMembers = () => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
+  const onAddContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
+  const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
+  const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}
       closeOnSelect={true}
       onHidden={toggleShowingPopup}
       visible={showingPopup}
-      items={[{title: 'From Keybase'}, {title: 'By email address'}, {title: 'By phone number'}]}
+      items={[
+        {onClick: onAddKeybase, title: 'From Keybase'},
+        ...(Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
+        {onClick: onAddEmail, title: 'By email address'},
+        {onClick: onAddPhone, title: 'By phone number'},
+      ]}
     />
   ))
   return (
@@ -103,6 +158,7 @@ const RoleSelector = () => {
         selectedRole={role}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
+        confirmLabel={`Add as ${pluralize(role)}`}
       >
         <Kb.InlineDropdown
           type="BodySmallSemibold"
@@ -127,7 +183,7 @@ const AddingMembers = () => {
   const content = (
     <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
-        <AddingMember key={toAdd.assertion} {...toAdd} />
+        <AddingMember key={toAdd.assertion} {...toAdd} lastMember={addingMembers.length === 1} />
       ))}
       {showDivider && (
         <Kb.ClickableBox onClick={toggleExpanded}>
@@ -156,8 +212,10 @@ const AddingMembers = () => {
   return <Kb.ScrollView style={styles.addingMembers}>{content}</Kb.ScrollView>
 }
 
-const AddingMember = (props: Types.AddingMember) => {
-  const {role, teamID} = Container.useSelector(s => s.teams.addMembersWizard)
+const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
+  const dispatch = Container.useDispatch()
+  const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+  const {role} = Container.useSelector(s => s.teams.addMembersWizard)
   const showDropdown = role === undefined
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
@@ -165,7 +223,7 @@ const AddingMember = (props: Types.AddingMember) => {
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.assertion]} />
       </Kb.Box2>
-      <Kb.Icon type="iconfont-remove" sizeType="Small" />
+      {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
     </Kb.Box2>
   )
 }

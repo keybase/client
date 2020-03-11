@@ -1,19 +1,15 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Styles from '../../styles'
-import * as Types from '../../constants/types/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle} from '../common'
 
-type Props = Container.RouteProps<{
-  teamID: Types.TeamID
-}>
-
-const AddPhone = (props: Props) => {
+const AddPhone = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -47,6 +43,14 @@ const AddPhone = (props: Props) => {
     }
   }, [defaultCountry, dispatch])
 
+  // TODO Y2K-1557 useRPC to get associated usernames if they exist
+  const onContinue = () =>
+    dispatch(
+      TeamsGen.createAddMembersWizardPushMembers({
+        members: phoneNumbers.map(pn => ({assertion: `+${pn.phoneNumber}@phone`, role: 'writer'})),
+      })
+    )
+
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
@@ -57,14 +61,7 @@ const AddPhone = (props: Props) => {
       }}
       allowOverflow={true}
       footer={{
-        content: (
-          <Kb.Button
-            fullWidth={true}
-            label="Continue"
-            onClick={() => undefined} //TODO: Implement this
-            disabled={disabled}
-          />
-        ),
+        content: <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />,
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">

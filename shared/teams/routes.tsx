@@ -22,6 +22,8 @@ import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
+import TeamAddToTeamEmail from './add-members-wizard/add-email'
+import TeamAddToTeamConfirm from './add-members-wizard/confirm'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
@@ -36,6 +38,12 @@ export const newRoutes = {
 }
 
 const addWizardRoutes = {
+  teamAddToTeamConfirm: {
+    getScreen: (): typeof TeamAddToTeamConfirm => require('./add-members-wizard/confirm').default,
+  },
+  teamAddToTeamEmail: {
+    getScreen: (): typeof TeamAddToTeamEmail => require('./add-members-wizard/add-email').default,
+  },
   teamAddToTeamFromWhere: {
     getScreen: (): typeof TeamAddToTeamFromWhere => require('./add-members-wizard/add-from-where').default,
   },

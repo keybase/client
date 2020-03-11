@@ -328,6 +328,25 @@ export default Container.makeReducer<
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
     draftState.addMembersWizard.justFinished = action.payload.justFinished
   },
+  [TeamsGen.addMembersWizardPushMembers]: (draftState, action) => {
+    draftState.addMembersWizard.addingMembers = Constants.dedupAddingMembeers(
+      draftState.addMembersWizard.addingMembers,
+      action.payload.members
+    )
+  },
+  [TeamsGen.addMembersWizardRemoveMember]: (draftState, action) => {
+    const {assertion} = action.payload
+    const idx = draftState.addMembersWizard.addingMembers.findIndex(member => member.assertion === assertion)
+    if (idx >= 0) {
+      draftState.addMembersWizard.addingMembers.splice(idx, 1)
+    }
+  },
+  [TeamsGen.cancelAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState}
+  },
+  [TeamsGen.finishAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)

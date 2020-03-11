@@ -8,11 +8,14 @@ import {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
+export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
+export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
 export const addUserToTeams = 'teams:addUserToTeams'
 export const addedToTeam = 'teams:addedToTeam'
+export const cancelAddMembersWizard = 'teams:cancelAddMembersWizard'
 export const channelSetMemberSelected = 'teams:channelSetMemberSelected'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
@@ -25,6 +28,7 @@ export const deleteChannelInfo = 'teams:deleteChannelInfo'
 export const deleteTeam = 'teams:deleteTeam'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
+export const finishAddMembersWizard = 'teams:finishAddMembersWizard'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getMembers = 'teams:getMembers'
@@ -98,6 +102,8 @@ export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
+type _AddMembersWizardPushMembersPayload = {readonly members: Array<Types.AddingMember>}
+type _AddMembersWizardRemoveMemberPayload = {readonly assertion: string}
 type _AddParticipantPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -115,6 +121,7 @@ type _AddUserToTeamsPayload = {
   readonly user: string
 }
 type _AddedToTeamPayload = {readonly error?: string; readonly fromTeamBuilder?: boolean}
+type _CancelAddMembersWizardPayload = void
 type _ChannelSetMemberSelectedPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly username: string
@@ -155,6 +162,7 @@ type _EditMembershipPayload = {
   readonly role: Types.TeamRoleType
 }
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
+type _FinishAddMembersWizardPayload = void
 type _GetChannelInfoPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly teamID: Types.TeamID
@@ -350,6 +358,12 @@ type _UploadTeamAvatarPayload = {
 
 // Action Creators
 /**
+ * Add pending members to the add members wizard and show the confirm screen.
+ */
+export const createAddMembersWizardPushMembers = (
+  payload: _AddMembersWizardPushMembersPayload
+): AddMembersWizardPushMembersPayload => ({payload, type: addMembersWizardPushMembers})
+/**
  * Don't eagerly reload team list anymore.
  */
 export const createUnsubscribeTeamList = (
@@ -399,6 +413,24 @@ export const createLoadWelcomeMessage = (payload: _LoadWelcomeMessagePayload): L
 export const createLoadedWelcomeMessage = (
   payload: _LoadedWelcomeMessagePayload
 ): LoadedWelcomeMessagePayload => ({payload, type: loadedWelcomeMessage})
+/**
+ * Nav away from add members wizard and clear related state.
+ */
+export const createCancelAddMembersWizard = (
+  payload: _CancelAddMembersWizardPayload
+): CancelAddMembersWizardPayload => ({payload, type: cancelAddMembersWizard})
+/**
+ * Nav away from add members wizard and clear related state.
+ */
+export const createFinishAddMembersWizard = (
+  payload: _FinishAddMembersWizardPayload
+): FinishAddMembersWizardPayload => ({payload, type: finishAddMembersWizard})
+/**
+ * Remove a pending member from the add members wizard.
+ */
+export const createAddMembersWizardRemoveMember = (
+  payload: _AddMembersWizardRemoveMemberPayload
+): AddMembersWizardRemoveMemberPayload => ({payload, type: addMembersWizardRemoveMember})
 /**
  * Rename a subteam
  */
@@ -709,6 +741,14 @@ export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload): Uploa
 })
 
 // Action Payloads
+export type AddMembersWizardPushMembersPayload = {
+  readonly payload: _AddMembersWizardPushMembersPayload
+  readonly type: typeof addMembersWizardPushMembers
+}
+export type AddMembersWizardRemoveMemberPayload = {
+  readonly payload: _AddMembersWizardRemoveMemberPayload
+  readonly type: typeof addMembersWizardRemoveMember
+}
 export type AddParticipantPayload = {
   readonly payload: _AddParticipantPayload
   readonly type: typeof addParticipant
@@ -723,6 +763,10 @@ export type AddUserToTeamsPayload = {
   readonly type: typeof addUserToTeams
 }
 export type AddedToTeamPayload = {readonly payload: _AddedToTeamPayload; readonly type: typeof addedToTeam}
+export type CancelAddMembersWizardPayload = {
+  readonly payload: _CancelAddMembersWizardPayload
+  readonly type: typeof cancelAddMembersWizard
+}
 export type ChannelSetMemberSelectedPayload = {
   readonly payload: _ChannelSetMemberSelectedPayload
   readonly type: typeof channelSetMemberSelected
@@ -767,6 +811,10 @@ export type EditMembershipPayload = {
 export type EditTeamDescriptionPayload = {
   readonly payload: _EditTeamDescriptionPayload
   readonly type: typeof editTeamDescription
+}
+export type FinishAddMembersWizardPayload = {
+  readonly payload: _FinishAddMembersWizardPayload
+  readonly type: typeof finishAddMembersWizard
 }
 export type GetChannelInfoPayload = {
   readonly payload: _GetChannelInfoPayload
@@ -1008,11 +1056,14 @@ export type UploadTeamAvatarPayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddMembersWizardPushMembersPayload
+  | AddMembersWizardRemoveMemberPayload
   | AddParticipantPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
   | AddUserToTeamsPayload
   | AddedToTeamPayload
+  | CancelAddMembersWizardPayload
   | ChannelSetMemberSelectedPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
@@ -1025,6 +1076,7 @@ export type Actions =
   | DeleteTeamPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
+  | FinishAddMembersWizardPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
   | GetMembersPayload
