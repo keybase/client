@@ -165,11 +165,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) {
 	go func(ctx context.Context) {
-		err := s.sema.Acquire(ctx, 1)
-		if err != nil {
-			s.Debug(ctx, "GetWithNotifyNonblock: failed to acquire semaphore: %s", err)
-			return
-		}
+		_ = s.sema.Acquire(ctx, 1)
 		defer s.sema.Release(1)
 
 		convIDStr := convID.ConvIDStr()
