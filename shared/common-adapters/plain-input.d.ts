@@ -93,8 +93,8 @@ export type Props = {
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   // Desktop only
   onClick?: (event: Event) => void
-  onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
-  onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyDown?: (event: React.KeyboardEvent) => void
+  onKeyUp?: (event: React.KeyboardEvent) => void
   // Mobile only
   children?: React.ReactNode
   allowFontScaling?: boolean
