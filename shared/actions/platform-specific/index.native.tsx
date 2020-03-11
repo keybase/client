@@ -347,6 +347,8 @@ function* loadStartupDetails() {
     initialShare,
   ])
 
+  logger.info('routeState load', routeState)
+
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(async () => {
     try {
@@ -359,14 +361,17 @@ function* loadStartupDetails() {
 
   // Top priority, push
   if (push) {
+    logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
     startupWasFromPush = true
     startupConversation = push.startupConversation
     startupFollowUser = push.startupFollowUser
     startupPushPayload = push.startupPushPayload
   } else if (link) {
+    logger.info('initialState: link', link)
     // Second priority, deep link
     startupLink = link
-  } else if (share) {
+  } else if (share?.fileUrl || share.text) {
+    logger.info('initialState: share')
     startupSharePath = share.fileUrl || undefined
     startupShareText = share.text || undefined
   } else if (routeState) {
@@ -375,9 +380,11 @@ function* loadStartupDetails() {
       const item = JSON.parse(routeState)
       if (item) {
         startupConversation = (item.param && item.param.selectedConversationIDKey) || undefined
+        logger.info('initialState: routeState', startupConversation)
         startupTab = item.routeName || undefined
       }
     } catch (_) {
+      logger.info('initialState: routeState parseFail')
       startupConversation = undefined
       startupTab = undefined
     }
