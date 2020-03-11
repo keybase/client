@@ -1528,7 +1528,8 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 			// nil if there has been an error.
 			c.syncedTlfs = nil
 			c.GetPerfLog().CDebugf(
-				context.TODO(), "Failed to open database: %v", err)
+				context.TODO(),
+				"KBFS failed to open synced TLFs database: %v", err)
 		}
 	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
