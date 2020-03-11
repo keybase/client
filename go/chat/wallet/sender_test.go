@@ -90,29 +90,6 @@ func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, b
 	return false, false
 }
 
-type mockUpakLoader struct {
-	libkb.UPAKLoader
-	usernames map[string]string
-}
-
-func newMockUpakLoader() *mockUpakLoader {
-	return &mockUpakLoader{
-		usernames: make(map[string]string),
-	}
-}
-
-func (m *mockUpakLoader) addUser(uid gregor1.UID, username string) {
-	m.usernames[uid.String()] = username
-}
-
-func (m *mockUpakLoader) getUser(uid gregor1.UID) string {
-	return m.usernames[uid.String()]
-}
-
-func (m *mockUpakLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
-	return libkb.NewNormalizedUsername(m.usernames[uid.String()]), nil
-}
-
 func TestStellarSender(t *testing.T) {
 	tc := externalstest.SetupTest(t, "stellarsender", 0)
 	defer tc.Cleanup()
