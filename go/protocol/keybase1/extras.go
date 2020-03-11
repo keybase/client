@@ -3954,24 +3954,6 @@ var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
 	"other":      UsernameVerificationType_OTHER,
 }
 
-func (c Confidence) ToJsonw() *jsonw.Wrapper {
-	j := jsonw.NewDictionary()
-	if c.UsernameVerifiedVia != "" {
-		_ = j.SetKey("username_verified_via", jsonw.NewString(string(c.UsernameVerifiedVia)))
-	}
-	if len(c.Proofs) > 0 {
-		vb := jsonw.NewArray(len(c.Proofs))
-		for i, sigID := range c.Proofs {
-			_ = vb.SetIndex(i, jsonw.NewString(sigID.String()))
-		}
-		_ = j.SetKey("proofs", vb)
-	}
-	if c.Other != "" {
-		_ = j.SetKey("other", jsonw.NewString(c.Other))
-	}
-	return j
-}
-
 func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
 	if fsc.Mode != other.Mode {
 		return false

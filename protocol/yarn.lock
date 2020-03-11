@@ -28,10 +28,10 @@ avdl-compiler@1.4.6:
     lodash "4.17.15"
     minimist "^1.2.0"
 
-avdl2json@2.2.4, avdl2json@^2.2.4:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/avdl2json/-/avdl2json-2.2.4.tgz#b21443fc709f469d87564642fc703affe5aa619e"
-  integrity sha1-shRD/HCfRp2HVkZC/HA6/+WqYZ4=
+avdl2json@2.2.5, avdl2json@^2.2.4:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/avdl2json/-/avdl2json-2.2.5.tgz#65b05673325217f5aa0a9fd03b138bbfc3cf60e7"
+  integrity sha512-66g8A5P+QN5xLq6gOGlVqJ9OaQUBZDlL0hQWjBMAAiwmONDXSxJaWYNW3ntH94z+unZnWLXH2n/bsOT4g2ADBg==
   dependencies:
     colors "^1.1.2"
     iced-error "0.0.9"

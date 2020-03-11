@@ -5,6 +5,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -63,6 +64,23 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		return errors.New("vouchee has reset, make sure you still know them")
 	}
 
+	if e.arg.Confidence.UsernameVerifiedVia == "" {
+		return errors.New("missing UsernameVerifiedVia")
+	}
+	if _, found := keybase1.UsernameVerificationTypeMap[string(e.arg.Confidence.UsernameVerifiedVia)]; !found {
+		return fmt.Errorf("unrecognized UsernameVerificationTypeMap value '%v'", e.arg.Confidence.UsernameVerifiedVia)
+	}
+
+	if e.arg.Confidence.UsernameVerifiedVia == keybase1.UsernameVerificationType_PROOFS {
+		if len(e.arg.Confidence.Proofs) == 0 {
+			return errors.New("vouching with proofs requires proofs list")
+		}
+	} else {
+		if len(e.arg.Confidence.Proofs) > 0 {
+			return errors.New("vouching with proof list requires proof type")
+		}
+	}
+
 	statement := jsonw.NewDictionary()
 	if err := statement.SetKey("user", them.ToWotStatement()); err != nil {
 		return err
@@ -70,7 +88,11 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
 		return err
 	}
-	if err := statement.SetKey("confidence", e.arg.Confidence.ToJsonw()); err != nil {
+	confidenceJw, err := jsonw.WrapperFromObject(e.arg.Confidence)
+	if err != nil {
+		return err
+	}
+	if err := statement.SetKey("confidence", confidenceJw); err != nil {
 		return err
 	}
 	expansions, sum, err := libkb.EmbedExpansionObj(statement)

@@ -61,18 +61,19 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 		return errors.New("vouch requires an attestation e.g. `-m \"Alice plays the banjo\"`")
 	}
 	via := ctx.String("verified-via")
-	if via != "" {
-		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToLower(via)]
-		if !ok {
-			return fmt.Errorf("invalid verified-via option. Expected one of: %v", verifiedViaChoices)
-		}
-		c.confidence.UsernameVerifiedVia = viaType
+	if via == "" {
+		return errors.New("verified-via is required")
 	}
+	viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToLower(via)]
+	if !ok {
+		return fmt.Errorf("invalid verified-via value '%v'. Expected one of: %v", via, verifiedViaChoices)
+	}
+	c.confidence.UsernameVerifiedVia = viaType
 	other := ctx.String("other")
+	if (other != "") != (c.confidence.UsernameVerifiedVia == keybase1.UsernameVerificationType_OTHER) {
+		return errors.New("--other must be paired with --verified-via 'other'")
+	}
 	if other != "" {
-		if c.confidence.UsernameVerifiedVia != keybase1.UsernameVerificationType_OTHER {
-			return errors.New("'other' can only be paired with a verified-via type of 'other'")
-		}
 		c.confidence.Other = ctx.String("other")
 	}
 	return nil

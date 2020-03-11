@@ -51,20 +51,40 @@ func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
 	return o
 }
 
+type WotProof struct {
+	ProofType ProofType `codec:"proofType" json:"proof_type"`
+	Name      string    `codec:"name" json:"name,omitempty"`
+	Username  string    `codec:"username" json:"username,omitempty"`
+	Protocol  string    `codec:"protocol" json:"protocol,omitempty"`
+	Hostname  string    `codec:"hostname" json:"hostname,omitempty"`
+	Domain    string    `codec:"domain" json:"domain,omitempty"`
+}
+
+func (o WotProof) DeepCopy() WotProof {
+	return WotProof{
+		ProofType: o.ProofType.DeepCopy(),
+		Name:      o.Name,
+		Username:  o.Username,
+		Protocol:  o.Protocol,
+		Hostname:  o.Hostname,
+		Domain:    o.Domain,
+	}
+}
+
 type Confidence struct {
 	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"username_verified_via,omitempty"`
-	Proofs              []SigID                  `codec:"proofs" json:"proofs"`
-	Other               string                   `codec:"other" json:"other"`
+	Proofs              []WotProof               `codec:"proofs" json:"proofs,omitempty"`
+	Other               string                   `codec:"other" json:"other,omitempty"`
 }
 
 func (o Confidence) DeepCopy() Confidence {
 	return Confidence{
 		UsernameVerifiedVia: o.UsernameVerifiedVia.DeepCopy(),
-		Proofs: (func(x []SigID) []SigID {
+		Proofs: (func(x []WotProof) []WotProof {
 			if x == nil {
 				return nil
 			}
-			ret := make([]SigID, len(x))
+			ret := make([]WotProof, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy

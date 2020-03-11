@@ -26,6 +26,42 @@
     },
     {
       "type": "record",
+      "name": "WotProof",
+      "fields": [
+        {
+          "type": "ProofType",
+          "name": "proofType",
+          "jsonkey": "proof_type"
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "jsonkey": "name,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "username,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "protocol",
+          "jsonkey": "protocol,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "hostname",
+          "jsonkey": "hostname,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "domain",
+          "jsonkey": "domain,omitempty"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Confidence",
       "fields": [
         {
@@ -36,13 +72,15 @@
         {
           "type": {
             "type": "array",
-            "items": "SigID"
+            "items": "WotProof"
           },
-          "name": "proofs"
+          "name": "proofs",
+          "jsonkey": "proofs,omitempty"
         },
         {
           "type": "string",
-          "name": "other"
+          "name": "other",
+          "jsonkey": "other,omitempty"
         }
       ]
     },

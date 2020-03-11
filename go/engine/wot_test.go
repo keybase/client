@@ -46,6 +46,7 @@ func TestWebOfTrustVouch(t *testing.T) {
 	// fu1 vouches for fu2
 	arg := &WotVouchArg{
 		Vouchee:    fu2.User.ToUserVersion(),
+		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
 		VouchTexts: []string{"alice is awesome"},
 	}
 
@@ -69,6 +70,7 @@ func TestWebOfTrustVouch(t *testing.T) {
 	uv.EldestSeqno++
 	arg = &WotVouchArg{
 		Vouchee:    uv,
+		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
 		VouchTexts: []string{"bob is nice"},
 	}
 	eng = NewWotVouch(tc1.G, arg)
@@ -131,6 +133,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	vouchTexts := []string{firstVouch}
 	arg := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
+		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
 		VouchTexts: vouchTexts,
 	}
 	eng := NewWotVouch(tcBob.G, arg)
@@ -144,7 +147,8 @@ func TestWebOfTrustPending(t *testing.T) {
 	bobVouch := vouches[0]
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
-	require.Nil(t, bobVouch.Confidence)
+	require.NotNil(t, bobVouch.Confidence)
+	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	t.Log("alice sees one pending vouch")
 	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
@@ -286,13 +290,13 @@ func TestWebOfTrustReject(t *testing.T) {
 	vouchTexts := []string{"alice is wondibar"}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
+		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
 		VouchTexts: vouchTexts,
-		// no confidence
 	}
 	engV := NewWotVouch(tcBob.G, argV)
 	err = RunEngine2(mctxB, engV)
 	require.NoError(t, err)
-	t.Log("bob vouches for alice without confidence")
+	t.Log("bob vouches for alice")
 
 	vouches, err := libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
@@ -320,7 +324,8 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.Equal(t, keybase1.WotStatusType_REJECTED, vouch.Status)
 	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
 	require.Equal(t, vouchTexts, vouch.VouchTexts)
-	require.Nil(t, vouch.Confidence)
+	require.NotNil(t, vouch.Confidence)
+	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	t.Log("alice can see it as rejected")
 
 	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
@@ -352,10 +357,11 @@ func TestWebOfTrustSigBug(t *testing.T) {
 	t.Log("alice and bob follow each other")
 
 	// bob vouches for alice
-	firstVouch := "alice is wondibar but i don't have much confidence"
+	firstVouch := "alice is wondibar cause we texted"
 	vouchTexts := []string{firstVouch}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
+		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
 		VouchTexts: vouchTexts,
 	}
 	engV := NewWotVouch(tcBob.G, argV)
@@ -393,5 +399,10 @@ func TestWebOfTrustSigBug(t *testing.T) {
 
 var confidence = keybase1.Confidence{
 	UsernameVerifiedVia: keybase1.UsernameVerificationType_PROOFS,
-	Proofs:              []keybase1.SigID{keybase1.SigID("24786764ee0861eb134925fe967c03975fba5df02edfabcf4048c71d8cb8623c0f")},
+	Proofs: []keybase1.WotProof{
+		{ProofType: keybase1.ProofType_REDDIT, Name: "reddit", Username: "betaveros"},
+		{ProofType: keybase1.ProofType_GENERIC_SOCIAL, Name: "mastodon.social", Username: "gammaveros"},
+		{ProofType: keybase1.ProofType_GENERIC_WEB_SITE, Protocol: "https:", Username: "beta.veros"},
+		{ProofType: keybase1.ProofType_DNS, Protocol: "dns", Username: "beta.veros"},
+	},
 }
