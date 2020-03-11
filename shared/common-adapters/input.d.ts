@@ -65,8 +65,8 @@ export type Props = {
   // If true it won't use its internal value to drive its rendering
   uncontrolled?: boolean
   // Desktop only.
-  onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
-  onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyDown?: (event: React.KeyboardEvent) => void
+  onKeyUp?: (event: React.KeyboardEvent) => void
   // Mobile only
   onEndEditing?: () => void
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
