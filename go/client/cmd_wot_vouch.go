@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -18,6 +19,9 @@ type cmdWotVouch struct {
 	libkb.Contextified
 }
 
+// Keep in sync with wot.avdl
+const verifiedViaChoices = "in_person, proofs, video, audio, other_chat, familiar, other"
+
 func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{
 		cli.StringFlag{
@@ -25,20 +29,12 @@ func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			Usage: "A message about this user",
 		},
 		cli.StringFlag{
-			Name:  "vouched-by",
-			Usage: "Comma-separated list of keybase users who vouched for this user",
-		},
-		cli.StringFlag{
 			Name:  "verified-via",
-			Usage: "How you verified their identity: audio, video, email, other_chat, in_person",
+			Usage: fmt.Sprintf("How you verified their identity: %s", verifiedViaChoices),
 		},
 		cli.StringFlag{
 			Name:  "other",
 			Usage: "Other information about your confidence in knowing this user",
-		},
-		cli.IntFlag{
-			Name:  "known-for",
-			Usage: "Number of days you have known this user on keybase",
 		},
 	}
 	cmd := &cmdWotVouch{
@@ -64,30 +60,19 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	if len(c.message) == 0 {
 		return errors.New("vouch requires an attestation e.g. `-m \"Alice plays the banjo\"`")
 	}
-	kf := ctx.Int("known-for")
-	if kf > 0 {
-		c.confidence.KnownOnKeybaseDays = kf
-	}
 	via := ctx.String("verified-via")
 	if via != "" {
 		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToLower(via)]
 		if !ok {
-			return errors.New("invalid verified-via option")
+			return fmt.Errorf("invalid verified-via option. Expected one of: %v", verifiedViaChoices)
 		}
 		c.confidence.UsernameVerifiedVia = viaType
 	}
-	vouchingUsernamesRaw := ctx.String("verified-via")
-	if vouchingUsernamesRaw != "" {
-		vouchingUsernames := strings.Split(vouchingUsernamesRaw, ",")
-		var vouchers []keybase1.UID
-		for _, username := range vouchingUsernames {
-			uid := libkb.UsernameToUID(username)
-			vouchers = append(vouchers, uid)
-		}
-		c.confidence.VouchedBy = vouchers
-	}
 	other := ctx.String("other")
 	if other != "" {
+		if c.confidence.UsernameVerifiedVia != keybase1.UsernameVerificationType_OTHER {
+			return errors.New("'other' can only be paired with a verified-via type of 'other'")
+		}
 		c.confidence.Other = ctx.String("other")
 	}
 	return nil
