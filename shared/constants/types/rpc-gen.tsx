@@ -1568,7 +1568,7 @@ export type MessageTypes = {
     outParam: NonUserDetails
   }
   'keybase.1.userSearch.userSearch': {
-    inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean}
+    inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean; readonly justContacts: Boolean}
     outParam: Array<APIUserSearchResult> | null
   }
 }

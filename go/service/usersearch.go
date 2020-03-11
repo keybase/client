@@ -421,9 +421,13 @@ func (h *UserSearchHandler) makeSearchRequest(mctx libkb.MetaContext, arg keybas
 }
 
 func (h *UserSearchHandler) keybaseSearchWithContacts(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
-	res, err = h.makeSearchRequest(mctx, arg)
-	if err != nil {
-		mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
+	mctx.Warning("Daniel: ", arg.JustContacts)
+	if !arg.JustContacts {
+		mctx.Warning("Daniel: ", arg.JustContacts)
+		res, err = h.makeSearchRequest(mctx, arg)
+		if err != nil {
+			mctx.Warning("Failed to do an API search for %q: %s", arg.Service, err)
+		}
 	}
 
 	if arg.IncludeContacts {

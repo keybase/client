@@ -10,20 +10,24 @@ import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createNavigateUp()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
-type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
+type SearchOrRecAction = {
+  payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean; justContacts: boolean}
+}
 
 const apiSearch = async (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact,
   maxResults: number,
   includeServicesSummary: boolean,
-  includeContacts: boolean
+  includeContacts: boolean,
+  justContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise(
       {
         includeContacts: service === 'keybase' && includeContacts,
         includeServicesSummary,
+        justContacts,
         maxResults,
         query,
         service,
@@ -51,7 +55,8 @@ const apiSearchOne = async (
       service,
       1 /* maxResults */,
       true /* serviceSummaries */,
-      false /* includeContacts */
+      false /* includeContacts */,
+      false /* justContacts */
     )
   )[0]
 
@@ -74,7 +79,10 @@ async function specialContactSearch(users: TeamBuildingTypes.User[], query: stri
   return users
 }
 
-const search = async (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
+const search = async (
+  state: TypedState,
+  {payload: {namespace, includeContacts, justContacts}}: SearchOrRecAction
+) => {
   const {searchQuery, selectedService, searchLimit} = state[namespace].teamBuilding
   // We can only ask the api for at most 100 results
   if (searchLimit > 100) {
@@ -88,7 +96,8 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
     selectedService,
     searchLimit,
     true /* includeServicesSummary */,
-    includeContacts
+    includeContacts,
+    justContacts
   )
   if (selectedService === 'keybase') {
     // If we are on Keybase tab, do additional search if query is phone/email.

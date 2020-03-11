@@ -74,5 +74,5 @@ protocol userSearch {
     NonUserDetails getNonUserDetails(int sessionID, string assertion);
 
     array<APIUserSearchResult> userSearch(string query, string service, int maxResults,
-        boolean includeServicesSummary, boolean includeContacts);
+        boolean includeServicesSummary, boolean includeContacts, boolean justContacts);
 }

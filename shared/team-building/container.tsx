@@ -208,12 +208,14 @@ const makeDebouncedSearch = (time: number) =>
       query: string,
       service: Types.ServiceIdWithContact,
       includeContacts: boolean,
+      justContacts: boolean,
       limit?: number
     ) =>
       requestIdleCallback(() =>
         dispatch(
           TeamBuildingGen.createSearch({
             includeContacts,
+            justContacts,
             limit,
             namespace,
             query,
@@ -240,11 +242,23 @@ const mapDispatchToProps = (
     dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true})),
   _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
-    return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
+    return func(
+      dispatch,
+      namespace,
+      query,
+      service,
+      namespace === 'chat2' || justContacts,
+      justContacts,
+      limit
+    )
   },
   fetchUserRecs: () =>
     dispatch(
-      TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2' || justContacts, namespace})
+      TeamBuildingGen.createFetchUserRecs({
+        includeContacts: namespace === 'chat2' || justContacts,
+        justContacts,
+        namespace,
+      })
     ),
   onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>

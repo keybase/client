@@ -300,6 +300,10 @@
         {
           "name": "includeContacts",
           "type": "boolean"
+        },
+        {
+          "name": "justContacts",
+          "type": "boolean"
         }
       ],
       "response": {

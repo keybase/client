@@ -263,6 +263,7 @@ type UserSearchArg struct {
 	MaxResults             int    `codec:"maxResults" json:"maxResults"`
 	IncludeServicesSummary bool   `codec:"includeServicesSummary" json:"includeServicesSummary"`
 	IncludeContacts        bool   `codec:"includeContacts" json:"includeContacts"`
+	JustContacts           bool   `codec:"justContacts" json:"justContacts"`
 }
 
 type UserSearchInterface interface {
