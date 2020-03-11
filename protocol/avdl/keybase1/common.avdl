@@ -7,7 +7,7 @@ protocol Common {
   // Note: when converting to/from time.Time in go, the zero value of time.Time{}
   // (January 1, year 1, 00:00:00 UTC) gets mapped to 0 (i.e. Jan 1 1970)
   // Note 2: the conversion functions in go try to avoid but do not explicitly
-  // for overflows during conversion.
+  // check for overflows during conversion.
   @typedef("long")
   record Time {}
 
@@ -16,7 +16,7 @@ protocol Common {
   // Note: when converting to/from time.Time, the zero value of time.Time{}
   // (January 1, year 1, 00:00:00 UTC) gets mapped to 0 (i.e. Jan 1 1970)
   // Note 2: the conversion functions in go try to avoid but do not explicitly
-  // for overflows during conversion.
+  // check for overflows during conversion.
   @typedef("long")
   record UnixTime {}
 
