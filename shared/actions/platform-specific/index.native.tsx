@@ -276,12 +276,15 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   if (_lastPersist === s) {
     return
   }
-  _lastPersist = s
   yield Saga.spawn(() =>
     RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s},
-    }).catch(() => {})
+    })
+      .then(() => {
+        _lastPersist = s
+      })
+      .catch(() => {})
   )
 }
 
@@ -370,7 +373,7 @@ function* loadStartupDetails() {
     logger.info('initialState: link', link)
     // Second priority, deep link
     startupLink = link
-  } else if (share?.fileUrl || share.text) {
+  } else if (share?.fileUrl || share?.text) {
     logger.info('initialState: share')
     startupSharePath = share.fileUrl || undefined
     startupShareText = share.text || undefined
