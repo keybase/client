@@ -564,13 +564,11 @@ const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathM
       },
       Constants.statWaitingKey
     )
-    console.log({songgao: 'loadPathMetadata', dirent})
     return FsGen.createPathItemLoaded({
       path,
       pathItem: makeEntry(dirent),
     })
   } catch (err) {
-    console.log({songgao: 'loadPathMetadata', err})
     return makeRetriableErrorHandler(action, path)(err)
   }
 }
