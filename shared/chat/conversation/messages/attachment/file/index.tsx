@@ -95,12 +95,12 @@ const styles = Styles.styleSheetCreate(
       },
       downloadedIconWrapperStyle: {
         ...Styles.globalStyles.flexBoxCenter,
+        ...Styles.padding(3, 0, 3, 3),
         backgroundColor: Styles.globalColors.white,
         borderRadius: 20,
         bottom: 0,
-        padding: 3,
         position: 'absolute',
-        right: 0,
+        right: Styles.globalMargins.small,
       },
       error: {color: Styles.globalColors.redDark},
       iconStyle: {
