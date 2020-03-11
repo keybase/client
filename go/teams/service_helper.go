@@ -426,7 +426,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 		tx := CreateAddMemberTx(t)
 		tx.EmailInviteMsg = emailInviteMsg
-		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertionOrEmail(ctx, username, role, botSettings)
+		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertion(ctx, username, role, botSettings)
 		if err != nil {
 			return err
 		}
@@ -488,7 +488,11 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 
-	restrictedUsers := make(map[keybase1.UID]bool)
+	// restrictedUsers is nil initially, but if first attempt at adding members
+	// results in "contact settings block error", restrictedUsers becomes a set
+	// of blocked uids.
+	var restrictedUsers contactRestrictedUsers
+
 	addNonRestrictedMembersFunc := func(ctx context.Context, _ int) error {
 		added = []AddMembersRes{}
 		notAdded = []keybase1.User{}
@@ -496,6 +500,11 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
+		}
+
+		if team.IsSubteam() && keybase1.UserRolePairsHaveOwner(users) {
+			// Do the "owner in subteam" check early before we do anything else.
+			return NewSubteamOwnersError()
 		}
 
 		tx := CreateAddMemberTx(team)
@@ -507,24 +516,25 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 		var sweep []sweepEntry
 		for _, user := range users {
-			upak, single, doInvite, assertion, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+			candidate, err := tx.ResolveUPKV2FromAssertion(mctx, user.Assertion)
 			if err != nil {
-				return NewAddMembersError(assertion, err)
+				return NewAddMembersError(candidate.Full, err)
 			}
 
-			if _, ok := restrictedUsers[upak.Uid]; ok {
-				// skip users with contact setting restrictions
-				user := keybase1.User{Uid: upak.Uid, Username: libkb.NewNormalizedUsername(upak.Username).String()}
-				notAdded = append(notAdded, user)
+			g.Log.CDebugf(ctx, "%q resolved to %s", user.Assertion, candidate.DebugString())
+
+			if restricted, kbUser := restrictedUsers.checkCandidate(candidate); restricted {
+				// Skip users with contact setting restrictions.
+				notAdded = append(notAdded, kbUser)
 				continue
 			}
 
-			username, uv, invite, err := tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, user.AssertionOrEmail, user.Role, user.BotSettings)
+			username, uv, invite, err := tx.AddOrInviteMemberCandidate(ctx, candidate, user.Role, user.BotSettings)
 			if err != nil {
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return NewAddMembersError(assertion, err)
+				return NewAddMembersError(candidate.Full, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
@@ -537,11 +547,12 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 			})
 			if !uv.IsNil() {
 				sweep = append(sweep, sweepEntry{
-					Assertion: user.AssertionOrEmail,
+					Assertion: user.Assertion,
 					UV:        uv,
 				})
 			}
 		}
+
 		// Try to mark completed any invites for the users' social assertions.
 		// This can be a time-intensive process since it involves checking proofs.
 		// It is limited to a few seconds and failure is non-fatal.
@@ -562,14 +573,13 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		mctx.Debug("AddMembers: initial attempt failed with contact settings error: %v", err)
 		uids := blockError.BlockedUIDs()
 		if len(uids) == len(users) {
-			// if all users can't be added, quit
+			// If all users can't be added, quit. Do this check before calling
+			// `unpackContactRestrictedUsers` to avoid allocating and setting
+			// up the uid set if we fall in this case.
 			mctx.Debug("AddMembers: initial attempt failed and all users were restricted from being added. Not retrying.")
 			return nil, nil, err
 		}
-		// retry add
-		for _, uid := range uids {
-			restrictedUsers[uid] = true
-		}
+		restrictedUsers = unpackContactRestrictedUsers(blockError)
 		mctx.Debug("AddMembers: retrying without restricted users: %+v", blockError.BlockedUsernames())
 		err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc)
 	}
@@ -716,24 +726,26 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			continue
 		}
 
-		// api server side of this only accepts x.yy domain name:
+		// API server side of this only accepts x.yy domain name:
 		parts := strings.Split(addr.Address, ".")
 		if len(parts[len(parts)-1]) < 2 {
 			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q", teamname, email)
 			res.Malformed = append(res.Malformed, email)
 			continue
 		}
-		a, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
+
+		assertion, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
 		if parseErr != nil {
 			g.Log.CDebugf(ctx, "team %q: skipping malformed email %q; could not parse into assertion: %s", teamname, email, parseErr)
 			res.Malformed = append(res.Malformed, email)
 			continue
 		}
-		toAdd = append(toAdd, keybase1.UserRolePair{AssertionOrEmail: a.String(), Role: role})
+		toAdd = append(toAdd, keybase1.UserRolePair{Assertion: assertion.String(), Role: role})
 	}
 
 	if len(toAdd) == 0 {
-		return res, err
+		// Nothing to do.
+		return res, nil
 	}
 
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
@@ -761,7 +773,7 @@ func EditMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Te
 	var failedToEdit []keybase1.UserRolePair
 
 	for _, userRolePair := range users {
-		err := EditMemberByID(ctx, g, teamID, userRolePair.AssertionOrEmail, userRolePair.Role, userRolePair.BotSettings)
+		err := EditMemberByID(ctx, g, teamID, userRolePair.Assertion, userRolePair.Role, userRolePair.BotSettings)
 		if err != nil {
 			failedToEdit = append(failedToEdit, userRolePair)
 			continue
@@ -1402,7 +1414,7 @@ var errUserDeleted = errors.New("user is deleted")
 // Keybase user with PUK, `errInviteRequired` is returned.
 //
 // Returns `errInviteRequired` if given argument cannot be brought in as a
-// crypto member - so it is either a reset and not provisioned keybae user
+// crypto member - so it is either a reset and not provisioned Keybase user
 // (keybase-type invite is required), or a social assertion that does not
 // resolve to a user.
 //
