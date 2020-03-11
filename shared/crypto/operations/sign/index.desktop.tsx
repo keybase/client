@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/crypto'
-import * as Kb from '../../common-adapters'
-import openURL from '../../util/open-url'
-import {Input, DragAndDrop, OperationBanner} from '../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../output'
+import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/crypto'
+import * as Kb from '../../../common-adapters'
+import openURL from '../../../util/open-url'
+import {Input, DragAndDrop, OperationBanner} from '../../input'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 
 const operation = Constants.Operations.Sign
 
@@ -27,21 +27,31 @@ const SignOutputBanner = () => {
   )
 }
 
+export const SignInput = () => (
+  <>
+    <OperationBanner
+      operation={operation}
+      infoMessage="Add your cryptographic signature to a message or file."
+    />
+    <Input operation={operation} />
+  </>
+)
+
+export const SignOutput = () => (
+  <>
+    <SignOutputBanner />
+    <SignedSender operation={operation} />
+    <OperationOutput operation={operation} />
+    <OutputBar operation={operation} />
+  </>
+)
+
 const Sign = () => {
   return (
     <DragAndDrop operation={operation} prompt="Drop a file to sign">
       <Kb.Box2 direction="vertical" fullHeight={true}>
-        <OperationBanner
-          operation={operation}
-          infoMessage="Add your cryptographic signature to a message or file."
-        />
-        <Input operation={operation} />
-        <Kb.Box2 direction="vertical" fullHeight={true}>
-          <SignOutputBanner />
-          <SignedSender operation={operation} />
-          <OperationOutput operation={operation} />
-          <OutputBar operation={operation} />
-        </Kb.Box2>
+        <SignInput />
+        <SignOutput />
       </Kb.Box2>
     </DragAndDrop>
   )

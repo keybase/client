@@ -5,12 +5,7 @@ import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
 import {memoize} from '../../util/memoize'
 import NavRow from './nav-row'
-import Props from '.'
-
-type Props = {
-  children?: React.ReactNode
-  routeSelected: Types.CryptoSubTab
-}
+import {Props} from './index'
 
 type Row = Types.Tab & {isSelected: boolean; key: string}
 

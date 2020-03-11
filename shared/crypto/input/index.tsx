@@ -290,13 +290,12 @@ const styles = Styles.styleSheetCreate(
       commonContainer: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.positionRelative,
-        flexShrink: 2,
       },
       containerInputFocus: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.fullHeight,
         display: 'flex',
-        flexShrink: 2,
+        flexShrink: 1.7,
       },
       fileContainer: {
         alignSelf: 'flex-start',

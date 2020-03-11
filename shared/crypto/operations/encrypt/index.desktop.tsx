@@ -79,7 +79,7 @@ const EncryptOutputBanner = () => {
   )
 }
 
-const EncryptInput = () => {
+export const EncryptInput = () => {
   return (
     <>
       <OperationBanner
@@ -87,46 +87,29 @@ const EncryptInput = () => {
         infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
       />
       <Recipients />
-      <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Input operation={operation} />
-        <EncryptOptions />
-      </Kb.Box2>
+      <Input operation={operation} />
+      <EncryptOptions />
     </>
   )
 }
 
-const EncryptOutput = () => {
-  return (
-    <Kb.Box2 direction="vertical" fullHeight={true}>
-      <EncryptOutputBanner />
-      <SignedSender operation={operation} />
-      <OperationOutput operation={operation} />
-      <OutputBar operation={operation} />
-    </Kb.Box2>
-  )
-}
+export const EncryptOutput = () => (
+  <>
+    <EncryptOutputBanner />
+    <SignedSender operation={operation} />
+    <OperationOutput operation={operation} />
+    <OutputBar operation={operation} />
+  </>
+)
 
-const Encrypt = () => {
-  return (
-    <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
-      <OperationBanner
-        operation={operation}
-        infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
-      />
-      <Recipients />
-      <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Input operation={operation} />
-        <EncryptOptions />
-        <Kb.Box2 direction="vertical" fullHeight={true}>
-          <EncryptOutputBanner />
-          <SignedSender operation={operation} />
-          <OperationOutput operation={operation} />
-          <OutputBar operation={operation} />
-        </Kb.Box2>
-      </Kb.Box2>
-    </DragAndDrop>
-  )
-}
+const Encrypt = () => (
+  <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
+    <Kb.Box2 direction="vertical" fullHeight={true}>
+      <EncryptInput />
+      <EncryptOutput />
+    </Kb.Box2>
+  </DragAndDrop>
+)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -139,5 +122,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export {EncryptInput, EncryptOutput}
 export default Encrypt

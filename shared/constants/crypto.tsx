@@ -37,6 +37,12 @@ export const decryptTab = 'decryptTab'
 export const signTab = 'signTab'
 export const verifyTab = 'verifyTab'
 
+// Output route keys - Mobile onlye
+export const encryptOutput = 'encryptOutput'
+export const decryptOutput = 'decryptOutput'
+export const signOutput = 'signOutput'
+export const verifyOutput = 'verifyOutput'
+
 export const TabTitles: {[k in Types.CryptoSubTab]: Types.TabTitles} = {
   decryptTab: 'Decrypt',
   encryptTab: 'Encrypt',

@@ -13,13 +13,13 @@ import Verify from './operations/verify'
 const noScreenProps = {}
 const cryptoSubRoutes = {
   [Constants.decryptTab]: {
-    getScreen: (): typeof Decrypt => require('./operations/decrypt').default,
+    getScreen: (): typeof Decrypt => require('./operations/decrypt/index').default,
   },
   [Constants.encryptTab]: {
-    getScreen: (): typeof Encrypt => require('./operations/encrypt').default,
+    getScreen: (): typeof Encrypt => require('./operations/encrypt/index').default,
   },
-  [Constants.signTab]: {getScreen: (): typeof Sign => require('./operations/sign').default},
-  [Constants.verifyTab]: {getScreen: (): typeof Verify => require('./operations/verify').default},
+  [Constants.signTab]: {getScreen: (): typeof Sign => require('./operations/sign/index').default},
+  [Constants.verifyTab]: {getScreen: (): typeof Verify => require('./operations/verify/index').default},
 }
 
 const SubNavWrapper = React.memo((props: NavigationViewProps<any>) => {
