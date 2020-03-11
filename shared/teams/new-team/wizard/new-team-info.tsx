@@ -10,6 +10,19 @@ import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import debounce from 'lodash/debounce'
+
+const getTeamTakenMessage = (status: number): string => {
+  switch (status) {
+    case RPCTypes.StatusCode.scteambadnamereserveddb:
+      return 'This name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
+
+    case RPCTypes.StatusCode.scteamnameconflictswithuser:
+    case RPCTypes.StatusCode.scteamexists:
+    default:
+      return 'This team name is already taken'
+  }
+}
 
 const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
@@ -18,22 +31,22 @@ const NewTeamInfo = () => {
   const teamWizardState = Container.useSelector(state => state.teams.newTeamWizard)
 
   const [name, setName] = React.useState(teamWizardState.name)
-  const [teamNameTakenError, setTeamNameTakenError] = React.useState<string | null>(null)
+  const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<number>(0)
   const [teamNameTaken, setTeamNameTaken] = React.useState(false)
-  const checkTeamNameTaken = Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise)
+  const checkTeamNameTaken = debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100)
   React.useEffect(() => {
     if (name.length >= 3) {
       checkTeamNameTaken(
         [{teamName: {parts: name.split('.')}}],
-        taken => {
-          setTeamNameTaken(taken)
-          // setTeamNameTakenError('')
+        ({exists, status}) => {
+          setTeamNameTaken(exists)
+          setTeamNameTakenStatus(status)
         },
-        e => setTeamNameTakenError(e.message)
+        () => {} // TODO: handle errors?
       )
     } else {
       setTeamNameTaken(false)
-      setTeamNameTakenError(null)
+      setTeamNameTakenStatus(0)
     }
   }, [name, setTeamNameTaken, checkTeamNameTaken])
 
@@ -86,7 +99,7 @@ const NewTeamInfo = () => {
         />
         {teamNameTaken ? (
           <Kb.Text type="BodySmallError" style={styles.extraLineText}>
-            This team name is already taken. {teamNameTakenError}
+            {getTeamTakenMessage(teamNameTakenStatus)}
           </Kb.Text>
         ) : (
           <Kb.Text type="BodySmall">

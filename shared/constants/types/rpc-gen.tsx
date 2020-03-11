@@ -1465,7 +1465,7 @@ export type MessageTypes = {
   }
   'keybase.1.teams.untrustedTeamExists': {
     inParam: {readonly teamName: TeamName}
-    outParam: Boolean
+    outParam: UntrustedTeamExistsResult
   }
   'keybase.1.teams.uploadTeamAvatar': {
     inParam: {readonly teamname: String; readonly filename: String; readonly crop?: ImageCropRect | null; readonly sendChatNotification: Boolean}
