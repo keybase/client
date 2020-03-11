@@ -14,7 +14,6 @@ import {pluralize} from '../../util/string'
 
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
 
   const {teamID, role, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
@@ -158,7 +157,7 @@ const RoleSelector = () => {
         selectedRole={role}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
-        confirmLabel={`Add as ${pluralize(role)}`}
+        confirmLabel={`Add as ${pluralize(role || 'reader')}`} // TODO Y2K-1560 fix when this can actually be undefined
       >
         <Kb.InlineDropdown
           type="BodySmallSemibold"
@@ -215,8 +214,6 @@ const AddingMembers = () => {
 const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
   const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
-  const {role} = Container.useSelector(s => s.teams.addMembersWizard)
-  const showDropdown = role === undefined
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">

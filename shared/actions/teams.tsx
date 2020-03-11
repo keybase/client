@@ -1423,7 +1423,7 @@ const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescript
     ],
   })
 
-const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
+const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: ['teamAddToTeamFromWhere'],
   })
