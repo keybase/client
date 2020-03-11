@@ -348,7 +348,6 @@ function* tracker2Saga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersUserChanged, refreshSelf)
   yield* Saga.chainAction(Tracker2Gen.loadNonUserProfile, loadNonUserProfile)
   yield* Saga.chainAction(Tracker2Gen.updatedDetails, refreshTrackerBlock)
-  // yield* Saga.chainAction(Tracker2Gen.errorLoadingNonUserProfile, showBadUsernameDeeplinkError)
 }
 
 export default tracker2Saga
