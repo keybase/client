@@ -516,25 +516,16 @@ function* pollJournalFlushStatusUntilDone() {
   }
 }
 
-function* ignoreFavoriteSaga(_: Container.TypedState, action: FsGen.FavoriteIgnorePayload) {
+const ignoreFavorite = async (_: Container.TypedState, action: FsGen.FavoriteIgnorePayload) => {
   const folder = Constants.folderRPCFromPath(action.payload.path)
   if (!folder) {
-    // TODO: make the ignore button have a pending state and get rid of this?
-    yield Saga.put(
-      FsGen.createFavoriteIgnoreError({
-        error: Constants.makeError({
-          error: 'No folder specified',
-          erroredAction: action,
-        }),
-        path: action.payload.path,
-      })
-    )
-  } else {
-    try {
-      yield RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
-    } catch (error) {
-      yield makeRetriableErrorHandler(action, action.payload.path)(error).map(action => Saga.put(action))
-    }
+    throw new Error('No folder specified')
+  }
+  try {
+    await RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
+    return null
+  } catch (error) {
+    return makeRetriableErrorHandler(action, action.payload.path)(error)
   }
 }
 
@@ -563,25 +554,24 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
   }
 }
 
-function* loadPathMetadata(_: Container.TypedState, action: FsGen.LoadPathMetadataPayload) {
+const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathMetadataPayload) => {
   const {path} = action.payload
-
   try {
-    const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise(
+    const dirent = await RPCTypes.SimpleFSSimpleFSStatRpcPromise(
       {
         path: Constants.pathToRPCPath(path),
         refreshSubscription: false,
       },
       Constants.statWaitingKey
     )
-    yield Saga.put(
-      FsGen.createPathItemLoaded({
-        path,
-        pathItem: makeEntry(dirent),
-      })
-    )
+    console.log({songgao: 'loadPathMetadata', dirent})
+    return FsGen.createPathItemLoaded({
+      path,
+      pathItem: makeEntry(dirent),
+    })
   } catch (err) {
-    yield makeRetriableErrorHandler(action, path)(err).map(action => Saga.put(action))
+    console.log({songgao: 'loadPathMetadata', err})
+    return makeRetriableErrorHandler(action, path)(err)
   }
 }
 
@@ -1084,13 +1074,13 @@ function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
   yield* Saga.chainAction2(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
-  yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
+  yield* Saga.chainAction2(FsGen.favoriteIgnore, ignoreFavorite)
   yield* Saga.chainAction2(FsGen.favoritesLoaded, updateFsBadge)
   yield* Saga.chainAction2(FsGen.loadAdditionalTlf, loadAdditionalTlf)
   yield* Saga.chainAction(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction2(FsGen.commitEdit, commitEdit)
   yield* Saga.chainAction(FsGen.deleteFile, deleteFile)
-  yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
+  yield* Saga.chainAction2(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainGenerator<FsGen.PollJournalStatusPayload>(
     FsGen.pollJournalStatus,
     pollJournalFlushStatusUntilDone
