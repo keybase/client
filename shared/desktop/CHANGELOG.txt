@@ -1,4 +1,5 @@
 • Keybase for iPad is here!
 • The Crypto tab can open and save .saltpack files
 • You can now search for open teams using chat search
+• Fixed quit command not functioning
 • Many performance improvements and bug fixes
