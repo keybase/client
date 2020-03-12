@@ -108,7 +108,7 @@ func FormatTime(tm time.Time) string {
 }
 
 func Cicmp(s1, s2 string) bool {
-	return strings.ToLower(s1) == strings.ToLower(s2)
+	return strings.EqualFold(s1, s2)
 }
 
 func TrimCicmp(s1, s2 string) bool {
@@ -596,6 +596,9 @@ func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) 
 
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
 	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
+}
+func (g *GlobalContext) CPerfTrace(ctx context.Context, msg string, f func() error) func() {
+	return CTraceTimed(ctx, g.PerfLog, msg, f, g.Clock())
 }
 
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
@@ -1206,4 +1209,65 @@ func JsonwStringArray(a []string) *jsonw.Wrapper {
 		_ = aj.SetIndex(i, jsonw.NewString(s))
 	}
 	return aj
+}
+
+var throttleBatchClock clockwork.Clock = clockwork.NewRealClock()
+
+type throttleBatchEmpty struct{}
+
+func isEmptyThrottleData(arg interface{}) bool {
+	_, ok := arg.(throttleBatchEmpty)
+	return ok
+}
+
+func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) interface{},
+	reset func() interface{}, delay time.Duration, leadingFire bool) (func(interface{}), func()) {
+	var lock sync.Mutex
+	var closeLock sync.Mutex
+	var lastCalled time.Time
+	var creation func(interface{})
+	hasStored := false
+	scheduled := false
+	stored := reset()
+	cancelCh := make(chan struct{})
+	closed := false
+	creation = func(arg interface{}) {
+		lock.Lock()
+		defer lock.Unlock()
+		elapsed := throttleBatchClock.Since(lastCalled)
+		isEmpty := isEmptyThrottleData(arg)
+		leading := leadingFire || hasStored
+		if !isEmpty {
+			stored = batcher(stored, arg)
+			hasStored = true
+		}
+		if elapsed > delay && (!isEmpty || hasStored) && leading {
+			f(stored)
+			stored = reset()
+			hasStored = false
+			lastCalled = throttleBatchClock.Now()
+		} else if !scheduled && !isEmpty {
+			scheduled = true
+			go func() {
+				select {
+				case <-throttleBatchClock.After(delay - elapsed):
+					lock.Lock()
+					scheduled = false
+					lock.Unlock()
+					creation(throttleBatchEmpty{})
+				case <-cancelCh:
+					return
+				}
+			}()
+		}
+	}
+	return creation, func() {
+		closeLock.Lock()
+		defer closeLock.Unlock()
+		if closed {
+			return
+		}
+		closed = true
+		close(cancelCh)
+	}
 }

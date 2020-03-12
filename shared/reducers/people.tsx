@@ -6,6 +6,7 @@ import * as Container from '../util/container'
 import * as SettingsGen from '../actions/settings-gen'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {editTeambuildingDraft} from './team-building'
+import shallowEqual from 'shallowequal'
 
 const initialState: Types.State = {
   followSuggestions: [],
@@ -23,11 +24,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [PeopleGen.resetStore]: () => initialState,
   [PeopleGen.peopleDataProcessed]: (draftState, action) => {
     const {payload} = action
-    draftState.followSuggestions = payload.followSuggestions
-    draftState.lastViewed = payload.lastViewed
-    draftState.newItems = payload.newItems
-    draftState.oldItems = payload.oldItems
-    draftState.version = payload.version
+    const {followSuggestions, lastViewed, newItems, oldItems, version} = payload
+    if (!shallowEqual(followSuggestions, draftState.followSuggestions)) {
+      draftState.followSuggestions = followSuggestions
+    }
+    if (lastViewed.getTime() !== draftState.lastViewed.getTime()) {
+      draftState.lastViewed = lastViewed
+    }
+    if (!shallowEqual(newItems, draftState.newItems)) {
+      draftState.newItems = newItems
+    }
+    if (!shallowEqual(oldItems, draftState.oldItems)) {
+      draftState.oldItems = oldItems
+    }
+    draftState.version = version
   },
   [PeopleGen.setResentEmail]: (draftState, action) => {
     draftState.resentEmail = action.payload.email

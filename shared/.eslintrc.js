@@ -21,6 +21,7 @@ module.exports = {
   },
   globals: {
     KB: 'readonly',
+    __HOT__: false,
     __DEV__: false,
     __STORYBOOK__: false,
     __STORYSHOT__: false,

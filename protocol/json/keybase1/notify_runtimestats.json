@@ -89,6 +89,35 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PerfEventType",
+      "symbols": [
+        "NETWORK_0",
+        "TEAMBOXAUDIT_1",
+        "TEAMAUDIT_2",
+        "USERCHAIN_3",
+        "TEAMCHAIN_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PerfEvent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        },
+        {
+          "type": "PerfEventType",
+          "name": "eventType"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "RuntimeStats",
       "fields": [
@@ -105,6 +134,13 @@
             "items": "DbStats"
           },
           "name": "dbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerfEvent"
+          },
+          "name": "perfEvents"
         },
         {
           "type": "boolean",

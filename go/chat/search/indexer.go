@@ -73,7 +73,7 @@ var _ types.Indexer = (*Indexer)(nil)
 func NewIndexer(g *globals.Context) *Indexer {
 	idx := &Indexer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Search.Indexer", false),
 		pageSize:     defaultPageSize,
 		suspendCh:    make(chan chan struct{}, 10),
 		resumeWait:   time.Second,
@@ -276,7 +276,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			// block until we are told to resume or stop.
 			select {
 			case <-ch:
-				time.Sleep(idx.resumeWait)
+				time.Sleep(libkb.RandomJitter(idx.resumeWait))
 			case <-idx.stopCh:
 				stopSync(ctx)
 				return nil
@@ -541,7 +541,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
-		msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, idx.uid, missingIDs, &reason)
+		msgs, err := idx.G().ConvSource.GetMessages(ctx, rconv, idx.uid, missingIDs, &reason, nil)
 		if err != nil {
 			if utils.IsPermanentErr(err) {
 				return 0, err
@@ -570,7 +570,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				Pivot: &i,
 				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
 			}, nil)
-			tv, err := idx.G().ConvSource.Pull(ctx, convID, idx.uid, reason, query, pagination)
+			tv, err := idx.G().ConvSource.Pull(ctx, convID, idx.uid, reason, nil, query, pagination)
 			if err != nil {
 				if utils.IsPermanentErr(err) {
 					return 0, err
@@ -721,6 +721,7 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // varies between desktop and mobile so mobile can be more conservative.
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
+	defer idx.PerfTrace(ctx, func() error { return err }, "SelectiveSync")()
 	idx.setSelectiveSyncActive(true)
 	defer func() { idx.setSelectiveSyncActive(false) }()
 

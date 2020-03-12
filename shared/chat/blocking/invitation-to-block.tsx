@@ -43,7 +43,7 @@ const BlockButtons = (props: Props) => {
         small={true}
         conversationIDKey={props.conversationID}
         toMany={others.length > 0 || !!team}
-        style={styles.button}
+        style={styles.waveButton}
       />
       {!team && others.length === 0 && (
         <Kb.Button
@@ -158,5 +158,10 @@ const styles = Styles.styleSheetCreate(
         right: Styles.globalMargins.small,
         top: -1,
       },
+      waveButton: Styles.platformStyles({
+        isElectron: {
+          width: '',
+        },
+      }),
     } as const)
 )

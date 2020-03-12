@@ -1,8 +1,8 @@
-import moment from 'moment'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import UserNotice from '../user-notice'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as dateFns from 'date-fns'
 
 type Props = {
   canManage: boolean
@@ -27,7 +27,7 @@ const getPolicySummary = (props: Props) => {
       return 'be retained indefinitely'
     case RPCChatTypes.RetentionPolicyType.expire:
       {
-        const expireDuration = moment.duration(props.policy.expire?.age, 'seconds').humanize()
+        const expireDuration = dateFns.formatDistanceStrict(0, props.policy.expire?.age * 1000)
         if (expireDuration !== '') {
           return `expire after ${expireDuration}`
         }
@@ -35,7 +35,7 @@ const getPolicySummary = (props: Props) => {
       break
     case RPCChatTypes.RetentionPolicyType.ephemeral:
       {
-        const ephemeralDuration = moment.duration(props.policy.ephemeral?.age, 'seconds').humanize()
+        const ephemeralDuration = dateFns.formatDistanceStrict(0, props.policy.ephemeral?.age * 1000)
         if (ephemeralDuration !== '') {
           return `explode after ${ephemeralDuration} by default`
         }

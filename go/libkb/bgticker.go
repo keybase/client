@@ -37,7 +37,7 @@ func NewBgTickerWithWait(duration time.Duration, wait time.Duration) *BgTicker {
 
 func (t *BgTicker) tick() {
 	for c := range t.ticker.C {
-		time.Sleep(t.resumeWait)
+		time.Sleep(RandomJitter(t.resumeWait))
 		t.c <- c
 	}
 }

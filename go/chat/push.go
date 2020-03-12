@@ -45,7 +45,7 @@ type gregorMessageOrderer struct {
 func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 	return &gregorMessageOrderer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorMessageOrderer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "gregorMessageOrderer", false),
 		waiters:      make(map[string][]messageWaiterEntry),
 		clock:        clockwork.NewRealClock(),
 	}
@@ -219,7 +219,7 @@ type PushHandler struct {
 func NewPushHandler(g *globals.Context) *PushHandler {
 	p := &PushHandler{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "PushHandler", false),
 		identNotifier: NewCachingIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
 		typingMonitor: NewTypingMonitor(g),
@@ -424,7 +424,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes id from reaction, skipping: %v", err)
 					return false
 				}
-				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil)
+				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil, nil)
 				if err != nil || len(supersedesMsg) == 0 || !supersedesMsg[0].IsValid() {
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes message from reaction, skipping: %v", err)
 					return false
@@ -481,7 +481,7 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 	switch msg.GetMessageType() {
 	case chat1.MessageType_EDIT:
 		targetMsgID := msg.Valid().MessageBody.Edit().MessageID
-		msgs, err := g.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{targetMsgID}, nil)
+		msgs, err := g.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{targetMsgID}, nil, nil)
 		if err != nil {
 			g.Debug(ctx, "getSupersedesTarget: failed to get message: %v", err)
 			return nil
@@ -656,7 +656,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d", nm.ConvID, nm.MsgID)
 
 			uid := m.UID().Bytes()
-			if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
+			if _, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 		case types.ActionSetStatus:
@@ -668,7 +668,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: setStatus: convID: %s status: %d", nm.ConvID, nm.Status)
 
 			uid := m.UID().Bytes()
-			if conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
+			conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status)
+			if err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			activity = new(chat1.ChatActivity)
@@ -783,7 +784,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: expunge: convID: %s expunge: %v",
 				nm.ConvID, nm.Expunge)
 			uid := m.UID().Bytes()
-			if err = g.G().ConvSource.Expunge(ctx, nm.ConvID, uid, nm.Expunge); err != nil {
+			conv, err := utils.GetUnverifiedConv(ctx, g.G(), uid, nm.ConvID, types.InboxSourceDataSourceAll)
+			switch err {
+			case nil:
+			case utils.ErrGetUnverifiedConvNotFound:
+				conv = types.NewEmptyRemoteConversation(convID)
+			default:
+				return err
+			}
+			if err = g.G().ConvSource.Expunge(ctx, conv, uid, nm.Expunge); err != nil {
 				g.Debug(ctx, "chat activity: unable to update conv: %v", err)
 			}
 			if _, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {

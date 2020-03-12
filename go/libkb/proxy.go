@@ -300,13 +300,13 @@ func ProxyDialWithOpts(ctx context.Context, env *Env, network string, address st
 // type of request we are proxying so we don't leak URL information to the
 // instrumenter.
 func ProxyHTTPGet(g *GlobalContext, env *Env, u, instrumentationTag string) (*http.Response, error) {
-	xprt := NewInstrumentedTransport(g, func(*http.Request) string { return instrumentationTag }, &http.Transport{
-		Proxy: MakeProxy(env),
-	})
+	xprt := NewInstrumentedRoundTripper(g, func(*http.Request) string { return instrumentationTag },
+		&http.Transport{
+			Proxy: MakeProxy(env),
+		})
 	client := &http.Client{
 		Transport: xprt,
 	}
-
 	return client.Get(u)
 }
 

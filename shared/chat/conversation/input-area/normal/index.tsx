@@ -14,6 +14,7 @@ import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
+import {infoPanelWidthTablet} from '../../info-panel/common'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -98,6 +99,8 @@ const suggestorToMarker = {
 }
 
 const suggestorKeyExtractors = {
+  channels: ({channelname, teamname}: {channelname: string; teamname?: string}) =>
+    teamname ? `${teamname}#${channelname}` : channelname,
   commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
   emoji: (item: {id: string}) => item.id,
   users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
@@ -117,6 +120,7 @@ const suggestorKeyExtractors = {
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const emojiDatasource = (filter: string) => ({
   data: emojiPrepass.test(filter) ? emojiIndex.search(filter) : [],
+  loading: false,
   useSpaces: false,
 })
 const emojiRenderer = (item: {colons: string}, selected: boolean) => (
@@ -246,8 +250,8 @@ class Input extends React.Component<InputProps, InputState> {
     }
   }
 
-  _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
-    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey) && !isComposingIME) {
+  _onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
       e.preventDefault()
       if (this._lastText) {
         this._onSubmit(this._lastText)
@@ -351,7 +355,8 @@ class Input extends React.Component<InputProps, InputState> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
       // TODO: Ideally, we'd also stash and restore the selection.
-      if (!this.props.isSearching) {
+      // Bring up the keyboard as a result of switching convo, but only on phone, not tablet.
+      if (!this.props.isSearching && !Constants.isSplit) {
         this._inputFocus()
       }
     }
@@ -364,12 +369,17 @@ class Input extends React.Component<InputProps, InputState> {
       this.props.suggestAllChannels,
       filter
     ),
+    loading: false,
     useSpaces: false,
   })
 
   _getCommandSuggestions = (filter: string) => {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
-      return {data: [], useSpaces: true}
+      return {
+        data: [],
+        loading: false,
+        useSpaces: true,
+      }
     }
 
     const sel = this._input && this._input.getSelection()
@@ -382,7 +392,11 @@ class Input extends React.Component<InputProps, InputState> {
         (sel.start || 0) > this._maxCmdLength
       ) {
         // not at beginning of message
-        return {data: [], useSpaces: true}
+        return {
+          data: [],
+          loading: false,
+          useSpaces: true,
+        }
       }
     }
     const fil = filter.toLowerCase()
@@ -390,7 +404,11 @@ class Input extends React.Component<InputProps, InputState> {
       ? this.props.suggestBotCommands
       : this.props.suggestCommands
     ).filter(c => c.name.includes(fil))
-    return {data, useSpaces: true}
+    return {
+      data,
+      loading: false,
+      useSpaces: true,
+    }
   }
 
   _renderTeamSuggestion = (teamname: string, channelname: string | undefined, selected: boolean) => (
@@ -407,7 +425,7 @@ class Input extends React.Component<InputProps, InputState> {
       gap="tiny"
     >
       <Kb.Avatar teamname={teamname} size={32} />
-      <Kb.Text type="Body">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
+      <Kb.Text type="BodyBold">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
     </Kb.Box2>
   )
 
@@ -451,10 +469,9 @@ class Input extends React.Component<InputProps, InputState> {
           <Kb.Avatar username={username} size={32} />
         )}
         <Kb.ConnectedUsernames
-          type="Body"
+          type="BodyBold"
           colorFollowing={true}
-          usernames={[username]}
-          style={styles.boldStyle}
+          usernames={username}
           withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>
@@ -489,33 +506,45 @@ class Input extends React.Component<InputProps, InputState> {
   _getChannelSuggestions = (filter: string) => {
     const fil = filter.toLowerCase()
     return {
-      data: this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort(),
+      data: this.props.suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
+      loading: this.props.suggestChannelsLoading,
       useSpaces: false,
     }
   }
 
-  _renderChannelSuggestion = (channelname: string, selected: boolean) => (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        styles.suggestionBase,
-        styles.fixSuggestionHeight,
-        {
-          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-        },
-      ])}
-    >
-      <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
-    </Kb.Box2>
-  )
+  _renderChannelSuggestion = (
+    {channelname, teamname}: {channelname: string; teamname?: string},
+    selected: boolean
+  ) =>
+    teamname ? (
+      this._renderTeamSuggestion(teamname, channelname, selected)
+    ) : (
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          styles.suggestionBase,
+          styles.fixSuggestionHeight,
+          {
+            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+          },
+        ])}
+      >
+        <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
+      </Kb.Box2>
+    )
 
   _transformChannelSuggestion = (
-    channelname: string,
+    {channelname, teamname}: {channelname: string; teamname?: string},
     marker: string,
     tData: TransformerData,
     preview: boolean
-  ) => standardTransformer(`${marker}${channelname}`, tData, preview)
+  ) =>
+    standardTransformer(
+      teamname ? `@${teamname}${marker}${channelname}` : `${marker}${channelname}`,
+      tData,
+      preview
+    )
 
   _getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
     return command.username ? '!' : '/'
@@ -549,7 +578,7 @@ class Input extends React.Component<InputProps, InputState> {
           ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <Kb.Text type="BodySemibold" style={styles.boldStyle}>
+            <Kb.Text type="BodySemibold">
               {prefix}
               {command.name}
             </Kb.Text>
@@ -585,6 +614,7 @@ class Input extends React.Component<InputProps, InputState> {
       suggestAllChannels,
       suggestCommands,
       isActiveForFocus,
+      infoPanelShowing,
       ...platformInputProps
     } = this.props
     return (
@@ -601,11 +631,19 @@ class Input extends React.Component<InputProps, InputState> {
           maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
+          onChannelSuggestionsTriggered={this.props.onChannelSuggestionsTriggered}
           suggestionListStyle={Styles.collapseStyles([
             styles.suggestionList,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
           ])}
-          suggestionOverlayStyle={styles.suggestionOverlay}
+          suggestionOverlayStyle={Styles.collapseStyles([
+            styles.suggestionOverlay,
+            infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
+          ])}
+          suggestionSpinnerStyle={Styles.collapseStyles([
+            styles.suggestionSpinnerStyle,
+            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
+          ])}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}
@@ -624,7 +662,6 @@ class Input extends React.Component<InputProps, InputState> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      boldStyle: {fontWeight: '700'},
       container: Styles.platformStyles({
         isMobile: {justifyContent: 'flex-end'},
       }),
@@ -653,6 +690,23 @@ const styles = Styles.styleSheetCreate(
       }),
       suggestionOverlay: Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+        isTablet: {marginLeft: '30%', marginRight: 0},
+      }),
+      suggestionOverlayWithInfoPanel: Styles.platformStyles({
+        isTablet: {marginRight: infoPanelWidthTablet},
+      }),
+      suggestionSpinnerStyle: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+        },
+        isElectron: {
+          bottom: Styles.globalMargins.tiny,
+          right: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          bottom: Styles.globalMargins.small,
+          right: Styles.globalMargins.small,
+        },
       }),
     } as const)
 )

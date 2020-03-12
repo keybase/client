@@ -43,7 +43,12 @@
         "'addedToChannel'", // just added people to this channel
         "'teamMention'" // from team mention
       ],
-      "navKey?": "string"
+      "skipNav?": "boolean",
+      "navKey?": "string",
+      "pushBody?": "string"
+    },
+    "channelSuggestionsTriggered": {
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Got an error while creating a conversation.
     "conversationErrored": {
@@ -62,6 +67,7 @@
       "channelname?": "string",
       "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
       "reason": [
+        "'channelHeader'",
         "'manageView'",
         "'messageLink'",
         "'resetChatWithoutThem'",
@@ -143,6 +149,7 @@
         "'scroll'",
         "'ensureSelectedMeta'",
         "'ensureWidgetMetas'",
+        "'ensureChannelMeta'",
         "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
@@ -369,6 +376,11 @@
       "titles": "Array<string>",
       "tlfName?": "string"
     },
+    "attachFromDragAndDrop": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paths": "Array<Types.PathAndOutboxID>",
+      "titles": "Array<string>"
+    },
     // Update progress on an upload
     "attachmentUploading": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -472,12 +484,6 @@
     "updateConvExplodingModes": {
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
-    },
-    "setWalletsOld": {
-      "_description": "Set that wallets in chat is not new."
-    },
-    "handleSeeingWallets": {
-      "_description": "The user has interacted with wallets in chat."
     },
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
@@ -706,10 +712,6 @@
     "tabSelected": {
       "_description": "Desktop changed tab to chat"
     },
-    "setInboxShowIsNew": {
-      "_description": "We've seen chat search before",
-      "isNew": "boolean"
-    },
     "resolveMaybeMention": {
       "_description": "Resolve an unknown @ mention",
       "name": "string",
@@ -873,12 +875,6 @@
       "allowMentions": "boolean",
       "convs?": "Array<string>"
     },
-    "loadMoreSmalls": {
-      "_description": "Tell the service to give us more small teams"
-    },
-    "resetSmalls": {
-      "_description": "Tell the service to revert to default number of small teams"
-    },
     "setParticipants": {
       "_description": "Set conversation participant info",
       "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
@@ -913,6 +909,17 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "cardType": "RPCChatTypes.JourneycardType",
       "ordinal": "Types.Ordinal"
+    },
+    "addToMessageMap": {
+      "message": "Types.Message"
+    },
+    "refreshMutualTeamsInConv": {
+      "_description": "Refresh loaded mutual teams for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadedMutualTeams": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "teamIDs": "Array<TeamsTypes.TeamID>"
     }
   }
 }

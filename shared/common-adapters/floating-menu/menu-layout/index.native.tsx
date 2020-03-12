@@ -9,13 +9,11 @@ import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
 import ProgressIndicator from '../../progress-indicator'
-import {isLargeScreen} from '../../../constants/platform'
 import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
   centered?: boolean
   isHeader?: boolean
-  last: boolean
   newTag?: boolean | null
   index: number
   numItems: number
@@ -24,48 +22,28 @@ type MenuRowProps = {
   backgroundColor?: Styles.Color
 } & MenuItem
 
-const itemContainerHeight = 56
+const itemContainerHeight = 48
 
 const MenuRow = (props: MenuRowProps) => (
   <NativeTouchableOpacity
     disabled={props.disabled}
     onPress={() => {
-      props.onHidden && props.onHidden() // auto hide after a selection
-      props.onClick && props.onClick()
+      props.onHidden && !props.unWrapped && props.onHidden() // auto hide after a selection
+      props.onClick && !props.unWrapped && props.onClick()
     }}
     style={Styles.collapseStyles([
       styles.itemContainer,
-      props.last && styles.itemContainerLast,
+      !props.unWrapped && styles.itemContainerWrapped,
       props.backgroundColor && {backgroundColor: props.backgroundColor},
     ])}
   >
     {props.view || (
       <Box2 centerChildren={props.centered} direction="horizontal" fullWidth={true}>
-        <Box2
-          direction="horizontal"
-          fullHeight={true}
-          style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
-        >
-          {props.icon &&
-            (props.inProgress ? (
-              <ProgressIndicator />
-            ) : (
-              <>
-                <Icon
-                  color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_40}
-                  fontSize={16}
-                  style={props.iconStyle}
-                  type={props.icon}
-                />
-                {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
-              </>
-            ))}
-        </Box2>
-        <Box2 direction="horizontal">
+        <Box2 direction="horizontal" style={styles.flexOne}>
           <Box2 direction="vertical" fullHeight={true}>
             <Box2 direction="horizontal" fullWidth={true}>
               {props.decoration && <Box style={styles.flexOne} />}
-              <Text type="BodyBig" style={styleRowText(props)}>
+              <Text type="Body" style={styleRowText(props)}>
                 {props.title}
               </Text>
               {props.newTag && (
@@ -85,6 +63,26 @@ const MenuRow = (props: MenuRowProps) => (
             )}
           </Box2>
         </Box2>
+        <Box2
+          direction="horizontal"
+          fullHeight={true}
+          style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
+        >
+          {props.icon &&
+            (props.inProgress ? (
+              <ProgressIndicator />
+            ) : (
+              <>
+                <Icon
+                  color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
+                  fontSize={16}
+                  style={props.iconStyle}
+                  type={props.icon}
+                />
+                {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
+              </>
+            ))}
+        </Box2>
       </Box2>
     )}
     {!!props.progressIndicator && <ProgressIndicator style={styles.progressIndicator} />}
@@ -96,14 +94,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
     x ? x !== 'Divider' : false
   )
   const beginningDivider = props.items[0] === 'Divider'
-  // if we set it to numItems * itemContainerHeight exactly, the scrollview
-  // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
-  // Add 2px to compensate unless there's a single item with a subTitle, then, we need 16px
-  const height = Math.min(
-    menuItemsNoDividers.length * 56 +
-      (menuItemsNoDividers.length === 1 && !!menuItemsNoDividers[0].subTitle ? 16 : 2),
-    isLargeScreen ? 500 : 350
-  )
+  const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
 
   return (
     <NativeSafeAreaView
@@ -115,6 +106,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
       <Box
         style={Styles.collapseStyles([
           styles.menuBox,
+          firstIsUnWrapped && styles.firstIsUnWrapped,
           props.backgroundColor && {backgroundColor: props.backgroundColor},
         ])}
       >
@@ -123,7 +115,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
         {beginningDivider && <Divider />}
         <ScrollView
           alwaysBounceVertical={false}
-          style={Styles.collapseStyles([styles.scrollView, {height}])}
+          style={Styles.collapseStyles([styles.scrollView, firstIsUnWrapped && styles.firstIsUnWrapped])}
           contentContainerStyle={styles.menuGroup}
         >
           {menuItemsNoDividers.map((mi, idx) => (
@@ -131,7 +123,6 @@ const MenuLayout = (props: MenuLayoutProps) => {
               key={mi.title}
               {...mi}
               index={idx}
-              last={menuItemsNoDividers.length - 1 === idx}
               numItems={menuItemsNoDividers.length}
               onHidden={props.closeOnClick ? props.onHidden : undefined}
               textColor={props.textColor}
@@ -145,7 +136,6 @@ const MenuLayout = (props: MenuLayoutProps) => {
             centered={true}
             title={props.closeText || 'Close'}
             index={0}
-            last={false}
             numItems={1}
             onClick={props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
             onHidden={() => {}}
@@ -164,7 +154,7 @@ const styleRowText = (props: {
   disabled?: boolean
   textColor?: Styles.Color
 }) => {
-  const dangerColor = props.danger ? Styles.globalColors.redDark : Styles.globalColors.blueDark
+  const dangerColor = props.danger ? Styles.globalColors.redDark : Styles.globalColors.black
   const color = props.textColor || props.isHeader ? Styles.globalColors.white : dangerColor
   return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
@@ -179,6 +169,7 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: Styles.globalMargins.tiny,
       },
+      firstIsUnWrapped: {paddingTop: 0},
       flexOne: {
         flex: 1,
       },
@@ -193,8 +184,7 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.tiny,
       },
       iconContainer: {
-        paddingRight: Styles.globalMargins.small,
-        width: 32,
+        width: 16,
       },
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -202,15 +192,13 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.white,
         height: itemContainerHeight,
         justifyContent: 'center',
+        position: 'relative',
+      },
+      itemContainerWrapped: {
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.medium,
         paddingRight: Styles.globalMargins.medium,
         paddingTop: Styles.globalMargins.tiny,
-        position: 'relative',
-      },
-      itemContainerLast: {
-        height: 'auto',
-        paddingBottom: Styles.globalMargins.small,
       },
       menuBox: {
         ...Styles.globalStyles.flexBoxColumn,

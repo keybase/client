@@ -4,7 +4,7 @@ import EXIF from 'exif-js'
 import noop from 'lodash/noop'
 import isNumber from 'lodash/isNumber'
 import logger from '../logger'
-import {Props} from './oriented-image.types'
+import {Props} from './oriented-image'
 
 type State = {
   srcTransformed: string

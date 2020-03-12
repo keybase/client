@@ -29,7 +29,7 @@ type Gallery struct {
 func NewGallery(g *globals.Context) *Gallery {
 	return &Gallery{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Gallery", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Attachments.Gallery", false),
 		NextStride:   5,
 		PrevStride:   50,
 	}
@@ -201,7 +201,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 		default:
 		}
 		g.Debug(ctx, "NextMessage: starting scan: p: %s pivot: %d", pagination, pivot)
-		tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
+		tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL, nil,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{opts.MessageType},
 			}, pagination)

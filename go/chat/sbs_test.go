@@ -256,7 +256,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 						ctx,
 						ncres.Conv.GetConvID(),
 						user.GetUID().ToBytes(),
-						chat1.GetThreadReason_GENERAL, &chat1.GetThreadQuery{
+						chat1.GetThreadReason_GENERAL, nil, &chat1.GetThreadQuery{
 							MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 						},
 						nil,

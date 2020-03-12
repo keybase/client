@@ -5,13 +5,12 @@ import * as Sb from '../../stories/storybook'
 import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
-import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider, RowItemTeamBuilder} from './index'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 /*
  * Rows
  */
-const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
+const makeRowItemSmall = (conversationIDKey: string = ''): Types.ChatInboxRowItemSmall => ({
   type: 'small',
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
   snippetDecoration: RPCChatTypes.SnippetDecoration.none,
@@ -19,7 +18,7 @@ const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
   isTeam: false,
   time: 1569718345,
 })
-const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({
+const makeRowItemBigHeader = (teamname: string = ''): Types.ChatInboxRowItemBigHeader => ({
   snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   type: 'bigHeader',
   teamID: '',
@@ -29,15 +28,18 @@ const makeRowItemBigChannel = (
   conversationIDKey: Types.ConversationIDKey,
   teamname: string,
   channelname: string
-): RowItemBig => ({
+): Types.ChatInboxRowItemBig => ({
   type: 'big',
   teamname,
   channelname,
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
   snippetDecoration: RPCChatTypes.SnippetDecoration.none,
 })
-const makeRowItemDivider = (showButton: boolean = false): RowItemDivider => ({type: 'divider', showButton})
-const makeRowItemTeamBuilder = (): RowItemTeamBuilder => ({type: 'teamBuilder'})
+const makeRowItemDivider = (showButton: boolean = false): Types.ChatInboxRowItemDivider => ({
+  type: 'divider',
+  showButton,
+})
+const makeRowItemTeamBuilder = (): Types.ChatInboxRowItemTeamBuilder => ({type: 'teamBuilder'})
 
 /*
  * Component Prop Map

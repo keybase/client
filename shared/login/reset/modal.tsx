@@ -10,6 +10,11 @@ import {formatDurationForAutoreset} from '../../util/timestamp'
 export type Props = {}
 
 const ResetModal = (_: Props) => {
+  const isResetActive = Container.useSelector(state => state.autoreset.active)
+  return isResetActive ? <ResetModalImpl /> : null
+}
+
+const ResetModalImpl = (_: Props) => {
   const {active, endTime, error} = Container.useSelector(s => s.autoreset)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {

@@ -2,6 +2,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {noConversationIDKey} from './types/chat2/common'
 import {getFullRoute} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
@@ -26,6 +27,7 @@ export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
   const teamname = getTeamNameFromID(state, teamID) ?? ''
   return teamWaitingKey(teamname)
 }
+export const setMemberPublicityWaitingKey = (teamID: Types.TeamID) => `teamMemberPub:${teamID}`
 export const teamGetWaitingKey = (teamID: Types.TeamID) => `teamGet:${teamID}`
 export const teamTarsWaitingKey = (teamID: Types.TeamID) => `teamTars:${teamID}`
 export const teamCreationWaitingKey = 'teamCreate'
@@ -48,14 +50,19 @@ export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
+export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
+export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
+export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `loadSubteamMemberships:${teamID};${username}`
+export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `editMembership:${teamID};${username}`
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
+  conversationIDKey: noConversationIDKey,
   description: '',
-  hasAllMembers: null,
   memberStatus: RPCChatTypes.ConversationMemberStatus.active,
   mtime: 0,
-  numParticipants: 0,
 })
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
@@ -82,11 +89,12 @@ export const rpcDetailsToMemberInfos = (
     const key = typeToKey[type]
     // @ts-ignore
     const members: Array<RPCTypes.TeamMemberDetails> = (allRoleMembers[key] || []) as any
-    members.forEach(({fullName, status, username}) => {
+    members.forEach(({fullName, joinTime, status, username}) => {
       infos.push([
         username,
         {
           fullName,
+          joinTime: joinTime || undefined,
           status: rpcMemberStatusToStatus[status],
           type,
           username,
@@ -164,14 +172,24 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
+export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
+  addingMembers: [],
+  justFinished: false,
+  role: 'writer',
+  teamID: Types.noTeamID,
+}
+
 const emptyState: Types.State = {
+  addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
+  channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
   errorInChannelCreation: '',
   errorInEditDescription: '',
+  errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
   errorInTeamCreation: '',
@@ -179,6 +197,15 @@ const emptyState: Types.State = {
   errorInTeamJoin: '',
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
+  newTeamWizard: {
+    description: '',
+    name: '',
+    open: false,
+    openTeamJoinRole: 'writer',
+    showcase: false,
+    teamNameTaken: false,
+    teamType: 'other',
+  },
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -196,6 +223,7 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
+  teamMemberToSubteams: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
@@ -203,6 +231,8 @@ const emptyState: Types.State = {
   teamNameToLoadingInvites: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
+  teamSelectedChannels: new Map(),
+  teamSelectedMembers: new Map(),
   teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
@@ -471,7 +501,7 @@ export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.Team
 export const getTeamWelcomeMessageByID = (
   state: TypedState,
   teamID: Types.TeamID
-): Types.WelcomeMessage | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
+): RPCChatTypes.WelcomeMessageDisplay | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()
@@ -490,24 +520,14 @@ export const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types
   [...state.chat2.metaMap.values()].reduce((count, c) => (count += c.teamname === teamname ? 1 : 0), 0)
 
 /**
- * Gets whether the team is big or small for teams you are a member of
- */
-export const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
-  // TODO do not use metaMap here. It's likely this team has no convos in the metaMap.
-  const conv = [...state.chat2.metaMap.values()].find(c => c.teamname === teamname)
-  if (conv) {
-    if (conv.teamType === 'big' || conv.teamType === 'small') {
-      return conv.teamType
-    }
-  }
-  return null
-}
-
-/**
  * Returns true if the team is big and you're a member
  */
-export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  getTeamType(state, teamname) === 'big'
+export const isBigTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
+  const bigTeams = state.chat2.inboxLayout?.bigTeams
+  return (bigTeams || []).some(
+    v => v.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && v.label.id === teamID
+  )
+}
 
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,
@@ -672,6 +692,12 @@ export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
 export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
+export const getTeamMembership = (
+  state: TypedState,
+  teamID: Types.TeamID,
+  username: string
+): Types.MemberInfo | null => state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
+
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
 ): Map<Types.TeamID, Types.TeamMeta> => {
@@ -707,12 +733,11 @@ export const annotatedInvitesToInviteInfo = (
       const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
       username = `${invite.name}@${sbs}`
     }
-    const {e164ToDisplay} = require('../util/phone-numbers')
     arr.push({
       email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
       id: invite.id,
       name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.name : '',
       role,
       username,
     })
@@ -741,6 +766,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
     const maybeRole = teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
+      joinTime: member.details.joinTime || undefined,
       status: rpcMemberStatusToStatus[status],
       type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
       username,
@@ -758,6 +784,20 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
       teamShowcased: t.showcase.isShowcased,
     },
     subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
+  }
+}
+
+export const subteamDetailsToMemberInfo = (
+  username: string,
+  t: RPCTypes.AnnotatedSubteamMemberDetails
+): Types.MemberInfo => {
+  const maybeRole = teamRoleByEnum[t.role]
+  return {
+    fullName: t.details.fullName,
+    joinTime: t.details.joinTime || undefined,
+    status: rpcMemberStatusToStatus[t.details.status],
+    type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
+    username,
   }
 }
 
@@ -817,6 +857,26 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
 
+export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
+  const subteamsAll = getTeamDetails(state, teamID).subteams
+  const subteamsNotIn: Array<Types.TeamMeta> = []
+  const subteamsIn: Array<Types.TeamMeta> = []
+  subteamsAll.forEach(subteamID => {
+    const subteamDetails = getTeamDetails(state, subteamID)
+    const subteamMeta = getTeamMeta(state, subteamID)
+    const memberInSubteam = subteamDetails.members.has(username)
+    if (memberInSubteam) {
+      subteamsIn.push(subteamMeta)
+    } else {
+      subteamsNotIn.push(subteamMeta)
+    }
+  })
+  return {
+    subteamsIn,
+    subteamsNotIn,
+  }
+}
+
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
   oldVersion
@@ -826,3 +886,16 @@ export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: T
         latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
       }
     : newVersion
+
+export const dedupAddingMembeers = (
+  _existing: Array<Types.AddingMember>,
+  toAdds: Array<Types.AddingMember>
+) => {
+  const existing = [..._existing]
+  for (const toAdd of toAdds) {
+    if (!existing.find(m => m.assertion === toAdd.assertion)) {
+      existing.unshift(toAdd)
+    }
+  }
+  return existing
+}

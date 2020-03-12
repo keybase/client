@@ -1,18 +1,19 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
+import * as QR from '../../../common-adapters/qr.native'
 import * as Styles from '../../../styles'
 import {Props} from '.'
 
 const QRScan = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
     {!props.waiting && (
-      <Kb.QRScanner
-        notAuthorizedView={<Kb.QRNotAuthorized />}
+      <QR.QRScanner
+        notAuthorizedView={<QR.QRNotAuthorized />}
         onBarCodeRead={data => props.onSubmitTextCode(data)}
         style={styles.camera}
       />
     )}
-    {!props.waiting && <Kb.QRLines canScan={true} />}
+    {!props.waiting && <QR.QRLines canScan={true} />}
     {props.waiting && <Kb.ProgressIndicator style={styles.waiting} type="Large" white={true} />}
   </Kb.Box2>
 )

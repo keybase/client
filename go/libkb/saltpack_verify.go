@@ -17,7 +17,28 @@ type SaltpackVerifyContext interface {
 	GetLog() logger.Logger
 }
 
-func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
+// Wraps kbcrypto.Verification error with libkb.VerificationError. You should
+// expect a libkb.VerificationError if exposing the error to the GUI.
+func getVerificationErrorWithStatusCode(kberr *kbcrypto.VerificationError) (err VerificationError) {
+	err.Cause.Err = kberr.Cause
+	switch err.Cause.Err.(type) {
+	case APINetError:
+		err.Cause.StatusCode = SCAPINetworkError
+	case saltpack.ErrNoSenderKey:
+		err.Cause.StatusCode = SCDecryptionKeyNotFound
+	case saltpack.ErrWrongMessageType:
+		err.Cause.StatusCode = SCWrongCryptoMsgType
+	}
+	return err
+}
+
+func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) (err error) {
+	defer func() {
+		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
+			err = getVerificationErrorWithStatusCode(&kbErr)
+		}
+	}()
+
 	sc, newSource, err := ClassifyStream(source)
 	if err != nil {
 		return err
@@ -29,8 +50,16 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 			Operation: "verify",
 		}
 	}
-	source = newSource
 
+	if sc.Type != CryptoMessageTypeAttachedSignature {
+		return kbcrypto.NewVerificationError(
+			saltpack.ErrWrongMessageType{
+				Wanted:   saltpack.MessageType(CryptoMessageTypeAttachedSignature),
+				Received: saltpack.MessageType(sc.Type),
+			})
+	}
+
+	source = newSource
 	kr := echoKeyring{}
 
 	var skey saltpack.SigningPublicKey
@@ -71,7 +100,13 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	return nil
 }
 
-func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) (err error) {
+	defer func() {
+		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
+			err = getVerificationErrorWithStatusCode(&kbErr)
+		}
+	}()
+
 	sc, _, err := ClassifyStream(bytes.NewReader(signature))
 	if err != nil {
 		return err

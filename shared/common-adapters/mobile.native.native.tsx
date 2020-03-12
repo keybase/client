@@ -163,9 +163,6 @@ module.exports = {
   get LoadingLine() {
     return Index.LoadingLine
   },
-  get LocationMap() {
-    return Index.LocationMap
-  },
   get LongPressGestureHandler() {
     return require('react-native-gesture-handler').LongPressGestureHandler
   },
@@ -343,12 +340,6 @@ module.exports = {
   get ProofBrokenBanner() {
     return Index.ProofBrokenBanner
   },
-  get QRLines() {
-    return Index.QRLines
-  },
-  get QRNotAuthorized() {
-    return Index.QRNotAuthorized
-  },
   get QRScanner() {
     return require('./qr-scanner.native').default
   },
@@ -420,9 +411,6 @@ module.exports = {
   },
   get Toast() {
     return Index.Toast
-  },
-  get UserCard() {
-    return Index.UserCard
   },
   get Usernames() {
     return Index.Usernames

@@ -3,4 +3,5 @@ protocol log {
   import idl "common.avdl";
 
   void registerLogger(int sessionID, string name, LogLevel level);
+  void perfLogPoint(int sessionID, string msg);
 }

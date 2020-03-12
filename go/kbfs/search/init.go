@@ -47,7 +47,7 @@ func Params(kbCtx libkbfs.Context, storageRoot string, uid keybase1.UID) (
 		params.StorageRoot, bserverStorageDir)
 	params.MDServerAddr = "dir:" + filepath.Join(
 		params.StorageRoot, mdserverStorageDir)
-	params.Mode = libkbfs.InitSingleOpString
+	params.Mode = libkbfs.InitSingleOpWithQRString
 
 	return params, nil
 }

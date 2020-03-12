@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -30,6 +31,8 @@ import (
 	clockwork "github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
+
+var IsIPad bool // Set by bind's Init.
 
 type ShutdownHook func(mctx MetaContext) error
 
@@ -47,6 +50,7 @@ type DbNukeHook interface {
 
 type GlobalContext struct {
 	Log                              logger.Logger         // Handles all logging
+	PerfLog                          logger.Logger         // Handles all performance event logging
 	VDL                              *VDebugLog            // verbose debug log
 	GUILogFile                       *logger.LogFileWriter // GUI logs
 	Env                              *Env                  // Env variables, cmdline args & config
@@ -62,7 +66,6 @@ type GlobalContext struct {
 	LocalChatDb                      *JSONLocalDb                // Local DB for cache
 	MerkleClient                     MerkleClientInterface       // client for querying server's merkle sig tree
 	XAPI                             ExternalAPI                 // for contacting Twitter, Github, etc.
-	Output                           io.Writer                   // where 'Stdout'-style output goes
 	DNSNSFetcher                     DNSNameServerFetcher        // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	MobileNetState                   *MobileNetState             // The kind of network connection for the currently running instance of the app
 	MobileAppState                   *MobileAppState             // The state of focus for the currently running instance of the app
@@ -72,6 +75,7 @@ type GlobalContext struct {
 	IdentifyDispatch                 *IdentifyDispatch           // get notified of identify successes
 	Identify3State                   *Identify3State             // keep track of Identify3 sessions
 	vidMu                            *sync.Mutex                 // protect VID
+	RuntimeStats                     RuntimeStats                // performance runtime stats
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -171,6 +175,7 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+	IsIPad          bool
 
 	SyncedContactList SyncedContactListProvider
 
@@ -185,6 +190,7 @@ type GlobalTestOptions struct {
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetPerfLog() logger.Logger                     { return g.PerfLog }
 func (g *GlobalContext) GetGUILogWriter() io.Writer                    { return g.GUILogFile }
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
@@ -215,6 +221,7 @@ func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	ret := &GlobalContext{
 		Log:                log,
+		PerfLog:            log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
@@ -237,6 +244,7 @@ func NewGlobalContext() *GlobalContext {
 		switchedUsers:      make(map[NormalizedUsername]bool),
 		Pegboard:           NewPegboard(),
 		random:             &SecureRandom{},
+		RuntimeStats:       NewDummyRuntimeStats(),
 	}
 	return ret
 }
@@ -253,6 +261,17 @@ func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 func (g *GlobalContext) SetTeambotBotKeyer(keyer TeambotBotKeyer) { g.teambotBotKeyer = keyer }
 
 func (g *GlobalContext) SetTeambotMemberKeyer(keyer TeambotMemberKeyer) { g.teambotMemberKeyer = keyer }
+
+func (g *GlobalContext) initPerfLogFile() {
+	lfc := g.Env.GetLogFileConfig(g.Env.GetPerfLogFile())
+	lfc.SkipRedirectStdErr = true
+	lfw := logger.NewLogFileWriter(*lfc)
+	if err := lfw.Open(g.GetClock().Now()); err != nil {
+		g.Log.Debug("Unable to getLogger %v", err)
+		return
+	}
+	g.PerfLog = logger.NewInternalLogger(log.New(lfw, "", log.LstdFlags|log.Lmicroseconds|log.Lshortfile))
+}
 
 func (g *GlobalContext) initGUILogFile() {
 	config := g.Env.GetLogFileConfig(g.Env.GetGUILogFile())
@@ -355,19 +374,28 @@ func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 			return err
 		}
 	}
-	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 
-	shouldConfigureGUILog := true
+	// On Linux, the post-install script calls `keybase --use-root-config-file
+	// config get --direct` to figure out if the redirector should be enabled or not.
+	// That command, like all other commands, goes through all these initial steps
+	// like ConfigureLogging before executing the command. On Ubuntu, '$HOME' is *not*
+	// changed to the root's user's HOME when using sudo, which basically means
+	// that `sudo bash -c 'mkdir $HOME/.cache'`, e.g., creates it within the *user's*
+	// home directory with root permissions (unlike Debian, Fedora, Arch, etc.).
+	// So, in this case, we do not configure the log files so as not to mess up
+	// permissions in the user's home directory.
+	shouldInitLogs := true
 	if usage != nil && usage.AllowRoot {
 		isAdmin, _, err := IsSystemAdminUser()
 		if err == nil && isAdmin {
-			shouldConfigureGUILog = false
+			shouldInitLogs = false
 		}
 	}
 
-	if shouldConfigureGUILog {
+	if shouldInitLogs {
 		g.initGUILogFile()
+		g.initPerfLogFile()
 	}
 
 	return nil
@@ -793,6 +821,9 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 	// run this code twice.
 	g.shutdownOnce.Do(func() {
 		g.Log.Debug("GlobalContext#Shutdown(%p)\n", g)
+		if g.PerfLog != nil {
+			g.PerfLog.Debug("GlobalContext#Shutdown(%p)\n", g)
+		}
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
@@ -839,11 +870,11 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
 		if g.LocalNetworkInstrumenterStorage != nil {
-			<-g.LocalNetworkInstrumenterStorage.Stop()
+			<-g.LocalNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		if g.RemoteNetworkInstrumenterStorage != nil {
-			<-g.RemoteNetworkInstrumenterStorage.Stop()
+			<-g.RemoteNetworkInstrumenterStorage.Stop(mctx.Ctx())
 		}
 
 		// shutdown the databases after the shutdown hooks run, we may want to
@@ -944,7 +975,6 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 			return err
 		}
 	}
-
 	if err = g.ConfigureExportedStreams(); err != nil {
 		return err
 	}
@@ -952,12 +982,13 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
-	g.LocalNetworkInstrumenterStorage.Start()
-	g.RemoteNetworkInstrumenterStorage.Start()
+	g.LocalNetworkInstrumenterStorage.Start(context.TODO())
+	g.RemoteNetworkInstrumenterStorage.Start(context.TODO())
 
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err
 	}
+
 	if g.UI != nil {
 		if err = g.UI.Configure(); err != nil {
 			return err
@@ -965,14 +996,6 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	}
 
 	return g.ConfigureTimers()
-}
-
-func (g *GlobalContext) OutputString(s string) {
-	_, _ = g.Output.Write([]byte(s))
-}
-
-func (g *GlobalContext) OutputBytes(b []byte) {
-	_, _ = g.Output.Write(b)
 }
 
 func (g *GlobalContext) GetGpgClient() *GpgCLI {

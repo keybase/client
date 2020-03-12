@@ -282,14 +282,14 @@ func (t *Tree) Build(
 	defer t.Unlock()
 
 	latestSeqNo, rootMetadata, err := t.eng.LookupLatestRoot(ctx, tr)
-	if err != nil {
-		if _, isNoLatestRootFoundError := err.(NoLatestRootFoundError); isNoLatestRootFoundError {
-			ctx.Debug("No root found. Starting a new merkle tree.")
-			latestSeqNo = 0
-			rootMetadata = RootMetadata{}
-		} else {
-			return 0, nil, err
-		}
+	switch err.(type) {
+	case nil:
+	case NoLatestRootFoundError:
+		ctx.Debug("No root found. Starting a new merkle tree.")
+		latestSeqNo = 0
+		rootMetadata = RootMetadata{}
+	default:
+		return 0, nil, err
 	}
 
 	newSeqno := latestSeqNo + 1

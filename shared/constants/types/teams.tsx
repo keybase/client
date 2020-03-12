@@ -22,6 +22,8 @@ export type PublicitySettings = {
   publicityTeam: boolean
 }
 
+export type ActivityLevel = 'active' | 'recently' | 'none'
+
 export type Teamname = string
 
 export type TeamProfileAddList = {
@@ -43,16 +45,16 @@ export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type ChannelInfo = {
   channelname: string
+  conversationIDKey: ConversationIDKey
   description: string
-  hasAllMembers?: boolean | null
   memberStatus: RPCChatTypes.ConversationMemberStatus
   mtime: number
-  numParticipants: number
 }
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type MemberInfo = {
   fullName: string
+  joinTime?: number
   status: MemberStatus
   type: TeamRoleType
   username: string
@@ -67,7 +69,7 @@ export type InviteInfo = {
   id: string
 }
 
-export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings'
+export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings' | 'channels'
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
@@ -130,19 +132,36 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
-export type WelcomeMessage = {
-  set: boolean
-  text: string
+export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'
+export type NewTeamWizardState = {
+  teamType: TeamWizardTeamType
+  teamNameTaken: boolean
+  name: string
+  description: string
+  open: boolean
+  openTeamJoinRole: TeamRoleType
+  showcase: boolean
+}
+
+export type AddingMember = {assertion: string; role: TeamRoleType}
+export type AddMembersWizardState = {
+  justFinished: boolean
+  addingMembers: Array<AddingMember>
+  role: TeamRoleType | undefined // undefined -> role set individually
+  teamID: TeamID
 }
 
 export type State = {
+  readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
   readonly canPerform: Map<TeamID, TeamOperations>
+  readonly channelSelectedMembers: Map<ConversationIDKey, Set<string>>
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string
   readonly errorInEditDescription: string
+  readonly errorInEditWelcomeMessage: string
   readonly errorInEmailInvite: EmailInviteError
   readonly errorInSettings: string
   readonly errorInTeamCreation: string
@@ -152,6 +171,8 @@ export type State = {
   readonly teamsWithChosenChannels: Set<Teamname>
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean
+  readonly teamSelectedChannels: Map<TeamID, Set<string>>
+  readonly teamSelectedMembers: Map<TeamID, Set<string>>
   readonly subteamFilter: string
   readonly subteamsFiltered: Set<TeamID> | undefined
   readonly teamAccessRequestsPending: Set<Teamname>
@@ -167,8 +188,9 @@ export type State = {
   readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   readonly teamVersion: Map<TeamID, TeamVersion>
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
-  readonly teamIDToWelcomeMessage: Map<TeamID, WelcomeMessage>
+  readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
+  readonly teamMemberToSubteams: Map<TeamID, Map<string, MemberInfo>>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   readonly teamnames: Set<Teamname> // TODO remove
@@ -177,4 +199,5 @@ export type State = {
   readonly newTeams: Set<TeamID>
   readonly newTeamRequests: Map<TeamID, number>
   readonly teamBuilding: TeamBuildingSubState
+  readonly newTeamWizard: NewTeamWizardState
 }

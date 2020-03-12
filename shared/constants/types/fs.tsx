@@ -352,8 +352,7 @@ export type Downloads = {
 }
 
 export type Uploads = {
-  readonly writingToJournal: Set<Path>
-  readonly errors: Map<Path, FsError>
+  readonly writingToJournal: Map<Path, RPCTypes.UploadState>
   readonly totalSyncingBytes: number
   readonly endEstimate?: number
   readonly syncingPaths: Set<Path>
@@ -411,7 +410,8 @@ export type MoveOrCopySource = {
 
 export type IncomingShareSource = {
   readonly type: DestinationPickerSource.IncomingShare
-  readonly localPath: LocalPath
+  readonly source: LocalPath | Array<RPCTypes.IncomingShareItem>
+  readonly useOriginal: boolean
 }
 
 export type NoSource = {
@@ -474,10 +474,8 @@ export type SystemFileManagerIntegration = {
 }
 
 export enum KbfsDaemonRpcStatus {
-  Unknown = 'unknown',
   Connected = 'connected',
   Waiting = 'waiting',
-  WaitTimeout = 'wait-timeout',
 }
 export enum KbfsDaemonOnlineStatus {
   Unknown = 'unknown',

@@ -12,21 +12,27 @@ import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-type OwnProps = Container.RouteProps<{message: Types.MessageAttachment}>
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey; ordinal: Types.Ordinal}>
 
 const Connected = (props: OwnProps) => {
-  const [m, setMessage] = React.useState(Container.getRouteProps(props, 'message', blankMessage))
+  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
+  const inOrdinal = Container.getRouteProps(props, 'ordinal', 0)
+  const state = Container.useSelector(s => s)
+  const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
-  const state = Container.useSelector(s => s)
+  const m = Constants.getMessage(state, conversationIDKey, ordinal)
   const message = m?.type === 'attachment' ? m : blankMessage
   const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
-  const {conversationIDKey, id} = message
+  const {id} = message
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,
     previewHeight,
     imgMaxWidthRaw()
   )
+  const addToMessageMap = (message: Types.Message) => {
+    dispatch(Chat2Gen.createAddToMessageMap({message}))
+  }
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
 
@@ -47,13 +53,14 @@ const Connected = (props: OwnProps) => {
             const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
             if (goodMessage && goodMessage.type === 'attachment') {
               setAutoPlay(false)
-              setMessage(goodMessage)
+              addToMessageMap(goodMessage)
+              setOrdinal(goodMessage.ordinal)
             }
           }
         },
         _error => {
           setAutoPlay(false)
-          setMessage(blankMessage)
+          setOrdinal(inOrdinal)
         }
       )
     }
@@ -82,9 +89,17 @@ const Connected = (props: OwnProps) => {
       previewHeight={clampedHeight}
       previewWidth={clampedWidth}
       progress={transferProgress}
-      progressLabel={fileURL ? undefined : 'Loading'}
+      progressLabel={
+        downloadPath ? undefined : message.transferState === 'downloading' ? 'Downloading' : undefined
+      }
       title={message.decoratedText ? message.decoratedText.stringValue() : title}
     />
   )
+}
+
+Connected.navigationOptions = {
+  safeAreaStyle: {
+    backgroundColor: 'black', // true black
+  },
 }
 export default Connected

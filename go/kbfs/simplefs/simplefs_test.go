@@ -48,7 +48,9 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	// Sync in-memory data to disk before shutting down and flushing
 	// the journal.
 	syncFS(ctx, t, fs, "/private/jdoe")
-	err := fs.config.Shutdown(ctx)
+	err := fs.Shutdown(ctx)
+	require.NoError(t, err)
+	err = fs.config.Shutdown(ctx)
 	require.NoError(t, err)
 }
 
@@ -249,6 +251,23 @@ func TestSymlink(t *testing.T) {
 		Link:   badLink,
 	})
 	require.Error(t, err)
+
+	// Regression test for HOTPOT-2007.
+	t.Log("Make sure a symlink can be deleted")
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID:      opid,
+		Path:      link,
+		Recursive: true,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_REMOVE, link, keybase1.Path{},
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	testList(ctx, t, sfs, p, "test1.txt")
 }
 
 func TestList(t *testing.T) {
@@ -1142,9 +1161,10 @@ func TestMoveBetweenTlfs(t *testing.T) {
 	opid, err = sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
-		OpID: opid,
-		Src:  pathDir,
-		Dest: pathPublic,
+		OpID:                   opid,
+		Src:                    pathDir,
+		Dest:                   pathPublic,
+		OverwriteExistingFiles: true,
 	})
 	require.NoError(t, err)
 	checkPendingOp(

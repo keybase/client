@@ -1,5 +1,13 @@
 import * as React from 'react'
-import {Props} from './oriented-image.types'
+import {StylesCrossPlatform} from '../styles'
+
+export type Props = {
+  forwardedRef?: any
+  src: string
+  style?: StylesCrossPlatform
+  onDragStart?: (e: React.SyntheticEvent) => void
+  onLoad?: (e: React.SyntheticEvent) => void
+}
 
 export default class OrientedImage extends React.Component<Props> {
   _context: CanvasRenderingContext2D | null

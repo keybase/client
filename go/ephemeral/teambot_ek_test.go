@@ -54,7 +54,6 @@ func TestNewTeambotEK(t *testing.T) {
 	typ, err = ek.KeyType()
 	require.NoError(t, err)
 	require.True(t, typ.IsTeam())
-	teamEK := ek.Team()
 
 	// bot users don't have access to team secrets so they can't get the teamEK
 	_, _, err = mctx2.G().GetEKLib().GetOrCreateLatestTeamEK(mctx2, teamID)
@@ -83,7 +82,7 @@ func TestNewTeambotEK(t *testing.T) {
 	typ, err = ek.KeyType()
 	require.NoError(t, err)
 	require.True(t, typ.IsTeam())
-	teamEK = ek.Team()
+	teamEK := ek.Team()
 	require.NoError(t, err)
 	expectedSeed := deriveTeambotEKFromTeamEK(mctx, teamEK, botuaUID)
 	require.Equal(t, keybase1.Bytes32(expectedSeed), teambotEK.Teambot().Seed)

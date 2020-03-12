@@ -122,14 +122,23 @@ class GlobalError extends Component<Props, State> {
     const {onDismiss} = this.props
     const summary = this.state.cachedSummary
     const details = this.state.cachedDetails
-    const maxHeight = GlobalError.maxHeightForSize(this.state.size)
+
+    let stylesContainer: Styles.StylesCrossPlatform
+    switch (this.state.size) {
+      case 'Big':
+        stylesContainer = styles.containerBig
+        break
+      case 'Closed':
+        stylesContainer = styles.containerClosed
+        break
+      case 'Small':
+        stylesContainer = styles.containerSmall
+        break
+    }
 
     return (
-      <Kb.Box
-        style={Styles.collapseStyles([styles.container, styles.containerError, {maxHeight}])}
-        onClick={this.onExpandClick}
-      >
-        <Kb.Box style={Styles.collapseStyles([styles.summaryRow, styles.summaryRowError])}>
+      <Kb.Box style={stylesContainer} onClick={this.onExpandClick}>
+        <Kb.Box style={styles.innerContainer}>
           <Kb.Text center={true} type="BodyBig" style={styles.summary}>
             {summary}
           </Kb.Text>
@@ -165,6 +174,17 @@ class GlobalError extends Component<Props, State> {
   }
 }
 
+const containerBase = {
+  ...Styles.globalStyles.flexBoxColumn,
+  left: 0,
+  overflow: 'hidden',
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 1000,
+  ...Styles.transition('max-height'),
+}
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -175,18 +195,8 @@ const styles = Styles.styleSheetCreate(
           top: 10,
         },
       }),
-      container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        left: 0,
-        overflow: 'hidden',
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        zIndex: 1000,
-      },
-      containerError: {
-        ...Styles.transition('max-height'),
-      },
+      containerBig: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Big')},
+      containerClosed: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Closed')},
       containerOverlay: {
         ...Styles.globalStyles.flexBoxColumn,
         bottom: 0,
@@ -196,6 +206,7 @@ const styles = Styles.styleSheetCreate(
         top: 0,
         zIndex: 1000,
       },
+      containerSmall: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Small')},
       details: {
         backgroundColor: Styles.globalColors.black,
         color: Styles.globalColors.white_75,
@@ -205,6 +216,16 @@ const styles = Styles.styleSheetCreate(
       },
       feedbackButton: {
         marginRight: Styles.globalMargins.large,
+      },
+      innerContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.black,
+        flex: 1,
+        justifyContent: 'center',
+        minHeight: GlobalError.maxHeightForSize('Small'),
+        padding: Styles.globalMargins.xtiny,
+        position: 'relative',
       },
       message: {
         color: Styles.globalColors.white,

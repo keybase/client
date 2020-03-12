@@ -67,6 +67,12 @@ const (
 
 	// By default, use v2 block encryption.
 	defaultBlockCryptVersion = kbfscrypto.EncryptionSecretboxWithKeyNonce
+
+	// How many times to retry loading the sync DB in the background
+	// if there's an error.
+	maxSyncDBLoadAttempts = 10
+	// How long to wait between load attempts.
+	syncDBLoadWaitPeriod = 10 * time.Second
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -107,7 +113,7 @@ type ConfigLocal struct {
 	noBGFlush          bool // logic opposite so the default value is the common setting
 	rwpWaitTime        time.Duration
 	diskLimiter        DiskLimiter
-	syncedTlfs         map[tlf.ID]FolderSyncConfig
+	syncedTlfs         map[tlf.ID]FolderSyncConfig // if nil, couldn't load DB
 	syncedTlfPaths     map[string]bool
 	defaultBlockType   keybase1.BlockType
 	kbfsService        *KBFSService
@@ -1200,7 +1206,8 @@ func (c *ConfigLocal) journalizeBcaches(jManager *JournalManager) error {
 	return nil
 }
 
-func (c *ConfigLocal) getQuotaUsage(
+// GetQuotaUsage implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetQuotaUsage(
 	chargedTo keybase1.UserOrTeamID) *EventuallyConsistentQuotaUsage {
 	c.lock.RLock()
 	quota, ok := c.quotaUsage[chargedTo]
@@ -1236,7 +1243,7 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	}
 
 	params := makeDefaultBackpressureDiskLimiterParams(
-		configRoot, c.getQuotaUsage, c.diskBlockCacheFraction, c.syncBlockCacheFraction)
+		configRoot, c.GetQuotaUsage, c.diskBlockCacheFraction, c.syncBlockCacheFraction)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
@@ -1350,6 +1357,29 @@ func (c *ConfigLocal) cleanSyncBlockCache() {
 
 	c.lock.Lock()
 	defer c.lock.Unlock()
+
+	for i := 0; c.syncedTlfs == nil && i < maxSyncDBLoadAttempts; i++ {
+		// Sometimes transient iOS storage permission errors prevent
+		// us from reading the sync config DB on startup.  In that
+		// case, the `syncedTlfs` map will be nil, but we don't want
+		// to delete all the synced blocks.
+		c.MakeLogger("").CDebugf(
+			ctx, "Re-loading synced TLF list for cleaning")
+
+		err := c.loadSyncedTlfsLocked()
+		if err == nil {
+			break
+		}
+		c.lock.Unlock()
+		time.Sleep(syncDBLoadWaitPeriod)
+		c.lock.Lock()
+	}
+	if c.syncedTlfs == nil {
+		c.MakeLogger("").CDebugf(
+			ctx, "Couldn't load synced TLF list for cleaning; giving up")
+		return
+	}
+
 	cacheTlfIDs, err := c.diskBlockCache.GetTlfIDs(ctx, DiskBlockSyncCache)
 	if err != nil {
 		c.MakeLogger("").CDebugf(
@@ -1483,6 +1513,12 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	defer func() {
 		c.MakeLogger("").CDebugf(context.TODO(), "Loaded synced TLFs: %+v", err)
+		if err != nil {
+			// Should already be nil, but make it explicit just in
+			// case, since the cleaning behavior depends on it being
+			// nil if there has been an error.
+			c.syncedTlfs = nil
+		}
 	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	syncedTlfPaths := make(map[string]bool)

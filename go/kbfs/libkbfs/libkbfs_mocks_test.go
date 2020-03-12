@@ -105,20 +105,20 @@ func (mr *MockBlockOpsMockRecorder) Get(arg0, arg1, arg2, arg3, arg4 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockOps)(nil).Get), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetEncodedSize mocks base method
-func (m *MockBlockOps) GetEncodedSize(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer) (uint32, keybase1.BlockStatus, error) {
+// GetEncodedSizes mocks base method
+func (m *MockBlockOps) GetEncodedSizes(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 []data.BlockPointer) ([]uint32, []keybase1.BlockStatus, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEncodedSize", arg0, arg1, arg2)
-	ret0, _ := ret[0].(uint32)
-	ret1, _ := ret[1].(keybase1.BlockStatus)
+	ret := m.ctrl.Call(m, "GetEncodedSizes", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]uint32)
+	ret1, _ := ret[1].([]keybase1.BlockStatus)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-// GetEncodedSize indicates an expected call of GetEncodedSize
-func (mr *MockBlockOpsMockRecorder) GetEncodedSize(arg0, arg1, arg2 interface{}) *gomock.Call {
+// GetEncodedSizes indicates an expected call of GetEncodedSizes
+func (mr *MockBlockOpsMockRecorder) GetEncodedSizes(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSize", reflect.TypeOf((*MockBlockOps)(nil).GetEncodedSize), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSizes", reflect.TypeOf((*MockBlockOps)(nil).GetEncodedSizes), arg0, arg1, arg2)
 }
 
 // GetLiveCount mocks base method
@@ -246,6 +246,18 @@ func (mr *MockBlockServerMockRecorder) ArchiveBlockReferences(arg0, arg1, arg2 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveBlockReferences", reflect.TypeOf((*MockBlockServer)(nil).ArchiveBlockReferences), arg0, arg1, arg2)
 }
 
+// FastForwardBackoff mocks base method
+func (m *MockBlockServer) FastForwardBackoff() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "FastForwardBackoff")
+}
+
+// FastForwardBackoff indicates an expected call of FastForwardBackoff
+func (mr *MockBlockServerMockRecorder) FastForwardBackoff() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FastForwardBackoff", reflect.TypeOf((*MockBlockServer)(nil).FastForwardBackoff))
+}
+
 // Get mocks base method
 func (m *MockBlockServer) Get(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID, arg3 kbfsblock.Context, arg4 DiskBlockCacheType) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	m.ctrl.T.Helper()
@@ -262,20 +274,20 @@ func (mr *MockBlockServerMockRecorder) Get(arg0, arg1, arg2, arg3, arg4 interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockServer)(nil).Get), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetEncodedSize mocks base method
-func (m *MockBlockServer) GetEncodedSize(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID, arg3 kbfsblock.Context) (uint32, keybase1.BlockStatus, error) {
+// GetEncodedSizes mocks base method
+func (m *MockBlockServer) GetEncodedSizes(arg0 context.Context, arg1 tlf.ID, arg2 []kbfsblock.ID, arg3 []kbfsblock.Context) ([]uint32, []keybase1.BlockStatus, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEncodedSize", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(uint32)
-	ret1, _ := ret[1].(keybase1.BlockStatus)
+	ret := m.ctrl.Call(m, "GetEncodedSizes", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]uint32)
+	ret1, _ := ret[1].([]keybase1.BlockStatus)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-// GetEncodedSize indicates an expected call of GetEncodedSize
-func (mr *MockBlockServerMockRecorder) GetEncodedSize(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+// GetEncodedSizes indicates an expected call of GetEncodedSizes
+func (mr *MockBlockServerMockRecorder) GetEncodedSizes(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSize", reflect.TypeOf((*MockBlockServer)(nil).GetEncodedSize), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSizes", reflect.TypeOf((*MockBlockServer)(nil).GetEncodedSizes), arg0, arg1, arg2, arg3)
 }
 
 // GetLiveBlockReferences mocks base method
@@ -3714,7 +3726,7 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString, data.BlockPointer) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -3722,7 +3734,8 @@ func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.Path
 	ret2, _ := ret[2].(data.EntryType)
 	ret3, _ := ret[3].(os.FileInfo)
 	ret4, _ := ret[4].(data.PathPartString)
-	return ret0, ret1, ret2, ret3, ret4
+	ret5, _ := ret[5].(data.BlockPointer)
+	return ret0, ret1, ret2, ret3, ret4, ret5
 }
 
 // ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup

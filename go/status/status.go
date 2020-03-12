@@ -27,6 +27,7 @@ func GetCurrentStatus(mctx libkb.MetaContext) (res keybase1.CurrentStatus, err e
 	}
 	res.SessionIsValid = mctx.ActiveDevice().Valid()
 	res.LoggedIn = res.SessionIsValid
+	res.DeviceName = mctx.ActiveDevice().Name()
 	return res, nil
 }
 
@@ -194,7 +195,7 @@ func GetConfig(mctx libkb.MetaContext, forkType keybase1.ForkType) (c keybase1.C
 	if err == nil {
 		c.BinaryRealpath = realpath
 	} else {
-		mctx.Warning("Failed to get service realpath: %s", err)
+		mctx.Debug("Failed to get service realpath: %s", err)
 	}
 
 	c.ConfigPath = mctx.G().Env.GetConfigFilename()
@@ -238,7 +239,10 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 
 	// set kbfs status
 	kbfsInstalledVersion, err := install.KBFSBundleVersion(mctx.G(), "")
-	if err == nil {
+	if err != nil {
+		mctx.Debug("Failed to get KBFSBundleVersion: %s", err)
+	} else {
+		mctx.Debug("Got KBFSBundleVersion: %s", kbfsInstalledVersion)
 		status.Kbfs.InstalledVersion = kbfsInstalledVersion
 	}
 	if kbfs := GetFirstClient(status.ExtStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
@@ -266,13 +270,17 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 	// set log paths
 	status.Service.Log = getServiceLog(mctx, status.ExtStatus.LogDir)
 	status.Service.EkLog = filepath.Join(status.ExtStatus.LogDir, libkb.EKLogFileName)
+	status.Service.PerfLog = filepath.Join(status.ExtStatus.LogDir, libkb.PerfLogFileName)
 	status.Kbfs.Log = filepath.Join(status.ExtStatus.LogDir, libkb.KBFSLogFileName)
+	status.Kbfs.PerfLog = filepath.Join(status.ExtStatus.LogDir, libkb.KBFSPerfLogFileName)
 	status.Desktop.Log = filepath.Join(status.ExtStatus.LogDir, libkb.GUILogFileName)
 	status.Updater.Log = filepath.Join(status.ExtStatus.LogDir, libkb.UpdaterLogFileName)
 	status.Start.Log = filepath.Join(status.ExtStatus.LogDir, libkb.StartLogFileName)
 	status.Git.Log = filepath.Join(status.ExtStatus.LogDir, libkb.GitLogFileName)
+	status.Git.PerfLog = filepath.Join(status.ExtStatus.LogDir, libkb.GitPerfLogFileName)
 
 	// set anything os-specific
+	mctx.Debug("Getting osSpecific status info")
 	if err := osSpecific(mctx, status); err != nil {
 		return nil, err
 	}

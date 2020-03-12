@@ -3,9 +3,9 @@ package unfurl
 import (
 	"context"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -27,9 +27,9 @@ type Settings struct {
 	storage types.ConversationBackedStorage
 }
 
-func NewSettings(log logger.Logger, storage types.ConversationBackedStorage) *Settings {
+func NewSettings(g *globals.Context, storage types.ConversationBackedStorage) *Settings {
 	return &Settings{
-		DebugLabeler: utils.NewDebugLabeler(log, "Settings", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Settings", false),
 		storage:      storage,
 	}
 }

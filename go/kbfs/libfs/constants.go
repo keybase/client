@@ -122,3 +122,13 @@ const ArchivedRelTimeFilePrefix = ".kbfs_archived_reltime="
 // number of KBFS files and directories currently being held open by
 // the operating system.
 const OpenFileCountFileName = ".kbfs_open_file_count"
+
+// DirBlockPrefix is the prefix to a directory within a TLF, that will
+// direct KBFS to open that specific block as that directory.  Useful
+// for recovering data of a subdirectory when the all the root blocks
+// are missing or corrupt for some reason.  The format for what comes
+// after the prefix is: id.keyGen.dataVer.creatorUID.directType
+//
+// Note that if this is used for a directory that is already live in
+// the current TLF, it will make that existing directory read-only.
+const DirBlockPrefix = ".kbfs_dirblock_"

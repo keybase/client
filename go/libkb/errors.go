@@ -166,8 +166,20 @@ func (u FailedAssertionError) Error() string {
 
 //=============================================================================
 
+type AssertionParseErrorReason int
+
+const (
+	AssertionParseErrorReasonGeneric      AssertionParseErrorReason = 0
+	AssertionParseErrorReasonUnexpectedOR AssertionParseErrorReason = 1
+)
+
 type AssertionParseError struct {
-	err string
+	err    string
+	reason AssertionParseErrorReason
+}
+
+func (e AssertionParseError) Reason() AssertionParseErrorReason {
+	return e.reason
 }
 
 func (e AssertionParseError) Error() string {
@@ -176,8 +188,19 @@ func (e AssertionParseError) Error() string {
 
 func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
 	return AssertionParseError{
-		err: fmt.Sprintf(s, a...),
+		reason: AssertionParseErrorReasonGeneric,
+		err:    fmt.Sprintf(s, a...),
 	}
+}
+func NewAssertionParseErrorWithReason(reason AssertionParseErrorReason, s string, a ...interface{}) AssertionParseError {
+	return AssertionParseError{
+		reason: reason,
+		err:    fmt.Sprintf(s, a...),
+	}
+}
+func IsAssertionParseErrorWithReason(err error, reason AssertionParseErrorReason) bool {
+	aerr, ok := err.(AssertionParseError)
+	return ok && aerr.reason == reason
 }
 
 //=============================================================================
@@ -1449,15 +1472,35 @@ func (e NoDecryptionKeyError) Error() string {
 
 //=============================================================================
 
+type ErrorCause struct {
+	Err        error
+	StatusCode int
+}
+
+// DecryptionError is the default decryption error
 type DecryptionError struct {
-	Cause error
+	Cause ErrorCause
 }
 
 func (e DecryptionError) Error() string {
-	if e.Cause == nil {
+	if e.Cause.Err == nil {
 		return "Decryption error"
 	}
-	return fmt.Sprintf("Decryption error: %v", e.Cause)
+	return fmt.Sprintf("Decryption error: %+v", e.Cause)
+}
+
+//=============================================================================
+
+// VerificationError is the default verification error
+type VerificationError struct {
+	Cause ErrorCause
+}
+
+func (e VerificationError) Error() string {
+	if e.Cause.Err == nil {
+		return "Verification error"
+	}
+	return fmt.Sprintf("Verification error: %+v", e.Cause)
 }
 
 //=============================================================================

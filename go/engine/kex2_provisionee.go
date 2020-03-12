@@ -389,7 +389,7 @@ func (e *Kex2Provisionee) decodeSig(sig []byte) (*decodedSig, error) {
 		return nil, err
 	}
 	res := decodedSig{
-		sigID:  kbcrypto.ComputeSigIDFromSigBody(body),
+		sigID:  kbcrypto.ComputeSigIDFromSigBody(body).ToSigIDLegacy(),
 		linkID: libkb.ComputeLinkID(naclSig.Payload),
 	}
 	res.seqno, err = jw.AtKey("seqno").GetInt()
@@ -527,7 +527,7 @@ func makeKeyArgs(sigID keybase1.SigID, sig []byte, delType libkb.DelegationType,
 		return nil, err
 	}
 	args := libkb.HTTPArgs{
-		"sig_id_base":     libkb.S{Val: sigID.ToString(false)},
+		"sig_id_base":     libkb.S{Val: sigID.StripSuffix().String()},
 		"sig_id_short":    libkb.S{Val: sigID.ToShortID()},
 		"sig":             libkb.S{Val: string(sig)},
 		"type":            libkb.S{Val: string(delType)},
@@ -565,7 +565,7 @@ func (e *Kex2Provisionee) dhKeyProof(m libkb.MetaContext, dh libkb.GenericKey, e
 		return "", "", err
 	}
 
-	return dhSig, dhSigID, nil
+	return dhSig, dhSigID.ToSigIDLegacy(), nil
 
 }
 

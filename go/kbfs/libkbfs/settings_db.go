@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ldbutils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -44,6 +45,7 @@ type SettingsDB struct {
 	*ldbutils.LevelDb
 	sessionGetter currentSessionGetter
 	logger        logger.Logger
+	vlogger       *libkb.VDebugLog
 
 	lock  sync.RWMutex
 	cache map[string][]byte
@@ -70,6 +72,7 @@ func openSettingsDBInternal(config Config) (*ldbutils.LevelDb, error) {
 
 func openSettingsDB(config Config) *SettingsDB {
 	logger := config.MakeLogger("SDB")
+	vlogger := config.MakeVLogger(logger)
 	db, err := openSettingsDBInternal(config)
 	if err != nil {
 		logger.CWarningf(context.Background(),
@@ -85,6 +88,7 @@ func openSettingsDB(config Config) *SettingsDB {
 		LevelDb:       db,
 		sessionGetter: config,
 		logger:        logger,
+		vlogger:       vlogger,
 		cache:         make(map[string][]byte),
 	}
 }
@@ -176,7 +180,7 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 		db.Get(getSettingsDbKey(uid, sfmiBannerDismissedKey), nil)
 	switch errors.Cause(err) {
 	case leveldb.ErrNotFound:
-		db.logger.CDebugf(ctx,
+		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"sfmiBannerDismissed not set; using default value")
 	case nil:
 		sfmiBannerDismissed, err =

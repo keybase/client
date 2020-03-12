@@ -17,6 +17,7 @@ export const showUser = 'tracker2:showUser'
 export const updateAssertion = 'tracker2:updateAssertion'
 export const updateFollows = 'tracker2:updateFollows'
 export const updateResult = 'tracker2:updateResult'
+export const updateUserReset = 'tracker2:updateUserReset'
 export const updatedDetails = 'tracker2:updatedDetails'
 
 // Payload Types
@@ -62,6 +63,7 @@ type _UpdateResultPayload = {
   readonly result: Types.DetailsState
   readonly reason?: string
 }
+type _UpdateUserResetPayload = {readonly guiID: string}
 type _UpdatedDetailsPayload = {
   readonly guiID: string
   readonly bio: string
@@ -116,6 +118,10 @@ export const createUpdateResult = (payload: _UpdateResultPayload): UpdateResultP
   payload,
   type: updateResult,
 })
+export const createUpdateUserReset = (payload: _UpdateUserResetPayload): UpdateUserResetPayload => ({
+  payload,
+  type: updateUserReset,
+})
 export const createUpdatedDetails = (payload: _UpdatedDetailsPayload): UpdatedDetailsPayload => ({
   payload,
   type: updatedDetails,
@@ -152,6 +158,10 @@ export type UpdateFollowsPayload = {
   readonly type: typeof updateFollows
 }
 export type UpdateResultPayload = {readonly payload: _UpdateResultPayload; readonly type: typeof updateResult}
+export type UpdateUserResetPayload = {
+  readonly payload: _UpdateUserResetPayload
+  readonly type: typeof updateUserReset
+}
 export type UpdatedDetailsPayload = {
   readonly payload: _UpdatedDetailsPayload
   readonly type: typeof updatedDetails
@@ -172,5 +182,6 @@ export type Actions =
   | UpdateAssertionPayload
   | UpdateFollowsPayload
   | UpdateResultPayload
+  | UpdateUserResetPayload
   | UpdatedDetailsPayload
   | {type: 'common:resetStore', payload: {}}

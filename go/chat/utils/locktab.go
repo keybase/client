@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -34,7 +35,7 @@ type ConversationLockTab struct {
 func NewConversationLockTab(g *globals.Context) *ConversationLockTab {
 	return &ConversationLockTab{
 		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      NewDebugLabeler(g.GetLog(), "ConversationLockTab", false),
+		DebugLabeler:      NewDebugLabeler(g.ExternalG(), "ConversationLockTab", false),
 		convLocks:         make(map[string]*conversationLock),
 		waits:             make(map[string]string),
 		maxAcquireRetries: 25,
@@ -146,7 +147,7 @@ func (c *ConversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 				return true, err
 			}
 			c.Debug(ctx, "Acquire: deadlock condition detected, sleeping and trying again: attempt: %d", i)
-			time.Sleep(sleep)
+			time.Sleep(libkb.RandomJitter(sleep))
 			continue
 		}
 		return blocked, nil

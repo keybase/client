@@ -6,7 +6,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {Input, DragAndDrop, OperationBanner} from '../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender, OutputProgress} from '../output'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../output'
 import Recipients from '../recipients'
 
 const operation = Constants.Operations.Encrypt
@@ -14,14 +14,13 @@ const operation = Constants.Operations.Encrypt
 const EncryptOptions = () => {
   const dispatch = Container.useDispatch()
 
-  // Store
   const hideIncludeSelf = Container.useSelector(state => state.crypto.encrypt.meta.hideIncludeSelf)
   const hasRecipients = Container.useSelector(state => state.crypto.encrypt.meta.hasRecipients)
   const hasSBS = Container.useSelector(state => state.crypto.encrypt.meta.hasSBS)
   const includeSelf = Container.useSelector(state => state.crypto.encrypt.options.includeSelf)
   const sign = Container.useSelector(state => state.crypto.encrypt.options.sign)
+  const inProgress = Container.useSelector(state => state.crypto.encrypt.inProgress)
 
-  // Actions
   const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
     const {newIncludeSelf, newSign} = opts
     dispatch(CryptoGen.createSetEncryptOptions({options: {includeSelf: newIncludeSelf, sign: newSign}}))
@@ -32,14 +31,14 @@ const EncryptOptions = () => {
       {hideIncludeSelf ? null : (
         <Kb.Checkbox
           label="Include yourself"
-          disabled={hasSBS || !hasRecipients}
+          disabled={inProgress || hasSBS || !hasRecipients}
           checked={hasSBS || includeSelf}
           onCheck={newValue => onSetOptions({newIncludeSelf: newValue, newSign: sign})}
         />
       )}
       <Kb.Checkbox
         label="Sign"
-        disabled={hasSBS}
+        disabled={inProgress || hasSBS}
         checked={sign}
         onCheck={newValue => onSetOptions({newIncludeSelf: includeSelf, newSign: newValue})}
       />
@@ -91,7 +90,6 @@ const Encrypt = () => {
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Input operation={operation} />
         <EncryptOptions />
-        <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <EncryptOutputBanner />
           <SignedSender operation={operation} />

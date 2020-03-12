@@ -293,14 +293,14 @@ func TestContactSearch(t *testing.T) {
 
 	// Invalid: `IncludeContacts` can only be passed with service="keybase"
 	// (even if query is empty).
-	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+	_, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "",
 		Query:           "",
 	})
 	require.Error(t, err)
 
-	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "keybase",
 		Query:           "test",

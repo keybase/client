@@ -48,6 +48,8 @@ export type AllowedColors =
 export type _StylesTextCrossPlatform = _CustomStyles<'color', {color?: AllowedColors}>
 export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColors}>
 
+export type LineClampType = 1 | 2 | 3 | 4 | 5 | null
+
 type Props = {
   allowFontScaling?: boolean
   allowHighlightText?: boolean // if true, highlighttext through refs works,,
@@ -55,7 +57,7 @@ type Props = {
   children?: React.ReactNode
   className?: string
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip' // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied,,
-  lineClamp?: number | null
+  lineClamp?: LineClampType
   negative?: boolean
   onClick?: ((e: React.BaseSyntheticEvent) => void) | null
   onClickURL?: string | null

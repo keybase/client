@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
+	"golang.org/x/sync/errgroup"
 )
 
 // An queueItem is something we manage in a priority queue.
@@ -120,6 +121,7 @@ type BackgroundEphemeralPurger struct {
 
 	started    bool
 	shutdownCh chan struct{}
+	eg         errgroup.Group
 	delay      time.Duration
 	clock      clockwork.Clock
 	purgeTimer *time.Timer
@@ -130,7 +132,7 @@ var _ types.EphemeralPurger = (*BackgroundEphemeralPurger)(nil)
 func NewBackgroundEphemeralPurger(g *globals.Context, storage *storage.Storage) *BackgroundEphemeralPurger {
 	return &BackgroundEphemeralPurger{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BackgroundEphemeralPurger", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "BackgroundEphemeralPurger", false),
 		storage:      storage,
 		delay:        500 * time.Millisecond,
 		clock:        clockwork.NewRealClock(),
@@ -157,7 +159,7 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 	b.purgeTimer = time.NewTimer(0)
 	shutdownCh := make(chan struct{})
 	b.shutdownCh = shutdownCh
-	go b.loop(shutdownCh)
+	b.eg.Go(func() error { return b.loop(shutdownCh) })
 }
 
 func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{}) {
@@ -165,13 +167,17 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{})
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	b.started = false
-	if b.shutdownCh != nil {
-		ch = b.shutdownCh
-		close(ch)
-		b.shutdownCh = nil
+	ch = make(chan struct{})
+	if b.started {
+		close(b.shutdownCh)
+		b.started = false
+		go func() {
+			if err := b.eg.Wait(); err != nil {
+				b.Debug(ctx, "error stopping background loop: %v", err)
+			}
+			close(ch)
+		}()
 	} else {
-		ch = make(chan struct{})
 		close(ch)
 	}
 	return ch
@@ -253,18 +259,23 @@ func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeIn
 
 // This runs when we are waiting to run a job but will shut itself down if we
 // have no work.
-func (b *BackgroundEphemeralPurger) loop(shutdownCh chan struct{}) {
+func (b *BackgroundEphemeralPurger) loop(shutdownCh chan struct{}) error {
 	bgctx := context.Background()
 	b.Debug(bgctx, "loop: starting for %s", b.uid)
-
+	suspended := false
 	for {
 		select {
 		case <-b.purgeTimer.C:
-			b.Debug(bgctx, "loop: looping for %s", b.uid)
+			b.Debug(bgctx, "loop: timer fired %s", b.uid)
 			b.queuePurges(bgctx)
+		case suspended = <-b.G().DesktopAppState.NextSuspendUpdate(&suspended):
+			if !suspended {
+				b.Debug(bgctx, "loop: queuing purges on resume %s", b.uid)
+				b.queuePurges(bgctx)
+			}
 		case <-shutdownCh:
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
-			return
+			return nil
 		}
 	}
 }

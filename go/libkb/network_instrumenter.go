@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -14,8 +15,8 @@ import (
 )
 
 type NetworkStatsJSON struct {
-	Local  []keybase1.InstrumentationStat `json:"remote"`
-	Remote []keybase1.InstrumentationStat `json:"local"`
+	Local  []keybase1.InstrumentationStat `json:"local"`
+	Remote []keybase1.InstrumentationStat `json:"remote"`
 }
 
 var internalHosts = map[string]struct{}{
@@ -76,8 +77,9 @@ type DiskInstrumentationStorage struct {
 	src     keybase1.NetworkSource
 	storage map[string]keybase1.InstrumentationStat
 
-	eg     errgroup.Group
-	stopCh chan struct{}
+	eg      errgroup.Group
+	stopCh  chan struct{}
+	started bool
 }
 
 var _ rpc.NetworkInstrumenterStorage = (*DiskInstrumentationStorage)(nil)
@@ -90,22 +92,26 @@ func NewDiskInstrumentationStorage(g *GlobalContext, src keybase1.NetworkSource)
 	}
 }
 
-func (s *DiskInstrumentationStorage) Start() {
-	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: Start", func() error { return nil })()
+func (s *DiskInstrumentationStorage) Start(ctx context.Context) {
+	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Start", func() error { return nil })()
 	s.Lock()
 	defer s.Unlock()
+	if s.started {
+		return
+	}
 	s.stopCh = make(chan struct{})
+	s.started = true
 	s.eg.Go(func() error { return s.flushLoop(s.stopCh) })
 }
 
-func (s *DiskInstrumentationStorage) Stop() chan struct{} {
-	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: Stop", func() error { return nil })()
+func (s *DiskInstrumentationStorage) Stop(ctx context.Context) chan struct{} {
+	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Stop", func() error { return nil })()
 	s.Lock()
 	defer s.Unlock()
 	ch := make(chan struct{})
-	if s.stopCh != nil {
+	if s.started {
 		close(s.stopCh)
-		s.stopCh = nil
+		s.started = false
 		go func() {
 			if err := s.eg.Wait(); err != nil {
 				s.G().Log.Debug("DiskInstrumentationStorage: flush: unable to wait for shutdown: %v", err)
@@ -119,35 +125,37 @@ func (s *DiskInstrumentationStorage) Stop() chan struct{} {
 }
 
 func (s *DiskInstrumentationStorage) flushLoop(stopCh chan struct{}) error {
+	ctx := context.Background()
 	for {
 		select {
 		case <-stopCh:
-			return s.Flush()
+			return s.Flush(ctx)
 		case <-time.After(5 * time.Minute):
-			if err := s.Flush(); err != nil {
-				s.G().Log.Debug("DiskInstrumentationStorage: flushLoop: unable to flush: %v", err)
+			if err := s.Flush(ctx); err != nil {
+				s.G().Log.CDebugf(ctx, "DiskInstrumentationStorage: flushLoop: unable to flush: %v", err)
 			}
 		}
 	}
 }
 
-func (s *DiskInstrumentationStorage) Flush() (err error) {
+func (s *DiskInstrumentationStorage) Flush(ctx context.Context) (err error) {
 	s.Lock()
 	storage := s.storage
 	s.storage = make(map[string]keybase1.InstrumentationStat)
 	s.Unlock()
-	return s.flush(storage)
+	return s.flush(ctx, storage)
 }
 
-func (s *DiskInstrumentationStorage) flush(storage map[string]keybase1.InstrumentationStat) (err error) {
-	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: flush", func() error { return err })()
+func (s *DiskInstrumentationStorage) flush(ctx context.Context, storage map[string]keybase1.InstrumentationStat) (err error) {
+	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: flush", func() error { return err })()
 	for tag, record := range storage {
 		var existing keybase1.InstrumentationStat
 		found, err := s.G().LocalDb.GetIntoMsgpack(&existing, s.dbKey(tag))
 		if err != nil {
 			return err
 		}
-		if found {
+		// Keep only window of the past month
+		if found && time.Since(existing.Ctime.Time()) <= time.Hour*24*30 {
 			record = existing.AppendStat(record)
 		}
 		if err := s.G().LocalDb.PutObjMsgpack(s.dbKey(tag), nil, record); err != nil {
@@ -185,12 +193,12 @@ func (s *DiskInstrumentationStorage) getAllKeysLocked() (keys []DbKey, err error
 	return keys, nil
 }
 
-func (s *DiskInstrumentationStorage) GetAll() (res []keybase1.InstrumentationStat, err error) {
-	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: GetAll", func() error { return err })()
+func (s *DiskInstrumentationStorage) GetAll(ctx context.Context) (res []keybase1.InstrumentationStat, err error) {
+	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: GetAll", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
-	if err := s.flush(s.storage); err != nil {
+	if err := s.flush(ctx, s.storage); err != nil {
 		return nil, err
 	}
 
@@ -212,28 +220,39 @@ func (s *DiskInstrumentationStorage) GetAll() (res []keybase1.InstrumentationSta
 		} else if !ok {
 			continue
 		}
-		// Keep only window of the past month
-		if time.Since(record.Ctime.Time()) > time.Hour*24*30 {
-			s.G().Log.Debug("DiskInstrumentationStorage: GetAll: purging record from", record.Ctime.Time())
-			if err := s.G().LocalDb.Delete(dbKey); err != nil {
-				s.G().Log.Debug("DiskInstrumentationStorage: GetAll: unable to delete old record: %v", err)
-			}
-			continue
-		}
 		res = append(res, record)
 	}
 	return res, nil
 }
 
-func (s *DiskInstrumentationStorage) Stats() (res []keybase1.InstrumentationStat, err error) {
-	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: Stats", func() error { return err })()
-	return s.GetAll()
+func (s *DiskInstrumentationStorage) Stats(ctx context.Context) (res []keybase1.InstrumentationStat, err error) {
+	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Stats", func() error { return err })()
+	return s.GetAll(ctx)
 }
 
-func (s *DiskInstrumentationStorage) Put(tag string, record rpc.InstrumentationRecord) error {
+var tagLogBlacklist = map[string]struct{}{
+	"Call gregor.1.incoming.ping": {},
+}
+
+func (s *DiskInstrumentationStorage) logRecord(ctx context.Context, tag string, record rpc.InstrumentationRecord) {
+	if s.src == keybase1.NetworkSource_LOCAL {
+		return
+	}
+	if _, ok := tagLogBlacklist[tag]; !ok {
+		s.G().PerfLog.CDebugf(ctx, "%s %v %s", tag, record.Dur, humanize.Bytes(uint64(record.Size)))
+		s.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_NETWORK,
+			Message:   tag,
+			Ctime:     keybase1.ToTime(record.Ctime),
+		})
+	}
+}
+
+func (s *DiskInstrumentationStorage) Put(ctx context.Context, tag string, record rpc.InstrumentationRecord) error {
 	s.Lock()
 	defer s.Unlock()
 	s.storage[tag] = AddRPCRecord(tag, s.storage[tag], record)
+	s.logRecord(ctx, tag, record)
 	return nil
 }
 

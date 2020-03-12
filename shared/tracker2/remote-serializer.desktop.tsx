@@ -151,6 +151,7 @@ export const deserialize = (
     hidFromFollowers: hidFromFollowers ?? oldDetails?.hidFromFollowers,
     location: location ?? oldDetails?.location,
     reason: reason ?? oldDetails?.reason,
+    resetBrokeTrack: false,
     showTracker: true,
     state: trackerState ?? oldDetails?.state,
     stellarHidden: stellarHidden ?? oldDetails?.stellarHidden,

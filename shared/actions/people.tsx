@@ -154,14 +154,17 @@ const markViewed = async () => {
 }
 
 const skipTodo = async (action: PeopleGen.SkipTodoPayload) => {
-  await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
-    t: RPCTypes.HomeScreenTodoType[action.payload.type],
-  })
-  // TODO get rid of this load and have core send us a homeUIRefresh
-  return PeopleGen.createGetPeopleData({
-    markViewed: false,
-    numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-  })
+  try {
+    await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
+      t: RPCTypes.HomeScreenTodoType[action.payload.type],
+    })
+    // TODO get rid of this load and have core send us a homeUIRefresh
+    return PeopleGen.createGetPeopleData({
+      markViewed: false,
+      numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
+    })
+  } catch (_) {}
+  return false
 }
 
 const homeUIRefresh = () =>

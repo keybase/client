@@ -144,6 +144,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteMaxUses",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "ReaderKeyMask",
       "fields": [
         {
@@ -500,6 +506,20 @@
     },
     {
       "type": "record",
+      "name": "TeamUsedInvite",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        },
+        {
+          "type": "UserVersionPercentForm",
+          "name": "uv"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamChangeReq",
       "fields": [
         {
@@ -559,6 +579,13 @@
             "keys": "TeamInviteID"
           },
           "name": "completedInvites"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamUsedInvite"
+          },
+          "name": "usedInvites"
         }
       ]
     },
@@ -1254,7 +1281,8 @@
         "EMAIL_3",
         "SBS_4",
         "SEITAN_5",
-        "PHONE_6"
+        "PHONE_6",
+        "INVITELINK_7"
       ]
     },
     {
@@ -1322,6 +1350,20 @@
         {
           "type": "UserVersion",
           "name": "inviter"
+        },
+        {
+          "type": [
+            null,
+            "TeamInviteMaxUses"
+          ],
+          "name": "maxUses"
+        },
+        {
+          "type": [
+            null,
+            "UnixTime"
+          ],
+          "name": "etime"
         }
       ]
     },
@@ -1568,6 +1610,17 @@
           "name": "obsoleteInvites"
         },
         {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamUsedInviteLog"
+            },
+            "keys": "TeamInviteID"
+          },
+          "name": "usedInvites"
+        },
+        {
           "type": "boolean",
           "name": "open"
         },
@@ -1646,6 +1699,20 @@
         {
           "type": "SignatureMetadata",
           "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamUsedInviteLog",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "int",
+          "name": "logPoint"
         }
       ]
     },
@@ -1949,6 +2016,12 @@
     },
     {
       "type": "record",
+      "name": "SeitanIKeyInvitelink",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "SeitanPubKey",
       "fields": [],
       "typedef": "string"
@@ -1964,7 +2037,8 @@
       "name": "SeitanKeyAndLabelVersion",
       "symbols": [
         "V1_1",
-        "V2_2"
+        "V2_2",
+        "Invitelink_3"
       ]
     },
     {
@@ -1988,6 +2062,13 @@
             "def": false
           },
           "body": "SeitanKeyAndLabelVersion2"
+        },
+        {
+          "label": {
+            "name": "Invitelink",
+            "def": false
+          },
+          "body": "SeitanKeyAndLabelInvitelink"
         },
         {
           "label": {
@@ -2026,10 +2107,25 @@
       ]
     },
     {
+      "type": "record",
+      "name": "SeitanKeyAndLabelInvitelink",
+      "fields": [
+        {
+          "type": "SeitanIKeyInvitelink",
+          "name": "i"
+        },
+        {
+          "type": "SeitanKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "SeitanKeyLabelType",
       "symbols": [
-        "SMS_1"
+        "SMS_1",
+        "GENERIC_2"
       ]
     },
     {
@@ -2046,6 +2142,13 @@
             "def": false
           },
           "body": "SeitanKeyLabelSms"
+        },
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "SeitanKeyLabelGeneric"
         },
         {
           "label": {
@@ -2066,6 +2169,16 @@
         {
           "type": "string",
           "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanKeyLabelGeneric",
+      "fields": [
+        {
+          "type": "string",
+          "name": "l"
         }
       ]
     },
@@ -2769,7 +2882,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "assertionOrEmail"
+          "name": "assertion"
         },
         {
           "type": "TeamRole",
@@ -2829,6 +2942,49 @@
             "items": "UserRolePair"
           },
           "name": "failures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UntrustedTeamExistsResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "exists"
+        },
+        {
+          "type": "StatusCode",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Invitelink",
+      "fields": [
+        {
+          "type": "SeitanIKeyInvitelink",
+          "name": "ikey"
+        },
+        {
+          "type": "string",
+          "name": "webLink"
+        },
+        {
+          "type": "string",
+          "name": "deepLink"
+        },
+        {
+          "type": "TeamInviteMaxUses",
+          "name": "maxUses"
+        },
+        {
+          "type": [
+            null,
+            "UnixTime"
+          ],
+          "name": "etime"
         }
       ]
     },
@@ -3242,6 +3398,28 @@
           "name": "showcase"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedSubteamMemberDetails",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamMemberDetails",
+          "name": "details"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3426,23 +3604,6 @@
         "type": "array",
         "items": "TeamIDAndName"
       }
-    },
-    "teamChangeMembership": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "req",
-          "type": "TeamChangeReq"
-        }
-      ],
-      "response": null
     },
     "teamAddMember": {
       "request": [
@@ -3716,6 +3877,15 @@
       ],
       "response": null
     },
+    "untrustedTeamExists": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "UntrustedTeamExistsResult"
+    },
     "teamRename": {
       "request": [
         {
@@ -3890,7 +4060,7 @@
           "type": "int"
         },
         {
-          "name": "name",
+          "name": "teamname",
           "type": "string"
         },
         {
@@ -3911,7 +4081,7 @@
           "type": "int"
         },
         {
-          "name": "name",
+          "name": "teamname",
           "type": "string"
         },
         {
@@ -3924,6 +4094,34 @@
         }
       ],
       "response": "SeitanIKeyV2"
+    },
+    "teamCreateSeitanInvitelink": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamname",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "maxUses",
+          "type": "TeamInviteMaxUses"
+        },
+        {
+          "name": "etime",
+          "type": [
+            null,
+            "UnixTime"
+          ]
+        }
+      ],
+      "response": "Invitelink"
     },
     "teamAddEmailsBulk": {
       "request": [
@@ -4310,6 +4508,22 @@
         }
       ],
       "response": "AnnotatedTeam"
+    },
+    "getUserSubteamMemberships": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "AnnotatedSubteamMemberDetails"
+      }
     }
   },
   "namespace": "keybase.1"

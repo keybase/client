@@ -41,6 +41,7 @@ type ChatContext struct {
 	UIInboxLoader        types.UIInboxLoader              // manages loading inbox for UI
 	UIThreadLoader       types.UIThreadLoader             // manages loading threads for UI
 	Badger               *badges.Badger                   // app badging
+	ParticipantsSource   types.ParticipantSource          // get team participants
 }
 
 func (c *ChatContext) Describe() string {

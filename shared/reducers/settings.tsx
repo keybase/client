@@ -144,7 +144,7 @@ const emailActions: Container.ActionHandler<Actions, Types.State> = {
     email.emails = emails
   },
   [SettingsGen.clearAddingEmail]: draftState => {
-    draftState.email.addedEmail = undefined
+    draftState.email.addingEmail = undefined
     draftState.email.error = ''
   },
   [SettingsGen.clearAddedEmail]: draftState => {

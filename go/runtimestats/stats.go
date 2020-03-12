@@ -19,10 +19,13 @@ type Runner struct {
 	globals.Contextified
 	sync.Mutex
 
-	started bool
-	stopCh  chan struct{}
-	eg      errgroup.Group
+	started    bool
+	stopCh     chan struct{}
+	eg         errgroup.Group
+	perfEvents []keybase1.PerfEvent
 }
+
+var _ libkb.RuntimeStats = (*Runner)(nil)
 
 func NewRunner(g *globals.Context) *Runner {
 	r := &Runner{
@@ -117,10 +120,20 @@ func GetProcessStats(t keybase1.ProcessType) keybase1.ProcessRuntimeStats {
 	return stats
 }
 
-func (r *Runner) updateStats(ctx context.Context) {
-	serviceStats := GetProcessStats(keybase1.ProcessType_MAIN)
+func (r *Runner) PushPerfEvent(event keybase1.PerfEvent) {
+	r.Lock()
+	defer r.Unlock()
+	r.perfEvents = append(r.perfEvents, event)
+}
 
+func (r *Runner) updateStats(ctx context.Context) {
 	var stats keybase1.RuntimeStats
+	r.Lock()
+	stats.PerfEvents = r.perfEvents
+	r.perfEvents = []keybase1.PerfEvent{}
+	r.Unlock()
+
+	serviceStats := GetProcessStats(keybase1.ProcessType_MAIN)
 	stats.ProcessStats = append(stats.ProcessStats, serviceStats)
 
 	stats.DbStats = make([]keybase1.DbStats, 0, 2)

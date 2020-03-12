@@ -4,7 +4,7 @@ import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
-import {Props, LeftActionProps} from './types'
+import {Props, LeftActionProps} from '.'
 import {hoistNonReactStatic} from '../../util/container'
 
 export const HeaderHocHeader = ({

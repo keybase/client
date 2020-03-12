@@ -187,7 +187,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
     {Styles.isMobile && !props.skipMobileHeader && (
       <Kb.ModalHeader
         leftButton={
-          props.leftAction ? (
+          props.leftAction && props.onBack ? (
             <Kb.Text type="BodyBigLink" onClick={props.onBack}>
               {props.leftActionText || props.leftAction}
             </Kb.Text>

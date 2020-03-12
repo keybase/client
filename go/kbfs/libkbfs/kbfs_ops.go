@@ -59,7 +59,6 @@ type KBFSOpsStandard struct {
 	editShutdown bool
 
 	currentStatus            *kbfsCurrentStatus
-	quotaUsage               *EventuallyConsistentQuotaUsage
 	longOperationDebugDumper *ImpatientDebugDumper
 
 	initLock       sync.Mutex
@@ -86,7 +85,6 @@ func NewKBFSOpsStandard(
 	appStateUpdater env.AppStateUpdater, config Config,
 	initDoneCh <-chan struct{}) *KBFSOpsStandard {
 	log := config.MakeLogger("")
-	quLog := config.MakeLogger(QuotaUsageLogModule("KBFSOps"))
 	kops := &KBFSOpsStandard{
 		appStateUpdater:       appStateUpdater,
 		config:                config,
@@ -98,8 +96,6 @@ func NewKBFSOpsStandard(
 		initDoneCh:            initDoneCh,
 		favs:                  NewFavorites(config),
 		syncedTlfObservers:    newSyncedTlfObserverList(),
-		quotaUsage: NewEventuallyConsistentQuotaUsage(
-			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
 			config, longOperationDebugDumpDuration),
 		currentStatus: &kbfsCurrentStatus{},
@@ -745,17 +741,8 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 		} else if fb.Branch.IsLocalConflict() {
 			bType = conflict
 		}
-		var quotaUsage *EventuallyConsistentQuotaUsage
-		if fb.Tlf.Type() != tlf.SingleTeam {
-			// If this is a non-team TLF, pass in a shared quota usage
-			// object, since the status of each non-team TLF will show
-			// the same quota usage. TODO: for team TLFs, we should
-			// also pass in a shared instance (see
-			// `ConfigLocal.quotaUsage`).
-			quotaUsage = fs.quotaUsage
-		}
 		ops = newFolderBranchOps(
-			ctx, fs.appStateUpdater, fs.config, fb, bType, quotaUsage,
+			ctx, fs.appStateUpdater, fs.config, fb, bType,
 			fs.currentStatus, fs.favs, fs.syncedTlfObservers)
 		fs.ops[fb] = ops
 	}
@@ -940,7 +927,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 			}
 		}
 
-		md, err = getSingleMD(
+		md, err = GetSingleMD(
 			ctx, fs.config, h.TlfID(), kbfsmd.NullBranchID, rev,
 			kbfsmd.Merged, nil)
 		// This will error if there's no corresponding MD, which is
@@ -1438,9 +1425,10 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	case nil:
 		if mdserver != nil && mdserver.IsConnected() {
 			var quErr error
+			uid := session.UID.AsUserOrTeam()
 			_, usageBytes, archiveBytes, limitBytes,
 				gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
-				fs.quotaUsage.GetAllTypes(
+				fs.config.GetQuotaUsage(uid).GetAllTypes(
 					ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 			if quErr != nil {
 				// The error is ignored here so that other fields can still be populated

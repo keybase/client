@@ -13,6 +13,7 @@ type StatusCode int
 const (
 	StatusCode_SCOk                                        StatusCode = 0
 	StatusCode_SCInputError                                StatusCode = 100
+	StatusCode_SCAssertionParseError                       StatusCode = 101
 	StatusCode_SCLoginRequired                             StatusCode = 201
 	StatusCode_SCBadSession                                StatusCode = 202
 	StatusCode_SCBadLoginUserNotFound                      StatusCode = 203
@@ -35,11 +36,13 @@ const (
 	StatusCode_SCWrongCryptoFormat                         StatusCode = 279
 	StatusCode_SCDecryptionError                           StatusCode = 280
 	StatusCode_SCInvalidAddress                            StatusCode = 281
+	StatusCode_SCWrongCryptoMsgType                        StatusCode = 282
 	StatusCode_SCNoSession                                 StatusCode = 283
 	StatusCode_SCAccountReset                              StatusCode = 290
 	StatusCode_SCIdentifiesFailed                          StatusCode = 295
 	StatusCode_SCNoSpaceOnDevice                           StatusCode = 297
 	StatusCode_SCMerkleClientError                         StatusCode = 299
+	StatusCode_SCMerkleUpdateRoot                          StatusCode = 300
 	StatusCode_SCBadEmail                                  StatusCode = 472
 	StatusCode_SCRateLimit                                 StatusCode = 602
 	StatusCode_SCBadSignupUsernameTaken                    StatusCode = 701
@@ -70,6 +73,7 @@ const (
 	StatusCode_SCKeyDuplicateUpdate                        StatusCode = 921
 	StatusCode_SCSibkeyAlreadyExists                       StatusCode = 922
 	StatusCode_SCDecryptionKeyNotFound                     StatusCode = 924
+	StatusCode_SCVerificationKeyNotFound                   StatusCode = 925
 	StatusCode_SCKeyNoPGPEncryption                        StatusCode = 927
 	StatusCode_SCKeyNoNaClEncryption                       StatusCode = 928
 	StatusCode_SCKeySyncedPGPNotFound                      StatusCode = 929
@@ -103,6 +107,7 @@ const (
 	StatusCode_SCGenericAPIError                           StatusCode = 1600
 	StatusCode_SCAPINetworkError                           StatusCode = 1601
 	StatusCode_SCTimeout                                   StatusCode = 1602
+	StatusCode_SCKBFSClientTimeout                         StatusCode = 1603
 	StatusCode_SCProofError                                StatusCode = 1701
 	StatusCode_SCIdentificationExpired                     StatusCode = 1702
 	StatusCode_SCSelfNotFound                              StatusCode = 1703
@@ -154,6 +159,7 @@ const (
 	StatusCode_SCNoOp                                      StatusCode = 2638
 	StatusCode_SCTeamInviteBadCancel                       StatusCode = 2645
 	StatusCode_SCTeamInviteBadToken                        StatusCode = 2646
+	StatusCode_SCTeamBadNameReservedDB                     StatusCode = 2650
 	StatusCode_SCTeamTarDuplicate                          StatusCode = 2663
 	StatusCode_SCTeamTarNotFound                           StatusCode = 2664
 	StatusCode_SCTeamMemberExists                          StatusCode = 2665
@@ -251,6 +257,7 @@ func (o StatusCode) DeepCopy() StatusCode { return o }
 var StatusCodeMap = map[string]StatusCode{
 	"SCOk":                        0,
 	"SCInputError":                100,
+	"SCAssertionParseError":       101,
 	"SCLoginRequired":             201,
 	"SCBadSession":                202,
 	"SCBadLoginUserNotFound":      203,
@@ -273,11 +280,13 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCWrongCryptoFormat":         279,
 	"SCDecryptionError":           280,
 	"SCInvalidAddress":            281,
+	"SCWrongCryptoMsgType":        282,
 	"SCNoSession":                 283,
 	"SCAccountReset":              290,
 	"SCIdentifiesFailed":          295,
 	"SCNoSpaceOnDevice":           297,
 	"SCMerkleClientError":         299,
+	"SCMerkleUpdateRoot":          300,
 	"SCBadEmail":                  472,
 	"SCRateLimit":                 602,
 	"SCBadSignupUsernameTaken":    701,
@@ -308,6 +317,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCKeyDuplicateUpdate":        921,
 	"SCSibkeyAlreadyExists":       922,
 	"SCDecryptionKeyNotFound":     924,
+	"SCVerificationKeyNotFound":   925,
 	"SCKeyNoPGPEncryption":        927,
 	"SCKeyNoNaClEncryption":       928,
 	"SCKeySyncedPGPNotFound":      929,
@@ -341,6 +351,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCGenericAPIError":           1600,
 	"SCAPINetworkError":           1601,
 	"SCTimeout":                   1602,
+	"SCKBFSClientTimeout":         1603,
 	"SCProofError":                1701,
 	"SCIdentificationExpired":     1702,
 	"SCSelfNotFound":              1703,
@@ -392,6 +403,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNoOp":                                      2638,
 	"SCTeamInviteBadCancel":                       2645,
 	"SCTeamInviteBadToken":                        2646,
+	"SCTeamBadNameReservedDB":                     2650,
 	"SCTeamTarDuplicate":                          2663,
 	"SCTeamTarNotFound":                           2664,
 	"SCTeamMemberExists":                          2665,
@@ -487,6 +499,7 @@ var StatusCodeMap = map[string]StatusCode{
 var StatusCodeRevMap = map[StatusCode]string{
 	0:    "SCOk",
 	100:  "SCInputError",
+	101:  "SCAssertionParseError",
 	201:  "SCLoginRequired",
 	202:  "SCBadSession",
 	203:  "SCBadLoginUserNotFound",
@@ -509,11 +522,13 @@ var StatusCodeRevMap = map[StatusCode]string{
 	279:  "SCWrongCryptoFormat",
 	280:  "SCDecryptionError",
 	281:  "SCInvalidAddress",
+	282:  "SCWrongCryptoMsgType",
 	283:  "SCNoSession",
 	290:  "SCAccountReset",
 	295:  "SCIdentifiesFailed",
 	297:  "SCNoSpaceOnDevice",
 	299:  "SCMerkleClientError",
+	300:  "SCMerkleUpdateRoot",
 	472:  "SCBadEmail",
 	602:  "SCRateLimit",
 	701:  "SCBadSignupUsernameTaken",
@@ -544,6 +559,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	921:  "SCKeyDuplicateUpdate",
 	922:  "SCSibkeyAlreadyExists",
 	924:  "SCDecryptionKeyNotFound",
+	925:  "SCVerificationKeyNotFound",
 	927:  "SCKeyNoPGPEncryption",
 	928:  "SCKeyNoNaClEncryption",
 	929:  "SCKeySyncedPGPNotFound",
@@ -577,6 +593,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1600: "SCGenericAPIError",
 	1601: "SCAPINetworkError",
 	1602: "SCTimeout",
+	1603: "SCKBFSClientTimeout",
 	1701: "SCProofError",
 	1702: "SCIdentificationExpired",
 	1703: "SCSelfNotFound",
@@ -628,6 +645,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2638: "SCNoOp",
 	2645: "SCTeamInviteBadCancel",
 	2646: "SCTeamInviteBadToken",
+	2650: "SCTeamBadNameReservedDB",
 	2663: "SCTeamTarDuplicate",
 	2664: "SCTeamTarNotFound",
 	2665: "SCTeamMemberExists",

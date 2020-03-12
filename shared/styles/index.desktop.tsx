@@ -2,7 +2,7 @@ import {themed, colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import * as Shared from './shared'
 import {isDarkMode} from './dark-mode'
-import styleSheeCreateProxy from './style-sheet-proxy'
+import styleSheetCreateProxy from './style-sheet-proxy'
 import * as CSS from './css'
 const {extname, basename} = KB.path
 
@@ -179,7 +179,7 @@ export const initDesktopStyles = () => {
 }
 
 export const hairlineWidth = 1
-export const styleSheetCreate = (obj: Object) => styleSheeCreateProxy(obj, o => o)
+export const styleSheetCreate = (obj: Object) => styleSheetCreateProxy(obj, o => o)
 export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
@@ -223,3 +223,4 @@ export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
 export {isDarkMode} from './dark-mode'
+export const headerExtraHeight = 0

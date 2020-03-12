@@ -40,6 +40,7 @@ const BigTeamHeader = React.memo((props: Props) => {
       onHidden={() => setShowingPopup(false)}
       conversationIDKey={conversationIDKey}
       teamID={teamID}
+      hasHeader={true}
       isSmallTeam={false}
     />
   ))
@@ -112,7 +113,7 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.tiny,
           marginRight: Styles.globalMargins.tiny,
         },
-        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+        isPhone: {backgroundColor: Styles.globalColors.fastBlank},
       }),
       teamRowContainer: Styles.platformStyles({
         common: {

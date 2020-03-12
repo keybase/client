@@ -113,22 +113,24 @@ func (c NilResultError) Error() string {
 }
 
 type RPCDecodeError struct {
-	err  error
-	typ  MethodType
-	len  int
-	name string
+	err   error
+	typ   MethodType
+	len   int
+	name  string
+	ctype CompressionType
 }
 
 func (r RPCDecodeError) Error() string {
-	return fmt.Sprintf("RPC error. type: %s, method: %s, length: %d, error: %v", r.typ, r.name, r.len, r.err)
+	return fmt.Sprintf("RPC error. type: %s, method: %s, length: %d, compression: %v, error: %v", r.typ, r.name, r.len, r.ctype, r.err)
 }
 
-func newRPCDecodeError(t MethodType, n string, l int, e error) RPCDecodeError {
+func newRPCDecodeError(t MethodType, n string, l int, ctype CompressionType, err error) RPCDecodeError {
 	return RPCDecodeError{
-		err:  e,
-		typ:  t,
-		len:  l,
-		name: n,
+		err:   err,
+		typ:   t,
+		len:   l,
+		ctype: ctype,
+		name:  n,
 	}
 }
 

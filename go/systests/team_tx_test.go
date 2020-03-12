@@ -16,11 +16,10 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+	ann := makeUserStandalone(t, tt, "ann", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
-	tt.users = append(tt.users, ann)
 	t.Logf("Signed up ann (%s)", ann.username)
 
 	bob := tt.addPuklessUser("bob")
@@ -130,11 +129,10 @@ func TestTeamTxDependency(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+	ann := makeUserStandalone(t, tt, "ann", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
-	tt.users = append(tt.users, ann)
 	t.Logf("Signed up ann (%s)", ann.username)
 
 	bob := tt.addPuklessUser("bob")
@@ -213,7 +211,7 @@ func TestTeamTxDependency(t *testing.T) {
 	bob.loginAfterResetPukless()
 
 	tx = teams.CreateAddMemberTx(teamObj)
-	_, _, _, err = tx.AddOrInviteMemberByAssertionOrEmail(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER, nil)
+	_, _, _, err = tx.AddOrInviteMemberByAssertion(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)

@@ -54,7 +54,7 @@ type startFlipSendStatus struct {
 func newSentMessageListener(g *globals.Context, outboxID chat1.OutboxID) *sentMessageListener {
 	return &sentMessageListener{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sentMessageListener", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "sentMessageListener", false),
 		outboxID:     outboxID,
 		listenCh:     make(chan sentMessageResult, 10),
 	}
@@ -168,7 +168,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 	gameOutboxIDs, _ := lru.New(200)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
-		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
+		DebugLabeler:               utils.NewDebugLabeler(g.ExternalG(), "FlipManager", false),
 		ri:                         ri,
 		clock:                      clockwork.NewRealClock(),
 		games:                      games,
@@ -782,7 +782,7 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 	}, nil
 }
 
-func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.ConversationLocalParticipant,
+func (m *FlipManager) parseSpecials(arg string, usernames []string,
 	nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
@@ -802,9 +802,7 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.Conversation
 		var targets []string
 		handParts := strings.Split(strings.Join(toks[2:], " "), ",")
 		if len(handParts) == 1 && (handParts[0] == "@here" || handParts[0] == "@channel") {
-			for _, memb := range convMembers {
-				targets = append(targets, memb.Username)
-			}
+			targets = usernames
 		} else {
 			for _, pt := range handParts {
 				t := strings.Trim(pt, " ")
@@ -819,15 +817,11 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.Conversation
 			HandTargets:   targets,
 		}, nil
 	case arg == "@here" || arg == "@channel":
-		if len(convMembers) == 0 {
+		if len(usernames) == 0 {
 			return flip.NewStartWithShuffle(m.clock.Now(), 1, nPlayersApprox), flipTextMetadata{
 				ShuffleItems:      []string{"@here"},
 				ConvMemberShuffle: true,
 			}, nil
-		}
-		var usernames []string
-		for _, memb := range convMembers {
-			usernames = append(usernames, memb.Username)
 		}
 		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(usernames)), nPlayersApprox),
 			flipTextMetadata{
@@ -838,7 +832,7 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.Conversation
 	return start, metadata, errFailedToParse
 }
 
-func (m *FlipManager) startFromText(text string, convMembers []chat1.ConversationLocalParticipant) (start flip.Start, metadata flipTextMetadata) {
+func (m *FlipManager) startFromText(text string, convMembers []string) (start flip.Start, metadata flipTextMetadata) {
 	var err error
 	nPlayersApprox := len(convMembers)
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
@@ -967,6 +961,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	// Generate dev channel for game message
 	var conv chat1.ConversationLocal
+	var participants []string
 	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusInProgress, nil)
 	convCreatedCh := make(chan error)
 	go func() {
@@ -983,9 +978,27 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 				membersType)
 		default:
 		}
+		// Get conv participants
+		if participants, err = utils.GetConvParticipantUsernames(ctx, m.G(), uid, hostConvID); err != nil {
+			convCreatedCh <- err
+			return
+		}
+		// Preserve the ephemeral lifetime from the conv/message to the game
+		// conversation.
+		elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv)
+		if err != nil {
+			m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
+			convCreatedCh <- err
+			return
+		}
+		var retentionPolicy *chat1.RetentionPolicy
+		if elf != nil {
+			retentionPolicy = new(chat1.RetentionPolicy)
+			*retentionPolicy = chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf})
+		}
 		conv, _, err = NewConversationWithMemberSourceConv(ctx, m.G(), uid, tlfName, &topicName,
 			chat1.TopicType_DEV, membersType,
-			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, &hostConvID)
+			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, retentionPolicy, &hostConvID)
 		convCreatedCh <- err
 	}()
 
@@ -1011,24 +1024,9 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return sendRes.Err
 	}
 
-	// Preserve the ephemeral lifetime from the conv/message to the game
-	// conversation.
-	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv); err != nil {
-		m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
-		return err
-	} else if elf != nil {
-		m.Debug(ctx, "StartFlip: setting ephemeral retention for conv: %v", *elf)
-		if _, err := m.ri().SetConvRetention(ctx, chat1.SetConvRetentionArg{
-			ConvID: conv.GetConvID(),
-			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf}),
-		}); err != nil {
-			return err
-		}
-	}
-
 	// Record metadata of the host message into the game thread as the first message
-	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(hostConv.Info.Participants))
-	start, metadata := m.startFromText(text, hostConv.Info.Participants)
+	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(participants))
+	start, metadata := m.startFromText(text, participants)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		flipTextMetadata: metadata,
 		ConvID:           hostConvID,

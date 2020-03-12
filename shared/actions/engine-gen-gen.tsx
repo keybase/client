@@ -54,6 +54,7 @@ export const chat1NotifyChatChatInboxSynced = 'engine-gen:chat1NotifyChatChatInb
 export const chat1NotifyChatChatJoinedConversation = 'engine-gen:chat1NotifyChatChatJoinedConversation'
 export const chat1NotifyChatChatKBFSToImpteamUpgrade = 'engine-gen:chat1NotifyChatChatKBFSToImpteamUpgrade'
 export const chat1NotifyChatChatLeftConversation = 'engine-gen:chat1NotifyChatChatLeftConversation'
+export const chat1NotifyChatChatParticipantsInfo = 'engine-gen:chat1NotifyChatChatParticipantsInfo'
 export const chat1NotifyChatChatPaymentInfo = 'engine-gen:chat1NotifyChatChatPaymentInfo'
 export const chat1NotifyChatChatPromptUnfurl = 'engine-gen:chat1NotifyChatChatPromptUnfurl'
 export const chat1NotifyChatChatRequestInfo = 'engine-gen:chat1NotifyChatChatRequestInfo'
@@ -83,6 +84,7 @@ export const keybase1GregorUIPushState = 'engine-gen:keybase1GregorUIPushState'
 export const keybase1HomeUIHomeUIRefresh = 'engine-gen:keybase1HomeUIHomeUIRefresh'
 export const keybase1Identify3UiIdentify3Result = 'engine-gen:keybase1Identify3UiIdentify3Result'
 export const keybase1Identify3UiIdentify3ShowTracker = 'engine-gen:keybase1Identify3UiIdentify3ShowTracker'
+export const keybase1Identify3UiIdentify3Summary = 'engine-gen:keybase1Identify3UiIdentify3Summary'
 export const keybase1Identify3UiIdentify3TrackerTimedOut =
   'engine-gen:keybase1Identify3UiIdentify3TrackerTimedOut'
 export const keybase1Identify3UiIdentify3UpdateRow = 'engine-gen:keybase1Identify3UiIdentify3UpdateRow'
@@ -582,6 +584,11 @@ type _Chat1NotifyChatChatLeftConversationPayload = {
     sessionID: number
   }
 }
+type _Chat1NotifyChatChatParticipantsInfoPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam'] & {
+    sessionID: number
+  }
+}
 type _Chat1NotifyChatChatPaymentInfoPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {
     sessionID: number
@@ -760,6 +767,15 @@ type _Keybase1Identify3UiIdentify3ShowTrackerPayload = {
     result: (
       param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['outParam']
     ) => void
+  }
+}
+type _Keybase1Identify3UiIdentify3SummaryPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Summary']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Summary']['outParam']) => void
   }
 }
 type _Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {
@@ -2079,6 +2095,9 @@ export const createChat1NotifyChatChatKBFSToImpteamUpgrade = (
 export const createChat1NotifyChatChatLeftConversation = (
   payload: _Chat1NotifyChatChatLeftConversationPayload
 ): Chat1NotifyChatChatLeftConversationPayload => ({payload, type: chat1NotifyChatChatLeftConversation})
+export const createChat1NotifyChatChatParticipantsInfo = (
+  payload: _Chat1NotifyChatChatParticipantsInfoPayload
+): Chat1NotifyChatChatParticipantsInfoPayload => ({payload, type: chat1NotifyChatChatParticipantsInfo})
 export const createChat1NotifyChatChatPaymentInfo = (
   payload: _Chat1NotifyChatChatPaymentInfoPayload
 ): Chat1NotifyChatChatPaymentInfoPayload => ({payload, type: chat1NotifyChatChatPaymentInfo})
@@ -2172,6 +2191,9 @@ export const createKeybase1Identify3UiIdentify3ShowTracker = (
   payload,
   type: keybase1Identify3UiIdentify3ShowTracker,
 })
+export const createKeybase1Identify3UiIdentify3Summary = (
+  payload: _Keybase1Identify3UiIdentify3SummaryPayload
+): Keybase1Identify3UiIdentify3SummaryPayload => ({payload, type: keybase1Identify3UiIdentify3Summary})
 export const createKeybase1Identify3UiIdentify3TrackerTimedOut = (
   payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload
 ): Keybase1Identify3UiIdentify3TrackerTimedOutPayload => ({
@@ -2859,6 +2881,10 @@ export type Chat1NotifyChatChatLeftConversationPayload = {
   readonly payload: _Chat1NotifyChatChatLeftConversationPayload
   readonly type: typeof chat1NotifyChatChatLeftConversation
 }
+export type Chat1NotifyChatChatParticipantsInfoPayload = {
+  readonly payload: _Chat1NotifyChatChatParticipantsInfoPayload
+  readonly type: typeof chat1NotifyChatChatParticipantsInfo
+}
 export type Chat1NotifyChatChatPaymentInfoPayload = {
   readonly payload: _Chat1NotifyChatChatPaymentInfoPayload
   readonly type: typeof chat1NotifyChatChatPaymentInfo
@@ -2964,6 +2990,10 @@ export type Keybase1Identify3UiIdentify3ResultPayload = {
 export type Keybase1Identify3UiIdentify3ShowTrackerPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3ShowTrackerPayload
   readonly type: typeof keybase1Identify3UiIdentify3ShowTracker
+}
+export type Keybase1Identify3UiIdentify3SummaryPayload = {
+  readonly payload: _Keybase1Identify3UiIdentify3SummaryPayload
+  readonly type: typeof keybase1Identify3UiIdentify3Summary
 }
 export type Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload
@@ -3550,6 +3580,7 @@ export type Actions =
   | Chat1NotifyChatChatJoinedConversationPayload
   | Chat1NotifyChatChatKBFSToImpteamUpgradePayload
   | Chat1NotifyChatChatLeftConversationPayload
+  | Chat1NotifyChatChatParticipantsInfoPayload
   | Chat1NotifyChatChatPaymentInfoPayload
   | Chat1NotifyChatChatPromptUnfurlPayload
   | Chat1NotifyChatChatRequestInfoPayload
@@ -3578,6 +3609,7 @@ export type Actions =
   | Keybase1HomeUIHomeUIRefreshPayload
   | Keybase1Identify3UiIdentify3ResultPayload
   | Keybase1Identify3UiIdentify3ShowTrackerPayload
+  | Keybase1Identify3UiIdentify3SummaryPayload
   | Keybase1Identify3UiIdentify3TrackerTimedOutPayload
   | Keybase1Identify3UiIdentify3UpdateRowPayload
   | Keybase1Identify3UiIdentify3UpdateUserCardPayload

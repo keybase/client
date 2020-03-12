@@ -4,6 +4,10 @@
 package libkb
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -122,6 +126,119 @@ func CanonicalProofName(t TypedChainLink) string {
 
 //
 //=========================================================================
+
+//=========================================================================
+// Web of Trust
+
+type WotVouchChainLink struct {
+	GenericChainLink
+	ExpansionID string
+}
+
+func (cl *WotVouchChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
+
+var _ TypedChainLink = (*WotVouchChainLink)(nil)
+
+func ParseWotVouch(base GenericChainLink) (ret *WotVouchChainLink, err error) {
+	body := base.UnmarshalPayloadJSON()
+	expansionID, err := body.AtPath("body.wot_vouch").GetString()
+	if err != nil {
+		return nil, err
+	}
+	return &WotVouchChainLink{
+		GenericChainLink: base,
+		ExpansionID:      expansionID,
+	}, nil
+}
+
+type WotReactChainLink struct {
+	GenericChainLink
+	ExpansionID string
+}
+
+func (cl *WotReactChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
+
+var _ TypedChainLink = (*WotReactChainLink)(nil)
+
+func ParseWotReact(base GenericChainLink) (ret *WotReactChainLink, err error) {
+	body := base.UnmarshalPayloadJSON()
+	expansionID, err := body.AtPath("body.wot_react").GetString()
+	if err != nil {
+		return nil, err
+	}
+	return &WotReactChainLink{
+		GenericChainLink: base,
+		ExpansionID:      expansionID,
+	}, nil
+}
+
+type sigExpansion struct {
+	Key string      `json:"key"`
+	Obj interface{} `json:"obj"`
+}
+
+// ExtractExpansionObj extracts the `obj` field from a sig expansion and verifies the
+// hash of the content matches the expected id. This is reusable beyond WotVouchChainLink.
+func ExtractExpansionObj(expansionID string, expansionJSON string) (expansionObj []byte, err error) {
+	var expansions map[string]sigExpansion
+	err = json.Unmarshal([]byte(expansionJSON), &expansions)
+	if err != nil {
+		return nil, err
+	}
+	expansion, ok := expansions[expansionID]
+	if !ok {
+		return nil, fmt.Errorf("expansion %s does not exist", expansionID)
+	}
+
+	// verify the hash of the expansion object payload matches the expension id
+	objBytes, err := json.Marshal(expansion.Obj)
+	if err != nil {
+		return nil, err
+	}
+	hmacKey, err := hex.DecodeString(expansion.Key)
+	if err != nil {
+		return nil, err
+	}
+	mac := hmac.New(sha256.New, hmacKey)
+	if _, err := mac.Write(objBytes); err != nil {
+		return nil, err
+	}
+	sum := mac.Sum(nil)
+	expectedID := hex.EncodeToString(sum)
+	if expectedID != expansionID {
+		return nil, fmt.Errorf("expansion id doesn't match expected value %s != %s", expansionID, expectedID)
+	}
+	return objBytes, nil
+}
+
+func EmbedExpansionObj(statement *jsonw.Wrapper) (expansion *jsonw.Wrapper, sum []byte, err error) {
+	outer := jsonw.NewDictionary()
+	inner := jsonw.NewDictionary()
+	if err := inner.SetKey("obj", statement); err != nil {
+		return nil, nil, err
+	}
+	randKey, err := RandBytes(16)
+	if err != nil {
+		return nil, nil, err
+	}
+	hexKey := hex.EncodeToString(randKey)
+	if err := inner.SetKey("key", jsonw.NewString(hexKey)); err != nil {
+		return nil, nil, err
+	}
+	marshaled, err := statement.Marshal()
+	if err != nil {
+		return nil, nil, err
+	}
+	mac := hmac.New(sha256.New, randKey)
+	if _, err := mac.Write(marshaled); err != nil {
+		return nil, nil, err
+	}
+	sum = mac.Sum(nil)
+	if err := outer.SetKey(hex.EncodeToString(sum), inner); err != nil {
+		return nil, nil, err
+	}
+	return outer, sum, nil
+}
 
 //=========================================================================
 // Remote, Web and Social
@@ -1153,7 +1270,7 @@ func (r *RevokeChainLink) ToDisplayString() string {
 	v := r.GetRevocations()
 	list := make([]string, len(v))
 	for i, s := range v {
-		list[i] = s.ToString(true)
+		list[i] = s.String()
 	}
 	return strings.Join(list, ",")
 }
@@ -1318,6 +1435,10 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseDeviceChainLink(base)
 		case string(LinkTypeWalletStellar):
 			ret, err = ParseWalletStellarChainLink(base)
+		case string(LinkTypeWotVouch):
+			ret, err = ParseWotVouch(base)
+		case string(LinkTypeWotReact):
+			ret, err = ParseWotReact(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}

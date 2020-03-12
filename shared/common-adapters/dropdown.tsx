@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
+import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Overlay from './overlay'
@@ -17,12 +18,15 @@ type DropdownButtonProps = {
   setAttachmentRef?: (arg0: React.Component<any> | null) => void
   toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
+  loading?: boolean
 }
 const noTheme = {}
 export const DropdownButton = (props: DropdownButtonProps) => (
   <ClickableBox onClick={!props.disabled ? props.toggleOpen : undefined} style={props.style}>
     <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef} theme={noTheme}>
-      <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
+      <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>
+        {props.loading ? <ProgressIndicator type="Small" /> : props.selected}
+      </Box>
       <Icon
         type="iconfont-caret-down"
         inheritColor={true}
@@ -112,26 +116,30 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
 }
 
 type InlineDropdownProps = {
-  label: string
+  containerStyle?: Styles.StylesCrossPlatform
+  label: React.ReactNode
   onPress: () => void
-  type: 'Body' | 'BodySmall'
+  type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+  style?: Styles.StylesCrossPlatform
+  loading?: boolean
 }
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
-    <Box2 direction="horizontal" key={props.label} style={styles.inlineSelected}>
+    <Box2 direction="horizontal" style={styles.inlineSelected}>
       <Text type={props.type}>{props.label}</Text>
     </Box2>
   )
   return (
     <DropdownButton
       inline={true}
-      style={styles.inlineDropdown}
+      loading={props.loading}
+      style={Styles.collapseStyles([styles.inlineDropdown, props.containerStyle])}
       toggleOpen={e => {
         e.stopPropagation && e.stopPropagation()
         props.onPress && props.onPress()
       }}
-      selectedBoxStyle={styles.inlineDropdownSelected}
+      selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, props.style])}
       selected={selected}
     />
   )

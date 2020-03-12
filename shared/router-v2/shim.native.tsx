@@ -6,77 +6,79 @@ import * as Container from '../util/container'
 
 export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
 
-const KeyboardAvoidingViewWithHeaderHeight = ({useHeaderHeight, children}) => {
-  const headerHeight = useHeaderHeight()
-  return (
-    <Kb.KeyboardAvoidingView
-      style={styles.keyboard}
-      behavior={Styles.isIOS ? 'padding' : undefined}
-      keyboardVerticalOffset={headerHeight}
-    >
-      {children}
-    </Kb.KeyboardAvoidingView>
-  )
-}
-
-const KeyboardAvoidingViewWithoutHeaderHeight = ({children}) => (
-  <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
-    {children}
-  </Kb.KeyboardAvoidingView>
-)
-
 const shimNewRoute = (Original: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   // Also light/dark aware
-  class ShimmedNew extends React.PureComponent<any, void> {
-    static navigationOptions = Original.navigationOptions
-    render() {
-      const navigationOptions =
-        typeof Original.navigationOptions === 'function'
-          ? Original.navigationOptions({navigation: this.props.navigation})
-          : Original.navigationOptions
-      const body = <Original {...this.props} key={this.props.isDarkMode ? 'dark' : 'light'} />
-      const keyboardBody =
-        navigationOptions && navigationOptions.useHeaderHeight ? (
-          <KeyboardAvoidingViewWithHeaderHeight useHeaderHeight={navigationOptions.useHeaderHeight}>
-            {body}
-          </KeyboardAvoidingViewWithHeaderHeight>
-        ) : (
-          <KeyboardAvoidingViewWithoutHeaderHeight>{body}</KeyboardAvoidingViewWithoutHeaderHeight>
-        )
+  const ShimmedNew = React.memo((props: any) => {
+    const navigationOptions =
+      typeof Original.navigationOptions === 'function'
+        ? Original.navigationOptions({navigation: props.navigation})
+        : Original.navigationOptions
 
-      // don't make safe areas
-      if (navigationOptions && navigationOptions.underNotch) {
-        return keyboardBody
+    const body = <Original {...props} key={Styles.isDarkMode ? 'dark' : 'light'} />
+
+    // we try and determine the  offset based on seeing if the header exists
+    // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe
+    // but it works for now
+    let headerHeight: number | undefined = undefined
+    let usesNav2Header = false
+    if (navigationOptions) {
+      // explicitly passed a getter?
+      if (navigationOptions.useHeaderHeight) {
+        headerHeight = navigationOptions.useHeaderHeight()
+        usesNav2Header = true
+      } else if (
+        !navigationOptions.header &&
+        !navigationOptions.headerRight &&
+        !navigationOptions.headerLeft &&
+        !navigationOptions.title &&
+        !navigationOptions.headerTitle
+      ) {
+        // nothing
+      } else {
+        usesNav2Header = true
+        if (Styles.isIPhoneX) {
+          headerHeight = 88 + Styles.headerExtraHeight
+        } else {
+          headerHeight = 64 + Styles.headerExtraHeight
+        }
       }
-
-      const safeKeyboardBody = (
-        <Kb.NativeSafeAreaView
-          style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
-        >
-          {keyboardBody}
-        </Kb.NativeSafeAreaView>
-      )
-
-      return safeKeyboardBody
     }
-  }
-  return Container.connect(
-    () => ({isDarkMode: Styles.isDarkMode()}),
-    undefined,
-    (s, _, o: Object) => ({
-      ...s,
-      ...o,
-    })
-    // @ts-ignore
-  )(ShimmedNew)
+
+    const keyboardBody = (
+      <Kb.KeyboardAvoidingView
+        style={styles.keyboard}
+        behavior={Styles.isIOS ? 'padding' : undefined}
+        keyboardVerticalOffset={headerHeight}
+      >
+        {body}
+      </Kb.KeyboardAvoidingView>
+    )
+
+    // don't make safe areas
+    if (navigationOptions?.underNotch || usesNav2Header) {
+      return keyboardBody
+    }
+
+    const safeKeyboardBody = (
+      <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+        {keyboardBody}
+      </Kb.SafeAreaView>
+    )
+
+    return safeKeyboardBody
+  })
+  Container.hoistNonReactStatic(ShimmedNew, Original)
+  return ShimmedNew
 }
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
       keyboard: {
         backgroundColor: Styles.globalColors.fastBlank,
         flexGrow: 1,
+        maxHeight: '100%',
         position: 'relative',
       },
     } as const)

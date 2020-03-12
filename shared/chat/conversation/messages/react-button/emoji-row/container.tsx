@@ -3,6 +3,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import {StylesCrossPlatform} from '../../../../../styles'
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import EmojiRow from '.'
 
 type OwnProps = {
@@ -11,6 +12,7 @@ type OwnProps = {
   onShowingEmojiPicker?: (arg0: boolean) => void
   ordinal: Types.Ordinal
   style?: StylesCrossPlatform
+  tooltipPosition?: Position
 }
 
 const ConnectedEmojiRow = Container.namedConnect(
@@ -37,6 +39,7 @@ const ConnectedEmojiRow = Container.namedConnect(
         : undefined,
     onShowingEmojiPicker: ownProps.onShowingEmojiPicker,
     style: ownProps.style,
+    tooltipPosition: ownProps.tooltipPosition,
   }),
   'ConnectedEmojiRow'
 )(EmojiRow)

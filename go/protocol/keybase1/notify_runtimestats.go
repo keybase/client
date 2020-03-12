@@ -107,9 +107,59 @@ func (o ProcessRuntimeStats) DeepCopy() ProcessRuntimeStats {
 	}
 }
 
+type PerfEventType int
+
+const (
+	PerfEventType_NETWORK      PerfEventType = 0
+	PerfEventType_TEAMBOXAUDIT PerfEventType = 1
+	PerfEventType_TEAMAUDIT    PerfEventType = 2
+	PerfEventType_USERCHAIN    PerfEventType = 3
+	PerfEventType_TEAMCHAIN    PerfEventType = 4
+)
+
+func (o PerfEventType) DeepCopy() PerfEventType { return o }
+
+var PerfEventTypeMap = map[string]PerfEventType{
+	"NETWORK":      0,
+	"TEAMBOXAUDIT": 1,
+	"TEAMAUDIT":    2,
+	"USERCHAIN":    3,
+	"TEAMCHAIN":    4,
+}
+
+var PerfEventTypeRevMap = map[PerfEventType]string{
+	0: "NETWORK",
+	1: "TEAMBOXAUDIT",
+	2: "TEAMAUDIT",
+	3: "USERCHAIN",
+	4: "TEAMCHAIN",
+}
+
+func (e PerfEventType) String() string {
+	if v, ok := PerfEventTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type PerfEvent struct {
+	Message   string        `codec:"message" json:"message"`
+	Ctime     Time          `codec:"ctime" json:"ctime"`
+	EventType PerfEventType `codec:"eventType" json:"eventType"`
+}
+
+func (o PerfEvent) DeepCopy() PerfEvent {
+	return PerfEvent{
+		Message:   o.Message,
+		Ctime:     o.Ctime.DeepCopy(),
+		EventType: o.EventType.DeepCopy(),
+	}
+}
+
 type RuntimeStats struct {
 	ProcessStats        []ProcessRuntimeStats `codec:"processStats" json:"processStats"`
 	DbStats             []DbStats             `codec:"dbStats" json:"dbStats"`
+	PerfEvents          []PerfEvent           `codec:"perfEvents" json:"perfEvents"`
 	ConvLoaderActive    bool                  `codec:"convLoaderActive" json:"convLoaderActive"`
 	SelectiveSyncActive bool                  `codec:"selectiveSyncActive" json:"selectiveSyncActive"`
 }
@@ -138,6 +188,17 @@ func (o RuntimeStats) DeepCopy() RuntimeStats {
 			}
 			return ret
 		})(o.DbStats),
+		PerfEvents: (func(x []PerfEvent) []PerfEvent {
+			if x == nil {
+				return nil
+			}
+			ret := make([]PerfEvent, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PerfEvents),
 		ConvLoaderActive:    o.ConvLoaderActive,
 		SelectiveSyncActive: o.SelectiveSyncActive,
 	}

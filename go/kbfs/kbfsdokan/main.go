@@ -72,7 +72,7 @@ func start() *libfs.Error {
 		fmt.Printf("SaferDLLLoading failed: %v\n", err)
 	}
 
-	ctx := env.NewContext()
+	ctx := env.NewContextWithPerfLog(libkb.KBFSPerfLogFileName)
 	kbfsParams := libkbfs.AddFlags(flag.CommandLine, ctx)
 
 	flag.Parse()

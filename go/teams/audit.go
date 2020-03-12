@@ -125,10 +125,27 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) {
 // current one. headMerkleSeqno is is the Merkle Root claimed in the head of the team.
 // maxSeqno is the maximum seqno of the chainLinks passed; that is, the highest
 // Seqno for which chain[s] is defined.
-func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
+func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID,
+	hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno,
+	lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 
 	m = m.WithLogTag("AUDIT")
 	defer m.TraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
+	defer m.PerfTrace(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Audited team %s", id)
+		} else {
+			message = fmt.Sprintf("Failed auditing %s", id)
+		}
+		m.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_TEAMAUDIT,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
 
 	if id.IsPublic() != isPublic {
 		return NewBadPublicError(id, isPublic)
@@ -709,6 +726,10 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	history.PriorMerkleSeqno = headMerkleSeqno
 	history.Tails[maxChainSeqno] = chain[maxChainSeqno]
 	if maxHiddenSeqno != 0 {
+		if hiddenChain[maxHiddenSeqno].IsNil() {
+			m.Debug("hiddenChain on audit for team %s: %+v", id, hiddenChain)
+			return NewAuditError("Logic error while auditing %s: trying to save an audit with maxHiddenSeqno=%v, but the hiddenChain does not have the corresponding link.", id, maxHiddenSeqno)
+		}
 		history.HiddenTails[maxHiddenSeqno] = hiddenChain[maxHiddenSeqno]
 	}
 

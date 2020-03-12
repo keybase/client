@@ -235,7 +235,7 @@ var _ libkb.GregorListener = (*gregorHandler)(nil)
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
 		Contextified:      globals.NewContextified(g),
-		chatLog:           utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
+		chatLog:           utils.NewDebugLabeler(g.ExternalG(), "PushHandler", false),
 		firstConnect:      true,
 		pushStateFilter:   func(m gregor.Message) bool { return true },
 		badger:            nil,
@@ -810,6 +810,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		ProtVers:         chat1.SyncAllProtVers_V1,
 		HostName:         g.GetURI().Host,
 		SummarizeMaxMsgs: true,
+		ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt

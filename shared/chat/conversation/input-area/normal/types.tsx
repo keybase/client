@@ -27,6 +27,7 @@ type CommonProps = {
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
+  onChannelSuggestionsTriggered: () => void
   prependText: string | null
   quoteCounter: number
   quoteText: string
@@ -43,6 +44,7 @@ type CommonProps = {
 }
 
 export type InputProps = {
+  infoPanelShowing: boolean
   isActiveForFocus: boolean
   suggestTeams: Array<{
     username: string
@@ -54,7 +56,11 @@ export type InputProps = {
     fullName: string
     teamname?: string
   }>
-  suggestChannels: Array<string>
+  suggestChannels: Array<{
+    channelname: string
+    teamname?: string
+  }>
+  suggestChannelsLoading: boolean
   suggestAllChannels: Array<{
     teamname: string
     channelname: string
@@ -67,7 +73,7 @@ export type InputProps = {
 export type PlatformInputProps = {
   inputSetRef: (r: null | PlainInput) => void
   onChangeText: (newText: string) => void
-  onKeyDown: (evt: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyDown: (evt: React.KeyboardEvent) => void
   setHeight: (inputHeight: number) => void
   suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
 } & CommonProps

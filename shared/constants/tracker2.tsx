@@ -17,6 +17,7 @@ export const noDetails = Object.freeze<Types.Details>({
   guiID: '',
   hidFromFollowers: false,
   reason: '',
+  resetBrokeTrack: false,
   showTracker: false,
   state: 'error',
   stellarHidden: false,

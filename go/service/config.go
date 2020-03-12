@@ -192,9 +192,9 @@ func (h ConfigHandler) GetNetworkStats(ctx context.Context, arg keybase1.GetNetw
 	defer mctx.TraceTimed("GetNetworkStats", func() error { return err })()
 	switch arg.NetworkSrc {
 	case keybase1.NetworkSource_LOCAL:
-		return mctx.G().LocalNetworkInstrumenterStorage.Stats()
+		return mctx.G().LocalNetworkInstrumenterStorage.Stats(ctx)
 	case keybase1.NetworkSource_REMOTE:
-		return mctx.G().RemoteNetworkInstrumenterStorage.Stats()
+		return mctx.G().RemoteNetworkInstrumenterStorage.Stats(ctx)
 	default:
 		return nil, fmt.Errorf("Unknown network source %d", arg.NetworkSrc)
 	}
@@ -549,9 +549,9 @@ func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 		return err
 	}
 	if curValue {
-		<-h.svc.runtimeStats.Stop(ctx)
+		<-h.G().RuntimeStats.Stop(ctx)
 	} else {
-		h.svc.runtimeStats.Start(ctx)
+		h.G().RuntimeStats.Start(ctx)
 	}
 	return nil
 }

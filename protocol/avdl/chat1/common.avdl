@@ -181,6 +181,11 @@
     int maxCalls; // Max amount of calls allowed in a window for the given RPC
   }
 
+  enum InboxParticipantsMode {
+    ALL_0,
+    SKIP_TEAMS_1
+  }
+
   record GetInboxQuery {
     union { null, ConversationID } convID;
     union { null, TopicType } topicType;
@@ -208,6 +213,7 @@
     boolean readOnly;
     boolean computeActiveList;
     boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
+    InboxParticipantsMode participantsMode; // how to return participants
     boolean skipBgLoads; // optionally skip queuing the conversation in the background loader.
     // Normally a query that has not been seen before will return an error.
     // With allowUnseenQuery, an unfamiliar query is accepted.
@@ -262,7 +268,7 @@
     // *** Empty for TEAM chats. ***
     array<gregor1.UID> activeList;
 
-    array<gregor1.UID> allList;   // all of the users in the conversation
+    array<gregor1.UID> allList;   // all of the users in the conversation (can be skipped for TEAMS)
     array<gregor1.UID> resetList; // all of the reset users in the conversation (only for TEAM and IMPTEAM chats)
 
     @mpackkey("d")
@@ -280,6 +286,8 @@
     MessageID maxMsgid; // The max message ID in the convo
     ConversationMemberStatus status; // The status of the membership to the convo
     keybase1.TeamRole untrustedTeamRole; // gregor's view of your role in the team. This value is purely server trust, use with caution.
+    @mpackkey("l") @jsonkey("l")
+    gregor1.Time lastSendTime; // last time the user has sent a message.
     @mpackkey("jc") @jsonkey("jc")
     union { null, ConversationJourneycardInfo } journeycard;
   }

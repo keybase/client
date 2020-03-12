@@ -9,7 +9,6 @@ import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
 import AddPeople from './add-people'
-import {pluralize} from '../../../util/string'
 
 type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey} & Kb.OverlayParentProps
 
@@ -30,6 +29,7 @@ const _TeamHeader = (props: SmallProps) => {
   const participantCount = Container.useSelector(
     state => Constants.getParticipantInfo(state, conversationIDKey)?.all?.length ?? 0
   )
+  const teamMeta = Container.useSelector(state => TeamConstants.getTeamMeta(state, teamID))
   let title = teamname
   if (channelname && !isSmallTeam) {
     title += '#' + channelname
@@ -40,21 +40,70 @@ const _TeamHeader = (props: SmallProps) => {
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
         <InfoPanelMenu
           attachTo={getAttachmentRef}
+          floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
           onHidden={toggleShowingMenu}
+          hasHeader={false}
           isSmallTeam={isSmallTeam}
           conversationIDKey={conversationIDKey}
           visible={showingMenu}
         />
-        <Kb.ConnectedNameWithIcon
-          containerStyle={styles.flexOne}
-          horizontal={true}
-          teamname={teamname}
-          onClick="profile"
-          title={title}
-          metaOne={
-            participantCount ? `${participantCount} ${pluralize('member', participantCount)}` : 'Loading...'
-          }
-        />
+        {isSmallTeam ? (
+          <>
+            <Kb.ConnectedNameWithIcon
+              containerStyle={styles.flexOne}
+              horizontal={true}
+              teamname={teamname}
+              onClick="profile"
+              title={title}
+            />
+            <Kb.Meta
+              backgroundColor={Styles.globalColors.blueGrey}
+              color={Styles.globalColors.black_50}
+              icon="iconfont-people"
+              iconColor={Styles.globalColors.black_20}
+              style={styles.meta}
+              title={participantCount}
+            />
+          </>
+        ) : (
+          <Kb.Box2 direction="vertical" gap="xxtiny" style={styles.channelnameContainer}>
+            <Kb.Box2
+              alignSelf="flex-start"
+              direction="horizontal"
+              fullWidth={true}
+              style={styles.textWrapper}
+            >
+              <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
+                # <Kb.Text type="BodyBold">{channelname}</Kb.Text>
+              </Kb.Text>
+              <Kb.Meta
+                backgroundColor={Styles.globalColors.blueGrey}
+                color={Styles.globalColors.black_50}
+                icon="iconfont-people"
+                iconColor={Styles.globalColors.black_20}
+                title={participantCount}
+              />
+            </Kb.Box2>
+            <Kb.Box2
+              alignSelf="flex-start"
+              direction="horizontal"
+              fullWidth={true}
+              style={styles.textWrapper}
+            >
+              <Kb.Box2 direction="horizontal" gap="xtiny">
+                <Kb.Avatar teamname={teamname} size={16} />
+                <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
+              </Kb.Box2>
+              <Kb.Meta
+                backgroundColor={Styles.globalColors.blueGrey}
+                color={Styles.globalColors.black_50}
+                icon="iconfont-people"
+                iconColor={Styles.globalColors.black_20}
+                title={teamMeta?.memberCount ?? 0}
+              />
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Kb.Icon
           type="iconfont-gear"
           onClick={toggleShowingMenu}
@@ -128,6 +177,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       addMembers: {
+        alignSelf: undefined,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
       },
@@ -136,12 +186,10 @@ const styles = Styles.styleSheetCreate(
         isElectron: {maxHeight: 230},
         isMobile: {maxHeight: 220},
       }),
-      channelnameContainer: {
-        alignSelf: 'center',
-        marginBottom: 2,
-        marginTop: Styles.globalMargins.medium,
-        position: 'relative',
-      },
+      channelName: Styles.platformStyles({
+        isElectron: {wordBreak: 'break-all'},
+      }),
+      channelnameContainer: {flex: 1},
       description: {
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
@@ -154,6 +202,11 @@ const styles = Styles.styleSheetCreate(
       },
       editIcon: {marginRight: Styles.globalMargins.xtiny},
       flexOne: {flex: 1},
+      floatingMenuContainerStyle: Styles.platformStyles({
+        isElectron: {
+          marginRight: Styles.globalMargins.small,
+        },
+      }),
       gear: Styles.platformStyles({
         common: {
           height: gearIconSize,
@@ -163,9 +216,14 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {width: gearIconSize + 32},
       }),
+      meta: {alignSelf: 'center'},
       smallContainer: {
         alignItems: 'center',
         paddingLeft: Styles.globalMargins.small,
+      },
+      textWrapper: {
+        flex: 1,
+        justifyContent: 'space-between',
       },
     } as const)
 )

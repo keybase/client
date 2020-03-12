@@ -3879,8 +3879,9 @@ type wrappedAutocreateNode struct {
 
 func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
 	ctx context.Context, _ data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
-	return true, ctx, wan.et, &fakeFileInfo{wan.et}, wan.sympath
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
+	data.BlockPointer) {
+	return true, ctx, wan.et, &fakeFileInfo{wan.et}, wan.sympath, data.ZeroPtr
 }
 
 func testKBFSOpsAutocreateNodes(
@@ -4126,9 +4127,10 @@ type testKBFSOpsRootNode struct {
 
 func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
+	data.BlockPointer) {
 	if name.Plaintext() == "memfs" {
-		return true, ctx, data.FakeDir, nil, testPPS("")
+		return true, ctx, data.FakeDir, nil, testPPS(""), data.ZeroPtr
 	}
 	return n.Node.ShouldCreateMissedLookup(ctx, name)
 }

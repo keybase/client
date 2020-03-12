@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
+import * as ChatConstants from '../../constants/chat2'
 import * as Types from '../../constants/types/push'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
@@ -63,7 +64,12 @@ const listenForNativeAndroidIntentNotifications = async (
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    emitter(ConfigGen.createAndroidShare({url: evt.localPath}))
+    emitter(
+      ConfigGen.createAndroidShare({
+        text: evt.text,
+        url: evt.localPath,
+      })
+    )
   })
 }
 
@@ -121,19 +127,28 @@ function* handleLoudMessage(notification: Types.PushNotification) {
   }
   // We only care if the user clicked while in session
   if (!notification.userInteraction) {
+    logger.warn('push ignore non userInteraction')
     return
   }
 
   const {conversationIDKey, unboxPayload, membersType} = notification
 
   // immediately show the thread on top of the inbox w/o a nav
-  const actions = [
-    RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'chatConversation'}]}),
-  ]
+  const actions = ChatConstants.isSplit
+    ? []
+    : [
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey}, selected: 'chatConversation'}],
+        }),
+      ]
+  const index = ChatConstants.isSplit ? 0 : 1
   yield Saga.put(RouteTreeGen.createClearModals())
-  yield Saga.put(RouteTreeGen.createResetStack({actions, index: 1, tab: 'tabs.chatTab'}))
+  yield Saga.put(RouteTreeGen.createResetStack({actions, index, tab: 'tabs.chatTab'}))
   yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
-  yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
+  logger.warn('push selecting ', conversationIDKey)
+  yield Saga.put(
+    Chat2Gen.createSelectConversation({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
+  )
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
@@ -144,7 +159,7 @@ function* handleLoudMessage(notification: Types.PushNotification) {
         shouldAck: false,
       })
     } catch (e) {
-      logger.info('[Push] failed to unbox message form payload')
+      logger.info('[Push] failed to unbox message from payload')
     }
   }
 }
@@ -376,8 +391,9 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialShare() {
   if (isAndroid) {
-    const share = yield NativeModules.KeybaseEngine.getInitialShareData()
-    return share
+    const fileUrl = yield NativeModules.KeybaseEngine.getInitialShareFileUrl()
+    const text = yield NativeModules.KeybaseEngine.getInitialShareText()
+    return {fileUrl, text}
   } else {
     return null
   }
@@ -399,7 +415,10 @@ function* getStartupDetailsFromInitialPush() {
     }
   } else if (notification.type === 'chat.newmessage' || notification.type === 'chat.newmessageSilent_2') {
     if (notification.conversationIDKey) {
-      return {startupConversation: notification.conversationIDKey}
+      return {
+        startupConversation: notification.conversationIDKey,
+        startupPushPayload: notification.unboxPayload,
+      }
     }
   }
 

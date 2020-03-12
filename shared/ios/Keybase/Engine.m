@@ -58,7 +58,8 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
   NSString* systemVer = [[UIDevice currentDevice] systemVersion];
-  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, systemVer, error);
+  BOOL isIPad = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
+  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, systemVer, isIPad, error);
 }
 
 - (void)setupQueues {
@@ -66,14 +67,19 @@ static NSString *const metaEventEngineReset = @"engine-reset";
   self.writeQueue = dispatch_queue_create("go_bridge_queue_write", DISPATCH_QUEUE_SERIAL);
 }
 
+int readCount = 0;
+int sendCount = 0;
+int runCount = 0;
+
 - (void)startReadLoop {
   dispatch_async(self.readQueue, ^{
     while (true) {
       NSError *error = nil;
       
-      NSLog(@"aaax reading data");
+      NSLog(@"aaaOBJ reading data wait %d", readCount);
       NSString * data = KeybaseReadB64(&error);
-      NSLog(@"aaax read data");
+      NSLog(@"aaaOBJ reading data read %d", readCount);
+      ++readCount;
       
       if (error) {
         NSLog(@"Error reading data: %@", error);
@@ -83,9 +89,10 @@ static NSString *const metaEventEngineReset = @"engine-reset";
           NSLog(@"NO ENGINE");
         }
         if (self.keybaseEngine.bridge) {
-          NSLog(@"aaax sending data %@", data);
+          sendCount++;
+          NSLog(@"aaaOBJ sending %d: %@", sendCount, data);
           [self.keybaseEngine sendEventWithName:eventName body:data];
-          NSLog(@"aaax sent data");
+          NSLog(@"aaaOBJ sending done %d", sendCount);
         } else {
           // dead
           break;
@@ -103,9 +110,10 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 - (void)runWithData:(NSString *)data {
   dispatch_async(self.writeQueue, ^{
     NSError *error = nil;
-NSLog(@"aaax run with data %@", data);
+    NSLog(@"aaaOBJrun run %d with data %@", runCount, data);
     KeybaseWriteB64(data, &error);
-NSLog(@"aax reading data DONE");
+    NSLog(@"aaaOBJrun run done %d", runCount);
+    ++runCount;
     if (error) {
       NSLog(@"Error writing data: %@", error);
     }

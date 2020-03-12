@@ -45,7 +45,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     this.setState({showDropOverlay: false})
   }
 
-  _validDrag = e => e.dataTransfer.types.includes('Files')
+  _validDrag = e => e.dataTransfer.types.includes('Files') && !this.props.disabled
 
   _onDragOver = e => {
     if (this._validDrag(e)) {

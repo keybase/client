@@ -3,8 +3,9 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Sb from '../stories/storybook'
-import {AppRegistry, StatusBar, KeyboardAvoidingView} from 'react-native'
+import {AppRegistry, StatusBar, KeyboardAvoidingView, View} from 'react-native'
 import {getStorybookUI, configure, addDecorator} from '@storybook/react-native'
+import {GatewayDest} from 'react-gateway'
 import sharedStories from '../stories/shared-stories'
 import nativeStories from '../stories/platform-stories.native'
 import {_setSystemIsDarkMode} from '../styles/dark-mode'
@@ -34,6 +35,8 @@ const loadStories = () => {
     Object.keys(stories).forEach(s => stories[s]())
   }, module)
 }
+
+const ViewForGatewayDest = (props: Props) => <View {...props} />
 
 function useInterval(callback, delay) {
   const savedCallback = React.useRef()
@@ -101,6 +104,19 @@ const RootWrapper = ({children}) => {
           </Kb.Text>
         </Kb.Box>
       </KeyboardAvoidingView>
+      <KeyboardAvoidingView
+        behavior={Styles.isIOS ? 'padding' : undefined}
+        enabled={true}
+        style={Styles.globalStyles.fillAbsolute}
+        pointerEvents="box-none"
+      >
+        <GatewayDest
+          component={ViewForGatewayDest}
+          name="keyboard-avoiding-root"
+          pointerEvents="box-none"
+          style={styles.gatewayDest}
+        />
+      </KeyboardAvoidingView>
     </Kb.Box>
   )
 }
@@ -114,6 +130,7 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: 0,
   },
+  gatewayDest: {flexGrow: 1, width: '100%'},
   keyboard: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.fastBlank,

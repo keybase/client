@@ -166,7 +166,7 @@ func (m *downloadManager) moveToDownloadFolder(
 	// There's no download on iOS; just saving to the photos library and
 	// sharing to other apps, both of which are handled in JS after the
 	// download (to the cache dir) finishes.
-	if libkb.GetPlatformString() == "ios" {
+	if libkb.GetPlatformString() == "ios" || libkb.GetPlatformString() == "ipad" {
 		return "", errors.New("MoveToDownloadFolder is not supported on iOS")
 	}
 	parentDir := m.getDownloadDir()

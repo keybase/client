@@ -1,29 +1,28 @@
 import * as React from 'react'
-import {
-  Avatar,
-  Box,
-  Button,
-  ButtonBar,
-  ClickableBox,
-  Text,
-  Icon,
-  ConnectedUsernames,
-} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as Types from '../../../../constants/types/teams'
+import flags from '../../../../util/feature-flags'
+import * as Container from '../../../../util/container'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {typeToLabel} from '../../../../constants/teams'
 import {isLargeScreen} from '../../../../constants/platform'
 import {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
+import MenuHeader from '../menu-header.new'
 
 export type Props = {
   following: boolean
   fullName: string
+  onBlock: () => void
   onChat: () => void
   onClick: () => void
+  onOpenProfile: () => void
   onReAddToTeam: () => void
   onRemoveFromTeam: () => void
   onShowTracker: () => void
   roleType: TeamRoleType
   status: MemberStatus
+  teamID: Types.TeamID
   username: string
   waitingForAdd: boolean
   waitingForRemove: boolean
@@ -48,13 +47,15 @@ export const TeamMemberRow = (props: Props) => {
   let crown, fullNameLabel, resetLabel
   const active = props.status === 'active'
   if (active && props.roleType && showCrown[props.roleType]) {
-    crown = <Icon type={('iconfont-crown-' + props.roleType) as any} style={styles.crownIcon} fontSize={10} />
+    crown = (
+      <Kb.Icon type={('iconfont-crown-' + props.roleType) as any} style={styles.crownIcon} fontSize={10} />
+    )
   }
   if (props.fullName && active) {
     fullNameLabel = (
-      <Text style={styles.fullNameLabel} type="BodySmall">
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {props.fullName} •
-      </Text>
+      </Kb.Text>
     )
   }
   if (!active) {
@@ -66,38 +67,188 @@ export const TeamMemberRow = (props: Props) => {
     }
   }
 
+  const roleLabel = !!active && !!props.roleType && typeToLabel[props.roleType]
+  const isYou = props.you === props.username
+
+  if (flags.teamsRedesign) {
+    const isOwner = props.roleType == 'owner'
+    const teamID = props.teamID
+
+    const dispatch = Container.useDispatch()
+    const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
+    const anySelected = !!teamSelectedMembers?.size
+    const selected = !!teamSelectedMembers?.has(props.username)
+
+    const onSelect = (selected: boolean) => {
+      dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
+    }
+
+    const checkCircle = (
+      <Kb.CheckCircle
+        checked={selected}
+        onCheck={onSelect}
+        key={`check-${props.username}`}
+        selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
+      />
+    )
+
+    const body = (
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
+          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
+          </Kb.Box>
+
+          <Kb.Box style={styles.nameContainerInner}>
+            {fullNameLabel}
+            {crown}
+            {!active && (
+              <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
+                {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
+              </Kb.Text>
+            )}
+            <Kb.Text type="BodySmall">
+              {!!active && !!props.roleType && typeToLabel[props.roleType]}
+              {resetLabel}
+            </Kb.Text>
+          </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+
+    const menuHeader = {
+      title: 'header',
+      view: (
+        <MenuHeader
+          username={props.username}
+          fullName={props.fullName}
+          label={
+            <Kb.Box2 direction="horizontal">
+              <Kb.Text type="BodySmall">{crown}</Kb.Text>
+              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+            </Kb.Box2>
+          }
+        />
+      ),
+    }
+
+    const menuItems: Kb.MenuItems = [
+      'Divider',
+      ...(props.youCanManageMembers
+        ? ([
+            {icon: 'iconfont-chat', onClick: props.onChat, title: 'Add to channels...'},
+            {icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'},
+          ] as Kb.MenuItems)
+        : []),
+      {icon: 'iconfont-person', onClick: props.onOpenProfile, title: 'View profile'},
+      {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
+      ...(props.youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
+      ...(props.youCanManageMembers
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-remove',
+              onClick: props.onRemoveFromTeam,
+              title: 'Remove from team',
+            },
+          ] as Kb.MenuItems)
+        : []),
+      ...(!isYou
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-block',
+              onClick: props.onBlock,
+              title: 'Block',
+            },
+          ] as Kb.MenuItems)
+        : []),
+    ]
+    const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
+      <Kb.FloatingMenu
+        header={menuHeader}
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={toggleShowingPopup}
+        visible={showingPopup}
+      />
+    ))
+
+    const actions = (
+      <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
+        {popup}
+        <Kb.Button
+          icon="iconfont-chat"
+          iconColor={Styles.globalColors.black_50}
+          mode="Secondary"
+          onClick={props.onChat}
+          small={true}
+          tooltip="Open chat"
+        />
+        <Kb.Button
+          icon="iconfont-ellipsis"
+          iconColor={Styles.globalColors.black_50}
+          mode="Secondary"
+          onClick={toggleShowingPopup}
+          ref={popupAnchor}
+          small={true}
+          tooltip="More actions"
+        />
+      </Kb.Box2>
+    )
+
+    return (
+      <Kb.ListItem2
+        action={anySelected ? null : actions}
+        onlyShowActionOnHover="fade"
+        height={Styles.isMobile ? 90 : 64}
+        icon={checkCircle}
+        iconStyleOverride={styles.checkCircle}
+        containerStyleOverride={styles.listItemMargin}
+        type="Large"
+        body={body}
+        firstItem={isOwner /*TODO: make this accurate */}
+        style={selected ? styles.selected : undefined}
+        onClick={anySelected ? () => onSelect(!selected) : props.onClick}
+      />
+    )
+  }
+
   return (
-    <Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Box style={styles.innerContainerTop}>
-        <ClickableBox
+    <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
+      <Kb.Box style={styles.innerContainerTop}>
+        <Kb.ClickableBox
           style={styles.clickable}
           onClick={active ? props.onClick : props.status === 'deleted' ? undefined : props.onShowTracker}
         >
-          <Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
-          <Box style={styles.nameContainer}>
-            <Box style={Styles.globalStyles.flexBoxRow}>
-              <ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
-            </Box>
-            <Box style={styles.nameContainerInner}>
+          <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+          <Kb.Box style={styles.nameContainer}>
+            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+              <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
+            </Kb.Box>
+            <Kb.Box style={styles.nameContainerInner}>
               {fullNameLabel}
               {crown}
               {!active && (
-                <Text type="BodySmall" style={styles.lockedOutOrDeleted}>
+                <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
                   {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-                </Text>
+                </Kb.Text>
               )}
-              <Text type="BodySmall">
-                {!!active && !!props.roleType && typeToLabel[props.roleType]}
+              <Kb.Text type="BodySmall">
+                {roleLabel}
                 {resetLabel}
-              </Text>
-            </Box>
-          </Box>
-        </ClickableBox>
+              </Kb.Text>
+            </Kb.Box>
+          </Kb.Box>
+        </Kb.ClickableBox>
         {!active && !Styles.isMobile && props.youCanManageMembers && (
-          <Box style={styles.buttonBarContainer}>
-            <ButtonBar>
+          <Kb.Box style={styles.buttonBarContainer}>
+            <Kb.ButtonBar>
               {props.status !== 'deleted' && (
-                <Button
+                <Kb.Button
                   small={true}
                   label="Re-Admit"
                   onClick={props.onReAddToTeam}
@@ -106,7 +257,7 @@ export const TeamMemberRow = (props: Props) => {
                   disabled={props.waitingForRemove}
                 />
               )}
-              <Button
+              <Kb.Button
                 small={true}
                 label="Remove"
                 onClick={props.onRemoveFromTeam}
@@ -114,14 +265,14 @@ export const TeamMemberRow = (props: Props) => {
                 waiting={props.waitingForRemove}
                 disabled={props.waitingForAdd}
               />
-            </ButtonBar>
-          </Box>
+            </Kb.ButtonBar>
+          </Kb.Box>
         )}
-        <Box style={styles.chatIconContainer}>
+        <Kb.Box style={styles.chatIconContainer}>
           {(active || isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
-            <Icon
+            <Kb.Icon
               onClick={props.onChat}
               style={
                 Styles.isMobile
@@ -132,13 +283,13 @@ export const TeamMemberRow = (props: Props) => {
               type="iconfont-chat"
             />
           )}
-        </Box>
-      </Box>
+        </Kb.Box>
+      </Kb.Box>
       {!active && Styles.isMobile && props.youCanManageMembers && (
-        <Box style={styles.innerContainerBottom}>
-          <ButtonBar direction="row">
+        <Kb.Box style={styles.innerContainerBottom}>
+          <Kb.ButtonBar direction="row">
             {props.status !== 'deleted' && (
-              <Button
+              <Kb.Button
                 small={true}
                 label="Re-Admit"
                 onClick={props.onReAddToTeam}
@@ -147,7 +298,7 @@ export const TeamMemberRow = (props: Props) => {
                 disabled={props.waitingForRemove}
               />
             )}
-            <Button
+            <Kb.Button
               small={true}
               label="Remove"
               onClick={props.onRemoveFromTeam}
@@ -155,11 +306,11 @@ export const TeamMemberRow = (props: Props) => {
               waiting={props.waitingForRemove}
               disabled={props.waitingForAdd}
             />
-          </ButtonBar>
+          </Kb.ButtonBar>
           {!isLargeScreen && (
             // Mobile small screens - for inactive user
             // display next to reset / deleted controls
-            <Icon
+            <Kb.Icon
               onClick={props.onChat}
               style={Styles.collapseStyles([
                 styles.chatButtonMobile,
@@ -169,9 +320,9 @@ export const TeamMemberRow = (props: Props) => {
               type="iconfont-chat"
             />
           )}
-        </Box>
+        </Kb.Box>
       )}
-    </Box>
+    </Kb.Box>
   )
 }
 
@@ -195,6 +346,10 @@ const styles = Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     flexShrink: 1,
     height: '100%',
+  },
+  checkCircle: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+    alignSelf: 'center',
   },
   clickable: {
     ...Styles.globalStyles.flexBoxRow,
@@ -225,6 +380,7 @@ const styles = Styles.styleSheetCreate(() => ({
     height: Styles.isMobile ? 56 : 48,
     width: '100%',
   },
+  listItemMargin: {marginLeft: 0},
   lockedOutOrDeleted: {
     ...Styles.globalStyles.fontBold,
     backgroundColor: Styles.globalColors.red,
@@ -233,6 +389,11 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.globalMargins.xtiny,
     paddingRight: Styles.globalMargins.xtiny,
   },
+  menuButton: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
+  mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+  selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
 }))

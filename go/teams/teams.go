@@ -760,12 +760,12 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 		// Load member first to check if their eldest_seqno has not changed.
 		// If it did, the member was nuked and we do not need to lease.
 		_, err := loadMember(ctx, t.G(), member.version, true)
-		if err != nil {
-			if _, reset := err.(libkb.AccountResetError); reset {
-				continue
-			} else {
-				return nil, err
-			}
+		switch err.(type) {
+		case nil:
+		case libkb.AccountResetError:
+			continue
+		default:
+			return nil, err
 		}
 
 		uids = append(uids, member.version.Uid)
@@ -967,7 +967,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	if role == keybase1.TeamRole_NONE {
 		_, err := t.getAdminPermission(ctx)
 		switch err.(type) {
-		case nil, AdminPermissionRequiredError:
+		case nil, *AdminPermissionRequiredError:
 			return NewImplicitAdminCannotLeaveError()
 		}
 	}
@@ -996,7 +996,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true}, latestSeqno)
 }
 
-func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
+func (t *Team) deleteRoot(ctx context.Context) error {
 	m := t.MetaContext(ctx)
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -1014,14 +1014,6 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 			Name: "SELF_NOT_OWNER",
 			Desc: "You must be an owner to delete a team",
 		}
-	}
-
-	confirmed, err := ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
-	if err != nil {
-		return err
-	}
-	if !confirmed {
-		return errors.New("team delete not confirmed")
 	}
 
 	ratchet, err := t.makeRatchet(ctx)
@@ -1060,8 +1052,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	return t.HintLatestSeqno(m, latestSeqno)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
-
+func (t *Team) deleteSubteam(ctx context.Context) error {
 	m := t.MetaContext(ctx)
 
 	// subteam delete consists of two links:
@@ -1078,21 +1069,21 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		Public:      t.IsPublic(),
 		ForceRepoll: true,
 	})
-	if err != nil {
-		return err
+	switch {
+	case err == nil:
+	case IsTeamReadError(err):
+		return fmt.Errorf("failed to load parent team; you must be an admin of a parent team to delete a subteam: %w", err)
+	default:
+		return fmt.Errorf("failed to load parent team: %w", err)
 	}
 
 	admin, err := parentTeam.getAdminPermission(ctx)
-	if err != nil {
-		return err
-	}
-
-	confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
-	if err != nil {
-		return err
-	}
-	if !confirmed {
-		return errors.New("team delete not confirmed")
+	switch err.(type) {
+	case nil:
+	case *AdminPermissionRequiredError:
+		return fmt.Errorf("failed to get admin permission from parent team; you must be an admin of a parent team to delete a subteam: %w", err)
+	default:
+		return fmt.Errorf("failed to get admin permission from parent team: %w", err)
 	}
 
 	subteamName := SCTeamName(t.Data.Name.String())
@@ -1101,7 +1092,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 	if err != nil {
 		return err
 	}
-	ratchet, err := t.makeRatchet(ctx)
+	parentRatchet, err := parentTeam.makeRatchet(ctx)
 	if err != nil {
 		return err
 	}
@@ -1114,7 +1105,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		Admin:    admin,
 		Public:   t.IsPublic(),
 		Entropy:  entropy,
-		Ratchets: ratchet.ToTeamSection(),
+		Ratchets: parentRatchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -1130,6 +1121,10 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		return err
 	}
 
+	subRatchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
 	subSection := SCTeamSection{
 		ID:   SCTeamID(t.ID),
 		Name: &subteamName, // weird this is required
@@ -1138,8 +1133,9 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 			Seqno:   parentTeam.chain().GetLatestSeqno() + 1, // the seqno of the *new* parent link
 			SeqType: seqTypeForTeamPublicness(parentTeam.IsPublic()),
 		},
-		Public: t.IsPublic(),
-		Admin:  admin,
+		Public:   t.IsPublic(),
+		Admin:    admin,
+		Ratchets: subRatchet.ToTeamSection(),
 	}
 	sigSub, latestSeqno, err := t.sigTeamItem(ctx, subSection, libkb.LinkTypeDeleteUpPointer, mr)
 	if err != nil {
@@ -1148,7 +1144,19 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigParent, sigSub}
-	ratchet.AddToJSONPayload(payload)
+
+	var ratchetSet hidden.RatchetBlindingKeySet
+	if parentRatchet != nil {
+		ratchetSet.Add(*parentRatchet)
+	}
+	if subRatchet != nil {
+		ratchetSet.Add(*subRatchet)
+	}
+	err = ratchetSet.AddToJSONPayload(payload)
+	if err != nil {
+		return err
+	}
+
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
@@ -1387,12 +1395,56 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 	return ikey, err
 }
 
+func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
+	maxUses keybase1.TeamInviteMaxUses,
+	etime *keybase1.UnixTime) (ikey keybase1.SeitanIKeyInvitelink, err error) {
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
+
+	// Experimental code: we are figuring out how to do invite links.
+
+	ikey, err = GenerateSeitanIKeyInvitelink()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := GenerateSIKeyInvitelink(ikey)
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	// label is hardcoded for now, but could change in the future
+	label := keybase1.NewSeitanKeyLabelWithGeneric(keybase1.SeitanKeyLabelGeneric{L: "link"})
+
+	_, encoded, err := GeneratePackedEncryptedKeyInvitelink(ctx, ikey, t, label)
+	if err != nil {
+		return ikey, err
+	}
+
+	invite := SCTeamInvite{
+		Type:    "invitelink",
+		Name:    keybase1.TeamInviteName(encoded),
+		ID:      inviteID,
+		Etime:   etime,
+		MaxUses: &maxUses,
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return ikey, err
+	}
+
+	return ikey, err
+}
+
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
 	existing, err := t.HasActiveInvite(t.MetaContext(ctx), invite.Name, invite.Type)
 	if err != nil {
 		return err
 	}
-
 	if existing {
 		return libkb.ExistsError{Msg: "An invite for this user already exists."}
 	}
@@ -1590,6 +1642,8 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 
 	section.CompletedInvites = req.CompletedInvites
+	section.UsedInvites = makeSCMapInviteIDUVMap(req.UsedInvites)
+
 	section.Implicit = t.IsImplicit()
 	section.Public = t.IsPublic()
 
@@ -2638,6 +2692,8 @@ func TeamInviteTypeFromString(mctx libkb.MetaContext, inviteTypeStr string) (key
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_SEITAN), nil
 	case "phone":
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_PHONE), nil
+	case "invitelink":
+		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_INVITELINK), nil
 	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
 		return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
 	default:
@@ -2770,4 +2826,29 @@ func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info 
 	}
 
 	return teamInfo, nil
+}
+
+func GetUntrustedTeamExists(mctx libkb.MetaContext, name keybase1.TeamName) (teamExistsResult keybase1.UntrustedTeamExistsResult, err error) {
+	type resType struct {
+		libkb.AppStatusEmbed
+		Exists bool                `json:"exists"`
+		Sc     keybase1.StatusCode `json:"sc"`
+	}
+	var res resType
+	err = mctx.G().API.GetDecode(mctx, libkb.APIArg{
+		Endpoint:    "team/exists",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"teamName": libkb.S{Val: name.String()},
+		},
+	}, &res)
+	if err != nil {
+		mctx.Debug("GetUntrustedTeamInfo: failed to get team info: %s", err)
+		return teamExistsResult, err
+	}
+
+	return keybase1.UntrustedTeamExistsResult{
+		Exists: res.Exists,
+		Status: res.Sc,
+	}, nil
 }

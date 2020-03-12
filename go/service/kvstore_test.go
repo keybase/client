@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 	"sync"
 	"testing"
 
@@ -197,19 +198,19 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	// Bob cannot read the entry anymore.
 	getRes, err = bobHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "user does not have access to this entry")
+	require.Contains(t, err.Error(), "You are not a member of this team (error 2623)")
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ := err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamBadMembership {
-		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
+	if aerr.Code != libkb.SCTeamReadError {
+		t.Fatalf("expected an SCTeamReadError error but got %v", err)
 	}
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
 	_, err = bobHandler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.Error(t, err)
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ = err.(libkb.AppStatusError)
-	if aerr.Code != libkb.SCTeamBadMembership {
-		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
+	if aerr.Code != libkb.SCTeamReadError {
+		t.Fatalf("expected an SCTeamReadError error but got %v", err)
 	}
 	t.Logf("bob can no longer GET or LIST the entry")
 
@@ -340,7 +341,12 @@ func assertRevisionError(t *testing.T, err error, expectedSource string) {
 	require.Contains(t, err.Error(), "revision")
 	switch expectedSource {
 	case "server":
-		require.Regexp(t, regexp.MustCompile("expected revision [0-9]+ but got [0-9]+"), err.Error())
+		possibleServerMessages := []string{
+			"expected revision [0-9]+ but got [0-9]+",
+			"revision [0-9]+ already exists for this entry",
+		}
+		regex := strings.Join(possibleServerMessages, "|")
+		require.Regexp(t, regexp.MustCompile(regex), err.Error())
 	case "cache":
 		require.Regexp(t, regexp.MustCompile("revision out of date"), err.Error())
 	default:
@@ -743,20 +749,30 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 	require.Equal(t, delRes.Revision, 3)
 }
 
-// TestKVStoreLocalRace tests that multiple requests at the same time are caught by the server
-// and do not wreck the local revision cache.
-func TestKVStoreLocalRace(t *testing.T) {
-	tc := kvTestSetup(t)
-	defer tc.Cleanup()
-	mctx := libkb.NewMetaContextForTest(tc)
-	ctx := mctx.Ctx()
-	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
+// TestKVStoreRace tests that multiple requests by multiple users in rapid succession do not
+// cause unexpected errors or busted caches
+func TestKVStoreRace(t *testing.T) {
+	tc1 := kvTestSetup(t)
+	defer tc1.Cleanup()
+	mctx1 := libkb.NewMetaContextForTest(tc1)
+	ctx1 := mctx1.Ctx()
+	user1, err := kbtest.CreateAndSignupFakeUser("kv", tc1.G)
 	require.NoError(t, err)
-	handler := NewKVStoreHandler(nil, tc.G)
-	teamName := user.Username + "t"
-	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	handler1 := NewKVStoreHandler(nil, tc1.G)
+	teamName := user1.Username + "t"
+	teamID, err := teams.CreateRootTeam(ctx1, tc1.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
 	require.NotNil(t, teamID)
+	// add a second user to the team
+	tc2 := kvTestSetup(t)
+	defer tc2.Cleanup()
+	mctx2 := libkb.NewMetaContextForTest(tc2)
+	ctx2 := mctx2.Ctx()
+	user2, err := kbtest.CreateAndSignupFakeUser("kv", tc2.G)
+	require.NoError(t, err)
+	handler2 := NewKVStoreHandler(nil, tc2.G)
+	_, err = teams.AddMember(ctx1, tc1.G, teamName, user2.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 
 	namespace := "race-namespace"
 	entryKey := "race-key"
@@ -768,46 +784,42 @@ func TestKVStoreLocalRace(t *testing.T) {
 		EntryKey:   entryKey,
 		EntryValue: secretData,
 	}
-	var sawTheRace bool
-	for attempt := 0; attempt < 5; attempt++ {
-		var wg sync.WaitGroup
-		errChan := make(chan error, 10)
-		for i := 0; i < 10; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				_, err = handler.PutKVEntry(ctx, putArg)
-				errChan <- err
-			}()
-		}
-		wg.Wait()
-		close(errChan)
-		for err := range errChan {
-			if err != nil {
-				require.Error(t, err)
-				aerr, _ := err.(libkb.AppStatusError)
-				if aerr.Code != libkb.SCTeamStorageWrongRevision {
-					t.Fatalf("expected only SCTeamStorageWrongRevision errors but got %v", err)
-				}
-				raceRegex := regexp.MustCompile("revision [0-9]+ already exists for this entry")
-				if raceRegex.MatchString(err.Error()) {
-					sawTheRace = true
-					break
-				}
-			}
-		}
-		if sawTheRace {
-			break
+	var wg sync.WaitGroup
+	errChan := make(chan error, 10)
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err = handler1.PutKVEntry(ctx1, putArg)
+			errChan <- err
+		}()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err = handler2.PutKVEntry(ctx2, putArg)
+			errChan <- err
+		}()
+	}
+	wg.Wait()
+	close(errChan)
+	for err := range errChan {
+		// any errors should be server-thrown revision errors
+		if err != nil {
+			assertRevisionError(t, err, "server")
 		}
 	}
-	require.True(t, sawTheRace, "didn't generate a race")
-	// after the race, getting and putting should still work fine
-	_, err = handler.PutKVEntry(ctx, putArg)
-	require.NoError(t, err)
-	_, err = handler.GetKVEntry(ctx, keybase1.GetKVEntryArg{
+
+	// and now a fetch should work from both users, confirming that neither
+	// has a busted revision cache
+	getArg := keybase1.GetKVEntryArg{
 		TeamName:  teamName,
 		Namespace: namespace,
 		EntryKey:  entryKey,
-	})
+	}
+	getRes, err := handler1.GetKVEntry(ctx1, getArg)
 	require.NoError(t, err)
+	require.Equal(t, secretData, getRes.EntryValue)
+	getRes, err = handler2.GetKVEntry(ctx2, getArg)
+	require.NoError(t, err)
+	require.Equal(t, secretData, getRes.EntryValue)
 }

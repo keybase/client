@@ -19,3 +19,4 @@ export const fileUIName = 'Finder'
 export const version = ''
 export const logFileName = () => ''
 export const pprofDir = () => ''
+export const windowHeight = 0

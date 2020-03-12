@@ -3,6 +3,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {Picker} from '../picker'
 import {backgroundImageFn} from '../../../../../common-adapters/emoji'
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
   className?: string
@@ -11,6 +12,7 @@ type Props = {
   onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
   style?: Styles.StylesCrossPlatform
+  tooltipPosition?: Position
 }
 
 class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {hovering: boolean}> {
@@ -62,13 +64,13 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal">
           <Kb.Divider style={styles.divider} vertical={true} />
-          <Kb.WithTooltip tooltip="React">
+          <Kb.WithTooltip tooltip="React" position={this.props.tooltipPosition}>
             <Kb.Box className="hover_container" onClick={this._showPicker} style={styles.iconContainer}>
               <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
             </Kb.Box>
           </Kb.WithTooltip>
           {!!this.props.onReply && (
-            <Kb.WithTooltip tooltip="Reply">
+            <Kb.WithTooltip tooltip="Reply" position={this.props.tooltipPosition}>
               <Kb.Box className="hover_container" onClick={this.props.onReply} style={styles.iconContainer}>
                 <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
               </Kb.Box>

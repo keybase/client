@@ -627,6 +627,32 @@ func (o RateLimit) DeepCopy() RateLimit {
 	}
 }
 
+type InboxParticipantsMode int
+
+const (
+	InboxParticipantsMode_ALL        InboxParticipantsMode = 0
+	InboxParticipantsMode_SKIP_TEAMS InboxParticipantsMode = 1
+)
+
+func (o InboxParticipantsMode) DeepCopy() InboxParticipantsMode { return o }
+
+var InboxParticipantsModeMap = map[string]InboxParticipantsMode{
+	"ALL":        0,
+	"SKIP_TEAMS": 1,
+}
+
+var InboxParticipantsModeRevMap = map[InboxParticipantsMode]string{
+	0: "ALL",
+	1: "SKIP_TEAMS",
+}
+
+func (e InboxParticipantsMode) String() string {
+	if v, ok := InboxParticipantsModeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type GetInboxQuery struct {
 	ConvID            *ConversationID            `codec:"convID,omitempty" json:"convID,omitempty"`
 	TopicType         *TopicType                 `codec:"topicType,omitempty" json:"topicType,omitempty"`
@@ -645,6 +671,7 @@ type GetInboxQuery struct {
 	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
 	SummarizeMaxMsgs  bool                       `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ParticipantsMode  InboxParticipantsMode      `codec:"participantsMode" json:"participantsMode"`
 	SkipBgLoads       bool                       `codec:"skipBgLoads" json:"skipBgLoads"`
 	AllowUnseenQuery  bool                       `codec:"allowUnseenQuery" json:"allowUnseenQuery"`
 }
@@ -766,6 +793,7 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 		ReadOnly:          o.ReadOnly,
 		ComputeActiveList: o.ComputeActiveList,
 		SummarizeMaxMsgs:  o.SummarizeMaxMsgs,
+		ParticipantsMode:  o.ParticipantsMode.DeepCopy(),
 		SkipBgLoads:       o.SkipBgLoads,
 		AllowUnseenQuery:  o.AllowUnseenQuery,
 	}
@@ -959,6 +987,7 @@ type ConversationReaderInfo struct {
 	MaxMsgid          MessageID                    `codec:"maxMsgid" json:"maxMsgid"`
 	Status            ConversationMemberStatus     `codec:"status" json:"status"`
 	UntrustedTeamRole keybase1.TeamRole            `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
+	LastSendTime      gregor1.Time                 `codec:"l" json:"l"`
 	Journeycard       *ConversationJourneycardInfo `codec:"jc,omitempty" json:"jc,omitempty"`
 }
 
@@ -969,6 +998,7 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 		MaxMsgid:          o.MaxMsgid.DeepCopy(),
 		Status:            o.Status.DeepCopy(),
 		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
+		LastSendTime:      o.LastSendTime.DeepCopy(),
 		Journeycard: (func(x *ConversationJourneycardInfo) *ConversationJourneycardInfo {
 			if x == nil {
 				return nil

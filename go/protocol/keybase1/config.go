@@ -12,11 +12,12 @@ import (
 )
 
 type CurrentStatus struct {
-	Configured     bool  `codec:"configured" json:"configured"`
-	Registered     bool  `codec:"registered" json:"registered"`
-	LoggedIn       bool  `codec:"loggedIn" json:"loggedIn"`
-	SessionIsValid bool  `codec:"sessionIsValid" json:"sessionIsValid"`
-	User           *User `codec:"user,omitempty" json:"user,omitempty"`
+	Configured     bool   `codec:"configured" json:"configured"`
+	Registered     bool   `codec:"registered" json:"registered"`
+	LoggedIn       bool   `codec:"loggedIn" json:"loggedIn"`
+	SessionIsValid bool   `codec:"sessionIsValid" json:"sessionIsValid"`
+	User           *User  `codec:"user,omitempty" json:"user,omitempty"`
+	DeviceName     string `codec:"deviceName" json:"deviceName"`
 }
 
 func (o CurrentStatus) DeepCopy() CurrentStatus {
@@ -32,6 +33,7 @@ func (o CurrentStatus) DeepCopy() CurrentStatus {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.User),
+		DeviceName: o.DeviceName,
 	}
 }
 
@@ -334,6 +336,7 @@ type KbServiceStatus struct {
 	Pid     string `codec:"pid" json:"pid"`
 	Log     string `codec:"log" json:"log"`
 	EkLog   string `codec:"ekLog" json:"ekLog"`
+	PerfLog string `codec:"perfLog" json:"perfLog"`
 }
 
 func (o KbServiceStatus) DeepCopy() KbServiceStatus {
@@ -343,6 +346,7 @@ func (o KbServiceStatus) DeepCopy() KbServiceStatus {
 		Pid:     o.Pid,
 		Log:     o.Log,
 		EkLog:   o.EkLog,
+		PerfLog: o.PerfLog,
 	}
 }
 
@@ -352,6 +356,7 @@ type KBFSStatus struct {
 	Running          bool   `codec:"running" json:"running"`
 	Pid              string `codec:"pid" json:"pid"`
 	Log              string `codec:"log" json:"log"`
+	PerfLog          string `codec:"perfLog" json:"perfLog"`
 	Mount            string `codec:"mount" json:"mount"`
 }
 
@@ -362,6 +367,7 @@ func (o KBFSStatus) DeepCopy() KBFSStatus {
 		Running:          o.Running,
 		Pid:              o.Pid,
 		Log:              o.Log,
+		PerfLog:          o.PerfLog,
 		Mount:            o.Mount,
 	}
 }
@@ -401,12 +407,14 @@ func (o StartStatus) DeepCopy() StartStatus {
 }
 
 type GitStatus struct {
-	Log string `codec:"log" json:"log"`
+	Log     string `codec:"log" json:"log"`
+	PerfLog string `codec:"perfLog" json:"perfLog"`
 }
 
 func (o GitStatus) DeepCopy() GitStatus {
 	return GitStatus{
-		Log: o.Log,
+		Log:     o.Log,
+		PerfLog: o.PerfLog,
 	}
 }
 

@@ -43,7 +43,7 @@ type Syncer struct {
 func NewSyncer(g *globals.Context) *Syncer {
 	s := &Syncer{
 		Contextified:        globals.NewContextified(g),
-		DebugLabeler:        utils.NewDebugLabeler(g.GetLog(), "Syncer", false),
+		DebugLabeler:        utils.NewDebugLabeler(g.ExternalG(), "Syncer", false),
 		isConnected:         false,
 		clock:               clockwork.NewRealClock(),
 		shutdownCh:          make(chan struct{}),
@@ -459,7 +459,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 					types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
 					func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 						s.Debug(ctx, "Sync: executing expunge from a sync run: convID: %s", conv.GetConvID())
-						err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, expunge)
+						err := s.G().ConvSource.Expunge(ctx, rc, uid, expunge)
 						if err != nil {
 							s.Debug(ctx, "Sync: failed to expunge: %v", err)
 						}

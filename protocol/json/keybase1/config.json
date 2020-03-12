@@ -37,6 +37,10 @@
             "User"
           ],
           "name": "user"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
         }
       ]
     },
@@ -359,6 +363,10 @@
         {
           "type": "string",
           "name": "ekLog"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
         }
       ]
     },
@@ -385,6 +393,10 @@
         {
           "type": "string",
           "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
         },
         {
           "type": "string",
@@ -437,6 +449,10 @@
         {
           "type": "string",
           "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
         }
       ]
     },

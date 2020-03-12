@@ -87,9 +87,9 @@ const MessagePopupHeader = (props: {
             onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
-            usernames={[author]}
+            usernames={author}
             underline={true}
-            type="BodySmallSemibold"
+            type="BodySmallBold"
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -108,9 +108,9 @@ const MessagePopupHeader = (props: {
               onUsernameClicked="profile"
               colorFollowing={true}
               colorYou={true}
-              usernames={[botUsername]}
+              usernames={botUsername}
               underline={true}
-              type="BodySmallSemibold"
+              type="BodySmallBold"
             />
           </Kb.Box2>
         </Kb.Box2>
@@ -149,6 +149,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
+          paddingBottom: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.small,
         },
         isMobile: {

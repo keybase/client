@@ -8,7 +8,7 @@ import {Box2} from '../../../../../common-adapters/box'
 import Text, {AllowedColors} from '../../../../../common-adapters/text'
 import Icon from '../../../../../common-adapters/icon'
 import Avatar from '../../../../../common-adapters/avatar'
-import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
+import ConnectedUsernames from '../../../../../common-adapters/usernames'
 import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
 import Divider from '../../../../../common-adapters/divider'
 import FloatingMenu from '../../../../../common-adapters/floating-menu'
@@ -120,8 +120,8 @@ const Header = (props: HeaderProps) =>
             colorFollowing={true}
             colorYou={true}
             inline={true}
-            usernames={[props.sender]}
-            type="BodySmallSemibold"
+            usernames={props.sender}
+            type="BodySmallBold"
           />
         </Kb.Box2>
         <Kb.Text type="BodySmall" center={true}>

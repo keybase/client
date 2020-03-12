@@ -7,9 +7,9 @@ import (
 
 	"github.com/keybase/xurls"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -36,9 +36,9 @@ type Extractor struct {
 	exemptions     map[string]*WhitelistExemptionList
 }
 
-func NewExtractor(log logger.Logger) *Extractor {
+func NewExtractor(g *globals.Context) *Extractor {
 	return &Extractor{
-		DebugLabeler: utils.NewDebugLabeler(log, "Extractor", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Extractor", false),
 		urlRegexp:    xurls.Strict(),
 		quoteRegexp:  regexp.MustCompile("`[^`]*`"),
 		exemptions:   make(map[string]*WhitelistExemptionList),

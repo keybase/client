@@ -20,9 +20,10 @@ type NewTeambotEkArg struct {
 }
 
 type TeambotEkNeededArg struct {
-	Id         TeamID       `codec:"id" json:"id"`
-	Uid        UID          `codec:"uid" json:"uid"`
-	Generation EkGeneration `codec:"generation" json:"generation"`
+	Id                    TeamID        `codec:"id" json:"id"`
+	Uid                   UID           `codec:"uid" json:"uid"`
+	Generation            EkGeneration  `codec:"generation" json:"generation"`
+	ForceCreateGeneration *EkGeneration `codec:"forceCreateGeneration,omitempty" json:"forceCreateGeneration,omitempty"`
 }
 
 type NotifyEphemeralInterface interface {

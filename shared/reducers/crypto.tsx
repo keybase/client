@@ -21,7 +21,21 @@ const operationGuard = (operation: Types.Operations, action: CryptoGen.Actions) 
   return true
 }
 
+const resetOutput = (op: Types.CommonState) => {
+  op.output = new HiddenString('')
+  op.outputStatus = undefined
+  op.outputType = undefined
+  op.outputSenderUsername = undefined
+  op.outputSenderFullname = undefined
+  op.outputValid = false
+  op.errorMessage = new HiddenString('')
+  op.warningMessage = new HiddenString('')
+}
+
 export default Container.makeReducer<Actions, Types.State>(initialState, {
+  [CryptoGen.resetStore]: () => {
+    return initialState
+  },
   [CryptoGen.clearInput]: (draftState, action) => {
     const {operation} = action.payload
 
@@ -72,6 +86,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operation !== Constants.Operations.Encrypt) return
 
     const op = draftState.encrypt
+    const {inputType} = op
+
+    // Reset output when file input changes
+    // Prompt for destination dir
+    if (inputType === 'file') {
+      resetOutput(op)
+    }
 
     // Output no longer valid since recipients have changed
     op.outputValid = false
@@ -92,10 +113,17 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [CryptoGen.setEncryptOptions]: (draftState, action) => {
     const {options: newOptions, hideIncludeSelf} = action.payload
     const {encrypt} = draftState
+    const {inputType} = encrypt
     const oldOptions = encrypt.options
     encrypt.options = {
       ...oldOptions,
       ...newOptions,
+    }
+
+    // Reset output when file input changes
+    // Prompt for destination dir
+    if (inputType === 'file') {
+      resetOutput(encrypt)
     }
 
     // Output no longer valid since options have changed
@@ -114,9 +142,29 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const op = draftState[operation]
     const oldInput = op.input
     // Reset input to 'text' when no value given (cleared input or removed file upload)
-    op.inputType = value.stringValue() ? type : 'text'
+    const inputType = value.stringValue() ? type : 'text'
+    const outputValid = oldInput.stringValue() === value.stringValue()
+
+    op.inputType = inputType
     op.input = value
-    op.outputValid = oldInput.stringValue() === value.stringValue()
+    op.outputValid = outputValid
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
+
+    // Reset output when file input changes
+    // Prompt for destination dir
+    if (inputType === 'file') {
+      resetOutput(op)
+    }
+  },
+  [CryptoGen.runFileOperation]: (draftState, action) => {
+    const {operation} = action.payload
+    if (operationGuard(operation, action)) return
+
+    const op = draftState[operation]
+    op.outputValid = false
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
   },
   [CryptoGen.saltpackDone]: (draftState, action) => {
     const {operation} = action.payload
@@ -127,6 +175,23 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.outputValid = false
     op.bytesComplete = 0
     op.bytesTotal = 0
+    op.inProgress = false
+    op.outputStatus = 'pending'
+  },
+  [CryptoGen.onSaltpackOpenFile]: (draftState, action) => {
+    const {operation, path} = action.payload
+    const op = draftState[operation]
+    const {inProgress} = op
+
+    // Bail on setting operation input if another file RPC is in progress
+    if (inProgress) return
+    if (!path.stringValue()) return
+
+    resetOutput(op)
+    op.input = path
+    op.inputType = 'file'
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
     const {
@@ -206,6 +271,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.outputStatus = 'error'
     op.errorMessage = errorMessage
   },
+  [CryptoGen.saltpackStart]: (draftState, action) => {
+    const {operation} = action.payload
+    if (operationGuard(operation, action)) return
+
+    // Gets the progress bar on screen sooner. This matters most when encrypting/signing a directory (since progress is slow)
+    const op = draftState[operation]
+    op.inProgress = true
+  },
   [CryptoGen.saltpackProgress]: (draftState, action) => {
     const {bytesComplete, bytesTotal, operation} = action.payload
     if (operationGuard(operation, action)) return
@@ -216,10 +289,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (bytesComplete === bytesTotal) {
       op.bytesComplete = 0
       op.bytesTotal = 0
+      op.inProgress = false
+      op.outputStatus = 'pending'
       return
     }
     op.bytesComplete = bytesComplete
     op.bytesTotal = bytesTotal
+    op.inProgress = true
   },
 
   // Encrypt: Handle team building when selecting keybase users

@@ -1,5 +1,6 @@
 import * as NetInfo from '@react-native-community/netinfo'
 import * as RPCTypes from './rpc-gen'
+import HiddenString from '../../util/hidden-string'
 import {ConversationIDKey} from './chat2'
 import {DarkModePreference} from '../../styles/dark-mode'
 import {RPCError} from '../../util/errors'
@@ -30,9 +31,15 @@ export type WindowState = {
 }
 
 export type State = {
-  androidShare?: {
-    url: string
-  }
+  androidShare?:
+    | {
+        type: RPCTypes.IncomingShareType.file
+        url: string
+      }
+    | {
+        type: RPCTypes.IncomingShareType.text
+        text: string
+      }
   appFocused: boolean
   appFocusedCount: number
   appOutOfDateMessage: string
@@ -72,6 +79,8 @@ export type State = {
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean
   startupConversation: ConversationIDKey
+  startupPushPayload?: string
+  startupFile: HiddenString
   startupFollowUser: string
   startupLink: string
   startupTab?: Tab

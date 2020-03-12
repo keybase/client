@@ -8,21 +8,19 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		07C3A80B23FF2F5F00A75BA0 /* MediaUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */; };
+		07C3A80C23FF336200A75BA0 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6EE214039DA005E4864 /* AVFoundation.framework */; };
+		07C3A80D23FF33AF00A75BA0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F121403A2A005E4864 /* CoreMedia.framework */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB59F2139AB6A005E4864 /* ShareViewController.m */; };
 		279FB5A32139AB6A005E4864 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 279FB5A12139AB6A005E4864 /* MainInterface.storyboard */; };
 		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		279FB5EE2139ADEB005E4864 /* ConversationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB5ED2139ADEB005E4864 /* ConversationViewController.m */; };
 		279FB66921402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
 		279FB66A21402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
-		279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
-		279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6EE214039DA005E4864 /* AVFoundation.framework */; };
 		279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
-		279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F121403A2A005E4864 /* CoreMedia.framework */; };
 		279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F321403A49005E4864 /* MobileCoreServices.framework */; };
 		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		27F0BBB52142C19D007195B7 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
-		27F0BD2A214750A2007195B7 /* InitFailedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27F0BD29214750A2007195B7 /* InitFailedViewController.m */; };
 		338AE322D1D19D1B68AD9975 /* libPods-KeybaseShare.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1CB354B49777AEAF1FF91BE3 /* libPods-KeybaseShare.a */; };
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
@@ -100,6 +98,8 @@
 		0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		005BF9961BB9C6B000BD8953 /* Keybase.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Keybase.entitlements; sourceTree = "<group>"; };
 		038BCB1F7ED871986D74D02D /* libPods-Keybase-KeybaseShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase-KeybaseShare.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		07C3A80923FF2F5F00A75BA0 /* MediaUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaUtils.h; sourceTree = "<group>"; };
+		07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaUtils.m; sourceTree = "<group>"; };
 		0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		1038071745692610070A34DC /* Pods-Keybase For Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -111,8 +111,6 @@
 		279FB59F2139AB6A005E4864 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
 		279FB5A22139AB6A005E4864 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		279FB5A42139AB6A005E4864 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		279FB5EC2139ADEB005E4864 /* ConversationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConversationViewController.h; sourceTree = "<group>"; };
-		279FB5ED2139ADEB005E4864 /* ConversationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConversationViewController.m; sourceTree = "<group>"; };
 		279FB66821402D68005E4864 /* Fs.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Fs.m; sourceTree = "<group>"; };
 		279FB69821402D82005E4864 /* Fs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Fs.h; sourceTree = "<group>"; };
 		279FB6EE214039DA005E4864 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
@@ -121,8 +119,6 @@
 		279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeybaseShare.entitlements; sourceTree = "<group>"; };
 		27EE26A720A140EF00F92CD1 /* Pusher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Pusher.m; sourceTree = "<group>"; };
 		27EE26A920A1466300F92CD1 /* Pusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pusher.h; sourceTree = "<group>"; };
-		27F0BD28214750A2007195B7 /* InitFailedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InitFailedViewController.h; sourceTree = "<group>"; };
-		27F0BD29214750A2007195B7 /* InitFailedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InitFailedViewController.m; sourceTree = "<group>"; };
 		375CA6641FFD40D300210B11 /* Storybook.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Storybook.m; sourceTree = "<group>"; };
 		375CA6901FFD418D00210B11 /* Storybook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Storybook.h; sourceTree = "<group>"; };
 		3791A87220C71DAA001C2E86 /* PushPrompt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushPrompt.h; sourceTree = "<group>"; };
@@ -222,12 +218,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				07C3A80C23FF336200A75BA0 /* AVFoundation.framework in Frameworks */,
 				279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */,
-				279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */,
 				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
-				279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */,
-				279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */,
 				338AE322D1D19D1B68AD9975 /* libPods-KeybaseShare.a in Frameworks */,
+				07C3A80D23FF33AF00A75BA0 /* CoreMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,13 +234,11 @@
 			children = (
 				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
 				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
+				279FB5A42139AB6A005E4864 /* Info.plist */,
 				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
 				279FB5A12139AB6A005E4864 /* MainInterface.storyboard */,
-				279FB5A42139AB6A005E4864 /* Info.plist */,
-				279FB5EC2139ADEB005E4864 /* ConversationViewController.h */,
-				279FB5ED2139ADEB005E4864 /* ConversationViewController.m */,
-				27F0BD28214750A2007195B7 /* InitFailedViewController.h */,
-				27F0BD29214750A2007195B7 /* InitFailedViewController.m */,
+				07C3A80923FF2F5F00A75BA0 /* MediaUtils.h */,
+				07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */,
 			);
 			path = KeybaseShare;
 			sourceTree = "<group>";
@@ -271,6 +264,7 @@
 				DB0846041BA75DC800F54960 /* keybase.framework */,
 			);
 			name = Libraries;
+			path = ..;
 			sourceTree = "<group>";
 		};
 		83CBB9F61A601CBA00E9B192 = {
@@ -284,12 +278,11 @@
 				37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */,
 				37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */,
 				37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */,
+				37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */,
 				37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */,
 				37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */,
-				37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */,
 				DBEE306B1FE8511F0020EBA5 /* CocoaLumberjack */,
 				DBDCF3031B8D03DD00BA95D8 /* Keybase */,
-				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				279FB59D2139AB6A005E4864 /* KeybaseShare */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
@@ -379,8 +372,8 @@
 				DB7C1EB52326A5F000A47A9E /* Appearance.m */,
 				DB7C1EB82326AA3F00A47A9E /* AppearanceRootView.h */,
 				DB7C1EB92326AA3F00A47A9E /* AppearanceRootView.m */,
-				DB27DE551D747A6B003DE8BC /* Utils.h */,
 				DB27DE561D747A6C003DE8BC /* Utils.m */,
+				DB27DE551D747A6B003DE8BC /* Utils.h */,
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				375CA6901FFD418D00210B11 /* Storybook.h */,
@@ -398,6 +391,7 @@
 				27EE26A720A140EF00F92CD1 /* Pusher.m */,
 				27EE26A920A1466300F92CD1 /* Pusher.h */,
 				279FB66821402D68005E4864 /* Fs.m */,
+				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				279FB69821402D82005E4864 /* Fs.h */,
 			);
 			path = Keybase;
@@ -689,11 +683,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27F0BD2A214750A2007195B7 /* InitFailedViewController.m in Sources */,
+				07C3A80B23FF2F5F00A75BA0 /* MediaUtils.m in Sources */,
 				27F0BBB52142C19D007195B7 /* Pusher.m in Sources */,
 				279FB66A21402D68005E4864 /* Fs.m in Sources */,
 				279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */,
-				279FB5EE2139ADEB005E4864 /* ConversationViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

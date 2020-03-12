@@ -28,7 +28,7 @@ func NewTeamDevConversationBackedStorage(g *globals.Context, adminOnly bool,
 	return &TeamDevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),
 		adminOnly:    adminOnly,
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "DevConversationBackedStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConversationBackedStorage", false),
 		ri:           ri,
 	}
 }
@@ -132,7 +132,7 @@ func (s *TeamDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.
 		return false, nil
 	}
 	conv := convs[0]
-	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL,
+	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, &chat1.Pagination{Num: 1})
@@ -159,6 +159,9 @@ func (s *TeamDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.
 		}
 	}
 	if err = json.Unmarshal([]byte(body.Text().Body), dest); err != nil {
+		return false, err
+	}
+	if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.ri, uid, conv.GetConvID()); err != nil {
 		return false, err
 	}
 	return true, nil

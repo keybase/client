@@ -18,6 +18,7 @@ import {mapGetEnsureValue, mapEqual} from '../util/map'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
+  | EngineGen.Chat1NotifyChatChatParticipantsInfoPayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
 
@@ -75,7 +76,7 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
     draftState.featuredBotsLoaded = loaded
   },
   [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
-    draftState.botSearchResults = action.payload.results
+    draftState.botSearchResults.set(action.payload.query, action.payload.results)
   },
 }
 
@@ -490,9 +491,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.resetStore]: draftState => {
     return {...initialState, staticConfig: draftState.staticConfig as Types.State['staticConfig']}
   },
-  [Chat2Gen.setInboxShowIsNew]: (draftState, action) => {
-    draftState.inboxShowNew = action.payload.isNew
-  },
   [Chat2Gen.toggleSmallTeamsExpanded]: draftState => {
     draftState.smallTeamsExpanded = !draftState.smallTeamsExpanded
   },
@@ -577,7 +575,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.unfurlTogglePrompt]: (draftState, action) => {
     const {show, domain, conversationIDKey, messageID} = action.payload
     const {unfurlPromptMap} = draftState
-
     const map = mapGetEnsureValue(unfurlPromptMap, conversationIDKey, new Map())
     const prompts = mapGetEnsureValue(map, messageID, new Set())
 
@@ -660,8 +657,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     // editing a specific message
     if (ordinal) {
-      const message = messageMap && messageMap.get(ordinal)
-      if (message && message.type === 'text') {
+      const message = messageMap?.get(ordinal)
+      if (message?.type === 'text') {
         editingMap.set(conversationIDKey, ordinal)
       }
       return
@@ -670,10 +667,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // Editing your last message
     const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
     const found = ordinals.reverse().find(o => {
-      const message = messageMap && messageMap.get(o)
+      const message = messageMap?.get(o)
       return !!(
-        message &&
-        message.type === 'text' &&
+        message?.type === 'text' &&
         message.author === editLastUser &&
         !message.exploded &&
         message.isEditable
@@ -692,6 +688,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       sourceConversationIDKey,
       targetConversationIDKey,
     }
+  },
+  [Chat2Gen.addToMessageMap]: (draftState, action) => {
+    const {message} = action.payload
+    const convMap =
+      draftState.messageMap.get(message.conversationIDKey) ?? new Map<Types.Ordinal, Types.Message>()
+    convMap.set(message.ordinal, message)
+    draftState.messageMap.set(message.conversationIDKey, convMap)
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, shouldClearOthers} = action.payload
@@ -760,7 +763,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         const ordinal = outMap && outMap.get(m.outboxID)
         if (ordinal) {
           const map = oldMessageMap.get(conversationIDKey)
-          return map ? map.get(ordinal) : undefined
+          return map?.get(ordinal)
         }
       }
       const pendingOrdinal = messageIDToOrdinal(
@@ -771,7 +774,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       )
       if (pendingOrdinal) {
         const map = oldMessageMap.get(conversationIDKey)
-        return map ? map.get(pendingOrdinal) : undefined
+        return map?.get(pendingOrdinal)
       }
       return null
     }
@@ -798,8 +801,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           // get rid of it if that is the case
           if (m.id) {
             const map = oldMessageMap.get(conversationIDKey)
-            const oldMsg = map ? map.get(Types.numberToOrdinal(m.id)) : undefined
-            if (oldMsg && oldMsg.type === 'placeholder' && oldMsg.ordinal !== m.ordinal) {
+            const oldMsg = map?.get(Types.numberToOrdinal(m.id))
+            if (oldMsg?.type === 'placeholder' && oldMsg.ordinal !== m.ordinal) {
               removedOrdinals.push(oldMsg.ordinal)
             }
           }
@@ -955,11 +958,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (!ordinal) {
       return
     }
-    const map = messageMap.get(conversationIDKey)
-    if (!map) {
-      return
-    }
-    const m = map.get(ordinal)
+    const m = messageMap.get(conversationIDKey)?.get(ordinal)
     if (!m) {
       return
     }
@@ -974,15 +973,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (!ordinal) {
       return
     }
-    const map = messageMap.get(conversationIDKey)
-    if (!map) {
-      return
-    }
-    const m = map.get(ordinal)
+    const m = messageMap.get(conversationIDKey)?.get(ordinal)
     if (!m) {
       return
     }
-
     m.errorReason = reason
     m.submitState = 'failed'
     m.errorTyp = errorTyp || undefined
@@ -1058,23 +1052,20 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
     const {messageMap} = draftState
 
-    const map = messageMap.get(conversationIDKey)
-    if (map) {
-      const m: any = map.get(targetOrdinal)
-      if (m && Constants.isMessageWithReactions(m)) {
-        const reactions = m.reactions
-        const rs = reactions.get(emoji) || new Set()
-        reactions.set(emoji, rs)
-        const existing = [...rs].find(r => r.username === username)
-        if (existing) {
-          // found an existing reaction. remove it from our list
-          rs.delete(existing)
-        }
-        // no existing reaction. add this one to the map
-        rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
-        if (rs.size === 0) {
-          reactions.delete(emoji)
-        }
+    const m = messageMap.get(conversationIDKey)?.get(targetOrdinal)
+    if (m && Constants.isMessageWithReactions(m)) {
+      const reactions = m.reactions
+      const rs = reactions.get(emoji) || new Set()
+      reactions.set(emoji, rs)
+      const existing = [...rs].find(r => r.username === username)
+      if (existing) {
+        // found an existing reaction. remove it from our list
+        rs.delete(existing)
+      }
+      // no existing reaction. add this one to the map
+      rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
+      if (rs.size === 0) {
+        reactions.delete(emoji)
       }
     }
   },
@@ -1228,9 +1219,27 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.staticConfigLoaded]: (draftState, action) => {
     draftState.staticConfig = action.payload.staticConfig
   },
+  [Chat2Gen.loadedMutualTeams]: (draftState, action) => {
+    const {conversationIDKey, teamIDs} = action.payload
+    const {mutualTeamMap} = draftState
+    mutualTeamMap.set(conversationIDKey, teamIDs)
+  },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
       draftState.participantMap.set(part.conversationIDKey, part.participants)
+    })
+  },
+  [EngineGen.chat1NotifyChatChatParticipantsInfo]: (draftState, action) => {
+    const {participants: participantMap} = action.payload.params
+    Object.keys(participantMap).forEach(convIDStr => {
+      const participants = participantMap[convIDStr]
+      const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
+      if (participants) {
+        draftState.participantMap.set(
+          conversationIDKey,
+          Constants.uiParticipantsToParticipantInfo(participants)
+        )
+      }
     })
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
@@ -1271,12 +1280,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     accountsInfoMap.set(conversationIDKey, convMap)
     convMap.set(messageID, requestInfo)
   },
-  [Chat2Gen.handleSeeingWallets]: draftState => {
-    draftState.isWalletsNew = false
-  },
-  [Chat2Gen.setWalletsOld]: draftState => {
-    draftState.isWalletsNew = false
-  },
   [Chat2Gen.updateUserReacjis]: (draftState, action) => {
     const {skinTone, topReacjis} = action.payload.userReacjis
     draftState.userReacjis.skinTone = skinTone
@@ -1292,8 +1295,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {messageMap} = draftState
 
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (m && m.type === 'text') {
+    const m = map?.get(ordinal)
+    if (m?.type === 'text') {
       m.submitState = 'deleting'
     }
   },
@@ -1301,9 +1304,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
 
-    const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (m && m.type === 'text') {
+    const m = messageMap.get(conversationIDKey)?.get(ordinal)
+    if (m?.type === 'text') {
       m.submitState = 'editing'
     }
   },
@@ -1319,9 +1321,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       messageID
     )
     if (ordinal) {
-      const map = messageMap.get(conversationIDKey)
-      const m = map && map.get(ordinal)
-      if (m && m.type === 'text') {
+      const m = messageMap.get(conversationIDKey)?.get(ordinal)
+      if (m?.type === 'text') {
         m.text = text
         m.hasBeenEdited = true
         m.submitState = undefined
@@ -1335,9 +1336,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, ordinal, text} = action.payload
     const {messageMap} = draftState
 
-    const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (m && m.type === 'text') {
+    const m = messageMap.get(conversationIDKey)?.get(ordinal)
+    if (m?.type === 'text') {
       m.text = text
     }
   },

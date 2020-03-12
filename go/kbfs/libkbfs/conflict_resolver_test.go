@@ -37,7 +37,7 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	id := tlf.FakeID(1, tlf.Private)
 	fbo := newFolderBranchOps(ctx, env.EmptyAppStateUpdater{}, config,
 		data.FolderBranch{Tlf: id, Branch: data.MasterBranch}, standard,
-		nil, nil, nil, nil)
+		nil, nil, nil)
 	// usernames don't matter for these tests
 	config.mockKbpki.EXPECT().GetNormalizedUsername(
 		gomock.Any(), gomock.Any(), gomock.Any()).
@@ -1496,7 +1496,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 			mergedRootPath.TailPointer())
 	} else if len(blocks) != 1 {
 		t.Errorf("Unexpected number of blocks")
-	} else if fblock, ok := blocks[mergedName]; !ok {
+	} else if fblock, ok := blocks[data.NewPathPartString(mergedName, nil)]; !ok {
 		t.Errorf("No block for name %s", mergedName)
 	} else if fblock.IsInd {
 		t.Errorf("Unexpected indirect block")

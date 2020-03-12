@@ -228,6 +228,7 @@ const (
 const (
 	SCOk                                        = int(keybase1.StatusCode_SCOk)
 	SCInputError                                = int(keybase1.StatusCode_SCInputError)
+	SCAssertionParseError                       = int(keybase1.StatusCode_SCAssertionParseError)
 	SCLoginRequired                             = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession                                = int(keybase1.StatusCode_SCBadSession)
 	SCNoSession                                 = int(keybase1.StatusCode_SCNoSession)
@@ -279,6 +280,7 @@ const (
 	SCSibkeyAlreadyExists                       = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCSigCreationDisallowed                     = int(keybase1.StatusCode_SCSigCreationDisallowed)
 	SCDecryptionKeyNotFound                     = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
+	SCVerificationKeyNotFound                   = int(keybase1.StatusCode_SCVerificationKeyNotFound)
 	SCBadTrackSession                           = int(keybase1.StatusCode_SCBadTrackSession)
 	SCDeviceBadName                             = int(keybase1.StatusCode_SCDeviceBadName)
 	SCDeviceBadStatus                           = int(keybase1.StatusCode_SCDeviceBadStatus)
@@ -311,6 +313,7 @@ const (
 	SCWrongCryptoFormat                         = int(keybase1.StatusCode_SCWrongCryptoFormat)
 	SCGPGUnavailable                            = int(keybase1.StatusCode_SCGPGUnavailable)
 	SCDecryptionError                           = int(keybase1.StatusCode_SCDecryptionError)
+	SCWrongCryptoMsgType                        = int(keybase1.StatusCode_SCWrongCryptoMsgType)
 	SCChatInternal                              = int(keybase1.StatusCode_SCChatInternal)
 	SCChatRateLimit                             = int(keybase1.StatusCode_SCChatRateLimit)
 	SCChatConvExists                            = int(keybase1.StatusCode_SCChatConvExists)
@@ -326,6 +329,7 @@ const (
 	SCChatStalePreviousState                    = int(keybase1.StatusCode_SCChatStalePreviousState)
 	SCChatEphemeralRetentionPolicyViolatedError = int(keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError)
 	SCMerkleClientError                         = int(keybase1.StatusCode_SCMerkleClientError)
+	SCMerkleUpdateRoot                          = int(keybase1.StatusCode_SCMerkleUpdateRoot)
 	SCBadEmail                                  = int(keybase1.StatusCode_SCBadEmail)
 	SCIdentifySummaryError                      = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey                             = int(keybase1.StatusCode_SCNeedSelfRekey)
@@ -406,7 +410,8 @@ const (
 	LinkTypeWebServiceBinding LinkType = "web_service_binding"
 	LinkTypePerUserKey        LinkType = "per_user_key"
 	LinkTypeWalletStellar     LinkType = "wallet.stellar"
-	LinkTypeWotAttest         LinkType = "wot.attest"
+	LinkTypeWotVouch          LinkType = "wot.vouch"
+	LinkTypeWotReact          LinkType = "wot.react"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
@@ -594,12 +599,15 @@ const (
 )
 
 const (
-	ServiceLogFileName = "keybase.service.log"
-	EKLogFileName      = "keybase.ek.log"
-	KBFSLogFileName    = kbconst.KBFSLogFileName
-	GitLogFileName     = "keybase.git.log"
-	UpdaterLogFileName = "keybase.updater.log"
-	GUILogFileName     = "Keybase.app.log"
+	ServiceLogFileName  = "keybase.service.log"
+	EKLogFileName       = "keybase.ek.log"
+	PerfLogFileName     = "keybase.perf.log"
+	KBFSLogFileName     = kbconst.KBFSLogFileName
+	KBFSPerfLogFileName = "keybase.kbfs.perf.log"
+	GitLogFileName      = "keybase.git.log"
+	GitPerfLogFileName  = "keybase.git.perf.log"
+	UpdaterLogFileName  = "keybase.updater.log"
+	GUILogFileName      = "Keybase.app.log"
 	// StartLogFileName is where services can log to (on startup) before they handle their own logging
 	StartLogFileName = "keybase.start.log"
 )
@@ -776,4 +784,13 @@ const (
 	LoginAttemptNone    LoginAttempt = 0
 	LoginAttemptOffline LoginAttempt = 1
 	LoginAttemptOnline  LoginAttempt = 2
+)
+
+const (
+	// Do not fetch the merkle root again if it was fetched within this
+	// threshold. Note that the server can always not tell us about a new root
+	// even if we set this threshold to a very short value (unless we learn
+	// about it otherwise), and that if we poll an honest server will tell us if
+	// we should update the root (which will override this threshold).
+	DefaultMerkleRootFreshness = 1 * time.Minute
 )

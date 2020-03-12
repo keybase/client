@@ -50,8 +50,8 @@ type Props = {
   hotkey?: 'f' | 'k' | null // desktop only,
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
-  onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
-  onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyDown?: (event: React.KeyboardEvent) => void
+  onKeyUp?: (event: React.KeyboardEvent) => void
   onKeyPress?: (event: {
     nativeEvent: {
       key: 'Enter' | 'Backspace' | string
@@ -101,9 +101,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.inputRef.current && this.inputRef.current.blur()
   }
   private clear = () => {
-    if (!this.props.valueControlled) {
-      this.update('')
-    }
+    this.update('')
   }
   private cancel = (e?: any) => {
     this.blur()
@@ -119,9 +117,9 @@ class SearchFilter extends React.PureComponent<Props, State> {
   private onHotkey = (cmd: string) => {
     this.props.hotkey && cmd.endsWith('+' + this.props.hotkey) && this.focus()
   }
-  private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
-    e.key === 'Escape' && !isComposingIME && this.cancel(e)
-    this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
+  private onKeyDown = (e: React.KeyboardEvent) => {
+    e.key === 'Escape' && this.cancel(e)
+    this.props.onKeyDown && this.props.onKeyDown(e)
   }
   private typing = () => this.state.focused || !!this.text()
   // RN fails at tracking this keyboard if we don't delay this, making it get stuck open.

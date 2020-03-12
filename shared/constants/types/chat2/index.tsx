@@ -8,6 +8,7 @@ import * as TeamBuildingTypes from '../team-building'
 import * as Team from '../teams'
 import HiddenString from '../../../util/hidden-string'
 import {AmpTracker} from '../../../chat/audio/amptracker'
+import * as ChatInboxRowTypes from './rowitem'
 
 export type QuoteInfo = {
   // Always positive and monotonically increasing.
@@ -195,7 +196,7 @@ export type State = {
     RPCChatTypes.UIBotCommandsUpdateStatusTyp
   >
   readonly botPublicCommands: Map<string, BotPublicCommands>
-  readonly botSearchResults?: BotSearchResults
+  readonly botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
   readonly botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   readonly botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | null>>
   readonly channelSearchText: string
@@ -221,10 +222,8 @@ export type State = {
   readonly inboxHasLoaded: boolean // if we've ever loaded,
   readonly inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   readonly inboxSearch?: InboxSearchInfo
-  readonly inboxShowNew: boolean // mark search as new,
   readonly infoPanelShowing: boolean
   readonly infoPanelSelectedTab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
-  readonly isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   readonly lastCoord?: Coordinate
   readonly maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   readonly messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
@@ -233,6 +232,7 @@ export type State = {
   readonly metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   readonly moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   readonly mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
+  readonly mutualTeamMap: Map<Common.ConversationIDKey, Array<Team.TeamID>>
   readonly orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   readonly participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   readonly paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
@@ -330,3 +330,12 @@ export {
   stringToOutboxID,
 } from './message'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'
+
+export type ChatInboxRowItemSmall = ChatInboxRowTypes.ChatInboxRowItemSmall
+export type ChatInboxRowItemBigTeamsLabel = ChatInboxRowTypes.ChatInboxRowItemBigTeamsLabel
+export type ChatInboxRowItemBigHeader = ChatInboxRowTypes.ChatInboxRowItemBigHeader
+export type ChatInboxRowItemBig = ChatInboxRowTypes.ChatInboxRowItemBig
+export type ChatInboxRowItemDivider = ChatInboxRowTypes.ChatInboxRowItemDivider
+export type ChatInboxRowItemTeamBuilder = ChatInboxRowTypes.ChatInboxRowItemTeamBuilder
+export type ChatInboxRowItem = ChatInboxRowTypes.ChatInboxRowItem
+export type ChatInboxRowType = ChatInboxRowTypes.ChatInboxRowType

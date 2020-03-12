@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -35,7 +34,7 @@ type baseLocalizer struct {
 func newBaseLocalizer(g *globals.Context, pipeline *localizerPipeline) *baseLocalizer {
 	return &baseLocalizer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseLocalizer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "baseLocalizer", false),
 		pipeline:     pipeline,
 	}
 }
@@ -74,7 +73,7 @@ func newBlockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
 	localizeCb chan types.AsyncInboxResult) *blockingLocalizer {
 	return &blockingLocalizer{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "blockingLocalizer", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "blockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g, pipeline),
 		localizeCb:    localizeCb,
 	}
@@ -117,7 +116,7 @@ func newNonblockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
 	localizeCb chan types.AsyncInboxResult) *nonBlockingLocalizer {
 	return &nonBlockingLocalizer{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "nonBlockingLocalizer", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "nonBlockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g, pipeline),
 		localizeCb:    localizeCb,
 	}
@@ -281,7 +280,7 @@ type localizerPipeline struct {
 func newLocalizerPipeline(g *globals.Context) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "localizerPipeline", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "localizerPipeline", false),
 		stopCh:       make(chan struct{}),
 		cancelChs:    make(map[string]chan struct{}),
 	}
@@ -689,7 +688,7 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 	}
 	body := pinMessage.Valid().MessageBody
 	pinnedMsgID := body.Pin().MsgID
-	messages, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{pinnedMsgID}, nil)
+	messages, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{pinnedMsgID}, nil, nil)
 	if err != nil {
 		return pinnedMsg, pinnerUsername, false, nil
 	}
@@ -788,8 +787,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		// Fetch max messages unboxed, using either a custom function or through
 		// the conversation source configured in the global context
 		var summaries []chat1.MessageSummary
-		snippetSummary, err := utils.PickLatestMessageSummary(conversationRemote,
-			append(chat1.VisibleChatMessageTypes(), chat1.MessageType_DELETEHISTORY))
+		snippetSummary, err := utils.PickLatestMessageSummary(conversationRemote, chat1.SnippetChatMessageTypes())
 		if err == nil {
 			summaries = append(summaries, snippetSummary)
 		}
@@ -814,7 +812,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 		msgs, err := s.G().ConvSource.GetMessages(ctx, conversationRemote,
-			uid, utils.PluckMessageIDs(summaries), nil)
+			uid, utils.PluckMessageIDs(summaries), nil, nil)
 		if !s.isErrPermanent(err) {
 			errTyp = chat1.ConversationErrorType_TRANSIENT
 		}
@@ -852,12 +850,12 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	var maxValidID chat1.MessageID
 	s.Debug(ctx, "localizing %d max msgs", len(maxMsgs))
 	for _, mm := range maxMsgs {
-		if mm.IsValid() && (mm.IsVisible() || mm.GetMessageType() == chat1.MessageType_DELETEHISTORY) {
-			if conversationLocal.Info.SnippetMsg == nil ||
-				conversationLocal.Info.SnippetMsg.GetMessageID() < mm.GetMessageID() {
-				conversationLocal.Info.SnippetMsg = new(chat1.MessageUnboxed)
-				*conversationLocal.Info.SnippetMsg = mm
-			}
+		if mm.IsValid() &&
+			utils.IsSnippetChatMessageType(mm.GetMessageType()) &&
+			(conversationLocal.Info.SnippetMsg == nil ||
+				conversationLocal.Info.SnippetMsg.GetMessageID() < mm.GetMessageID()) {
+			conversationLocal.Info.SnippetMsg = new(chat1.MessageUnboxed)
+			*conversationLocal.Info.SnippetMsg = mm
 		}
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
@@ -1000,25 +998,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// channel information for a team chat
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
-		var kuids []keybase1.UID
-		for _, uid := range conversationRemote.Metadata.AllList {
-			kuids = append(kuids, keybase1.UID(uid.String()))
-		}
-		conversationLocal.Info.ResetNames = s.getResetUsernamesMetadata(ctx, umapper, conversationRemote)
-		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
-			10*time.Second, true)
-		if err != nil {
-			s.Debug(ctx, "localizeConversation: team UIDMapper returned an error: %s", err)
-		}
-		for _, row := range rows {
-			conversationLocal.Info.Participants = append(conversationLocal.Info.Participants,
-				utils.UsernamePackageToParticipant(row))
-		}
-		// Sort alphabetically
-		sort.Slice(conversationLocal.Info.Participants, func(i, j int) bool {
-			return conversationLocal.Info.Participants[i].Username <
-				conversationLocal.Info.Participants[j].Username
-		})
+		// do nothing
 	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		public := conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 		resetUsernamesPegboard, err := s.getResetUsernamesPegboard(ctx, umapper, membersType, info, public)

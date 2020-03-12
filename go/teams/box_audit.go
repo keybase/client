@@ -205,12 +205,26 @@ func (a *BoxAuditor) initMctx(mctx libkb.MetaContext) libkb.MetaContext {
 // caused.
 func (a *BoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error) {
 	mctx = a.initMctx(mctx)
-	defer mctx.TraceTimed(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
-
 	if !ShouldRunBoxAudit(mctx) {
 		mctx.Debug("Box auditor feature flagged off or not logged in; not auditing...")
 		return nil, nil
 	}
+	defer mctx.TraceTimed(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
+	defer mctx.PerfTrace(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Audited boxes for team %s", teamID)
+		} else {
+			message = fmt.Sprintf("Failed to box audit %s", teamID)
+		}
+		mctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_TEAMBOXAUDIT,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
 
 	lock := a.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
 	defer lock.Release(mctx.Ctx())
@@ -1184,7 +1198,6 @@ func (a *BoxAuditor) clearDelayedSlotForTeam(teamID keybase1.TeamID) {
 }
 
 func (a *BoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
-
 	mctx, shouldSkip := shouldSkipBasedOnRecursion(mctx)
 	if shouldSkip {
 		mctx.Debug("no re-scheduling a delayed box audit since we're calling recursively based on context")
@@ -1194,7 +1207,6 @@ func (a *BoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, te
 }
 
 func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
-
 	defer mctx.Trace(fmt.Sprintf("BoxAuditor#ScheduleDelayedBoxAuditTeam(%s)", teamID), func() error { return nil })()
 
 	if !a.getDelayedSlotForTeam(teamID) {
@@ -1206,11 +1218,7 @@ func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID 
 		// We don't fire this immediately since likely everyone else on the team is going to try the same thing;
 		// So randomly backoff and maybe someone is going to win, and we won't all race to fix it.
 		base := libkb.TeamBackoffBeforeAuditOnNeedRotate
-		dur, err := libkb.RandomJitter(base)
-		if err != nil {
-			dur = base
-			mctx.Info("Failed to get random jitter for sleep, just failing back to original duration")
-		}
+		dur := libkb.RandomJitter(base)
 		mctx.Debug("Sleeping %s random jitter before auditing the team", dur)
 		mctx.G().Clock().Sleep(dur)
 	}

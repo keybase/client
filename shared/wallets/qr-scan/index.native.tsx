@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
+import * as QR from '../../common-adapters/qr.native'
 import * as Styles from '../../styles'
 import {Props} from '.'
 
@@ -11,12 +12,12 @@ const QRScan = (props: Props) => (
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.topContainer} gap="small">
       <Kb.Box2 direction="vertical" style={styles.cameraContainer}>
-        <Kb.QRScanner
-          notAuthorizedView={<Kb.QRNotAuthorized />}
+        <QR.QRScanner
+          notAuthorizedView={<QR.QRNotAuthorized />}
           onBarCodeRead={data => props.onSubmitCode(data)}
           style={styles.camera}
         />
-        <Kb.QRLines canScan={true} color={Styles.globalColors.purpleLight} />
+        <QR.QRLines canScan={true} color={Styles.globalColors.purpleLight} />
       </Kb.Box2>
       <Kb.Text center={true} type="BodySemibold" style={styles.text}>
         Scan a Stellar QR code.

@@ -65,11 +65,16 @@
       "parentPath": "Types.Path",
       "localPath": "string"
     },
-    "uploadStarted": {
-      "path": "Types.Path"
+    "uploadFromDragAndDrop": {
+      "parentPath": "Types.Path",
+      "localPaths": "Array<string>"
     },
-    "uploadWritingSuccess": {
-      "path": "Types.Path"
+    "loadUploadStatus": {},
+    "loadedUploadStatus": {
+      "uploadStates": "Array<RPCTypes.UploadState>"
+    },
+    "dismissUpload": {
+      "uploadID": "string"
     },
     "journalUpdate": {
       "syncingPaths": "Array<Types.Path>",
@@ -170,8 +175,9 @@
       "path": "Types.Path"
     },
     "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
-    "setIncomingShareLocalPath": {
-      "localPath": "Types.LocalPath"
+    "setIncomingShareSource": {
+      "source": "Types.LocalPath | Array<RPCTypes.IncomingShareItem>",
+      "useOriginal": "boolean"
     },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "move": {"destinationParentPath": "Types.Path"},
@@ -179,6 +185,7 @@
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },
+    "checkKbfsDaemonRpcStatus": {},
     "waitForKbfsDaemon": {},
     "kbfsDaemonRpcStatusChanged": {
       "rpcStatus": "Types.KbfsDaemonRpcStatus"

@@ -26,6 +26,8 @@ func (s *NaclSigInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
 	return TagSignature, KeybasePacketV1
 }
 
+var _ Packetable = (*NaclSigInfo)(nil)
+
 type BadKeyError struct {
 	Msg string
 }
@@ -51,10 +53,6 @@ func newVerificationErrorWithString(s string) VerificationError {
 func NewVerificationError(e error) VerificationError {
 	return VerificationError{Cause: e}
 }
-
-const (
-	SCSigCannotVerify = int(keybase1.StatusCode_SCSigCannotVerify)
-)
 
 func (e VerificationError) Error() string {
 	if e.Cause == nil {
@@ -194,4 +192,13 @@ func NaclVerifyWithPayload(sig string, payloadIn []byte) (nk *NaclSigningKeyPubl
 	}
 
 	return nk, fullBody, nil
+}
+
+func (s NaclSigInfo) SigID() (ret keybase1.SigIDBase, err error) {
+	var body []byte
+	body, err = EncodePacketToBytes(&s)
+	if err != nil {
+		return "", err
+	}
+	return ComputeSigIDFromSigBody(body), nil
 }

@@ -67,9 +67,6 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 		}
 	}
 	attempt(1)
-	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	attempt(2)
 	mctx := libkb.NewMetaContextForTest(tc)
 	err = u.Shutdown(mctx)
 	require.NoError(t, err)

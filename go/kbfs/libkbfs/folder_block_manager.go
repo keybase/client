@@ -1079,8 +1079,35 @@ func (fbm *folderBlockManager) isQRNecessary(
 	//   * The head has changed since last time, OR
 	//   * The last QR did not completely clean every available thing, OR
 	//   * The head is now old enough for QR
-	return head.Revision() != fbm.lastQRHeadRev || !fbm.wasLastQRComplete ||
-		fbm.isOldEnough(head)
+	isNecessary := head.Revision() != fbm.lastQRHeadRev ||
+		!fbm.wasLastQRComplete || fbm.isOldEnough(head)
+	if !isNecessary {
+		return false
+	}
+
+	// Make sure the root block of the TLF is readable.  If not, we
+	// don't want to to garbage collect, since we might need to
+	// recover to those older versions of the TLF.
+	headRootPtr := head.data.Dir.BlockPointer
+	ch := fbm.config.BlockOps().BlockRetriever().Request(
+		ctx, defaultOnDemandRequestPriority, head, headRootPtr,
+		data.NewDirBlock(), data.TransientEntry, BlockRequestSolo)
+	select {
+	case err := <-ch:
+		if err != nil {
+			fbm.log.CWarningf(
+				ctx, "Couldn't fetch root block %v for TLF %s: %+v",
+				headRootPtr, head.TlfID(), err)
+			return false
+		}
+	case <-ctx.Done():
+		fbm.log.CDebugf(
+			ctx, "Couldn't fetch root block %v for TLF %s: %+v",
+			headRootPtr, head.TlfID(), ctx.Err())
+		return false
+	}
+
+	return true
 }
 
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
@@ -1443,7 +1470,7 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 		fbm.log.CDebugf(ctx, "Done cleaning %s: %+v", cacheType, err)
 	}()
 	for nextRev := lastRev + 1; nextRev <= recentRev; nextRev++ {
-		rmd, err := getSingleMD(
+		rmd, err := GetSingleMD(
 			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, nextRev,
 			kbfsmd.Merged, nil)
 		if err != nil {

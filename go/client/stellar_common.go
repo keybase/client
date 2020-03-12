@@ -127,10 +127,10 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, d
 	}
 	switch {
 	case p.Status == "":
-	case cicmp(p.Status, "completed"):
+	case strings.EqualFold(p.Status, "completed"):
 	default:
 		color := "red"
-		if cicmp(p.Status, "claimable") {
+		if strings.EqualFold(p.Status, "claimable") {
 			color = "yellow"
 		}
 		lineUnescaped("Status: %v", ColorString(g, color, p.Status))
@@ -149,12 +149,11 @@ func printPaymentFilterNote(note string) string {
 	return strings.TrimSpace(lines[0])
 }
 
-func cicmp(a, b string) bool {
-	return strings.ToLower(a) == strings.ToLower(b)
-}
-
 func transformStellarCLIError(err *error) {
 	if err == nil {
+		return
+	}
+	if *err == nil {
 		return
 	}
 	switch e := (*err).(type) {

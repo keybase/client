@@ -446,6 +446,10 @@
         {
           "type": "Path",
           "name": "dest"
+        },
+        {
+          "type": "boolean",
+          "name": "overwriteExistingFiles"
         }
       ]
     },
@@ -464,6 +468,10 @@
         {
           "type": "Path",
           "name": "dest"
+        },
+        {
+          "type": "boolean",
+          "name": "overwriteExistingFiles"
         }
       ]
     },
@@ -809,7 +817,8 @@
         "DOWNLOAD_STATUS_3",
         "FILES_TAB_BADGE_4",
         "OVERALL_SYNC_STATUS_5",
-        "SETTINGS_6"
+        "SETTINGS_6",
+        "UPLOAD_STATUS_7"
       ]
     },
     {
@@ -901,6 +910,31 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UploadState",
+      "fields": [
+        {
+          "type": "string",
+          "name": "uploadID"
+        },
+        {
+          "type": "KBFSPath",
+          "name": "targetPath"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": "boolean",
+          "name": "canceled"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "FilesTabBadge",
       "symbols": [
@@ -937,6 +971,76 @@
         {
           "type": "string",
           "name": "url"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSSearchHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSSearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "SimpleFSSearchHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "int",
+          "name": "nextResult"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IndexProgressRecord",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesSoFar"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSIndexProgress",
+      "fields": [
+        {
+          "type": "IndexProgressRecord",
+          "name": "overallProgress"
+        },
+        {
+          "type": "Folder",
+          "name": "currFolder"
+        },
+        {
+          "type": "IndexProgressRecord",
+          "name": "currProgress"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Folder"
+          },
+          "name": "foldersLeft"
         }
       ]
     }
@@ -1035,10 +1139,14 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "overwriteExistingFiles",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin copy of file or directory"
+      "doc": "Begin copy of file or directory."
     },
     "simpleFSSymlink": {
       "request": [
@@ -1067,10 +1175,14 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "overwriteExistingFiles",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin recursive copy of directory"
+      "doc": "Begin recursive copy of directory \n\n   overwriteExistingFiles controls whether an existing file from `src` will\n   overwrite a file with the same name in `dest`; if `false`, an error will be\n   returned in that case.  For directories that share a name, the copy will\n   continue recursively into the directory without causing an error."
     },
     "simpleFSMove": {
       "request": [
@@ -1085,6 +1197,10 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "overwriteExistingFiles",
+          "type": "boolean"
         }
       ],
       "response": null,
@@ -1613,6 +1729,48 @@
       ],
       "response": null
     },
+    "simpleFSMakeTempDirForUpload": {
+      "request": [],
+      "response": "string"
+    },
+    "simpleFSStartUpload": {
+      "request": [
+        {
+          "name": "sourceLocalPath",
+          "type": "string"
+        },
+        {
+          "name": "targetParentPath",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSGetUploadStatus": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "UploadState"
+      }
+    },
+    "simpleFSCancelUpload": {
+      "request": [
+        {
+          "name": "uploadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSDismissUpload": {
+      "request": [
+        {
+          "name": "uploadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "simpleFSGetFilesTabBadge": {
       "request": [],
       "response": "FilesTabBadge"
@@ -1643,6 +1801,31 @@
         }
       ],
       "response": null
+    },
+    "simpleFSSearch": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "numResults",
+          "type": "int"
+        },
+        {
+          "name": "startingFrom",
+          "type": "int"
+        }
+      ],
+      "response": "SimpleFSSearchResults"
+    },
+    "simpleFSResetIndex": {
+      "request": [],
+      "response": null
+    },
+    "simpleFSGetIndexProgress": {
+      "request": [],
+      "response": "SimpleFSIndexProgress"
     }
   },
   "namespace": "keybase.1"

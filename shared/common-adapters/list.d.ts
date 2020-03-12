@@ -21,4 +21,7 @@ export type Props<Item> = {
   reAnimated?: boolean // mobile only, make list animated
 }
 
+/**
+ * Semi deprecated. Use list2 if your items are a fixed height
+ */
 export default class List<Item> extends React.Component<Props<Item>> {}

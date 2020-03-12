@@ -14,6 +14,7 @@ import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useNavigationEvents} from '../util/navigation-hooks'
+import flags from '../util/feature-flags'
 
 type OwnProps = {}
 
@@ -29,7 +30,7 @@ const useHeaderActions = (): HeaderActionProps => {
     onCreateTeam: () => {
       dispatch(
         nav.safeNavigateAppendPayload({
-          path: ['teamNewTeamDialog'],
+          path: [flags.teamsRedesign ? 'teamWizard1TeamPurpose' : 'teamNewTeamDialog'],
         })
       )
     },
@@ -86,6 +87,7 @@ const Reloadable = (props: ReloadableProps) => {
     </Kb.Reloadable>
   )
 }
+
 Reloadable.navigationOptions = {
   header: undefined,
   headerRightActions: () => <ConnectedHeaderRightActions />,

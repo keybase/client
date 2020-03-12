@@ -38,6 +38,10 @@ class List2<T> extends PureComponent<Props<T>> {
       return String(index)
     }
 
+    if (this.props.itemAsKey) {
+      return item
+    }
+
     const keyProp = this.props.keyProperty || 'key'
     return item[keyProp]
   }

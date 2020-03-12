@@ -40,21 +40,33 @@ type Props = {
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
-  mode: 'Default' | 'Wide'
+  mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
+  noScrollView?: boolean
+  backgroundStyle?: Styles.StylesCrossPlatform
+
+  // Desktop only popup overrides
+  popupStyleClose?: Styles.StylesCrossPlatform
+  popupStyleContainer?: Styles.StylesCrossPlatform
+  popupStyleCover?: Styles.StylesCrossPlatform
+  popupTabBarShim?: boolean
 }
 
 const ModalInner = (props: Props) => (
   <>
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
-    <Kb.ScrollView
-      alwaysBounceVertical={false}
-      style={styles.scroll}
-      contentContainerStyle={styles.scrollContentContainer}
-    >
-      {props.children}
-    </Kb.ScrollView>
+    {props.noScrollView ? (
+      props.children
+    ) : (
+      <Kb.ScrollView
+        alwaysBounceVertical={false}
+        style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
+        contentContainerStyle={styles.scrollContentContainer}
+      >
+        {props.children}
+      </Kb.ScrollView>
+    )}
     {!!props.footer && (
       <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
     )}
@@ -69,9 +81,13 @@ const Modal = (props: Props) =>
     <PopupDialog
       onClose={props.onClose}
       styleClipContainer={Styles.collapseStyles([
-        props.mode === 'Default' ? styles.modeDefault : styles.modeWide,
+        clipContainerStyles[props.mode],
         props.allowOverflow && styles.overflowVisible,
       ])}
+      styleClose={props.popupStyleClose}
+      styleContainer={props.popupStyleContainer}
+      styleCover={props.popupStyleCover}
+      tabBarShim={props.popupTabBarShim}
     >
       <ModalInner {...props} />
     </PopupDialog>
@@ -269,6 +285,13 @@ const styles = Styles.styleSheetCreate(() => {
         width: 400,
       },
     }),
+    modeDefaultFullHeight: Styles.platformStyles({
+      isElectron: {
+        height: 560,
+        overflow: 'hidden',
+        width: 400,
+      },
+    }),
     modeWide: Styles.platformStyles({
       isElectron: {
         height: 400,
@@ -293,6 +316,12 @@ const styles = Styles.styleSheetCreate(() => {
     }),
   }
 })
+
+const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
+  Default: styles.modeDefault,
+  DefaultFullHeight: styles.modeDefaultFullHeight,
+  Wide: styles.modeWide,
+}
 
 export default Modal
 export {Header}

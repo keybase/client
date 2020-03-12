@@ -335,7 +335,7 @@ class SimpleMarkdownComponent extends PureComponent<
           this.props.style,
           styleOverride.preview,
         ])}
-        lineClamp={1}
+        lineClamp={1 as const}
       >
         {output}
       </Text>

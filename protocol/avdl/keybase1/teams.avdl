@@ -100,6 +100,11 @@ protocol teams {
   @typedef("string")
   record TeamInviteID {}
 
+  // "max_uses" field of team invite. Value can be positive or -1, not 0.
+  // -1 means infinite number of uses.
+  @typedef("int")
+  record TeamInviteMaxUses {}
+
   record ReaderKeyMask {
     TeamApplication application;
     PerTeamKeyGeneration generation;
@@ -195,7 +200,7 @@ protocol teams {
 
   record UntrustedTeamInfo {
     TeamName name;
-    boolean inTeam; 
+    boolean inTeam;
     boolean open;
     string description;
     array<string> publicAdmins;
@@ -208,6 +213,11 @@ protocol teams {
   @typedef("string")
   record UserVersionPercentForm {}
 
+  record TeamUsedInvite {
+    TeamInviteID inviteID;
+    UserVersionPercentForm uv;
+  }
+
   record TeamChangeReq {
     array<UserVersion> owners;
     array<UserVersion> admins;
@@ -216,7 +226,13 @@ protocol teams {
     array<UserVersion> bots;
     map<UserVersion, TeamBotSettings> restrictedBots;
     array<UserVersion> none;
+    // If added UserVersion completes an invite, store the inviteID->UV mapping
+    // here.
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
+    // If added UserVersion uses a multi-use invite, store the inviteID->UV pair
+    // here. This only applies to multi-use invites (invites with max_uses field).
+    // Any other invite should use completedInvites.
+    array<TeamUsedInvite> usedInvites;
   }
 
   record TeamPlusApplicationKeys {
@@ -588,7 +604,8 @@ protocol teams {
     EMAIL_3,
     SBS_4,
     SEITAN_5,
-    PHONE_6
+    PHONE_6,
+    INVITELINK_7
   }
 
   variant TeamInviteType switch (TeamInviteCategory c) {
@@ -608,6 +625,8 @@ protocol teams {
     TeamInviteType type;
     TeamInviteName name;
     UserVersion inviter;
+    union { null, TeamInviteMaxUses } maxUses;
+    union { null, UnixTime } etime;
   }
 
   record AnnotatedTeamInvite {
@@ -714,6 +733,10 @@ protocol teams {
     // were obsoleted by a ChangeMembership link.
     map<TeamInviteID,TeamInvite> obsoleteInvites;
 
+    // Invite uses. If an invite can be used multiple times, usedInvite
+    // field is used, and this usage is saved here.
+    map<TeamInviteID,array<TeamUsedInviteLog>> usedInvites;
+
     // Whether this is an open team.
     boolean open;
     TeamRole openTeamJoinAs;
@@ -755,6 +778,12 @@ protocol teams {
     // The seqno at which the user became this role, and other important
     // details, like the last known MerkleRoot at that time.
     SignatureMetadata sigMeta;
+  }
+
+  record TeamUsedInviteLog {
+    UserVersion uv;
+    // index into TeamSigChainState.userLog[uv][]
+    int logPoint;
   }
 
   // A subteam got this name at this point in time.
@@ -886,6 +915,9 @@ protocol teams {
   record SeitanIKey {}
 
   @typedef("string")
+  record SeitanIKeyInvitelink {}
+
+  @typedef("string")
   record SeitanPubKey {}
 
   // The secret shared with the recipient.
@@ -895,12 +927,14 @@ protocol teams {
 
   enum SeitanKeyAndLabelVersion {
     V1_1,
-    V2_2
+    V2_2,
+    Invitelink_3
   }
 
   variant SeitanKeyAndLabel switch (SeitanKeyAndLabelVersion v) {
     case V1: SeitanKeyAndLabelVersion1;
     case V2: SeitanKeyAndLabelVersion2;
+    case Invitelink: SeitanKeyAndLabelInvitelink;
     default: void;
   }
 
@@ -914,18 +948,29 @@ protocol teams {
     SeitanKeyLabel l;
   }
 
+  record SeitanKeyAndLabelInvitelink {
+    SeitanIKeyInvitelink i;
+    SeitanKeyLabel l;
+  }
+
   enum SeitanKeyLabelType {
-    SMS_1
+    SMS_1,
+    GENERIC_2
   }
 
   variant SeitanKeyLabel switch (SeitanKeyLabelType t) {
     case SMS: SeitanKeyLabelSms;
+    case GENERIC: SeitanKeyLabelGeneric;
     default: void;
   }
 
   record SeitanKeyLabelSms {
     string f; // FullName
     string n; // Number
+  }
+
+  record SeitanKeyLabelGeneric {
+    string l; // generic label
   }
 
   record TeamSeitanRequest {
@@ -1236,8 +1281,6 @@ protocol teams {
   // admin only
   array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);
 
-  void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
-
   TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string phone, string username,
     TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
@@ -1245,7 +1288,7 @@ protocol teams {
   TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
   record UserRolePair {
-    string assertionOrEmail;
+    string assertion;
     TeamRole role;
     union { null, TeamBotSettings } botSettings;
   }
@@ -1286,6 +1329,13 @@ protocol teams {
   TeamBotSettings teamGetBotSettings(int sessionID, string name, string username);
   void teamSetBotSettings(int sessionID, string name, string username, TeamBotSettings botSettings);
 
+  record UntrustedTeamExistsResult {
+    boolean exists;
+    StatusCode status;
+  }
+
+  UntrustedTeamExistsResult untrustedTeamExists(TeamName teamName);
+
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
 
   void teamAcceptInvite(int sessionID, string token);
@@ -1319,9 +1369,20 @@ protocol teams {
 
   void teamSetSettings(int sessionID, TeamID teamID, TeamSettings settings);
 
-  SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+  SeitanIKey teamCreateSeitanToken(int sessionID, string teamname, TeamRole role, SeitanKeyLabel label);
 
-  SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+  SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string teamname, TeamRole role, SeitanKeyLabel label);
+
+  record Invitelink {
+    SeitanIKeyInvitelink ikey;
+    string webLink;
+    string deepLink;
+    TeamInviteMaxUses maxUses;
+    union { null, UnixTime } etime;
+  }
+
+  Invitelink teamCreateSeitanInvitelink(int sessionID, string teamname, TeamRole role,
+    TeamInviteMaxUses maxUses, union { null, UnixTime } etime);
 
   record BulkRes {
     array<string> malformed;
@@ -1541,4 +1602,12 @@ protocol teams {
   }
 
   AnnotatedTeam getAnnotatedTeam(TeamID teamID);
+
+  record AnnotatedSubteamMemberDetails {
+    TeamName teamName;
+    TeamID teamID;
+    TeamMemberDetails details;
+    TeamRole role;
+  }
+  array<AnnotatedSubteamMemberDetails> getUserSubteamMemberships(TeamID teamID, string username);
 }

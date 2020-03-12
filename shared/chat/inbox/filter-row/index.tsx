@@ -23,8 +23,8 @@ export type Props = {
 class ConversationFilterInput extends React.PureComponent<Props> {
   private input = React.createRef<Kb.SearchFilter>()
 
-  private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
-    if (e.key === 'Escape' && !isComposingIME) {
+  private onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
       this.props.onStopSearch()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -100,6 +100,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         gap={Styles.isMobile ? 'small' : 'tiny'}
         style={Styles.collapseStyles([
           styles.containerNotFiltering,
+          Styles.isPhone ? null : Styles.isTablet && this.props.showSearch ? null : styles.whiteBg,
           !Styles.isMobile && styles.whiteBg,
           this.props.style,
         ])}
@@ -130,29 +131,31 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       containerFiltering: Styles.platformStyles({
-        common: {position: 'relative'},
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          position: 'relative',
+        },
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
           ...Styles.padding(0, Styles.globalMargins.small),
-          backgroundColor: Styles.globalColors.blueGrey,
           height: 39,
         },
         isMobile: {
           ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
-          backgroundColor: Styles.globalColors.fastBlank,
           height: 48,
         },
+        isPhone: {backgroundColor: Styles.globalColors.fastBlank},
       }),
       containerNotFiltering: Styles.platformStyles({
         common: {
+          backgroundColor: Styles.globalColors.blueGrey,
           height: undefined,
           position: 'relative',
         },
         isElectron: {
           ...Styles.padding(0, Styles.globalMargins.xtiny),
-          backgroundColor: Styles.globalColors.blueGrey,
         },
-        isMobile: {
+        isPhone: {
           backgroundColor: Styles.globalColors.white,
         },
       }),
@@ -210,10 +213,7 @@ const styles = Styles.styleSheetCreate(
             : 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
           borderRadius: 6,
         },
-        isMobile: {
-          backgroundColor: '#0dff0c',
-          borderRadius: 8,
-        },
+        isMobile: {borderRadius: 8},
       }),
       searchBox: Styles.platformStyles({
         common: {flex: 1},

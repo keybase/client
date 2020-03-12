@@ -100,7 +100,7 @@ const JoinedUserNotice = (props: Props) => (
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
       <Kb.Text type="BodySmall">
-        <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
+        <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage your notifications
         </Kb.Text>
         {` or `}
@@ -135,7 +135,7 @@ const AuthorAndAvatar = (props: {
         onUsernameClicked="profile"
         style={Styles.collapseStyles([props.authorIsYou && styles.usernameHighlighted])}
         type="BodySmallBold"
-        usernames={[props.username]}
+        usernames={props.username}
       />
       <Kb.Text type="BodyTiny" style={styles.timestamp}>
         {formatTimeForChat(props.timestamp)}

@@ -7,7 +7,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -50,7 +49,7 @@ func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	}
 	cur := s.G().CoinFlipManager.DescribeFlipText(ctx, text)
 	var usage string
-	if s.G().GetAppType() == libkb.MobileAppType {
+	if s.G().IsMobileAppType() {
 		usage = fmt.Sprintf(flipMobileUsage, "```", "```", cur)
 	} else {
 		usage = fmt.Sprintf(flipDesktopUsage, "```", "```", cur)

@@ -24,8 +24,8 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	t.Logf("Created team %q", teamName.String())
 
 	token, err := own.teamsClient.TeamCreateSeitanToken(context.Background(), keybase1.TeamCreateSeitanTokenArg{
-		Name: teamName.String(),
-		Role: keybase1.TeamRole_WRITER,
+		Teamname: teamName.String(),
+		Role:     keybase1.TeamRole_WRITER,
 	})
 	require.NoError(t, err)
 

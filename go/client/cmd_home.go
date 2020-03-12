@@ -6,12 +6,13 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"strings"
 )
 
 type CmdHome struct {
@@ -66,9 +67,9 @@ func NewCmdHomeRunner(g *libkb.GlobalContext) *CmdHome {
 
 func NewCmdHome(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "home",
-		// hide
-		// Usage: "Get and set the 'home' screen",
+		Name:     "home",
+		Usage:    "Get and set the 'home' screen",
+		Unlisted: true,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdHomeRunner(g), "home", c)
 		},

@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
 import * as Constants from '../../constants/config'
-import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import {Props as HeaderHocProps} from '../../common-adapters/header-hoc'
 export type AccountRowItem = {
   account: ConfigTypes.ConfiguredAccount
   fullName: string
@@ -136,7 +136,7 @@ export default Kb.HeaderHoc(AccountSwitcher)
 const styles = Styles.styleSheetCreate(() => ({
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
-    width: 200,
+    width: '100%',
   },
   divider: {width: '100%'},
   nameText: Styles.platformStyles({
@@ -145,7 +145,6 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   progressIndicator: {bottom: 0, position: 'absolute', right: 0},
   row: {
-    maxWidth: 200,
     paddingBottom: -Styles.globalMargins.small,
     paddingTop: -Styles.globalMargins.small,
   },

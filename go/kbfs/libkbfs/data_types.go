@@ -266,6 +266,14 @@ const (
 	// InitMemoryLimited is a mode where KBFS reads and writes data, but
 	// constrains its memory use even further.
 	InitMemoryLimited
+	// InitTestSearch is the same as the default mode, but with search
+	// enabled for synced TLFs.
+	InitTestSearch
+	// InitSingleOpWithQR is the same as InitSingleOp, except quota
+	// reclamation is enabled.  That way if the user of the mode
+	// writes data to a TLF that exclusive to the mode, it will still
+	// be QR'd.  (Example: the indexer.)
+	InitSingleOpWithQR
 )
 
 func (im InitModeType) String() string {
@@ -280,6 +288,10 @@ func (im InitModeType) String() string {
 		return InitConstrainedString
 	case InitMemoryLimited:
 		return InitMemoryLimitedString
+	case InitTestSearch:
+		return InitTestSearchString
+	case InitSingleOpWithQR:
+		return InitSingleOpWithQRString
 	default:
 		return "unknown"
 	}

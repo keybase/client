@@ -47,7 +47,7 @@ func (*testPacketable) GetTagAndVersion() (PacketTag, PacketVersion) {
 // ints.
 func TestHardcodedPacketEncode(t *testing.T) {
 	var nilPtr *testPacketable
-	p, err := newKeybasePacket(nilPtr)
+	p, err := newKeybasePacket(nilPtr, true)
 	require.NoError(t, err)
 
 	p.Hash = nil

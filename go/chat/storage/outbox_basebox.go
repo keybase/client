@@ -22,7 +22,7 @@ type outboxBaseboxStorage struct {
 func newOutboxBaseboxStorage(g *globals.Context, uid gregor1.UID) *outboxBaseboxStorage {
 	return &outboxBaseboxStorage{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "outboxBaseboxStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "outboxBaseboxStorage", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 	}
@@ -48,7 +48,7 @@ func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox,
 
 	if memobox := outboxMemCache.Get(s.uid); memobox != nil {
 		s.Debug(ctx, "hit in memory cache")
-		res = (*memobox).DeepCopy()
+		res = memobox.DeepCopy()
 	} else {
 		found, ierr := s.readDiskBox(ctx, s.dbKey(), &res)
 		if ierr != nil {

@@ -353,15 +353,6 @@ func MakeParentDirs(filename string) error {
 	return nil
 }
 
-func PickFirstError(errors ...error) error {
-	for _, e := range errors {
-		if e != nil {
-			return e
-		}
-	}
-	return nil
-}
-
 func (log *Standard) CloneWithAddedDepth(depth int) Logger {
 	clone := Standard{
 		filename:        log.filename,

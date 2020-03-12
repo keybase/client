@@ -35,10 +35,10 @@ func HandleNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generati
 // not have access. All team members are notified and race to publish the
 // requested key.
 func HandleTeambotEKNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	generation keybase1.EkGeneration) (err error) {
+	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) (err error) {
 	defer mctx.TraceTimed("HandleTeambotEKNeeded", func() error { return err })()
 	defer func() {
-		mctx.G().NotifyRouter.HandleTeambotEKNeeded(mctx.Ctx(), teamID, botUID, generation)
+		mctx.G().NotifyRouter.HandleTeambotEKNeeded(mctx.Ctx(), teamID, botUID, generation, forceCreateGen)
 	}()
 
 	ekLib := mctx.G().GetEKLib()
@@ -47,7 +47,13 @@ func HandleTeambotEKNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, botUI
 	}
 
 	// Bot user needs the latest key
-	if generation == 0 {
+	if forceCreateGen != nil {
+		// clear our caches here so we can force publish a key
+		ekLib.PurgeTeamEKCachesForTeamID(mctx, teamID)
+		ekLib.PurgeAllTeambotMetadataCaches(mctx)
+		_, _, err = ekLib.ForceCreateTeambotEK(mctx, teamID, botUID.ToBytes(), *forceCreateGen)
+		return err
+	} else if generation == 0 {
 		// clear our caches here so we can force publish a key
 		ekLib.PurgeTeamEKCachesForTeamID(mctx, teamID)
 		ekLib.PurgeAllTeambotMetadataCaches(mctx)

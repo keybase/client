@@ -3,12 +3,14 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {ImageRender} from './image-render'
 import {isMobile} from '../../../../../util/container'
+import {memoize} from '../../../../../util/memoize'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import {ShowToastAfterSaving} from '../shared'
 
 type Props = {
   arrowColor: string
+  downloadError: boolean
   hasProgress: boolean
   height: number
   isCollapsed: boolean
@@ -16,6 +18,7 @@ type Props = {
   onCollapse: () => void
   onShowInFinder?: (e: React.BaseSyntheticEvent) => void
   onDoubleClick: () => void
+  onRetry: () => void
   path: string
   fullPath: string
   fileName: string
@@ -42,10 +45,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
   state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false} as State
-  _setLoaded = () => this.setState({loaded: true})
-  _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
+  private setLoaded = () => this.setState({loaded: true})
+  private setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
 
-  _onClick = () => {
+  private onClick = () => {
     // Once the user clicks the inline video once, then just let the native controls handle everything else.
     if (this.state.playingVideo) {
       return
@@ -60,16 +63,21 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       this.props.onClick()
     }
   }
-  _onDoubleClick = () => {
+  private onDoubleClick = () => {
     if (this.props.inlineVideoPlayable && this.imageRef) {
       this.imageRef.pauseVideo()
     }
     this.props.onDoubleClick()
   }
 
+  private memoizedMeta = memoize((message: Props['message']) => {
+    return {message}
+  })
+
   render() {
     const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
     const mobileImageFilename = this.props.message.deviceType === 'mobile'
+
     return (
       <>
         <ShowToastAfterSaving transferState={this.props.transferState} />
@@ -105,8 +113,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 {!!this.props.path && (
                   <Kb.Box2 direction="vertical" alignItems="center">
                     <Kb.ClickableBox
-                      onClick={this._onClick}
-                      onDoubleClick={this._onDoubleClick}
+                      onClick={this.onClick}
+                      onDoubleClick={this.onDoubleClick}
                       onLongPress={this.props.toggleMessageMenu}
                     >
                       <Kb.Box2
@@ -125,8 +133,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           }}
                           src={this.props.path}
                           videoSrc={this.props.fullPath}
-                          onLoad={this._setLoaded}
-                          onLoadedVideo={this._setVideoLoaded}
+                          onLoad={this.setLoaded}
+                          onLoadedVideo={this.setVideoLoaded}
                           loaded={this.state.loaded}
                           inlineVideoPlayable={this.props.inlineVideoPlayable}
                           height={this.props.height}
@@ -184,7 +192,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         alignItems="flex-start"
                       >
                         <Kb.Markdown
-                          meta={{message: this.props.message}}
+                          meta={this.memoizedMeta(this.props.message)}
                           selectable={true}
                           allowFontScaling={true}
                         >
@@ -199,13 +207,21 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 )}
               </Kb.Box>
               <Kb.Box style={styles.progressContainer}>
-                {!this.props.onShowInFinder && (
+                {!this.props.onShowInFinder && !this.props.downloadError && (
                   <Kb.Text type="BodySmall" style={styles.progressLabel}>
                     {progressLabel ||
                       '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
                   </Kb.Text>
                 )}
                 {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
+                {this.props.downloadError && (
+                  <Kb.Text type="BodySmall" style={styles.downloadErrorLabel}>
+                    Failed to download.{' '}
+                    <Kb.Text type="BodySmall" style={styles.retry} onClick={this.props.onRetry}>
+                      Retry
+                    </Kb.Text>
+                  </Kb.Text>
+                )}
               </Kb.Box>
             </Kb.Box2>
           )}
@@ -246,6 +262,10 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
       },
+      downloadErrorLabel: {
+        color: Styles.globalColors.redDark,
+        marginRight: Styles.globalMargins.tiny,
+      },
       downloadIcon: {
         maxHeight: 14,
         position: 'relative',
@@ -269,6 +289,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: Styles.globalMargins.tiny,
       },
+
       durationText: {
         color: Styles.globalColors.white,
         paddingLeft: 3,
@@ -323,6 +344,10 @@ const styles = Styles.styleSheetCreate(
       progressLabel: {
         color: Styles.globalColors.black_50,
         marginRight: Styles.globalMargins.tiny,
+      },
+      retry: {
+        color: Styles.globalColors.redDark,
+        textDecorationLine: 'underline',
       },
       title: Styles.platformStyles({
         common: {

@@ -1,3 +1,4 @@
+declare var __HOT__: boolean
 declare var __REMOTEDEV__: boolean
 declare var __VERSION__: string
 declare var __STORYBOOK__: boolean
@@ -20,6 +21,23 @@ type RequestIdleCallbackOptions = {
 type RequestIdleCallbackDeadline = {
   readonly didTimeout: boolean
   timeRemaining: () => number
+}
+
+declare type KBElectronOpenDialogOptions = {
+  allowFiles?: boolean
+  allowDirectories?: boolean
+  allowMultiselect?: boolean
+  buttonLabel?: string
+  defaultPath?: string
+  message?: string
+  title?: string
+}
+
+declare type KBElectronSaveDialogOptions = {
+  title?: string
+  defaultPath?: string
+  buttonLabel?: string
+  message?: string
 }
 
 interface Window {
@@ -49,12 +67,27 @@ declare var KB: {
     app: {
       appPath: string
     }
+    dialog: {
+      showOpenDialog: (options: KBElectronOpenDialogOptions) => Promise<Array<string> | undefined>
+      showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
+    }
+  }
+  kb: {
+    darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
+    darwinCopyToChatTempUploadFile: (
+      p: string
+    ) => Promise<{
+      outboxID: Buffer
+      path: string
+    }>
+    setEngine: (e: any) => void
   }
   os: {
     homedir: string
   }
   path: {
     basename: (p: string, ext?: string) => string
+    dirname: (p: string) => string
     extname: (p: string) => string
     join: (...paths: Array<string>) => string
     resolve: (...pathSegments: Array<string>) => string

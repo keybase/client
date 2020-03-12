@@ -34,7 +34,7 @@ class TeamMention extends React.Component<Props, State> {
   }
 
   _onClick = () => {
-    if (!Styles.isMobile && this.props.onChat) {
+    if (this.props.onChat) {
       this.props.onChat()
     } else {
       this.setState({showPopup: true})
@@ -54,14 +54,14 @@ class TeamMention extends React.Component<Props, State> {
     const content = (
       <Kb.Text
         ref={this._mentionRef}
-        type="BodySemibold"
+        type="BodyBold"
         className={Styles.classNames({'hover-underline': !Styles.isMobile})}
         style={Styles.collapseStyles([this.props.style, styles.text])}
         allowFontScaling={this.props.allowFontScaling}
         onClick={this._onClick}
       >
         <Kb.Text
-          type="BodySemibold"
+          type="BodyBold"
           style={Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
           allowFontScaling={this.props.allowFontScaling}
         >
@@ -103,7 +103,7 @@ class TeamMention extends React.Component<Props, State> {
         </Kb.Box2>
       )
     ) : (
-      <Kb.Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+      <Kb.Text type="BodySemibold" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
         {text}
       </Kb.Text>
     )

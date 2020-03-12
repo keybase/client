@@ -44,7 +44,6 @@ const Filename = (props: Props) => {
           type={props.type}
           style={Styles.collapseStyles([props.style, styles.noShrink])}
           selectable={props.selectable}
-          lineClamp={0}
         >
           {fileExtension}
         </Kb.Text>

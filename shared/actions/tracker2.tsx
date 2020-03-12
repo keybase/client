@@ -2,11 +2,18 @@ import * as Tracker2Gen from './tracker2-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
 import * as UsersGen from './users-gen'
+import * as DeeplinksGen from './deeplinks-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
+
+const identify3UserReset = (action: EngineGen.Keybase1Identify3UiIdentify3UserResetPayload) =>
+  Tracker2Gen.createUpdateUserReset({
+    guiID: action.payload.params.guiID,
+  })
 
 const identify3Result = (action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
@@ -147,6 +154,20 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
   } catch (err) {
     if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
       yield Saga.put(Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'}))
+    } else if (err.code === RPCTypes.StatusCode.scnotfound) {
+      // we're on the profile page for a user that does not exist. Currently the only way
+      // to get here is with an invalid link or deeplink.
+      yield Saga.put(
+        DeeplinksGen.createSetKeybaseLinkError({
+          error: `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`,
+        })
+      )
+      yield Saga.put(RouteTreeGen.createNavigateUp())
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        })
+      )
     }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
@@ -319,6 +340,7 @@ function* tracker2Saga() {
 
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingChanged, refreshChanged)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3Result, identify3Result)
+  yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3UserReset, identify3UserReset)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3ShowTracker, identify3ShowTracker)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3UpdateRow, identify3UpdateRow)
   yield* Saga.chainAction2(EngineGen.connected, connected)

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
-import Text from '../text'
+import Text, {LineClampType} from '../text'
 import Box from '../box'
 import Emoji, {Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
@@ -139,7 +139,7 @@ const EmojiIfExists = React.memo(
     props: EmojiProps & {
       style?: any
       allowFontScaling?: boolean
-      lineClamp?: number
+      lineClamp?: LineClampType
     }
   ) => {
     const emojiNameLower = props.emojiName.toLowerCase()

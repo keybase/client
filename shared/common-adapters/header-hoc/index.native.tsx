@@ -6,7 +6,7 @@ import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
-import {Action, Props, LeftActionProps} from './types'
+import {Action, Props, LeftActionProps} from '.'
 import {hoistNonReactStatic} from '../../util/container'
 
 const MAX_RIGHT_ACTIONS = 3
@@ -107,10 +107,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       </Box>
     )
 
-    if (Styles.isAndroid) {
-      return header
-    }
-    return !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
+    return header
   }
 }
 
@@ -286,6 +283,9 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isIOS: {
       height: 44,
+    },
+    isTablet: {
+      height: 40 + Styles.headerExtraHeight,
     },
   }),
   innerWrapper: {

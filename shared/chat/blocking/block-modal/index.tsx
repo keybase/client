@@ -124,6 +124,9 @@ const ReportOptions = (props: ReportOptionsProps) => {
   )
 }
 
+// In order to have this play nicely with scrolling and keyboards, put all the stuff in a List.
+type Item = 'topStuff' | {username: string}
+
 class BlockModal extends React.PureComponent<Props, State> {
   state: State = {
     blockTeam: true,
@@ -324,6 +327,30 @@ class BlockModal extends React.PureComponent<Props, State> {
     const teamCheckboxDisabled = !!teamname && !this.props.otherUsernames?.length && !adderUsername
     const teamLabel = this.props.context === 'message-popup'
 
+    const topStuff = (
+      <React.Fragment key="topStuff">
+        {(!!teamname || !adderUsername) && (
+          <>
+            <CheckboxRow
+              text={`Leave and block ${teamname || 'this conversation'}`}
+              onCheck={this.setBlockTeam}
+              checked={this.state.blockTeam}
+              disabled={teamCheckboxDisabled}
+            />
+            <Kb.Divider />
+          </>
+        )}
+        {!!adderUsername && this.renderRowsForUsername(adderUsername, true, teamLabel)}
+        {!!this.props.otherUsernames?.length && (
+          <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
+            <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
+          </Kb.Box2>
+        )}
+      </React.Fragment>
+    )
+
+    var items: Array<Item> = ['topStuff']
+    this.props.otherUsernames?.forEach(username => items.push({username}))
     return (
       <Kb.Modal
         mode="Default"
@@ -340,35 +367,25 @@ class BlockModal extends React.PureComponent<Props, State> {
             />
           ),
         }}
+        noScrollView={true}
       >
-        {(!!teamname || !adderUsername) && (
-          <>
-            <CheckboxRow
-              text={`Leave and block ${teamname || 'this conversation'}`}
-              onCheck={this.setBlockTeam}
-              checked={this.state.blockTeam}
-              disabled={teamCheckboxDisabled}
-            />
-            <Kb.Divider />
-          </>
-        )}
-        {!!adderUsername && this.renderRowsForUsername(adderUsername, true, teamLabel)}
-        {!!this.props.otherUsernames?.length && (
-          <>
-            <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
-              <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
-            </Kb.Box2>
-            <Kb.List
-              items={this.props.otherUsernames}
-              renderItem={(idx, other) =>
-                this.renderRowsForUsername(other, idx + 1 === this.props.otherUsernames?.length)
-              }
-              style={
-                Styles.isMobile ? styles.grow : getListHeightStyle(this.props.otherUsernames?.length ?? 0)
-              }
-            />
-          </>
-        )}
+        <Kb.List
+          items={items}
+          renderItem={(idx: number, item: Item) =>
+            item === 'topStuff'
+              ? topStuff
+              : this.renderRowsForUsername(item.username, idx === this.props.otherUsernames?.length)
+          }
+          indexAsKey={true}
+          style={
+            Styles.isMobile
+              ? styles.grow
+              : getListHeightStyle(
+                  this.props.otherUsernames?.length ?? 0,
+                  !!this.props.adderUsername && this.getShouldReport(this.props.adderUsername)
+                )
+          }
+        />
       </Kb.Modal>
     )
   }
@@ -376,7 +393,19 @@ class BlockModal extends React.PureComponent<Props, State> {
 
 export default BlockModal
 
-const getListHeightStyle = (numOthers: number) => ({height: numOthers >= 3 ? 260 : numOthers * 120})
+const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
+  height:
+    120 +
+    (numOthers >= 1
+      ? // "Also block others" is 41px, every row is 2 * 40px rows + a 1px divider.
+        // We cap the count at 4 but even that is greater than the max modal height in Keybase.
+        41 + (numOthers >= 4 ? 4 : numOthers) * 81
+      : 0) +
+    (expanded
+      ? // When you expand the report menu, every option gets an 18px row + 54px for the extra notes + 40px transcript
+        reasons.length * 18 + 54 + 40
+      : 0),
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),

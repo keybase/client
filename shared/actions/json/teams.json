@@ -1,5 +1,6 @@
 {
   "prelude": [
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
@@ -9,6 +10,13 @@
       "role": "Types.TeamRoleType",
       "teams": "Array<string>",
       "user": "string"
+    },
+    "channelSetMemberSelected": {
+      "_description": "Sets whether a member is selected on the team page",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "username": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
     },
     "clearNavBadges": {},
     "createNewTeam": {
@@ -29,7 +37,8 @@
     "createChannel": {
       "teamID": "Types.TeamID",
       "channelname": "string",
-      "description": "string | null"
+      "description": "string | null",
+      "navToChatOnSuccess": "boolean"
     },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
@@ -48,6 +57,13 @@
     "getChannels": {
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamID": "Types.TeamID"
+    },
+    "setChannelSelected": {
+      "_description": "Sets whether a channel is selected on the team page",
+      "teamID": "Types.TeamID",
+      "channel": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
     },
     "getTeams": {
       "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
@@ -80,6 +96,13 @@
     "setMembers": {
       "teamID": "Types.TeamID",
       "members": "Map<string, Types.MemberInfo>"
+    },
+    "teamSetMemberSelected": {
+      "_description": "Sets whether a member is selected on the team page",
+      "teamID": "Types.TeamID",
+      "username": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
     },
     "getTeamProfileAddList": {
       "username": "string"
@@ -154,7 +177,7 @@
       "teamname": "string"
     },
     "editMembership": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "username": "string",
       "role": "Types.TeamRoleType"
     },
@@ -181,6 +204,9 @@
       "settings": "Types.PublicitySettings"
     },
     "setChannelCreationError": {
+      "error": "string"
+    },
+    "setWelcomeMessageError": {
       "error": "string"
     },
     "setEditDescriptionError": {
@@ -313,6 +339,45 @@
       "_description": "Toggle whether invites are collapsed in the member list for this team",
       "teamID": "Types.TeamID"
     },
+    "setWelcomeMessage": {
+      "_description": "Set welcome message for new team members",
+      "teamID": "Types.TeamID",
+      "message": "RPCChatTypes.WelcomeMessage"
+    },
+    "loadWelcomeMessage": {
+      "_description": "Load welcome message for new team members",
+      "teamID": "Types.TeamID"
+    },
+    "loadedWelcomeMessage": {
+      "_description": "Loaded welcome message for new team members",
+      "teamID": "Types.TeamID",
+      "message": "RPCChatTypes.WelcomeMessageDisplay"
+    },
+    "startAddMembersWizard": {
+      "_description": "Setup store and navigate to start of add members wizard.",
+      "teamID": "Types.TeamID"
+    },
+    "setAddMembersWizardRole": {
+      "_description": "Set the role for the add members wizard.",
+      "role": ["Types.TeamRoleType", "undefined"]
+    },
+    "addMembersWizardPushMembers": {
+      "_description": "Add pending members to the add members wizard and show the confirm screen.",
+      "members": "Array<Types.AddingMember>"
+    },
+    "addMembersWizardRemoveMember": {
+      "_description": "Remove a pending member from the add members wizard.",
+      "assertion": "string"
+    },
+    "cancelAddMembersWizard": {
+      "_description": "Nav away from add members wizard and clear related state."
+    },
+    "finishAddMembersWizard": {
+      "_description": "Nav away from add members wizard and clear related state."
+    },
+    "setJustFinishedAddMembersWizard": {
+      "justFinished": "boolean"
+    },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",
       "filter": "string",
@@ -322,6 +387,24 @@
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
+    },
+    "getMemberSubteamDetails": {
+      "teamID": "Types.TeamID",
+      "username": "string"
+    },
+    "setMemberSubteamDetails": {
+      "username": "string",
+      "memberships": "Map<Types.TeamID, Types.MemberInfo>"
+    },
+    "setTeamWizardTeamType": {
+      "teamType": "Types.TeamWizardTeamType"
+    },
+    "setTeamWizardNameDescription": {
+      "teamname": "string",
+      "description": "string",
+      "openTeam": "boolean",
+      "openTeamJoinRole": "Types.TeamRoleType",
+      "showcase": "boolean"
     }
   }
 }

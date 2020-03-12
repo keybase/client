@@ -5,9 +5,18 @@ import * as Types from '../../constants/types/crypto'
 import * as FSGen from '../../actions/fs-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as CryptoGen from '../../actions/crypto-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platforms from '../../constants/platform'
+import {humanizeBytes} from '../../constants/fs'
+import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
+
+const {electron, path: nodePath} = KB
+const {showOpenDialog} = electron.dialog
+const {dirname} = nodePath
 
 type OutputProps = {
   operation: Types.Operations
@@ -37,10 +46,10 @@ const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  // Waiting
+
   const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
-  // Store
+
   const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
   const signedByUsername = Container.useSelector(state => state.crypto[operation].outputSenderUsername)
   const signedByFullname = Container.useSelector(state => state.crypto[operation].outputSenderFullname)
@@ -73,7 +82,7 @@ export const SignedSender = (props: SignedSenderProps) => {
               <Kb.ConnectedUsernames
                 key="username"
                 type={usernameType}
-                usernames={[signedByUsername.stringValue()]}
+                usernames={signedByUsername.stringValue()}
                 colorFollowing={true}
                 colorYou={true}
               />,
@@ -82,7 +91,7 @@ export const SignedSender = (props: SignedSenderProps) => {
             <Kb.Box2 key="signedByUsername" direction="vertical">
               <Kb.ConnectedUsernames
                 type={usernameType}
-                usernames={[signedByUsername.stringValue()]}
+                usernames={signedByUsername.stringValue()}
                 colorFollowing={true}
                 colorYou={true}
               />
@@ -111,13 +120,18 @@ export const SignedSender = (props: SignedSenderProps) => {
 export const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
-  // Store
   const bytesTotal = Container.useSelector(state => state.crypto[operation].bytesTotal)
   const bytesComplete = Container.useSelector(state => state.crypto[operation].bytesComplete)
+  const inProgress = Container.useSelector(state => state.crypto[operation].inProgress)
 
-  const progress = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
+  const ratio = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
-  return progress ? <Kb.ProgressBar ratio={progress} style={{width: '100%'}} /> : <Kb.Divider />
+  return inProgress ? (
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+      <Kb.ProgressBar ratio={ratio} style={styles.progressBar} />
+      <Kb.Text type="Body">{`${humanizeBytes(bytesComplete, 1)} / ${humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
+    </Kb.Box2>
+  ) : null
 }
 
 export const OutputInfoBanner = (props: OutputInfoProps) => {
@@ -134,21 +148,27 @@ export const OutputBar = (props: OutputBarProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
   const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+  const canReplyInChat =
+    operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  // Waiting
   const waitingKey = Constants.getStringWaitingKey(props.operation)
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  // Store
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
+  const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
+  const signedByUsername = Container.useSelector(state => state.crypto[operation].outputSenderUsername)
   const actionsDisabled = waiting || !outputValid
 
-  // Actions
   const onShowInFinder = () => {
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
+  }
+
+  const onReplyInChat = (username: Container.HiddenString) => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username.stringValue()], reason: 'search'}))
   }
 
   const onCopyOutput = () => {
@@ -165,7 +185,6 @@ export const OutputBar = (props: OutputBarProps) => {
     }
   }
 
-  // State, Refs, Timers
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
@@ -194,6 +213,14 @@ export const OutputBar = (props: OutputBarProps) => {
         </Kb.ButtonBar>
       ) : (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+          {canReplyInChat && signed && signedByUsername && (
+            <Kb.Button
+              mode="Primary"
+              label="Reply in chat"
+              onClick={() => onReplyInChat(signedByUsername)}
+              disabled={actionsDisabled}
+            />
+          )}
           <Kb.Box2 direction="horizontal" ref={attachmentRef}>
             <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
               <Kb.Text type="BodySmall" style={styles.toastText}>
@@ -231,28 +258,63 @@ export const OutputBar = (props: OutputBarProps) => {
   )
 }
 
+const OutputFileDestination = (props: {operation: Types.Operations}) => {
+  const {operation} = props
+  const operationTitle = capitalize(operation)
+  const dispatch = Container.useDispatch()
+
+  const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
+
+  const onOpenFile = async () => {
+    const defaultPath = dirname(input)
+    const options = {
+      allowDirectories: true,
+      allowFiles: false,
+      buttonLabel: 'Select',
+      ...(Platforms.isDarwin ? {defaultPath} : {}),
+    }
+    const filePaths = await showOpenDialog(options)
+    if (!filePaths) return
+    const path = filePaths[0]
+
+    const destinationDir = new Container.HiddenString(path)
+    dispatch(
+      CryptoGen.createRunFileOperation({
+        destinationDir,
+        operation,
+      })
+    )
+  }
+
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.ButtonBar>
+        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={() => onOpenFile()} />
+      </Kb.ButtonBar>
+    </Kb.Box2>
+  )
+}
+
 const Output = (props: OutputProps) => {
   const {operation} = props
   const textType = Constants.getOutputTextType(operation)
   const dispatch = Container.useDispatch()
 
-  // Store
+  const inputType = Container.useSelector(state => state.crypto[operation].inputType)
+  const inProgress = Container.useSelector(state => state.crypto[operation].inProgress)
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
 
-  // Actions
   const onShowInFinder = () => {
     if (!output) return
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
   }
 
-  // Waiting
   const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  // Styling
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
@@ -266,8 +328,28 @@ const Output = (props: OutputProps) => {
   const fileIcon = Constants.getOutputFileIcon(operation)
   const actionsDisabled = waiting || !outputValid
 
-  return outputStatus && outputStatus === 'success' ? (
-    outputType === 'file' ? (
+  // Placeholder, progress, or encrypt file button
+  if (!outputStatus || outputStatus !== 'success') {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
+      >
+        {inProgress ? (
+          <OutputProgress operation={operation} />
+        ) : (
+          inputType === 'file' &&
+          outputStatus !== 'pending' && <OutputFileDestination operation={operation} />
+        )}
+      </Kb.Box2>
+    )
+  }
+
+  // File output
+  if (outputType === 'file') {
+    return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <Kb.Box2
           direction="horizontal"
@@ -285,28 +367,20 @@ const Output = (props: OutputProps) => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {output &&
-          output.split('\n').map((line, index) => (
-            <Kb.Text
-              key={index}
-              type={textType === 'cipher' ? 'Terminal' : 'Body'}
-              selectable={!actionsDisabled}
-              style={Styles.collapseStyles([styles.output, outputLargeStyle])}
-            >
-              {line}
-            </Kb.Text>
-          ))}
-      </Kb.Box2>
     )
-  ) : (
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
-    />
+  }
+
+  // Text output
+  return (
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+      <Kb.Text
+        type={textType === 'cipher' ? 'Terminal' : 'Body'}
+        selectable={!actionsDisabled}
+        style={Styles.collapseStyles([styles.output, outputLargeStyle])}
+      >
+        {output}
+      </Kb.Text>
+    </Kb.Box2>
   )
 }
 
@@ -333,12 +407,15 @@ const styles = Styles.styleSheetCreate(
       fileOutputText: {...Styles.globalStyles.fontSemibold},
       output: Styles.platformStyles({
         common: {color: Styles.globalColors.black},
-        isElectron: {wordBreak: 'break-word'},
+        isElectron: {whiteSpace: 'pre-wrap', wordBreak: 'break-word'},
       }),
       outputBarContainer: {...Styles.padding(Styles.globalMargins.tiny)},
       outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
       outputVerifiedContainer: {marginBottom: Styles.globalMargins.xlarge},
       placeholder: {color: Styles.globalColors.black_50},
+      progressBar: {
+        width: 200,
+      },
       signedContainer: {
         minHeight: Styles.globalMargins.mediumLarge,
         paddingLeft: Styles.globalMargins.tiny,

@@ -85,6 +85,7 @@ export default Container.makeReducer<
   [TeamsGen.teamLoaded]: (draftState, action) => {
     const {teamID, details} = action.payload
     draftState.teamDetails.set(teamID, details)
+    draftState.teamMemberToSubteams.set(teamID, details.members)
   },
   [TeamsGen.setTeamVersion]: (draftState, action) => {
     const {teamID, version} = action.payload
@@ -215,6 +216,49 @@ export default Container.makeReducer<
     const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
     oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.left
   },
+  [TeamsGen.setChannelSelected]: (draftState, action) => {
+    const {teamID, channel, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.teamSelectedChannels.delete(teamID)
+    } else {
+      const channelsSelected = mapGetEnsureValue(draftState.teamSelectedChannels, teamID, new Set())
+      if (selected) {
+        channelsSelected.add(channel)
+      } else {
+        channelsSelected.delete(channel)
+      }
+    }
+  },
+  [TeamsGen.teamSetMemberSelected]: (draftState, action) => {
+    const {teamID, username, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.teamSelectedMembers.delete(teamID)
+    } else {
+      const membersSelected = mapGetEnsureValue(draftState.teamSelectedMembers, teamID, new Set())
+      if (selected) {
+        membersSelected.add(username)
+      } else {
+        membersSelected.delete(username)
+      }
+    }
+  },
+  [TeamsGen.channelSetMemberSelected]: (draftState, action) => {
+    const {conversationIDKey, username, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.channelSelectedMembers.delete(conversationIDKey)
+    } else {
+      const membersSelected = mapGetEnsureValue(
+        draftState.channelSelectedMembers,
+        conversationIDKey,
+        new Set()
+      )
+      if (selected) {
+        membersSelected.add(username)
+      } else {
+        membersSelected.delete(username)
+      }
+    }
+  },
   [TeamsGen.setTeamRoleMapLatestKnownVersion]: (draftState, action) => {
     draftState.teamRoleMap.latestKnownVersion = action.payload.version
   },
@@ -254,9 +298,67 @@ export default Container.makeReducer<
       draftState.subteamsFiltered = undefined
     }
   },
+  [TeamsGen.loadedWelcomeMessage]: (draftState, action) => {
+    const {teamID, message} = action.payload
+    draftState.teamIDToWelcomeMessage.set(teamID, message)
+  },
+  [TeamsGen.setWelcomeMessageError]: (draftState, action) => {
+    draftState.errorInEditWelcomeMessage = action.payload.error
+  },
+  [TeamsGen.setWelcomeMessage]: (draftState, _) => {
+    draftState.errorInEditWelcomeMessage = ''
+  },
+  [TeamsGen.setMemberSubteamDetails]: (draftState, action) => {
+    action.payload.memberships.forEach((info, teamID) => {
+      if (!draftState.teamMemberToSubteams.has(teamID)) {
+        draftState.teamMemberToSubteams.set(teamID, new Map())
+      }
+      draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
+    })
+  },
+  [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
+    draftState.newTeamWizard.teamType = action.payload.teamType
+  },
+  [TeamsGen.setTeamWizardNameDescription]: (draftState, action) => {
+    draftState.newTeamWizard.name = action.payload.teamname
+    draftState.newTeamWizard.description = action.payload.description
+    draftState.newTeamWizard.open = action.payload.openTeam
+    draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
+    draftState.newTeamWizard.showcase = action.payload.showcase
+  },
+  [TeamsGen.startAddMembersWizard]: (draftState, action) => {
+    const {teamID} = action.payload
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, teamID}
+  },
+  [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
+    const {role} = action.payload
+    draftState.addMembersWizard.role = role
+  },
+  [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
+    draftState.addMembersWizard.justFinished = action.payload.justFinished
+  },
+  [TeamsGen.addMembersWizardPushMembers]: (draftState, action) => {
+    draftState.addMembersWizard.addingMembers = Constants.dedupAddingMembeers(
+      draftState.addMembersWizard.addingMembers,
+      action.payload.members
+    )
+  },
+  [TeamsGen.addMembersWizardRemoveMember]: (draftState, action) => {
+    const {assertion} = action.payload
+    const idx = draftState.addMembersWizard.addingMembers.findIndex(member => member.assertion === assertion)
+    if (idx >= 0) {
+      draftState.addMembersWizard.addingMembers.splice(idx, 1)
+    }
+  },
+  [TeamsGen.cancelAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState}
+  },
+  [TeamsGen.finishAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
-    draftState.teamIDToWelcomeMessage.set(teamID, {set: message.set, text: message.text})
+    draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,
