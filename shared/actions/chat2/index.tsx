@@ -56,6 +56,18 @@ const onGetInboxUnverifiedConvs = (action: EngineGen.Chat1ChatUiChatInboxUnverif
   return Chat2Gen.createMetasReceived({fromInboxRefresh: true, initialTrustedLoad: true, metas})
 }
 
+let pingCount = 0
+window.NOJIMA = () => {
+  console._log('aaaJSEcho request start', pingCount++)
+  RPCTypes.testEchoRpcPromise().then(() => {
+    console._log('aaaJSEcho request end')
+  })
+}
+
+setInterval(() => {
+  NOJIMA()
+}, 1000)
+
 // Ask the service to refresh the inbox
 const inboxRefresh = (
   state: Container.TypedState,
@@ -96,10 +108,11 @@ const inboxRefresh = (
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
   const _start = Date.now()
-  console._log('aaa request start')
+  console._log('aaaJSChat request start')
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode}).then(() => {
-    console._log('aaa request end', Date.now() - _start)
+    console._log('aaaJSChat request end', Date.now() - _start)
   })
+
   return actions
 }
 

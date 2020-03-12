@@ -54,13 +54,15 @@ class NativeTransport extends TransportShared {
     buf.set(packed, len.length)
     const b64 = fromByteArray(buf)
     // if (printRPCBytes) {
-    console._log('aaa [RPC] Writing', b64)
+    console._log(`aaaJSSend ${sendCount++} [RPC] Writing`, b64)
     // }
     // Pass data over to the native side to be handled
     nativeBridge.runWithData(b64)
     return true
   }
 }
+let sendCount = 0
+let readCount = 0
 
 function createClient(
   incomingRPCCallback: incomingRPCCallbackType,
@@ -77,7 +79,7 @@ function createClient(
   // This is how the RN side writes back to us
   RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
     // if (printRPCBytes) {
-    console._log('aaa [RPC] Read', payload)
+    console._log(`aaaJSRead ${readCount++} [RPC] Read`, payload)
     // }
 
     const buffer = toBuffer(toByteArray(payload))
