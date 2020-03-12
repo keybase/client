@@ -4,7 +4,6 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
 
 export type Props = {
   deleteWaiting: boolean
@@ -99,12 +98,5 @@ const ReallyDeleteTeam = (props: Props) => {
     />
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      headerTeamname: {color: Styles.globalColors.redDark, textDecorationLine: 'line-through'},
-    } as const)
-)
 
 export default ReallyDeleteTeam
