@@ -159,10 +159,10 @@ const RoleSelector = () => {
       <Kb.Text type="BodySmall">Invite as: </Kb.Text>
       <FloatingRolePicker
         open={showingMenu}
-        selectedRole={role || 'reader'}
+        selectedRole={role || 'writer'}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
-        confirmLabel={`Add as ${pluralize(role || 'reader')}`} // TODO Y2K-1560 fix when this can actually be undefined
+        confirmLabel={`Add as ${pluralize(role || 'writer')}`} // TODO Y2K-1560 fix when this can actually be undefined
         footerComponent={
           !Styles.isMobile && (
             <Kb.Box2
@@ -241,6 +241,18 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
     s => s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ?? role
   )
   const showDropdown = role === undefined
+  const [showingMenu, setShowingMenu] = React.useState(false)
+  const [rolePickerRole, setRole] = React.useState(individualRole)
+  const onOpenRolePicker = () => {
+    setRole(individualRole)
+    setShowingMenu(true)
+  }
+  const onSelectRole = newRole => setRole(newRole)
+  const onConfirmRole = newRole => {
+    setRole(newRole)
+    setShowingMenu(false)
+    dispatch(TeamsGen.createSetAddMembersWizardIndividualRole({assertion: props.assertion, role: newRole}))
+  }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
@@ -249,7 +261,18 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
         {showDropdown && (
-          <Kb.InlineDropdown type="BodySmallSemibold" onPress={() => {}} label={capitalize(individualRole)} />
+          <FloatingRolePicker
+            open={showingMenu}
+            selectedRole={rolePickerRole}
+            onSelectRole={onSelectRole}
+            onConfirm={onConfirmRole}
+          >
+            <Kb.InlineDropdown
+              type="BodySmallSemibold"
+              onPress={onOpenRolePicker}
+              label={capitalize(individualRole)}
+            />
+          </FloatingRolePicker>
         )}
         {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
       </Kb.Box2>
