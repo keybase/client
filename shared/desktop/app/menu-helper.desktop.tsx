@@ -1,11 +1,8 @@
 import * as Electron from 'electron'
 import {isDarwin} from '../../constants/platform'
+import {closeWindows} from './main-window.desktop'
 
 let devToolsState = false
-
-const windowQuit = () => {
-  Electron.ipcRenderer.invoke('KBkeybase', {type: 'closeWindows'})
-}
 
 export default function makeMenu(window: Electron.BrowserWindow) {
   const editMenu = new Electron.MenuItem({
@@ -82,7 +79,7 @@ export default function makeMenu(window: Electron.BrowserWindow) {
           new Electron.MenuItem({
             accelerator: 'CmdOrCtrl+Q',
             click() {
-              windowQuit()
+              closeWindows()
             },
             label: 'Minimize to Tray',
           }),
@@ -103,7 +100,7 @@ export default function makeMenu(window: Electron.BrowserWindow) {
           {
             accelerator: 'CmdOrCtrl+Q',
             click() {
-              windowQuit()
+              closeWindows()
             },
             label: '&Minimize to Tray',
           },

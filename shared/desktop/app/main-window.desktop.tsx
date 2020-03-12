@@ -250,6 +250,16 @@ const registerForAppLinks = () => {
   Electron.app.setAsDefaultProtocolClient('keybase')
 }
 
+export const closeWindows = () => {
+  const windows = Electron.BrowserWindow.getAllWindows()
+  windows.forEach(w => {
+    // We tell it to close, we can register handlers for the 'close' event if we want to
+    // keep this window alive or hide it instead.
+    w.close()
+  })
+  hideDockIcon()
+}
+
 export default () => {
   setupDefaultSession()
   loadWindowState()
