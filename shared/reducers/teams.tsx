@@ -332,13 +332,11 @@ export default Container.makeReducer<
   },
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
-    const prevRole = draftState.addMembersWizard.role
     draftState.addMembersWizard.role = role
-    if (role === undefined && prevRole) {
-      // going from global role => set individually
-      // initialize role for pending members
+    if (role) {
+      // keep roles stored with indiv members in sync with top level one
       draftState.addMembersWizard.addingMembers.forEach(member => {
-        member.role = prevRole
+        member.role = role
       })
     }
   },

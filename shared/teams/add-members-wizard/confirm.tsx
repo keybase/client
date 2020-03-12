@@ -15,7 +15,7 @@ import {pluralize} from '../../util/string'
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
-  const {teamID, role, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
+  const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
@@ -33,7 +33,7 @@ const AddMembersConfirm = () => {
           teamID,
           users: addingMembers.map(member => ({
             assertion: member.assertion,
-            role: RPCGen.TeamRole[role || 'writer'], // TODO Y2K-1560 handle individual roles
+            role: RPCGen.TeamRole[member.role],
           })),
         },
       ],
