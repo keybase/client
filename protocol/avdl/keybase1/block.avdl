@@ -104,10 +104,10 @@ protocol block {
   }
 
   @compression_type("gzip")
-  BlockQuotaInfo getUserQuotaInfo2();
+  BlockQuotaInfo getUserQuotaInfo2(boolean includeFolders);
 
   @compression_type("gzip")
-  BlockQuotaInfo getTeamQuotaInfo2(TeamID tid);
+  BlockQuotaInfo getTeamQuotaInfo2(TeamID tid, boolean includeFolders);
 
   BlockPingResponse blockPing();
 }

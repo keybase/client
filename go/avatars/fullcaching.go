@@ -252,7 +252,7 @@ func (c *FullCachingSource) processLRUHit(entry lru.DiskLRUEntry) (res lruEntry)
 	var ok bool
 	if _, ok = entry.Value.(map[string]interface{}); ok {
 		jstr, _ := json.Marshal(entry.Value)
-		json.Unmarshal(jstr, &res)
+		_ = json.Unmarshal(jstr, &res)
 		return res
 	}
 	path, _ := entry.Value.(string)

@@ -250,8 +250,8 @@ class Input extends React.Component<InputProps, InputState> {
     }
   }
 
-  _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
-    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey) && !isComposingIME) {
+  _onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
       e.preventDefault()
       if (this._lastText) {
         this._onSubmit(this._lastText)
@@ -471,7 +471,7 @@ class Input extends React.Component<InputProps, InputState> {
         <Kb.ConnectedUsernames
           type="BodyBold"
           colorFollowing={true}
-          usernames={[username]}
+          usernames={username}
           withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>

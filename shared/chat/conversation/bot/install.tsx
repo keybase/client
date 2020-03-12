@@ -121,7 +121,7 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    Styles.isMobile ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createClearModals())
   }
   const onLearn = () => {
     openURL('https://keybase.io/docs/chat/restricted_bots')

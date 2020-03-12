@@ -162,8 +162,15 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
+export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
+  addingMembers: [],
+  justFinished: false,
+  role: 'writer',
+  teamID: Types.noTeamID,
+}
+
 const emptyState: Types.State = {
-  addMembersWizard: {justFinished: false},
+  addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
@@ -822,6 +829,26 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
 
+export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
+  const subteamsAll = getTeamDetails(state, teamID).subteams
+  const subteamsNotIn: Array<Types.TeamMeta> = []
+  const subteamsIn: Array<Types.TeamMeta> = []
+  subteamsAll.forEach(subteamID => {
+    const subteamDetails = getTeamDetails(state, subteamID)
+    const subteamMeta = getTeamMeta(state, subteamID)
+    const memberInSubteam = subteamDetails.members.has(username)
+    if (memberInSubteam) {
+      subteamsIn.push(subteamMeta)
+    } else {
+      subteamsNotIn.push(subteamMeta)
+    }
+  })
+  return {
+    subteamsIn,
+    subteamsNotIn,
+  }
+}
+
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
   oldVersion
@@ -831,3 +858,16 @@ export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: T
         latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
       }
     : newVersion
+
+export const dedupAddingMembeers = (
+  _existing: Array<Types.AddingMember>,
+  toAdds: Array<Types.AddingMember>
+) => {
+  const existing = [..._existing]
+  for (const toAdd of toAdds) {
+    if (!existing.find(m => m.assertion === toAdd.assertion)) {
+      existing.unshift(toAdd)
+    }
+  }
+  return existing
+}

@@ -122,7 +122,7 @@ const Row = (props: Props) => (
                   type="BodySmallBold"
                   underline={true}
                   colorFollowing={true}
-                  usernames={[props.lastEditUser]}
+                  usernames={props.lastEditUser}
                   onUsernameClicked={() => props.openUserTracker(props.lastEditUser)}
                 />
               </Kb.Box>

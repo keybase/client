@@ -55,6 +55,7 @@ export type Details = {
   guiID: string
   hidFromFollowers: boolean
   location?: string
+  numAssertionsExpected?: number
   reason: string
   showTracker: boolean
   state: DetailsState

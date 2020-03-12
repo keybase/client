@@ -864,6 +864,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.Equal(t, globals.DefaultTeamTopic, ncres.Conv.Info.TopicName)
+		default:
 		}
 		arg.TopicName = &topicName
 		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"

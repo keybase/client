@@ -7,7 +7,7 @@ const Kb = {
   Animation,
 }
 
-const ProgressIndicator = ({white, style, type}: Props) => (
+const ProgressIndicator = React.memo(({white, style, type}: Props) => (
   <Kb.Animation
     animationType={white ? 'spinnerWhite' : 'spinner'}
     style={Styles.collapseStyles([
@@ -17,7 +17,7 @@ const ProgressIndicator = ({white, style, type}: Props) => (
       style,
     ])}
   />
-)
+))
 
 const styles = Styles.styleSheetCreate(() => ({
   huge: {

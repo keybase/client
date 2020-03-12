@@ -433,7 +433,12 @@
       "response": "bytes"
     },
     "getUserQuotaInfo2": {
-      "request": [],
+      "request": [
+        {
+          "name": "includeFolders",
+          "type": "boolean"
+        }
+      ],
       "response": "BlockQuotaInfo",
       "compression_type": "gzip"
     },
@@ -442,6 +447,10 @@
         {
           "name": "tid",
           "type": "TeamID"
+        },
+        {
+          "name": "includeFolders",
+          "type": "boolean"
         }
       ],
       "response": "BlockQuotaInfo",

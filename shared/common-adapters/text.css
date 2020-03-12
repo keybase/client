@@ -1,553 +1,598 @@
 /* Used by text on desktop to speed up perf */
 
 .text_HeaderBig {
-  font-size: 24px;
-  line-height: 28px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 700;
+    font-size: 24px;
+    line-height: 28px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 700;
 }
 .darkMode .text_HeaderBig {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_HeaderBigExtrabold {
-  font-size: 24px;
-  line-height: 28px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 800;
+    font-size: 24px;
+    line-height: 28px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 800;
 }
 .darkMode .text_HeaderBigExtrabold {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_Header {
-  font-size: 18px;
-  line-height: 22px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 700;
 }
 .darkMode .text_Header {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_HeaderItalic {
-  font-size: 18px;
-  line-height: 22px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 700;
-  font-style: italic;
+    font-size: 18px;
+    line-height: 22px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 700;
+    font-style: italic;
 }
 .darkMode .text_HeaderItalic {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_HeaderExtrabold {
-  font-size: 18px;
-  line-height: 22px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 800;
+    font-size: 18px;
+    line-height: 22px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 800;
 }
 .darkMode .text_HeaderExtrabold {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_HeaderLink {
-  font-size: 18px;
-  line-height: 22px;
-  color: #3663ea;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+    color: #3663ea;
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 700;
 }
 .darkMode .text_HeaderLink {
-  color: rgba(24, 45, 110, 0.5);
+    color: rgba(24, 45, 110, 0.5);
 }
 
 .text_BodyBig {
-  font-size: 15px;
-  line-height: 19px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 15px;
+    line-height: 19px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 .darkMode .text_BodyBig {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodyBigExtrabold {
-  font-size: 15px;
-  line-height: 19px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 800;
+    font-size: 15px;
+    line-height: 19px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 800;
 }
 .darkMode .text_BodyBigExtrabold {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodyBigLink {
-  font-size: 15px;
-  line-height: 19px;
-  color: #3663ea;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 15px;
+    line-height: 19px;
+    color: #3663ea;
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 
 .text_Body {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 .darkMode .text_Body {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodyItalic {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
-  font-style: italic;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
+    font-style: italic;
 }
 .darkMode .text_BodyItalic {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodySemibold {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 .darkMode .text_BodySemibold {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodyBold {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 700;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 700;
 }
 .darkMode .text_BodyBold {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodySemiboldItalic {
-  font-size: 14px;
-  font-style: italic;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 .darkMode .text_BodySemiboldItalic {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodySemiboldLink {
-  font-size: 14px;
-  line-height: 18px;
-  color: #3663ea;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 14px;
+    line-height: 18px;
+    color: #3663ea;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 
 .text_BodyExtrabold {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 800;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 800;
 }
 .darkMode .text_BodyExtrabold {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodyPrimaryLink {
-  font-size: 14px;
-  line-height: 18px;
-  color: #3663ea;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+    color: #3663ea;
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 
 .text_BodySecondaryLink {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 .darkMode .text_BodySecondaryLink {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmall {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 .darkMode .text_BodySmall {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallBold {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 700;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 700;
 }
 .darkMode .text_BodySmallBold {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallItalic {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
-  font-style: italic;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
+    font-style: italic;
 }
 .darkMode .text_BodySmallItalic {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallPrimaryLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: #3663ea;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 13px;
+    line-height: 17px;
+    color: #3663ea;
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 
 .text_BodySmallExtrabold {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 800;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 800;
 }
 .darkMode .text_BodySmallExtrabold {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSemiboldItalic {
-  font-size: 13px;
-  font-style: italic;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 .darkMode .text_BodySmallSemiboldItalic {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSemiboldPrimaryLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: #3663ea;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 13px;
+    line-height: 17px;
+    color: #3663ea;
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 
 .text_BodySmallSemiboldSecondaryLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgb(0, 0, 0, 0.6);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgb(0, 0, 0, 0.6);
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 .darkMode .text_BodySmallSemiboldSecondaryLink {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSecondaryLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 .darkMode .text_BodySmallSecondaryLink {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallExtraboldSecondaryLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 800;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 800;
 }
 .darkMode .text_BodySmallExtraboldSecondaryLink {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallError {
-  font-size: 13px;
-  line-height: 17px;
-  color: #eb253b;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 13px;
+    line-height: 17px;
+    color: #eb253b;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 
 .text_BodySmallSuccess {
-  font-size: 13px;
-  line-height: 17px;
-  color: #189e7a;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 13px;
+    line-height: 17px;
+    color: #189e7a;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 
 .text_BodySmallWallet {
-  font-size: 13px;
-  line-height: 17px;
-  color: #6d3fd1;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 13px;
+    line-height: 17px;
+    color: #6d3fd1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 
 .text_BodyTiny {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 .darkMode .text_BodyTiny {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinyLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 400;
 }
 .darkMode .text_BodyTinyLink {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinyBold {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 700;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 700;
 }
 .darkMode .text_BodyTinyBold {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinyExtrabold {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 800;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 800;
 }
 .darkMode .text_BodyTinyExtrabold {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinySemibold {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 .darkMode .text_BodyTinySemibold {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinySemiboldItalic {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
-  font-style: italic;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
+    font-style: italic;
 }
 .darkMode .text_BodyTinySemiboldItalic {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSemibold {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
+    font-size: 13px;
+    line-height: 17px;
+    color: rgba(0, 0, 0, 0.5);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Keybase;
+    font-weight: 600;
 }
 .darkMode .text_BodySmallSemibold {
-  color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .text_Nyctographic {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Nyctographic;
-  font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+    color: rgba(0, 0, 0, 0.85);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Nyctographic;
+    font-weight: 400;
 }
 .darkMode .text_Nyctographic {
-  color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .text_Terminal {
-  font-size: 13px;
-  line-height: 20px;
-  color: #a8ccff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
+    font-size: 13px;
+    line-height: 20px;
+    color: #a8ccff;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
 }
 .darkMode .text_Terminal {
-  color: #4c8eff;
+    color: #4c8eff;
 }
 
 .text_TerminalComment {
-  font-size: 13px;
-  line-height: 20px;
-  color: rgba(168, 204, 255, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
+    font-size: 13px;
+    line-height: 20px;
+    color: rgba(168, 204, 255, 0.4);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
 }
 
 .text_TerminalEmpty {
-  font-size: 13px;
-  line-height: 20px;
-  color: rgba(168, 204, 255, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
-  height: 20px;
+    font-size: 13px;
+    line-height: 20px;
+    color: rgba(168, 204, 255, 0.4);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
+    height: 20px;
 }
 
 .text_TerminalInline {
-  font-size: 13px;
-  line-height: 16px;
-  color: #2645a3;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
-  background-color: #ebf2fc;
-  border-radius: 2px;
-  height: 17px;
-  padding: 2px;
-  word-wrap: break-word;
+    font-size: 13px;
+    line-height: 16px;
+    color: #2645a3;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
+    background-color: #ebf2fc;
+    border-radius: 2px;
+    height: 17px;
+    padding: 2px;
+    word-wrap: break-word;
 }
 .darkMode .text_TerminalInline {
-  color: #f00;
+    color: #f00;
 }
 
 .text_center {
-  display: inline-block;
-  text-align: center;
+    display: inline-block;
+    text-align: center;
+}
+
+.lineClamp1 {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.lineClamp2 {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.lineClamp3 {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.lineClamp4 {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.lineClamp5 {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }

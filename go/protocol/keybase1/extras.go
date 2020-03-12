@@ -853,7 +853,10 @@ func FromTime(t Time) time.Time {
 	if t == 0 {
 		return time.Time{}
 	}
-	return time.Unix(0, int64(t)*1000000)
+	// t is in millisecond.
+	tSec := int64(t) / 1000
+	tNanoSecOffset := (int64(t) - tSec*1000) * 1000000
+	return time.Unix(tSec, tNanoSecOffset)
 }
 
 func (t Time) Time() time.Time {
@@ -864,21 +867,12 @@ func (t Time) UnixSeconds() int64 {
 	return t.Time().Unix()
 }
 
-func (t Time) UnixMilliseconds() int64 {
-	return t.Time().UnixNano() / 1e6
-}
-
-func (t Time) UnixMicroseconds() int64 {
-	return t.Time().UnixNano() / 1e3
-}
-
 func ToTime(t time.Time) Time {
-	// the result of calling UnixNano on the zero Time is undefined.
-	// https://golang.org/pkg/time/#Time.UnixNano
 	if t.IsZero() {
 		return 0
 	}
-	return Time(t.UnixNano() / 1000000)
+
+	return Time(t.Unix()*1000 + (int64(t.Nanosecond()) / 1000000))
 }
 
 func ToTimePtr(t *time.Time) *Time {
@@ -903,7 +897,10 @@ func FormatTime(t Time) string {
 }
 
 func FromUnixTime(u UnixTime) time.Time {
-	return FromTime(Time(u * 1000))
+	if u == 0 {
+		return time.Time{}
+	}
+	return time.Unix(int64(u), 0)
 }
 
 func (u UnixTime) Time() time.Time {
@@ -912,14 +909,6 @@ func (u UnixTime) Time() time.Time {
 
 func (u UnixTime) UnixSeconds() int64 {
 	return int64(u)
-}
-
-func (u UnixTime) UnixMilliseconds() int64 {
-	return int64(u) * 1000
-}
-
-func (u UnixTime) UnixMicroseconds() int64 {
-	return int64(u) * 1000000
 }
 
 func ToUnixTime(t time.Time) UnixTime {
@@ -4013,4 +4002,15 @@ func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
 
 func (t SeitanIKeyInvitelink) String() string {
 	return string(t)
+}
+
+// UserRolePairsHaveOwner check if a list of UserRolePair has user with role
+// OWNER.
+func UserRolePairsHaveOwner(users []UserRolePair) bool {
+	for _, urp := range users {
+		if urp.Role == TeamRole_OWNER {
+			return true
+		}
+	}
+	return false
 }

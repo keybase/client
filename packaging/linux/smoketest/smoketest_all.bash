@@ -25,19 +25,21 @@ for platform in */; do
         vagrant up
         vagrant rsync
         set +e
-        ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" \
-            -i .vagrant/machines/default/virtualbox/private_key \
-            -Y -p "$(cat port)" vagrant@localhost <<EOF
+        # we want EOF to be interpreted clientside
+        # shellcheck disable=SC2087
+        ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i .vagrant/machines/default/virtualbox/private_key -Y -p "$(cat port)" vagrant@localhost <<EOF
                 /vagrant/smoketest.bash "$version" "$datetime" "$revision"
                 exit
 EOF
         ret=$?
         set -e
-        if [ "$ret" != 0 ]; then
-            echo "failed test for $platform"
-        fi
         vagrant halt
-        vagrant snapshot restore --no-start default
+        if [ "$ret" != 0 ]; then
+            echo "failed test for $platform; not restoring vm to default state"
+        else
+            echo "passed test for $platform; restoring vm to default state"
+            vagrant snapshot restore --no-start default
+        fi
         if [ "$ret" != 0 ]; then
             exit 1
         fi

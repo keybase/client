@@ -2,11 +2,21 @@
 @namespace("keybase.1")
 protocol Common {
 
-  // Time in milliseconds
+  // Time represents a time instant as the number of milliseconds elapsed since
+  // the Unix epoch (see UnixTime).
+  // Note: when converting to/from time.Time in go, the zero value of time.Time{}
+  // (January 1, year 1, 00:00:00 UTC) gets mapped to 0 (i.e. Jan 1 1970)
+  // Note 2: the conversion functions in go try to avoid but do not explicitly
+  // check for overflows during conversion.
   @typedef("long")
   record Time {}
 
-  // Time in seconds
+  // UnixTime represents a time instant as the number of seconds that have 
+  // elapsed since the Unix epoch, that is 00:00:00 UTC on 1 January 1970. 
+  // Note: when converting to/from time.Time, the zero value of time.Time{}
+  // (January 1, year 1, 00:00:00 UTC) gets mapped to 0 (i.e. Jan 1 1970)
+  // Note 2: the conversion functions in go try to avoid but do not explicitly
+  // check for overflows during conversion.
   @typedef("long")
   record UnixTime {}
 

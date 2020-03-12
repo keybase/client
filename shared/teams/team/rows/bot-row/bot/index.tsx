@@ -57,7 +57,7 @@ export const TeamBotRow = (props: Props) => {
         <Kb.ConnectedUsernames
           prefix="@"
           inline={true}
-          usernames={[props.ownerUser ?? props.username]}
+          usernames={props.ownerUser ?? props.username}
           type="BodySmallBold"
           withProfileCardPopup={true}
           onUsernameClicked="profile"

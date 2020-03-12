@@ -68,7 +68,7 @@ module.exports = {
     // explicitly
     require('./profile-card').default
 
-    return require('./usernames/container').default
+    return require('./usernames').default
   },
   get CopyText() {
     return require('./copy-text').default
@@ -141,6 +141,9 @@ module.exports = {
   },
   get InfoNote() {
     return require('./info-note').default
+  },
+  get InlineDropdown() {
+    return require('./dropdown').InlineDropdown
   },
   get Input() {
     return require('./input').default

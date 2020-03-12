@@ -20,6 +20,7 @@ type Props = {
   currentDevice: DeviceTypes.Device
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
+  iconNumber: number
   otherDevice: Types.Device
   tabOverride?: Tab
   textCode: string
@@ -374,75 +375,95 @@ const ViewText = (props: Props) => (
   </Kb.Box2>
 )
 
-const Instructions = (p: Props) => (
-  <Kb.Box2 direction="vertical">
-    {p.currentDeviceAlreadyProvisioned ? (
-      <Kb.Box2 direction="horizontal" centerChildren={true}>
-        <Kb.Text center={true} type={textType} style={styles.instructions}>
-          Ready to authorize using&nbsp;
-        </Kb.Text>
-        <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
-          {p.currentDeviceName}.
-        </Kb.Text>
-      </Kb.Box2>
-    ) : (
-      <>
-        <Kb.Text type={textType} style={styles.instructionsContainer} center={true}>
-          <Kb.Text
-            type={textType}
-            style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
-          >
-            In the Keybase app on&nbsp;
+const Instructions = (p: Props) => {
+  const maybeIcon = ({
+    desktop: `icon-computer-background-${p.iconNumber}-96`,
+    mobile: `icon-phone-background-${p.iconNumber}-96`,
+  } as const)[p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type]
+  const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
+
+  return (
+    <Kb.Box2 direction="vertical">
+      {p.currentDeviceAlreadyProvisioned ? (
+        <Kb.Box2 alignItems="center" direction="horizontal">
+          <Kb.Text type={textType} style={styles.instructions}>
+            Ready to authorize using
           </Kb.Text>
-          <Kb.Text
-            center={true}
-            type={textType}
-            style={Styles.collapseStyles([styles.instructionsItalic, styles.instructionsUpper])}
-          >
-            {p.otherDevice.name}
-          </Kb.Text>
-          <Kb.Text
-            type={textType}
-            style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
-          >
-            {', '}
-            navigate to:
-          </Kb.Text>
-        </Kb.Text>
-        <Kb.Box2
-          direction="horizontal"
-          centerChildren={true}
-          gap="xtiny"
-          fullWidth={true}
-          style={Styles.globalStyles.flexWrap}
-        >
-          {p.otherDevice.type === 'mobile' && (
-            <>
-              <Kb.Icon
-                type="iconfont-nav-2-hamburger"
-                color={Styles.globalColors.white}
-                sizeType="Default"
-                style={styles.hamburger}
-              />
-              <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
-            </>
-          )}
-          <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Devices
-          </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
-          <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Add a device or paper key
-          </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
-          <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Add {currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
+          <Kb.Icon
+            type={icon}
+            sizeType="Default"
+            style={Styles.collapseStyles([
+              styles.deviceIcon,
+              p.currentDevice.type === 'desktop' && styles.deviceIconDesktop,
+              p.currentDevice.type === 'mobile' && styles.deviceIconMobile,
+            ])}
+          />
+          <Kb.Text type={textType} style={styles.instructions}>
+            {p.currentDeviceName}.
           </Kb.Text>
         </Kb.Box2>
-      </>
-    )}
-  </Kb.Box2>
-)
+      ) : (
+        <>
+          <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="xtiny">
+            <Kb.Text
+              type={textType}
+              style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+            >
+              On
+            </Kb.Text>
+            <Kb.Icon
+              type={icon}
+              sizeType="Default"
+              style={Styles.collapseStyles([
+                styles.deviceIcon,
+                p.otherDevice.type === 'desktop' && styles.deviceIconDesktop,
+                p.otherDevice.type === 'mobile' && styles.deviceIconMobile,
+              ])}
+            />
+            <Kb.Text
+              type={textType}
+              style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+            >
+              {p.otherDevice.name}, go to {p.otherDevice.type === 'desktop' && 'Devices'}
+            </Kb.Text>
+          </Kb.Box2>
+          {p.otherDevice.type === 'mobile' && (
+            <Kb.Box2
+              alignItems="center"
+              direction="horizontal"
+              centerChildren={true}
+              gap="xtiny"
+              style={Styles.globalStyles.flexWrap}
+            >
+              {p.otherDevice.type === 'mobile' && (
+                <>
+                  <Kb.Icon
+                    type="iconfont-nav-2-hamburger"
+                    color={Styles.globalColors.white}
+                    sizeType="Default"
+                    style={styles.hamburger}
+                  />
+                  <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+                </>
+              )}
+              <Kb.Text type={textType} style={styles.instructions}>
+                Devices
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+          <Kb.Text type={textType} style={styles.instructionsContainer} center={true}>
+            <Kb.Text
+              type={textType}
+              style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+            >
+              and authorize a new phone.
+            </Kb.Text>
+          </Kb.Text>
+        </>
+      )}
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -499,8 +520,16 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       deviceIcon: {
+        height: 32,
+        width: 32,
+      },
+      deviceIconDesktop: {
         marginLeft: Styles.globalMargins.xtiny,
         marginRight: Styles.globalMargins.xxtiny,
+      },
+      deviceIconMobile: {
+        marginLeft: Styles.globalMargins.xxtiny,
+        marginRight: 0,
       },
       enterTextButton: {
         marginLeft: Styles.globalMargins.small,
@@ -551,13 +580,11 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'flex-end',
         justifyContent: 'center',
       },
-      instructions: {color: Styles.globalColors.white},
+      instructions: {
+        color: Styles.globalColors.white,
+      },
       instructionsContainer: {
         padding: Styles.globalMargins.tiny,
-      },
-      instructionsItalic: {
-        ...Styles.globalStyles.italic,
-        color: Styles.globalColors.white,
       },
       instructionsUpper: {
         marginBottom: Styles.globalMargins.tiny,

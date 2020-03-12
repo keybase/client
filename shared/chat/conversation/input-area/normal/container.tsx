@@ -72,6 +72,9 @@ const getChannelSuggestions = (
     const mutualTeams = (state.chat2.mutualTeamMap.get(convID) ?? []).map(teamID =>
       TeamsConstants.getTeamNameFromID(state, teamID)
     )
+    if (!mutualTeams) {
+      return noChannel
+    }
     // TODO: maybe we shouldn't rely on this inboxlayout being around?
     return (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string; teamname: string}>>(
       (arr, t) => {

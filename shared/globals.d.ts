@@ -1,3 +1,4 @@
+declare var __HOT__: boolean
 declare var __REMOTEDEV__: boolean
 declare var __VERSION__: string
 declare var __STORYBOOK__: boolean

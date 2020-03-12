@@ -10,11 +10,6 @@ import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
 
-function actionToUsername<A extends {payload: {guiID: string}}>(state: Types.State, action: A) {
-  const {guiID} = action.payload
-  return Constants.guiIDToUsername(state, guiID)
-}
-
 const getDetails = (state: Types.State, username: string) =>
   mapGetEnsureValue(state.usernameToDetails, username, {...Constants.noDetails})
 
@@ -22,6 +17,10 @@ type Actions =
   | Tracker2Gen.Actions
   | ConfigGen.BootstrapStatusLoadedPayload
   | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
+  | EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload
+  | EngineGen.Keybase1Identify3UiIdentify3UserResetPayload
+  | EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
+  | EngineGen.Keybase1Identify3UiIdentify3SummaryPayload
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [Tracker2Gen.resetStore]: () => initialState,
@@ -43,32 +42,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.state = 'checking'
     d.username = username
   },
-  [Tracker2Gen.updatedDetails]: (draftState, action) => {
-    const username = actionToUsername(draftState, action)
-    if (!username) return
-    const d = getDetails(draftState, username)
-    d.bio = action.payload.bio
-    d.blocked = action.payload.blocked
-    // These will be overridden by a later updateFollows, if it happens (will
-    // happen when viewing profile, but not in tracker pop up.
-    d.followersCount = action.payload.unverifiedFollowersCount
-    d.followingCount = action.payload.unverifiedFollowingCount
-    d.fullname = action.payload.fullname
-    d.location = action.payload.location
-    d.stellarHidden = action.payload.stellarHidden
-    d.teamShowcase = action.payload.teamShowcase
-    d.hidFromFollowers = action.payload.hidFromFollowers
-  },
-  [Tracker2Gen.updateUserReset]: (draftState, action) => {
-    const username = actionToUsername(draftState, action)
-    if (!username) return
-    const d = getDetails(draftState, username)
-    d.resetBrokeTrack = true
-    d.reason = `${username} reset their account since you last followed them.`
-  },
   [Tracker2Gen.updateResult]: (draftState, action) => {
-    const username = actionToUsername(draftState, action)
-    if (!username) return
+    const {guiID} = action.payload
+    const username = Constants.guiIDToUsername(draftState, guiID)
+    if (!username) {
+      return
+    }
 
     const {reason, result} = action.payload
     const newReason =
@@ -86,22 +65,15 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.state = result
   },
   [Tracker2Gen.closeTracker]: (draftState, action) => {
-    const username = actionToUsername(draftState, action)
-    if (!username) return
+    const {guiID} = action.payload
+    const username = Constants.guiIDToUsername(draftState, guiID)
+    if (!username) {
+      return
+    }
 
     logger.info(`Closing tracker for assertion: ${username}`)
-
     const d = getDetails(draftState, username)
     d.showTracker = false
-  },
-  [Tracker2Gen.updateAssertion]: (draftState, action) => {
-    const username = actionToUsername(draftState, action)
-    if (!username) return
-    const d = getDetails(draftState, username)
-    const {assertion} = action.payload
-    const assertions = d.assertions || new Map()
-    d.assertions = assertions
-    assertions.set(assertion.assertionKey, assertion)
   },
   [Tracker2Gen.updateFollows]: (draftState, action) => {
     const {username, followers, following} = action.payload
@@ -147,5 +119,70 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       })
     })
     d.followersCount = d.followers?.size
+  },
+  [EngineGen.keybase1Identify3UiIdentify3UpdateRow]: (draftState, action) => {
+    const {row} = action.payload.params
+    const {guiID} = row
+    const username = Constants.guiIDToUsername(draftState, guiID)
+    if (!username) {
+      return
+    }
+
+    const d = getDetails(draftState, username)
+    const assertions = d.assertions ?? new Map()
+    d.assertions = assertions
+    const assertion = Constants.rpcAssertionToAssertion(row)
+    assertions.set(assertion.assertionKey, assertion)
+  },
+  [EngineGen.keybase1Identify3UiIdentify3UserReset]: (draftState, action) => {
+    const {guiID} = action.payload.params
+    const username = Constants.guiIDToUsername(draftState, guiID)
+    if (!username) {
+      return
+    }
+
+    const d = getDetails(draftState, username)
+    d.resetBrokeTrack = true
+    d.reason = `${username} reset their account since you last followed them.`
+  },
+  [EngineGen.keybase1Identify3UiIdentify3UpdateUserCard]: (draftState, action) => {
+    const {guiID, card} = action.payload.params
+    const username = Constants.guiIDToUsername(draftState, guiID)
+    if (!username) {
+      return
+    }
+
+    const {bio, blocked, fullName, hidFromFollowers, location, stellarHidden, teamShowcase} = card
+    const {unverifiedNumFollowers, unverifiedNumFollowing} = card
+    const d = getDetails(draftState, username)
+    d.bio = bio
+    d.blocked = blocked
+    // These will be overridden by a later updateFollows, if it happens (will
+    // happen when viewing profile, but not in tracker pop up.
+    d.followersCount = unverifiedNumFollowers
+    d.followingCount = unverifiedNumFollowing
+    d.fullname = fullName
+    d.location = location
+    d.stellarHidden = stellarHidden
+    d.teamShowcase =
+      teamShowcase?.map(t => ({
+        description: t.description,
+        isOpen: t.open,
+        membersCount: t.numMembers,
+        name: t.fqName,
+        publicAdmins: t.publicAdmins ?? [],
+      })) ?? []
+    d.hidFromFollowers = hidFromFollowers
+  },
+  [EngineGen.keybase1Identify3UiIdentify3Summary]: (draftState, action) => {
+    const {summary} = action.payload.params
+    const {numProofsToCheck, guiID} = summary
+    const username = Constants.guiIDToUsername(draftState, guiID)
+    if (!username) {
+      return
+    }
+
+    const d = getDetails(draftState, username)
+    d.numAssertionsExpected = numProofsToCheck
   },
 })

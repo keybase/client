@@ -11,7 +11,7 @@ const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) 
       style={{marginRight: Styles.globalMargins.small, padding: 4}}
     />
     <Kb.Box style={styles.innerRow}>
-      <Kb.ConnectedUsernames inline={true} type="BodyBold" usernames={[props.username]} />
+      <Kb.ConnectedUsernames inline={true} type="BodyBold" usernames={props.username} />
       <Kb.Text type="BodySmall" style={Styles.platformStyles({isElectron: {lineHeight: '17px'}})}>
         Can rekey this chat by opening the Keybase app.
       </Kb.Text>

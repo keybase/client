@@ -3,7 +3,7 @@ import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
 import Icon from './icon'
 import Button, {Props as ButtonProps} from './button'
-import Text from './text'
+import Text, {LineClampType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
@@ -13,7 +13,7 @@ import logger from '../logger'
 type Props = {
   buttonType?: ButtonProps['type']
   containerStyle?: Styles.StylesCrossPlatform
-  multiline?: boolean | number
+  multiline?: boolean | LineClampType
   onCopy?: () => void
   hideOnCopy?: boolean
   onReveal?: () => void
@@ -93,7 +93,7 @@ const CopyText = (props: Props) => {
   const isRevealed = !props.withReveal || revealed
   const lineClamp = props.multiline
     ? typeof props.multiline === 'number'
-      ? props.multiline
+      ? (props.multiline as LineClampType)
       : null
     : isRevealed
     ? 1

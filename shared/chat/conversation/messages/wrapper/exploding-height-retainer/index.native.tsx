@@ -221,7 +221,7 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
         <Kb.ConnectedUsernames
           type="BodySmallBold"
           onUsernameClicked="profile"
-          usernames={[props.explodedBy]}
+          usernames={props.explodedBy}
           inline={true}
           colorFollowing={true}
           colorYou={true}

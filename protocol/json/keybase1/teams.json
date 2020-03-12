@@ -2882,7 +2882,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "assertionOrEmail"
+          "name": "assertion"
         },
         {
           "type": "TeamRole",

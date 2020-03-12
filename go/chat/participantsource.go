@@ -165,7 +165,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) {
 	go func(ctx context.Context) {
-		s.sema.Acquire(ctx, 1)
+		_ = s.sema.Acquire(ctx, 1)
 		defer s.sema.Release(1)
 
 		convIDStr := convID.ConvIDStr()

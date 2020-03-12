@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/dokan/winacl"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -40,8 +41,6 @@ type FS struct {
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
-
-	quotaUsage *libkbfs.EventuallyConsistentQuotaUsage
 }
 
 // DefaultMountFlags are the default mount flags for libdokan.
@@ -57,14 +56,11 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	if currentUserSIDErr != nil {
 		return nil, currentUserSIDErr
 	}
-	quLog := config.MakeLogger(libkbfs.QuotaUsageLogModule("FS"))
 	f := &FS{
 		config:        config,
 		log:           log,
 		vlog:          config.MakeVLogger(log),
 		notifications: libfs.NewFSNotifications(log),
-		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
-			config, quLog, config.MakeVLogger(quLog)),
 	}
 
 	f.root = &Root{
@@ -177,7 +173,22 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 			f.log.CDebugf(ctx, err.Error())
 		}
 	}()
-	_, usageBytes, _, limitBytes, err := f.quotaUsage.Get(
+
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, f.config.KBPKI(), true)
+	if err != nil {
+		return dokan.FreeSpace{}, err
+	} else if session == (idutil.SessionInfo{}) {
+		// If user is not logged in, don't bother getting quota info. Otherwise
+		// reading a public TLF while logged out can fail on macOS.
+		return dokan.FreeSpace{
+			TotalNumberOfBytes:     dummyFreeSpace,
+			TotalNumberOfFreeBytes: dummyFreeSpace,
+			FreeBytesAvailable:     dummyFreeSpace,
+		}, nil
+	}
+	_, usageBytes, _, limitBytes, err := f.config.GetQuotaUsage(
+		session.UID.AsUserOrTeam()).Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
 		return dokan.FreeSpace{}, errToDokan(err)

@@ -89,7 +89,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           onUsernameClicked={props.onShowProfile}
           type={props.textTypeBold}
           underline={true}
-          usernames={[props.counterparty]}
+          usernames={props.counterparty}
         />
       )
     case 'stellarPublicKey': {

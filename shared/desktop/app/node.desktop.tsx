@@ -2,7 +2,7 @@
 // MUST be first
 import './preload.desktop'
 // ^^^^^^^^
-import MainWindow, {showDockIcon, hideDockIcon} from './main-window.desktop'
+import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -341,13 +341,7 @@ const plumbEvents = () => {
         }
         break
       case 'closeWindows': {
-        const windows = Electron.BrowserWindow.getAllWindows()
-        windows.forEach(w => {
-          // We tell it to close, we can register handlers for the 'close' event if we want to
-          // keep this window alive or hide it instead.
-          w.close()
-        })
-        hideDockIcon()
+        closeWindows()
         break
       }
       case 'rendererNewProps': {

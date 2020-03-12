@@ -140,7 +140,7 @@ const Header = (p: Props) => {
                         inline={true}
                         commaColor={Styles.globalColors.black_50}
                         type="Header"
-                        usernames={[part]}
+                        usernames={part}
                         onUsernameClicked="profile"
                       />
                       {i !== withoutSelf.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
@@ -169,7 +169,7 @@ const Header = (p: Props) => {
                     inline={true}
                     commaColor={Styles.globalColors.black_50}
                     type="BodySmallBold"
-                    usernames={[withoutSelf[0]]}
+                    usernames={withoutSelf[0]}
                     onUsernameClicked="profile"
                   />
                   {description && (

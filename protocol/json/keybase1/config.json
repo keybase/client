@@ -396,6 +396,10 @@
         },
         {
           "type": "string",
+          "name": "perfLog"
+        },
+        {
+          "type": "string",
           "name": "mount"
         }
       ]
@@ -445,6 +449,10 @@
         {
           "type": "string",
           "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
         }
       ]
     },
