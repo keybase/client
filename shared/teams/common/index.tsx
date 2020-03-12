@@ -1,6 +1,9 @@
 import * as React from 'react'
 export {default as ParticipantMeta} from './meta'
 export {default as Activity, ModalTitle} from './activity'
+export {default as ChannelsWidget} from './channels-widget'
+export {useChannelMeta, useAllChannelMetas} from './channel-hooks'
+export {default as SelectionPopup} from './selection-popup'
 
 export const usePhoneNumberList = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
