@@ -18,9 +18,6 @@ const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
     <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
-    <Kb.Text style={styles.headerTeamname} type="BodySemibold">
-      {props.teamname}
-    </Kb.Text>
   </>
 )
 
@@ -97,7 +94,7 @@ const ReallyDeleteTeam = (props: Props) => {
       header={<Header {...props} />}
       onCancel={props.onBack}
       onConfirm={disabled ? undefined : props.onDelete}
-      prompt={`Are you sure you want to delete ${props.teamname}?`}
+      prompt={`Delete ${props.teamname}?`}
       waitingKey={Constants.deleteTeamWaitingKey(props.teamID)}
     />
   )
