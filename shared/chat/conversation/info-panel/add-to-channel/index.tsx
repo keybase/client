@@ -52,8 +52,8 @@ class AddToChannel extends React.Component<Props, State> {
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames
               colorFollowing={true}
-              type="BodySemibold"
-              usernames={[user.username]}
+              type="BodyBold"
+              usernames={user.username}
               underline={false}
             />
             {!user.alreadyAdded && !!user.fullname && (

@@ -12,13 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbhttp/manager"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
@@ -135,7 +133,7 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	require.NoError(t, err)
 
 	tv, err := tc.Context().ConvSource.Pull(context.TODO(), conv.Id, uid,
-		chat1.GetThreadReason_GENERAL,
+		chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
 		}, nil)
@@ -203,9 +201,6 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 }
 
 func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
-	etc := externalstest.SetupTest(t, "chat", 1)
-	defer etc.Cleanup()
-
 	ctc := makeChatTestContext(t, "TestChatSrvAttachmentUploadPreviewCached", 1)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -215,7 +210,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	}()
 	useRemoteMock = false
 	tc := ctc.world.Tcs[users[0].Username]
-	store := attachments.NewStoreTesting(logger.NewTestLogger(t), nil, etc.G)
+	store := attachments.NewStoreTesting(tc.Context(), nil)
 	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 5)
 	ri := ctc.as(t, users[0]).ri
 	d, err := libkb.RandHexString("", 8)

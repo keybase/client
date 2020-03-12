@@ -581,6 +581,83 @@ func (mtwqr modeTestWithQR) IsTestMode() bool {
 	return true
 }
 
+// Test that quota reclamation doesn't run if the current head root
+// block can't be fetched.
+func TestQuotaReclamationMissingRootBlock(t *testing.T) {
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
+	clock := clocktest.NewTestClockNow()
+	config1.SetClock(clock)
+	// Re-enable QR in test mode.
+	config1.SetMode(modeTestWithQR{NewInitModeFromType(InitDefault)})
+
+	config2 := ConfigAsUser(config1, u2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+
+	name := u1.String() + "," + u2.String()
+
+	// u1 does the writes, and u2 tries to do the QR.
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
+	kbfsOps1 := config1.KBFSOps()
+	_, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
+	err = kbfsOps1.RemoveDir(ctx, rootNode1, testPPS("a"))
+	require.NoError(t, err, "Couldn't remove dir: %+v", err)
+
+	// Increase the time and make a new revision, and make sure quota
+	// reclamation doesn't run.
+	clock.Add(2 * config2.Mode().QuotaReclamationMinUnrefAge())
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, testPPS("b"))
+	require.NoError(t, err, "Couldn't create dir: %+v", err)
+
+	// Wait for outstanding archives
+	err = kbfsOps1.SyncFromServer(ctx,
+		rootNode1.GetFolderBranch(), nil)
+	require.NoError(t, err, "Couldn't sync from server: %+v", err)
+
+	// Delete the bad block directly from the bserver.
+	md, err := kbfsOps1.GetNodeMetadata(ctx, rootNode1)
+	require.NoError(t, err)
+	bserverLocal, ok := config1.BlockServer().(blockServerLocal)
+	require.True(t, ok)
+	ptr := md.BlockInfo.BlockPointer
+	contexts := kbfsblock.ContextMap{
+		ptr.ID: []kbfsblock.Context{ptr.Context},
+	}
+	_, err = bserverLocal.RemoveBlockReferences(
+		ctx, rootNode1.GetFolderBranch().Tlf, contexts)
+	require.NoError(t, err)
+
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
+
+	// Increase the time again and make sure it is supposed to run.
+	clock.Add(2 * config2.Mode().QuotaReclamationMinHeadAge())
+
+	// Make sure no blocks are deleted while the block can't be fetched.
+	preQR1Blocks, err := bserverLocal.getAllRefsForTest(
+		ctx, rootNode2.GetFolderBranch().Tlf)
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
+
+	ops := kbfsOps2.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode2)
+	ops.fbm.forceQuotaReclamation()
+	err = ops.fbm.waitForQuotaReclamations(ctx)
+	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
+
+	postQR1Blocks, err := bserverLocal.getAllRefsForTest(
+		ctx, rootNode2.GetFolderBranch().Tlf)
+	require.NoError(t, err, "Couldn't get blocks: %+v", err)
+
+	if !reflect.DeepEqual(preQR1Blocks, postQR1Blocks) {
+		t.Fatalf("Blocks deleted despite error (%v vs %v)!",
+			preQR1Blocks, postQR1Blocks)
+	}
+
+	// Skip state-checking.
+	config1.MDServer().Shutdown()
+}
+
 // Test that quota reclamation doesn't run unless the current head is
 // at least the minimum needed age.
 func TestQuotaReclamationMinHeadAge(t *testing.T) {

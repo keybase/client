@@ -29,7 +29,10 @@ type Props = {
   fullName?: string
 }
 
-const descStyleTablet = {
+const descColor = Styles.globalColors.black_50
+
+const descStyleMobile = {
+  color: descColor,
   fontSize: 13,
   lineHeight: 16,
 }
@@ -38,7 +41,7 @@ const descStyleDesktop = {
   lineHeight: '16px',
   wordBreak: 'break-all',
 } as const // approximates BodySmall since markdown does not support text type
-const descStyle = Container.isTablet ? descStyleTablet : descStyleDesktop
+const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
 
 const descStyleOverride = {
   del: descStyle,
@@ -107,7 +110,7 @@ const Header = (p: Props) => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.left}>
-        <ChatInboxHeader showNewChat={true} showSearch={!Styles.isTablet} />
+        <ChatInboxHeader context="chat-header" />
       </Kb.Box2>
       <Kb.Box2
         direction="horizontal"
@@ -137,7 +140,7 @@ const Header = (p: Props) => {
                         inline={true}
                         commaColor={Styles.globalColors.black_50}
                         type="Header"
-                        usernames={[part]}
+                        usernames={part}
                         onUsernameClicked="profile"
                       />
                       {i !== withoutSelf.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
@@ -165,8 +168,8 @@ const Header = (p: Props) => {
                     underline={true}
                     inline={true}
                     commaColor={Styles.globalColors.black_50}
-                    type="BodySmallSemibold"
-                    usernames={[withoutSelf[0]]}
+                    type="BodySmallBold"
+                    usernames={withoutSelf[0]}
                     onUsernameClicked="profile"
                   />
                   {description && (
@@ -216,16 +219,9 @@ const Header = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      actionIcons: Styles.platformStyles({
-        common: {
-          paddingBottom: Styles.globalMargins.tiny,
-        },
-        isTablet: {
-          flexGrow: 0,
-          flexShrink: 0,
-          minWidth: 200,
-        },
-      }),
+      actionIcons: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
       clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
       container: {
         flexGrow: 1,
@@ -233,7 +229,7 @@ const styles = Styles.styleSheetCreate(
       },
       desc: {
         ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-        color: Styles.globalColors.black_50,
+        color: descColor,
       },
       descriptionContainer: {
         height: 17,
@@ -256,13 +252,18 @@ const styles = Styles.styleSheetCreate(
       }),
       left: Styles.platformStyles({
         isElectron: {minWidth: 260},
-        isTablet: {minWidth: 180},
+        isTablet: {paddingLeft: Styles.globalMargins.small, width: '30%'},
       }),
-      right: {
-        flexGrow: 1,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-      },
+      right: Styles.platformStyles({
+        common: {
+          flex: 1,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+        },
+      }),
       shhIconStyle: {
         marginLeft: Styles.globalMargins.xtiny,
       },

@@ -11,6 +11,7 @@ protocol config {
     boolean loggedIn;
     boolean sessionIsValid;
     union { null, User } user;
+    string deviceName;
   }
 
   CurrentStatus getCurrentStatus(int sessionID);
@@ -102,6 +103,7 @@ protocol config {
     string pid;
     string log;
     string ekLog;
+    string perfLog;
   }
 
   record KBFSStatus {
@@ -110,6 +112,7 @@ protocol config {
     boolean running;
     string pid;
     string log;
+    string perfLog;
     string mount;
   }
 
@@ -129,6 +132,7 @@ protocol config {
 
   record GitStatus {
     string log;
+    string perfLog;
   }
 
   record FullStatus {

@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -94,7 +93,6 @@ type folderBranchStatusKeeper struct {
 	dirtyNodes map[NodeID]Node
 	unmerged   []*crChainSummary
 	merged     []*crChainSummary
-	quotaUsage *EventuallyConsistentQuotaUsage
 
 	fboIDBytes []byte
 
@@ -104,14 +102,12 @@ type folderBranchStatusKeeper struct {
 
 func newFolderBranchStatusKeeper(
 	config Config, nodeCache NodeCache,
-	quotaUsage *EventuallyConsistentQuotaUsage,
 	fboIDBytes []byte) *folderBranchStatusKeeper {
 	return &folderBranchStatusKeeper{
 		config:     config,
 		nodeCache:  nodeCache,
 		dirtyNodes: make(map[NodeID]Node),
 		updateChan: make(chan StatusUpdate, 1),
-		quotaUsage: quotaUsage,
 		fboIDBytes: fboIDBytes,
 	}
 }
@@ -236,32 +232,16 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		fbs.RootBlockID = fbsk.md.Data().Dir.BlockPointer.ID.String()
 		fbs.LocalTimestamp = fbsk.md.localTimestamp
 
-		if fbsk.quotaUsage == nil {
-			log := fbsk.config.MakeLogger(QuotaUsageLogModule(fmt.Sprintf(
-				"status-%s", fbsk.md.TlfID())))
-			vlog := fbsk.config.MakeVLogger(log)
-			chargedTo, err := chargedToForTLF(
-				ctx, fbsk.config.KBPKI(), fbsk.config.KBPKI(),
-				fbsk.config, fbsk.md.GetTlfHandle())
-			if err != nil {
-				return FolderBranchStatus{}, nil, tlf.NullID, err
-			}
-			if chargedTo.IsTeam() {
-				// TODO: somehow share this team quota usage instance
-				// with the journal for the team (and subteam) TLFs?
-				fbsk.quotaUsage = NewEventuallyConsistentTeamQuotaUsage(
-					fbsk.config, chargedTo.AsTeamOrBust(), log, vlog)
-			} else {
-				// Almost certainly this should be being passed in by
-				// the caller of fbsk's constructor, and in that case
-				// we wouldn't be making a new one here
-				fbsk.quotaUsage = NewEventuallyConsistentQuotaUsage(
-					fbsk.config, log, vlog)
-			}
+		chargedTo, err := chargedToForTLF(
+			ctx, fbsk.config.KBPKI(), fbsk.config.KBPKI(),
+			fbsk.config, fbsk.md.GetTlfHandle())
+		if err != nil {
+			return FolderBranchStatus{}, nil, tlf.NullID, err
 		}
+		qu := fbsk.config.GetQuotaUsage(chargedTo)
 		_, usageBytes, archiveBytes, limitBytes,
 			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr :=
-			fbsk.quotaUsage.GetAllTypes(
+			qu.GetAllTypes(
 				ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 		if quErr != nil {
 			// The error is ignored here so that other fields can

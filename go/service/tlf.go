@@ -27,7 +27,7 @@ func newTlfHandler(xp rpc.Transporter, g *globals.Context) *tlfHandler {
 	return &tlfHandler{
 		BaseHandler:   NewBaseHandler(g.ExternalG(), xp),
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "TlfHandler", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "TlfHandler", false),
 		tlfInfoSource: chat.NewKBFSNameInfoSource(g),
 	}
 }

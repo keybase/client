@@ -121,6 +121,9 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 	return storage, nil
 }
 
+// FastForwardBackoff implements the BlockServer interface.
+func (b *BlockServerDisk) FastForwardBackoff() {}
+
 // Get implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
@@ -155,46 +158,56 @@ func (b *BlockServerDisk) Get(
 	return data, keyServerHalf, nil
 }
 
-// GetEncodedSize implements the BlockServer interface for
+// GetEncodedSizes implements the BlockServer interface for
 // BlockServerDisk.
-func (b *BlockServerDisk) GetEncodedSize(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
-	size uint32, status keybase1.BlockStatus, err error) {
+func (b *BlockServerDisk) GetEncodedSizes(
+	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
+	contexts []kbfsblock.Context) (
+	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
 	if err := checkContext(ctx); err != nil {
-		return 0, 0, err
+		return nil, nil, err
 	}
 
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
 	b.log.CDebugf(ctx,
-		"BlockServerDisk.GetEncodedSize id=%s tlfID=%s context=%s",
-		id, tlfID, context)
+		"BlockServerDisk.GetEncodedSizes id=%s tlfID=%s context=%s",
+		ids, tlfID, contexts)
 	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
-		return 0, 0, err
+		return nil, nil, err
 	}
 
 	tlfStorage.lock.RLock()
 	defer tlfStorage.lock.RUnlock()
 	if tlfStorage.store == nil {
-		return 0, 0, errBlockServerDiskShutdown
+		return nil, nil, errBlockServerDiskShutdown
 	}
 
-	hasContext, refStatus, err := tlfStorage.store.hasContext(ctx, id, context)
-	if err != nil {
-		return 0, 0, err
-	}
-	if !hasContext {
-		return 0, 0, blockNonExistentError{id}
-	}
+	sizes = make([]uint32, len(ids))
+	statuses = make([]keybase1.BlockStatus, len(ids))
+	for i, id := range ids {
+		context := contexts[i]
+		hasContext, refStatus, err := tlfStorage.store.hasContext(
+			ctx, id, context)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !hasContext {
+			sizes[i] = 0
+			statuses[i] = keybase1.BlockStatus_UNKNOWN
+			continue
+		}
 
-	size64, err := tlfStorage.store.getDataSize(ctx, id)
-	if err != nil {
-		return 0, 0, err
+		size64, err := tlfStorage.store.getDataSize(ctx, id)
+		if err != nil {
+			return nil, nil, err
+		}
+		sizes[i] = uint32(size64)
+		statuses[i] = refStatus.toBlockStatus()
 	}
-	return uint32(size64), refStatus.toBlockStatus(), nil
+	return sizes, statuses, nil
 }
 
 // Put implements the BlockServer interface for BlockServerDisk.

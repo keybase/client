@@ -10,6 +10,7 @@ const props = {
   onSave: Sb.action('onSave'),
   submitting: false,
   waitingKey: 'dummyWaitingKey',
+  wizard: false,
 }
 
 const load = () => {

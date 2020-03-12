@@ -12,8 +12,10 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addBotMember = 'chat2:addBotMember'
+export const addToMessageMap = 'chat2:addToMessageMap'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
+export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
@@ -28,6 +30,7 @@ export const attemptAudioRecording = 'chat2:attemptAudioRecording'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
+export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearMessages = 'chat2:clearMessages'
@@ -47,7 +50,6 @@ export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
-export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -65,10 +67,10 @@ export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
-export const loadMoreSmalls = 'chat2:loadMoreSmalls'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
+export const loadedMutualTeams = 'chat2:loadedMutualTeams'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -110,12 +112,12 @@ export const previewConversation = 'chat2:previewConversation'
 export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
 export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
 export const refreshBotSettings = 'chat2:refreshBotSettings'
+export const refreshMutualTeamsInConv = 'chat2:refreshMutualTeamsInConv'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
-export const resetSmalls = 'chat2:resetSmalls'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
@@ -136,7 +138,6 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setGeneralConvFromTeamID = 'chat2:setGeneralConvFromTeamID'
 export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
-export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setLoadedBotPage = 'chat2:setLoadedBotPage'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
@@ -147,7 +148,6 @@ export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
-export const setWalletsOld = 'chat2:setWalletsOld'
 export const showInfoPanel = 'chat2:showInfoPanel'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const stopAudioRecording = 'chat2:stopAudioRecording'
@@ -195,6 +195,7 @@ type _AddBotMemberPayload = {
   readonly username: string
   readonly restricted: boolean
 }
+type _AddToMessageMapPayload = {readonly message: Types.Message}
 type _AddUserToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -202,6 +203,11 @@ type _AddUserToChannelPayload = {
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly usernames: Array<string>
+}
+type _AttachFromDragAndDropPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly paths: Array<Types.PathAndOutboxID>
+  readonly titles: Array<string>
 }
 type _AttachmentDownloadPayload = {readonly message: Types.Message}
 type _AttachmentDownloadedPayload = {
@@ -254,6 +260,7 @@ type _BlockConversationPayload = {
   readonly reportUser: boolean
 }
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
+type _ChannelSuggestionsTriggeredPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearMessagesPayload = void
@@ -302,7 +309,6 @@ type _GiphyToggleWindowPayload = {
   readonly show: boolean
   readonly clearInput: boolean
 }
-type _HandleSeeingWalletsPayload = void
 type _HideConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _IgnorePinnedMessagePayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _InboxRefreshPayload = {
@@ -354,10 +360,13 @@ type _LoadMessagesCenteredPayload = {
   readonly messageID: Types.MessageID
   readonly highlightMode: Types.CenterOrdinalHighlightMode
 }
-type _LoadMoreSmallsPayload = void
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LoadNextBotPagePayload = {readonly pageSize: number}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LoadedMutualTeamsPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly teamIDs: Array<TeamsTypes.TeamID>
+}
 type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
@@ -479,6 +488,7 @@ type _MetaRequestTrustedPayload = {
     | 'scroll'
     | 'ensureSelectedMeta'
     | 'ensureWidgetMetas'
+    | 'ensureChannelMeta'
     | 'inboxSearchResults'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
@@ -522,6 +532,7 @@ type _PreviewConversationPayload = {
   readonly channelname?: string
   readonly conversationIDKey?: Types.ConversationIDKey
   readonly reason:
+    | 'channelHeader'
     | 'manageView'
     | 'messageLink'
     | 'resetChatWithoutThem'
@@ -554,6 +565,7 @@ type _RefreshBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
 }
+type _RefreshMutualTeamsInConvPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _RemoveBotMemberPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -569,7 +581,6 @@ type _RequestInfoReceivedPayload = {
 }
 type _ResetChatWithoutThemPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ResetLetThemInPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly username: string}
-type _ResetSmallsPayload = void
 type _ResolveMaybeMentionPayload = {readonly name: string; readonly channel: string}
 type _SaveMinWriterRolePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -603,7 +614,9 @@ type _SelectConversationPayload = {
     | 'teamChat'
     | 'addedToChannel'
     | 'teamMention'
+  readonly skipNav?: boolean
   readonly navKey?: string
+  readonly pushBody?: string
 }
 type _SendAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -667,7 +680,6 @@ type _SetGeneralConvFromTeamIDPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
 }
 type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
-type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
 type _SetLoadedBotPagePayload = {readonly page: number}
 type _SetMaybeMentionInfoPayload = {readonly name: string; readonly info: RPCChatTypes.UIMaybeMentionInfo}
 type _SetMinWriterRolePayload = {
@@ -704,7 +716,6 @@ type _SetUnsentTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text?: HiddenString
 }
-type _SetWalletsOldPayload = void
 type _ShowInfoPanelPayload = {
   readonly tab?: 'settings' | 'members' | 'attachments' | 'bots'
   readonly show: boolean
@@ -1013,6 +1024,12 @@ export const createSetGeneralConvFromTeamID = (
   payload: _SetGeneralConvFromTeamIDPayload
 ): SetGeneralConvFromTeamIDPayload => ({payload, type: setGeneralConvFromTeamID})
 /**
+ * Refresh loaded mutual teams for a conversation
+ */
+export const createRefreshMutualTeamsInConv = (
+  payload: _RefreshMutualTeamsInConvPayload
+): RefreshMutualTeamsInConvPayload => ({payload, type: refreshMutualTeamsInConv})
+/**
  * Refresh role in conversation
  */
 export const createRefreshBotRoleInConv = (
@@ -1114,13 +1131,6 @@ export const createSetMaybeMentionInfo = (
   payload: _SetMaybeMentionInfoPayload
 ): SetMaybeMentionInfoPayload => ({payload, type: setMaybeMentionInfo})
 /**
- * Set that wallets in chat is not new.
- */
-export const createSetWalletsOld = (payload: _SetWalletsOldPayload): SetWalletsOldPayload => ({
-  payload,
-  type: setWalletsOld,
-})
-/**
  * Set the bottom banner on a new conversation as dismissed
  */
 export const createDismissBottomBanner = (
@@ -1203,20 +1213,6 @@ export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload): S
   type: staticConfigLoaded,
 })
 /**
- * Tell the service to give us more small teams
- */
-export const createLoadMoreSmalls = (payload: _LoadMoreSmallsPayload): LoadMoreSmallsPayload => ({
-  payload,
-  type: loadMoreSmalls,
-})
-/**
- * Tell the service to revert to default number of small teams
- */
-export const createResetSmalls = (payload: _ResetSmallsPayload): ResetSmallsPayload => ({
-  payload,
-  type: resetSmalls,
-})
-/**
  * Tell the service to toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (
@@ -1229,12 +1225,6 @@ export const createUpdateReactions = (payload: _UpdateReactionsPayload): UpdateR
   payload,
   type: updateReactions,
 })
-/**
- * The user has interacted with wallets in chat.
- */
-export const createHandleSeeingWallets = (
-  payload: _HandleSeeingWalletsPayload
-): HandleSeeingWalletsPayload => ({payload, type: handleSeeingWallets})
 /**
  * Toggle /giphy text to trigger preview window
  */
@@ -1336,13 +1326,6 @@ export const createRequestInfoReceived = (
   payload: _RequestInfoReceivedPayload
 ): RequestInfoReceivedPayload => ({payload, type: requestInfoReceived})
 /**
- * We've seen chat search before
- */
-export const createSetInboxShowIsNew = (payload: _SetInboxShowIsNewPayload): SetInboxShowIsNewPayload => ({
-  payload,
-  type: setInboxShowIsNew,
-})
-/**
  * Where we want our focus for keypresses
  */
 export const createChangeFocus = (payload: _ChangeFocusPayload): ChangeFocusPayload => ({
@@ -1414,6 +1397,13 @@ export const createSetLoadedBotPage = (payload: _SetLoadedBotPagePayload): SetLo
   payload,
   type: setLoadedBotPage,
 })
+export const createAddToMessageMap = (payload: _AddToMessageMapPayload): AddToMessageMapPayload => ({
+  payload,
+  type: addToMessageMap,
+})
+export const createAttachFromDragAndDrop = (
+  payload: _AttachFromDragAndDropPayload
+): AttachFromDragAndDropPayload => ({payload, type: attachFromDragAndDrop})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
   payload,
   type: attachmentDownload,
@@ -1460,6 +1450,9 @@ export const createBlockConversation = (payload: _BlockConversationPayload): Blo
   payload,
   type: blockConversation,
 })
+export const createChannelSuggestionsTriggered = (
+  payload: _ChannelSuggestionsTriggeredPayload
+): ChannelSuggestionsTriggeredPayload => ({payload, type: channelSuggestionsTriggered})
 export const createClearMessages = (payload: _ClearMessagesPayload): ClearMessagesPayload => ({
   payload,
   type: clearMessages,
@@ -1508,6 +1501,10 @@ export const createLoadNewerMessagesDueToScroll = (
 export const createLoadOlderMessagesDueToScroll = (
   payload: _LoadOlderMessagesDueToScrollPayload
 ): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
+export const createLoadedMutualTeams = (payload: _LoadedMutualTeamsPayload): LoadedMutualTeamsPayload => ({
+  payload,
+  type: loadedMutualTeams,
+})
 export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
   payload,
   type: lockAudioRecording,
@@ -1691,6 +1688,10 @@ export type AddAttachmentViewMessagePayload = {
   readonly type: typeof addAttachmentViewMessage
 }
 export type AddBotMemberPayload = {readonly payload: _AddBotMemberPayload; readonly type: typeof addBotMember}
+export type AddToMessageMapPayload = {
+  readonly payload: _AddToMessageMapPayload
+  readonly type: typeof addToMessageMap
+}
 export type AddUserToChannelPayload = {
   readonly payload: _AddUserToChannelPayload
   readonly type: typeof addUserToChannel
@@ -1698,6 +1699,10 @@ export type AddUserToChannelPayload = {
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: typeof addUsersToChannel
+}
+export type AttachFromDragAndDropPayload = {
+  readonly payload: _AttachFromDragAndDropPayload
+  readonly type: typeof attachFromDragAndDrop
 }
 export type AttachmentDownloadPayload = {
   readonly payload: _AttachmentDownloadPayload
@@ -1752,6 +1757,10 @@ export type BlockConversationPayload = {
   readonly type: typeof blockConversation
 }
 export type ChangeFocusPayload = {readonly payload: _ChangeFocusPayload; readonly type: typeof changeFocus}
+export type ChannelSuggestionsTriggeredPayload = {
+  readonly payload: _ChannelSuggestionsTriggeredPayload
+  readonly type: typeof channelSuggestionsTriggered
+}
 export type ClearAttachmentViewPayload = {
   readonly payload: _ClearAttachmentViewPayload
   readonly type: typeof clearAttachmentView
@@ -1822,10 +1831,6 @@ export type GiphyToggleWindowPayload = {
   readonly payload: _GiphyToggleWindowPayload
   readonly type: typeof giphyToggleWindow
 }
-export type HandleSeeingWalletsPayload = {
-  readonly payload: _HandleSeeingWalletsPayload
-  readonly type: typeof handleSeeingWallets
-}
 export type HideConversationPayload = {
   readonly payload: _HideConversationPayload
   readonly type: typeof hideConversation
@@ -1885,10 +1890,6 @@ export type LoadMessagesCenteredPayload = {
   readonly payload: _LoadMessagesCenteredPayload
   readonly type: typeof loadMessagesCentered
 }
-export type LoadMoreSmallsPayload = {
-  readonly payload: _LoadMoreSmallsPayload
-  readonly type: typeof loadMoreSmalls
-}
 export type LoadNewerMessagesDueToScrollPayload = {
   readonly payload: _LoadNewerMessagesDueToScrollPayload
   readonly type: typeof loadNewerMessagesDueToScroll
@@ -1900,6 +1901,10 @@ export type LoadNextBotPagePayload = {
 export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
+}
+export type LoadedMutualTeamsPayload = {
+  readonly payload: _LoadedMutualTeamsPayload
+  readonly type: typeof loadedMutualTeams
 }
 export type LockAudioRecordingPayload = {
   readonly payload: _LockAudioRecordingPayload
@@ -2044,6 +2049,10 @@ export type RefreshBotSettingsPayload = {
   readonly payload: _RefreshBotSettingsPayload
   readonly type: typeof refreshBotSettings
 }
+export type RefreshMutualTeamsInConvPayload = {
+  readonly payload: _RefreshMutualTeamsInConvPayload
+  readonly type: typeof refreshMutualTeamsInConv
+}
 export type RemoveBotMemberPayload = {
   readonly payload: _RemoveBotMemberPayload
   readonly type: typeof removeBotMember
@@ -2061,7 +2070,6 @@ export type ResetLetThemInPayload = {
   readonly payload: _ResetLetThemInPayload
   readonly type: typeof resetLetThemIn
 }
-export type ResetSmallsPayload = {readonly payload: _ResetSmallsPayload; readonly type: typeof resetSmalls}
 export type ResolveMaybeMentionPayload = {
   readonly payload: _ResolveMaybeMentionPayload
   readonly type: typeof resolveMaybeMention
@@ -2139,10 +2147,6 @@ export type SetInboxNumSmallRowsPayload = {
   readonly payload: _SetInboxNumSmallRowsPayload
   readonly type: typeof setInboxNumSmallRows
 }
-export type SetInboxShowIsNewPayload = {
-  readonly payload: _SetInboxShowIsNewPayload
-  readonly type: typeof setInboxShowIsNew
-}
 export type SetLoadedBotPagePayload = {
   readonly payload: _SetLoadedBotPagePayload
   readonly type: typeof setLoadedBotPage
@@ -2182,10 +2186,6 @@ export type SetThreadSearchStatusPayload = {
 export type SetUnsentTextPayload = {
   readonly payload: _SetUnsentTextPayload
   readonly type: typeof setUnsentText
-}
-export type SetWalletsOldPayload = {
-  readonly payload: _SetWalletsOldPayload
-  readonly type: typeof setWalletsOld
 }
 export type ShowInfoPanelPayload = {
   readonly payload: _ShowInfoPanelPayload
@@ -2309,8 +2309,10 @@ export type UpdateUserReacjisPayload = {
 export type Actions =
   | AddAttachmentViewMessagePayload
   | AddBotMemberPayload
+  | AddToMessageMapPayload
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
+  | AttachFromDragAndDropPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload
@@ -2325,6 +2327,7 @@ export type Actions =
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload
+  | ChannelSuggestionsTriggeredPayload
   | ClearAttachmentViewPayload
   | ClearCommandStatusInfoPayload
   | ClearMessagesPayload
@@ -2344,7 +2347,6 @@ export type Actions =
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
-  | HandleSeeingWalletsPayload
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | InboxRefreshPayload
@@ -2362,10 +2364,10 @@ export type Actions =
   | LeaveConversationPayload
   | LoadAttachmentViewPayload
   | LoadMessagesCenteredPayload
-  | LoadMoreSmallsPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
+  | LoadedMutualTeamsPayload
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
@@ -2407,12 +2409,12 @@ export type Actions =
   | RefreshBotPublicCommandsPayload
   | RefreshBotRoleInConvPayload
   | RefreshBotSettingsPayload
+  | RefreshMutualTeamsInConvPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
-  | ResetSmallsPayload
   | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
   | SelectConversationPayload
@@ -2433,7 +2435,6 @@ export type Actions =
   | SetExplodingModeLockPayload
   | SetGeneralConvFromTeamIDPayload
   | SetInboxNumSmallRowsPayload
-  | SetInboxShowIsNewPayload
   | SetLoadedBotPagePayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
@@ -2444,7 +2445,6 @@ export type Actions =
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
-  | SetWalletsOldPayload
   | ShowInfoPanelPayload
   | StaticConfigLoadedPayload
   | StopAudioRecordingPayload

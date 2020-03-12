@@ -24,6 +24,7 @@ type Props = {
   small?: boolean
   style?: Styles.StylesCrossPlatform
   toMany?: boolean
+  disabled?: boolean
 } & (
   | {conversationIDKey: ChatTypes.ConversationIDKey; username?: never}
   | {conversationIDKey?: never; username: string}
@@ -81,6 +82,7 @@ export const WaveButton = (props: Props) => {
         style={hideButton ? styles.hiddenButton : styles.button}
         mode="Secondary"
         waiting={waving}
+        disabled={!!props.disabled}
       >
         <Kb.Text type="BodySemibold" style={styles.blueText}>
           {waveText}

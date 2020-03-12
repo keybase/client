@@ -10,6 +10,7 @@ import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes
 import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
+import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import {isMobile} from '../constants/platform'
 import * as Tabs from '../constants/tabs'
 import {RouteMap} from '../util/container'
@@ -72,6 +73,7 @@ export const modalRoutes: RouteMap = {
   ...(signupNewModalRoutes as RouteMap),
   ...(teamsNewModalRoutes as RouteMap),
   ...(walletsNewModalRoutes as RouteMap),
+  ...(incomingShareNewModalRoutes as RouteMap),
 }
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}

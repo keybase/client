@@ -377,8 +377,8 @@ func (fs *FS) lookupOrCreateEntryNoFollow(
 		// If we were supposed to have exclusively-created this file,
 		// we must fail.
 		if flag&os.O_CREATE != 0 && flag&os.O_EXCL != 0 {
-			return nil, data.EntryInfo{},
-				errors.New("Exclusive create failed because the file exists")
+			return nil, data.EntryInfo{}, errors.Wrap(os.ErrExist,
+				"Exclusive create failed because the file exists")
 		}
 
 		if ei.Type == data.Sym {

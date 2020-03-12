@@ -68,7 +68,7 @@ module.exports = {
     // explicitly
     require('./profile-card').default
 
-    return require('./usernames/container').default
+    return require('./usernames').default
   },
   get CopyText() {
     return require('./copy-text').default
@@ -112,9 +112,6 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get Header() {
-    return require('./header').default
-  },
   get HeaderHoc() {
     return require('./header-hoc').default
   },
@@ -145,6 +142,9 @@ module.exports = {
   get InfoNote() {
     return require('./info-note').default
   },
+  get InlineDropdown() {
+    return require('./dropdown').InlineDropdown
+  },
   get Input() {
     return require('./input').default
   },
@@ -169,9 +169,6 @@ module.exports = {
   get LoadingLine() {
     return require('./loading-line').default
   },
-  get LocationMap() {
-    return require('./location-map').default
-  },
   get Markdown() {
     return require('./markdown').default
   },
@@ -180,6 +177,9 @@ module.exports = {
   },
   get Meta() {
     return require('./meta').default
+  },
+  get MobilePopup() {
+    return require('./mobile-popup').default
   },
   get Modal() {
     return require('./modal').default
@@ -207,6 +207,9 @@ module.exports = {
   },
   get OverlayParentHOC() {
     return require('./overlay/parent-hoc').default
+  },
+  get PhoneInput() {
+    return require('./phone-input').default
   },
   get Placeholder() {
     return require('./placeholder').default
@@ -238,12 +241,6 @@ module.exports = {
   get ProofBrokenBanner() {
     return require('./proof-broken-banner').default
   },
-  get QRLines() {
-    return require('./qr-lines').default
-  },
-  get QRNotAuthorized() {
-    return require('./qr-not-authorized').default
-  },
   get RadioButton() {
     return require('./radio-button').default
   },
@@ -252,6 +249,9 @@ module.exports = {
   },
   get RequireImage() {
     return require('./image').RequireImage
+  },
+  get RichButton() {
+    return require('./rich-button').default
   },
   get RoundedBox() {
     return require('./rounded-box').default
@@ -304,9 +304,6 @@ module.exports = {
   get Transition() {
     return require('./animated').Transition
   },
-  get UserCard() {
-    return require('./user-card').default
-  },
   get Video() {
     return require('./video').default
   },
@@ -351,6 +348,9 @@ module.exports = {
   },
   get usePopup() {
     return require('./use-popup').usePopup
+  },
+  get useSafeArea() {
+    return require('./safe-area-view').useSafeArea
   },
   get useTimeout() {
     return require('./use-timers').useTimeout

@@ -8,16 +8,17 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import flags from '../../../../util/feature-flags'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import {CaptionedDangerIcon} from './channel-utils'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
-type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey}
+type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview: boolean}
 
 const SettingsPanel = (props: SettingsPanelProps) => {
-  const {conversationIDKey} = props
+  const {conversationIDKey, isPreview} = props
   const dispatch = Container.useDispatch()
   const username = Container.useSelector(state => state.config.username)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
@@ -30,6 +31,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const spinnerForHide = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.waitingKeyConvStatusChange(conversationIDKey))
+  )
+  const spinnerForLeave = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.waitingKeyLeaveConversation)
   )
 
   const canDeleteHistory =
@@ -82,6 +86,90 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     : onHideConv
 
   const onLeaveConversation = () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
+
+  if (flags.teamsRedesign) {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
+        <Kb.ScrollView>
+          {isPreview ? (
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
+              <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
+              <Kb.Button mode="Secondary" label="Join channel" style={styles.buttonStyle} />
+            </Kb.Box2>
+          ) : (
+            <Notifications conversationIDKey={conversationIDKey} />
+          )}
+
+          {entityType === 'channel' && channelname !== 'general' && !isPreview && (
+            <Kb.Button
+              type="Danger"
+              mode="Secondary"
+              label="Leave channel"
+              onClick={onLeaveConversation}
+              style={styles.smallButton}
+              waiting={spinnerForLeave}
+            />
+          )}
+
+          <Kb.Text type="Header" style={styles.settingsHeader}>
+            Channel
+          </Kb.Text>
+
+          <RetentionPicker
+            containerStyle={styles.retentionContainerStyle}
+            conversationIDKey={['adhoc', 'channel'].includes(entityType) ? conversationIDKey : undefined}
+            dropdownStyle={styles.retentionDropdownStyle}
+            entityType={entityType}
+            showSaveIndicator={true}
+            teamID={teamID}
+            type="auto"
+          />
+          {(entityType === 'channel' || entityType === 'small team') && (
+            <MinWriterRole conversationIDKey={conversationIDKey} />
+          )}
+
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.section}>
+            <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
+
+            {canDeleteHistory && (
+              <Kb.Button
+                type="Danger"
+                fullWidth={true}
+                label="Clear entire conversation"
+                onClick={onShowClearConversationDialog}
+                style={styles.buttonStyle}
+              />
+            )}
+            {entityType === 'adhoc' && (
+              <CaptionedDangerIcon
+                caption="Block"
+                onClick={onShowBlockConversationDialog}
+                icon="iconfont-remove"
+              />
+            )}
+            {entityType !== 'channel' &&
+              (ignored ? (
+                <CaptionedDangerIcon
+                  caption="Unhide this conversation"
+                  icon="iconfont-unhide"
+                  onClick={onUnhideConv}
+                  noDanger={true}
+                  spinner={spinnerForHide}
+                />
+              ) : (
+                <CaptionedDangerIcon
+                  caption="Hide this conversation"
+                  onClick={onHideConv}
+                  noDanger={true}
+                  icon="iconfont-hide"
+                  spinner={spinnerForHide}
+                />
+              ))}
+          </Kb.Box2>
+        </Kb.ScrollView>
+      </Kb.Box2>
+    )
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
@@ -137,7 +225,12 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             />
           ))}
         {entityType === 'channel' && channelname !== 'general' && (
-          <CaptionedDangerIcon onClick={onLeaveConversation} caption="Leave channel" icon="iconfont-leave" />
+          <CaptionedDangerIcon
+            onClick={onLeaveConversation}
+            caption="Leave channel"
+            icon="iconfont-leave"
+            spinner={spinnerForLeave}
+          />
         )}
       </Kb.ScrollView>
     </Kb.Box2>
@@ -147,6 +240,11 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      buttonStyle: {
+        alignSelf: 'flex-start',
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
       divider: {
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
@@ -159,6 +257,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           paddingLeft: 16,
           paddingRight: 16,
+          paddingTop: 8,
         },
         isMobile: {marginRight: 16},
       }),
@@ -169,6 +268,10 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {width: '100%'},
       }),
+      section: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
       settingsContainer: Styles.platformStyles({
         common: {
           flex: 1,
@@ -177,11 +280,22 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {alignSelf: 'center', maxWidth: 600},
       }),
+      settingsHeader: {
+        display: 'flex',
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      smallButton: {
+        marginBottom: Styles.globalMargins.medium,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
     } as const)
 )
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  isPreview: boolean
   renderTabs: () => React.ReactNode
   commonSections: Array<unknown>
 }
@@ -195,8 +309,11 @@ export default (p: Props) => {
       sections={[
         ...p.commonSections,
         {
-          data: ['tab'],
-          renderItem: () => <SettingsPanel conversationIDKey={p.conversationIDKey} key="settings" />,
+          data: [{key: 'tab'}],
+          key: 'settings-panel',
+          renderItem: () => (
+            <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} key="settings" />
+          ),
           renderSectionHeader: p.renderTabs,
         },
       ]}

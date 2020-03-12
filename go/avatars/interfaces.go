@@ -24,7 +24,7 @@ func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) {
 		}
 		// When changing staleThreshold here, serverside avatar change
 		// notification dismiss time should be adjusted as well.
-		s = NewFullCachingSource(time.Hour /* staleThreshold */, maxSize)
+		s = NewFullCachingSource(g, time.Hour /* staleThreshold */, maxSize)
 	}
 	g.AddDbNukeHook(s, fmt.Sprintf("AvatarLoader[%s]", typ))
 	g.SetAvatarLoader(s)

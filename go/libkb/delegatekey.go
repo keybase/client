@@ -202,10 +202,12 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 
 func (d *Delegator) SignAndPost(m MetaContext, proof *ProofMetadataRes) (err error) {
 	d.proof = proof
-	if d.sig, d.sigID, d.linkID, err = SignJSON(proof.J, d.GetSigningKey()); err != nil {
+	var sigIDBase keybase1.SigIDBase
+	if d.sig, sigIDBase, d.linkID, err = SignJSON(proof.J, d.GetSigningKey()); err != nil {
 		m.Debug("| Failure in SignJson()")
 		return err
 	}
+	d.sigID = sigIDBase.ToSigIDLegacy()
 	if err = d.post(m); err != nil {
 		m.Debug("| Failure in post()")
 		return err
@@ -224,7 +226,7 @@ func (d *Delegator) isHighDelegator() bool {
 
 func (d *Delegator) updateLocalState(linkID LinkID) (err error) {
 	d.Me.SigChainBump(linkID, d.sigID, d.isHighDelegator())
-	d.merkleTriple = MerkleTriple{LinkID: linkID, SigID: d.sigID}
+	d.merkleTriple = MerkleTriple{LinkID: linkID, SigID: d.sigID.StripSuffix()}
 	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest(), d.getMerkleHashMeta(), keybase1.Seqno(0))
 }
 
@@ -235,7 +237,7 @@ func (d *Delegator) post(m MetaContext) (err error) {
 	}
 
 	hargs := HTTPArgs{
-		"sig_id_base":     S{Val: d.sigID.ToString(false)},
+		"sig_id_base":     S{Val: d.sigID.StripSuffix().String()},
 		"sig_id_short":    S{Val: d.sigID.ToShortID()},
 		"sig":             S{Val: d.sig},
 		"type":            S{Val: string(d.DelegationType)},

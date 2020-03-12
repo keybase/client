@@ -741,6 +741,15 @@
           "name": "body",
           "mpackkey": "b",
           "jsonkey": "b"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "targetUID",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },
@@ -3224,6 +3233,30 @@
     },
     {
       "type": "record",
+      "name": "GetMutualTeamsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TeamID"
+          },
+          "name": "teamIDs"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SetAppNotificationSettingsLocalRes",
       "fields": [
         {
@@ -3382,7 +3415,7 @@
         },
         {
           "type": "string",
-          "name": "teamName"
+          "name": "tlfName"
         }
       ]
     },
@@ -3807,6 +3840,24 @@
     },
     {
       "type": "record",
+      "name": "WelcomeMessageDisplay",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "set"
+        },
+        {
+          "type": "string",
+          "name": "display"
+        },
+        {
+          "type": "string",
+          "name": "raw"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "WelcomeMessage",
       "fields": [
         {
@@ -3815,7 +3866,7 @@
         },
         {
           "type": "string",
-          "name": "text"
+          "name": "raw"
         }
       ]
     },
@@ -3913,6 +3964,13 @@
             null,
             "GetThreadQuery"
           ]
+        },
+        {
+          "name": "knownRemotes",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         },
         {
           "name": "pagination",
@@ -5013,6 +5071,18 @@
       ],
       "response": "GetChannelMembershipsLocalRes"
     },
+    "getMutualTeamsLocal": {
+      "request": [
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": "GetMutualTeamsLocalRes"
+    },
     "setAppNotificationSettingsLocal": {
       "request": [
         {
@@ -5649,7 +5719,7 @@
           "type": "keybase1.TeamID"
         }
       ],
-      "response": "WelcomeMessage"
+      "response": "WelcomeMessageDisplay"
     },
     "getDefaultTeamChannelsLocal": {
       "request": [
@@ -5692,6 +5762,37 @@
         "values": "LastActiveStatus",
         "keys": "TLFIDStr"
       }
+    },
+    "getRecentJoinsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "int"
+    },
+    "refreshParticipants": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "getLastActiveAtLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "gregor1.Time"
     }
   },
   "namespace": "chat.1"

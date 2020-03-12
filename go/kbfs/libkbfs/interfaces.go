@@ -192,13 +192,15 @@ type Node interface {
 	// to indicate that the caller should pretend the entry exists,
 	// even if it really does not.  In the case of fake files, a
 	// non-nil `fi` can be returned and used by the caller to
-	// construct the dir entry for the file.  An implementation that
-	// wraps another `Node` (`inner`) must return
+	// construct the dir entry for the file.  It can also return the
+	// type `RealDir`, along with a non-zero `ptr`, to indicate a real
+	// directory corresponding to that pointer should be used.  An
+	// implementation that wraps another `Node` (`inner`) must return
 	// `inner.ShouldCreateMissedLookup()` if it decides not to return
 	// `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name data.PathPartString) (
 		shouldCreate bool, newCtx context.Context, et data.EntryType,
-		fi os.FileInfo, sympath data.PathPartString)
+		fi os.FileInfo, sympath data.PathPartString, ptr data.BlockPointer)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -1457,11 +1459,12 @@ type BlockOps interface {
 	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
 		block data.Block, cacheLifetime data.BlockCacheLifetime) error
 
-	// GetEncodedSize gets the encoded size of the block associated
-	// with the given block pointer (which belongs to the TLF with the
-	// given key metadata).
-	GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata,
-		blockPtr data.BlockPointer) (uint32, keybase1.BlockStatus, error)
+	// GetEncodedSizes gets the encoded sizes and statuses of the
+	// block associated with the given block pointers (which belongs
+	// to the TLF with the given key metadata).  If a block is not
+	// found, it gets a size of 0 and an UNKNOWN status.
+	GetEncodedSizes(ctx context.Context, kmd libkey.KeyMetadata,
+		blockPtrs []data.BlockPointer) ([]uint32, []keybase1.BlockStatus, error)
 
 	// Delete instructs the server to delete the given block references.
 	// It returns the number of not-yet deleted references to
@@ -1661,8 +1664,8 @@ type MDServer interface {
 	CheckReachability(ctx context.Context)
 
 	// FastForwardBackoff fast forwards any existing backoff timer for
-	// reconnects. If MD server is connected at the time this is called, it's
-	// essentially a no-op.
+	// connecting to the mdserver. If mdserver is connected at the time this
+	// is called, it's essentially a no-op.
 	FastForwardBackoff()
 
 	// FindNextMD finds the serialized (and possibly encrypted) root
@@ -1701,6 +1704,11 @@ type mdServerLocal interface {
 type BlockServer interface {
 	authTokenRefreshHandler
 
+	// FastForwardBackoff fast forwards any existing backoff timer for
+	// connecting to bserver. If bserver is connected at the time this is
+	// called, it's essentially a no-op.
+	FastForwardBackoff()
+
 	// Get gets the (encrypted) block data associated with the given
 	// block ID and context, uses the provided block key to decrypt
 	// the block, and fills in the provided block object with its
@@ -1710,12 +1718,13 @@ type BlockServer interface {
 		context kbfsblock.Context, cacheType DiskBlockCacheType) (
 		[]byte, kbfscrypto.BlockCryptKeyServerHalf, error)
 
-	// GetEncodedSize gets the encoded size of the block associated
-	// with the given block pointer (which belongs to the TLF with the
-	// given key metadata).
-	GetEncodedSize(
-		ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-		context kbfsblock.Context) (uint32, keybase1.BlockStatus, error)
+	// GetEncodedSizes gets the encoded sizes and statuses of the
+	// blocks associated with the given block IDs (which belong to the
+	// TLF with the given key metadata).  If a block is not found, it
+	// gets a size of 0 and an UNKNOWN status.
+	GetEncodedSizes(
+		ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
+		contexts []kbfsblock.Context) ([]uint32, []keybase1.BlockStatus, error)
 
 	// Put stores the (encrypted) block data under the given ID
 	// and context on the server, along with the server half of
@@ -1922,6 +1931,9 @@ type InitMode interface {
 	Type() InitModeType
 	// IsTestMode returns whether we are running a test.
 	IsTestMode() bool
+	// IsSingleOp returns whether this is a single-op mode (only one
+	// write is expected at a time).
+	IsSingleOp() bool
 	// BlockWorkers returns the number of block workers to run.
 	BlockWorkers() int
 	// PrefetchWorkers returns the number of prefetch workers to run.
@@ -2020,6 +2032,12 @@ type InitMode interface {
 	// BackgroundWorkPeriod indicates how long to wait between
 	// non-critical background work tasks.
 	BackgroundWorkPeriod() time.Duration
+	// IndexingEnabled indicates whether or not synced TLFs are
+	// indexed and searchable.
+	IndexingEnabled() bool
+	// DelayInitialConnect indicates whether the initial connection to KBFS
+	// servers should be delayed.
+	DelayInitialConnect() bool
 
 	ldbutils.DbWriteBufferSizeGetter
 }
@@ -2206,6 +2224,7 @@ type Config interface {
 	SetRekeyWithPromptWaitTime(time.Duration)
 	// PrefetchStatus returns the prefetch status of a block.
 	PrefetchStatus(context.Context, tlf.ID, data.BlockPointer) PrefetchStatus
+	GetQuotaUsage(keybase1.UserOrTeamID) *EventuallyConsistentQuotaUsage
 
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving
@@ -2554,12 +2573,14 @@ type blockPutStateCopiable interface {
 
 type fileBlockMap interface {
 	putTopBlock(
-		ctx context.Context, parentPtr data.BlockPointer, childName string,
-		topBlock *data.FileBlock) error
+		ctx context.Context, parentPtr data.BlockPointer,
+		childName data.PathPartString, topBlock *data.FileBlock) error
 	GetTopBlock(
-		ctx context.Context, parentPtr data.BlockPointer, childName string) (
-		*data.FileBlock, error)
-	getFilenames(ctx context.Context, parentPtr data.BlockPointer) ([]string, error)
+		ctx context.Context, parentPtr data.BlockPointer,
+		childName data.PathPartString) (*data.FileBlock, error)
+	getFilenames(
+		ctx context.Context, parentPtr data.BlockPointer) (
+		[]data.PathPartString, error)
 }
 
 type dirBlockMap interface {

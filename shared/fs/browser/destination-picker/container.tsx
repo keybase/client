@@ -8,7 +8,10 @@ import {isMobile} from '../../../constants/platform'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as React from 'react'
 
-type OwnProps = Container.RouteProps<{index: number}>
+type OwnProps = Container.RouteProps<{
+  index: number
+  isIncomingShare: boolean
+}>
 
 const getIndex = (ownProps: OwnProps) => Container.getRouteProps(ownProps, 'index', 0)
 const getDestinationParentPath = (dp: Types.DestinationPicker, ownProps: OwnProps): Types.Path =>

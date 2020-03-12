@@ -279,6 +279,19 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	// invitation should automatically cancel first invitation.
 	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
 
+	// Load team, see if we really have just one invite.
+	teamObj := ann.loadTeamByID(teamID, true /* admin */)
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, invites, 1)
+	for _, invite := range invites {
+		require.Equal(t, keybase1.TeamRole_ADMIN, invite.Role)
+		require.EqualValues(t, bob.userVersion().PercentForm(), invite.Name)
+		typ, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_KEYBASE, typ)
+		break // check the first (and only) invite
+	}
+
 	t.Logf("Trying to get a PUK")
 
 	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
@@ -463,11 +476,10 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 
 	// Disable gregor in this test so Ann does not immediately add Bob
 	// through SBS handler when bob proves Rooter.
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+	ann := makeUserStandalone(t, tt, "ann", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
-	tt.users = append(tt.users, ann)
 
 	tracer := ann.tc.G.CTimeTracer(context.Background(), "test-tracer", true)
 	defer tracer.Finish()
@@ -520,11 +532,10 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 
 	// Disable gregor in this test so Ann does not immediately add Bob
 	// through SBS handler when bob gets PUK.
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+	ann := makeUserStandalone(t, tt, "ann", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
-	tt.users = append(tt.users, ann)
 
 	// Get UIDMapper caching out of the equation - assume in real
 	// life, tested actions are spread out in time and caching is not
@@ -623,11 +634,9 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 	if waitForRekeyd {
 		own = tt.addUser("own")
 	} else {
-		own = makeUserStandalone(t, "own", userParams)
-		tt.users = append(tt.users, own)
+		own = makeUserStandalone(t, tt, "own", userParams)
 	}
-	roo := makeUserStandalone(t, "roo", userParams)
-	tt.users = append(tt.users, roo)
+	roo := makeUserStandalone(t, tt, "roo", userParams)
 	tt.logUserNames()
 
 	teamID, teamName := own.createTeam2()
@@ -748,11 +757,10 @@ func TestSBSInviteReuse(t *testing.T) {
 	defer tt.cleanup()
 
 	makeUser := func(name string) *userPlusDevice {
-		user := makeUserStandalone(t, name, standaloneUserArgs{
+		user := makeUserStandalone(t, tt, name, standaloneUserArgs{
 			disableGregor:            true,
 			suppressTeamChatAnnounce: true,
 		})
-		tt.users = append(tt.users, user)
 		return user
 	}
 

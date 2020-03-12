@@ -45,7 +45,7 @@ type MobilePush struct {
 func NewMobilePush(g *globals.Context) *MobilePush {
 	return &MobilePush{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "MobilePush", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "MobilePush", false),
 	}
 }
 
@@ -106,7 +106,7 @@ func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 	maxMsgID, err := storage.New(h.G(), h.G().ConvSource).GetMaxMsgID(ctx, convID, uid)
 	if err == nil {
 		if msgUnboxed.GetMessageID() > maxMsgID {
-			if err = h.G().ConvSource.PushUnboxed(ctx, convID, uid, []chat1.MessageUnboxed{msgUnboxed}); err != nil {
+			if err = h.G().ConvSource.PushUnboxed(ctx, unboxInfo, uid, []chat1.MessageUnboxed{msgUnboxed}); err != nil {
 				h.Debug(ctx, "UnboxPushNotification: failed to push message to conv source: %s",
 					err.Error())
 			}

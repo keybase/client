@@ -61,6 +61,7 @@ export type Details = {
   stellarHidden?: boolean
   teamShowcase?: Array<TeamShowcase>
   username: string
+  resetBrokeTrack: boolean
 }
 
 // Details for SBS profiles

@@ -57,8 +57,8 @@ export const TeamBotRow = (props: Props) => {
         <Kb.ConnectedUsernames
           prefix="@"
           inline={true}
-          usernames={[props.ownerUser ?? props.username]}
-          type="BodySmall"
+          usernames={props.ownerUser ?? props.username}
+          type="BodySmallBold"
           withProfileCardPopup={true}
           onUsernameClicked="profile"
         />
@@ -66,6 +66,7 @@ export const TeamBotRow = (props: Props) => {
     </Kb.Box2>
   )
 
+  // TODO: switch this to a ListItem2 so that we get dividers, free styling, etc
   return (
     <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Kb.Box style={styles.innerContainerTop}>

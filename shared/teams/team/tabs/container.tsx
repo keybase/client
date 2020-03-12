@@ -24,6 +24,7 @@ export default Container.connect(
       _members,
       admin: yourOperations.manageMembers,
       error: state.teams.errorInAddToTeam,
+      isBig: Constants.isBigTeam(state, teamID),
       loading: anyWaiting(
         state,
         Constants.teamWaitingKey(teamMeta.teamname),
@@ -50,6 +51,7 @@ export default Container.connect(
     return {
       admin: stateProps.admin,
       error: stateProps.error,
+      isBig: stateProps.isBig,
       loadBots: () =>
         _bots.map(
           bot =>

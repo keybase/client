@@ -693,7 +693,7 @@ func createTeam(tc libkb.TestContext) (keybase1.TeamID, string) {
 	return *teamID, name
 }
 
-func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
+func TestSaltpackRecipientKeyfinderTeamBasic(t *testing.T) {
 	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 

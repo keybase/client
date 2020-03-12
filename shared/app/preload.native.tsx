@@ -16,6 +16,15 @@ global.KB = {
         return invalidPreload()
       },
     },
+    dialog: {
+      showOpenDialog: invalidPreload,
+      showSaveDialog: invalidPreload,
+    },
+  },
+  kb: {
+    darwinCopyToChatTempUploadFile: () => invalidPreload(),
+    darwinCopyToKBFSTempUploadFile: () => invalidPreload(),
+    setEngine: () => {},
   },
   os: {
     get homedir() {
@@ -24,6 +33,7 @@ global.KB = {
   },
   path: {
     basename: invalidPreload,
+    dirname: invalidPreload,
     extname: invalidPreload,
     join: invalidPreload,
     resolve: invalidPreload,

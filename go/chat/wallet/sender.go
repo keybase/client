@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -23,55 +23,39 @@ type Sender struct {
 func NewSender(g *globals.Context) *Sender {
 	return &Sender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Wallet.Sender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Wallet.Sender", false),
 	}
-}
-
-func (s *Sender) getConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
-	// slow path just in case (still should be fast)
-	inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		})
-	if err != nil {
-		return res, err
-	}
-	if len(inbox.Convs) != 1 {
-		return res, errors.New("too many/little convs")
-	}
-	return inbox.Convs[0], nil
 }
 
 func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (parts []string, membersType chat1.ConversationMembersType, err error) {
-	localConv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
-	if err == nil && localConv.LocalMetadata != nil && len(localConv.LocalMetadata.WriterNames) > 0 {
-		// fast path (should always get hit)
-		membersType = localConv.Conv.GetMembersType()
-		parts = localConv.LocalMetadata.WriterNames
-	} else {
-		conv, err := s.getConv(ctx, uid, convID)
-		if err != nil {
-			return parts, membersType, err
-		}
-		membersType = conv.GetMembersType()
-		parts = make([]string, len(conv.Info.Participants))
-		for index, p := range conv.Info.Participants {
-			parts[index] = p.Username
-		}
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return parts, membersType, err
 	}
-	return parts, membersType, nil
+	if parts, err = utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID); err != nil {
+		return parts, membersType, err
+	}
+	return parts, conv.GetMembersType(), nil
 }
 
 func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res map[string]string, err error) {
-	res = make(map[string]string)
-	conv, err := s.getConv(ctx, uid, convID)
+	uids, err := s.G().ParticipantsSource.Get(ctx, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return res, err
 	}
-	for _, p := range conv.Info.Participants {
-		if p.Fullname != nil {
-			res[p.Username] = *p.Fullname
+	kuids := make([]keybase1.UID, 0, len(uids))
+	for _, uid := range uids {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+		time.Minute, true)
+	if err != nil {
+		return res, err
+	}
+	res = make(map[string]string)
+	for _, row := range rows {
+		if row.FullName != nil {
+			res[row.NormalizedUsername.String()] = row.FullName.FullName.String()
 		}
 	}
 	return res, nil

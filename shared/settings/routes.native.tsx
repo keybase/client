@@ -1,7 +1,7 @@
 import * as Constants from '../constants/settings'
 import * as Container from '../util/container'
 import AboutTab from './about-container'
-import AdvancedTab from './advanced/container'
+import AdvancedTab from './advanced'
 import ChatTab from './chat/container'
 import DisplayTab from './display/container'
 import FsTab from './files/container'
@@ -29,9 +29,8 @@ import WhatsNewTab from '../whats-new/container'
 
 export const newRoutes = {
   [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
-  // TODO connect broken
   [Constants.advancedTab]: {
-    getScreen: (): typeof AdvancedTab => require('./advanced/container').default,
+    getScreen: (): typeof AdvancedTab => require('./advanced').default,
   },
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
   [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display/container').default},

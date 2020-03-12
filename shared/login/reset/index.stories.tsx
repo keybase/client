@@ -4,8 +4,11 @@ import ResetModal from './modal'
 import {KnowPassword, EnterPassword} from './password'
 import Waiting from './waiting'
 import ConfirmReset from './confirm'
+import * as Container from '../../util/container'
 
-const store = Sb.createStoreWithCommon()
+const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.autoreset.active = true
+})
 
 const load = () => {
   Sb.storiesOf('Login/Reset', module)

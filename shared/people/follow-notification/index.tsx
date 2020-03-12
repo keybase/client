@@ -12,7 +12,7 @@ const connectedUsernamesProps = {
     fontWeight: 'normal',
   },
   onUsernameClicked: 'profile',
-  type: 'BodySemibold',
+  type: 'BodyBold',
   underline: true,
 } as const
 
@@ -37,7 +37,7 @@ const FollowNotification = (props: Props) => {
   const usernameComponent = (
     <Kb.ConnectedUsernames
       {...connectedUsernamesProps}
-      usernames={[username]}
+      usernames={username}
       onUsernameClicked={props.onClickUser}
     />
   )

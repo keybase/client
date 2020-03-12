@@ -6,12 +6,14 @@ import * as Types from '../constants/types/fs'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
+export const checkKbfsDaemonRpcStatus = 'fs:checkKbfsDaemonRpcStatus'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
 export const dismissFsError = 'fs:dismissFsError'
+export const dismissUpload = 'fs:dismissUpload'
 export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
@@ -42,12 +44,14 @@ export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
+export const loadUploadStatus = 'fs:loadUploadStatus'
 export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
 export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
 export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
 export const loadedFileContext = 'fs:loadedFileContext'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
+export const loadedUploadStatus = 'fs:loadedUploadStatus'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
@@ -70,7 +74,7 @@ export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath
 export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
-export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
+export const setIncomingShareSource = 'fs:setIncomingShareSource'
 export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownload = 'fs:setPathItemActionMenuDownload'
@@ -95,8 +99,7 @@ export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
-export const uploadStarted = 'fs:uploadStarted'
-export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
+export const uploadFromDragAndDrop = 'fs:uploadFromDragAndDrop'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 export const userIn = 'fs:userIn'
@@ -105,12 +108,14 @@ export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = {readonly downloadID: string}
+type _CheckKbfsDaemonRpcStatusPayload = void
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
 type _DeleteFilePayload = {readonly path: Types.Path}
 type _DiscardEditPayload = {readonly editID: Types.EditID}
 type _DismissDownloadPayload = {readonly downloadID: string}
 type _DismissFsErrorPayload = {readonly key: string}
+type _DismissUploadPayload = {readonly uploadID: string}
 type _DownloadPayload = {readonly path: Types.Path}
 type _DriverDisablePayload = void
 type _DriverDisablingPayload = void
@@ -156,6 +161,7 @@ type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
+type _LoadUploadStatusPayload = void
 type _LoadedAdditionalTlfPayload = {readonly tlf: Types.Tlf; readonly tlfPath: Types.Path}
 type _LoadedDownloadInfoPayload = {readonly downloadID: string; readonly info: Types.DownloadInfo}
 type _LoadedDownloadStatusPayload = {
@@ -165,6 +171,7 @@ type _LoadedDownloadStatusPayload = {
 type _LoadedFileContextPayload = {readonly path: Types.Path; readonly fileContext: Types.FileContext}
 type _LoadedFilesTabBadgePayload = {readonly badge: RPCTypes.FilesTabBadge}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
+type _LoadedUploadStatusPayload = {readonly uploadStates: Array<RPCTypes.UploadState>}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
 type _NewFolderRowPayload = {readonly parentPath: Types.Path}
@@ -190,7 +197,10 @@ type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly 
 type _SetDirectMountDirPayload = {readonly directMountDir: string}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string | null}
-type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
+type _SetIncomingShareSourcePayload = {
+  readonly source: Types.LocalPath | Array<RPCTypes.IncomingShareItem>
+  readonly useOriginal: boolean
+}
 type _SetLastPublicBannerClosedTlfPayload = {readonly tlf: string}
 type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
 type _SetPathItemActionMenuDownloadPayload = {
@@ -225,9 +235,8 @@ type _TlfSyncConfigLoadedPayload = {
 }
 type _UninstallKBFSConfirmPayload = void
 type _UnsubscribePayload = {readonly subscriptionID: string}
+type _UploadFromDragAndDropPayload = {readonly parentPath: Types.Path; readonly localPaths: Array<string>}
 type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
-type _UploadStartedPayload = {readonly path: Types.Path}
-type _UploadWritingSuccessPayload = {readonly path: Types.Path}
 type _UserFileEditsLoadPayload = void
 type _UserFileEditsLoadedPayload = {readonly tlfUpdates: Types.UserTlfUpdates}
 type _UserInPayload = void
@@ -239,6 +248,9 @@ export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDow
   payload,
   type: cancelDownload,
 })
+export const createCheckKbfsDaemonRpcStatus = (
+  payload: _CheckKbfsDaemonRpcStatusPayload
+): CheckKbfsDaemonRpcStatusPayload => ({payload, type: checkKbfsDaemonRpcStatus})
 export const createCommitEdit = (payload: _CommitEditPayload): CommitEditPayload => ({
   payload,
   type: commitEdit,
@@ -259,6 +271,10 @@ export const createDismissDownload = (payload: _DismissDownloadPayload): Dismiss
 export const createDismissFsError = (payload: _DismissFsErrorPayload): DismissFsErrorPayload => ({
   payload,
   type: dismissFsError,
+})
+export const createDismissUpload = (payload: _DismissUploadPayload): DismissUploadPayload => ({
+  payload,
+  type: dismissUpload,
 })
 export const createDownload = (payload: _DownloadPayload): DownloadPayload => ({payload, type: download})
 export const createDriverDisable = (payload: _DriverDisablePayload): DriverDisablePayload => ({
@@ -366,6 +382,10 @@ export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): Loa
   payload,
   type: loadTlfSyncConfig,
 })
+export const createLoadUploadStatus = (payload: _LoadUploadStatusPayload): LoadUploadStatusPayload => ({
+  payload,
+  type: loadUploadStatus,
+})
 export const createLoadedAdditionalTlf = (
   payload: _LoadedAdditionalTlfPayload
 ): LoadedAdditionalTlfPayload => ({payload, type: loadedAdditionalTlf})
@@ -386,6 +406,10 @@ export const createLoadedFilesTabBadge = (
 export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
   payload,
   type: loadedPathInfo,
+})
+export const createLoadedUploadStatus = (payload: _LoadedUploadStatusPayload): LoadedUploadStatusPayload => ({
+  payload,
+  type: loadedUploadStatus,
 })
 export const createMove = (payload: _MovePayload): MovePayload => ({payload, type: move})
 export const createNewFolderName = (payload: _NewFolderNamePayload): NewFolderNamePayload => ({
@@ -460,9 +484,9 @@ export const createSetDriverStatus = (payload: _SetDriverStatusPayload): SetDriv
 export const createSetFolderViewFilter = (
   payload: _SetFolderViewFilterPayload
 ): SetFolderViewFilterPayload => ({payload, type: setFolderViewFilter})
-export const createSetIncomingShareLocalPath = (
-  payload: _SetIncomingShareLocalPathPayload
-): SetIncomingShareLocalPathPayload => ({payload, type: setIncomingShareLocalPath})
+export const createSetIncomingShareSource = (
+  payload: _SetIncomingShareSourcePayload
+): SetIncomingShareSourcePayload => ({payload, type: setIncomingShareSource})
 export const createSetLastPublicBannerClosedTlf = (
   payload: _SetLastPublicBannerClosedTlfPayload
 ): SetLastPublicBannerClosedTlfPayload => ({payload, type: setLastPublicBannerClosedTlf})
@@ -544,13 +568,9 @@ export const createUnsubscribe = (payload: _UnsubscribePayload): UnsubscribePayl
   type: unsubscribe,
 })
 export const createUpload = (payload: _UploadPayload): UploadPayload => ({payload, type: upload})
-export const createUploadStarted = (payload: _UploadStartedPayload): UploadStartedPayload => ({
-  payload,
-  type: uploadStarted,
-})
-export const createUploadWritingSuccess = (
-  payload: _UploadWritingSuccessPayload
-): UploadWritingSuccessPayload => ({payload, type: uploadWritingSuccess})
+export const createUploadFromDragAndDrop = (
+  payload: _UploadFromDragAndDropPayload
+): UploadFromDragAndDropPayload => ({payload, type: uploadFromDragAndDrop})
 export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload): UserFileEditsLoadPayload => ({
   payload,
   type: userFileEditsLoad,
@@ -570,6 +590,10 @@ export type CancelDownloadPayload = {
   readonly payload: _CancelDownloadPayload
   readonly type: typeof cancelDownload
 }
+export type CheckKbfsDaemonRpcStatusPayload = {
+  readonly payload: _CheckKbfsDaemonRpcStatusPayload
+  readonly type: typeof checkKbfsDaemonRpcStatus
+}
 export type CommitEditPayload = {readonly payload: _CommitEditPayload; readonly type: typeof commitEdit}
 export type CopyPayload = {readonly payload: _CopyPayload; readonly type: typeof copy}
 export type DeleteFilePayload = {readonly payload: _DeleteFilePayload; readonly type: typeof deleteFile}
@@ -581,6 +605,10 @@ export type DismissDownloadPayload = {
 export type DismissFsErrorPayload = {
   readonly payload: _DismissFsErrorPayload
   readonly type: typeof dismissFsError
+}
+export type DismissUploadPayload = {
+  readonly payload: _DismissUploadPayload
+  readonly type: typeof dismissUpload
 }
 export type DownloadPayload = {readonly payload: _DownloadPayload; readonly type: typeof download}
 export type DriverDisablePayload = {
@@ -684,6 +712,10 @@ export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: typeof loadTlfSyncConfig
 }
+export type LoadUploadStatusPayload = {
+  readonly payload: _LoadUploadStatusPayload
+  readonly type: typeof loadUploadStatus
+}
 export type LoadedAdditionalTlfPayload = {
   readonly payload: _LoadedAdditionalTlfPayload
   readonly type: typeof loadedAdditionalTlf
@@ -707,6 +739,10 @@ export type LoadedFilesTabBadgePayload = {
 export type LoadedPathInfoPayload = {
   readonly payload: _LoadedPathInfoPayload
   readonly type: typeof loadedPathInfo
+}
+export type LoadedUploadStatusPayload = {
+  readonly payload: _LoadedUploadStatusPayload
+  readonly type: typeof loadedUploadStatus
 }
 export type MovePayload = {readonly payload: _MovePayload; readonly type: typeof move}
 export type NewFolderNamePayload = {
@@ -787,9 +823,9 @@ export type SetFolderViewFilterPayload = {
   readonly payload: _SetFolderViewFilterPayload
   readonly type: typeof setFolderViewFilter
 }
-export type SetIncomingShareLocalPathPayload = {
-  readonly payload: _SetIncomingShareLocalPathPayload
-  readonly type: typeof setIncomingShareLocalPath
+export type SetIncomingShareSourcePayload = {
+  readonly payload: _SetIncomingShareSourcePayload
+  readonly type: typeof setIncomingShareSource
 }
 export type SetLastPublicBannerClosedTlfPayload = {
   readonly payload: _SetLastPublicBannerClosedTlfPayload
@@ -874,15 +910,11 @@ export type UninstallKBFSConfirmPayload = {
   readonly type: typeof uninstallKBFSConfirm
 }
 export type UnsubscribePayload = {readonly payload: _UnsubscribePayload; readonly type: typeof unsubscribe}
+export type UploadFromDragAndDropPayload = {
+  readonly payload: _UploadFromDragAndDropPayload
+  readonly type: typeof uploadFromDragAndDrop
+}
 export type UploadPayload = {readonly payload: _UploadPayload; readonly type: typeof upload}
-export type UploadStartedPayload = {
-  readonly payload: _UploadStartedPayload
-  readonly type: typeof uploadStarted
-}
-export type UploadWritingSuccessPayload = {
-  readonly payload: _UploadWritingSuccessPayload
-  readonly type: typeof uploadWritingSuccess
-}
 export type UserFileEditsLoadPayload = {
   readonly payload: _UserFileEditsLoadPayload
   readonly type: typeof userFileEditsLoad
@@ -902,12 +934,14 @@ export type WaitForKbfsDaemonPayload = {
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
+  | CheckKbfsDaemonRpcStatusPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
   | DiscardEditPayload
   | DismissDownloadPayload
   | DismissFsErrorPayload
+  | DismissUploadPayload
   | DownloadPayload
   | DriverDisablePayload
   | DriverDisablingPayload
@@ -938,12 +972,14 @@ export type Actions =
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
+  | LoadUploadStatusPayload
   | LoadedAdditionalTlfPayload
   | LoadedDownloadInfoPayload
   | LoadedDownloadStatusPayload
   | LoadedFileContextPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
+  | LoadedUploadStatusPayload
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
@@ -966,7 +1002,7 @@ export type Actions =
   | SetDirectMountDirPayload
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
-  | SetIncomingShareLocalPathPayload
+  | SetIncomingShareSourcePayload
   | SetLastPublicBannerClosedTlfPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadPayload
@@ -990,9 +1026,8 @@ export type Actions =
   | TlfSyncConfigLoadedPayload
   | UninstallKBFSConfirmPayload
   | UnsubscribePayload
+  | UploadFromDragAndDropPayload
   | UploadPayload
-  | UploadStartedPayload
-  | UploadWritingSuccessPayload
   | UserFileEditsLoadPayload
   | UserFileEditsLoadedPayload
   | UserInPayload

@@ -9,15 +9,20 @@
   "types": [
     {
       "type": "enum",
-      "name": "UsernameVerificationType",
+      "name": "WotStatusType",
       "symbols": [
         "NONE_0",
-        "AUDIO_1",
-        "VIDEO_2",
-        "EMAIL_3",
-        "OTHER_CHAT_4",
-        "IN_PERSON_5"
+        "PROPOSED_1",
+        "ACCEPTED_2",
+        "REJECTED_3",
+        "REVOKED_4"
       ]
+    },
+    {
+      "type": "record",
+      "name": "UsernameVerificationType",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -26,7 +31,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "vouchedBy",
           "jsonkey": "vouched_by,omitempty"
@@ -53,6 +58,50 @@
           "jsonkey": "known_on_keybase_days,omitempty"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "WotReactionType",
+      "symbols": [
+        "ACCEPT_0",
+        "REJECT_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WotVouch",
+      "fields": [
+        {
+          "type": "WotStatusType",
+          "name": "status"
+        },
+        {
+          "type": "SigID",
+          "name": "vouchProof"
+        },
+        {
+          "type": "UserVersion",
+          "name": "voucher"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "vouchTexts"
+        },
+        {
+          "type": "Time",
+          "name": "vouchedAt"
+        },
+        {
+          "type": [
+            null,
+            "Confidence"
+          ],
+          "name": "confidence"
+        }
+      ]
     }
   ],
   "messages": {
@@ -67,7 +116,7 @@
           "type": "UserVersion"
         },
         {
-          "name": "attestations",
+          "name": "vouchTexts",
           "type": {
             "type": "array",
             "items": "string"
@@ -91,7 +140,7 @@
           "type": "string"
         },
         {
-          "name": "attestations",
+          "name": "vouchTexts",
           "type": {
             "type": "array",
             "items": "string"
@@ -103,6 +152,63 @@
         }
       ],
       "response": null
+    },
+    "wotReact": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uv",
+          "type": "UserVersion"
+        },
+        {
+          "name": "proof",
+          "type": "SigID"
+        },
+        {
+          "name": "reaction",
+          "type": "WotReactionType"
+        }
+      ],
+      "response": null
+    },
+    "wotReactCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reaction",
+          "type": "WotReactionType"
+        }
+      ],
+      "response": null
+    },
+    "wotListCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WotVouch"
+      }
     }
   },
   "namespace": "keybase.1"

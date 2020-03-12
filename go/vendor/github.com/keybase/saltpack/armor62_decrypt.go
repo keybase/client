@@ -23,20 +23,20 @@ var (
 // as necessary. Returns the MessageKeyInfo recovered during header
 // processing, an io.Reader stream from which you can read the plaintext, the armor branding, and
 // maybe an error if there was a failure.
-func NewDearmor62DecryptStream(versionValidator VersionValidator, ciphertext io.Reader, kr Keyring) (*MessageKeyInfo, io.Reader, string, error) {
+func NewDearmor62DecryptStream(versionValidator VersionValidator, ciphertext io.Reader, kr Keyring) (mki *MessageKeyInfo, ds io.Reader, brand string, err error) {
 	dearmored, frame, err := NewArmor62DecoderStream(ciphertext, armor62EncryptionHeaderChecker, armor62EncryptionFrameChecker)
 	if err != nil {
 		return nil, nil, "", err
 	}
-	brand, err := frame.GetBrand()
+	brand, err = frame.GetBrand()
 	if err != nil {
 		return nil, nil, "", err
 	}
-	mki, r, err := NewDecryptStream(versionValidator, dearmored, kr)
+	mki, ds, err = NewDecryptStream(versionValidator, dearmored, kr)
 	if err != nil {
 		return mki, nil, "", err
 	}
-	return mki, r, brand, nil
+	return mki, ds, brand, nil
 }
 
 // Dearmor62DecryptOpen takes an armor62'ed, encrypted ciphertext and attempts to

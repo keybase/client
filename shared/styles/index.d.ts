@@ -106,7 +106,6 @@ export declare const windowStyle: {
   height: number
 }
 
-// TODO: this typing is incomplete
 export declare function padding(
   top: number,
   right?: number,
@@ -130,6 +129,7 @@ export declare const isDarkMode: () => boolean
 export declare const isIPhoneX: boolean
 export declare const dimensionWidth: number
 export declare const dimensionHeight: number
+export declare const headerExtraHeight: number
 
 export {platformStyles, globalMargins, backgroundModeToColor, backgroundModeToTextColor} from './shared'
 export {

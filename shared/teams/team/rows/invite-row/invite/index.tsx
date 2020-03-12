@@ -19,10 +19,10 @@ const TeamInviteRowOld = (props: Props) => {
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={styles.usernameRole}>
         <Kb.ConnectedUsernames
           lineClamp={1}
-          type="BodySemibold"
+          type="BodyBold"
           colorFollowing={true}
           inline={true}
-          usernames={[label]}
+          usernames={label}
         />
         <Kb.Text type="BodySmall">{role && typeToLabel[role]}</Kb.Text>
       </Kb.Box2>
@@ -69,7 +69,6 @@ const _TeamInviteMenu = (props: Kb.PropsWithOverlay<{onCancelInvite?: () => void
         type="Dim"
         small={true}
         icon="iconfont-ellipsis"
-        tooltip=""
         onClick={props.toggleShowingMenu}
       />
       <Kb.FloatingMenu

@@ -33,11 +33,13 @@ class CryptoSubNav extends React.PureComponent<NavigationViewProps<any>> {
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={false}>
         <ListAndActiveOperation routeSelected={descriptor.state.routeName}>
-          <SceneView
-            navigation={childNav}
-            component={descriptor.getComponent()}
-            screenProps={this.props.screenProps || noScreenProps}
-          />
+          <Kb.BoxGrow>
+            <SceneView
+              navigation={childNav}
+              component={descriptor.getComponent()}
+              screenProps={this.props.screenProps || noScreenProps}
+            />
+          </Kb.BoxGrow>
         </ListAndActiveOperation>
       </Kb.Box2>
     )

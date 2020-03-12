@@ -19,6 +19,7 @@ import (
 	"github.com/blevesearch/bleve/registry"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -41,6 +42,7 @@ const (
 	fsIndexStorageDir = "kbfs_index"
 	docDbDir          = "docdb"
 	nameDocIDPrefix   = "name_"
+	maxIndexBatchSize = 100 * 1024 * 1024 // 100 MB
 )
 
 const (
@@ -75,8 +77,10 @@ type Indexer struct {
 	configInitFn initFn
 	once         sync.Once
 	indexWG      kbfssync.RepeatedWaitGroup
+	loopWG       kbfssync.RepeatedWaitGroup
 	kvstoreName  string
 	fullIndexCB  func() error // helpful for testing
+	progress     *Progress
 
 	userChangedCh chan struct{}
 	tlfCh         chan tlfMessage
@@ -92,6 +96,8 @@ type Indexer struct {
 	indexReadyCh   chan struct{}
 	cancelCtx      context.CancelFunc
 	fs             billy.Filesystem
+	currBatch      *bleve.Batch
+	batchFns       []func() error
 }
 
 func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
@@ -103,19 +109,14 @@ func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
 		log:           log,
 		configInitFn:  configInitFn,
 		kvstoreName:   kvstoreName,
+		progress:      NewProgress(config.Clock()),
 		userChangedCh: make(chan struct{}, 1),
 		tlfCh:         make(chan tlfMessage, 1000),
 		shutdownCh:    make(chan struct{}),
 		indexReadyCh:  make(chan struct{}),
 	}
 
-	ctx, cancel := context.WithCancel(i.makeContext(context.Background()))
-	i.cancelLoop = cancel
-	go i.loop(ctx)
-	err := config.Notifier().RegisterForSyncedTlfs(i)
-	if err != nil {
-		return nil, err
-	}
+	i.startLoop()
 	return i, nil
 }
 
@@ -123,6 +124,13 @@ func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
 func NewIndexer(config libkbfs.Config) (*Indexer, error) {
 	return newIndexerWithConfigInit(
 		config, defaultInitConfig, kvstoreNamePrefix)
+}
+
+func (i *Indexer) startLoop() {
+	ctx, cancel := context.WithCancel(i.makeContext(context.Background()))
+	i.cancelLoop = cancel
+	i.loopWG.Add(1)
+	go i.loop(ctx)
 }
 
 func (i *Indexer) makeContext(ctx context.Context) context.Context {
@@ -181,6 +189,8 @@ func defaultInitConfig(
 }
 
 func (i *Indexer) loadIndex(ctx context.Context) (err error) {
+	i.log.CDebugf(ctx, "Loading index")
+	defer func() { i.log.CDebugf(ctx, "Done loading index: %+v", err) }()
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
@@ -343,6 +353,28 @@ func (i *Indexer) UserChanged(
 
 var _ libfs.RemoteStatusUpdater = (*Indexer)(nil)
 
+func (i *Indexer) getMDForRev(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (
+	md libkbfs.ImmutableRootMetadata, err error) {
+	return libkbfs.GetSingleMD(
+		ctx, i.config, tlfID, kbfsmd.NullBranchID, rev, kbfsmd.Merged, nil)
+}
+
+func (i *Indexer) tlfQueueForProgress(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	md, err := i.getMDForRev(ctx, tlfID, rev)
+	if err != nil {
+		return err
+	}
+	// For now assume we will be indexing the entire TLF.  If when
+	// we actually start indexing, we figure out that this is an
+	// incremental index, we can update it. `DiskUsage` is the
+	// encoded, padded size, but it's the best we can easily do
+	// right now.
+	i.progress.tlfQueue(tlfID, md.DiskUsage())
+	return nil
+}
+
 // FullSyncStarted implements the libkbfs.SyncedTlfObserver interface
 // for Indexer.
 func (i *Indexer) FullSyncStarted(
@@ -358,10 +390,20 @@ func (i *Indexer) FullSyncStarted(
 			return
 		}
 
+		ctx := i.makeContext(context.Background())
+		err := i.tlfQueueForProgress(ctx, tlfID, rev)
+		if err != nil {
+			i.log.CDebugf(
+				ctx, "Couldn't enqueue for %s/%s: %+v", tlfID, rev, err)
+			i.indexWG.Done()
+			return
+		}
+
 		m := tlfMessage{tlfID, rev, keybase1.FolderSyncMode_ENABLED}
 		select {
 		case i.tlfCh <- m:
 		default:
+			i.progress.tlfUnqueue(tlfID)
 			i.indexWG.Done()
 			i.log.CDebugf(
 				context.Background(), "Couldn't send TLF message for %s/%d",
@@ -376,6 +418,11 @@ func (i *Indexer) SyncModeChanged(
 	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode) {
 	i.log.CDebugf(ctx, "Sync mode changed for %s to %s", tlfID, newMode)
 	i.indexWG.Add(1)
+
+	// Don't enqueue progress for a TLF when the sync mode changes; if
+	// the TLF is now being synced, `FullSyncStarted` will also be
+	// called.
+
 	m := tlfMessage{tlfID, kbfsmd.RevisionUninitialized, newMode}
 	select {
 	case i.tlfCh <- m:
@@ -398,6 +445,11 @@ func (i *Indexer) getCurrentPtrAndNode(
 		return data.ZeroPtr, nil, data.EntryInfo{}, err
 	}
 
+	// Symlinks don't have block pointers.
+	if n == nil {
+		return data.ZeroPtr, nil, ei, nil
+	}
+
 	// Let's find the current block ID.
 	md, err := i.config.KBFSOps().GetNodeMetadata(ctx, n)
 	if err != nil {
@@ -408,6 +460,80 @@ func (i *Indexer) getCurrentPtrAndNode(
 
 func nameDocID(docID string) string {
 	return nameDocIDPrefix + docID
+}
+
+func (i *Indexer) flushBatchLocked(ctx context.Context) error {
+	if i.currBatch == nil {
+		return nil
+	}
+	defer func() {
+		i.currBatch = nil
+		i.batchFns = nil
+	}()
+
+	// Flush the old batch.
+	i.log.CDebugf(
+		ctx, "Flushing a batch of size %d", i.currBatch.TotalDocsSize())
+	err := i.index.Batch(i.currBatch)
+	if err != nil {
+		return err
+	}
+	for _, f := range i.batchFns {
+		err := f()
+		if err != nil {
+			return err
+		}
+	}
+	return i.blocksDb.ClearMemory()
+}
+
+func (i *Indexer) flushBatch(ctx context.Context) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	return i.flushBatchLocked(ctx)
+}
+
+func (i *Indexer) refreshBatchLocked(ctx context.Context) error {
+	if i.index == nil {
+		return errors.New("Index not loaded")
+	}
+	err := i.flushBatchLocked(ctx)
+	if err != nil {
+		return err
+	}
+	i.currBatch = i.index.NewBatch()
+	return nil
+}
+
+func (i *Indexer) refreshBatch(ctx context.Context) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	return i.refreshBatchLocked(ctx)
+}
+
+func (i *Indexer) currBatchLocked(ctx context.Context) (*bleve.Batch, error) {
+	if i.currBatch == nil {
+		return nil, errors.New("No current batch")
+	}
+
+	if i.currBatch.TotalDocsSize() > maxIndexBatchSize {
+		err := i.refreshBatchLocked(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return i.currBatch, nil
+}
+
+func (i *Indexer) checkDone(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-i.shutdownCh:
+		return errors.New("Shutdown")
+	default:
+		return nil
+	}
 }
 
 func (i *Indexer) indexChildWithPtrAndNode(
@@ -429,6 +555,21 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		}
 	}
 
+	err = i.checkDone(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err == nil {
+			// Mark the bytes of this child as indexed.  This is the
+			// actual unencrypted size of the entry, which won't match
+			// up perfectly with the disk usage, but it's the easiest
+			// thing to do for now.
+			i.progress.indexedBytes(ei.Size)
+		}
+	}()
+
 	tlfID := n.GetFolderBranch().Tlf
 
 	// If the new pointer has already been indexed, skip indexing it again.
@@ -443,9 +584,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 				return nil, nil
 			}
 			return func() error {
-				return i.blocksDb.Put(
+				flushFn, err := i.blocksDb.PutMemory(
 					ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID,
 					true)
+				if err != nil {
+					return err
+				}
+				i.lock.Lock()
+				defer i.lock.Unlock()
+				i.batchFns = append(i.batchFns, flushFn)
+				return nil
 			}, nil
 		}
 	case ldberrors.ErrNotFound:
@@ -467,39 +615,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	}
 
 	dirDoneFn = func() error {
-		return i.blocksDb.Put(
+		flushFn, err := i.blocksDb.PutMemory(
 			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, true)
-	}
-
-	defer func() {
 		if err != nil {
-			return
+			return err
 		}
-
-		// Put the docID into the DB after a successful indexing.
-		putErr := i.blocksDb.Put(
-			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, false)
-		if putErr != nil {
-			err = putErr
-			return
-		}
-
-		// Save the docID -> parentDocID mapping.
-		putErr = i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
-		if putErr != nil {
-			err = putErr
-			return
-		}
-
-		// Delete the old pointer if one was given.
-		if oldPtr != data.ZeroPtr {
-			delErr := i.blocksDb.Delete(ctx, tlfID, oldPtr)
-			if err != nil {
-				err = delErr
-				return
-			}
-		}
-	}()
+		i.lock.Lock()
+		defer i.lock.Unlock()
+		i.batchFns = append(i.batchFns, flushFn)
+		return nil
+	}
 
 	// Get the content type and create a document based on that type.
 	d, nameD, err := makeDoc(
@@ -508,13 +633,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		return nil, err
 	}
 
-	i.lock.RLock()
-	defer i.lock.RUnlock()
+	i.lock.Lock()
+	defer i.lock.Unlock()
 	if i.index == nil {
 		return nil, errors.New("Index not loaded")
 	}
 
-	b := i.index.NewBatch()
+	b, err := i.currBatchLocked(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	if d != nil {
 		err = b.Index(docID, d)
@@ -527,10 +655,35 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		return nil, err
 	}
 
-	err = i.index.Batch(b)
+	// Put the docID into the DB after a successful indexing.
+	flushFn, err := i.blocksDb.PutMemory(
+		ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, false)
 	if err != nil {
 		return nil, err
 	}
+
+	i.batchFns = append(i.batchFns, func() error {
+		err := flushFn()
+		if err != nil {
+			return err
+		}
+
+		// Save the docID -> parentDocID mapping.
+		err = i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+		if err != nil {
+			return err
+		}
+
+		// Delete the old pointer if one was given.
+		if oldPtr != data.ZeroPtr {
+			err = i.blocksDb.Delete(ctx, tlfID, oldPtr)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 
 	return dirDoneFn, nil
 }
@@ -542,6 +695,12 @@ func (i *Indexer) indexChild(
 	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
 		return nil, err
+	}
+
+	if ptr == data.ZeroPtr {
+		// Skip indexing symlinks for now -- they are hard to track
+		// since they don't have a BlockPointer to put in the blocksDb.
+		return nil, nil
 	}
 
 	return i.indexChildWithPtrAndNode(
@@ -558,6 +717,11 @@ func (i *Indexer) updateChild(
 		return nil, err
 	}
 
+	if newPtr == data.ZeroPtr {
+		// Symlinks should never be updated.
+		return nil, errors.Errorf("Symlink %s should not be updated", childName)
+	}
+
 	return i.indexChildWithPtrAndNode(
 		ctx, parentNode, parentDocID, childName, oldPtr, newPtr, n, ei,
 		"" /* should get picked up from DB, not from this param*/, revision)
@@ -569,6 +733,11 @@ func (i *Indexer) renameChild(
 	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
 		return err
+	}
+
+	if ptr == data.ZeroPtr {
+		// Ignore symlink renames.
+		return nil
 	}
 
 	i.log.CDebugf(ctx, "Found %s for child %s", ptr, childName)
@@ -585,15 +754,29 @@ func (i *Indexer) renameChild(
 		return err
 	}
 
-	// Rename the doc ID for the new name.
-	newNameDoc := makeNameDoc(n, revision, time.Unix(0, ei.Mtime))
-	err = i.index.Index(nameDocID(docID), newNameDoc)
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	b, err := i.currBatchLocked(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Fix the child name in the doc db.
-	return i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+	newNameDoc := makeNameDoc(n, revision, time.Unix(0, ei.Mtime))
+	err = b.Index(nameDocID(docID), newNameDoc)
+	if err != nil {
+		return err
+	}
+
+	// Rename the doc ID for the new name.
+	i.batchFns = append(
+		i.batchFns,
+		func() error {
+			// Fix the child name in the doc db.
+			return i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+		})
+
+	return nil
 }
 
 func (i *Indexer) deleteFromUnrefs(
@@ -622,10 +805,14 @@ unrefLoop:
 		return nil
 	}
 
-	i.lock.RLock()
-	defer i.lock.RUnlock()
+	i.lock.Lock()
+	defer i.lock.Unlock()
 
-	b := i.index.NewBatch()
+	b, err := i.currBatchLocked(ctx)
+	if err != nil {
+		return err
+	}
+
 	b.Delete(docID)
 	b.Delete(nameDocID(docID))
 	err = i.index.Batch(b)
@@ -633,12 +820,12 @@ unrefLoop:
 		return err
 	}
 
-	err = i.docDb.Delete(ctx, docID)
-	if err != nil {
-		return err
-	}
-
-	return i.blocksDb.Delete(ctx, tlfID, unref)
+	i.batchFns = append(
+		i.batchFns,
+		func() error { return i.docDb.Delete(ctx, docID) },
+		func() error { return i.blocksDb.Delete(ctx, tlfID, unref) },
+	)
+	return nil
 }
 
 func (i *Indexer) fsForRev(
@@ -648,7 +835,7 @@ func (i *Indexer) fsForRev(
 	}
 	branch := data.MakeRevBranchName(rev)
 
-	md, err := i.config.MDOps().GetForTLF(ctx, tlfID, nil)
+	md, err := i.getMDForRev(ctx, tlfID, rev)
 	if err != nil {
 		return nil, err
 	}
@@ -661,6 +848,11 @@ func (i *Indexer) fsForRev(
 func (i *Indexer) indexNewlySyncedTlfDir(
 	ctx context.Context, dir libkbfs.Node,
 	dirDocID string, rev kbfsmd.Revision) error {
+	err := i.checkDone(ctx)
+	if err != nil {
+		return err
+	}
+
 	children, err := i.config.KBFSOps().GetDirChildren(ctx, dir)
 	if err != nil {
 		return err
@@ -714,19 +906,27 @@ func (i *Indexer) recordUpdatedNodePtr(
 		return nil, err
 	}
 	tlfID := node.GetFolderBranch().Tlf
-	err = i.blocksDb.Put(
-		ctx, tlfID, md.BlockInfo.BlockPointer, currentIndexedBlocksDbVersion,
-		docID, false)
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	flushFn, err := i.blocksDb.PutMemory(
+		ctx, tlfID, md.BlockInfo.BlockPointer,
+		currentIndexedBlocksDbVersion, docID, false)
 	if err != nil {
 		return nil, err
 	}
+	i.batchFns = append(i.batchFns, flushFn)
+
 	return func() error {
-		err := i.blocksDb.Put(
+		flushFn, err := i.blocksDb.PutMemory(
 			ctx, tlfID, md.BlockInfo.BlockPointer,
 			currentIndexedBlocksDbVersion, docID, true)
 		if err != nil {
 			return err
 		}
+
+		i.lock.Lock()
+		defer i.lock.Unlock()
+		i.batchFns = append(i.batchFns, flushFn)
 
 		if oldPtr != data.ZeroPtr {
 			err := i.blocksDb.Delete(ctx, tlfID, oldPtr)
@@ -752,6 +952,22 @@ func (i *Indexer) indexNewlySyncedTlf(
 		return err
 	}
 
+	err = i.refreshBatch(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		flushErr := i.flushBatch(ctx)
+		if flushErr == nil {
+			return
+		}
+		i.log.CDebugf(ctx, "Error flushing batch: %+v", flushErr)
+		if err == nil {
+			err = flushErr
+		}
+	}()
+
 	// Record the docID for the root node. But no need to index the
 	// root dir, since it doesn't really have a name.
 	dirDoneFn, err := i.recordUpdatedNodePtr(ctx, root, rev, id, data.ZeroPtr)
@@ -771,6 +987,27 @@ func (i *Indexer) indexNewlySyncedTlf(
 
 func (i *Indexer) doFullIndex(
 	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) (err error) {
+	i.log.CDebugf(ctx, "Doing full index of %s at rev %d", m.tlfID, rev)
+	defer func() {
+		i.log.CDebugf(
+			ctx, "Finished full index of %s at rev %d: %+v", m.tlfID, rev, err)
+	}()
+
+	md, err := i.getMDForRev(ctx, m.tlfID, rev)
+	if err != nil {
+		return err
+	}
+	err = i.progress.startIndex(m.tlfID, md.DiskUsage(), indexFull)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		progErr := i.progress.finishIndex(m.tlfID)
+		if progErr != nil {
+			i.log.CDebugf(ctx, "Couldn't finish index: %+v", err)
+		}
+	}()
+
 	fs, err := i.fsForRev(ctx, m.tlfID, rev)
 	if err != nil {
 		return err
@@ -814,13 +1051,31 @@ func (i *Indexer) doFullIndex(
 func (i *Indexer) doIncrementalIndex(
 	ctx context.Context, m tlfMessage, indexedRev, newRev kbfsmd.Revision) (
 	err error) {
-	i.log.CDebugf(ctx, "Incremental index %d -> %d", indexedRev, newRev)
+	i.log.CDebugf(
+		ctx, "Incremental index %s: d -> %d", m.tlfID, indexedRev, newRev)
+	defer func() {
+		i.log.CDebugf(ctx, "Incremental index %s: d -> %d: %+v",
+			m.tlfID, indexedRev, newRev, err)
+	}()
+
 	// Gather list of changes after indexedRev, up to and including newRev.
-	changes, err := libkbfs.GetChangesBetweenRevisions(
+	changes, refSize, err := libkbfs.GetChangesBetweenRevisions(
 		ctx, i.config, m.tlfID, indexedRev, newRev)
 	if err != nil {
 		return err
 	}
+
+	err = i.progress.startIndex(m.tlfID, refSize, indexIncremental)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		progErr := i.progress.finishIndex(m.tlfID)
+		if progErr != nil {
+			i.log.CDebugf(ctx, "Couldn't finish index: %+v", err)
+		}
+	}()
+
 	// Sort by path length, to make sure we process directories before
 	// their children.
 	sort.Slice(changes, func(i, j int) bool {
@@ -845,6 +1100,22 @@ func (i *Indexer) doIncrementalIndex(
 
 		// After a successful indexing, mark the revision as fully indexed.
 		err = i.tlfDb.Put(ctx, m.tlfID, newRev, kbfsmd.RevisionUninitialized)
+	}()
+
+	err = i.refreshBatch(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		flushErr := i.flushBatch(ctx)
+		if flushErr == nil {
+			return
+		}
+		i.log.CDebugf(ctx, "Error flushing batch: %+v", flushErr)
+		if err == nil {
+			err = flushErr
+		}
 	}()
 
 	newChanges := 0
@@ -894,6 +1165,11 @@ func (i *Indexer) doIncrementalIndex(
 	// Iterate through each change and call the appropriate index
 	// function for it.
 	for _, change := range changes {
+		err := i.checkDone(ctx)
+		if err != nil {
+			return err
+		}
+
 		plainPath, _ := change.CurrPath.PlaintextSansTlf()
 		dir, _ := path.Split(plainPath)
 		dirFS, err := fs.ChrootAsLibFS(path.Clean(dir))
@@ -969,6 +1245,14 @@ func (i *Indexer) doIncrementalIndex(
 func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 	defer i.indexWG.Done()
 
+	doUnqueue := true
+	defer func() {
+		if doUnqueue {
+			// We didn't end up indexing this TLF after all.
+			i.progress.tlfUnqueue(m.tlfID)
+		}
+	}()
+
 	// Figure out which revision to lock to, for this
 	// indexing scan.
 	rev := m.rev
@@ -1010,6 +1294,7 @@ func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 		}
 	}
 
+	doUnqueue = false
 	if indexedRev != kbfsmd.RevisionUninitialized {
 		err = i.doIncrementalIndex(ctx, m, indexedRev, rev)
 	} else {
@@ -1033,10 +1318,25 @@ func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 }
 
 func (i *Indexer) loop(ctx context.Context) {
+	defer i.loopWG.Done()
+
 	i.log.CDebugf(ctx, "Starting indexing loop")
 	defer i.log.CDebugf(ctx, "Ending index loop")
 
+	// Wait for KBFSOps to be initialized, which might happen later
+	// after the indexer.
+	for i.config.KBFSOps() == nil {
+		time.Sleep(1 * time.Second)
+	}
 	i.remoteStatus.Init(ctx, i.log, i.config, i)
+	for i.config.Notifier() == nil {
+		time.Sleep(1 * time.Second)
+	}
+	err := i.config.Notifier().RegisterForSyncedTlfs(i)
+	if err != nil {
+		i.log.CWarningf(
+			ctx, "Couldn't register for synced TLF updates: %+v", err)
+	}
 
 outerLoop:
 	for {
@@ -1087,6 +1387,10 @@ outerLoop:
 // Shutdown shuts down this indexer.
 func (i *Indexer) Shutdown(ctx context.Context) error {
 	close(i.shutdownCh)
+	err := i.loopWG.Wait(ctx)
+	if err != nil {
+		return err
+	}
 
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -1117,47 +1421,101 @@ func (i *Indexer) waitForSyncs(ctx context.Context) error {
 // of full KBFS paths to each hit.  `numResults` limits the number of
 // returned results, and `startingResult` indicates the number of
 // results that have been previously fetched -- basically it indicates
-// the starting index number of the next page of desired results.
+// the starting index number of the next page of desired results.  The
+// return parameter `nextResult` indicates what `startingResult` could
+// be set to next time, to get more results, where -1 indicates that
+// there are no more results.
 func (i *Indexer) Search(
 	ctx context.Context, query string, numResults, startingResult int) (
-	results []Result, err error) {
+	results []Result, nextResult int, err error) {
+	if numResults == 0 {
+		return nil, 0, nil
+	}
+
 	i.lock.RLock()
 	defer i.lock.RUnlock()
 
 	if i.index == nil {
-		return nil, errors.New("Index not loaded")
+		return nil, 0, errors.New("Index not loaded")
 	}
 
 	sQuery := bleve.NewQueryStringQuery(query)
-	req := bleve.NewSearchRequestOptions(
-		sQuery, numResults, startingResult, false)
-	indexResults, err := i.index.Search(req)
-	if err != nil {
-		return nil, err
-	}
+	nextResult = startingResult
+	results = make([]Result, 0, numResults)
+	usedPaths := make(map[string]bool)
+resultLoop:
+	for len(results) < numResults {
+		req := bleve.NewSearchRequestOptions(
+			sQuery, numResults, nextResult, false)
+		indexResults, err := i.index.Search(req)
+		if err != nil {
+			return nil, 0, err
+		}
 
-	// Build up the path for each result.
-	results = make([]Result, len(indexResults.Hits))
-	for j, hit := range indexResults.Hits {
-		docID := hit.ID
-		var p []string // reversed list of path components
-		for docID != "" {
-			parentDocID, name, err := i.docDb.Get(
-				ctx, strings.TrimPrefix(docID, nameDocIDPrefix))
-			if err != nil {
-				return nil, err
+		// Build up the path for each result.
+		for j, hit := range indexResults.Hits {
+			docID := hit.ID
+			var p []string // reversed list of path components
+			for docID != "" {
+				parentDocID, name, err := i.docDb.Get(
+					ctx, strings.TrimPrefix(docID, nameDocIDPrefix))
+				if err != nil {
+					return nil, 0, err
+				}
+				p = append(p, name)
+				docID = parentDocID
 			}
-			p = append(p, name)
-			docID = parentDocID
+
+			// Reverse the path name.
+			for k := len(p)/2 - 1; k >= 0; k-- {
+				opp := len(p) - 1 - k
+				p[k], p[opp] = p[opp], p[k]
+			}
+			fullPath := path.Join(p...)
+			if usedPaths[fullPath] {
+				continue
+			}
+			usedPaths[fullPath] = true
+			results = append(results, Result{fullPath})
+
+			if len(results) >= numResults {
+				nextResult += j + 1
+				break resultLoop
+			}
 		}
 
-		// Reverse the path name.
-		for k := len(p)/2 - 1; k >= 0; k-- {
-			opp := len(p) - 1 - k
-			p[k], p[opp] = p[opp], p[k]
+		nextResult += len(indexResults.Hits)
+		if len(indexResults.Hits) < numResults {
+			nextResult = -1
+			break
 		}
-		results[j] = Result{path.Join(p...)}
 	}
 
-	return results, nil
+	return results, nextResult, nil
+}
+
+// ResetIndex shuts down the current indexer, completely removes its
+// on-disk presence, and then restarts it as a blank index.
+func (i *Indexer) ResetIndex(ctx context.Context) (err error) {
+	i.log.CDebugf(ctx, "Resetting the index")
+	defer func() { i.log.CDebugf(ctx, "Done resetting the index: %+v", err) }()
+
+	err = i.Shutdown(ctx)
+	if err != nil {
+		return err
+	}
+
+	dir := filepath.Join(i.config.StorageRoot(), indexStorageDir)
+	err = ioutil.RemoveAll(dir)
+	if err != nil {
+		return err
+	}
+
+	i.startLoop()
+	return nil
+}
+
+// Progress returns the progress instance of this indexer.
+func (i *Indexer) Progress() *Progress {
+	return i.progress
 }

@@ -43,11 +43,13 @@ const matchesMarker = (
 }
 
 type AddSuggestorsProps = {
-  dataSources: {[K in string]: (filter: string) => {data: Array<any>; useSpaces: boolean}}
+  dataSources: {[K in string]: (filter: string) => {data: Array<any>; loading: boolean; useSpaces: boolean}}
   keyExtractors?: {[K in string]: (item: any) => string}
+  onChannelSuggestionsTriggered: () => void
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
+  suggestionSpinnerStyle?: Styles.StylesCrossPlatform
   suggestorToMarker: {[K in string]: string | RegExp}
   transformers: {
     [K in string]: (
@@ -76,7 +78,7 @@ type SuggestorHooks = {
   suggestionsVisible: boolean
   inputRef: React.RefObject<Kb.PlainInput> | null
   onChangeText: (arg0: string) => void
-  onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyDown: (event: React.KeyboardEvent) => void
   onBlur: () => void
   onFocus: () => void
   onSelectionChange: (arg0: {start: number | null; end: number | null}) => void
@@ -106,6 +108,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     componentWillUnmount() {
       this._timeoutID && clearTimeout(this._timeoutID)
+    }
+
+    componentDidUpdate(_, prevState: AddSuggestorsState) {
+      if (prevState.active !== this.state.active && this.state.active === 'channels') {
+        this.props.onChannelSuggestionsTriggered()
+      }
     }
 
     _setAttachmentRef = (r: null | typeof WrappedComponent) => {
@@ -173,6 +181,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         }
         const {word} = cursorInfo
         const {active} = this.state
+
         if (active) {
           const activeMarker = this.props.suggestorToMarker[active]
           const matchInfo = matchesMarker(word, activeMarker)
@@ -234,14 +243,14 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       this._checkTrigger()
     }
 
-    _onKeyDown = (evt: React.KeyboardEvent, ici: boolean) => {
+    _onKeyDown = (evt: React.KeyboardEvent) => {
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
         this._checkTrigger()
       }
 
       if (!this.state.active || this._getResults().data.length === 0) {
         // not showing list, bail
-        this.props.onKeyDown && this.props.onKeyDown(evt, ici)
+        this.props.onKeyDown && this.props.onKeyDown(evt)
         return
       }
 
@@ -272,7 +281,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
 
       if (shouldCallParentCallback) {
-        this.props.onKeyDown && this.props.onKeyDown(evt, ici)
+        this.props.onKeyDown && this.props.onKeyDown(evt)
       }
     }
 
@@ -333,9 +342,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         </Kb.ClickableBox>
       )
 
-    _getResults = (): {data: any[]; useSpaces: boolean} => {
+    _getResults = (): {data: any[]; loading: boolean; useSpaces: boolean} => {
       const {active} = this.state
-      return active ? this.props.dataSources[active](this.state.filter) : {data: [], useSpaces: false}
+      return active
+        ? this.props.dataSources[active](this.state.filter)
+        : {data: [], loading: false, useSpaces: false}
     }
 
     _getSelected = () => (this.state.active ? this._getResults().data[this.state.selected] : null)
@@ -350,24 +361,41 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._validateProps()
       }
       let suggestionsVisible = false
-      const results = this._getResults().data
-      if (results.length) {
+      const results = this._getResults()
+      if (results.data.length || results.loading) {
         suggestionsVisible = true
         const active = this.state.active
-        const content = (
-          <SuggestionList
-            style={
-              this.state.expanded
-                ? {bottom: 95, position: 'absolute', top: 95}
-                : this.props.suggestionListStyle
-            }
-            items={results}
-            keyExtractor={
-              (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
-            }
-            renderItem={this._itemRenderer}
-            selectedIndex={this.state.selected}
-          />
+        const content = results.data.length ? (
+          <>
+            <SuggestionList
+              style={
+                this.state.expanded
+                  ? {bottom: 95, position: 'absolute', top: 95}
+                  : this.props.suggestionListStyle
+              }
+              items={results.data}
+              keyExtractor={
+                (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
+              }
+              renderItem={this._itemRenderer}
+              selectedIndex={this.state.selected}
+            />
+            {results.loading && (
+              <Kb.ProgressIndicator
+                type={Styles.isMobile ? undefined : 'Large'}
+                style={this.props.suggestionSpinnerStyle}
+              />
+            )}
+          </>
+        ) : (
+          <Kb.Box2
+            direction="vertical"
+            alignItems="center"
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.spinnerBackground, this.props.suggestionListStyle])}
+          >
+            <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
+          </Kb.Box2>
         )
         overlay = Styles.isMobile ? (
           <Kb.FloatingBox
@@ -428,6 +456,24 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   // @ts-ignore TODO fix these types
   return React.forwardRef((props, ref) => <SuggestorsComponent {...props} forwardedRef={ref} />)
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  spinnerBackground: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+    },
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: 4,
+      height: Styles.globalMargins.large,
+    },
+    isMobile: {
+      flexGrow: 0,
+      height: Styles.globalMargins.mediumLarge,
+      marginTop: 'auto',
+    },
+  }),
+}))
 
 export {standardTransformer}
 export default AddSuggestors

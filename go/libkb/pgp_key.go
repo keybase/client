@@ -132,7 +132,7 @@ func (p *PGPFingerprint) Match(q string, exact bool) bool {
 		return false
 	}
 	if exact {
-		return strings.ToLower(p.String()) == strings.ToLower(q)
+		return strings.EqualFold(p.String(), q)
 	}
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
 }
@@ -766,14 +766,14 @@ func (k *PGPKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
 	return nil
 }
 
-func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
+func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigIDBase, err error) {
 	if sig, id, err = SimpleSign(msg, *k); err != nil && k.GPGFallbackKey != nil {
 		return k.GPGFallbackKey.SignToString(msg)
 	}
 	return
 }
 
-func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigIDBase, err error) {
 	var ps *ParsedSig
 	if ps, err = PGPOpenSig(sig); err != nil {
 		return
@@ -787,7 +787,7 @@ func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg
 	return
 }
 
-func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
+func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigIDBase, err error) {
 	extractedMsg, resID, err := k.VerifyStringAndExtract(ctx, sig)
 	if err != nil {
 		return

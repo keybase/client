@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -76,7 +77,7 @@ func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
 		ephemeralTracker: newEphemeralTracker(g),
 		assetDeleter:     assetDeleter,
 		clock:            clockwork.NewRealClock(),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "Storage", false),
 	}
 }
 
@@ -381,23 +382,24 @@ type FetchResult struct {
 
 // Merge requires msgs to be sorted by descending message ID
 func (s *Storage) Merge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Merge")()
-	return s.MergeHelper(ctx, convID, uid, msgs, nil)
+	return s.MergeHelper(ctx, conv, uid, msgs, nil)
 }
 
 func (s *Storage) Expunge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	// Merge with no messages, just the expunge.
-	return s.MergeHelper(ctx, convID, uid, nil, &expunge)
+	return s.MergeHelper(ctx, conv, uid, nil, &expunge)
 }
 
 // MergeHelper requires msgs to be sorted by descending message ID
 // expunge is optional
 func (s *Storage) MergeHelper(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "MergeHelper")()
+	convID := conv.GetConvID()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
 
@@ -433,7 +435,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 
 	// Process any DeleteHistory messages
-	expunged, err := s.handleDeleteHistory(ctx, convID, uid, msgs, expunge)
+	expunged, err := s.handleDeleteHistory(ctx, conv, uid, msgs, expunge)
 	if err != nil {
 		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
@@ -715,7 +717,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 // Shortcircuits so it's ok to call a lot.
 // The actual effect will be to delete upto the max of `expungeExplicit` (which can be nil)
 //   and the DeleteHistory-type messages.
-func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.ConversationID,
+func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, expungeExplicit *chat1.Expunge) (*chat1.Expunge, Error) {
 
 	de := func(format string, args ...interface{}) {
@@ -745,7 +747,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 		}
 		delh := mvalid.MessageBody.Deletehistory()
 		de("found DeleteHistory: id:%v upto:%v", msgid, delh.Upto)
-		if delh.Upto <= 0 {
+		if delh.Upto == 0 {
 			de("skipping malformed delh")
 			continue
 		}
@@ -766,7 +768,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 		return nil, nil
 	}
 
-	mem, err := s.delhTracker.getEntry(ctx, convID, uid)
+	mem, err := s.delhTracker.getEntry(ctx, conv.GetConvID(), uid)
 	switch err.(type) {
 	case nil:
 		if mem.MaxDeleteHistoryUpto >= expungeActive.Upto {
@@ -777,7 +779,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 		if expungeActive.Upto < mem.MinDeletableMessage {
 			// Record-only if it would delete messages earlier than the local min.
 			de("record-only delh: (%v < %v)", expungeActive.Upto, mem.MinDeletableMessage)
-			err := s.delhTracker.setMaxDeleteHistoryUpto(ctx, convID, uid, expungeActive.Upto)
+			err := s.delhTracker.setMaxDeleteHistoryUpto(ctx, conv.GetConvID(), uid, expungeActive.Upto)
 			if err != nil {
 				de("failed to store delh track: %v", err)
 			}
@@ -790,15 +792,16 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 		return nil, err
 	}
 
-	return s.applyExpunge(ctx, convID, uid, *expungeActive)
+	return s.applyExpunge(ctx, conv, uid, *expungeActive)
 }
 
 // Apply a delete history.
 // Returns a non-nil expunge if deletes happened.
 // Always runs through local messages.
-func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
+func (s *Storage) applyExpunge(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, expunge chat1.Expunge) (*chat1.Expunge, Error) {
 
+	convID := conv.GetConvID()
 	s.Debug(ctx, "applyExpunge(%v, %v, %v)", convID, uid, expunge.Upto)
 
 	de := func(format string, args ...interface{}) {
@@ -824,7 +827,8 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	var allAssets []chat1.Asset
 	var writeback, allPurged []chat1.MessageUnboxed
 	for _, msg := range rc.Result() {
-		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
+		mtype := msg.GetMessageType()
+		if !chat1.IsDeletableByDeleteHistory(mtype) {
 			// Skip message types that cannot be deleted this way
 			continue
 		}
@@ -836,6 +840,23 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		if mvalid.MessageBody.IsNil() {
 			continue
 		}
+		// METADATA and HEADLINE messages are only expunged if they are not the
+		// latest max message.
+		switch mtype {
+		case chat1.MessageType_METADATA,
+			chat1.MessageType_HEADLINE:
+			maxMsg, err := conv.GetMaxMessage(mtype)
+			if err != nil {
+				de("delh: %v, not expunging %v", err, msg.DebugString())
+				continue
+			} else if maxMsg.MsgID == msg.GetMessageID() {
+				de("delh: not expunging %v, latest max message", msg.DebugString())
+				continue
+			}
+			de("delh: expunging %v, non-max message", msg.DebugString())
+		default:
+		}
+
 		mvalid.ServerHeader.SupersededBy = expunge.Basis // Can be 0
 		msgPurged, assets := s.purgeMessage(mvalid)
 		allPurged = append(allPurged, msg)

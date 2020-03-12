@@ -1,6 +1,7 @@
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
+import UserCard from '../user-card'
 import {Props as InputProps} from '../../common-adapters/labeled-input'
 import Dropdown from './dropdown.native'
 import * as React from 'react'
@@ -48,7 +49,7 @@ class LoginRender extends React.Component<Props, State> {
               </Kb.Box>
             )}
             {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
-            <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card} style={styles.cardInner}>
+            <UserCard username={this.props.selectedUser} outerStyle={styles.card} style={styles.cardInner}>
               <Dropdown
                 type="Username"
                 value={this.props.selectedUser}
@@ -92,7 +93,7 @@ class LoginRender extends React.Component<Props, State> {
               >
                 Problems logging in?
               </Kb.Text>
-            </Kb.UserCard>
+            </UserCard>
             <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} />
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createAccountContainer}>
               <Kb.Button

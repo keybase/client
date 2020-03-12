@@ -195,7 +195,7 @@ adb reverse tcp:8081 tcp:8081
 To recap, you should have run:
 
 1. `adb devices` (should list _exactly_ one device)
-1. `yarn rn-gobuild-android`,
+1. `yarn rn-gobuild-android`
 1. `yarn rn-start android`
 1. `yarn rn-build-android` (or `gradle installDebug` inside android),
 1. `yarn rn-push-android` (To install the apk on the device. NOTE: `gradle installDebug` does this automatically)

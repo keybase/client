@@ -46,14 +46,18 @@ const finishedRegularDownload = async (state: TypedState, action: FsGen.Finished
   if (downloadState.error) {
     return null
   }
-  // @ts-ignore codemod-issue
-  await require('rn-fetch-blob').default.android.addCompleteDownload({
-    description: `Keybase downloaded ${downloadInfo.filename}`,
-    mime: mimeType,
-    path: downloadState.localPath,
-    showNotification: true,
-    title: downloadInfo.filename,
-  })
+  try {
+    // @ts-ignore codemod-issue
+    await require('rn-fetch-blob').default.android.addCompleteDownload({
+      description: `Keybase downloaded ${downloadInfo.filename}`,
+      mime: mimeType,
+      path: downloadState.localPath,
+      showNotification: true,
+      title: downloadInfo.filename,
+    })
+  } catch (_) {
+    logger.warn('Failed to addCompleteDownload')
+  }
   // No need to dismiss here as the download wrapper does it for Android.
   return null
 }

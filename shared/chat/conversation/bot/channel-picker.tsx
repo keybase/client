@@ -10,6 +10,7 @@ type Props = {
   installInConvs: string[]
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: string[]) => void
+  setDisableDone: (disable: boolean) => void
   teamID: TeamTypes.TeamID
   teamName: string
 }
@@ -39,45 +40,59 @@ const toggleChannel = (convID: string, installInConvs: string[]) => {
 }
 
 type RowProps = {
+  disabled: boolean
   onToggle: () => void
   selected: boolean
   channelInfo: TeamTypes.ChannelInfo
 }
-const Row = ({onToggle, selected, channelInfo}: RowProps) => (
-  <Kb.Box2
-    direction="horizontal"
-    alignSelf="flex-start"
-    style={{marginBottom: Styles.globalMargins.tiny}}
-    fullWidth={true}
-  >
-    <Kb.Checkbox checked={selected} label="" onCheck={onToggle} style={styles.channelCheckbox} />
-
-    <Kb.Box2 direction="vertical" style={{flex: 1}}>
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-        <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
-          #
-        </Kb.Text>
-        <Kb.Text type="Body" style={styles.channelText}>
-          {channelInfo.channelname}
-        </Kb.Text>
+const Row = ({disabled, onToggle, selected, channelInfo}: RowProps) => (
+  <Kb.ListItem2
+    type="Small"
+    firstItem={false}
+    body={
+      <Kb.Box2 direction="vertical" style={Styles.collapseStyles([{flex: 1}, disabled && {opacity: 0.4}])}>
+        <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+          <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
+            #
+          </Kb.Text>
+          <Kb.Text type="Body" style={styles.channelText}>
+            {channelInfo.channelname}
+          </Kb.Text>
+        </Kb.Box2>
+        {!!channelInfo.description && (
+          <Kb.Text type="Body" lineClamp={1} style={{color: Styles.globalColors.black_50}}>
+            {channelInfo.description}
+          </Kb.Text>
+        )}
       </Kb.Box2>
-      {!!channelInfo.description && (
-        <Kb.Text type="Body" lineClamp={1} style={{color: Styles.globalColors.black_50}}>
-          {channelInfo.description}
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  </Kb.Box2>
+    }
+    action={<Kb.CheckCircle checked={selected} onCheck={onToggle} disabled={disabled} />}
+  />
 )
 const ChannelPicker = (props: Props) => {
-  const {channelInfos, installInConvs, setInstallInConvs} = props
+  const {channelInfos, installInConvs, setInstallInConvs, setDisableDone} = props
+  const [allSelected, setAllSelected] = React.useState(installInConvs.length === 0)
   const [searchText, setSearchText] = React.useState('')
+  React.useEffect(() => {
+    if (allSelected) {
+      setInstallInConvs([])
+    }
+  }, [allSelected, setInstallInConvs])
+
+  React.useEffect(() => {
+    if (!allSelected && installInConvs.length === 0) {
+      setDisableDone(true)
+      return
+    }
+    setDisableDone(false)
+  }, [allSelected, installInConvs, setDisableDone])
 
   const rows = getChannels(channelInfos, searchText).map(([convID, channelInfo]) => (
     <Row
+      disabled={allSelected}
       key={convID}
       onToggle={() => setInstallInConvs(toggleChannel(convID, installInConvs))}
-      selected={installInConvs.includes(convID)}
+      selected={installInConvs.includes(convID) || allSelected}
       channelInfo={channelInfo}
     />
   ))
@@ -95,7 +110,17 @@ const ChannelPicker = (props: Props) => {
           focusOnMount={true}
         />
       </Kb.Box2>
-      <Kb.ScrollView style={styles.rowsContainer}>{rows}</Kb.ScrollView>
+      <Kb.ScrollView style={styles.rowsContainer}>
+        <Kb.Box2 direction="horizontal" style={{backgroundColor: Styles.globalColors.blueGrey}}>
+          <Kb.ListItem2
+            type="Small"
+            firstItem={true}
+            body={<Kb.Text type="BodyBold">All channels</Kb.Text>}
+            action={<Kb.CheckCircle checked={allSelected} onCheck={() => setAllSelected(!allSelected)} />}
+          />
+        </Kb.Box2>
+        {rows}
+      </Kb.ScrollView>
     </Kb.Box2>
   )
 }

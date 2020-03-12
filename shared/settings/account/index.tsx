@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
-import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import {Props as HeaderHocProps} from '../../common-adapters/header-hoc'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'
 

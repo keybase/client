@@ -7,6 +7,7 @@ import {AppRegistry, AppState, Linking} from 'react-native'
 import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
+import {SafeAreaProvider} from 'react-native-safe-area-context'
 
 module.hot &&
   module.hot.accept(() => {
@@ -61,7 +62,9 @@ class Keybase extends React.Component<Props> {
     return (
       <Provider store={store}>
         <GatewayProvider>
-          <Main />
+          <SafeAreaProvider>
+            <Main />
+          </SafeAreaProvider>
         </GatewayProvider>
       </Provider>
     )

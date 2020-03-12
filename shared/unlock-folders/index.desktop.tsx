@@ -1,6 +1,6 @@
-import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
+import DragHeader from '../desktop/remote/drag-header.desktop'
 import {_setDarkModePreference} from '../styles/dark-mode'
 import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
@@ -52,7 +52,7 @@ const UnlockFolders = (props: Props) => {
       key={props.darkMode ? 'darkMode' : 'light'}
     >
       <div style={styles.header}>
-        <Kb.Header icon={true} type="Default" title="" onClose={props.onClose} />
+        <DragHeader icon={true} type="Default" title="" onClose={props.onClose} />
       </div>
       {innerComponent}
     </div>

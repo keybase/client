@@ -64,6 +64,7 @@ const InstallBotPopup = (props: Props) => {
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
+  const [disableDone, setDisableDone] = React.useState(false)
   const {
     commands,
     channelInfos,
@@ -124,7 +125,7 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    Styles.isMobile ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createClearModals())
   }
   const onLearn = () => {
     openURL('https://keybase.io/docs/chat/restricted_bots')
@@ -203,14 +204,15 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID, dispatch])
+  const noCommands = !commands?.commands
   React.useEffect(() => {
     dispatch(
       WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
     )
-    if (!commands?.commands) {
+    if (noCommands) {
       dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     }
-  }, [dispatch, commands, botUsername])
+  }, [dispatch, noCommands, botUsername])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
@@ -242,24 +244,13 @@ const InstallBotPopup = (props: Props) => {
       gap="small"
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
-          <Kb.Avatar username={botUsername} size={64} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="BodySemibold">{featured.botAlias}</Kb.Text>
-              <Kb.ConnectedUsernames
-                colorFollowing={true}
-                type="BodySemibold"
-                usernames={[botUsername]}
-                withProfileCardPopup={false}
-                onUsernameClicked="profile"
-              />
-            </Kb.Box2>
-            <Kb.Text type="BodySmall" lineClamp={1}>
-              {featured.description}
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
+        <Kb.NameWithIcon
+          botAlias={featured.botAlias}
+          horizontal={true}
+          metaOne={featured.description}
+          username={botUsername}
+          size="big"
+        />
         <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
           {featured.extendedDescription}
         </Kb.Markdown>
@@ -284,19 +275,7 @@ const InstallBotPopup = (props: Props) => {
   )
   const usernameContent = !featured && (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
-        <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-          <Kb.Text type="BodyBigExtrabold">{botUsername}</Kb.Text>
-          <Kb.ConnectedUsernames
-            colorFollowing={true}
-            type="BodySemibold"
-            usernames={[botUsername]}
-            withProfileCardPopup={false}
-            onUsernameClicked="profile"
-          />
-        </Kb.Box2>
-      </Kb.Box2>
+      <Kb.NameWithIcon horizontal={true} username={botUsername} size="big" />
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
           channelInfos={channelInfos}
@@ -309,26 +288,13 @@ const InstallBotPopup = (props: Props) => {
   )
   const installContent = installScreen && (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
-      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
-        <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold">{featured ? featured.botAlias : botUsername}</Kb.Text>
-            <Kb.ConnectedUsernames
-              colorFollowing={true}
-              type="BodySemibold"
-              usernames={[botUsername]}
-              withProfileCardPopup={false}
-              onUsernameClicked="profile"
-            />
-          </Kb.Box2>
-          {!!featured && (
-            <Kb.Text type="BodySmall" lineClamp={1}>
-              {featured.description}
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-      </Kb.Box2>
+      <Kb.NameWithIcon
+        botAlias={featured?.botAlias}
+        horizontal={true}
+        metaOne={featured?.description}
+        username={botUsername}
+        size="big"
+      />
       {installWithRestrict ? (
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
           <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>
@@ -399,6 +365,7 @@ const InstallBotPopup = (props: Props) => {
         channelInfos={channelInfos}
         installInConvs={installInConvs}
         setChannelPickerScreen={setChannelPickerScreen}
+        setDisableDone={setDisableDone}
         setInstallInConvs={setInstallInConvs}
         teamID={teamID}
         teamName={teamName}
@@ -499,8 +466,9 @@ const InstallBotPopup = (props: Props) => {
   const doneButton = showDoneButton && (
     <Kb.Button
       fullWidth={true}
-      label="Done"
+      label={disableDone ? 'Select at least one channel' : 'Done'}
       onClick={() => setChannelPickerScreen(false)}
+      disabled={disableDone}
       mode="Primary"
       type="Default"
     />

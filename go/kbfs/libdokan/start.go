@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -47,10 +48,13 @@ func startMounting(options StartOptions,
 // Start the filesystem
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
+	shutdownSimpleFS := func(_ context.Context) error { return nil }
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (rpc.Protocol, error) {
-		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
+		var simplefsIface keybase1.SimpleFSInterface
+		simplefsIface, shutdownSimpleFS = simplefs.NewSimpleFS(
+			libkbfsCtx, config)
+		return keybase1.SimpleFSProtocol(simplefsIface), nil
 	}
 	// Hook git implementation in.
 	shutdownGit := func() {}
@@ -62,6 +66,10 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		return keybase1.KBFSGitProtocol(handler), nil
 	}
 	defer func() {
+		err := shutdownSimpleFS(context.Background())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Couldn't shut down SimpleFS: %+v\n", err)
+		}
 		shutdownGit()
 	}()
 

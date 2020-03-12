@@ -12,7 +12,7 @@ import (
 )
 
 // UIAdapter converts between the Identify2 UI that Identify2 engine expects, and the
-// Identify3UI interface that the frontend is soon to implement. It's going to maintain the
+// Identify3UI interface that the frontend implements. It's maintains the
 // state machine that was previously implemented in JS.
 type UIAdapter struct {
 	sync.Mutex
@@ -404,6 +404,13 @@ func (i *UIAdapter) ReportLastTrack(mctx libkb.MetaContext, track *keybase1.Trac
 }
 
 func (i *UIAdapter) plumbUncheckedProofs(mctx libkb.MetaContext, proofs []keybase1.IdentifyRow) {
+	err := i.ui.Identify3Summary(mctx.Ctx(), keybase1.Identify3Summary{
+		GuiID:            i.session.ID(),
+		NumProofsToCheck: len(proofs),
+	})
+	if err != nil {
+		mctx.Debug("Identify3Summary call failed: %s", err.Error())
+	}
 	for _, proof := range proofs {
 		i.plumbUncheckedProof(mctx, proof)
 	}

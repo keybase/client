@@ -28,7 +28,6 @@ const (
 	PushMembershipUpdate    = "chat.membershipUpdate"
 	PushTLFFinalize         = "chat.tlffinalize"
 	PushTLFResolve          = "chat.tlfresolve"
-	PushTeamChannels        = "chat.teamchannels"
 	PushKBFSUpgrade         = "chat.kbfsupgrade"
 	PushConvRetention       = "chat.convretention"
 	PushTeamRetention       = "chat.teamretention"
@@ -75,6 +74,7 @@ type InboxSourceSearchEmptyMode int
 const (
 	InboxSourceSearchEmptyModeUnread InboxSourceSearchEmptyMode = iota
 	InboxSourceSearchEmptyModeAll
+	InboxSourceSearchEmptyModeAllBySendCtime
 )
 
 type InboxSourceDataSourceTyp int
@@ -103,6 +103,17 @@ type RemoteConversation struct {
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
 	LocalDraft     *string                     `codec:"d"`
 	LocalMtime     gregor1.Time                `codec:"t"`
+}
+
+func NewEmptyRemoteConversation(convID chat1.ConversationID) RemoteConversation {
+	return RemoteConversation{
+		Conv: chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		},
+		ConvIDStr: convID.ConvIDStr(),
+	}
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
@@ -144,6 +155,10 @@ func (rc RemoteConversation) GetTopicName() string {
 	return ""
 }
 
+func (rc RemoteConversation) GetMaxMessage(typ chat1.MessageType) (chat1.MessageSummary, error) {
+	return rc.Conv.GetMaxMessage(typ)
+}
+
 func (rc RemoteConversation) GetTopicType() chat1.TopicType {
 	return rc.Conv.GetTopicType()
 }
@@ -154,6 +169,22 @@ func (rc RemoteConversation) IsLocallyRead() bool {
 
 func (rc RemoteConversation) MaxVisibleMsgID() chat1.MessageID {
 	return rc.Conv.MaxVisibleMsgID()
+}
+
+func (rc RemoteConversation) GetExpunge() *chat1.Expunge {
+	return rc.Conv.GetExpunge()
+}
+
+func (rc RemoteConversation) GetFinalizeInfo() *chat1.ConversationFinalizeInfo {
+	return rc.Conv.GetFinalizeInfo()
+}
+
+func (rc RemoteConversation) GetMaxDeletedUpTo() chat1.MessageID {
+	return rc.Conv.GetMaxDeletedUpTo()
+}
+
+func (rc RemoteConversation) IsPublic() bool {
+	return rc.Conv.IsPublic()
 }
 
 type UnboxMode int
@@ -292,6 +323,7 @@ type SenderPrepareResult struct {
 	Boxed               chat1.MessageBoxed
 	EncryptionInfo      BoxerEncryptionInfo
 	PendingAssetDeletes []chat1.Asset
+	DeleteFlipConv      *chat1.ConversationID
 	AtMentions          []gregor1.UID
 	ChannelMention      chat1.ChannelMention
 	TopicNameState      *chat1.TopicNameState
@@ -310,6 +342,11 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 		Amount:   p.Amount,
 		Currency: p.Currency,
 	}
+}
+
+type ParticipantResult struct {
+	Uids []gregor1.UID
+	Err  error
 }
 
 type DummyAttachmentFetcher struct{}
@@ -690,15 +727,33 @@ var _ UIThreadLoader = (*DummyUIThreadLoader)(nil)
 
 func (d DummyUIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
-	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
+	cbmode chat1.GetThreadNonblockCbMode, knownRemote []string,
+	query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
 	return nil
 }
 
 func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, nil
 }
 
 func (d DummyUIThreadLoader) IsOffline(ctx context.Context) bool { return true }
 func (d DummyUIThreadLoader) Connected(ctx context.Context)      {}
 func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}
+
+type DummyParticipantSource struct{}
+
+func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
+	return nil, nil
+}
+func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) chan ParticipantResult {
+	ch := make(chan ParticipantResult)
+	close(ch)
+	return ch
+}
+func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
+}

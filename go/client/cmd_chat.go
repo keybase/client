@@ -4,6 +4,8 @@
 package client
 
 import (
+	"sort"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -44,8 +46,11 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatBotMemberSettings(cl, g),
 		newCmdChatFeaturedBots(cl, g),
 		newCmdChatSearchBots(cl, g),
+		newCmdChatClearCommands(cl, g),
+		newCmdChatConvInfo(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificChatCommands(cl, g)...)
+	sort.Sort(cli.ByName(subcommands))
 	return cli.Command{
 		Name:         "chat",
 		Usage:        "Chat securely with keybase users",

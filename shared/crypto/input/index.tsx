@@ -6,7 +6,11 @@ import * as Types from '../../constants/types/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import HiddenString from '../../util/hidden-string'
+
+const {electron} = KB
+const {showOpenDialog} = electron.dialog
 
 type InputProps = {
   operation: Types.Operations
@@ -37,11 +41,14 @@ type OperationBannerProps = {
   infoMessage?: string
 }
 
+// Tese magic numbers set the width of the single line `textarea` such that the
+// placeholder text is visible and pushes the "browse" button far enough to the
+// right to be exactly one empty character with from the end of the placeholder text
 const operationToEmptyInputWidth = {
-  [Constants.Operations.Encrypt]: 151,
-  [Constants.Operations.Decrypt]: 264,
-  [Constants.Operations.Sign]: 151,
-  [Constants.Operations.Verify]: 286,
+  [Constants.Operations.Encrypt]: 207,
+  [Constants.Operations.Decrypt]: 320,
+  [Constants.Operations.Sign]: 207,
+  [Constants.Operations.Verify]: 342,
 }
 
 /*
@@ -51,6 +58,7 @@ const operationToEmptyInputWidth = {
  *
  * Afte user enters text:
  *  - Multiline input
+ *  - Clear button
  */
 export const TextInput = (props: TextProps) => {
   const {value, operation, onChangeText, onSetFile} = props
@@ -67,25 +75,17 @@ export const TextInput = (props: TextProps) => {
     }
   }
 
-  // Handle native file browser via <input type='file' ... />
-  const filePickerRef = React.useRef<HTMLInputElement>(null)
-  const selectFile = () => {
-    const files = (filePickerRef && filePickerRef.current && filePickerRef.current.files) || []
-    const allPaths: Array<string> = files.length
-      ? Array.from(files)
-          .map((f: File) => f.path)
-          .filter(Boolean)
-      : ([] as any)
-    const path = allPaths.pop()
-    // Set input type to 'file' and value to 'path'
-    if (path) {
-      onSetFile(path)
+  const onOpenFile = async () => {
+    // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
+    // To set a directory as input, a user will need to drag the directory into Keybase.
+    const options = {
+      allowDirectories: Platform.isDarwin,
+      buttonLabel: 'Select',
     }
-  }
-  const openFilePicker = () => {
-    if (filePickerRef && filePickerRef.current) {
-      filePickerRef.current.click()
-    }
+    const filePaths = await showOpenDialog(options)
+    if (!filePaths) return
+    const path = filePaths[0]
+    onSetFile(path)
   }
 
   return (
@@ -105,6 +105,7 @@ export const TextInput = (props: TextProps) => {
             multiline={true}
             rowsMax={value ? undefined : 1}
             autoFocus={true}
+            allowKeyboardEvents={true}
             hideBorder={true}
             growAndScroll={true}
             padding="tiny"
@@ -120,19 +121,9 @@ export const TextInput = (props: TextProps) => {
             ref={inputRef}
           />
           {!value && (
-            <>
-              <input
-                type="file"
-                accept="*"
-                ref={filePickerRef}
-                multiple={false}
-                onChange={selectFile}
-                style={styles.hidden}
-              />
-              <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
-                browse for one
-              </Kb.Text>
-            </>
+            <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
+              browse
+            </Kb.Text>
           )}
         </Kb.Box2>
       </Kb.Box2>
@@ -191,14 +182,11 @@ export const Input = (props: InputProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
 
-  // Store
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
 
-  // State
   const [inputValue, setInputValue] = React.useState(input)
 
-  // Actions
   const onSetInput = (type: Types.InputTypes, newValue: string) => {
     dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
   }
@@ -234,16 +222,20 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
   const dispatch = Container.useDispatch()
 
-  // Actions
+  const inProgress = Container.useSelector(store => store.crypto[operation].inProgress)
+
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
   }
 
+  const allowFolders = Constants.getAllowInputFolders(props.operation)
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
-        allowFolders={false}
+        disabled={inProgress}
+        allowFolders={allowFolders}
         fullHeight={true}
         fullWidth={true}
         onAttach={onAttach}

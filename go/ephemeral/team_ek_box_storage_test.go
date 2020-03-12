@@ -32,7 +32,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	teamID := createTeam(tc)
 	invalidID := teamID + keybase1.TeamID("foo")
 
-	teamEKMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
+	teamEKMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot, nil)
 	require.NoError(t, err)
 
 	s := tc.G.GetTeamEKBoxStorage()

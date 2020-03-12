@@ -74,6 +74,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 			loggerFn: func(m string) logger.Logger {
 				return logger.NewTestLogger(ctr.t)
 			},
+			quotaUsage: make(
+				map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage),
 		},
 	}
 	config.mockKbfs = NewMockKBFSOps(c)

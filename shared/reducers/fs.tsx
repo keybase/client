@@ -51,10 +51,9 @@ const initialState: Types.State = {
   },
   uploads: {
     endEstimate: undefined,
-    errors: new Map(),
     syncingPaths: new Set(),
     totalSyncingBytes: 0,
-    writingToJournal: new Set(),
+    writingToJournal: new Map(),
   },
 }
 
@@ -118,18 +117,6 @@ const reduceFsError = (draftState: Draft<Types.State>, action: FsGen.FsErrorPayl
         erroredAction.payload.editID,
         draftEdit => (draftEdit.status = Types.EditStatusType.Failed)
       )
-      return
-    case FsGen.upload:
-      // Don't show error bar in this case, as the uploading row already shows
-      // a "retry" button.
-      draftState.uploads.errors = new Map([
-        ...draftState.uploads.errors,
-        [
-          Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
-
-          fsError,
-        ],
-      ])
       return
     case FsGen.saveMedia:
     case FsGen.shareNative:
@@ -221,24 +208,23 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       sort: action.payload.sortSetting,
     })
   },
-  [FsGen.uploadStarted]: (draftState, action) => {
-    draftState.uploads.writingToJournal = new Set([
-      ...draftState.uploads.writingToJournal,
-      action.payload.path,
-    ])
-  },
-  [FsGen.uploadWritingSuccess]: (draftState, action) => {
-    const {path} = action.payload
-    if (draftState.uploads.errors.has(path)) {
-      const errors = new Map(draftState.uploads.errors)
-      errors.delete(path)
-      draftState.uploads.errors = errors
-    }
-    if (draftState.uploads.writingToJournal.has(path)) {
-      const writingToJournal = new Set(draftState.uploads.writingToJournal)
-      writingToJournal.delete(path)
-      draftState.uploads.writingToJournal = writingToJournal
-    }
+  [FsGen.loadedUploadStatus]: (draftState, action) => {
+    const writingToJournal = new Map(
+      action.payload.uploadStates.map(uploadState => {
+        const path = Constants.rpcPathToPath(uploadState.targetPath)
+        const oldUploadState = draftState.uploads.writingToJournal.get(path)
+        return [
+          path,
+          oldUploadState &&
+          uploadState.error === oldUploadState.error &&
+          uploadState.canceled === oldUploadState.canceled &&
+          uploadState.uploadID === oldUploadState.uploadID
+            ? oldUploadState
+            : uploadState,
+        ]
+      })
+    )
+    draftState.uploads.writingToJournal = writingToJournal
   },
   [FsGen.journalUpdate]: (draftState, action) => {
     const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
@@ -360,15 +346,17 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       draftState.destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare
         ? draftState.destinationPicker.source
         : ({
-            localPath: Types.stringToLocalPath(''),
+            source: Types.stringToLocalPath(''),
             type: Types.DestinationPickerSource.IncomingShare,
+            useOriginal: false,
           } as const)
     draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
   },
-  [FsGen.setIncomingShareLocalPath]: (draftState, action) => {
+  [FsGen.setIncomingShareSource]: (draftState, action) => {
     draftState.destinationPicker.source = {
-      localPath: action.payload.localPath,
+      source: action.payload.source,
       type: Types.DestinationPickerSource.IncomingShare,
+      useOriginal: action.payload.useOriginal,
     } as const
   },
   [FsGen.setPathItemActionMenuView]: (draftState, action) => {

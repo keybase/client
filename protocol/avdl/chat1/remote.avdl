@@ -114,7 +114,7 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
-  @timeout_msec(300000) // 5 minutes
+  @timeout_msec(1200000) // 20 minutes
   GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, GetThreadReason reason, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
 
@@ -147,7 +147,7 @@ protocol remote {
   // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
   @lint("ignore")
   NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage, ConversationMembersType membersType,
-    union { null, TopicNameState } topicNameState, union { null, ConversationID } memberSourceConv);
+    union { null, TopicNameState } topicNameState, union { null, ConversationID } memberSourceConv, union { null, RetentionPolicy } retentionPolicy);
 
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, union { null, GetThreadReason } threadReason, array<MessageID> messageIDs);
 
@@ -214,7 +214,7 @@ protocol remote {
     SyncInboxRes inboxRes;
   }
 
-  SyncChatRes syncChat(InboxVers vers, boolean summarizeMaxMsgs);
+  SyncChatRes syncChat(InboxVers vers, boolean summarizeMaxMsgs, InboxParticipantsMode participantsMode);
 
   enum SyncAllProtVers {
     V0_0,
@@ -239,7 +239,7 @@ protocol remote {
   }
 
   @compression_type("msgpackzip")
-  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName, boolean summarizeMaxMsgs);
+  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName, boolean summarizeMaxMsgs, InboxParticipantsMode participantsMode);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
@@ -273,7 +273,7 @@ protocol remote {
     array<Conversation> conversations;
     union { null, RateLimit } rateLimit;
   }
-  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs, boolean useCache);
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.
@@ -408,4 +408,18 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   GetRecentJoinsRes getRecentJoins(ConversationID convID);
+
+  record RefreshParticipantsRemoteRes {
+    boolean hashMatch;
+    array<gregor1.UID> uids;
+    string hash;
+    union { null, RateLimit } rateLimit;
+  }
+  RefreshParticipantsRemoteRes refreshParticipantsRemote(ConversationID convID, string hash);
+
+  record GetLastActiveAtRes {
+    gregor1.Time lastActiveAt;
+    union { null, RateLimit } rateLimit;
+  }
+  GetLastActiveAtRes getLastActiveAt(keybase1.TeamID teamID, gregor1.UID uid);
 }

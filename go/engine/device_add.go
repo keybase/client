@@ -113,7 +113,7 @@ func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
 
 	// make a new secret; continue to generate legacy Kex2 secrets for now.
 	kex2SecretTyp := libkb.Kex2SecretTypeV1Desktop
-	if provisioneeType == keybase1.DeviceType_MOBILE || m.G().GetAppType() == libkb.MobileAppType {
+	if provisioneeType == keybase1.DeviceType_MOBILE || m.G().IsMobileAppType() {
 		kex2SecretTyp = libkb.Kex2SecretTypeV1Mobile
 	}
 	m.Debug("provisionee device type: %v; uid: %s; secret type: %d", provisioneeType, uid, kex2SecretTyp)

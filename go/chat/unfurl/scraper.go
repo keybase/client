@@ -23,7 +23,7 @@ type Scraper struct {
 func NewScraper(g *globals.Context) *Scraper {
 	return &Scraper{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Scraper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Scraper", false),
 		cache:        newUnfurlCache(),
 		giphyProxy:   true,
 	}
@@ -40,7 +40,7 @@ func (s *Scraper) makeCollector() *colly.Collector {
 		record = rpc.NewNetworkInstrumenter(s.G().ExternalG().RemoteNetworkInstrumenterStorage, "UnfurlScraper")
 	})
 	c.OnResponse(func(r *colly.Response) {
-		if err := record.RecordAndFinish(int64(len(r.Body))); err != nil {
+		if err := record.RecordAndFinish(context.TODO(), int64(len(r.Body))); err != nil {
 			s.Debug(context.TODO(), "colly OnResponse: unable to instrument network request %s, %s", record, err)
 		}
 	})

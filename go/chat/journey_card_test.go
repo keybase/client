@@ -96,7 +96,7 @@ func TestJourneycardDismiss(t *testing.T) {
 
 	requireJourneycard := func(toExist bool) {
 		thread, err := tc1.ChatG.ConvSource.Pull(ctx1, convID, uid1,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
@@ -180,7 +180,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 
 	requireNoJourneycard := func(convID chat1.ConversationID) {
 		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
@@ -191,16 +191,11 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 
 	requireJourneycard := func(convID chat1.ConversationID, cardType chat1.JourneycardType) {
 		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
-		// Skip initial JOIN/LEAVE message. There was a bug where journeycards couldn't attach to JOIN/LEAVE messages (TRIAGE-1738).
 		msg := thread.Messages[0]
-		if msg.Valid__ != nil && (msg.Valid__.ClientHeader.MessageType == chat1.MessageType_JOIN || msg.Valid__.ClientHeader.MessageType == chat1.MessageType_LEAVE) {
-			require.True(t, len(thread.Messages) >= 2, "need more messages for LEAVE workaround")
-			msg = thread.Messages[1]
-		}
 		require.NotNil(t, msg.Journeycard__, "requireJourneycard expects a journeycard")
 		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")
 	}
@@ -284,7 +279,7 @@ func TestJourneycardPersist(t *testing.T) {
 
 	requireJourneycard := func(convID chat1.ConversationID, cardType chat1.JourneycardType, skipMessages int) chat1.MessageUnboxedJourneycard {
 		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
-			chat1.GetThreadReason_GENERAL, nil, nil)
+			chat1.GetThreadReason_GENERAL, nil, nil, nil)
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1+skipMessages)

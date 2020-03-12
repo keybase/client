@@ -137,6 +137,10 @@ func HashMetaFromString(s string) (ret HashMeta, err error) {
 	return HashMeta(b), nil
 }
 
+func cieq(s string, t string) bool {
+	return strings.ToLower(s) == strings.ToLower(t)
+}
+
 func KBFSRootHashFromString(s string) (ret KBFSRootHash, err error) {
 	if s == "null" {
 		return nil, nil
@@ -281,7 +285,7 @@ func (k KID) Match(q string, exact bool) bool {
 	}
 
 	if exact {
-		return strings.ToLower(k.String()) == strings.ToLower(q)
+		return cieq(k.String(), q)
 	}
 
 	if strings.HasPrefix(k.String(), strings.ToLower(q)) {
@@ -650,61 +654,38 @@ func (s SigID) ToDisplayString(verbose bool) string {
 	return fmt.Sprintf("%s...", s[0:SigIDQueryMin])
 }
 
-func (s SigID) ToString(suffix bool) string {
-	if len(s) == 0 {
-		return ""
-	}
-	if suffix {
-		return string(s)
-	}
-	return string(s[0 : len(s)-2])
-}
-
 func (s SigID) PrefixMatch(q string, exact bool) bool {
 	if s.IsNil() {
 		return false
 	}
 
 	if exact {
-		return strings.ToLower(s.ToString(true)) == strings.ToLower(q)
+		return cieq(string(s), q)
 	}
 
-	if strings.HasPrefix(s.ToString(true), strings.ToLower(q)) {
+	if strings.HasPrefix(strings.ToLower(string(s)), strings.ToLower(q)) {
 		return true
 	}
 
 	return false
 }
 
-func SigIDFromString(s string, suffix bool) (SigID, error) {
-	blen := SIG_ID_LEN
-	if suffix {
-		blen++
-	}
+func SigIDFromString(s string) (SigID, error) {
+	// Add 1 extra byte for the suffix
+	blen := SIG_ID_LEN + 1
 	if len(s) != hex.EncodedLen(blen) {
-		return "", fmt.Errorf("Invalid SigID string length: %d, expected %d (suffix = %v)", len(s), hex.EncodedLen(blen), suffix)
+		return "", fmt.Errorf("Invalid SigID string length: %d, expected %d", len(s), hex.EncodedLen(blen))
 	}
-	if suffix {
-		return SigID(s), nil
+	s = strings.ToLower(s)
+	// Throw the outcome away, but we're checking that we can decode the value as hex
+	_, err := hex.DecodeString(s)
+	if err != nil {
+		return "", err
 	}
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX)), nil
+	return SigID(s), nil
 }
 
-func SigIDFromBytes(b [SIG_ID_LEN]byte) SigID {
-	s := hex.EncodeToString(b[:])
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX))
-}
-
-func SigIDFromSlice(b []byte) (SigID, error) {
-	if len(b) != SIG_ID_LEN {
-		return "", fmt.Errorf("invalid byte slice for SigID: len == %d, expected %d", len(b), SIG_ID_LEN)
-	}
-	var x [SIG_ID_LEN]byte
-	copy(x[:], b)
-	return SigIDFromBytes(x), nil
-}
-
-func (s SigID) toBytes() []byte {
+func (s SigID) ToBytes() []byte {
 	b, err := hex.DecodeString(string(s))
 	if err != nil {
 		return nil
@@ -712,9 +693,17 @@ func (s SigID) toBytes() []byte {
 	return b[0:SIG_ID_LEN]
 }
 
+func (s SigID) StripSuffix() SigIDBase {
+	l := hex.EncodedLen(SIG_ID_LEN)
+	if len(s) == l {
+		return SigIDBase(string(s))
+	}
+	return SigIDBase(string(s[0:l]))
+}
+
 func (s SigID) Eq(t SigID) bool {
-	b := s.toBytes()
-	c := t.toBytes()
+	b := s.ToBytes()
+	c := t.ToBytes()
 	if b == nil || c == nil {
 		return false
 	}
@@ -726,20 +715,134 @@ type SigIDMapKey string
 // ToMapKey returns the string representation (hex-encoded) of a SigID with the hardcoded 0x0f suffix
 // (for backward comptability with on-disk storage).
 func (s SigID) ToMapKey() SigIDMapKey {
-	tmp := s
-	hexLen := 2 * SIG_ID_LEN
-	if len(tmp) > hexLen {
-		tmp = tmp[0:hexLen]
-	}
-	return SigIDMapKey(fmt.Sprintf("%s%02x", tmp, SIG_ID_SUFFIX))
+	return SigIDMapKey(s.StripSuffix().ToSigIDLegacy().String())
 }
 
 func (s SigID) ToMediumID() string {
-	return encode(s.toBytes())
+	return encode(s.ToBytes())
 }
 
 func (s SigID) ToShortID() string {
-	return encode(s.toBytes()[0:SIG_SHORT_ID_BYTES])
+	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
+}
+
+// SigIDBase is a 64-character long hex encoding of the SHA256 of a signature, without
+// any suffix. You get a SigID by adding either a 0f or a 22 suffix.
+type SigIDBase string
+
+func (s SigIDBase) String() string {
+	return string(s)
+}
+
+func SigIDBaseFromBytes(b [SIG_ID_LEN]byte) SigIDBase {
+	s := hex.EncodeToString(b[:])
+	return SigIDBase(s)
+}
+
+// MarshalJSON output the SigIDBase as a full SigID to be compatible
+// with legacy versions of the app.
+func (s SigIDBase) MarshalJSON() ([]byte, error) {
+	return Quote(s.ToSigIDLegacy().String()), nil
+}
+
+// UnmarshalJSON will accept either a SigID or a SigIDBase, and can
+// strip off the suffix.
+func (s *SigIDBase) UnmarshalJSON(b []byte) error {
+	tmp := Unquote(b)
+
+	l := hex.EncodedLen(SIG_ID_LEN)
+	if len(tmp) == l {
+		base, err := SigIDBaseFromString(tmp)
+		if err != nil {
+			return err
+		}
+		*s = base
+		return nil
+	}
+
+	// If we didn't get a sigID the right size, try to strip off the suffix.
+	sigID, err := SigIDFromString(tmp)
+	if err != nil {
+		return err
+	}
+	*s = sigID.StripSuffix()
+	return nil
+}
+
+func SigIDBaseFromSlice(b []byte) (SigIDBase, error) {
+	var buf [32]byte
+	if len(b) != len(buf) {
+		return "", errors.New("need a SHA256 hash, got something the wrong length")
+	}
+	copy(buf[:], b[:])
+	return SigIDBaseFromBytes(buf), nil
+}
+
+func SigIDBaseFromString(s string) (SigIDBase, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return "", err
+	}
+	return SigIDBaseFromSlice(b)
+}
+
+func (s SigIDBase) EqSigID(t SigID) bool {
+	return cieq(s.String(), t.StripSuffix().String())
+}
+
+// SigIDSuffixParameters specify how to turn a 64-character SigIDBase into a 66-character SigID,
+// via the two suffixes. In the future, there might be a third, 38, in use.
+type SigIDSuffixParameters struct {
+	IsUserSig       bool       // true for user, false for team
+	IsWalletStellar bool       // exceptional sig type for backwards compatibility
+	SigVersion      SigVersion // 1,2 or 3 supported now
+}
+
+func SigIDSuffixParametersFromTypeAndVersion(typ string, vers SigVersion) SigIDSuffixParameters {
+	return SigIDSuffixParameters{
+		IsUserSig:       !strings.HasPrefix(typ, "teams."),
+		IsWalletStellar: (typ == "wallet.stellar"),
+		SigVersion:      vers,
+	}
+}
+
+func (s SigIDSuffixParameters) String() string {
+	if s.IsWalletStellar && s.SigVersion == 2 {
+		return "22"
+	}
+	if s.IsUserSig {
+		return "0f"
+	}
+	switch s.SigVersion {
+	case 2:
+		return "22"
+	case 3:
+		return "38"
+	default:
+		return "0f"
+	}
+}
+
+func (s SigIDBase) ToSigID(p SigIDSuffixParameters) SigID {
+	return SigID(string(s) + p.String())
+}
+
+// ToSigIDLegacy does what all of Keybase used to do, which is to always assign a 0x0f
+// suffix to SigIDBases to get SigIDs.
+func (s SigIDBase) ToSigIDLegacy() SigID {
+	return s.ToSigID(SigIDSuffixParameters{IsUserSig: true, IsWalletStellar: false, SigVersion: 1})
+}
+
+func (s SigIDBase) Eq(t SigIDBase) bool {
+	return cieq(string(s), string(t))
+}
+
+func (s SigIDBase) ToBytes() []byte {
+	x, err := hex.DecodeString(string(s))
+	if err != nil {
+		return nil
+	}
+	return x
 }
 
 func encode(b []byte) string {
@@ -750,7 +853,10 @@ func FromTime(t Time) time.Time {
 	if t == 0 {
 		return time.Time{}
 	}
-	return time.Unix(0, int64(t)*1000000)
+	// t is in millisecond.
+	tSec := int64(t) / 1000
+	tNanoSecOffset := (int64(t) - tSec*1000) * 1000000
+	return time.Unix(tSec, tNanoSecOffset)
 }
 
 func (t Time) Time() time.Time {
@@ -761,21 +867,12 @@ func (t Time) UnixSeconds() int64 {
 	return t.Time().Unix()
 }
 
-func (t Time) UnixMilliseconds() int64 {
-	return t.Time().UnixNano() / 1e6
-}
-
-func (t Time) UnixMicroseconds() int64 {
-	return t.Time().UnixNano() / 1e3
-}
-
 func ToTime(t time.Time) Time {
-	// the result of calling UnixNano on the zero Time is undefined.
-	// https://golang.org/pkg/time/#Time.UnixNano
 	if t.IsZero() {
 		return 0
 	}
-	return Time(t.UnixNano() / 1000000)
+
+	return Time(t.Unix()*1000 + (int64(t.Nanosecond()) / 1000000))
 }
 
 func ToTimePtr(t *time.Time) *Time {
@@ -800,7 +897,10 @@ func FormatTime(t Time) string {
 }
 
 func FromUnixTime(u UnixTime) time.Time {
-	return FromTime(Time(u * 1000))
+	if u == 0 {
+		return time.Time{}
+	}
+	return time.Unix(int64(u), 0)
 }
 
 func (u UnixTime) Time() time.Time {
@@ -809,14 +909,6 @@ func (u UnixTime) Time() time.Time {
 
 func (u UnixTime) UnixSeconds() int64 {
 	return int64(u)
-}
-
-func (u UnixTime) UnixMilliseconds() int64 {
-	return int64(u) * 1000
-}
-
-func (u UnixTime) UnixMicroseconds() int64 {
-	return int64(u) * 1000000
 }
 
 func ToUnixTime(t time.Time) UnixTime {
@@ -941,7 +1033,7 @@ func (k *KID) Size() int {
 }
 
 func (s *SigID) UnmarshalJSON(b []byte) error {
-	sigID, err := SigIDFromString(Unquote(b), true)
+	sigID, err := SigIDFromString(Unquote(b))
 	if err != nil {
 		return err
 	}
@@ -950,7 +1042,7 @@ func (s *SigID) UnmarshalJSON(b []byte) error {
 }
 
 func (s *SigID) MarshalJSON() ([]byte, error) {
-	return Quote(s.ToString(true)), nil
+	return Quote(s.String()), nil
 }
 
 func (f Folder) ToString() string {
@@ -2569,6 +2661,35 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 	return ParseUserVersion(UserVersionPercentForm(t.Name))
 }
 
+// TeamMaxUsesInfinite is a value for max_uses field which makes team invite
+// multiple use, with infinite number of uses.
+const TeamMaxUsesInfinite = -1
+
+func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
+	if maxUses <= 0 {
+		return v, errors.New("non-infinite uses with nonpositive maxUses")
+	}
+	return TeamInviteMaxUses(maxUses), nil
+}
+
+func (e TeamInviteMaxUses) IsInfiniteUses() bool {
+	return e == TeamMaxUsesInfinite
+}
+
+func (e TeamInviteMaxUses) IsValid() bool {
+	return e > 0 || e == TeamMaxUsesInfinite
+}
+
+func (e TeamInviteMaxUses) IsUsedUp(alreadyUsed int) bool {
+	if !e.IsValid() {
+		return true
+	}
+	if e == TeamMaxUsesInfinite {
+		return false
+	}
+	return alreadyUsed >= int(e)
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
@@ -2744,11 +2865,20 @@ func (req *TeamChangeReq) RestrictedBotUVs() (ret []UserVersion) {
 	return ret
 }
 
+// CompleteInviteID adds to the `completed_invites` field, and signals that the
+// invite can never be used again. It's used for SBS, Keybase, SeitanV1, and
+// SeitanV2 invites.
 func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	if req.CompletedInvites == nil {
 		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
 	}
 	req.CompletedInvites[inviteID] = uv
+}
+
+// UseInviteID adds to the `used_invites` field. It is used for SeitanInvitelink invites,
+// which can be used multiple times.
+func (req *TeamChangeReq) UseInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
+	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{InviteID: inviteID, Uv: uv})
 }
 
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
@@ -3468,6 +3598,15 @@ func (s TeamSigChainState) KeySummary() string {
 	return fmt.Sprintf("{maxPTK:%d, ptk:%v}", s.MaxPerTeamKeyGeneration, v)
 }
 
+func (s TeamSigChainState) HasAnyStubbedLinks() bool {
+	for _, v := range s.StubbedLinks {
+		if v {
+			return true
+		}
+	}
+	return false
+}
+
 func (h *HiddenTeamChain) IsStale() bool {
 	if h == nil {
 		return false
@@ -3790,4 +3929,88 @@ func (e TeamSearchExport) Hash() string {
 		hasher.Write(id.ToBytes())
 	}
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+// web-of-trust
+const (
+	UsernameVerificationType_NONE       = ""
+	UsernameVerificationType_AUDIO      = "audio"
+	UsernameVerificationType_VIDEO      = "video"
+	UsernameVerificationType_EMAIL      = "email"
+	UsernameVerificationType_OTHER_CHAT = "other_chat"
+	UsernameVerificationType_IN_PERSON  = "in_person"
+)
+
+var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
+	"":           UsernameVerificationType_NONE,
+	"none":       UsernameVerificationType_NONE,
+	"audio":      UsernameVerificationType_AUDIO,
+	"video":      UsernameVerificationType_VIDEO,
+	"email":      UsernameVerificationType_EMAIL,
+	"other_chat": UsernameVerificationType_OTHER_CHAT,
+	"in_person":  UsernameVerificationType_IN_PERSON,
+}
+
+func (c Confidence) ToJsonw() *jsonw.Wrapper {
+	j := jsonw.NewDictionary()
+	if c.UsernameVerifiedVia != UsernameVerificationType_NONE {
+		_ = j.SetKey("username_verified_via", jsonw.NewString(string(c.UsernameVerifiedVia)))
+	}
+	if len(c.VouchedBy) > 0 {
+		vb := jsonw.NewArray(len(c.VouchedBy))
+		for i, uid := range c.VouchedBy {
+			_ = vb.SetIndex(i, jsonw.NewString(uid.String()))
+		}
+		_ = j.SetKey("vouched_by", vb)
+	}
+	if c.KnownOnKeybaseDays > 0 {
+		_ = j.SetKey("known_on_keybase_days", jsonw.NewInt(c.KnownOnKeybaseDays))
+	}
+	if c.Other != "" {
+		_ = j.SetKey("other", jsonw.NewString(c.Other))
+	}
+	return j
+}
+
+func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
+	if fsc.Mode != other.Mode {
+		return false
+	}
+	if len(fsc.Paths) != len(other.Paths) {
+		return false
+	}
+	for i, p := range fsc.Paths {
+		if p != other.Paths[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
+	size := len(t.Admins) + len(t.Bots) + len(t.Owners) + len(t.Writers) + len(t.Readers) +
+		len(t.RestrictedBots)
+	res = make([]TeamMemberDetails, 0, size)
+	return append(res,
+		append(t.Admins,
+			append(t.Bots,
+				append(t.Owners,
+					append(t.Readers,
+						append(t.RestrictedBots,
+							append(t.Writers)...)...)...)...)...)...)
+}
+
+func (t SeitanIKeyInvitelink) String() string {
+	return string(t)
+}
+
+// UserRolePairsHaveOwner check if a list of UserRolePair has user with role
+// OWNER.
+func UserRolePairsHaveOwner(users []UserRolePair) bool {
+	for _, urp := range users {
+		if urp.Role == TeamRole_OWNER {
+			return true
+		}
+	}
+	return false
 }

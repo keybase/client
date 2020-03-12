@@ -16,6 +16,7 @@
 #import <keybase/keybase.h>
 #import "Pusher.h"
 #import "Fs.h"
+#import "Storybook.h"
 
 #import <UMCore/UMModuleRegistry.h>
 #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
@@ -102,8 +103,13 @@
 #if DEBUG
   // uncomment to get a prod bundle. If you set this it remembers so set it back and re-run to reset it!
 //  [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
-  return [NSURL URLWithString:[[[[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil] absoluteString] stringByAppendingString:@"&inlineSourceMap=true" ]];
-//  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+  // This is a mildly hacky solution to mock out some code when we're in storybook mode.
+  // The code that handles this is in `shared/metro.config.js`.
+  NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
+  NSString *url = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL fallbackResource:nil];
+  // TEMP
+  return [NSURL URLWithString:[[url absoluteString] stringByAppendingString:@"&inlineSourceMap=true" ]];
+  return url
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
@@ -164,18 +170,6 @@
       NSLog(@"Remote notification handle finished...");
     });
   } else if (type != nil && [type isEqualToString:@"chat.newmessage"]) {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-      NSError* err = nil;
-      NSString* convID = notification[@"convID"];
-      int messageID = [notification[@"msgID"] intValue];
-      KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
-                                          messageID, @"", badgeCount, unixTime, soundName, nil, false, &err);
-      if (err != nil) {
-        NSLog(@"Failed to handle in engine: %@", err);
-      }
-      completionHandler(UIBackgroundFetchResultNewData);
-      NSLog(@"Remote notification handle finished...");
-    });
     [RCTPushNotificationManager didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
   } else {

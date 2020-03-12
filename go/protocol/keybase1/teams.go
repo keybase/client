@@ -286,6 +286,12 @@ func (o TeamInviteID) DeepCopy() TeamInviteID {
 	return o
 }
 
+type TeamInviteMaxUses int
+
+func (o TeamInviteMaxUses) DeepCopy() TeamInviteMaxUses {
+	return o
+}
+
 type ReaderKeyMask struct {
 	Application TeamApplication      `codec:"application" json:"application"`
 	Generation  PerTeamKeyGeneration `codec:"generation" json:"generation"`
@@ -692,6 +698,18 @@ func (o UserVersionPercentForm) DeepCopy() UserVersionPercentForm {
 	return o
 }
 
+type TeamUsedInvite struct {
+	InviteID TeamInviteID           `codec:"inviteID" json:"inviteID"`
+	Uv       UserVersionPercentForm `codec:"uv" json:"uv"`
+}
+
+func (o TeamUsedInvite) DeepCopy() TeamUsedInvite {
+	return TeamUsedInvite{
+		InviteID: o.InviteID.DeepCopy(),
+		Uv:       o.Uv.DeepCopy(),
+	}
+}
+
 type TeamChangeReq struct {
 	Owners           []UserVersion                           `codec:"owners" json:"owners"`
 	Admins           []UserVersion                           `codec:"admins" json:"admins"`
@@ -701,6 +719,7 @@ type TeamChangeReq struct {
 	RestrictedBots   map[UserVersion]TeamBotSettings         `codec:"restrictedBots" json:"restrictedBots"`
 	None             []UserVersion                           `codec:"none" json:"none"`
 	CompletedInvites map[TeamInviteID]UserVersionPercentForm `codec:"completedInvites" json:"completedInvites"`
+	UsedInvites      []TeamUsedInvite                        `codec:"usedInvites" json:"usedInvites"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
@@ -795,6 +814,17 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.CompletedInvites),
+		UsedInvites: (func(x []TeamUsedInvite) []TeamUsedInvite {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamUsedInvite, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UsedInvites),
 	}
 }
 
@@ -1561,25 +1591,27 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 type TeamInviteCategory int
 
 const (
-	TeamInviteCategory_NONE    TeamInviteCategory = 0
-	TeamInviteCategory_UNKNOWN TeamInviteCategory = 1
-	TeamInviteCategory_KEYBASE TeamInviteCategory = 2
-	TeamInviteCategory_EMAIL   TeamInviteCategory = 3
-	TeamInviteCategory_SBS     TeamInviteCategory = 4
-	TeamInviteCategory_SEITAN  TeamInviteCategory = 5
-	TeamInviteCategory_PHONE   TeamInviteCategory = 6
+	TeamInviteCategory_NONE       TeamInviteCategory = 0
+	TeamInviteCategory_UNKNOWN    TeamInviteCategory = 1
+	TeamInviteCategory_KEYBASE    TeamInviteCategory = 2
+	TeamInviteCategory_EMAIL      TeamInviteCategory = 3
+	TeamInviteCategory_SBS        TeamInviteCategory = 4
+	TeamInviteCategory_SEITAN     TeamInviteCategory = 5
+	TeamInviteCategory_PHONE      TeamInviteCategory = 6
+	TeamInviteCategory_INVITELINK TeamInviteCategory = 7
 )
 
 func (o TeamInviteCategory) DeepCopy() TeamInviteCategory { return o }
 
 var TeamInviteCategoryMap = map[string]TeamInviteCategory{
-	"NONE":    0,
-	"UNKNOWN": 1,
-	"KEYBASE": 2,
-	"EMAIL":   3,
-	"SBS":     4,
-	"SEITAN":  5,
-	"PHONE":   6,
+	"NONE":       0,
+	"UNKNOWN":    1,
+	"KEYBASE":    2,
+	"EMAIL":      3,
+	"SBS":        4,
+	"SEITAN":     5,
+	"PHONE":      6,
+	"INVITELINK": 7,
 }
 
 var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
@@ -1590,6 +1622,7 @@ var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
 	4: "SBS",
 	5: "SEITAN",
 	6: "PHONE",
+	7: "INVITELINK",
 }
 
 func (e TeamInviteCategory) String() string {
@@ -1694,11 +1727,13 @@ func (o TeamInviteName) DeepCopy() TeamInviteName {
 }
 
 type TeamInvite struct {
-	Role    TeamRole       `codec:"role" json:"role"`
-	Id      TeamInviteID   `codec:"id" json:"id"`
-	Type    TeamInviteType `codec:"type" json:"type"`
-	Name    TeamInviteName `codec:"name" json:"name"`
-	Inviter UserVersion    `codec:"inviter" json:"inviter"`
+	Role    TeamRole           `codec:"role" json:"role"`
+	Id      TeamInviteID       `codec:"id" json:"id"`
+	Type    TeamInviteType     `codec:"type" json:"type"`
+	Name    TeamInviteName     `codec:"name" json:"name"`
+	Inviter UserVersion        `codec:"inviter" json:"inviter"`
+	MaxUses *TeamInviteMaxUses `codec:"maxUses,omitempty" json:"maxUses,omitempty"`
+	Etime   *UnixTime          `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
 func (o TeamInvite) DeepCopy() TeamInvite {
@@ -1708,6 +1743,20 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 		Type:    o.Type.DeepCopy(),
 		Name:    o.Name.DeepCopy(),
 		Inviter: o.Inviter.DeepCopy(),
+		MaxUses: (func(x *TeamInviteMaxUses) *TeamInviteMaxUses {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MaxUses),
+		Etime: (func(x *UnixTime) *UnixTime {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Etime),
 	}
 }
 
@@ -1821,6 +1870,7 @@ type TeamSigChainState struct {
 	StubbedLinks            map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
 	ActiveInvites           map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
 	ObsoleteInvites         map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
+	UsedInvites             map[TeamInviteID][]TeamUsedInviteLog              `codec:"usedInvites" json:"usedInvites"`
 	Open                    bool                                              `codec:"open" json:"open"`
 	OpenTeamJoinAs          TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
 	Bots                    map[UserVersion]TeamBotSettings                   `codec:"bots" json:"bots"`
@@ -1966,6 +2016,28 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ObsoleteInvites),
+		UsedInvites: (func(x map[TeamInviteID][]TeamUsedInviteLog) map[TeamInviteID][]TeamUsedInviteLog {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamInviteID][]TeamUsedInviteLog, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []TeamUsedInviteLog) []TeamUsedInviteLog {
+					if x == nil {
+						return nil
+					}
+					ret := make([]TeamUsedInviteLog, len(x))
+					for i, v := range x {
+						vCopy := v.DeepCopy()
+						ret[i] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.UsedInvites),
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
 		Bots: (func(x map[UserVersion]TeamBotSettings) map[UserVersion]TeamBotSettings {
@@ -2052,6 +2124,18 @@ func (o UserLogPoint) DeepCopy() UserLogPoint {
 	return UserLogPoint{
 		Role:    o.Role.DeepCopy(),
 		SigMeta: o.SigMeta.DeepCopy(),
+	}
+}
+
+type TeamUsedInviteLog struct {
+	Uv       UserVersion `codec:"uv" json:"uv"`
+	LogPoint int         `codec:"logPoint" json:"logPoint"`
+}
+
+func (o TeamUsedInviteLog) DeepCopy() TeamUsedInviteLog {
+	return TeamUsedInviteLog{
+		Uv:       o.Uv.DeepCopy(),
+		LogPoint: o.LogPoint,
 	}
 }
 
@@ -2299,6 +2383,12 @@ func (o SeitanIKey) DeepCopy() SeitanIKey {
 	return o
 }
 
+type SeitanIKeyInvitelink string
+
+func (o SeitanIKeyInvitelink) DeepCopy() SeitanIKeyInvitelink {
+	return o
+}
+
 type SeitanPubKey string
 
 func (o SeitanPubKey) DeepCopy() SeitanPubKey {
@@ -2314,20 +2404,23 @@ func (o SeitanIKeyV2) DeepCopy() SeitanIKeyV2 {
 type SeitanKeyAndLabelVersion int
 
 const (
-	SeitanKeyAndLabelVersion_V1 SeitanKeyAndLabelVersion = 1
-	SeitanKeyAndLabelVersion_V2 SeitanKeyAndLabelVersion = 2
+	SeitanKeyAndLabelVersion_V1         SeitanKeyAndLabelVersion = 1
+	SeitanKeyAndLabelVersion_V2         SeitanKeyAndLabelVersion = 2
+	SeitanKeyAndLabelVersion_Invitelink SeitanKeyAndLabelVersion = 3
 )
 
 func (o SeitanKeyAndLabelVersion) DeepCopy() SeitanKeyAndLabelVersion { return o }
 
 var SeitanKeyAndLabelVersionMap = map[string]SeitanKeyAndLabelVersion{
-	"V1": 1,
-	"V2": 2,
+	"V1":         1,
+	"V2":         2,
+	"Invitelink": 3,
 }
 
 var SeitanKeyAndLabelVersionRevMap = map[SeitanKeyAndLabelVersion]string{
 	1: "V1",
 	2: "V2",
+	3: "Invitelink",
 }
 
 func (e SeitanKeyAndLabelVersion) String() string {
@@ -2338,9 +2431,10 @@ func (e SeitanKeyAndLabelVersion) String() string {
 }
 
 type SeitanKeyAndLabel struct {
-	V__  SeitanKeyAndLabelVersion   `codec:"v" json:"v"`
-	V1__ *SeitanKeyAndLabelVersion1 `codec:"v1,omitempty" json:"v1,omitempty"`
-	V2__ *SeitanKeyAndLabelVersion2 `codec:"v2,omitempty" json:"v2,omitempty"`
+	V__          SeitanKeyAndLabelVersion     `codec:"v" json:"v"`
+	V1__         *SeitanKeyAndLabelVersion1   `codec:"v1,omitempty" json:"v1,omitempty"`
+	V2__         *SeitanKeyAndLabelVersion2   `codec:"v2,omitempty" json:"v2,omitempty"`
+	Invitelink__ *SeitanKeyAndLabelInvitelink `codec:"invitelink,omitempty" json:"invitelink,omitempty"`
 }
 
 func (o *SeitanKeyAndLabel) V() (ret SeitanKeyAndLabelVersion, err error) {
@@ -2353,6 +2447,11 @@ func (o *SeitanKeyAndLabel) V() (ret SeitanKeyAndLabelVersion, err error) {
 	case SeitanKeyAndLabelVersion_V2:
 		if o.V2__ == nil {
 			err = errors.New("unexpected nil value for V2__")
+			return ret, err
+		}
+	case SeitanKeyAndLabelVersion_Invitelink:
+		if o.Invitelink__ == nil {
+			err = errors.New("unexpected nil value for Invitelink__")
 			return ret, err
 		}
 	}
@@ -2379,6 +2478,16 @@ func (o SeitanKeyAndLabel) V2() (res SeitanKeyAndLabelVersion2) {
 	return *o.V2__
 }
 
+func (o SeitanKeyAndLabel) Invitelink() (res SeitanKeyAndLabelInvitelink) {
+	if o.V__ != SeitanKeyAndLabelVersion_Invitelink {
+		panic("wrong case accessed")
+	}
+	if o.Invitelink__ == nil {
+		return
+	}
+	return *o.Invitelink__
+}
+
 func NewSeitanKeyAndLabelWithV1(v SeitanKeyAndLabelVersion1) SeitanKeyAndLabel {
 	return SeitanKeyAndLabel{
 		V__:  SeitanKeyAndLabelVersion_V1,
@@ -2390,6 +2499,13 @@ func NewSeitanKeyAndLabelWithV2(v SeitanKeyAndLabelVersion2) SeitanKeyAndLabel {
 	return SeitanKeyAndLabel{
 		V__:  SeitanKeyAndLabelVersion_V2,
 		V2__: &v,
+	}
+}
+
+func NewSeitanKeyAndLabelWithInvitelink(v SeitanKeyAndLabelInvitelink) SeitanKeyAndLabel {
+	return SeitanKeyAndLabel{
+		V__:          SeitanKeyAndLabelVersion_Invitelink,
+		Invitelink__: &v,
 	}
 }
 
@@ -2416,6 +2532,13 @@ func (o SeitanKeyAndLabel) DeepCopy() SeitanKeyAndLabel {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.V2__),
+		Invitelink__: (func(x *SeitanKeyAndLabelInvitelink) *SeitanKeyAndLabelInvitelink {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Invitelink__),
 	}
 }
 
@@ -2443,20 +2566,35 @@ func (o SeitanKeyAndLabelVersion2) DeepCopy() SeitanKeyAndLabelVersion2 {
 	}
 }
 
+type SeitanKeyAndLabelInvitelink struct {
+	I SeitanIKeyInvitelink `codec:"i" json:"i"`
+	L SeitanKeyLabel       `codec:"l" json:"l"`
+}
+
+func (o SeitanKeyAndLabelInvitelink) DeepCopy() SeitanKeyAndLabelInvitelink {
+	return SeitanKeyAndLabelInvitelink{
+		I: o.I.DeepCopy(),
+		L: o.L.DeepCopy(),
+	}
+}
+
 type SeitanKeyLabelType int
 
 const (
-	SeitanKeyLabelType_SMS SeitanKeyLabelType = 1
+	SeitanKeyLabelType_SMS     SeitanKeyLabelType = 1
+	SeitanKeyLabelType_GENERIC SeitanKeyLabelType = 2
 )
 
 func (o SeitanKeyLabelType) DeepCopy() SeitanKeyLabelType { return o }
 
 var SeitanKeyLabelTypeMap = map[string]SeitanKeyLabelType{
-	"SMS": 1,
+	"SMS":     1,
+	"GENERIC": 2,
 }
 
 var SeitanKeyLabelTypeRevMap = map[SeitanKeyLabelType]string{
 	1: "SMS",
+	2: "GENERIC",
 }
 
 func (e SeitanKeyLabelType) String() string {
@@ -2467,8 +2605,9 @@ func (e SeitanKeyLabelType) String() string {
 }
 
 type SeitanKeyLabel struct {
-	T__   SeitanKeyLabelType `codec:"t" json:"t"`
-	Sms__ *SeitanKeyLabelSms `codec:"sms,omitempty" json:"sms,omitempty"`
+	T__       SeitanKeyLabelType     `codec:"t" json:"t"`
+	Sms__     *SeitanKeyLabelSms     `codec:"sms,omitempty" json:"sms,omitempty"`
+	Generic__ *SeitanKeyLabelGeneric `codec:"generic,omitempty" json:"generic,omitempty"`
 }
 
 func (o *SeitanKeyLabel) T() (ret SeitanKeyLabelType, err error) {
@@ -2476,6 +2615,11 @@ func (o *SeitanKeyLabel) T() (ret SeitanKeyLabelType, err error) {
 	case SeitanKeyLabelType_SMS:
 		if o.Sms__ == nil {
 			err = errors.New("unexpected nil value for Sms__")
+			return ret, err
+		}
+	case SeitanKeyLabelType_GENERIC:
+		if o.Generic__ == nil {
+			err = errors.New("unexpected nil value for Generic__")
 			return ret, err
 		}
 	}
@@ -2492,10 +2636,27 @@ func (o SeitanKeyLabel) Sms() (res SeitanKeyLabelSms) {
 	return *o.Sms__
 }
 
+func (o SeitanKeyLabel) Generic() (res SeitanKeyLabelGeneric) {
+	if o.T__ != SeitanKeyLabelType_GENERIC {
+		panic("wrong case accessed")
+	}
+	if o.Generic__ == nil {
+		return
+	}
+	return *o.Generic__
+}
+
 func NewSeitanKeyLabelWithSms(v SeitanKeyLabelSms) SeitanKeyLabel {
 	return SeitanKeyLabel{
 		T__:   SeitanKeyLabelType_SMS,
 		Sms__: &v,
+	}
+}
+
+func NewSeitanKeyLabelWithGeneric(v SeitanKeyLabelGeneric) SeitanKeyLabel {
+	return SeitanKeyLabel{
+		T__:       SeitanKeyLabelType_GENERIC,
+		Generic__: &v,
 	}
 }
 
@@ -2515,6 +2676,13 @@ func (o SeitanKeyLabel) DeepCopy() SeitanKeyLabel {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sms__),
+		Generic__: (func(x *SeitanKeyLabelGeneric) *SeitanKeyLabelGeneric {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Generic__),
 	}
 }
 
@@ -2527,6 +2695,16 @@ func (o SeitanKeyLabelSms) DeepCopy() SeitanKeyLabelSms {
 	return SeitanKeyLabelSms{
 		F: o.F,
 		N: o.N,
+	}
+}
+
+type SeitanKeyLabelGeneric struct {
+	L string `codec:"l" json:"l"`
+}
+
+func (o SeitanKeyLabelGeneric) DeepCopy() SeitanKeyLabelGeneric {
+	return SeitanKeyLabelGeneric{
+		L: o.L,
 	}
 }
 
@@ -3180,15 +3358,15 @@ func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
 }
 
 type UserRolePair struct {
-	AssertionOrEmail string           `codec:"assertionOrEmail" json:"assertionOrEmail"`
-	Role             TeamRole         `codec:"role" json:"role"`
-	BotSettings      *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
+	Assertion   string           `codec:"assertion" json:"assertion"`
+	Role        TeamRole         `codec:"role" json:"role"`
+	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
 func (o UserRolePair) DeepCopy() UserRolePair {
 	return UserRolePair{
-		AssertionOrEmail: o.AssertionOrEmail,
-		Role:             o.Role.DeepCopy(),
+		Assertion: o.Assertion,
+		Role:      o.Role.DeepCopy(),
 		BotSettings: (func(x *TeamBotSettings) *TeamBotSettings {
 			if x == nil {
 				return nil
@@ -3252,6 +3430,42 @@ func (o TeamEditMembersResult) DeepCopy() TeamEditMembersResult {
 			}
 			return ret
 		})(o.Failures),
+	}
+}
+
+type UntrustedTeamExistsResult struct {
+	Exists bool       `codec:"exists" json:"exists"`
+	Status StatusCode `codec:"status" json:"status"`
+}
+
+func (o UntrustedTeamExistsResult) DeepCopy() UntrustedTeamExistsResult {
+	return UntrustedTeamExistsResult{
+		Exists: o.Exists,
+		Status: o.Status.DeepCopy(),
+	}
+}
+
+type Invitelink struct {
+	Ikey     SeitanIKeyInvitelink `codec:"ikey" json:"ikey"`
+	WebLink  string               `codec:"webLink" json:"webLink"`
+	DeepLink string               `codec:"deepLink" json:"deepLink"`
+	MaxUses  TeamInviteMaxUses    `codec:"maxUses" json:"maxUses"`
+	Etime    *UnixTime            `codec:"etime,omitempty" json:"etime,omitempty"`
+}
+
+func (o Invitelink) DeepCopy() Invitelink {
+	return Invitelink{
+		Ikey:     o.Ikey.DeepCopy(),
+		WebLink:  o.WebLink,
+		DeepLink: o.DeepLink,
+		MaxUses:  o.MaxUses.DeepCopy(),
+		Etime: (func(x *UnixTime) *UnixTime {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Etime),
 	}
 }
 
@@ -3640,6 +3854,22 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 	}
 }
 
+type AnnotatedSubteamMemberDetails struct {
+	TeamName TeamName          `codec:"teamName" json:"teamName"`
+	TeamID   TeamID            `codec:"teamID" json:"teamID"`
+	Details  TeamMemberDetails `codec:"details" json:"details"`
+	Role     TeamRole          `codec:"role" json:"role"`
+}
+
+func (o AnnotatedSubteamMemberDetails) DeepCopy() AnnotatedSubteamMemberDetails {
+	return AnnotatedSubteamMemberDetails{
+		TeamName: o.TeamName.DeepCopy(),
+		TeamID:   o.TeamID.DeepCopy(),
+		Details:  o.Details.DeepCopy(),
+		Role:     o.Role.DeepCopy(),
+	}
+}
+
 type GetUntrustedTeamInfoArg struct {
 	TeamName TeamName `codec:"teamName" json:"teamName"`
 }
@@ -3703,12 +3933,6 @@ type TeamListSubteamsRecursiveArg struct {
 	SessionID      int    `codec:"sessionID" json:"sessionID"`
 	ParentTeamName string `codec:"parentTeamName" json:"parentTeamName"`
 	ForceRepoll    bool   `codec:"forceRepoll" json:"forceRepoll"`
-}
-
-type TeamChangeMembershipArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	Name      string        `codec:"name" json:"name"`
-	Req       TeamChangeReq `codec:"req" json:"req"`
 }
 
 type TeamAddMemberArg struct {
@@ -3789,6 +4013,10 @@ type TeamSetBotSettingsArg struct {
 	BotSettings TeamBotSettings `codec:"botSettings" json:"botSettings"`
 }
 
+type UntrustedTeamExistsArg struct {
+	TeamName TeamName `codec:"teamName" json:"teamName"`
+}
+
 type TeamRenameArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	PrevName  TeamName `codec:"prevName" json:"prevName"`
@@ -3849,16 +4077,24 @@ type TeamSetSettingsArg struct {
 
 type TeamCreateSeitanTokenArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
-	Name      string         `codec:"name" json:"name"`
+	Teamname  string         `codec:"teamname" json:"teamname"`
 	Role      TeamRole       `codec:"role" json:"role"`
 	Label     SeitanKeyLabel `codec:"label" json:"label"`
 }
 
 type TeamCreateSeitanTokenV2Arg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
-	Name      string         `codec:"name" json:"name"`
+	Teamname  string         `codec:"teamname" json:"teamname"`
 	Role      TeamRole       `codec:"role" json:"role"`
 	Label     SeitanKeyLabel `codec:"label" json:"label"`
+}
+
+type TeamCreateSeitanInvitelinkArg struct {
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	Teamname  string            `codec:"teamname" json:"teamname"`
+	Role      TeamRole          `codec:"role" json:"role"`
+	MaxUses   TeamInviteMaxUses `codec:"maxUses" json:"maxUses"`
+	Etime     *UnixTime         `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
 type TeamAddEmailsBulkArg struct {
@@ -3998,6 +4234,11 @@ type GetAnnotatedTeamArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type GetUserSubteamMembershipsArg struct {
+	TeamID   TeamID `codec:"teamID" json:"teamID"`
+	Username string `codec:"username" json:"username"`
+}
+
 type TeamsInterface interface {
 	GetUntrustedTeamInfo(context.Context, TeamName) (UntrustedTeamInfo, error)
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
@@ -4011,7 +4252,6 @@ type TeamsInterface interface {
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
 	TeamListVerified(context.Context, TeamListVerifiedArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
-	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamAddMembers(context.Context, TeamAddMembersArg) (TeamAddMembersResult, error)
 	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) (TeamAddMembersResult, error)
@@ -4022,6 +4262,7 @@ type TeamsInterface interface {
 	TeamEditMembers(context.Context, TeamEditMembersArg) (TeamEditMembersResult, error)
 	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
 	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
+	UntrustedTeamExists(context.Context, TeamName) (UntrustedTeamExistsResult, error)
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
@@ -4035,6 +4276,7 @@ type TeamsInterface interface {
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
 	TeamCreateSeitanTokenV2(context.Context, TeamCreateSeitanTokenV2Arg) (SeitanIKeyV2, error)
+	TeamCreateSeitanInvitelink(context.Context, TeamCreateSeitanInvitelinkArg) (Invitelink, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -4079,6 +4321,7 @@ type TeamsInterface interface {
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
+	GetUserSubteamMemberships(context.Context, GetUserSubteamMembershipsArg) ([]AnnotatedSubteamMemberDetails, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -4265,21 +4508,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"teamChangeMembership": {
-				MakeArg: func() interface{} {
-					var ret [1]TeamChangeMembershipArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TeamChangeMembershipArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]TeamChangeMembershipArg)(nil), args)
-						return
-					}
-					err = i.TeamChangeMembership(ctx, typedArgs[0])
-					return
-				},
-			},
 			"teamAddMember": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamAddMemberArg
@@ -4427,6 +4655,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamSetBotSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"untrustedTeamExists": {
+				MakeArg: func() interface{} {
+					var ret [1]UntrustedTeamExistsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UntrustedTeamExistsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UntrustedTeamExistsArg)(nil), args)
+						return
+					}
+					ret, err = i.UntrustedTeamExists(ctx, typedArgs[0].TeamName)
 					return
 				},
 			},
@@ -4622,6 +4865,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamCreateSeitanTokenV2(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamCreateSeitanInvitelink": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamCreateSeitanInvitelinkArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamCreateSeitanInvitelinkArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamCreateSeitanInvitelinkArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateSeitanInvitelink(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5010,6 +5268,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getUserSubteamMemberships": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUserSubteamMembershipsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUserSubteamMembershipsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUserSubteamMembershipsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUserSubteamMemberships(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -5079,11 +5352,6 @@ func (c TeamsClient) TeamListSubteamsRecursive(ctx context.Context, __arg TeamLi
 	return
 }
 
-func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeMembershipArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamChangeMembership", []interface{}{__arg}, nil, 0*time.Millisecond)
-	return
-}
-
 func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (res TeamAddMemberResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
@@ -5131,6 +5399,12 @@ func (c TeamsClient) TeamGetBotSettings(ctx context.Context, __arg TeamGetBotSet
 
 func (c TeamsClient) TeamSetBotSettings(ctx context.Context, __arg TeamSetBotSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) UntrustedTeamExists(ctx context.Context, teamName TeamName) (res UntrustedTeamExistsResult, err error) {
+	__arg := UntrustedTeamExistsArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "keybase.1.teams.untrustedTeamExists", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -5196,6 +5470,11 @@ func (c TeamsClient) TeamCreateSeitanToken(ctx context.Context, __arg TeamCreate
 
 func (c TeamsClient) TeamCreateSeitanTokenV2(ctx context.Context, __arg TeamCreateSeitanTokenV2Arg) (res SeitanIKeyV2, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanTokenV2", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamCreateSeitanInvitelink(ctx context.Context, __arg TeamCreateSeitanInvitelinkArg) (res Invitelink, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelink", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -5355,5 +5634,10 @@ func (c TeamsClient) GetTeamRoleMap(ctx context.Context) (res TeamRoleMapAndVers
 func (c TeamsClient) GetAnnotatedTeam(ctx context.Context, teamID TeamID) (res AnnotatedTeam, err error) {
 	__arg := GetAnnotatedTeamArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) GetUserSubteamMemberships(ctx context.Context, __arg GetUserSubteamMembershipsArg) (res []AnnotatedSubteamMemberDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.getUserSubteamMemberships", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

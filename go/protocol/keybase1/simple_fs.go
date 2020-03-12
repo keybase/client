@@ -747,30 +747,34 @@ func (o WriteArgs) DeepCopy() WriteArgs {
 }
 
 type CopyArgs struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 func (o CopyArgs) DeepCopy() CopyArgs {
 	return CopyArgs{
-		OpID: o.OpID.DeepCopy(),
-		Src:  o.Src.DeepCopy(),
-		Dest: o.Dest.DeepCopy(),
+		OpID:                   o.OpID.DeepCopy(),
+		Src:                    o.Src.DeepCopy(),
+		Dest:                   o.Dest.DeepCopy(),
+		OverwriteExistingFiles: o.OverwriteExistingFiles,
 	}
 }
 
 type MoveArgs struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 func (o MoveArgs) DeepCopy() MoveArgs {
 	return MoveArgs{
-		OpID: o.OpID.DeepCopy(),
-		Src:  o.Src.DeepCopy(),
-		Dest: o.Dest.DeepCopy(),
+		OpID:                   o.OpID.DeepCopy(),
+		Src:                    o.Src.DeepCopy(),
+		Dest:                   o.Dest.DeepCopy(),
+		OverwriteExistingFiles: o.OverwriteExistingFiles,
 	}
 }
 
@@ -1354,6 +1358,7 @@ const (
 	SubscriptionTopic_FILES_TAB_BADGE     SubscriptionTopic = 4
 	SubscriptionTopic_OVERALL_SYNC_STATUS SubscriptionTopic = 5
 	SubscriptionTopic_SETTINGS            SubscriptionTopic = 6
+	SubscriptionTopic_UPLOAD_STATUS       SubscriptionTopic = 7
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
@@ -1366,6 +1371,7 @@ var SubscriptionTopicMap = map[string]SubscriptionTopic{
 	"FILES_TAB_BADGE":     4,
 	"OVERALL_SYNC_STATUS": 5,
 	"SETTINGS":            6,
+	"UPLOAD_STATUS":       7,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
@@ -1376,6 +1382,7 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	4: "FILES_TAB_BADGE",
 	5: "OVERALL_SYNC_STATUS",
 	6: "SETTINGS",
+	7: "UPLOAD_STATUS",
 }
 
 func (e SubscriptionTopic) String() string {
@@ -1483,6 +1490,28 @@ func (o DownloadStatus) DeepCopy() DownloadStatus {
 	}
 }
 
+type UploadState struct {
+	UploadID   string   `codec:"uploadID" json:"uploadID"`
+	TargetPath KBFSPath `codec:"targetPath" json:"targetPath"`
+	Error      *string  `codec:"error,omitempty" json:"error,omitempty"`
+	Canceled   bool     `codec:"canceled" json:"canceled"`
+}
+
+func (o UploadState) DeepCopy() UploadState {
+	return UploadState{
+		UploadID:   o.UploadID,
+		TargetPath: o.TargetPath.DeepCopy(),
+		Error: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error),
+		Canceled: o.Canceled,
+	}
+}
+
 type FilesTabBadge int
 
 const (
@@ -1567,6 +1596,78 @@ func (o GUIFileContext) DeepCopy() GUIFileContext {
 	}
 }
 
+type SimpleFSSearchHit struct {
+	Path string `codec:"path" json:"path"`
+}
+
+func (o SimpleFSSearchHit) DeepCopy() SimpleFSSearchHit {
+	return SimpleFSSearchHit{
+		Path: o.Path,
+	}
+}
+
+type SimpleFSSearchResults struct {
+	Hits       []SimpleFSSearchHit `codec:"hits" json:"hits"`
+	NextResult int                 `codec:"nextResult" json:"nextResult"`
+}
+
+func (o SimpleFSSearchResults) DeepCopy() SimpleFSSearchResults {
+	return SimpleFSSearchResults{
+		Hits: (func(x []SimpleFSSearchHit) []SimpleFSSearchHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SimpleFSSearchHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		NextResult: o.NextResult,
+	}
+}
+
+type IndexProgressRecord struct {
+	EndEstimate Time  `codec:"endEstimate" json:"endEstimate"`
+	BytesTotal  int64 `codec:"bytesTotal" json:"bytesTotal"`
+	BytesSoFar  int64 `codec:"bytesSoFar" json:"bytesSoFar"`
+}
+
+func (o IndexProgressRecord) DeepCopy() IndexProgressRecord {
+	return IndexProgressRecord{
+		EndEstimate: o.EndEstimate.DeepCopy(),
+		BytesTotal:  o.BytesTotal,
+		BytesSoFar:  o.BytesSoFar,
+	}
+}
+
+type SimpleFSIndexProgress struct {
+	OverallProgress IndexProgressRecord `codec:"overallProgress" json:"overallProgress"`
+	CurrFolder      Folder              `codec:"currFolder" json:"currFolder"`
+	CurrProgress    IndexProgressRecord `codec:"currProgress" json:"currProgress"`
+	FoldersLeft     []Folder            `codec:"foldersLeft" json:"foldersLeft"`
+}
+
+func (o SimpleFSIndexProgress) DeepCopy() SimpleFSIndexProgress {
+	return SimpleFSIndexProgress{
+		OverallProgress: o.OverallProgress.DeepCopy(),
+		CurrFolder:      o.CurrFolder.DeepCopy(),
+		CurrProgress:    o.CurrProgress.DeepCopy(),
+		FoldersLeft: (func(x []Folder) []Folder {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Folder, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.FoldersLeft),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1594,9 +1695,10 @@ type SimpleFSReadListArg struct {
 }
 
 type SimpleFSCopyArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 type SimpleFSSymlinkArg struct {
@@ -1605,15 +1707,17 @@ type SimpleFSSymlinkArg struct {
 }
 
 type SimpleFSCopyRecursiveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 type SimpleFSMoveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID                   OpID `codec:"opID" json:"opID"`
+	Src                    Path `codec:"src" json:"src"`
+	Dest                   Path `codec:"dest" json:"dest"`
+	OverwriteExistingFiles bool `codec:"overwriteExistingFiles" json:"overwriteExistingFiles"`
 }
 
 type SimpleFSRenameArg struct {
@@ -1822,6 +1926,25 @@ type SimpleFSConfigureDownloadArg struct {
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
+type SimpleFSMakeTempDirForUploadArg struct {
+}
+
+type SimpleFSStartUploadArg struct {
+	SourceLocalPath  string   `codec:"sourceLocalPath" json:"sourceLocalPath"`
+	TargetParentPath KBFSPath `codec:"targetParentPath" json:"targetParentPath"`
+}
+
+type SimpleFSGetUploadStatusArg struct {
+}
+
+type SimpleFSCancelUploadArg struct {
+	UploadID string `codec:"uploadID" json:"uploadID"`
+}
+
+type SimpleFSDismissUploadArg struct {
+	UploadID string `codec:"uploadID" json:"uploadID"`
+}
+
 type SimpleFSGetFilesTabBadgeArg struct {
 }
 
@@ -1835,6 +1958,18 @@ type SimpleFSUserInArg struct {
 
 type SimpleFSUserOutArg struct {
 	ClientID string `codec:"clientID" json:"clientID"`
+}
+
+type SimpleFSSearchArg struct {
+	Query        string `codec:"query" json:"query"`
+	NumResults   int    `codec:"numResults" json:"numResults"`
+	StartingFrom int    `codec:"startingFrom" json:"startingFrom"`
+}
+
+type SimpleFSResetIndexArg struct {
+}
+
+type SimpleFSGetIndexProgressArg struct {
 }
 
 type SimpleFSInterface interface {
@@ -1857,11 +1992,16 @@ type SimpleFSInterface interface {
 	// Get list of Paths in progress. Can indicate status of pending
 	// to get more entries.
 	SimpleFSReadList(context.Context, OpID) (SimpleFSListResult, error)
-	// Begin copy of file or directory
+	// Begin copy of file or directory.
 	SimpleFSCopy(context.Context, SimpleFSCopyArg) error
 	// Make a symlink of file or directory
 	SimpleFSSymlink(context.Context, SimpleFSSymlinkArg) error
 	// Begin recursive copy of directory
+	//
+	// overwriteExistingFiles controls whether an existing file from `src` will
+	// overwrite a file with the same name in `dest`; if `false`, an error will be
+	// returned in that case.  For directories that share a name, the copy will
+	// continue recursively into the directory without causing an error.
 	SimpleFSCopyRecursive(context.Context, SimpleFSCopyRecursiveArg) error
 	// Begin move of file or directory, from/to KBFS only
 	SimpleFSMove(context.Context, SimpleFSMoveArg) error
@@ -1956,10 +2096,18 @@ type SimpleFSInterface interface {
 	SimpleFSCancelDownload(context.Context, string) error
 	SimpleFSDismissDownload(context.Context, string) error
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
+	SimpleFSMakeTempDirForUpload(context.Context) (string, error)
+	SimpleFSStartUpload(context.Context, SimpleFSStartUploadArg) (string, error)
+	SimpleFSGetUploadStatus(context.Context) ([]UploadState, error)
+	SimpleFSCancelUpload(context.Context, string) error
+	SimpleFSDismissUpload(context.Context, string) error
 	SimpleFSGetFilesTabBadge(context.Context) (FilesTabBadge, error)
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
 	SimpleFSUserIn(context.Context, string) error
 	SimpleFSUserOut(context.Context, string) error
+	SimpleFSSearch(context.Context, SimpleFSSearchArg) (SimpleFSSearchResults, error)
+	SimpleFSResetIndex(context.Context) error
+	SimpleFSGetIndexProgress(context.Context) (SimpleFSIndexProgress, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2751,6 +2899,71 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSMakeTempDirForUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSMakeTempDirForUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSMakeTempDirForUpload(ctx)
+					return
+				},
+			},
+			"simpleFSStartUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSStartUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSStartUploadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSStartUploadArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSStartUpload(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSGetUploadStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetUploadStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetUploadStatus(ctx)
+					return
+				},
+			},
+			"simpleFSCancelUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSCancelUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSCancelUploadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSCancelUploadArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSCancelUpload(ctx, typedArgs[0].UploadID)
+					return
+				},
+			},
+			"simpleFSDismissUpload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSDismissUploadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSDismissUploadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSDismissUploadArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSDismissUpload(ctx, typedArgs[0].UploadID)
+					return
+				},
+			},
 			"simpleFSGetFilesTabBadge": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSGetFilesTabBadgeArg
@@ -2806,6 +3019,41 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSearch(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSResetIndex": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSResetIndexArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSResetIndex(ctx)
+					return
+				},
+			},
+			"simpleFSGetIndexProgress": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetIndexProgressArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetIndexProgress(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2850,7 +3098,7 @@ func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res Si
 	return
 }
 
-// Begin copy of file or directory
+// Begin copy of file or directory.
 func (c SimpleFSClient) SimpleFSCopy(ctx context.Context, __arg SimpleFSCopyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopy", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
@@ -2863,6 +3111,11 @@ func (c SimpleFSClient) SimpleFSSymlink(ctx context.Context, __arg SimpleFSSymli
 }
 
 // Begin recursive copy of directory
+//
+// overwriteExistingFiles controls whether an existing file from `src` will
+// overwrite a file with the same name in `dest`; if `false`, an error will be
+// returned in that case.  For directories that share a name, the copy will
+// continue recursively into the directory without causing an error.
 func (c SimpleFSClient) SimpleFSCopyRecursive(ctx context.Context, __arg SimpleFSCopyRecursiveArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopyRecursive", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
@@ -3179,6 +3432,33 @@ func (c SimpleFSClient) SimpleFSConfigureDownload(ctx context.Context, __arg Sim
 	return
 }
 
+func (c SimpleFSClient) SimpleFSMakeTempDirForUpload(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMakeTempDirForUpload", []interface{}{SimpleFSMakeTempDirForUploadArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSStartUpload(ctx context.Context, __arg SimpleFSStartUploadArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStartUpload", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetUploadStatus(ctx context.Context) (res []UploadState, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetUploadStatus", []interface{}{SimpleFSGetUploadStatusArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSCancelUpload(ctx context.Context, uploadID string) (err error) {
+	__arg := SimpleFSCancelUploadArg{UploadID: uploadID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelUpload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSDismissUpload(ctx context.Context, uploadID string) (err error) {
+	__arg := SimpleFSDismissUploadArg{UploadID: uploadID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDismissUpload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
 func (c SimpleFSClient) SimpleFSGetFilesTabBadge(ctx context.Context) (res FilesTabBadge, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetFilesTabBadge", []interface{}{SimpleFSGetFilesTabBadgeArg{}}, &res, 0*time.Millisecond)
 	return
@@ -3199,5 +3479,20 @@ func (c SimpleFSClient) SimpleFSUserIn(ctx context.Context, clientID string) (er
 func (c SimpleFSClient) SimpleFSUserOut(ctx context.Context, clientID string) (err error) {
 	__arg := SimpleFSUserOutArg{ClientID: clientID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUserOut", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSearch(ctx context.Context, __arg SimpleFSSearchArg) (res SimpleFSSearchResults, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSResetIndex(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSResetIndex", []interface{}{SimpleFSResetIndexArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetIndexProgress(ctx context.Context) (res SimpleFSIndexProgress, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetIndexProgress", []interface{}{SimpleFSGetIndexProgressArg{}}, &res, 0*time.Millisecond)
 	return
 }

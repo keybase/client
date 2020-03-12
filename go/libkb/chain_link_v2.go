@@ -33,7 +33,8 @@ const (
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
 	SigchainV2TypeWalletStellar               SigchainV2Type = 15
-	SigchainV2TypeWotAttest                   SigchainV2Type = 16
+	SigchainV2TypeWotVouch                    SigchainV2Type = 16
+	SigchainV2TypeWotReact                    SigchainV2Type = 18
 
 	// Team link types
 	// If you add a new one be sure to get all of these too:
@@ -179,6 +180,36 @@ func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
 	}
 }
 
+type OuterLinkV2Partial0 struct {
+	_struct  bool           `codec:",toarray"` //nolint
+	Version  SigVersion     `codec:"version"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
+	Prev     LinkID         `codec:"prev"`
+	Curr     LinkID         `codec:"curr"`
+	LinkType SigchainV2Type `codec:"type"`
+}
+
+type OuterLinkV2Partial1 struct {
+	_struct  bool             `codec:",toarray"` //nolint
+	Version  SigVersion       `codec:"version"`
+	Seqno    keybase1.Seqno   `codec:"seqno"`
+	Prev     LinkID           `codec:"prev"`
+	Curr     LinkID           `codec:"curr"`
+	LinkType SigchainV2Type   `codec:"type"`
+	SeqType  keybase1.SeqType `codec:"seqtype"`
+}
+
+type OuterLinkV2Partial2 struct {
+	_struct             bool                   `codec:",toarray"` //nolint
+	Version             SigVersion             `codec:"version"`
+	Seqno               keybase1.Seqno         `codec:"seqno"`
+	Prev                LinkID                 `codec:"prev"`
+	Curr                LinkID                 `codec:"curr"`
+	LinkType            SigchainV2Type         `codec:"type"`
+	SeqType             keybase1.SeqType       `codec:"seqtype"`
+	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+}
+
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
 	_struct  bool           `codec:",toarray"` //nolint
@@ -187,16 +218,16 @@ type OuterLinkV2 struct {
 	Prev     LinkID         `codec:"prev"`
 	Curr     LinkID         `codec:"curr"`
 	LinkType SigchainV2Type `codec:"type"`
-	// -- Links exist in the wild that are missing fields below this line.
+	// -- Links exist in the wild that are missing fields below this line (see Partial0)
 	SeqType keybase1.SeqType `codec:"seqtype"`
-	// -- Links exist in the wild that are missing fields below this line too.
+	// -- Links exist in the wild that are missing fields below this line too (see Partial1)
 	// Whether the link can be ignored by clients that do not support its link type.
 	// This does _not_ mean the link can be ignored if the client supports the link type.
 	// When it comes to stubbing, if the link is unsupported and this bit is set then
 	// - it can be stubbed for non-admins
 	// - it cannot be stubbed for admins
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
-	// -- Links exist in the wild that are missing fields below this line too.
+	// -- Links exist in the wild that are missing fields below this line too (see Partial2)
 	// If not provided, both of these are nil, and highSkip in the inner link is set to nil.
 	// Note that a link providing HighSkipSeqno == 0 and HighSkipHash == nil is valid
 	// (and mandatory) for an initial link.
@@ -262,9 +293,30 @@ func encodeOuterLink(
 	// so the featureflag check will be removed and the nil check will result
 	// in an error.
 	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
-	if allowHighSkips && highSkip != nil {
-		highSkipSeqno := &highSkip.Seqno
-		highSkipHash := &highSkip.Hash
+	var highSkipSeqno *keybase1.Seqno
+	var highSkipHash *LinkID
+	if highSkip != nil && allowHighSkips {
+		highSkipSeqno = &highSkip.Seqno
+		highSkipHash = &highSkip.Hash
+	}
+	return encodeOuterLinkWithLinkID(v2LinkType, seqno, currLinkID, prevLinkID, seqType, ignoreIfUnsupported, highSkipSeqno, highSkipHash)
+}
+
+func encodeOuterLinkWithLinkID(
+	v2LinkType SigchainV2Type,
+	seqno keybase1.Seqno,
+	currLinkID LinkID,
+	prevLinkID LinkID,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkipSeqno *keybase1.Seqno,
+	highSkipHash *LinkID,
+) ([]byte, error) {
+
+	var encodedOuterLink []byte
+	var err error
+
+	if highSkipSeqno != nil && highSkipHash != nil {
 		outerLink := OuterLinkV2{
 			Version:             2,
 			Seqno:               seqno,
@@ -285,25 +337,15 @@ func encodeOuterLink(
 		// for arrays. So, we send up the serialization of the
 		// appropriate struct depending on whether we are making a 2.3 link.
 		// When 2.3 links are mandatory, this struct can be deleted.
-		encodedOuterLink, err = msgpack.Encode(
-			struct {
-				_struct             bool                   `codec:",toarray"` //nolint
-				Version             int                    `codec:"version"`
-				Seqno               keybase1.Seqno         `codec:"seqno"`
-				Prev                LinkID                 `codec:"prev"`
-				Curr                LinkID                 `codec:"curr"`
-				LinkType            SigchainV2Type         `codec:"type"`
-				SeqType             keybase1.SeqType       `codec:"seqtype"`
-				IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
-			}{
-				Version:             2,
-				Seqno:               seqno,
-				Prev:                prevLinkID,
-				Curr:                currLinkID,
-				LinkType:            v2LinkType,
-				SeqType:             seqType,
-				IgnoreIfUnsupported: ignoreIfUnsupported,
-			})
+		encodedOuterLink, err = msgpack.Encode(OuterLinkV2Partial2{
+			Version:             2,
+			Seqno:               seqno,
+			Prev:                prevLinkID,
+			Curr:                currLinkID,
+			LinkType:            v2LinkType,
+			SeqType:             seqType,
+			IgnoreIfUnsupported: ignoreIfUnsupported,
+		})
 	}
 
 	if err != nil {
@@ -330,14 +372,68 @@ func MakeSigchainV2OuterSig(
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
+	var sigIDBase keybase1.SigIDBase
 
-	sig, sigid, err = signingKey.SignToString(encodedOuterLink)
+	sig, sigIDBase, err = signingKey.SignToString(encodedOuterLink)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
+	params := keybase1.SigIDSuffixParametersFromTypeAndVersion(string(v1LinkType), keybase1.SigVersion(2))
+	sigid = sigIDBase.ToSigID(params)
 
 	linkID = ComputeLinkID(encodedOuterLink)
 	return sig, sigid, linkID, nil
+}
+
+func (o OuterLinkV2) EncodeTruncateHighSkips() ([]byte, error) {
+	return encodeOuterLinkWithLinkID(o.LinkType, o.Seqno, o.Curr, o.Prev, o.SeqType, o.IgnoreIfUnsupported, o.HighSkipSeqno, o.HighSkipHash)
+}
+
+func (o OuterLinkV2) EncodePartial(numFields int) ([]byte, error) {
+	switch numFields {
+	case 5:
+		return msgpack.Encode(OuterLinkV2Partial0{
+			Version:  2,
+			Seqno:    o.Seqno,
+			Prev:     o.Prev,
+			Curr:     o.Curr,
+			LinkType: o.LinkType,
+		})
+	case 6:
+		return msgpack.Encode(OuterLinkV2Partial1{
+			Version:  2,
+			Seqno:    o.Seqno,
+			Prev:     o.Prev,
+			Curr:     o.Curr,
+			LinkType: o.LinkType,
+			SeqType:  o.SeqType,
+		})
+	case 7:
+		return msgpack.Encode(OuterLinkV2Partial2{
+			Version:             2,
+			Seqno:               o.Seqno,
+			Prev:                o.Prev,
+			Curr:                o.Curr,
+			LinkType:            o.LinkType,
+			SeqType:             o.SeqType,
+			IgnoreIfUnsupported: o.IgnoreIfUnsupported,
+		})
+	case 9:
+		return msgpack.Encode(OuterLinkV2{
+			Version:             2,
+			Seqno:               o.Seqno,
+			Prev:                o.Prev,
+			Curr:                o.Curr,
+			LinkType:            o.LinkType,
+			SeqType:             o.SeqType,
+			IgnoreIfUnsupported: o.IgnoreIfUnsupported,
+			HighSkipHash:        o.HighSkipHash,
+			HighSkipSeqno:       o.HighSkipSeqno,
+		})
+	default:
+		return nil, fmt.Errorf("Cannot encode sig2 partial with %d fields", numFields)
+	}
+
 }
 
 func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, error) {
@@ -383,8 +479,16 @@ func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, er
 	return o.kid, nil
 }
 
+func (t SigchainV2Type) SigIDSuffixParams(v keybase1.SigVersion) keybase1.SigIDSuffixParameters {
+	return keybase1.SigIDSuffixParameters{
+		IsUserSig:       t.IsSupportedUserType(),
+		IsWalletStellar: (t == SigchainV2TypeWalletStellar),
+		SigVersion:      v,
+	}
+}
+
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
-	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
+	payload, kid, sigIDBase, err := SigExtractPayloadAndKID(armored)
 	if err != nil {
 		return nil, err
 	}
@@ -396,9 +500,10 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	if err := msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
+	params := ol.LinkType.SigIDSuffixParams(keybase1.SigVersion(2))
 	ret := OuterLinkV2WithMetadata{
 		OuterLinkV2: ol,
-		sigID:       sigID,
+		sigID:       sigIDBase.ToSigID(params),
 		raw:         payload,
 		kid:         kid,
 		sig:         armored,
@@ -443,8 +548,10 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 		ret = SigchainV2TypePerUserKey
 	case string(LinkTypeWalletStellar):
 		ret = SigchainV2TypeWalletStellar
-	case string(LinkTypeWotAttest):
-		ret = SigchainV2TypeWotAttest
+	case string(LinkTypeWotVouch):
+		ret = SigchainV2TypeWotVouch
+	case string(LinkTypeWotReact):
+		ret = SigchainV2TypeWotReact
 	default:
 		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
 		if teamErr == nil {

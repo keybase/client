@@ -146,8 +146,8 @@ func (h *SignatureHeader) validate(versionValidator VersionValidator, msgType Me
 
 	if h.Type != msgType {
 		return ErrWrongMessageType{
-			wanted:   msgType,
-			received: h.Type,
+			Wanted:   msgType,
+			Received: h.Type,
 		}
 	}
 

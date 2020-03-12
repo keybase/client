@@ -4,11 +4,21 @@ import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from '../util/container'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
+
+type OperationActionArgs = {
+  operation: Types.Operations
+  input: HiddenString
+  inputType: Types.InputTypes
+  recipients?: Array<string>
+  options?: Types.EncryptOptions
+  destinationDir?: HiddenString
+}
 
 type SetRecipientsSagaActions =
   | TeamBuildingGen.CancelTeamBuildingPayload
@@ -24,6 +34,10 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   const usernames = users.map(user => {
     // If we're encrypting to service account that is not proven on keybase set
     // (SBS) then we *must* encrypt to ourselves
+    if (user.serviceId == 'email') {
+      hasSBS = true
+      return `[${user.username}]@email`
+    }
     if (user.serviceId !== 'keybase') {
       hasSBS = true
       return `${user.username}@${user.serviceId}`
@@ -50,12 +64,12 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   return actions
 }
 
-function* teamBuildingSaga() {
-  yield* commonTeamBuildingSaga('crypto')
-
-  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
-  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
-  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => {
+  const {operation} = action.payload
+  const tab = Constants.CryptoSubTabs[operation]
+  return RouteTreeGen.createNavigateAppend({
+    path: ['cryptoRoot', tab],
+  })
 }
 
 // more of a debounce to keep things simple
@@ -81,15 +95,23 @@ const handleRunOperation = (
     | CryptoGen.SetRecipientsPayload
     | CryptoGen.SetEncryptOptionsPayload
     | CryptoGen.ClearRecipientsPayload
+    | CryptoGen.RunFileOperationPayload
 ) => {
   switch (action.type) {
     case CryptoGen.setInputThrottled: {
       const {operation, value, type} = action.payload
+      const {inProgress} = state.crypto[operation]
 
       // Input (text or file) was cleared or deleted
       if (!value.stringValue()) {
         return CryptoGen.createClearInput({operation})
       }
+
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (type === 'file') return
+
+      // Defensive: Bail if a file operation is in progress.
+      if (inProgress) return
 
       // Handle recipients and options for Encrypt
       if (operation === Constants.Operations.Encrypt) {
@@ -123,8 +145,15 @@ const handleRunOperation = (
     // recipients. Get the input and pass it to the operation
     case CryptoGen.setRecipients: {
       const {operation, recipients} = action.payload
-      const {input, inputType, options} = state.crypto.encrypt
+      const {inProgress, input, inputType, options} = state.crypto.encrypt
       const unhiddenInput = input.stringValue()
+
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (inputType === 'file') return
+
+      // Defensive: Bail if a file operation is in progress.
+      if (inProgress) return
+
       if (unhiddenInput && inputType) {
         return makeOperationAction({
           input,
@@ -139,8 +168,15 @@ const handleRunOperation = (
     case CryptoGen.clearRecipients: {
       const {operation} = action.payload
       const {username} = state.config
-      const {input, inputType, options} = state.crypto.encrypt
+      const {inProgress, input, inputType, options} = state.crypto.encrypt
       const unhiddenInput = input.stringValue()
+
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (inputType === 'file') return
+
+      // Defensive: Bail if a file operation is in progress.
+      if (inProgress) return
+
       if (unhiddenInput && inputType) {
         return makeOperationAction({
           input,
@@ -155,9 +191,15 @@ const handleRunOperation = (
     // User provided input and recipients, when options change, re-run saltpackEncrypt
     case CryptoGen.setEncryptOptions: {
       const {options} = action.payload
-      const {recipients, input, inputType} = state.crypto.encrypt
+      const {recipients, inProgress, input, inputType} = state.crypto.encrypt
       const {username} = state.config
       const unhiddenInput = input.stringValue()
+
+      // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
+      if (inputType === 'file') return
+
+      // Defensive: Bail if a file operation is in progress.
+      if (inProgress) return
 
       // If no recipients are set and the user adds input, we should default
       // to self encryption (with state.config.username as the only recipient)
@@ -172,32 +214,48 @@ const handleRunOperation = (
       }
       return
     }
+    // Run file RPCs after destination set
+    case CryptoGen.runFileOperation: {
+      const {operation, destinationDir} = action.payload
+      const {input, inputType} = state.crypto[operation]
+      const {username} = state.config
+      const args: OperationActionArgs = {
+        destinationDir,
+        input,
+        inputType,
+        operation,
+      }
+
+      if (operation === Constants.Operations.Encrypt) {
+        const recipients = state.crypto.encrypt.recipients?.length
+          ? state.crypto.encrypt.recipients
+          : [username]
+        args.recipients = recipients
+        args.options = state.crypto.encrypt.options
+      }
+
+      return makeOperationAction(args)
+    }
     default:
       return
   }
 }
 
 // Dispatch action to appropriate operation
-const makeOperationAction = (p: {
-  operation: Types.Operations
-  input: HiddenString
-  inputType: Types.InputTypes
-  recipients?: Array<string>
-  options?: Types.EncryptOptions
-}) => {
-  const {operation, input, inputType, recipients, options} = p
+const makeOperationAction = (p: OperationActionArgs) => {
+  const {operation, input, inputType, recipients, options, destinationDir} = p
   switch (operation) {
     case Constants.Operations.Encrypt: {
       return recipients && recipients.length && options
-        ? CryptoGen.createSaltpackEncrypt({input, options, recipients, type: inputType})
+        ? CryptoGen.createSaltpackEncrypt({destinationDir, input, options, recipients, type: inputType})
         : null
     }
     case Constants.Operations.Decrypt:
-      return CryptoGen.createSaltpackDecrypt({input, type: inputType})
+      return CryptoGen.createSaltpackDecrypt({destinationDir, input, type: inputType})
     case Constants.Operations.Sign:
-      return CryptoGen.createSaltpackSign({input, type: inputType})
+      return CryptoGen.createSaltpackSign({destinationDir, input, type: inputType})
     case Constants.Operations.Verify:
-      return CryptoGen.createSaltpackVerify({input, type: inputType})
+      return CryptoGen.createSaltpackVerify({destinationDir, input, type: inputType})
     default:
       return
   }
@@ -209,12 +267,13 @@ const saltpackEncrypt = async (
   logger: Saga.SagaLogger
 ) => {
   const {username} = state.config
-  const {input, recipients, type, options} = action.payload
+  const {destinationDir, input, recipients, type, options} = action.payload
   switch (type) {
     case 'file': {
       try {
         const fileRes = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
           {
+            destinationDir: destinationDir?.stringValue() ?? '',
             filename: input.stringValue(),
             opts: {
               includeSelf: options.includeSelf,
@@ -235,7 +294,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -269,7 +328,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -286,13 +345,16 @@ const saltpackEncrypt = async (
 }
 
 const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger: Saga.SagaLogger) => {
-  const {input, type} = action.payload
+  const {destinationDir, input, type} = action.payload
 
   switch (type) {
     case 'file': {
       try {
         const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
-          {encryptedFilename: input.stringValue()},
+          {
+            destinationDir: destinationDir?.stringValue() ?? '',
+            encryptedFilename: input.stringValue(),
+          },
           Constants.decryptFileWaitingKey
         )
         const {decryptedFilename, info, signed} = result
@@ -313,7 +375,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -344,7 +406,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -366,12 +428,15 @@ const saltpackSign = async (
   logger: Saga.SagaLogger
 ) => {
   const {username} = state.config
-  const {input, type} = action.payload
+  const {destinationDir, input, type} = action.payload
   switch (type) {
     case 'file': {
       try {
         const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise(
-          {filename: input.stringValue()},
+          {
+            destinationDir: destinationDir?.stringValue() ?? '',
+            filename: input.stringValue(),
+          },
           Constants.signFileWaitingKey
         )
         return CryptoGen.createOnOperationSuccess({
@@ -384,7 +449,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Sign, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -407,7 +472,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Sign, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -424,12 +489,15 @@ const saltpackSign = async (
 }
 
 const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: Saga.SagaLogger) => {
-  const {input, type} = action.payload
+  const {destinationDir, input, type} = action.payload
   switch (type) {
     case 'file': {
       try {
         const result = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
-          {signedFilename: input.stringValue()},
+          {
+            destinationDir: destinationDir?.stringValue() ?? '',
+            signedFilename: input.stringValue(),
+          },
           Constants.verifyFileWaitingKey
         )
         const {verifiedFilename, sender, verified} = result
@@ -449,7 +517,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
@@ -479,7 +547,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
@@ -547,6 +615,14 @@ const downloadSignedText = async (state: TypedState) => {
   })
 }
 
+function* teamBuildingSaga() {
+  yield* commonTeamBuildingSaga('crypto')
+
+  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
+  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
+  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+}
+
 function* cryptoSaga() {
   yield* Saga.chainAction2(CryptoGen.downloadEncryptedText, downloadEncryptedText)
   yield* Saga.chainAction2(CryptoGen.downloadSignedText, downloadSignedText)
@@ -557,6 +633,7 @@ function* cryptoSaga() {
       CryptoGen.setRecipients,
       CryptoGen.setEncryptOptions,
       CryptoGen.clearRecipients,
+      CryptoGen.runFileOperation,
     ],
     handleRunOperation
   )
@@ -564,6 +641,7 @@ function* cryptoSaga() {
   yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
+  yield* Saga.chainAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)

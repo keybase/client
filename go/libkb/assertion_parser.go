@@ -233,7 +233,10 @@ func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 		ret = term
 		p.lexer.Putback()
 	} else if p.andOnly {
-		p.err = NewAssertionParseError("Unexpected 'OR' operator")
+		p.err = NewAssertionParseErrorWithReason(
+			AssertionParseErrorReasonUnexpectedOR,
+			"Unexpected 'OR' operator (no '||'s or ','s allowed in this context)",
+		)
 	} else {
 		ex := p.parseExpr(ctx)
 		ret = NewAssertionOr(term, ex, string(tok.value))

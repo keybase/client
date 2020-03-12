@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -187,6 +188,10 @@ func (d *notificationDisplay) BoxAuditError(_ context.Context, msg string) (err 
 
 func (d *notificationDisplay) RuntimeStatsUpdate(
 	_ context.Context, stats *keybase1.RuntimeStats) (err error) {
+	if stats == nil {
+		return nil
+	}
+
 	err = d.printf("Runtime stats:")
 	if err != nil {
 		return err
@@ -228,6 +233,9 @@ func (d *notificationDisplay) RuntimeStatsUpdate(
 		if err != nil {
 			return err
 		}
+	}
+	for _, event := range stats.PerfEvents {
+		d.printf("PerfEvent: %s %s\n", event.Message, humanize.Time(event.Ctime.Time()))
 	}
 	return d.printf("\n")
 }

@@ -84,6 +84,7 @@ export type TypedActionsMap = {
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
+  'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
   'chat2:createConversation': chat2.CreateConversationPayload
@@ -135,6 +136,7 @@ export type TypedActionsMap = {
   'chat2:attachmentLoading': chat2.AttachmentLoadingPayload
   'chat2:attachmentDownloaded': chat2.AttachmentDownloadedPayload
   'chat2:attachmentsUpload': chat2.AttachmentsUploadPayload
+  'chat2:attachFromDragAndDrop': chat2.AttachFromDragAndDropPayload
   'chat2:attachmentUploading': chat2.AttachmentUploadingPayload
   'chat2:attachmentUploaded': chat2.AttachmentUploadedPayload
   'chat2:attachmentPasted': chat2.AttachmentPastedPayload
@@ -158,8 +160,6 @@ export type TypedActionsMap = {
   'chat2:setConvExplodingMode': chat2.SetConvExplodingModePayload
   'chat2:setExplodingModeLock': chat2.SetExplodingModeLockPayload
   'chat2:updateConvExplodingModes': chat2.UpdateConvExplodingModesPayload
-  'chat2:setWalletsOld': chat2.SetWalletsOldPayload
-  'chat2:handleSeeingWallets': chat2.HandleSeeingWalletsPayload
   'chat2:staticConfigLoaded': chat2.StaticConfigLoadedPayload
   'chat2:setMinWriterRole': chat2.SetMinWriterRolePayload
   'chat2:saveMinWriterRole': chat2.SaveMinWriterRolePayload
@@ -207,7 +207,6 @@ export type TypedActionsMap = {
   'chat2:inboxSearchSetIndexPercent': chat2.InboxSearchSetIndexPercentPayload
   'chat2:setMaybeMentionInfo': chat2.SetMaybeMentionInfoPayload
   'chat2:tabSelected': chat2.TabSelectedPayload
-  'chat2:setInboxShowIsNew': chat2.SetInboxShowIsNewPayload
   'chat2:resolveMaybeMention': chat2.ResolveMaybeMentionPayload
   'chat2:loadAttachmentView': chat2.LoadAttachmentViewPayload
   'chat2:addAttachmentViewMessage': chat2.AddAttachmentViewMessagePayload
@@ -242,8 +241,6 @@ export type TypedActionsMap = {
   'chat2:setBotSettings': chat2.SetBotSettingsPayload
   'chat2:removeBotMember': chat2.RemoveBotMemberPayload
   'chat2:editBotSettings': chat2.EditBotSettingsPayload
-  'chat2:loadMoreSmalls': chat2.LoadMoreSmallsPayload
-  'chat2:resetSmalls': chat2.ResetSmallsPayload
   'chat2:setParticipants': chat2.SetParticipantsPayload
   'chat2:findGeneralConvIDFromTeamID': chat2.FindGeneralConvIDFromTeamIDPayload
   'chat2:setGeneralConvFromTeamID': chat2.SetGeneralConvFromTeamIDPayload
@@ -251,6 +248,9 @@ export type TypedActionsMap = {
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
   'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
+  'chat2:addToMessageMap': chat2.AddToMessageMapPayload
+  'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
+  'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -276,6 +276,7 @@ export type TypedActionsMap = {
   'config:globalError': config.GlobalErrorPayload
   'config:pushLoaded': config.PushLoadedPayload
   'config:setStartupDetails': config.SetStartupDetailsPayload
+  'config:setStartupFile': config.SetStartupFilePayload
   'config:setOpenAtLogin': config.SetOpenAtLoginPayload
   'config:setNotifySound': config.SetNotifySoundPayload
   'config:setDeletedSelf': config.SetDeletedSelfPayload
@@ -313,9 +314,11 @@ export type TypedActionsMap = {
   'crypto:setInput': crypto.SetInputPayload
   'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
+  'crypto:onSaltpackOpenFile': crypto.OnSaltpackOpenFilePayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:runFileOperation': crypto.RunFileOperationPayload
   'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
   'crypto:saltpackDecrypt': crypto.SaltpackDecryptPayload
@@ -325,6 +328,7 @@ export type TypedActionsMap = {
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
+  'deeplinks:saltpackFileOpen': deeplinks.SaltpackFileOpenPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
   'dev:updateDebugConfig': dev.UpdateDebugConfigPayload
   'dev:debugCount': dev.DebugCountPayload
@@ -400,6 +404,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
   'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
   'engine-gen:chat1NotifyChatChatWelcomeMessageLoaded': enginegen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
+  'engine-gen:chat1NotifyChatChatParticipantsInfo': enginegen.Chat1NotifyChatChatParticipantsInfoPayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -411,6 +416,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1GregorUIPushOutOfBandMessages': enginegen.Keybase1GregorUIPushOutOfBandMessagesPayload
   'engine-gen:keybase1HomeUIHomeUIRefresh': enginegen.Keybase1HomeUIHomeUIRefreshPayload
   'engine-gen:keybase1Identify3UiIdentify3ShowTracker': enginegen.Keybase1Identify3UiIdentify3ShowTrackerPayload
+  'engine-gen:keybase1Identify3UiIdentify3Summary': enginegen.Keybase1Identify3UiIdentify3SummaryPayload
   'engine-gen:keybase1Identify3UiIdentify3UpdateRow': enginegen.Keybase1Identify3UiIdentify3UpdateRowPayload
   'engine-gen:keybase1Identify3UiIdentify3UserReset': enginegen.Keybase1Identify3UiIdentify3UserResetPayload
   'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard': enginegen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
@@ -565,8 +571,10 @@ export type TypedActionsMap = {
   'fs:shareNative': fs.ShareNativePayload
   'fs:saveMedia': fs.SaveMediaPayload
   'fs:upload': fs.UploadPayload
-  'fs:uploadStarted': fs.UploadStartedPayload
-  'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
+  'fs:uploadFromDragAndDrop': fs.UploadFromDragAndDropPayload
+  'fs:loadUploadStatus': fs.LoadUploadStatusPayload
+  'fs:loadedUploadStatus': fs.LoadedUploadStatusPayload
+  'fs:dismissUpload': fs.DismissUploadPayload
   'fs:journalUpdate': fs.JournalUpdatePayload
   'fs:openLocalPathInSystemFileManager': fs.OpenLocalPathInSystemFileManagerPayload
   'fs:openPathInSystemFileManager': fs.OpenPathInSystemFileManagerPayload
@@ -601,11 +609,12 @@ export type TypedActionsMap = {
   'fs:setMoveOrCopySource': fs.SetMoveOrCopySourcePayload
   'fs:setDestinationPickerParentPath': fs.SetDestinationPickerParentPathPayload
   'fs:showMoveOrCopy': fs.ShowMoveOrCopyPayload
-  'fs:setIncomingShareLocalPath': fs.SetIncomingShareLocalPathPayload
+  'fs:setIncomingShareSource': fs.SetIncomingShareSourcePayload
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
+  'fs:checkKbfsDaemonRpcStatus': fs.CheckKbfsDaemonRpcStatusPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
   'fs:kbfsDaemonOnlineStatusChanged': fs.KbfsDaemonOnlineStatusChangedPayload
@@ -882,6 +891,7 @@ export type TypedActionsMap = {
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload
   'team-building:tbResetStore': teambuilding.TbResetStorePayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
+  'teams:channelSetMemberSelected': teams.ChannelSetMemberSelectedPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload
@@ -892,6 +902,7 @@ export type TypedActionsMap = {
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
   'teams:getChannelInfo': teams.GetChannelInfoPayload
   'teams:getChannels': teams.GetChannelsPayload
+  'teams:setChannelSelected': teams.SetChannelSelectedPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:loadTeam': teams.LoadTeamPayload
@@ -900,6 +911,7 @@ export type TypedActionsMap = {
   'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
+  'teams:teamSetMemberSelected': teams.TeamSetMemberSelectedPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload
@@ -923,6 +935,7 @@ export type TypedActionsMap = {
   'teams:setMemberPublicity': teams.SetMemberPublicityPayload
   'teams:setPublicity': teams.SetPublicityPayload
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
+  'teams:setWelcomeMessageError': teams.SetWelcomeMessageErrorPayload
   'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
   'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
@@ -955,10 +968,25 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
+  'teams:setWelcomeMessage': teams.SetWelcomeMessagePayload
+  'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
+  'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
+  'teams:startAddMembersWizard': teams.StartAddMembersWizardPayload
+  'teams:setAddMembersWizardRole': teams.SetAddMembersWizardRolePayload
+  'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
+  'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
+  'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
+  'teams:finishAddMembersWizard': teams.FinishAddMembersWizardPayload
+  'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
+  'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
+  'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
+  'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
+  'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
+  'tracker2:updateUserReset': tracker2.UpdateUserResetPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
   'tracker2:closeTracker': tracker2.CloseTrackerPayload
   'tracker2:updateAssertion': tracker2.UpdateAssertionPayload

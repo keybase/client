@@ -78,7 +78,7 @@ func (c *CmdTeamAddMembersBulk) parseBulkList(v string, role keybase1.TeamRole) 
 		if len(p) == 0 {
 			return 0, errors.New("cannot specify an empty user")
 		}
-		c.arg.Users = append(c.arg.Users, keybase1.UserRolePair{AssertionOrEmail: p, Role: role})
+		c.arg.Users = append(c.arg.Users, keybase1.UserRolePair{Assertion: p, Role: role})
 		n++
 	}
 	return n, nil

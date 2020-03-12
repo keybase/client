@@ -8,6 +8,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import * as Container from '../util/container'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
@@ -124,14 +125,26 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     if (!draftState.startupDetailsLoaded) {
       draftState.startupDetailsLoaded = true
       draftState.startupConversation = action.payload.startupConversation || ChatConstants.noConversationIDKey
+      draftState.startupPushPayload = action.payload.startupPushPayload
       draftState.startupFollowUser = action.payload.startupFollowUser
       draftState.startupLink = action.payload.startupLink
       draftState.startupTab = action.payload.startupTab
       draftState.startupWasFromPush = action.payload.startupWasFromPush
       if (action.payload.startupSharePath) {
-        draftState.androidShare = {url: action.payload.startupSharePath}
+        draftState.androidShare = {
+          type: RPCTypes.IncomingShareType.file,
+          url: action.payload.startupSharePath,
+        }
+      } else if (action.payload.startupShareText) {
+        draftState.androidShare = {
+          text: action.payload.startupShareText,
+          type: RPCTypes.IncomingShareType.text,
+        }
       }
     }
+  },
+  [ConfigGen.setStartupFile]: (draftState, action) => {
+    draftState.startupFile = action.payload.startupFile
   },
   [ConfigGen.pushLoaded]: (draftState, action) => {
     draftState.pushLoaded = action.payload.pushLoaded
@@ -315,6 +328,16 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.openAtLogin = action.payload.status === true
   },
   [ConfigGen.androidShare]: (draftState, action) => {
-    draftState.androidShare = action.payload
+    if (action.payload.url) {
+      draftState.androidShare = {
+        type: RPCTypes.IncomingShareType.file,
+        url: action.payload.url,
+      }
+    } else if (action.payload.text) {
+      draftState.androidShare = {
+        text: action.payload.text,
+        type: RPCTypes.IncomingShareType.text,
+      }
+    }
   },
 })

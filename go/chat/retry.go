@@ -44,7 +44,7 @@ func NewConversationRetry(g *globals.Context, convID chat1.ConversationID, tlfID
 	dstr := fmt.Sprintf("ConversationRetry(%s,%v)", convID, kind)
 	return &ConversationRetry{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), dstr, false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), dstr, false),
 		convID:       convID,
 		tlfID:        tlfID,
 		kind:         kind,
@@ -107,7 +107,7 @@ func (c *ConversationRetry) fixThreadFetch(ctx context.Context, uid gregor1.UID)
 	c.Debug(ctx, "fixThreadFetch: retrying conversation")
 	// Attempt a pull of 50 messages to simulate whatever request got the
 	// conversation in this queue.
-	_, err := c.G().ConvSource.Pull(ctx, c.convID, uid, chat1.GetThreadReason_FIXRETRY, nil,
+	_, err := c.G().ConvSource.Pull(ctx, c.convID, uid, chat1.GetThreadReason_FIXRETRY, nil, nil,
 		&chat1.Pagination{
 			Num: 50,
 		})
@@ -132,7 +132,7 @@ var _ types.RetryDescription = (*FullInboxRetry)(nil)
 func NewFullInboxRetry(g *globals.Context, query *chat1.GetInboxLocalQuery) FullInboxRetry {
 	return FullInboxRetry{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FullInboxRetry", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "FullInboxRetry", false),
 		query:        query,
 	}
 }
@@ -219,7 +219,7 @@ var _ types.FetchRetrier = (*FetchRetrier)(nil)
 func NewFetchRetrier(g *globals.Context) *FetchRetrier {
 	f := &FetchRetrier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FetchRetrier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "FetchRetrier", false),
 		clock:        clockwork.NewRealClock(),
 		retriers:     make(map[string]*retrierControl),
 	}

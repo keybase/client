@@ -59,6 +59,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.teamShowcase = action.payload.teamShowcase
     d.hidFromFollowers = action.payload.hidFromFollowers
   },
+  [Tracker2Gen.updateUserReset]: (draftState, action) => {
+    const username = actionToUsername(draftState, action)
+    if (!username) return
+    const d = getDetails(draftState, username)
+    d.resetBrokeTrack = true
+    d.reason = `${username} reset their account since you last followed them.`
+  },
   [Tracker2Gen.updateResult]: (draftState, action) => {
     const username = actionToUsername(draftState, action)
     if (!username) return
@@ -69,7 +76,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       (result === 'broken' && `Some of ${username}'s proofs have changed since you last followed them.`)
 
     const d = getDetails(draftState, username)
-    d.reason = newReason || d.reason
+    // Don't overwrite the old reason if the user reset.
+    if (!d.resetBrokeTrack || d.reason.length === 0) {
+      d.reason = newReason || d.reason
+    }
+    if (result === 'valid') {
+      d.resetBrokeTrack = false
+    }
     d.state = result
   },
   [Tracker2Gen.closeTracker]: (draftState, action) => {

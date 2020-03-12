@@ -665,7 +665,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var filledInStubbedLinks bool
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
+			mctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -735,7 +735,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	tracer.Stage("unpack")
-	links, err := teamUpdate.unpackLinks(ctx)
+	links, err := teamUpdate.unpackLinks(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -989,6 +989,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if (role.IsRestrictedBot() || arg.readSubteamID != nil) && auditMode == keybase1.AuditMode_STANDARD {
 			auditMode = keybase1.AuditMode_STANDARD_NO_HIDDEN
 		}
+
 		err = l.audit(ctx, readSubteamID, &ret.Chain, hiddenPackage.ChainData(), lastMerkleRoot, auditMode)
 		if err != nil {
 			return nil, err
@@ -1976,7 +1977,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 	if err != nil {
 		return ret, err
 	}
-	newLinks, err := teamUpdate.unpackLinks(mctx.Ctx())
+	newLinks, err := teamUpdate.unpackLinks(mctx)
 	if err != nil {
 		return ret, err
 	}

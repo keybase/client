@@ -10,7 +10,6 @@ import TeamBuilding, {
   numSectionLabel,
   Props as TeamBuildingProps,
 } from '.'
-import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
@@ -18,15 +17,11 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
-import * as Styles from '../styles'
 import * as TeamTypes from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {getDisabledReasonsForRolePicker, getTeamDetails, getTeamMeta} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
-import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
-import {HocExtractProps as PopupHocProps} from '../common-adapters/popup-dialog-hoc'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
 
@@ -55,6 +50,7 @@ type OwnProps = {
   showServiceResultCount: boolean
   teamID?: TeamTypes.TeamID
   title: string
+  justContacts: boolean
 }
 
 type LocalState = {
@@ -231,7 +227,10 @@ const makeDebouncedSearch = (time: number) =>
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamID}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch: Container.TypedDispatch,
+  {namespace, teamID, justContacts}: OwnProps
+) => ({
   _onAdd: (user: Types.User) =>
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
@@ -244,7 +243,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
   },
   fetchUserRecs: () =>
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
+    dispatch(
+      TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2' || justContacts, namespace})
+    ),
   onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
@@ -398,7 +399,8 @@ const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 export const sortAndSplitRecommendations = memoize(
   (
     results: Unpacked<typeof deriveSearchResults>,
-    showingContactsButton: boolean
+    showingContactsButton: boolean,
+    contactsOnly: boolean
   ): Array<SearchRecSection> | null => {
     if (!results) return null
 
@@ -422,6 +424,9 @@ export const sortAndSplitRecommendations = memoize(
     const recSectionIdx = sections.length - 1
     const numSectionIdx = recSectionIdx + 27
     results.forEach(rec => {
+      if (contactsOnly && !rec.contact) {
+        return
+      }
       if (!rec.contact) {
         sections[recSectionIdx].data.push(rec)
         return
@@ -522,7 +527,7 @@ const mergeProps = (
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
   const recommendationsSections = showRecs
-    ? sortAndSplitRecommendations(recommendations, showingContactsButton)
+    ? sortAndSplitRecommendations(recommendations, showingContactsButton, ownProps.justContacts)
     : null
   const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
 
@@ -585,66 +590,8 @@ const mergeProps = (
   })
 
   const title = ownProps.namespace === 'teams' ? `Add to ${stateProps.teamname}` : ownProps.title
-  const headerHocProps: HeaderHocProps = Container.isMobile
-    ? {
-        borderless: true,
-        leftAction: 'cancel',
-        onLeftAction: dispatchProps._onCancelTeamBuilding,
-        rightActions: [
-          teamSoFar.length
-            ? rolePickerProps
-              ? {
-                  custom: (
-                    <RolePickerHeaderAction
-                      onFinishTeamBuilding={dispatchProps.onFinishTeamBuilding}
-                      rolePickerProps={rolePickerProps}
-                      count={teamSoFar.length}
-                    />
-                  ),
-                }
-              : {
-                  custom: (
-                    <Button
-                      label="Start"
-                      mode="Primary"
-                      onClick={dispatchProps.onFinishTeamBuilding}
-                      small={true}
-                      type="Success"
-                    />
-                  ),
-                }
-            : null,
-        ],
-        title,
-      }
-    : emptyObj
-
-  const popupProps: PopupHocProps | null = Container.isMobile
-    ? null
-    : {
-        closeStyleOverrides: ownProps.namespace === 'people' ? {display: 'none'} : null,
-        containerStyleOverrides:
-          ownProps.namespace === 'people'
-            ? {
-                width: '100%',
-                ...Styles.padding(0, Styles.globalMargins.xsmall),
-              }
-            : null,
-        coverStyleOverrides:
-          ownProps.namespace === 'people'
-            ? {
-                alignItems: 'flex-start',
-                backgroundColor: 'initial',
-                ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
-              }
-            : null,
-        onClosePopup: dispatchProps._onCancelTeamBuilding,
-        tabBarShim: true,
-      }
 
   return {
-    ...headerHocProps,
-    ...popupProps,
     ...contactProps,
     error: stateProps.error,
     fetchUserRecs: dispatchProps.fetchUserRecs,
@@ -653,6 +600,7 @@ const mergeProps = (
     goButtonLabel: ownProps.goButtonLabel,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
+    justContacts: ownProps.justContacts,
     namespace: ownProps.namespace,
     onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
@@ -698,10 +646,11 @@ const mergeProps = (
   }
 }
 
-// TODO fix typing, remove compose
-const Connected: React.ComponentType<OwnProps> = Container.compose(
-  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
-  Container.isMobile ? HeaderHoc : PopupDialogHoc
+const Connected = Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'TeamBuilding'
 )(TeamBuilding)
 
 type RealOwnProps = Container.RouteProps<{
@@ -709,6 +658,7 @@ type RealOwnProps = Container.RouteProps<{
   teamID?: TeamTypes.TeamID
   filterServices?: Array<Types.ServiceIdWithContact>
   title: string
+  justContacts: boolean
 }>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
@@ -745,6 +695,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
         teamID={Container.getRouteProps(this.props, 'teamID', undefined)}
         filterServices={Container.getRouteProps(this.props, 'filterServices', undefined)}
+        justContacts={Container.getRouteProps(this.props, 'justContacts', false)}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}

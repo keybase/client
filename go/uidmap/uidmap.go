@@ -119,7 +119,7 @@ func (u *UIDMap) findFullNameLocally(ctx context.Context, g libkb.UIDMapperConte
 	key := fullNameDBKey(uid)
 	found, err := g.GetKVStore().GetInto(&tmp, key)
 	if err != nil {
-		g.GetLog().CInfof(ctx, "failed to get dbkey %v: %s", key, err)
+		g.GetLog().CDebugf(ctx, "findFullNameLocally: failed to get dbkey %v: %s", key, err)
 		return doNotFoundReturn()
 	}
 	if !found {
@@ -156,7 +156,7 @@ func (u *UIDMap) findUsernameLocally(ctx context.Context, g libkb.UIDMapperConte
 	key := usernameDBKey(uid)
 	found, err := g.GetKVStore().GetInto(&s, key)
 	if err != nil {
-		g.GetLog().CInfof(ctx, "failed to get dbkey %v: %s", key, err)
+		g.GetLog().CDebugf(ctx, "findUsernameLocally: failed to get dbkey %v: %s", key, err)
 		return libkb.NormalizedUsername(""), notFound
 	}
 	if !found {
@@ -426,7 +426,7 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 					key := usernameDBKey(uid)
 					err := g.GetKVStore().PutObj(key, nil, nun.String())
 					if err != nil {
-						g.GetLog().CInfof(ctx, "failed to put %v -> %s: %s", key, nun, err)
+						g.GetLog().CDebugf(ctx, "failed to put %v -> %s: %s", key, nun, err)
 					}
 				}
 
@@ -436,7 +436,7 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 					key := fullNameDBKey(uid)
 					err := g.GetKVStore().PutObj(key, nil, *fn)
 					if err != nil {
-						g.GetLog().CInfof(ctx, "failed to put %v -> %v: %s", key, *fn, err)
+						g.GetLog().CDebugf(ctx, "failed to put %v -> %v: %s", key, *fn, err)
 					}
 					// If we had previously busted this lookup, then clear the refresher
 					// on the server, so we don't have to do it next time through.

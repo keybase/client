@@ -47,6 +47,8 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 	if a.state != state {
 		a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
 			state, a.state)
+		a.G().PerfLog.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
+			state, a.state)
 		a.state = state
 		t := time.Now()
 		a.mtime = &t // only update mtime if we're changing state

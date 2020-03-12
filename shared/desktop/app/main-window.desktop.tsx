@@ -98,6 +98,7 @@ export const hideDockIcon = () => changeDock(false)
 let useNativeFrame = defaultUseNativeFrame
 let isDarkMode = false
 let darkModePreference = undefined
+let disableSpellCheck = false
 
 /**
  * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
@@ -118,6 +119,8 @@ const loadWindowState = () => {
     }
 
     if (guiConfig.ui) {
+      disableSpellCheck = guiConfig.ui.disableSpellCheck
+
       const {darkMode} = guiConfig.ui
       switch (darkMode) {
         case 'system':
@@ -266,6 +269,7 @@ export default () => {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+      spellcheck: !disableSpellCheck,
     },
     width: windowState.width,
     x: windowState.x,
@@ -273,6 +277,11 @@ export default () => {
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
   win.loadURL(htmlFile)
+  if (!disableSpellCheck) {
+    win.webContents.session.setSpellCheckerDictionaryDownloadURL(
+      'https://keybase.io/dictionaries/hunspell_dictionaries.zip/'
+    )
+  }
 
   if (windowState.isFullScreen) {
     win.setFullScreen(true)

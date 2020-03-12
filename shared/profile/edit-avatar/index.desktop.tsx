@@ -2,9 +2,11 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as fs from 'fs'
+import flags from '../../util/feature-flags'
 import clamp from 'lodash/clamp'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
 import {Props} from '.'
+import {ModalTitle} from '../../teams/common'
 
 type State = {
   dragStartX: number
@@ -297,6 +299,138 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   render() {
+    if (flags.teamsRedesign) {
+      return (
+        <Kb.Modal
+          onClose={this.props.onClose}
+          header={{
+            leftButton: this.props.wizard ? (
+              <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />
+            ) : null,
+            rightButton: this.props.wizard ? (
+              <Kb.Button
+                label="Skip"
+                mode="Secondary"
+                onClick={() => undefined}
+                style={styles.skipButton}
+                type="Default"
+              />
+            ) : null,
+            title: (
+              <ModalTitle
+                teamname={this.props.teamname ? this.props.teamname : ''}
+                title="Upload an avatar"
+              />
+            ),
+          }}
+          allowOverflow={true}
+          footer={{
+            content: (
+              <Kb.Button
+                fullWidth={true}
+                label="Continue"
+                onClick={this.onSave}
+                disabled={!this.state.hasPreview}
+              />
+            ),
+          }}
+        >
+          {!!this.props.error && (
+            <Kb.Banner color="red">
+              <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
+            </Kb.Banner>
+          )}
+          <Kb.Box
+            className={Styles.classNames({dropping: this.state.dropping})}
+            onDragLeave={this.onDragLeave}
+            onDragOver={this.onDragOver}
+            onDrop={this.onDrop}
+            style={Styles.collapseStyles([
+              styles.container,
+              this.props.createdTeam && styles.paddingTopForCreatedTeam,
+            ])}
+            onMouseUp={this.onMouseUp}
+            onMouseDown={this.onMouseDown}
+            onMouseMove={this.onMouseMove}
+          >
+            {this.props.createdTeam && !this.props.wizard && (
+              <Kb.Box style={styles.createdBanner}>
+                <Kb.Text type="BodySmallSemibold" negative={true}>
+                  Hoorah! Your team {this.props.teamname} was created.
+                </Kb.Text>
+              </Kb.Box>
+            )}
+            <Kb.Text center={true} type="Body" style={styles.instructions}>
+              Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
+              <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
+                browse your computer for one
+              </Kb.Text>
+              .
+            </Kb.Text>
+            <HoverBox
+              className={Styles.classNames({filled: this.state.hasPreview})}
+              onClick={this.state.hasPreview ? null : this.filePickerOpen}
+              style={{
+                borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+              }}
+            >
+              <input
+                accept="image/gif,image/jpeg,image/png"
+                multiple={false}
+                onChange={this.pickFile}
+                ref={this.filePickerSetRef}
+                style={styles.hidden}
+                type="file"
+              />
+              {this.state.loading && (
+                <Kb.Box2 direction="vertical" fullHeight={true} style={styles.spinnerContainer}>
+                  <Kb.ProgressIndicator type="Large" style={styles.spinner} />
+                </Kb.Box2>
+              )}
+              <Kb.OrientedImage
+                forwardedRef={this.image}
+                src={this.state.imageSource}
+                style={Styles.platformStyles({
+                  isElectron: {
+                    height: this.state.scaledImageHeight,
+                    left: this.state.offsetLeft,
+                    opacity: this.state.loading ? 0 : 1,
+                    position: 'absolute',
+                    top: this.state.offsetTop,
+                    transition: 'opacity 0.25s ease-in',
+                    width: this.state.scaledImageWidth,
+                  },
+                } as const)}
+                onDragStart={e => e.preventDefault()}
+                onLoad={this.onImageLoad}
+              />
+              {!this.state.loading && !this.state.hasPreview && (
+                <Kb.Icon
+                  className="icon"
+                  color={Styles.globalColors.greyDark}
+                  fontSize={48}
+                  style={styles.icon}
+                  type="iconfont-camera"
+                />
+              )}
+            </HoverBox>
+            {this.state.hasPreview && (
+              <input
+                disabled={!this.state.hasPreview || this.props.submitting}
+                min={1}
+                max={10}
+                onChange={this.onRangeChange}
+                onMouseMove={e => e.stopPropagation()}
+                step="any"
+                type="range"
+                value={this.state.scale}
+              />
+            )}
+          </Kb.Box>
+        </Kb.Modal>
+      )
+    }
+
     return (
       <Kb.MaybePopup
         onClose={this.props.onClose}
@@ -479,9 +613,10 @@ const HoverBox = Styles.styled(Kb.Box)(() => ({
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.padding(Styles.globalMargins.xlarge, 0),
     alignItems: 'center',
-    minWidth: 460,
-    paddingBottom: Styles.globalMargins.xlarge,
+    height: flags.teamsRedesign ? 420 : undefined,
+    minWidth: flags.teamsRedesign ? undefined : 460,
   },
   cover: {zIndex: EDIT_AVATAR_ZINDEX},
   createdBanner: {
@@ -506,6 +641,12 @@ const styles = Styles.styleSheetCreate(() => ({
     maxWidth: 200,
   },
   overflowHidden: {overflow: 'hidden'},
+  paddingTopForCreatedTeam: {
+    paddingTop: Styles.globalMargins.xlarge,
+  },
+  skipButton: {
+    minWidth: 60,
+  },
   spinner: {
     alignSelf: 'center',
   },

@@ -110,6 +110,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     const text = this.getText()
     if (text) {
       this.props.onSubmit(text)
+      if (this.state.expanded) {
+        this.toggleExpandInput()
+      }
     }
   }
 
@@ -188,7 +191,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     })
   }
 
-  private expandInput = () => {
+  private toggleExpandInput = () => {
     this.watchSizeChanges = false
     // eslint-disable-next-line react/no-access-state-in-setstate
     const nextState = !this.state.expanded
@@ -211,15 +214,6 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
         suggestBotCommandsUpdateStatus === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
         <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
       )
-
-    const editing = isEditing && (
-      <Kb.Box style={styles.editingTabStyle}>
-        <Kb.Text type="BodySmall">Edit:</Kb.Text>
-        <Kb.Text type="BodySmallPrimaryLink" onClick={onCancelEditing}>
-          Cancel
-        </Kb.Text>
-      </Kb.Box>
-    )
 
     return (
       <AnimatedBox2
@@ -271,7 +265,6 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
-            {editing}
             <Kb.PlainInput
               autoCorrect={true}
               autoCapitalize="sentences"
@@ -289,7 +282,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
               textType="Body"
               rowsMin={1}
             />
-            <AnimatedExpand expandInput={this.expandInput} rotate={this.rotate} />
+            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.rotate} />
           </Kb.Box2>
           <Buttons
             conversationIDKey={conversationIDKey}
@@ -304,6 +297,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             explodingModeSeconds={explodingModeSeconds}
             cannotWrite={cannotWrite}
             toggleShowingMenu={() => this.toggleShowingMenu('exploding')}
+            onCancelEditing={onCancelEditing}
           />
         </Kb.Box2>
       </AnimatedBox2>
@@ -322,10 +316,11 @@ type ButtonsProps = Pick<
   insertMentionMarker: () => void
   openFilePicker: () => void
   onSubmit: () => void
+  onCancelEditing: () => void
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {conversationIDKey, insertMentionMarker, openFilePicker, openMoreMenu, onSubmit} = p
+  const {conversationIDKey, insertMentionMarker, openFilePicker, openMoreMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
 
   const explodingIcon = !isEditing && !cannotWrite && (
@@ -333,7 +328,7 @@ const Buttons = (p: ButtonsProps) => {
       <Kb.Box style={styles.explodingWrapper}>
         {isExploding ? (
           <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
-            <Kb.Text type="BodyTinyBold" negative={true}>
+            <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
               {formatDurationShort(explodingModeSeconds * 1000)}
             </Kb.Text>
           </Kb.Box2>
@@ -356,6 +351,7 @@ const Buttons = (p: ButtonsProps) => {
       alignItems="center"
       style={styles.actionContainer}
     >
+      {isEditing && <Kb.Button mode="Secondary" small={true} onClick={onCancelEditing} label="Cancel" />}
       {explodingIcon}
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
@@ -387,15 +383,18 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
         <AnimatedIcon
           onClick={expandInput}
           type="iconfont-arrow-full-up"
+          fontSize={18}
           style={{
             transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
           }}
+          color={Styles.globalColors.black_20}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
         <AnimatedIcon
           onClick={expandInput}
           type="iconfont-arrow-full-up"
+          fontSize={18}
           style={{
             transform: [
               {
@@ -405,6 +404,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
               },
             ],
           }}
+          color={Styles.globalColors.black_20}
         />
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -416,31 +416,11 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      accessory: {
-        bottom: 1,
-        display: 'flex',
-        left: 0,
-        position: 'absolute',
-        right: 0,
-      },
-      accessoryContainer: {
-        position: 'relative',
-        width: '100%',
-      },
       actionContainer: {
         flexShrink: 0,
-        marginRight: 8,
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
         minHeight: 32,
-      },
-      actionText: {
-        alignSelf: 'flex-end',
-        paddingBottom: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.tiny,
-      },
-      animatedContainer: {
-        bottom: 0,
-        position: 'absolute',
-        right: 0,
       },
       container: {
         alignItems: 'center',
@@ -466,12 +446,16 @@ const styles = Styles.styleSheetCreate(
       exploding: {
         backgroundColor: Styles.globalColors.black,
         borderRadius: Styles.globalMargins.mediumLarge / 2,
-        height: 24,
-        width: 24,
+        height: 28,
+        width: 28,
+      },
+      explodingText: {
+        fontSize: 11,
+        lineHeight: 16,
       },
       explodingWrapper: {
-        height: 24,
-        width: 24,
+        height: 30,
+        width: 30,
       },
       iconBottom: {
         bottom: 0,
@@ -479,14 +463,14 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
       },
       iconContainer: {
-        height: 32,
-        padding: Styles.globalMargins.xtiny,
+        height: 28,
+        marginRight: -4,
         position: 'relative',
-        width: 32,
+        width: 28,
       },
       iconTop: {
         position: 'absolute',
-        right: 1,
+        right: 0,
         top: 0,
       },
       input: Styles.platformStyles({
@@ -506,20 +490,6 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
-      },
-      marginRightSmall: {
-        marginRight: Styles.globalMargins.small,
-      },
-      mentionHud: {
-        borderColor: Styles.globalColors.black_20,
-        borderTopWidth: 1,
-        flex: 1,
-        height: 160,
-        width: '100%',
-      },
-      smallGap: {
-        height: Styles.globalMargins.small,
-        width: Styles.globalMargins.small,
       },
     } as const)
 )

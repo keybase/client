@@ -5,6 +5,7 @@ package status
 
 import (
 	"archive/tar"
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
@@ -89,12 +90,15 @@ func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Lo
 		return Logs{
 			GUI:        fstatus.Desktop.Log,
 			Kbfs:       fstatus.Kbfs.Log,
+			KbfsPerf:   fstatus.Kbfs.PerfLog,
 			Service:    fstatus.Service.Log,
 			EK:         fstatus.Service.EkLog,
+			Perf:       fstatus.Service.PerfLog,
 			Updater:    fstatus.Updater.Log,
 			Start:      fstatus.Start.Log,
 			System:     install.SystemLogPath(),
 			Git:        fstatus.Git.Log,
+			GitPerf:    fstatus.Git.PerfLog,
 			Install:    installLogPath,
 			Trace:      traceDir,
 			CPUProfile: cpuProfileDir,
@@ -107,9 +111,12 @@ func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Lo
 		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
 		Service:  getServiceLog(libkb.NewMetaContextTODO(g), logDir),
 		EK:       filepath.Join(logDir, libkb.EKLogFileName),
+		Perf:     filepath.Join(logDir, libkb.PerfLogFileName),
+		KbfsPerf: filepath.Join(logDir, libkb.KBFSPerfLogFileName),
 		Updater:  filepath.Join(logDir, libkb.UpdaterLogFileName),
 		Start:    filepath.Join(logDir, libkb.StartLogFileName),
 		Git:      filepath.Join(logDir, libkb.GitLogFileName),
+		GitPerf:  filepath.Join(logDir, libkb.GitPerfLogFileName),
 		Install:  installLogPath,
 		Trace:    traceDir,
 		Watchdog: watchdogLogPath,
@@ -524,4 +531,61 @@ func GetFirstClient(v []keybase1.ClientStatus, typ keybase1.ClientType) *keybase
 		}
 	}
 	return nil
+}
+
+// zipLogs takes a slice of logs and returns `numBytes` worth of the
+// most recent log lines from the sorted set of all lines across all
+// logs.  The lines in each log should already be sorted, and the logs
+// should be sortable alphabetically between each other (e.g., each
+// line in every log should start with a timestamp in the same
+// format).
+func zipLogs(numBytes int, logs ...string) (res string) {
+	scanners := make([]*bufio.Scanner, len(logs))
+	for i, log := range logs {
+		scanners[i] = bufio.NewScanner(strings.NewReader(log))
+	}
+
+	// nextLines is the next chronological line in each log.  It's
+	// empty if we need to get another line from the log.
+	nextLines := make([]string, len(logs))
+	var buf bytes.Buffer
+	for {
+		// Fill in the next line.
+		minLine := 0
+		for i, currLine := range nextLines {
+			if currLine == "" {
+				for scanners[i].Scan() {
+					nextLines[i] = scanners[i].Text()
+					if nextLines[i] != "" {
+						break
+					}
+				}
+			}
+
+			// If we still don't have a line, just skip this log.
+			if nextLines[i] == "" {
+				continue
+			}
+
+			if minLine != i && nextLines[i] < nextLines[minLine] {
+				minLine = i
+			}
+		}
+
+		line := nextLines[minLine]
+		if line == "" {
+			// We're done!
+			break
+		}
+
+		buf.WriteString(line + "\n")
+		nextLines[minLine] = ""
+	}
+
+	if buf.Len() > numBytes {
+		b := buf.Bytes()[buf.Len()-numBytes:]
+		return string(findFirstNewline(b))
+	}
+
+	return buf.String()
 }

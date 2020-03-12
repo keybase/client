@@ -1,18 +1,21 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {GatewayDest} from 'react-gateway'
-import {View} from 'react-native'
+import {StatusBar, View} from 'react-native'
 import ResetModal from '../login/reset/modal'
+import GlobalError from './global-errors/container'
+import OutOfDate from './out-of-date'
+import RuntimeStats from './runtime-stats'
 
 type Props = {}
 
 const Main = (_: Props) => {
-  const isResetActive = Container.useSelector(state => state.autoreset.active)
+  const isDarkMode = Styles.isDarkMode()
   return (
     <>
+      <StatusBar barStyle={Styles.isAndroid ? 'default' : isDarkMode ? 'light-content' : 'dark-content'} />
       <RouterSwitcheroo />
       <GatewayDest
         name="popup-root"
@@ -34,7 +37,10 @@ const Main = (_: Props) => {
           style={styles.gatewayDest}
         />
       </Kb.KeyboardAvoidingView>
-      {isResetActive && <ResetModal />}
+      <ResetModal />
+      <GlobalError />
+      <OutOfDate />
+      <RuntimeStats />
     </>
   )
 }

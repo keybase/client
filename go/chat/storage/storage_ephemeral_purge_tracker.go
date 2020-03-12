@@ -38,7 +38,7 @@ func newEphemeralTracker(g *globals.Context) *ephemeralTracker {
 		log.Panicf("Could not create lru cache: %v", err)
 	}
 	return &ephemeralTracker{Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ephemeralTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ephemeralTracker", false),
 		lru:          nlru,
 	}
 }
@@ -199,7 +199,7 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	t.Lock()
 	defer t.Unlock()
 
-	if purgeInfo == nil {
+	if purgeInfo == nil || purgeInfo.IsNil() {
 		return nil
 	}
 
@@ -212,6 +212,7 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 		if curPurgeInfo.IsActive {
 			purgeInfo.IsActive = true
 		}
+
 		if purgeInfo.MinUnexplodedID == 0 || curPurgeInfo.MinUnexplodedID < purgeInfo.MinUnexplodedID {
 			purgeInfo.MinUnexplodedID = curPurgeInfo.MinUnexplodedID
 		}

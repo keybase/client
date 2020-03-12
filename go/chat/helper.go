@@ -33,7 +33,7 @@ var _ (libkb.ChatHelper) = (*Helper)(nil)
 func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 	return &Helper{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Helper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Helper", false),
 		ri:           ri,
 	}
 }
@@ -54,9 +54,10 @@ func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor
 
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
+	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	return NewConversationWithMemberSourceConv(ctx, h.G(), uid, tlfName, topicName,
-		topicType, membersType, vis, h.ri, NewConvFindExistingNormal, memberSourceConv)
+		topicType, membersType, vis, h.ri, NewConvFindExistingNormal, retentionPolicy, memberSourceConv)
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
@@ -352,7 +353,7 @@ func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convI
 	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := g.ConvSource.GetMessages(ctx, conv.Conv, uid, msgIDs, reason)
+	messages, err := g.ConvSource.GetMessages(ctx, conv.Conv, uid, msgIDs, reason, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +389,7 @@ func newSendHelper(g *globals.Context, name string, topicName *string,
 	ri func() chat1.RemoteInterface) *sendHelper {
 	return &sendHelper{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sendHelper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "sendHelper", false),
 		name:         name,
 		topicName:    topicName,
 		membersType:  membersType,
@@ -463,7 +464,7 @@ type recentConversationParticipants struct {
 func newRecentConversationParticipants(g *globals.Context) *recentConversationParticipants {
 	return &recentConversationParticipants{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "recentConversationParticipants", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "recentConversationParticipants", false),
 	}
 }
 
@@ -966,16 +967,17 @@ const (
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, bool, error) {
-	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, findExistingMode, nil)
+	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, findExistingMode, nil, nil)
 }
 
 func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	tlfName string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface,
-	findExistingMode NewConvFindExistingMode, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	findExistingMode NewConvFindExistingMode, retentionPolicy *chat1.RetentionPolicy,
+	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri,
-		findExistingMode, memberSourceConv)
+		findExistingMode, retentionPolicy, memberSourceConv)
 	return helper.create(ctx)
 }
 
@@ -992,15 +994,16 @@ type newConversationHelper struct {
 	vis              keybase1.TLFVisibility
 	ri               func() chat1.RemoteInterface
 	findExistingMode NewConvFindExistingMode
+	retentionPolicy  *chat1.RetentionPolicy
 }
 
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode,
-	memberSourceConv *chat1.ConversationID) *newConversationHelper {
+	retentionPolicy *chat1.RetentionPolicy, memberSourceConv *chat1.ConversationID) *newConversationHelper {
 	return &newConversationHelper{
 		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "newConversationHelper", false),
 		uid:              uid,
 		tlfName:          utils.AddUserToTLFName(g, tlfName, vis, membersType),
 		topicName:        topicName,
@@ -1010,6 +1013,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 		vis:              vis,
 		ri:               ri,
 		findExistingMode: findExistingMode,
+		retentionPolicy:  retentionPolicy,
 	}
 }
 
@@ -1024,6 +1028,7 @@ func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TL
 					TlfID:       &tlfID,
 					MembersType: n.membersType,
 				},
+				MemberStatus:  chat1.AllConversationMemberStatuses(),
 				TlfVisibility: &n.vis,
 				TopicName:     &topicName,
 				TopicType:     &n.topicType,
@@ -1064,7 +1069,7 @@ func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.Name
 	return res, errors.New("unknown members type")
 }
 
-func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) *chat1.ConversationLocal {
+func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context, searchTopicName string) *chat1.ConversationLocal {
 	query := utils.StripUsernameFromConvName(n.tlfName, n.G().GetEnv().GetUsername().String())
 	n.Debug(ctx, "findExistingViaInboxSearch: looking for: %s", query)
 	convs, err := n.G().InboxSource.Search(ctx, n.uid, query, 0, types.InboxSourceSearchEmptyModeAll)
@@ -1082,6 +1087,7 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) 
 		n.Debug(ctx, "findExistingViaInboxSearch: failed to localize: %s", err)
 		return nil
 	}
+	searchIsPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	for _, conv := range convsLocal {
 		convName := conv.Info.TlfName
 		if conv.Error != nil {
@@ -1089,7 +1095,9 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) 
 		}
 		convName = utils.StripUsernameFromConvName(convName, n.G().GetEnv().GetUsername().String())
 		n.Debug(ctx, "findExistingViaInboxSearch: candidate: %s", convName)
-		if convName == query {
+		if convName == query && conv.GetTopicType() == n.topicType &&
+			conv.GetTopicName() == searchTopicName && conv.GetMembersType() == n.membersType &&
+			conv.IsPublic() == searchIsPublic {
 			n.Debug(ctx, "findExistingViaInboxSearch: found conv match: %s id: %s", conv.Info.TlfName,
 				conv.GetConvID())
 			return &conv
@@ -1121,7 +1129,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// If we failed this, just do a quick inbox search to see if we can find one with the same name.
 		// This can happen if a user tries to create a conversation with the same person as a conversation
 		// in which they are currently locked out due to reset.
-		if conv := n.findExistingViaInboxSearch(ctx); conv != nil {
+		if conv := n.findExistingViaInboxSearch(ctx, findConvsTopicName); conv != nil {
 			return *conv, false, nil
 		}
 		return res, false, err
@@ -1178,23 +1186,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			n.membersType)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
-		if err != nil {
-			// Check for DuplicateTopicNameError and run findExisting again to try and find it
-			switch err.(type) {
-			case DuplicateTopicNameError:
-				n.Debug(ctx, "duplicate topic name encountered, attempting to findExisting again")
-				var findErr error
-				convs, findErr = n.findExisting(ctx, info.ID, findConvsTopicName,
-					types.InboxSourceDataSourceRemoteOnly)
-				if len(convs) == 1 {
-					n.Debug(ctx, "found previous conversation that matches, returning")
-					return convs[0], false, findErr
-				}
-				n.Debug(ctx, "failed to find previous conversation on second attempt: len(convs): %d err: %s",
-					len(convs), findErr)
-			default:
-				// Nothing to do for other error types.
-			}
+		switch err := err.(type) {
+		case nil:
+		case DuplicateTopicNameError:
+			return err.Conv, false, nil
+		default:
 			return res, false, err
 		}
 
@@ -1205,6 +1201,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			MembersType:      n.membersType,
 			TopicNameState:   topicNameState,
 			MemberSourceConv: n.memberSourceConv,
+			RetentionPolicy:  n.retentionPolicy,
 		})
 		convID := ncrres.ConvID
 		if reserr != nil {

@@ -1402,7 +1402,13 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, convID chat1.
 			c.G().Log.Warning("GetInboxLocal error: %s", err)
 			return nil, nil, err
 		}
-		return gilres.Conversations, gilres.RateLimits, nil
+		convs := gilres.Conversations
+		if len(convs) == 0 {
+			// NOTE: don't change this error without also changing the managed-bots repo
+			// https://github.com/keybase/managed-bots/blob/4ed0f563e6f3276a953bd33a00f98a75dc32d102/base/output.go#L75
+			return nil, nil, fmt.Errorf("no conversations matched %q", convID)
+		}
+		return convs, gilres.RateLimits, nil
 	}
 
 	tlfName := channel.Name

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box, Text, Button, StandardScreen} from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import {Props} from './you-rekey.types'
+import {Props} from './you-rekey'
 
 const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
   const notification = {message: 'This conversation needs to be rekeyed.', type: 'error' as const}

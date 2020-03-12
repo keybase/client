@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '../../signup/common'
 import {Props} from '.'
 
@@ -59,7 +60,7 @@ class Login extends React.Component<Props, State> {
         title="Log in"
       >
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox}>
-          <Kb.UserCard
+          <UserCard
             username={this.props.selectedUser}
             outerStyle={styles.container}
             style={styles.userContainer}
@@ -109,7 +110,7 @@ class Login extends React.Component<Props, State> {
                 onClick={this.props.onSubmit}
               />
             </Kb.Box2>
-          </Kb.UserCard>
+          </UserCard>
         </Kb.Box2>
       </SignupScreen>
     )

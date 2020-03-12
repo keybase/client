@@ -151,9 +151,9 @@ func TestTeamListOpenTeamFilter(t *testing.T) {
 		suppressTeamChatAnnounce: true,
 	}
 
-	ann := makeUserStandalone(t, "ann", standaloneArgs)
-	bob := makeUserStandalone(t, "bob", standaloneArgs)
-	tom := makeUserStandalone(t, "tom", standaloneArgs)
+	ann := makeUserStandalone(t, tt, "ann", standaloneArgs)
+	bob := makeUserStandalone(t, tt, "bob", standaloneArgs)
+	tom := makeUserStandalone(t, tt, "tom", standaloneArgs)
 
 	id, teamName := ann.createTeam2()
 	t.Logf("Team created %q", teamName)

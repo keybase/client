@@ -142,7 +142,7 @@ func (t *RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.P
 		return trustedDefault
 	}
 	var host string
-	if mctx.G().GetAppType() == libkb.MobileAppType {
+	if mctx.G().IsMobileAppType() {
 		hostHint, err := ppr.Metadata.AtKey("mobile_host").GetString()
 		if err != nil {
 			hostHint = ""

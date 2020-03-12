@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
+import * as Styles from '../styles'
 import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
@@ -33,9 +34,17 @@ export default (props: Props) => {
         props.rolePickerProps.changeSendNotification
       )}
     >
-      <Kb.Text type="BodyBigLink" onClick={() => setRolePickerOpen(true)}>
+      <Kb.Text
+        type="BodyBigLink"
+        onClick={props.count ? () => setRolePickerOpen(true) : undefined}
+        style={props.count ? undefined : styles.hide}
+      >
         Add
       </Kb.Text>
     </FloatingRolePicker>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  hide: {opacity: 0},
+}))

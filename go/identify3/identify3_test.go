@@ -30,11 +30,12 @@ func SetupTest(tb libkb.TestingTB, name string) libkb.TestContext {
 }
 
 type id3results struct {
-	resultType   keybase1.Identify3ResultType
-	rows         []keybase1.Identify3Row
-	cards        []keybase1.UserCard
-	timedOut     bool
-	userWasReset bool
+	resultType       keybase1.Identify3ResultType
+	rows             []keybase1.Identify3Row
+	cards            []keybase1.UserCard
+	timedOut         bool
+	userWasReset     bool
+	numProofsToCheck int
 }
 
 func (r *id3results) pushRow(row keybase1.Identify3Row) {
@@ -91,6 +92,12 @@ func (f *fakeUI3) Identify3Result(_ context.Context, res keybase1.Identify3Resul
 	f.id3results.resultType = res.Result
 	f.Unlock()
 	f.resultCh <- res.Result
+	return nil
+}
+func (f *fakeUI3) Identify3Summary(_ context.Context, arg keybase1.Identify3Summary) error {
+	f.Lock()
+	f.id3results.numProofsToCheck = arg.NumProofsToCheck
+	f.Unlock()
 	return nil
 }
 
@@ -179,6 +186,7 @@ func TestCryptocurrency(t *testing.T) {
 
 	res = runID3(t, mctx, alice.Username, true)
 	assertTrackResult(res, true /* green */)
+	require.Equal(t, res.numProofsToCheck, 0)
 }
 
 func TestFollowUnfollowTracy(t *testing.T) {
@@ -192,6 +200,7 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
 	require.Equal(t, len(res.rows), 9)
 	require.Equal(t, len(res.cards), 1)
+	require.Equal(t, res.numProofsToCheck, 4)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
 		{

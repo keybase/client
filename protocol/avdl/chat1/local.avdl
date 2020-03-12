@@ -220,6 +220,8 @@ protocol local {
      MessageID messageID;
      @mpackkey("b") @jsonkey("b")
      string body; // emoji reaction :+1:
+     @mpackkey("t") @jsonkey("t")
+     union { null, gregor1.UID } targetUID;
   }
 
   record MessageSendPayment {
@@ -740,7 +742,7 @@ protocol local {
     DEFAULT_0,
     SERVER_1
   }
-  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, array<string> knownRemotes, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 
   record UnreadlineRes {
@@ -1070,6 +1072,14 @@ protocol local {
   }
   GetChannelMembershipsLocalRes getChannelMembershipsLocal(keybase1.TeamID teamID, gregor1.UID uid);
 
+
+  record GetMutualTeamsLocalRes {
+    array<keybase1.TeamID> teamIDs;
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  GetMutualTeamsLocalRes getMutualTeamsLocal(array<string> usernames);
+
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.
   record SetAppNotificationSettingsLocalRes {
@@ -1133,7 +1143,7 @@ protocol local {
     ConversationID convID;
     boolean isTeam;
     array<string> parts;
-    string teamName;
+    string tlfName;
   }
   array<SimpleSearchInboxConvNamesHit> simpleSearchInboxConvNames(string query);
 
@@ -1319,12 +1329,21 @@ protocol local {
     PINNED_MESSAGE_11
   }
 
+  record WelcomeMessageDisplay{
+    boolean set;
+    // display is text suitable for displaying in Kb.Markdown (e.g., it
+    // has KB-escaped URLs)
+    string display;
+    // raw is the raw user-input plaintext
+    string raw;
+  }
   record WelcomeMessage {
     boolean set;
-    string text;
+    // raw is the raw user-input plaintext
+    string raw;
   }
   void setWelcomeMessage(keybase1.TeamID teamID, WelcomeMessage message);
-  WelcomeMessage getWelcomeMessage(keybase1.TeamID teamID);
+  WelcomeMessageDisplay getWelcomeMessage(keybase1.TeamID teamID);
 
   record GetDefaultTeamChannelsLocalRes {
     array<InboxUIItem> convs;
@@ -1339,4 +1358,11 @@ protocol local {
 
   LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
   map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
+
+  int getRecentJoinsLocal(ConversationID convID);
+
+  // queue up a refresh of participants, this will result in notifications to the UI with the data
+  // from local and remote sources
+  void refreshParticipants(ConversationID convID);
+  gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, gregor1.UID uid);
 }

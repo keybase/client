@@ -233,7 +233,7 @@ export const defaultDriverStatus: Types.DriverStatus = isLinux
 
 export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
-  rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
+  rpcStatus: Types.KbfsDaemonRpcStatus.Waiting,
 }
 
 export const emptySettings: Types.Settings = {
@@ -751,11 +751,23 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
+export const getSharePathArrayDescription = (paths: Array<Types.LocalPath>): string => {
+  return !paths.length
+    ? '<empty>'
+    : paths.length === 1
+    ? Types.getPathName(paths[0])
+    : `${paths.length} items`
+}
+
 export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
   picker.source.type === Types.DestinationPickerSource.MoveOrCopy
     ? Types.getPathName(picker.source.path)
     : picker.source.type === Types.DestinationPickerSource.IncomingShare
-    ? Types.getLocalPathName(picker.source.localPath)
+    ? Array.isArray(picker.source.source)
+      ? getSharePathArrayDescription(
+          picker.source.source.map(({originalPath}) => Types.getLocalPathName(originalPath))
+        )
+      : picker.source.source
     : ''
 
 const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path): boolean => {
@@ -791,9 +803,8 @@ export const getUploadIconForTlfType = (
 
   const prefix = Types.pathToString(Types.getTlfTypePathFromTlfType(tlfType))
   if (
-    [uploads.syncingPaths, uploads.writingToJournal].some(s =>
-      [...s].some(p => Types.pathToString(p).startsWith(prefix))
-    )
+    [...uploads.syncingPaths].some(p => Types.pathToString(p).startsWith(prefix)) ||
+    [...uploads.writingToJournal.keys()].some(p => Types.pathToString(p).startsWith(prefix))
   ) {
     return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
       ? Types.UploadIcon.AwaitingToUpload

@@ -11,7 +11,6 @@ import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
 import {TeamAvatar} from '../avatars'
 import Rover from './background'
-import flags from '../../util/feature-flags'
 import TeamInfo from '../../profile/user/teams/teaminfo'
 
 type NameResult = {
@@ -84,11 +83,7 @@ class InboxSearch extends React.Component<Props, State> {
   }) => {
     if (typeof h.item === 'string') {
       return h.item === emptyUnreadPlaceholder ? (
-        <Kb.Text
-          style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
-          type="BodySmall"
-          center={true}
-        >
+        <Kb.Text style={styles.emptyUnreadPlaceholder} type="BodySmall" center={true}>
           No unread messages or conversations
         </Kb.Text>
       ) : null
@@ -222,9 +217,7 @@ class InboxSearch extends React.Component<Props, State> {
     const textResults = this.state.textCollapsed ? [] : this.props.textResults
     const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.getOpenTeamsResults()
 
-    const indexOffset = flags.openTeamSearch
-      ? openTeamsResults.length + nameResults.length
-      : nameResults.length
+    const indexOffset = openTeamsResults.length + nameResults.length
 
     if (this.props.nameResultsUnread && !this.state.nameCollapsed && nameResults.length === 0) {
       nameResults.push(emptyUnreadPlaceholder)
@@ -242,21 +235,17 @@ class InboxSearch extends React.Component<Props, State> {
         status: this.props.nameStatus,
         title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
-      ...(flags.openTeamSearch
-        ? [
-            {
-              data: openTeamsResults,
-              indexOffset: nameResults.length,
-              isCollapsed: this.state.openTeamsCollapsed,
-              onCollapse: this.toggleCollapseOpenTeams,
-              onSelect: this.selectText,
-              renderHeader: this.renderTeamHeader,
-              renderItem: this.renderOpenTeams,
-              status: this.props.openTeamsStatus,
-              title: this.props.openTeamsResultsSuggested ? 'Suggested Teams' : 'Open Teams',
-            },
-          ]
-        : []),
+      {
+        data: openTeamsResults,
+        indexOffset: nameResults.length,
+        isCollapsed: this.state.openTeamsCollapsed,
+        onCollapse: this.toggleCollapseOpenTeams,
+        onSelect: this.selectText,
+        renderHeader: this.renderTeamHeader,
+        renderItem: this.renderOpenTeams,
+        status: this.props.openTeamsStatus,
+        title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
+      },
       ...(!this.props.nameResultsUnread
         ? [
             {
@@ -396,9 +385,10 @@ const styles = Styles.styleSheetCreate(
           height: '100%',
           width: '100%',
         },
-        isTablet: {
-          maxWidth: Styles.globalStyles.shortWidth,
-        },
+      }),
+      emptyUnreadPlaceholder: Styles.platformStyles({
+        common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)},
+        isTablet: {backgroundColor: Styles.globalColors.blueGrey},
       }),
       errorText: {
         color: Styles.globalColors.redDark,

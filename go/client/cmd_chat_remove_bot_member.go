@@ -25,7 +25,7 @@ func NewCmdChatRemoveBotMemberRunner(g *libkb.GlobalContext) *CmdChatRemoveBotMe
 }
 
 func newCmdChatRemoveBotMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	flags := append(getConversationResolverFlags())
+	flags := getConversationResolverFlags()
 	flags = append(flags, cli.StringFlag{
 		Name:  "u, user",
 		Usage: "username",

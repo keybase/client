@@ -1,4 +1,3 @@
-import {isPhone} from '../constants/platform'
 import ChatConversation from './conversation/container'
 import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import ChatRoot from './inbox/container'
@@ -23,8 +22,8 @@ import ChatInstallBot from './conversation/bot/install'
 import ChatInstallBotPick from './conversation/bot/team-picker'
 import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
-import AndroidChooseTarget from './android-choose-target'
 import ChatPDF from './pdf'
+import * as ChatConstants from '../constants/chat2'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
@@ -34,14 +33,13 @@ export const newRoutes = {
   },
   chatRoot: {
     getScreen: (): typeof ChatRoot =>
-      isPhone ? require('./inbox/defer-loading').default : require('./inbox-and-conversation-2').default,
+      ChatConstants.isSplit
+        ? require('./inbox-and-conversation-2').default
+        : require('./inbox/defer-loading').default,
   },
 }
 
 export const newModalRoutes = {
-  androidChooseTarget: {
-    getScreen: (): typeof AndroidChooseTarget => require('./android-choose-target').default,
-  },
   chatAddToChannel: flags.teamsRedesign
     ? {
         getScreen: (): typeof ChatAddToChannelNew =>

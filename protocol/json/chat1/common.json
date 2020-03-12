@@ -378,6 +378,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "InboxParticipantsMode",
+      "symbols": [
+        "ALL_0",
+        "SKIP_TEAMS_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "GetInboxQuery",
       "fields": [
@@ -487,6 +495,10 @@
         {
           "type": "boolean",
           "name": "summarizeMaxMsgs"
+        },
+        {
+          "type": "InboxParticipantsMode",
+          "name": "participantsMode"
         },
         {
           "type": "boolean",
@@ -697,6 +709,12 @@
         {
           "type": "keybase1.TeamRole",
           "name": "untrustedTeamRole"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "lastSendTime",
+          "mpackkey": "l",
+          "jsonkey": "l"
         },
         {
           "type": [

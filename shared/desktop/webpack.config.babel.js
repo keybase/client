@@ -28,7 +28,7 @@ const config = (_, {mode}) => {
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
         presets: [
-          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '7.1.4'}}],
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '8.0.2'}}],
           '@babel/preset-typescript',
         ],
       },
@@ -102,6 +102,16 @@ const config = (_, {mode}) => {
     }
     console.warn('Injecting defines: ', defines)
 
+    const alias = {}
+    if (isHot) {
+      // hot loader
+      alias['react-dom'] = '@hot-loader/react-dom'
+    }
+    if (isDev) {
+      // enable why did you render
+      alias['react-redux'] = 'react-redux/dist/react-redux.js'
+    }
+
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
@@ -121,7 +131,7 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^lodash$/), // Disallow entire lodash
       ],
       resolve: {
-        ...(isHot ? {alias: {'react-dom': '@hot-loader/react-dom'}} : {}),
+        alias,
         extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
       stats: {

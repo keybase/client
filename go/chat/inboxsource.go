@@ -76,7 +76,7 @@ type baseInboxSource struct {
 
 func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 	getChatInterface func() chat1.RemoteInterface) *baseInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.ExternalG(), "baseInboxSource", false)
 	return &baseInboxSource{
 		Contextified:     globals.NewContextified(g),
 		sub:              ibs,
@@ -199,6 +199,14 @@ func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ t
 	}
 }
 
+func (b *baseInboxSource) setDefaultParticipantMode(q *chat1.GetInboxQuery) *chat1.GetInboxQuery {
+	if q == nil {
+		q = new(chat1.GetInboxQuery)
+	}
+	q.ParticipantsMode = chat1.InboxParticipantsMode_SKIP_TEAMS
+	return q
+}
+
 func (b *baseInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	b.localizer.start(ctx)
 }
@@ -258,7 +266,7 @@ type RemoteInboxSource struct {
 var _ types.InboxSource = (*RemoteInboxSource)(nil)
 
 func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.ExternalG(), "RemoteInboxSource", false)
 	s := &RemoteInboxSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
@@ -311,7 +319,7 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		return types.Inbox{}, OfflineError{}
 	}
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: rquery,
+		Query: s.setDefaultParticipantMode(rquery),
 	})
 	if err != nil {
 		return types.Inbox{}, err
@@ -475,25 +483,21 @@ type HybridInboxSource struct {
 	started               bool
 	stopCh                chan struct{}
 	eg                    errgroup.Group
-	flushDelay            time.Duration
 	readOutbox            *storage.ReadOutbox
 	readFlushDelay        time.Duration
 	readFlushCh           chan struct{}
 	searchStatusMap       map[chat1.ConversationStatus]bool
 	searchMemberStatusMap map[chat1.ConversationMemberStatus]bool
-
-	testFlushCh chan struct{} // testing only
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
 
 func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.ExternalG(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   labeler,
-		flushDelay:     time.Minute,
 		readFlushDelay: 5 * time.Second,
 		readFlushCh:    make(chan struct{}, 10),
 	}
@@ -514,7 +518,6 @@ func NewHybridInboxSource(g *globals.Context,
 
 func (s *HybridInboxSource) createInbox() *storage.Inbox {
 	return storage.NewInbox(s.G(),
-		storage.FlushMode(storage.InboxFlushModeDelegate),
 		storage.LayoutChangedNotifier(s.G().UIInboxLoader))
 }
 
@@ -540,7 +543,6 @@ func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	s.started = true
 	s.uid = uid
 	s.readOutbox = storage.NewReadOutbox(s.G(), uid)
-	s.eg.Go(func() error { return s.inboxFlushLoop(uid, s.stopCh) })
 	s.eg.Go(func() error { return s.markAsReadDeliverLoop(uid, s.stopCh) })
 }
 
@@ -686,7 +688,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		ConvIDs: convIDs,
 	})
 	if err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
+		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v, charging forward", err)
 	}
 	// convID -> isRead
 	readConvMap := make(map[chat1.ConvIDStr]bool)
@@ -749,7 +751,8 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text *string) error {
-	if err := s.createInbox().Draft(ctx, uid, convID, text); err != nil {
+	_, err := s.createInbox().Draft(ctx, uid, convID, text)
+	if err != nil {
 		return err
 	}
 	return nil
@@ -827,34 +830,6 @@ func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	return nil
 }
 
-func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) error {
-	ctx := globals.ChatCtx(context.Background(), s.G(),
-		keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
-	appState := s.G().MobileAppState.State()
-	doFlush := func() {
-		s.createInbox().Flush(ctx, uid)
-		if s.testFlushCh != nil {
-			s.testFlushCh <- struct{}{}
-		}
-	}
-	for {
-		select {
-		case <-s.G().Clock().After(s.flushDelay):
-			doFlush()
-		case appState = <-s.G().MobileAppState.NextUpdate(&appState):
-			switch appState {
-			case keybase1.MobileAppState_BACKGROUND:
-				doFlush()
-			default:
-				// Nothing to do for other app states.
-			}
-		case <-stopCh:
-			doFlush()
-			return nil
-		}
-	}
-}
-
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
 	query *chat1.GetInboxQuery) (res types.Inbox, err error) {
 	defer s.Trace(ctx, func() error { return err }, "fetchRemoteInbox")()
@@ -878,7 +853,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	rquery.SummarizeMaxMsgs = true // always summarize max msgs
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &rquery,
+		Query: s.setDefaultParticipantMode(&rquery),
 	})
 	if err != nil {
 		return types.Inbox{}, err
@@ -896,7 +871,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
-			err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+			err := s.G().ConvSource.Expunge(ctx, utils.RemoteConv(conv), uid, *expunge)
 			if err != nil {
 				return types.Inbox{}, err
 			}
@@ -930,7 +905,6 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, dataSource types.InboxSourceDataSourceTyp, maxLocalize *int,
 	query *chat1.GetInboxLocalQuery) (inbox types.Inbox, localizeCb chan types.AsyncInboxResult, err error) {
-
 	defer s.Trace(ctx, func() error { return err }, "Read")()
 
 	// Read unverified inbox
@@ -1069,7 +1043,7 @@ func (h convSearchHit) hitScore() (score int) {
 	return score
 }
 
-func (h convSearchHit) less(o convSearchHit) bool {
+func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
 	hScore := h.hitScore()
 	oScore := o.hitScore()
 	if hScore < oScore {
@@ -1077,8 +1051,15 @@ func (h convSearchHit) less(o convSearchHit) bool {
 	} else if hScore > oScore {
 		return false
 	}
-	htime := utils.GetConvMtime(h.conv)
-	otime := utils.GetConvMtime(o.conv)
+	var htime, otime gregor1.Time
+	switch emptyMode {
+	case types.InboxSourceSearchEmptyModeAllBySendCtime:
+		htime = utils.GetConvLastSendTime(h.conv)
+		otime = utils.GetConvLastSendTime(o.conv)
+	default:
+		htime = utils.GetConvMtime(h.conv)
+		otime = utils.GetConvMtime(o.conv)
+	}
 	return htime.Before(otime)
 }
 
@@ -1126,7 +1107,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 				}
 				res.hits = []nameContainsQueryRes{cqe}
 			}
-		case types.InboxSourceSearchEmptyModeAll:
+		default:
 			res.hits = []nameContainsQueryRes{nameContainsQueryExact}
 		}
 		return res
@@ -1195,7 +1176,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		hits = append(hits, hit)
 	}
 	sort.Slice(hits, func(i, j int) bool {
-		return hits[j].less(hits[i])
+		return hits[j].less(hits[i], emptyMode)
 	})
 	res = make([]types.RemoteConversation, len(hits))
 	for i, hit := range hits {

@@ -76,7 +76,7 @@ type Boxer struct {
 
 func NewBoxer(g *globals.Context) *Boxer {
 	return &Boxer{
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Boxer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Boxer", false),
 		hashV1:       hashSha256V1,
 		Contextified: globals.NewContextified(g),
 		clock:        clockwork.NewRealClock(),
@@ -227,6 +227,10 @@ func (b *basicUnboxConversationInfo) IsPublic() bool {
 	return b.visibility == keybase1.TLFVisibility_PUBLIC
 }
 
+func (b *basicUnboxConversationInfo) GetMaxMessage(chat1.MessageType) (chat1.MessageSummary, error) {
+	return chat1.MessageSummary{}, nil
+}
+
 type extraInboxUnboxConversationInfo struct {
 	convID      chat1.ConversationID
 	membersType chat1.ConversationMembersType
@@ -266,6 +270,10 @@ func (p *extraInboxUnboxConversationInfo) GetMaxDeletedUpTo() chat1.MessageID {
 
 func (p *extraInboxUnboxConversationInfo) IsPublic() bool {
 	return p.visibility == keybase1.TLFVisibility_PUBLIC
+}
+
+func (p *extraInboxUnboxConversationInfo) GetMaxMessage(chat1.MessageType) (chat1.MessageSummary, error) {
+	return chat1.MessageSummary{}, nil
 }
 
 func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
@@ -1323,6 +1331,11 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 	case chat1.MessageType_SYSTEM:
 		atMentions, chanMention, channelNameMentions = utils.SystemMessageMentions(ctx, b.G(), uid,
 			body.System())
+	case chat1.MessageType_REACTION:
+		targetUID := body.Reaction().TargetUID
+		if targetUID != nil {
+			atMentions = []gregor1.UID{*targetUID}
+		}
 	default:
 		return nil, nil, nil, chanMention, nil
 	}

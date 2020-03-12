@@ -1,19 +1,25 @@
 import * as React from 'react'
-import Box from './box'
+import {Box2} from './box'
 import Text from './text'
+import Icon from './icon'
+import {IconType} from './icon.constants-gen'
 import * as Styles from '../styles'
 
 type Props = {
-  title: string
+  title: string | number
   style?: Styles.StylesCrossPlatform
   size?: 'Small'
   color?: string
   backgroundColor: string
   noUppercase?: boolean
+  icon?: IconType
+  iconColor?: Styles.Color
 }
 
 const Meta = (props: Props) => (
-  <Box
+  <Box2
+    alignSelf="flex-start"
+    direction={props.icon ? 'horizontal' : 'vertical'}
     pointerEvents="none"
     style={Styles.collapseStyles([
       styles.container,
@@ -22,24 +28,22 @@ const Meta = (props: Props) => (
       props.size === 'Small' && styles.containerSmall,
     ])}
   >
+    {!!props.icon && <Icon color={props.iconColor} sizeType="Small" style={styles.icon} type={props.icon} />}
     <Text
-      type="BodyTinyBold"
+      type={typeof props.title === 'number' ? 'BodySmallBold' : 'BodyTinyBold'}
       style={Styles.collapseStyles([
         styles.text,
         props.color && {color: props.color},
         props.size === 'Small' && styles.textSmall,
       ])}
     >
-      {props.noUppercase ? props.title : props.title.toUpperCase()}
+      {props.noUppercase || typeof props.title === 'number' ? props.title : props.title.toUpperCase()}
     </Text>
-  </Box>
+  </Box2>
 )
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
     borderRadius: 2,
     paddingLeft: 3,
     paddingRight: 3,
@@ -47,6 +51,9 @@ const styles = Styles.styleSheetCreate(() => ({
   containerSmall: {
     paddingLeft: 2,
     paddingRight: 2,
+  },
+  icon: {
+    paddingRight: Styles.globalMargins.xtiny,
   },
   text: Styles.platformStyles({
     common: {

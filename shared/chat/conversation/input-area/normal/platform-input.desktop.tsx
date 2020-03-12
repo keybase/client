@@ -89,9 +89,9 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     return false
   }
 
-  _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
+  _onKeyDown = (e: React.KeyboardEvent) => {
     this._commonOnKeyDown(e)
-    this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
+    this.props.onKeyDown && this.props.onKeyDown(e)
   }
 
   _onChangeText = (text: string) => {
@@ -171,14 +171,14 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   render() {
     let hintText = 'Write a message'
-    if (this.props.isExploding) {
-      hintText = 'Write an exploding message'
-    } else if (this.props.isEditing) {
-      hintText = 'Edit your message'
-    } else if (this.props.cannotWrite) {
+    if (this.props.cannotWrite) {
       hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
       } to post.`
+    } else if (this.props.isEditing) {
+      hintText = 'Edit your message'
+    } else if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
     }
 
     return (
@@ -250,7 +250,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             />
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
-                className="mousetrap"
+                allowKeyboardEvents={true}
                 disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
@@ -336,27 +336,6 @@ const EmojiPicker = ({
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      accessory: {
-        bottom: 1,
-        display: 'flex',
-        left: 0,
-        position: 'absolute',
-        right: 0,
-      },
-      accessoryContainer: {
-        position: 'relative',
-        width: '100%',
-      },
-      boomIcon: Styles.platformStyles({
-        common: {
-          left: 231,
-          marginTop: -30,
-          position: 'absolute',
-        },
-        isElectron: {
-          cursor: 'text',
-        },
-      }),
       cancelEditing: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
@@ -468,22 +447,6 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
       },
-      mentionCatcher: {
-        ...Styles.globalStyles.fillAbsolute,
-        backgroundColor: Styles.globalColors.transparent,
-      },
-      mentionHud: Styles.platformStyles({
-        common: {
-          borderRadius: 4,
-          height: 224,
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
-          width: '100%',
-        },
-        isElectron: {
-          ...Styles.desktopStyles.boxShadow,
-        },
-      }),
       walletsIcon: {
         alignSelf: 'flex-end',
         marginBottom: 6,

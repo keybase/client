@@ -96,6 +96,8 @@ func writeFile(
 
 	t.Log("Index the file")
 	namePPS := data.NewPathPartString(name, nil)
+	err = i.refreshBatch(ctx)
+	require.NoError(t, err)
 	if newFile {
 		ids, err := i.blocksDb.GetNextDocIDs(1)
 		require.NoError(t, err)
@@ -108,6 +110,8 @@ func writeFile(
 		require.NoError(t, err)
 		require.NotNil(t, dirDoneFn)
 	}
+	err = i.flushBatch(ctx)
+	require.NoError(t, err)
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -213,7 +217,11 @@ func TestIndexFile(t *testing.T) {
 		ctx, rootNode, data.NewPathPartString(dName, nil), rootNode,
 		newDNamePPS)
 	require.NoError(t, err)
+	err = i.refreshBatch(ctx)
+	require.NoError(t, err)
 	err = i.renameChild(ctx, rootNode, "", newDNamePPS, 1)
+	require.NoError(t, err)
+	err = i.flushBatch(ctx)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -227,9 +235,13 @@ func TestIndexFile(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps.RemoveEntry(ctx, rootNode, aNamePPS)
 	require.NoError(t, err)
+	err = i.refreshBatch(ctx)
+	require.NoError(t, err)
 	err = i.deleteFromUnrefs(
 		ctx, rootNode.GetFolderBranch().Tlf,
 		[]data.BlockPointer{md.BlockInfo.BlockPointer})
+	require.NoError(t, err)
+	err = i.flushBatch(ctx)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -482,7 +494,7 @@ func TestFullIndexSearch(t *testing.T) {
 	t.Log("Search!")
 	checkSearch := func(
 		query string, numResults, start int, expectedResults map[string]bool) {
-		results, err := i.Search(ctx, query, numResults, start)
+		results, _, err := i.Search(ctx, query, numResults, start)
 		require.NoError(t, err)
 		for _, r := range results {
 			_, ok := expectedResults[r.Path]
@@ -508,10 +520,12 @@ func TestFullIndexSearch(t *testing.T) {
 	})
 
 	t.Log("Try partial results")
-	results, err := i.Search(ctx, names[0], 2, 0)
+	results, nextResult, err := i.Search(ctx, names[0], 2, 0)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
-	results2, err := i.Search(ctx, names[0], 2, 2)
+	require.Equal(t, 2, nextResult)
+	results2, nextResult2, err := i.Search(ctx, names[0], 2, nextResult)
 	require.NoError(t, err)
 	require.Len(t, results2, 1)
+	require.Equal(t, -1, nextResult2)
 }

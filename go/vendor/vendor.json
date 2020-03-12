@@ -842,16 +842,16 @@
 			"revisionTime": "2020-01-23T00:39:47Z"
 		},
 		{
-			"checksumSHA1": "H8SBEqxUApDJo3Zczaryd7tli/k=",
+			"checksumSHA1": "qhkwhuKIYzEZmHMtGsegm0v7KKE=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "1b45a7425e2f890c1efcc02a4e74c153a1eeaed4",
-			"revisionTime": "2020-02-06T22:07:37Z"
+			"revision": "26e5d1ace9c88d9794d620b1201b3f43939ae617",
+			"revisionTime": "2020-03-11T21:12:34Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "1b45a7425e2f890c1efcc02a4e74c153a1eeaed4",
-			"revisionTime": "2020-02-06T22:07:37Z"
+			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
+			"revisionTime": "2020-02-20T20:58:49Z"
 		},
 		{
 			"checksumSHA1": "cVToVAflSUcimfMfrEGACvPChH0=",
@@ -956,16 +956,16 @@
 			"revisionTime": "2018-03-01T23:53:30Z"
 		},
 		{
-			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
+			"checksumSHA1": "5pmXwOy9jB8chFU+JjG0G3Il8yE=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
-			"revisionTime": "2019-07-23T20:28:32Z"
+			"revision": "6fcc57755f35fd21109d656057901b3c0eccd3e9",
+			"revisionTime": "2020-02-28T19:22:15Z"
 		},
 		{
-			"checksumSHA1": "xbgwz0FAlOizDyRxDEil92l0XQk=",
+			"checksumSHA1": "6wE2n8X5VnQVwZHDDv0dPekOh6E=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "8aedd2a35c8130cb7252109883dc008933d1a3f4",
-			"revisionTime": "2019-12-06T08:11:17Z"
+			"revision": "ea1e58fecd5d6253a8b21d6adebebc645db2541a",
+			"revisionTime": "2020-03-09T16:21:19Z"
 		},
 		{
 			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",
@@ -980,10 +980,10 @@
 			"revisionTime": "2019-08-28T02:21:49Z"
 		},
 		{
-			"checksumSHA1": "oaEGy2fWwKmkVh84Qh9TFKEBv5E=",
+			"checksumSHA1": "rR2xCJVoRiXxUb1VkfJTBR5uKqc=",
 			"path": "github.com/keybase/saltpack",
-			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
-			"revisionTime": "2019-08-28T02:09:36Z"
+			"revision": "d75baa96bffb2aa32454882f7bfed544adab0963",
+			"revisionTime": "2020-02-28T19:06:33Z"
 		},
 		{
 			"checksumSHA1": "hqQxqs30aFMN/MLPcg8O1OiqmMA=",
@@ -998,10 +998,10 @@
 			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "2Ugw7+GeWu1gQZdi2bOYrlfBmZg=",
+			"checksumSHA1": "sR551pREqAZR8JfBSqm0E0UNBJ4=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "d20076acadfe92728f14d2c40b93721a6b69d369",
-			"revisionTime": "2020-01-22T16:21:55Z"
+			"revision": "384fcdcd888ef6a4f5319a93c4c2785d841ba30d",
+			"revisionTime": "2020-03-06T21:56:55Z"
 		},
 		{
 			"checksumSHA1": "B/Qlhpd96i6Sx0DdhSzbHUdG47U=",
@@ -1882,6 +1882,12 @@
 			"path": "golang.org/x/sync/errgroup",
 			"revision": "316e794f7b5e3df4e95175a45a5fb8b12f85cb4f",
 			"revisionTime": "2016-07-15T18:54:39Z"
+		},
+		{
+			"checksumSHA1": "MTRW5w1fGNY0KEKHo98/I9D8LsA=",
+			"path": "golang.org/x/sync/semaphore",
+			"revision": "cd5d95a43a6e21273425c7ae415d3df9ea832eeb",
+			"revisionTime": "2019-08-30T23:09:31Z"
 		},
 		{
 			"checksumSHA1": "CQfE0XDYpqkQ/o+Hr3yEEIGRwTo=",

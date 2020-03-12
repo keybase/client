@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -28,8 +30,7 @@ func NewLogHandler(xp rpc.Transporter, logReg *logRegister, g *libkb.GlobalConte
 }
 
 func (h *LogHandler) RegisterLogger(_ context.Context, arg keybase1.RegisterLoggerArg) (err error) {
-	h.G().Log.Debug("LogHandler::RegisterLogger: %+v", arg)
-	defer h.G().Trace("LogHandler::RegisterLogger", func() error { return err })()
+	defer h.G().Trace(fmt.Sprintf("LogHandler::RegisterLogger %+v", arg), func() error { return err })()
 
 	if h.logReg == nil {
 		// if not a daemon, h.logReg will be nil
@@ -40,4 +41,10 @@ func (h *LogHandler) RegisterLogger(_ context.Context, arg keybase1.RegisterLogg
 	ui := &LogUI{sessionID: arg.SessionID, cli: h.getLogUICli()}
 	err = h.logReg.RegisterLogger(arg, ui)
 	return err
+}
+
+func (h *LogHandler) PerfLogPoint(ctx context.Context, arg keybase1.PerfLogPointArg) (err error) {
+	defer h.G().Trace("LogHandler::PerfLogPoint", func() error { return err })()
+	h.G().PerfLog.CDebugf(ctx, arg.Msg)
+	return nil
 }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Props} from './oriented-image.types'
+import {Props} from './oriented-image'
 import Image from './image'
 
 // OrientedImage will render a NativeImage.

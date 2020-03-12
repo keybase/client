@@ -1183,6 +1183,20 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	rev2Bundle.Revision = 4
 	err = remote.Post(mctx, *rev2Bundle)
 	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
+
+	for i := 0; i < 10; i++ {
+		// turn mobile only off
+		err = tc2.Srv.SetAccountAllDevicesLocal(context.TODO(), stellar1.SetAccountAllDevicesLocalArg{
+			AccountID: a1,
+		})
+		require.NoError(t, err)
+
+		// and on
+		err = tc2.Srv.SetAccountMobileOnlyLocal(context.TODO(), stellar1.SetAccountMobileOnlyLocalArg{
+			AccountID: a1,
+		})
+		require.NoError(t, err)
+	}
 }
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then

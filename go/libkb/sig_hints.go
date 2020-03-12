@@ -30,7 +30,7 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 		return nil, nil
 	}
 	sh = &SigHint{}
-	sh.sigID, err = GetSigID(jw.AtKey("sig_id"), true)
+	sh.sigID, err = GetSigID(jw.AtKey("sig_id"))
 	sh.remoteID, _ = jw.AtKey("remote_id").GetString()
 	sh.apiURL, _ = jw.AtKey("api_url").GetString()
 	sh.humanURL, _ = jw.AtKey("human_url").GetString()
@@ -52,7 +52,7 @@ func NewVerifiedSigHint(sigID keybase1.SigID, remoteID, apiURL, humanURL, checkT
 
 func (sh SigHint) MarshalToJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	_ = ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
+	_ = ret.SetKey("sig_id", jsonw.NewString(sh.sigID.String()))
 	_ = ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
 	_ = ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
 	_ = ret.SetKey("human_url", jsonw.NewString(sh.humanURL))

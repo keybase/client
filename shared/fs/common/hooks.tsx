@@ -16,6 +16,15 @@ import {NavigationEventPayload, SwitchActions} from '@react-navigation/core'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 
+const noop = () => {}
+const useDispatchWithKbfsDaemonConnectoinGuard = () => {
+  const isConnected = Container.useSelector(
+    state => state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
+  )
+  const dispatch = Container.useDispatch()
+  return isConnected ? dispatch : noop
+}
+
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
@@ -30,7 +39,7 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
 }
 
 const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
-  const dispatch = Container.useDispatch()
+  const dispatch = useDispatchWithKbfsDaemonConnectoinGuard()
   React.useEffect(() => {
     const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribeNonPath({subscriptionID, topic}))
@@ -87,17 +96,9 @@ export const useFsTlf = (path: Types.Path) => {
   }, [active, dispatch, tlfPath])
 }
 
-export const useFsJournalStatus = () => {
-  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.journalStatus)
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    dispatch(FsGen.createPollJournalStatus())
-  }, [dispatch])
-}
-
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
-  const dispatch = Container.useDispatch()
+  const dispatch = useDispatchWithKbfsDaemonConnectoinGuard()
   React.useEffect(() => {
     dispatch(FsGen.createGetOnlineStatus())
   }, [dispatch])

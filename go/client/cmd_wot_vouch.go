@@ -51,7 +51,8 @@ func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "vouch", c)
 		},
-		Flags: flags,
+		Flags:    flags,
+		Unlisted: true,
 	}
 }
 
@@ -61,29 +62,43 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	}
 	c.assertion = ctx.Args()[0]
 	c.message = ctx.String("message")
+	if len(c.message) == 0 {
+		return errors.New("vouch requires an attestation e.g. `-m \"Alice plays the banjo\"`")
+	}
 	kf := ctx.Int("known-for")
 	if kf > 0 {
 		c.confidence.KnownOnKeybaseDays = kf
 	}
 	via := ctx.String("verified-via")
 	if via != "" {
-		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToUpper(via)]
+		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToLower(via)]
 		if !ok {
 			return errors.New("invalid verified-via option")
 		}
 		c.confidence.UsernameVerifiedVia = viaType
 	}
-	c.confidence.VouchedBy = strings.Split(ctx.String("vouched-by"), ",")
-	c.confidence.Other = ctx.String("other")
-
+	vouchingUsernamesRaw := ctx.String("verified-via")
+	if vouchingUsernamesRaw != "" {
+		vouchingUsernames := strings.Split(vouchingUsernamesRaw, ",")
+		var vouchers []keybase1.UID
+		for _, username := range vouchingUsernames {
+			uid := libkb.UsernameToUID(username)
+			vouchers = append(vouchers, uid)
+		}
+		c.confidence.VouchedBy = vouchers
+	}
+	other := ctx.String("other")
+	if other != "" {
+		c.confidence.Other = ctx.String("other")
+	}
 	return nil
 }
 
 func (c *cmdWotVouch) Run() error {
 	arg := keybase1.WotVouchCLIArg{
-		Assertion:    c.assertion,
-		Attestations: []string{c.message},
-		Confidence:   c.confidence,
+		Assertion:  c.assertion,
+		VouchTexts: []string{c.message},
+		Confidence: c.confidence,
 	}
 
 	cli, err := GetWebOfTrustClient(c.G())

@@ -15,7 +15,7 @@ const Username = ({mode, lastWriter}: {mode: LastModifiedLineProps['mode']; last
   ) : (
     <Kb.ConnectedUsernames
       type={mode === 'menu' ? 'BodyTinyLink' : 'BodySmallSecondaryLink'}
-      usernames={[lastWriter]}
+      usernames={lastWriter}
       inline={true}
       onUsernameClicked="profile"
       underline={true}

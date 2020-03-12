@@ -529,6 +529,9 @@ export type IconType =
   | 'icon-illustration-teams-180'
   | 'icon-illustration-teams-216'
   | 'icon-illustration-teams-80'
+  | 'icon-illustration-teams-channels-460-96'
+  | 'icon-illustration-teams-feature-profile-460-64'
+  | 'icon-illustration-teams-subteams-460-96'
   | 'icon-illustration-welcome-96'
   | 'icon-illustration-zen-240-180'
   | 'icon-invite-link-48'
@@ -819,6 +822,16 @@ export type IconType =
   | 'icon-team-placeholder-avatar-80'
   | 'icon-team-placeholder-avatar-960'
   | 'icon-team-sparkles-64-40'
+  | 'icon-teams-add-email-list-64'
+  | 'icon-teams-add-number-list-64'
+  | 'icon-teams-add-phone-contacts-64'
+  | 'icon-teams-add-search-64'
+  | 'icon-teams-size-big-64'
+  | 'icon-teams-size-small-64'
+  | 'icon-teams-type-business-64'
+  | 'icon-teams-type-community-64'
+  | 'icon-teams-type-notsure-64'
+  | 'icon-teams-type-squad-64'
   | 'icon-terminal-32'
   | 'icon-terminal-48'
   | 'icon-twitter-logo-16'
@@ -1044,6 +1057,8 @@ export type IconType =
   | 'release-5.1.0-blocking'
   | 'release-5.2.0-bots'
   | 'release-5.2.0-crypto'
+  | 'release-5.3.0-ipad'
+  | 'release-5.3.0-open-teams'
 
 export const iconMeta: {[k in IconType]: IconMeta} = {
   'icon-GPG-export': {
@@ -5714,6 +5729,30 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-illustration-teams-80.png')
     },
   },
+  'icon-illustration-teams-channels-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-channels-460-96.png')
+    },
+  },
+  'icon-illustration-teams-feature-profile-460-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-feature-profile-460-64.png')
+    },
+  },
+  'icon-illustration-teams-subteams-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-subteams-460-96.png')
+    },
+  },
   'icon-illustration-welcome-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -8622,6 +8661,86 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-team-sparkles-64-40.png')
     },
   },
+  'icon-teams-add-email-list-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-add-email-list-64.png')
+    },
+  },
+  'icon-teams-add-number-list-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-add-number-list-64.png')
+    },
+  },
+  'icon-teams-add-phone-contacts-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-add-phone-contacts-64.png')
+    },
+  },
+  'icon-teams-add-search-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-add-search-64.png')
+    },
+  },
+  'icon-teams-size-big-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-size-big-64.png')
+    },
+  },
+  'icon-teams-size-small-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-size-small-64.png')
+    },
+  },
+  'icon-teams-type-business-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-business-64.png')
+    },
+  },
+  'icon-teams-type-community-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-community-64.png')
+    },
+  },
+  'icon-teams-type-notsure-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-notsure-64.png')
+    },
+  },
+  'icon-teams-type-squad-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-type-squad-64.png')
+    },
+  },
   'icon-terminal-32': {
     extension: 'png',
     imagesDir: 'icons',
@@ -9903,6 +10022,22 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/releases/release-5.2.0-crypto.png')
+    },
+  },
+  'release-5.3.0-ipad': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.3.0-ipad.png')
+    },
+  },
+  'release-5.3.0-open-teams': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.3.0-open-teams.png')
     },
   },
 }

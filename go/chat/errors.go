@@ -452,11 +452,12 @@ func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{
 //=============================================================================
 
 type DuplicateTopicNameError struct {
-	TopicName string
+	Conv chat1.ConversationLocal
 }
 
 func (e DuplicateTopicNameError) Error() string {
-	return fmt.Sprintf("channel name %s is already in use", e.TopicName)
+	return fmt.Sprintf("channel name %s is already in use in %v",
+		e.Conv.GetTopicName(), e.Conv.Info.TlfName)
 }
 
 //=============================================================================

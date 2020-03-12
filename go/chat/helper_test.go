@@ -98,7 +98,7 @@ func TestSendTextByName(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
 		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid,
-			chat1.GetThreadReason_GENERAL,
+			chat1.GetThreadReason_GENERAL, nil,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			}, nil)
@@ -143,9 +143,8 @@ func TestTopicNameRace(t *testing.T) {
 
 		// spam create conversation with same name
 		type ncRes struct {
-			convID  chat1.ConversationID
-			created bool
-			err     error
+			convID chat1.ConversationID
+			err    error
 		}
 		topicName := "LOSERS"
 		attempts := 2
@@ -153,10 +152,10 @@ func TestTopicNameRace(t *testing.T) {
 		for i := 0; i < attempts; i++ {
 			go func() {
 				ctx = globals.CtxAddLogTags(ctx, tc.Context())
-				conv, created, err := NewConversation(ctx, tc.Context(), uid, first.TlfName, &topicName,
+				conv, _, err := NewConversation(ctx, tc.Context(), uid, first.TlfName, &topicName,
 					chat1.TopicType_DEV, mt, keybase1.TLFVisibility_PRIVATE,
 					func() chat1.RemoteInterface { return ri }, NewConvFindExistingNormal)
-				retCh <- ncRes{convID: conv.GetConvID(), created: created, err: err}
+				retCh <- ncRes{convID: conv.GetConvID(), err: err}
 			}()
 		}
 		var convID chat1.ConversationID
@@ -165,10 +164,8 @@ func TestTopicNameRace(t *testing.T) {
 			require.NoError(t, res.err)
 			if convID.IsNil() {
 				convID = res.convID
-				require.True(t, res.created)
 			} else {
 				require.Equal(t, convID, res.convID)
-				require.False(t, res.created)
 			}
 		}
 	})

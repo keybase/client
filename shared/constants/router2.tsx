@@ -43,7 +43,7 @@ const findModalRoute = (s: NavState) => {
 // this returns the full path as seen from a stack. So if you pop you'll go up
 // this path stack
 // TODO this depends on our specific nav setup, check for it somehow
-const _getStackPathHelper = (arr: Array<NavState>, s: NavState): Array<NavState> => {
+export const _getStackPathHelper = (arr: Array<NavState>, s: NavState): Array<NavState> => {
   if (!s) return arr
   if (!s.routes) return arr
   const route = s.routes[s.index]

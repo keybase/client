@@ -5,6 +5,7 @@ import shallowEqual from 'shallowequal'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import {AllowedColors} from '../../../../common-adapters/text'
+import {memoize} from '../../../../util/memoize'
 
 type Props = {
   channelname?: string
@@ -15,7 +16,7 @@ type Props = {
   iconHoverColor: string
   isSelected: boolean
   onForceHideMenu: () => void
-  participants: Array<string>
+  participants: Array<string> | string
   showBold: boolean
   showGear: boolean
   backgroundColor?: string
@@ -36,8 +37,28 @@ class _SimpleTopLine extends React.Component<Props> {
     })
   }
 
+  private nameContainerStyle = memoize((showBold, usernameColor, backgroundColor) => {
+    return Styles.collapseStyles([
+      styles.name,
+      showBold && styles.bold,
+      {color: usernameColor},
+      Styles.isMobile && {backgroundColor},
+    ])
+  })
+
+  private teamContainerStyle = memoize((showBold, usernameColor) => {
+    return Styles.collapseStyles([styles.teamTextStyle, showBold && styles.bold, {color: usernameColor}])
+  })
+
+  private timestampStyle = memoize((showBold: boolean, subColor: undefined | boolean | string) => {
+    return Styles.collapseStyles([
+      showBold && styles.bold,
+      styles.timestamp,
+      subColor !== false && {color: subColor},
+    ])
+  })
+
   render() {
-    const boldStyle = this.props.showBold ? styles.bold : null
     return (
       <Kb.Box style={styles.container}>
         {this.props.showGear && (
@@ -48,6 +69,7 @@ class _SimpleTopLine extends React.Component<Props> {
               this.props.setShowingMenu(false)
               this.props.onForceHideMenu()
             }}
+            hasHeader={true}
             isSmallTeam={true}
             conversationIDKey={this.props.conversationIDKey}
           />
@@ -58,11 +80,7 @@ class _SimpleTopLine extends React.Component<Props> {
               <Kb.Box2 direction="horizontal" fullWidth={true}>
                 <Kb.Text
                   type="BodySemibold"
-                  style={Styles.collapseStyles([
-                    styles.teamTextStyle,
-                    boldStyle,
-                    {color: this.props.usernameColor},
-                  ])}
+                  style={this.teamContainerStyle(this.props.showBold, this.props.usernameColor)}
                 >
                   {this.props.teamname + '#' + this.props.channelname}
                 </Kb.Text>
@@ -78,15 +96,17 @@ class _SimpleTopLine extends React.Component<Props> {
                 colorFollowing={false}
                 colorYou={false}
                 commaColor={this.props.usernameColor}
-                containerStyle={Styles.collapseStyles([
-                  styles.name,
-                  boldStyle,
-                  Styles.isMobile
-                    ? {backgroundColor: this.props.backgroundColor, color: this.props.usernameColor}
-                    : {color: this.props.usernameColor},
-                ])}
+                containerStyle={this.nameContainerStyle(
+                  this.props.showBold,
+                  this.props.usernameColor,
+                  Styles.isMobile && this.props.backgroundColor
+                )}
                 usernames={this.props.participants}
-                title={this.props.participants.join(', ')}
+                title={
+                  typeof this.props.participants === 'string'
+                    ? this.props.participants
+                    : this.props.participants.join(', ')
+                }
               />
             )}
           </Kb.Box>
@@ -95,11 +115,10 @@ class _SimpleTopLine extends React.Component<Props> {
           key="timestamp"
           type="BodyTiny"
           className={Styles.classNames({'conversation-timestamp': this.props.showGear})}
-          style={Styles.collapseStyles([
-            boldStyle,
-            styles.timestamp,
-            (!this.props.hasBadge || this.props.isSelected) && {color: this.props.subColor},
-          ])}
+          style={this.timestampStyle(
+            this.props.showBold,
+            (!this.props.hasBadge || this.props.isSelected) && this.props.subColor
+          )}
         >
           {this.props.timestamp}
         </Kb.Text>

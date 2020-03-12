@@ -6,26 +6,15 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
-  audioAttachments: true,
-  botUI: false,
-  chatIndexProfilingEnabled: false,
   connectThrashCheck: true,
-  cryptoTab: true,
-  dbCleanEnabled: false,
-  fastAccountSwitch: true,
   foldersInProfileTab: true,
-  lagRadar: false,
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,
-  openTeamSearch: true,
-  outOfDateBanner: true,
-  proofProviders: true,
-  stellarExternalPartners: false,
   tabletSupport: false,
   teamInvites: false,
-  teamsRedesign: false,
-  userBlocking: true,
+  teamsRedesign: true,
   webOfTrust: false,
+  whyDidYouRender: false,
 }
 
 console.warn('feature flag mock in effect')

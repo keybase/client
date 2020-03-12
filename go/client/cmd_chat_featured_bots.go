@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/flexibletable"
@@ -113,7 +114,7 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: emoji.Sprintf(bot.ExtendedDescriptionRaw)},
+				Content:   flexibletable.SingleCell{Item: strings.ReplaceAll(emoji.Sprintf(bot.ExtendedDescriptionRaw), "\n", " ") + "\n\n"},
 			},
 		})
 		if err != nil {

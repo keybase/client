@@ -4,6 +4,7 @@
 package service
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"errors"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments/progress"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -28,10 +30,13 @@ const saltpackExtension = ".saltpack"
 const encryptedSuffix = ".encrypted"
 const signedSuffix = ".signed"
 const txtExtension = ".txt"
+const zipExtension = ".zip"
 const encryptedExtension = encryptedSuffix + saltpackExtension
 const signedExtension = signedSuffix + saltpackExtension
 const decryptedExtension = ".decrypted"
 const verifiedExtension = ".verified"
+const encryptedDirSuffix = zipExtension + encryptedSuffix
+const signedDirSuffix = zipExtension + signedSuffix
 
 type SaltpackHandler struct {
 	*BaseHandler
@@ -181,7 +186,8 @@ func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase
 	return h.encryptString(ctx, arg.SessionID, arg.Plaintext, eopts)
 }
 
-func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, arg keybase1.SaltpackEncryptStringToTextFileArg) (keybase1.SaltpackEncryptFileResult, error) {
+func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, arg keybase1.SaltpackEncryptStringToTextFileArg) (r keybase1.SaltpackEncryptFileResult, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
 	eopts := h.encryptOptions(arg.Opts)
 	res, err := h.encryptString(ctx, arg.SessionID, arg.Plaintext, eopts)
@@ -245,7 +251,8 @@ func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.S
 	return h.signString(ctx, arg.SessionID, arg.Plaintext)
 }
 
-func (h *SaltpackHandler) SaltpackSignStringToTextFile(ctx context.Context, arg keybase1.SaltpackSignStringToTextFileArg) (string, error) {
+func (h *SaltpackHandler) SaltpackSignStringToTextFile(ctx context.Context, arg keybase1.SaltpackSignStringToTextFileArg) (s string, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
 	signed, err := h.signString(ctx, arg.SessionID, arg.Plaintext)
 	if err != nil {
@@ -294,15 +301,28 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 	return res, nil
 }
 
-func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
+func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (r keybase1.SaltpackEncryptFileResult, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
+	dir, err := isDir(arg.Filename)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+
+	if dir {
+		return h.saltpackEncryptDirectory(ctx, arg)
+	}
+	return h.saltpackEncryptFile(ctx, arg)
+}
+
+func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := boxFilename(arg.Filename, encryptedSuffix)
+	outFilename, bw, err := boxFilename(arg.Filename, encryptedSuffix, arg.DestinationDir)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
@@ -320,12 +340,14 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 
 	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("encrypt error, so removing %q", outFilename)
+		h.G().Log.Debug("encrypt error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			transformSaltpackError(&clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			transformSaltpackError(&rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
@@ -337,7 +359,66 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 	}, nil
 }
 
-func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.SaltpackDecryptFileArg) (keybase1.SaltpackFileResult, error) {
+func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
+	h.G().Log.Debug("encrypting directory")
+
+	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
+		return keybase1.SaltpackEncryptFileResult{}, errors.New("source and destination directories cannot be the same")
+	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
+
+	progReporter := func(bytesComplete, bytesTotal int64) {
+		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
+	}
+	prog, err := newDirProgressWriter(progReporter, arg.Filename)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+
+	pipeRead := zipDir(arg.Filename, prog)
+
+	outFilename, bw, err := boxFilename(arg.Filename, encryptedDirSuffix, arg.DestinationDir)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+	defer bw.Close()
+
+	opts := h.encryptOptions(arg.Opts)
+	opts.Binary = true
+	opts.UseDeviceKeys = true
+
+	earg := &engine.SaltpackEncryptArg{
+		Opts:   opts,
+		Sink:   bw,
+		Source: pipeRead,
+	}
+
+	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
+	if err != nil {
+		h.G().Log.Debug("encrypt error, so removing output file")
+		if clErr := bw.Close(); clErr != nil {
+			transformSaltpackError(&clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			transformSaltpackError(&rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
+		}
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
+
+	return keybase1.SaltpackEncryptFileResult{
+		UsedUnresolvedSBS:      usedSBS,
+		UnresolvedSBSAssertion: assertion,
+		Filename:               outFilename,
+	}, nil
+}
+
+func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.SaltpackDecryptFileArg) (r keybase1.SaltpackFileResult, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_DECRYPT, arg.EncryptedFilename)
 	if err != nil {
@@ -345,7 +426,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := unboxFilename(arg.EncryptedFilename, decryptedExtension)
+	outFilename, bw, err := unboxFilename(arg.EncryptedFilename, decryptedExtension, arg.DestinationDir)
 	if err != nil {
 		return keybase1.SaltpackFileResult{}, err
 	}
@@ -358,17 +439,19 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("decrypt error, so removing %q", outFilename)
+		h.G().Log.Debug("decrypt error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			transformSaltpackError(&clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			transformSaltpackError(&rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return keybase1.SaltpackFileResult{}, err
 	}
 
-	r := keybase1.SaltpackFileResult{
+	r = keybase1.SaltpackFileResult{
 		Info:              info,
 		DecryptedFilename: outFilename,
 		Signed:            signed,
@@ -376,15 +459,28 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 	return r, nil
 }
 
-func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
+func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (s string, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
+	dir, err := isDir(arg.Filename)
+	if err != nil {
+		return "", err
+	}
+
+	if dir {
+		return h.saltpackSignDirectory(ctx, arg)
+	}
+	return h.saltpackSignFile(ctx, arg)
+}
+
+func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_SIGN, arg.Filename)
 	if err != nil {
 		return "", err
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := boxFilename(arg.Filename, signedSuffix)
+	outFilename, bw, err := boxFilename(arg.Filename, signedSuffix, arg.DestinationDir)
 	if err != nil {
 		return "", err
 	}
@@ -399,12 +495,14 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 	}
 
 	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
-		h.G().Log.Debug("sign error, so removing %q", outFilename)
+		h.G().Log.Debug("sign error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			transformSaltpackError(&clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			transformSaltpackError(&rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return "", err
 	}
@@ -412,7 +510,60 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 	return outFilename, nil
 }
 
-func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
+func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
+	h.G().Log.Debug("signing directory")
+
+	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
+		return "", errors.New("source and destination directories cannot be the same")
+	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
+
+	progReporter := func(bytesComplete, bytesTotal int64) {
+		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
+	}
+
+	prog, err := newDirProgressWriter(progReporter, arg.Filename)
+	if err != nil {
+		return "", err
+	}
+
+	pipeRead := zipDir(arg.Filename, prog)
+
+	outFilename, bw, err := boxFilename(arg.Filename, signedDirSuffix, arg.DestinationDir)
+	if err != nil {
+		return "", err
+	}
+	defer bw.Close()
+
+	earg := &engine.SaltpackSignArg{
+		Sink:   bw,
+		Source: pipeRead,
+		Opts: keybase1.SaltpackSignOptions{
+			Binary: true,
+		},
+	}
+
+	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
+		h.G().Log.Debug("sign error, so removing output file")
+		if clErr := bw.Close(); clErr != nil {
+			transformSaltpackError(&clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			transformSaltpackError(&rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
+		}
+		return "", err
+	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
+
+	return outFilename, nil
+}
+
+func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.SaltpackVerifyFileArg) (r keybase1.SaltpackVerifyFileResult, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_VERIFY, arg.SignedFilename)
 	if err != nil {
@@ -420,7 +571,7 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := unboxFilename(arg.SignedFilename, verifiedExtension)
+	outFilename, bw, err := unboxFilename(arg.SignedFilename, verifiedExtension, arg.DestinationDir)
 	if err != nil {
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
@@ -433,12 +584,14 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 
 	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("verify error, so removing %q", outFilename)
+		h.G().Log.Debug("verify error, so removing ouput file")
 		if clErr := bw.Close(); clErr != nil {
-			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+			transformSaltpackError(&clErr)
+			h.G().Log.Debug("error closing bw for output file: %s", clErr)
 		}
 		if rmErr := os.Remove(outFilename); rmErr != nil {
-			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+			transformSaltpackError(&rmErr)
+			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
@@ -455,12 +608,14 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 	return res, nil
 }
 
-func (h *SaltpackHandler) SaltpackSaveCiphertextToFile(ctx context.Context, arg keybase1.SaltpackSaveCiphertextToFileArg) (string, error) {
+func (h *SaltpackHandler) SaltpackSaveCiphertextToFile(ctx context.Context, arg keybase1.SaltpackSaveCiphertextToFileArg) (s string, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
 	return h.writeStringToFile(ctx, arg.Ciphertext, txtExtension+encryptedExtension)
 }
 
-func (h *SaltpackHandler) SaltpackSaveSignedMsgToFile(ctx context.Context, arg keybase1.SaltpackSaveSignedMsgToFileArg) (string, error) {
+func (h *SaltpackHandler) SaltpackSaveSignedMsgToFile(ctx context.Context, arg keybase1.SaltpackSaveSignedMsgToFileArg) (s string, err error) {
+	defer transformSaltpackError(&err)
 	ctx = libkb.WithLogTag(ctx, "SP")
 	return h.writeStringToFile(ctx, arg.SignedMsg, txtExtension+signedExtension)
 }
@@ -537,8 +692,11 @@ func (h *SaltpackHandler) frontendSign(ctx context.Context, sessionID int, arg *
 	return engine.RunEngine2(m, eng)
 }
 
-func boxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
+func boxFilename(inFilename, suffix, destinationDir string) (string, *libkb.BufferWriter, error) {
 	dir, file := filepath.Split(inFilename)
+	if destinationDir != "" {
+		dir = destinationDir
+	}
 	withExt := filepath.Join(dir, file+suffix+saltpackExtension)
 	f, err := os.Create(withExt)
 	if err != nil {
@@ -557,8 +715,13 @@ func boxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error)
 //
 // If inFilename doesn't have a saltpack suffix, it uses the suffix that is passed
 // in, so it would be <filename>.decrypted or <filename>.verified.
-func unboxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
+//
+// If destinationDir is empty, it will use the directory of inFilename.
+func unboxFilename(inFilename, suffix, destinationDir string) (string, *libkb.BufferWriter, error) {
 	dir, file := filepath.Split(inFilename)
+	if destinationDir != "" {
+		dir = destinationDir
+	}
 	// default desired filename is the input filename plus the suffix.
 	desiredFilename := file + suffix
 
@@ -708,4 +871,146 @@ func (sf *sourceFile) Close() error {
 
 func (sf *sourceFile) reporter(bytesComplete, bytesTotal int64) {
 	sf.G().NotifyRouter.HandleSaltpackOperationProgress(context.Background(), sf.op, sf.filename, bytesComplete, bytesTotal)
+}
+
+func isDir(filename string) (bool, error) {
+	s, err := os.Stat(filename)
+	if err != nil {
+		return false, err
+	}
+	return s.IsDir(), nil
+}
+
+func dirTotalSize(filename string) (int64, error) {
+	var total int64
+	err := filepath.Walk(filename, func(path string, info os.FileInfo, inErr error) error {
+		if inErr != nil {
+			return inErr
+		}
+		if info.IsDir() {
+			return nil
+		}
+		total += info.Size()
+		return nil
+	})
+	return total, err
+}
+
+// zipDir will create a zip archive of everything in directory suitablie for streaming.
+// Read the data of the zip archive from the returned io.ReadCloser.
+func zipDir(directory string, prog *progress.ProgressWriter) io.ReadCloser {
+	// make a pipe so we can give saltpack engines a reader for the zip source
+	pipeRead, pipeWrite := io.Pipe()
+
+	// connect a zip archiver to the writer side of the pipe
+	w := zip.NewWriter(pipeWrite)
+
+	// given a directory like "a/b/c/d" or "/opt/blah/d", we want the files in the
+	// zip file to recreate just the final directory.  In other words, d/, d/1/, d/1/000.log
+	// and *not* a/b/c/d/, a/b/c/d/1/, a/b/c/d/1/000.log.
+	parent := filepath.Dir(directory)
+	stripParent := func(s string) string {
+		return strings.TrimPrefix(s, parent+string(filepath.Separator))
+	}
+
+	go func() {
+		err := filepath.Walk(directory, func(path string, info os.FileInfo, inErr error) (outErr error) {
+			defer transformSaltpackError(&outErr)
+			if inErr != nil {
+				return inErr
+			}
+
+			stripped := stripParent(path)
+
+			header, err := zip.FileInfoHeader(info)
+			if err != nil {
+				return err
+			}
+			header.Method = zip.Deflate
+
+			if info.IsDir() {
+				// make a directory by calling Create with a filename ending in a separator.
+				header.Name = stripped + string(filepath.Separator)
+				_, err := w.CreateHeader(header)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
+			if (info.Mode() & os.ModeSymlink) != 0 {
+				// figure out the destination of the link
+				dest, err := os.Readlink(path)
+				if err != nil {
+					return err
+				}
+				header.Name = stripped
+				zw, err := w.CreateHeader(header)
+				if err != nil {
+					return err
+				}
+				// the body of the entry is the link destination
+				_, err = zw.Write([]byte(dest))
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
+			// make a regular file and copy all the data into it.
+			header.Name = stripped
+			zw, err := w.CreateHeader(header)
+			if err != nil {
+				return err
+			}
+			f, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			tr := io.TeeReader(bufio.NewReader(f), prog)
+			_, err = io.Copy(zw, tr)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		// close everything
+		closeErr := w.Close()
+		if closeErr != nil && err == nil {
+			err = closeErr
+		}
+		_ = pipeWrite.CloseWithError(err)
+	}()
+
+	return pipeRead
+}
+
+func newDirProgressWriter(p types.ProgressReporter, dir string) (*progress.ProgressWriter, error) {
+	// for progress purposes, we need to know total size of everything in the directory
+	size, err := dirTotalSize(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	return progress.NewProgressWriterWithUpdateDuration(p, size, 80*time.Millisecond), nil
+}
+
+func transformSaltpackError(err *error) {
+	if err == nil {
+		return
+	}
+	if *err == nil {
+		return
+	}
+
+	switch e := (*err).(type) {
+	case *os.PathError:
+		// this should remove the path from the error
+		*err = e.Unwrap()
+	default:
+		// golangci-lint/gocritic, you really drive me crazy sometimes...
+	}
 }

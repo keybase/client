@@ -92,9 +92,10 @@ export type Props = {
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   // Desktop only
+  allowKeyboardEvents?: boolean // By default keybaord events won't fire in textarea or input elements. Adds 'mousetrap' class to enable keyboard events.
   onClick?: (event: Event) => void
-  onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
-  onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyDown?: (event: React.KeyboardEvent) => void
+  onKeyUp?: (event: React.KeyboardEvent) => void
   // Mobile only
   children?: React.ReactNode
   allowFontScaling?: boolean
@@ -146,7 +147,7 @@ export type TextInfo = {
 export type InternalProps = {} & DefaultProps & Props
 
 declare class PlainInput extends React.Component<Props> {
-  defaultProps: DefaultProps
+  static defaultProps: DefaultProps
   blur: () => void
   focus: () => void
   isFocused: () => boolean

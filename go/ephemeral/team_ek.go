@@ -130,7 +130,7 @@ func prepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 }
 
 func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
+	merkleRoot libkb.MerkleRoot, forceCreateGeneration *keybase1.EkGeneration) (metadata keybase1.TeamEkMetadata, err error) {
 	defer mctx.TraceTimed("publishNewTeamEK", func() error { return err })()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
@@ -156,6 +156,13 @@ func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	sig, boxes, teamEKMetadata, myBox, err := prepareNewTeamEK(mctx, teamID, signingKey, membersMetadata, merkleRoot)
 	if err != nil {
 		return metadata, err
+	}
+
+	if forceCreateGeneration != nil {
+		if *forceCreateGeneration+1 != teamEKMetadata.Generation {
+			return metadata, fmt.Errorf("Not posting new teamEK, expected %d, found %d", *forceCreateGeneration+1, teamEKMetadata.Generation)
+		}
+		mctx.Debug("forceCreateGeneration set to: %d", *forceCreateGeneration)
 	}
 
 	if err = postNewTeamEK(mctx, teamID, sig, boxes); err != nil {
@@ -309,7 +316,7 @@ func ForcePublishNewTeamEKForTesting(mctx libkb.MetaContext, teamID keybase1.Tea
 	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
 	defer mctx.TraceTimed("ForcePublishNewTeamEKForTesting", func() error { return err })()
 	err = teamEKRetryWrapper(mctx, func() error {
-		metadata, err = publishNewTeamEK(mctx, teamID, merkleRoot)
+		metadata, err = publishNewTeamEK(mctx, teamID, merkleRoot, nil)
 		return err
 	})
 	return metadata, err

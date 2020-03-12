@@ -1,10 +1,12 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as TeamsTypes from '../../../../constants/types/teams'
+import * as TeamsConstants from '../../../../constants/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Waiting from '../../../../constants/waiting'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -53,24 +55,54 @@ const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
     .map(teamname => ({fullName: '', teamname, username: ''}))
 })
 
-const noChannel: Array<string> = []
-let _channelSuggestions: Array<string> = noChannel
+const noChannel: Array<{channelname: string}> = []
+let _channelSuggestions: Array<{channelname: string; teamname?: string}> = noChannel
 
-const getChannelSuggestions = (state: Container.TypedState, teamname: string, teamID: TeamsTypes.TeamID) => {
+const getChannelSuggestions = (
+  state: Container.TypedState,
+  teamname: string,
+  teamID: TeamsTypes.TeamID,
+  convID?: Types.ConversationIDKey
+) => {
   if (!teamname) {
-    return noChannel
+    // this is an impteam, so get mutual teams from state
+    if (!convID) {
+      return noChannel
+    }
+    const mutualTeams = state.chat2.mutualTeamMap.get(convID)
+    if (!mutualTeams) {
+      return noChannel
+    }
+    return mutualTeams.reduce<Array<{channelname: string; teamname: string}>>((arr, id) => {
+      const teamname = TeamsConstants.getTeamNameFromID(state, id)
+      if (!teamname) {
+        return arr
+      }
+      const channels: TeamsTypes.ChannelInfo[] = Array.from(
+        state.teams.teamIDToChannelInfos.get(id)?.values() ?? []
+      )
+
+      return arr.concat(
+        [...channels.values()].map(conv => ({
+          channelname: conv.channelname,
+          teamname,
+        }))
+      )
+    }, [])
   }
   // First try channelinfos (all channels in a team), then try inbox (the
   // partial list of channels that you have joined).
   const convs = state.teams.teamIDToChannelInfos.get(teamID)
-  let suggestions: Array<string>
+  let suggestions: Array<{channelname: string}>
   if (convs) {
-    suggestions = [...convs.values()].map(conv => conv.channelname)
+    suggestions = [...convs.values()].map(conv => ({
+      channelname: conv.channelname,
+    }))
   } else {
-    suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<string>>((arr, t) => {
+    suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>((arr, t) => {
       if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
         if (t.channel.teamname === teamname) {
-          arr.push(t.channel.channelname)
+          arr.push({channelname: t.channel.channelname})
         }
       }
       return arr
@@ -121,6 +153,7 @@ export default Container.namedConnect(
       conversationIDKey,
       editText: editInfo ? editInfo.text : '',
       explodingModeSeconds,
+      infoPanelShowing: state.chat2.infoPanelShowing,
       isActiveForFocus: state.chat2.focus === null,
       isEditExploded: editInfo ? editInfo.exploded : false,
       isExploding,
@@ -137,7 +170,12 @@ export default Container.namedConnect(
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
-      suggestChannels: getChannelSuggestions(state, teamname, meta.teamID),
+      suggestChannels: getChannelSuggestions(state, teamname, meta.teamID, conversationIDKey),
+      suggestChannelsLoading: Waiting.anyWaiting(
+        state,
+        TeamsConstants.getChannelsWaitingKey(meta.teamID),
+        Constants.waitingKeyMutualTeams(conversationIDKey)
+      ),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
       suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -203,6 +241,8 @@ export default Container.namedConnect(
       conversationIDKey &&
       dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
+    onChannelSuggestionsTriggered: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey})),
     onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
@@ -244,6 +284,7 @@ export default Container.namedConnect(
         }
         return ret
       },
+      infoPanelShowing: stateProps.infoPanelShowing,
       isActiveForFocus: stateProps.isActiveForFocus,
       isEditExploded: stateProps.isEditExploded,
       isEditing: !!stateProps._editOrdinal,
@@ -254,6 +295,8 @@ export default Container.namedConnect(
       onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
       onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
       onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
+      onChannelSuggestionsTriggered: () =>
+        dispatchProps.onChannelSuggestionsTriggered(stateProps.conversationIDKey),
       onEditLastMessage: () =>
         dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
       onFilePickerError: dispatchProps.onFilePickerError,
@@ -321,6 +364,7 @@ export default Container.namedConnect(
       suggestBotCommands: stateProps.suggestBotCommands,
       suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
       suggestChannels: stateProps.suggestChannels,
+      suggestChannelsLoading: stateProps.suggestChannelsLoading,
       suggestCommands: stateProps.suggestCommands,
       suggestTeams: stateProps.suggestTeams,
       suggestUsers: stateProps.suggestUsers,

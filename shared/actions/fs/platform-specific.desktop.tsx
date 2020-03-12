@@ -358,14 +358,15 @@ const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
-const loadUserFileEdits = async (state: TypedState) => {
-  if (state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+const loadUserFileEdits = async (_: TypedState, action: FsGen.UserFileEditsLoadPayload) => {
+  try {
     const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
     return FsGen.createUserFileEditsLoaded({
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
     })
+  } catch (error) {
+    return makeUnretriableErrorHandler(action)(error)
   }
-  return false
 }
 
 const openFilesFromWidget = ({payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => [
@@ -435,7 +436,7 @@ function* platformSpecificSaga() {
     refreshMountDirs
   )
   yield* Saga.chainAction(FsGen.openAndUpload, openAndUpload)
-  yield* Saga.chainAction2([FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged], loadUserFileEdits)
+  yield* Saga.chainAction2([FsGen.userFileEditsLoad], loadUserFileEdits)
   yield* Saga.chainAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield* Saga.chainAction(FsGen.driverEnable, installCachedDokan)
