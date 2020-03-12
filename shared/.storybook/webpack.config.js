@@ -26,7 +26,7 @@ const babelRule = {
 const replacements = require('../mocks').replacements
 const moduleReplacementPlugins = replacements.map(rep => {
   const [regex, replacement] = rep
-  return new webpack.NormalModuleReplacementPlugin(regex, __dirname + replacement + '.tsx')
+  return new webpack.NormalModuleReplacementPlugin(regex, __dirname + '/../' + replacement + '.tsx')
 })
 module.exports = ({config, mode}) => {
   config.resolve = {

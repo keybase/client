@@ -39,7 +39,9 @@ module.exports = (async () => {
     if (storybook === 'storybook') {
       replacements.forEach(rep => {
         const [regex, replacement] = rep
-        newModuleName = newModuleName.replace(regex, replacement)
+        if (regex.match(newModuleName)) {
+          newModuleName = `./${replacement}`
+        }
       })
     }
     // To prevent the metro resolver from just turning around and calling us

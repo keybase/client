@@ -209,7 +209,7 @@ const makeRows = (
       break
     case 'channels': {
       rows.push({key: 'channel-header', type: 'channel-header'})
-      let channels: Array<{
+      const channels: Array<{
         channel: ChatTypes.ConversationMeta
         conversationIDKey: ChatTypes.ConversationIDKey
       }> = []

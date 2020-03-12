@@ -17,8 +17,10 @@ type Props = {
 }
 
 const getChannels = memoize(
-  (channelMetas: Map<Types.ConversationIDKey, Types.ConversationMeta>, searchText: string) =>
-    [...channelMetas.values()]
+  (channelMetas: Map<Types.ConversationIDKey, Types.ConversationMeta>, searchText: string) => {
+    const matcher = makeInsertMatcher(searchText)
+    const regex = new RegExp(searchText, 'i')
+    return [...channelMetas.values()]
       .filter(({channelname, description}) => {
         if (!searchText) {
           return true // no search text means show all
@@ -26,10 +28,11 @@ const getChannels = memoize(
         return (
           // match channel name for search as subsequence (like the identity modal)
           // match channel desc by strict substring (less noise in results)
-          channelname.match(makeInsertMatcher(searchText)) || description.match(new RegExp(searchText, 'i'))
+          channelname.match(matcher) || description.match(regex)
         )
       })
       .sort((a, b) => a.channelname.localeCompare(b.channelname))
+  }
 )
 
 const toggleChannel = (convID: string, installInConvs: string[]) => {

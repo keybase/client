@@ -26,16 +26,15 @@ module.exports = {
   // These are used in metro.config.js and .storybook/webpack.config.js to mock things out
   // in storybook on mobile and desktop respectively.
   replacements: [
-    [/^electron$/, '/../__mocks__/electron'],
+    [/^electron$/, '__mocks__/electron'],
     // Don't match files that are named `dark-mode.png` accidentally
-    [/dark-mode.tsx/, '/../styles/__mocks__/dark-mode'],
-    [/engine$/, '/../__mocks__/engine'],
-    [/feature-flags/, '/../__mocks__/feature-flags'],
-    [/navigation-hooks/, '/../util/__mocks__/navigation-hooks'],
-    [/route-tree$/, '/../__mocks__/empty'],
-    [/typed-connect/, '/../util/__mocks__/typed-connect'],
-    [/util\/saga/, '/../__mocks__/saga'],
-    // TODO: this is not compatible with both mock places
-    [/channel-hooks/, '/../../teams/common/__mocks__/channel-hooks'],
+    [/dark-mode.tsx/, 'styles/__mocks__/dark-mode'],
+    [/engine$/, '__mocks__/engine'],
+    [/feature-flags/, '__mocks__/feature-flags'],
+    [/navigation-hooks/, 'util/__mocks__/navigation-hooks'],
+    [/route-tree$/, '__mocks__/empty'],
+    [/typed-connect/, 'util/__mocks__/typed-connect'],
+    [/util\/saga/, '__mocks__/saga'],
+    [/channel-hooks/, 'teams/common/__mocks__/channel-hooks'],
   ],
 }

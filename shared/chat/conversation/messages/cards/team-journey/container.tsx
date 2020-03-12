@@ -45,8 +45,10 @@ const TeamJourneyContainer = (props: Props) => {
   let image: Kb.IconType | null = null
   let actions: Array<Action> = []
 
-  // TODO: only call this in the event that it's one of the 2 cards that needs it
-  const channelMetas = useAllChannelMetas(props.teamID)
+  const dontCallRPC =
+    props.message.cardType !== RPCChatTypes.JourneycardType.popularChannels &&
+    props.message.cardType !== RPCChatTypes.JourneycardType.msgNoAnswer
+  const channelMetas = useAllChannelMetas(props.teamID, dontCallRPC)
   // Take the top three channels with most recent activity.
   const joinableStatuses = new Set<ChatTypes.ConversationMeta['membershipType']>([
     // keep in sync with journey_card_manager.go
