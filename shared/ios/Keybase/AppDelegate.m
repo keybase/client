@@ -106,10 +106,10 @@
   // This is a mildly hacky solution to mock out some code when we're in storybook mode.
   // The code that handles this is in `shared/metro.config.js`.
   NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
-  NSString *url = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL fallbackResource:nil];
+  NSURL *url = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL fallbackResource:nil];
   // TEMP
   return [NSURL URLWithString:[[url absoluteString] stringByAppendingString:@"&inlineSourceMap=true" ]];
-  return url
+  return url;
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif

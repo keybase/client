@@ -318,5 +318,3 @@ export default Inbox
 // <Inbox {...p} />
 // </PerfWrapper>
 // )
-export type RowItem = T.RowItem
-export type RowItemSmall = T.RowItemSmall
