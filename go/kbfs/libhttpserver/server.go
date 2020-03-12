@@ -27,7 +27,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const tokenCacheSize = 64
 const fsCacheSize = 64
 
 // Server is a local HTTP server for serving KBFS content over HTTP.
