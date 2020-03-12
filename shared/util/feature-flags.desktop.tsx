@@ -11,7 +11,7 @@ const ff: FeatureFlags = {
   foldersInProfileTab: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
-  tabletSupport: false, // Whether tablet support is public. Changes some UI on non-tablets.
+  tabletSupport: true, // Whether tablet support is public. Changes some UI on non-tablets.
   teamInvites: false,
   teamsRedesign: false,
   webOfTrust: false,
