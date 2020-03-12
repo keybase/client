@@ -8,7 +8,6 @@ export type Props = {
   channelName: string
   errorText: string
   topic: string
-  loadChannelInfo: () => void
   onCancel: () => void
   onSetChannelCreationError: (error: string) => void
   onSave: (channelName: string, topic: string) => void
@@ -34,9 +33,6 @@ class _EditChannel extends React.Component<Props, State> {
   private onSave = () => this.props.onSave(this.state.newChannelName, this.state.newTopic)
 
   componentDidMount() {
-    if (this.props.waitingForGetInfo) {
-      this.props.loadChannelInfo()
-    }
     this.props.onSetChannelCreationError('')
   }
 

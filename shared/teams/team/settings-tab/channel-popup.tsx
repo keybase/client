@@ -1,10 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
-import * as Container from '../../../util/container'
 import {pluralize} from '../../../util/string'
+import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = {
   disabledChannels?: Array<string>
@@ -19,8 +18,8 @@ const ChannelPopup = (props: Props) => {
   const filterLCase = filter.toLowerCase()
   const onChangeFilter = (value: string) => setFilter(value)
 
-  const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
-  const channels = [...channelInfos.values()].map(ci => ci.channelname)
+  const channelMetas = useAllChannelMetas(teamID)
+  const channels = [...channelMetas.values()].map(ci => ci.channelname)
   const channelsFiltered = filter ? channels.filter(c => c.toLowerCase().includes(filterLCase)) : channels
 
   const [selected, setSelected] = React.useState(new Set<string>())

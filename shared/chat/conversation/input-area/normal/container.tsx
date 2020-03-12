@@ -61,7 +61,7 @@ let _channelSuggestions: Array<{channelname: string; teamname?: string}> = noCha
 const getChannelSuggestions = (
   state: Container.TypedState,
   teamname: string,
-  teamID: TeamsTypes.TeamID,
+  _: TeamsTypes.TeamID,
   convID?: Types.ConversationIDKey
 ) => {
   if (!teamname) {
@@ -69,45 +69,37 @@ const getChannelSuggestions = (
     if (!convID) {
       return noChannel
     }
-    const mutualTeams = state.chat2.mutualTeamMap.get(convID)
+    const mutualTeams = (state.chat2.mutualTeamMap.get(convID) ?? []).map(teamID =>
+      TeamsConstants.getTeamNameFromID(state, teamID)
+    )
     if (!mutualTeams) {
       return noChannel
     }
-    return mutualTeams.reduce<Array<{channelname: string; teamname: string}>>((arr, id) => {
-      const teamname = TeamsConstants.getTeamNameFromID(state, id)
-      if (!teamname) {
+    // TODO: maybe we shouldn't rely on this inboxlayout being around?
+    return (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string; teamname: string}>>(
+      (arr, t) => {
+        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+          if (mutualTeams.includes(t.channel.teamname)) {
+            arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+          }
+        }
         return arr
-      }
-      const channels: TeamsTypes.ChannelInfo[] = Array.from(
-        state.teams.teamIDToChannelInfos.get(id)?.values() ?? []
-      )
-
-      return arr.concat(
-        [...channels.values()].map(conv => ({
-          channelname: conv.channelname,
-          teamname,
-        }))
-      )
-    }, [])
+      },
+      []
+    )
   }
-  // First try channelinfos (all channels in a team), then try inbox (the
-  // partial list of channels that you have joined).
-  const convs = state.teams.teamIDToChannelInfos.get(teamID)
-  let suggestions: Array<{channelname: string}>
-  if (convs) {
-    suggestions = [...convs.values()].map(conv => ({
-      channelname: conv.channelname,
-    }))
-  } else {
-    suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>((arr, t) => {
+  // TODO: get all the channels in the team, too, for this
+  const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>(
+    (arr, t) => {
       if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
         if (t.channel.teamname === teamname) {
           arr.push({channelname: t.channel.channelname})
         }
       }
       return arr
-    }, [])
-  }
+    },
+    []
+  )
 
   if (!shallowEqual(_channelSuggestions, suggestions)) {
     _channelSuggestions = suggestions

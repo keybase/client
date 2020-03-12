@@ -4,9 +4,10 @@ import CustomTitle from './custom-title/container'
 import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
+import {useAllChannelMetas} from '../common/channel-hooks'
 import Team, {Sections} from '.'
 import makeRows from './rows'
 import flags from '../../util/feature-flags'
@@ -15,6 +16,7 @@ type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID; initialTab?
 type OwnProps = TabsStateOwnProps & {
   selectedTab: Types.TabKey
   setSelectedTab: (tab: Types.TabKey) => void
+  channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>
 }
 
 const defaultTab: Types.TabKey = 'members'
@@ -31,7 +33,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedTab = ownProps.selectedTab || defaultTab
 
   return {
-    channelInfos: state.teams.teamIDToChannelInfos.get(teamID),
     invitesCollapsed: state.teams.invitesCollapsed,
     selectedTab,
     subteamsFiltered: state.teams.subteamsFiltered,
@@ -56,7 +57,7 @@ const Connected = Container.compose(
       stateProps.yourUsername,
       stateProps.yourOperations,
       stateProps.invitesCollapsed,
-      stateProps.channelInfos,
+      ownProps.channelMetas,
       stateProps.subteamsFiltered
     )
     const sections: Sections = [
@@ -94,21 +95,24 @@ const TabsState = (props: TabsStateOwnProps) => {
   )
 
   const prevTeamID = Container.usePrevious(teamID)
-  const prevSelectedTab = Container.usePrevious(selectedTab)
-
-  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (teamID !== prevTeamID) {
       setSelectedTab(defaultSelectedTab)
     }
   }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
-  React.useEffect(() => {
-    if (selectedTab !== prevSelectedTab && selectedTab === 'channels') {
-      dispatch(TeamsGen.createGetChannels({teamID}))
-    }
-  }, [selectedTab, dispatch, teamID, prevSelectedTab])
 
-  return <Connected {...props} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
+  // Only available as hook, TODO refactor this whole thing in Y2K-1571
+  const dontCallRPC = selectedTab !== 'channels'
+  const channelMetas = useAllChannelMetas(teamID, dontCallRPC)
+
+  return (
+    <Connected
+      {...props}
+      setSelectedTab={setSelectedTab}
+      selectedTab={selectedTab}
+      channelMetas={channelMetas}
+    />
+  )
 }
 
 const newNavigationOptions = () => ({
