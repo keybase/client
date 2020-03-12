@@ -11,6 +11,7 @@ import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
 import {pluralize} from '../../util/string'
+import logger from '../../logger'
 
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
@@ -43,6 +44,7 @@ const AddMembersConfirm = () => {
       },
       err => {
         setWaiting(false)
+        logger.error(err.message)
         setError(err.message)
       }
     )
