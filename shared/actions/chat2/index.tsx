@@ -33,6 +33,8 @@ import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
 import {isIOS} from '../../constants/platform'
 
+import logger from '../../logger'
+
 const onConnect = async () => {
   try {
     await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -58,15 +60,19 @@ const onGetInboxUnverifiedConvs = (action: EngineGen.Chat1ChatUiChatInboxUnverif
 
 let pingCount = 0
 window.NOJIMA = () => {
-  console._log('aaaJSEcho request start', pingCount++)
+  logger.info('aaaJSEcho request start', pingCount++)
   RPCTypes.testEchoRpcPromise().then(() => {
-    console._log('aaaJSEcho request end')
+    logger.info('aaaJSEcho request end')
   })
 }
 
-setInterval(() => {
-  NOJIMA()
-}, 1000)
+// setInterval(() => {
+// NOJIMA()
+// }, 1000)
+
+// setInterval(() => {
+// logger.dump()
+// }, 5000)
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
@@ -108,9 +114,9 @@ const inboxRefresh = (
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
   const _start = Date.now()
-  console._log('aaaJSChat request start')
+  logger.info('aaaJSChat request start')
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode}).then(() => {
-    console._log('aaaJSChat request end', Date.now() - _start)
+    logger.info('aaaJSChat request end', Date.now() - _start)
   })
 
   return actions

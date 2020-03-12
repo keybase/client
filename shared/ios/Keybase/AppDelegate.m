@@ -38,7 +38,7 @@
   BOOL securityAccessGroupOverride = NO;
 #endif
   // set to true to see logs in xcode
-  BOOL skipLogFile = true;
+  BOOL skipLogFile = false;
 
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
   NSError* err;

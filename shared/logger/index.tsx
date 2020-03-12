@@ -123,7 +123,14 @@ const prodLoggers = () => ({
 })
 
 // Settings
-const logSetup = __DEV__ || __STORYBOOK__ ? devLoggers() : prodLoggers()
+// const logSetup = __DEV__ || __STORYBOOK__ ? devLoggers() : prodLoggers()
+const logSetup = {
+  action: new NullLogger(),
+  debug: new NativeLogger('d'),
+  error: new NativeLogger('e'),
+  info: new NativeLogger('i'),
+  warn: new NativeLogger('w'),
+}
 
 const theOnlyLogger = new AggregateLoggerImpl(logSetup)
 
