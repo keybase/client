@@ -239,9 +239,9 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
   return Styles.isMobile ? (
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
-        <Kb.Box2 direction="vertical" style={styles.channelContent}>
+        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" gap="small" alignSelf="flex-start">
-            <Kb.Text type="Body" lineClamp={1}>
+            <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
               #{channelname}
             </Kb.Text>
             <Common.ParticipantMeta numParticipants={numParticipants} />
@@ -287,7 +287,7 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  channelContent: {flex: 0},
+  channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
   item: Styles.platformStyles({
@@ -297,7 +297,6 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(0, Styles.globalMargins.small),
     },
     isMobile: {
-      flex: 0,
       ...Styles.padding(Styles.globalMargins.small),
     },
   }),
