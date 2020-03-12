@@ -2,7 +2,7 @@
 // MUST be first
 import './preload.desktop'
 // ^^^^^^^^
-import MainWindow, {showDockIcon, hideDockIcon, closeWindows} from './main-window.desktop'
+import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
