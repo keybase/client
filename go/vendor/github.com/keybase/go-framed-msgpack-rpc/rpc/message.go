@@ -257,6 +257,9 @@ func (r rpcResponseMessage) Type() MethodType {
 }
 
 func (r rpcResponseMessage) Compression() CompressionType {
+	if r.c != nil {
+		return r.c.ctype
+	}
 	return CompressionNone
 }
 
@@ -436,7 +439,7 @@ func decodeRPC(l int, r *frameReader, p *protocolHandler, cc *callContainer, com
 
 	typ := MethodInvalid
 	if err := decoder.Decode(&typ); err != nil {
-		return nil, newRPCDecodeError(typ, "", l, err)
+		return nil, newRPCDecodeError(typ, "", l, CompressionNone, err)
 	}
 
 	var data rpcMessage
@@ -452,16 +455,16 @@ func decodeRPC(l int, r *frameReader, p *protocolHandler, cc *callContainer, com
 	case MethodCallCompressed:
 		data = &rpcCallCompressedMessage{}
 	default:
-		return nil, newRPCDecodeError(typ, "", l, errors.New("invalid RPC type"))
+		return nil, newRPCDecodeError(typ, "", l, CompressionNone, errors.New("invalid RPC type"))
 	}
 
 	dataLength := l - 1
 	if dataLength < data.MinLength() {
-		return nil, newRPCDecodeError(typ, "", l, errors.New("wrong message length"))
+		return nil, newRPCDecodeError(typ, "", l, CompressionNone, errors.New("wrong message length"))
 	}
 
 	if err := data.DecodeMessage(dataLength, decoder, p, cc, compressorCacher, instrumenterStorage); err != nil {
-		return data, newRPCDecodeError(typ, data.Name(), l, err)
+		return data, newRPCDecodeError(typ, data.Name(), l, data.Compression(), err)
 	}
 	return data, nil
 }
