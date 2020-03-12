@@ -51,6 +51,7 @@ const _ReallyLeaveTeam = (props: Props) => {
           labelSubtitle="Future attempts by admins to add you to the team will be ignored."
           onCheck={setLeavePermanently}
           checked={leavePermanently}
+          style={styles.checkBox}
         />
       }
       description={`You will lose access to all the ${props.name} chats and folders${
@@ -66,6 +67,15 @@ const _ReallyLeaveTeam = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  checkBox: Styles.platformStyles({
+    common: {
+      marginLeft: 48,
+      marginRight: 48,
+    },
+    isMobile: {
+      marginTop: 12,
+    },
+  }),
   headerIcon: {
     marginRight: -60,
     marginTop: -20,
