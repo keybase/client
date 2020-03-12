@@ -355,6 +355,10 @@ export type MessageTypes = {
     inParam: {readonly teamID: Keybase1.TeamID; readonly uid: Gregor1.UID}
     outParam: GetChannelMembershipsLocalRes
   }
+  'chat.1.local.getDefaultTeamChannelsLocal': {
+    inParam: {readonly teamID: Keybase1.TeamID}
+    outParam: GetDefaultTeamChannelsLocalRes
+  }
   'chat.1.local.getGlobalAppNotificationSettingsLocal': {
     inParam: void
     outParam: GlobalAppNotificationSettings
@@ -566,6 +570,10 @@ export type MessageTypes = {
   'chat.1.local.setConvRetentionLocal': {
     inParam: {readonly convID: ConversationID; readonly policy: RetentionPolicy}
     outParam: void
+  }
+  'chat.1.local.setDefaultTeamChannelsLocal': {
+    inParam: {readonly teamID: Keybase1.TeamID; readonly convs?: Array<ConvIDStr> | null}
+    outParam: SetDefaultTeamChannelsLocalRes
   }
   'chat.1.local.setGlobalAppNotificationSettingsLocal': {
     inParam: {readonly settings: {[key: string]: Bool}}
@@ -1606,6 +1614,7 @@ export const localFindConversationsLocalRpcPromise = (params: MessageTypes['chat
 export const localFindGeneralConvFromTeamIDRpcPromise = (params: MessageTypes['chat.1.local.findGeneralConvFromTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findGeneralConvFromTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findGeneralConvFromTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1.local.getBotMemberSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getBotMemberSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getBotMemberSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetChannelMembershipsLocalRpcPromise = (params: MessageTypes['chat.1.local.getChannelMembershipsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getChannelMembershipsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getChannelMembershipsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetDefaultTeamChannelsLocalRpcPromise = (params: MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getDefaultTeamChannelsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxAndUnboxUILocalRpcPromise = (params: MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getInboxAndUnboxUILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxNonblockLocalRpcSaga = (p: {params: MessageTypes['chat.1.local.getInboxNonblockLocal']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.getInboxNonblockLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
@@ -1662,6 +1671,7 @@ export const localSetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1
 export const localSetConvMinWriterRoleLocalRpcPromise = (params: MessageTypes['chat.1.local.setConvMinWriterRoleLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setConvMinWriterRoleLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setConvMinWriterRoleLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetConvRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setConvRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setConvRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setConvRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetConversationStatusLocalRpcPromise = (params: MessageTypes['chat.1.local.SetConversationStatusLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.SetConversationStatusLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.SetConversationStatusLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localSetDefaultTeamChannelsLocalRpcPromise = (params: MessageTypes['chat.1.local.setDefaultTeamChannelsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setDefaultTeamChannelsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setDefaultTeamChannelsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.setGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetWelcomeMessageRpcPromise = (params: MessageTypes['chat.1.local.setWelcomeMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setWelcomeMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setWelcomeMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1730,8 +1740,6 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
 // 'chat.1.local.teamIDFromTLFName'
-// 'chat.1.local.getDefaultTeamChannelsLocal'
-// 'chat.1.local.setDefaultTeamChannelsLocal'
 // 'chat.1.local.getLastActiveForTLF'
 // 'chat.1.local.getLastActiveForTeams'
 // 'chat.1.local.getRecentJoinsLocal'

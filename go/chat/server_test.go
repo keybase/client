@@ -8145,17 +8145,17 @@ func TestChatSrvDefaultTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), teamID)
 		require.NoError(t, err)
 		require.Zero(t, len(res.Convs))
 
 		_, err = tc.chatLocalHandler().SetDefaultTeamChannelsLocal(context.TODO(), chat1.SetDefaultTeamChannelsLocalArg{
-			TeamName: created.TlfName,
-			Convs:    []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
+			TeamID: teamID,
+			Convs:  []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
 		})
 		require.NoError(t, err)
 
-		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), teamID)
 		require.NoError(t, err)
 		require.Len(t, res.Convs, 1)
 		require.Equal(t, topicName, res.Convs[0].Channel)
