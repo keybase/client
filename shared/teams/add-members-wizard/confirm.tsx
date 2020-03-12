@@ -149,19 +149,41 @@ const RoleSelector = () => {
     setShowingMenu(false)
     dispatch(TeamsGen.createSetAddMembersWizardRole({role: newRole}))
   }
+  const onSetIndividually = () => {
+    setRole(undefined)
+    setShowingMenu(false)
+    dispatch(TeamsGen.createSetAddMembersWizardRole({role: undefined}))
+  }
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
       <Kb.Text type="BodySmall">Invite as: </Kb.Text>
       <FloatingRolePicker
         open={showingMenu}
-        selectedRole={role}
+        selectedRole={role || 'reader'}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
         confirmLabel={`Add as ${pluralize(role || 'reader')}`} // TODO Y2K-1560 fix when this can actually be undefined
+        footerComponent={
+          !Styles.isMobile && (
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              centerChildren={true}
+              style={styles.setIndividuallyBox}
+            >
+              <Kb.Text type="BodySmall">
+                Or{' '}
+                <Kb.Text type="BodySmallPrimaryLink" onClick={onSetIndividually}>
+                  set roles individually
+                </Kb.Text>
+              </Kb.Text>
+            </Kb.Box2>
+          )
+        }
       >
         <Kb.InlineDropdown
           type="BodySmallSemibold"
-          label={capitalize(storeRole) + 's'}
+          label={storeRole ? capitalize(storeRole) + 's' : 'Set individually'}
           onPress={() => setShowingMenu(true)}
         />
       </FloatingRolePicker>
@@ -263,6 +285,7 @@ const styles = Styles.styleSheetCreate(() => ({
   controls: {
     justifyContent: 'space-between',
   },
+  setIndividuallyBox: Styles.padding(Styles.globalMargins.small),
 }))
 
 export default AddMembersConfirm
