@@ -36,6 +36,8 @@ import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.modules.StorybookConstants;
 
+import static keybase.Keybase.forceGC;
+
 public class MainApplication extends Application implements ReactApplication {
     private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(Arrays.<Package>asList(
       new ReactAdapterPackage(),
@@ -72,6 +74,12 @@ public class MainApplication extends Application implements ReactApplication {
             manager.cancelAllForTag(BackgroundSyncJob.TAG);
             BackgroundSyncJob.scheduleJob();
         }
+    }
+
+    @Override
+    public void onLowMemory() {
+        forceGC();
+        super.onLowMemory();
     }
 
     /**
