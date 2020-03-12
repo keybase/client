@@ -521,10 +521,8 @@ def testGoBuilds(prefix, packagesToTest) {
       }
     } else {
       println("Running golangci-lint on all non-KBFS code")
-      dir('go') {
-        timeout(activity: true, time: 720, unit: 'SECONDS') {
-          sh "make golangci-lint-nonkbfs"
-        }
+      timeout(activity: true, time: 720, unit: 'SECONDS') {
+        sh "make golangci-lint-nonkbfs"
       }
     }
 

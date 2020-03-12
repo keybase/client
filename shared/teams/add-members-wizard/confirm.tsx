@@ -32,7 +32,7 @@ const AddMembersConfirm = () => {
           sendChatNotification: true,
           teamID,
           users: addingMembers.map(member => ({
-            assertionOrEmail: member.assertion,
+            assertion: member.assertion,
             role: RPCGen.TeamRole[role || 'writer'], // TODO Y2K-1560 handle individual roles
           })),
         },
