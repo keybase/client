@@ -8,7 +8,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
-import {Activity, ModalTitle} from '../../common'
+import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
 
@@ -153,7 +153,7 @@ const AddToChannels = (props: Props) => {
           undefined
         ),
         title: (
-          <ModalTitle
+          <Common.ModalTitle
             teamname={meta.teamname}
             title={`Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`}
           />
@@ -192,9 +192,9 @@ const AddToChannels = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channelInfosFiltered.length} ${pluralize(
+            placeholderText={`Search ${channelInfosAll.length} ${pluralize(
               'channel',
-              channelInfosFiltered.length
+              channelInfosAll.length
             )}`}
             icon="iconfont-search"
             onChange={setFilter}
@@ -240,25 +240,13 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
         <Kb.Box2 direction="vertical" style={styles.channelContent}>
-          <Kb.Box2
-            direction="horizontal"
-            gap="small"
-            alignSelf="flex-start"
-            style={Styles.globalStyles.flexOne}
-          >
+          <Kb.Box2 direction="horizontal" gap="small" alignSelf="flex-start">
             <Kb.Text type="Body" lineClamp={1}>
               #{channelname}
             </Kb.Text>
-            <Kb.Meta
-              color={Styles.globalColors.black_50}
-              icon="iconfont-people"
-              iconColor={Styles.globalColors.black_20}
-              title={numParticipants}
-              backgroundColor={Styles.globalColors.black_10}
-              style={styles.meta}
-            />
+            <Common.ParticipantMeta numParticipants={numParticipants} />
           </Kb.Box2>
-          <Activity level={activityLevel} />
+          <Common.Activity level={activityLevel} />
         </Kb.Box2>
         <Kb.CheckCircle checked={selected} onCheck={onSelect} disabled={channelname === 'general'} />
       </Kb.Box2>
@@ -289,7 +277,7 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
             <Kb.Text type="BodySmall">
               {numMembers} {pluralize('member', numMembers)} •
             </Kb.Text>
-            <Activity level="recently" />
+            <Common.Activity level="recently" />
           </Kb.Box2>
         </Kb.Box2>
       }
@@ -299,7 +287,7 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  channelContent: {flexGrow: 1},
+  channelContent: {flex: 0},
   disabled: {opacity: 0.4},
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
   item: Styles.platformStyles({
@@ -309,7 +297,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(0, Styles.globalMargins.small),
     },
     isMobile: {
-      flexGrow: 1,
+      flex: 0,
       ...Styles.padding(Styles.globalMargins.small),
     },
   }),
@@ -319,9 +307,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isMobile: Styles.globalStyles.flexOne,
   }),
-  meta: {
-    ...Styles.padding(3, 6),
-  },
   searchFilterContainer: Styles.platformStyles({
     isElectron: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
   }),

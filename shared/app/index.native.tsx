@@ -28,6 +28,7 @@ class Keybase extends React.Component<Props> {
       store = temp.store
       if (__DEV__) {
         global.DEBUGStore = temp.store
+        console.disableYellowBox = true
       }
       const eng = makeEngine(temp.store.dispatch, temp.store.getState)
       temp.runSagas()
