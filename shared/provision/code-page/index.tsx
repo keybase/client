@@ -379,7 +379,7 @@ const Instructions = (p: Props) => {
   const maybeIcon = ({
     desktop: `icon-computer-background-${p.iconNumber}-96`,
     mobile: `icon-phone-background-${p.iconNumber}-96`,
-  } as const)[p.otherDevice.type]
+  } as const)[p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type]
   const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
 
   return (
@@ -387,15 +387,15 @@ const Instructions = (p: Props) => {
       {p.currentDeviceAlreadyProvisioned ? (
         <Kb.Box2 alignItems="center" direction="horizontal">
           <Kb.Text type={textType} style={styles.instructions}>
-            Ready to authorize using&nbsp;
+            Ready to authorize using
           </Kb.Text>
           <Kb.Icon
             type={icon}
             sizeType="Default"
             style={Styles.collapseStyles([
               styles.deviceIcon,
-              p.otherDevice.type === 'desktop' && styles.deviceIconDesktop,
-              p.otherDevice.type === 'mobile' && styles.deviceIconMobile,
+              p.currentDevice.type === 'desktop' && styles.deviceIconDesktop,
+              p.currentDevice.type === 'mobile' && styles.deviceIconMobile,
             ])}
           />
           <Kb.Text type={textType} style={styles.instructions}>
@@ -446,7 +446,7 @@ const Instructions = (p: Props) => {
                   <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
                 </>
               )}
-              <Kb.Text type={textType} style={[styles.instructions]}>
+              <Kb.Text type={textType} style={styles.instructions}>
                 Devices
               </Kb.Text>
             </Kb.Box2>
