@@ -72,7 +72,7 @@ const ConfirmModal = (props: Props) => (
           />
         </ButtonBar>
       ),
-      hideBorder: true,
+      hideBorder: false,
     }}
     onClose={props.onCancel || undefined}
     mode="Wide"
