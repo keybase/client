@@ -13,6 +13,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/data"
@@ -36,24 +37,46 @@ type Server struct {
 	appStateUpdater env.AppStateUpdater
 	cancel          func()
 
-	tokens *lru.Cache
-	fs     *lru.Cache
+	tokenLock       sync.RWMutex
+	token           string
+	tokenExpireTime time.Time
+
+	fs *lru.Cache
 
 	serverLock sync.RWMutex
 	server     *kbhttp.Srv
 }
 
 const tokenByteSize = 32
+const tokenValidTime = 10 * time.Minute
 
-// NewToken returns a new random token that a HTTP client can use to load
-// content from the server.
-func (s *Server) NewToken() (token string, err error) {
+// CurrentToken returns the currently valid token that a HTTP client can use to
+// load content from the server.
+func (s *Server) CurrentToken() (token string, err error) {
+	s.tokenLock.RLock()
+	if s.config.Clock().Now().Before(s.tokenExpireTime) {
+		defer s.tokenLock.RUnlock()
+		return s.token, nil
+	}
+
+	s.tokenLock.RUnlock()
+
 	buf := make([]byte, tokenByteSize)
 	if _, err = rand.Read(buf); err != nil {
 		return "", err
 	}
 	token = base64.URLEncoding.EncodeToString(buf)
-	s.tokens.Add(token, nil)
+
+	s.tokenLock.Lock()
+	defer s.tokenLock.Unlock()
+
+	if s.config.Clock().Now().Before(s.tokenExpireTime) {
+		return s.token, nil
+	}
+
+	s.token = token
+	s.tokenExpireTime = s.config.Clock().Now().Add(tokenValidTime)
+
 	return token, nil
 }
 
@@ -155,7 +178,13 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	token := req.URL.Query().Get("token")
-	if len(token) == 0 || !s.tokens.Contains(token) {
+	currentToken, err := s.CurrentToken()
+	if err != nil {
+		s.logger.Debug("serve: failed to get current token: %s", err)
+		s.handleInternalServerError(w)
+		return
+	}
+	if len(token) == 0 || token != currentToken {
 		s.logger.Info("Invalid token %q", token)
 		s.handleInvalidToken(w)
 		return
@@ -239,9 +268,6 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 		appStateUpdater: appStateUpdater,
 		config:          config,
 		logger:          logger,
-	}
-	if s.tokens, err = lru.New(tokenCacheSize); err != nil {
-		return nil, err
 	}
 	if s.fs, err = lru.New(fsCacheSize); err != nil {
 		return nil, err

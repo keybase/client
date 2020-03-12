@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Box from './box'
+import Animated from './animated'
 import {globalColors, isMobile} from '../styles'
 
 type Props = {
@@ -9,9 +10,13 @@ type Props = {
 }
 
 const ProgressBar = ({ratio, style, fillStyle}: Props) => (
-  <Box style={{...outer, ...style}}>
-    <Box style={{...inner, ...fillStyle, width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}} />
-  </Box>
+  <Animated to={{ratio}}>
+    {({ratio}) => (
+      <Box style={{...outer, ...style}}>
+        <Box style={{...inner, ...fillStyle, width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}} />
+      </Box>
+    )}
+  </Animated>
 )
 
 const outer = {
