@@ -32,9 +32,9 @@ const getData = memoize((topReacjis: Array<string>) => {
   // SectionList data is mostly static, map categories here
   // and chunk data within component
   const emojiSections = allCategories.map(c => ({
-    title: c.category,
     data: {emojis: c.emojis, key: ''},
     key: c.category,
+    title: c.category,
   }))
 
   // Get emoji results for a query and map
@@ -103,12 +103,12 @@ class EmojiPicker extends React.Component<Props, State> {
     let sections: Array<Section> = []
     const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
     sections = emojiSections.map(c => ({
-      title: c.title,
       data: chunk(c.data.emojis, emojisPerLine).map((c: any, idx: number) => ({
         emojis: c,
         key: (c && c.length && c[0] && c[0].short_name) || String(idx),
       })),
       key: c.key,
+      title: c.title,
     }))
     cacheSections(this.props.width, sections, this.props.topReacjis)
     this.setState({sections})
