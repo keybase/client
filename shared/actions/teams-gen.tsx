@@ -52,6 +52,7 @@ export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
+export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
@@ -221,6 +222,10 @@ type _SaveChannelMembershipPayload = {
   readonly newChannelState: Types.ChannelMembershipState
 }
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
+type _SetAddMembersWizardIndividualRolePayload = {
+  readonly assertion: string
+  readonly role: Types.TeamRoleType
+}
 type _SetAddMembersWizardRolePayload = {readonly role: Types.TeamRoleType | undefined}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
@@ -452,6 +457,12 @@ export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSu
   payload,
   type: setSubteamFilter,
 })
+/**
+ * Set the role for a pending member in the add member wizard.
+ */
+export const createSetAddMembersWizardIndividualRole = (
+  payload: _SetAddMembersWizardIndividualRolePayload
+): SetAddMembersWizardIndividualRolePayload => ({payload, type: setAddMembersWizardIndividualRole})
 /**
  * Set the role for the add members wizard.
  */
@@ -891,6 +902,10 @@ export type SaveTeamRetentionPolicyPayload = {
   readonly payload: _SaveTeamRetentionPolicyPayload
   readonly type: typeof saveTeamRetentionPolicy
 }
+export type SetAddMembersWizardIndividualRolePayload = {
+  readonly payload: _SetAddMembersWizardIndividualRolePayload
+  readonly type: typeof setAddMembersWizardIndividualRole
+}
 export type SetAddMembersWizardRolePayload = {
   readonly payload: _SetAddMembersWizardRolePayload
   readonly type: typeof setAddMembersWizardRole
@@ -1121,6 +1136,7 @@ export type Actions =
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
+  | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload

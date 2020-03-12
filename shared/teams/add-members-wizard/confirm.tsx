@@ -236,13 +236,23 @@ const AddingMembers = () => {
 const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
   const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+  const role = Container.useSelector(s => s.teams.addMembersWizard.role)
+  const individualRole = Container.useSelector(
+    s => s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ?? role
+  )
+  const showDropdown = role === undefined
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.assertion]} />
       </Kb.Box2>
-      {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
+        {showDropdown && (
+          <Kb.InlineDropdown type="BodySmallSemibold" onPress={() => {}} label={capitalize(individualRole)} />
+        )}
+        {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
+      </Kb.Box2>
     </Kb.Box2>
   )
 }

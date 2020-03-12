@@ -332,7 +332,22 @@ export default Container.makeReducer<
   },
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
+    const prevRole = draftState.addMembersWizard.role
     draftState.addMembersWizard.role = role
+    if (role === undefined && prevRole) {
+      // going from global role => set individually
+      // initialize role for pending members
+      draftState.addMembersWizard.addingMembers.forEach(member => {
+        member.role = prevRole
+      })
+    }
+  },
+  [TeamsGen.setAddMembersWizardIndividualRole]: (draftState, action) => {
+    const {assertion, role} = action.payload
+    const maybeMember = draftState.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
+    if (maybeMember) {
+      maybeMember.role = role
+    }
   },
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
     draftState.addMembersWizard.justFinished = action.payload.justFinished
