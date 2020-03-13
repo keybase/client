@@ -366,6 +366,7 @@ class Inbox extends React.Component<T.Props, State> {
                   itemCount={this.props.rows.length}
                   itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
+                  overscanCount={36}
                   itemData={this.state.dragY === -1 ? this.props.rows : this.state.dragY}
                 >
                   {this.listChild}
