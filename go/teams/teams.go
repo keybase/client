@@ -383,6 +383,7 @@ func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) 
 	for _, invite := range t.chain().inner.ActiveInvites {
 		invtyp, err := invite.Type.C()
 		if err != nil {
+			t.G().Log.CDebugf(ctx, "ImplicitTeamDisplayName: failed to compute type of invite: %s", err.Error())
 			continue
 		}
 		switch invtyp {

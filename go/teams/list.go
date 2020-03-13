@@ -438,7 +438,7 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext,
 
 const blankSeitanLabel = "<token without label>"
 
-func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteDisplayName, err error) {
+func ComputeSeitanInviteDisplayName(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteDisplayName, err error) {
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return name, err
@@ -487,7 +487,7 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 	}
 }
 
-func AnnotateInvitelink(mctx libkb.MetaContext, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteDisplayName, err error) {
+func ComputeInvitelinkDisplayName(mctx libkb.MetaContext, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteDisplayName, err error) {
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return name, err
@@ -516,8 +516,6 @@ func AnnotateInvitelink(mctx libkb.MetaContext, team *Team, invite keybase1.Team
 	return name, nil
 }
 
-type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
-
 func addKeybaseInviteToRes(ctx context.Context, memb keybase1.TeamMemberDetails,
 	membs []keybase1.TeamMemberDetails) []keybase1.TeamMemberDetails {
 	for idx, existing := range membs {
@@ -536,6 +534,8 @@ func AnnotateTeamUsedInviteLogPoints(points []keybase1.TeamUsedInviteLogPoint, n
 	}
 	return ret
 }
+
+type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
 
 // AnnotateInvitesNoPUKless annotates team invites using UIDMapper, so it's
 // fast but may be wrong/stale regarding full names.
@@ -641,7 +641,7 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 			// Continue to skip adding this invite to annotatedInvites
 			continue
 		case keybase1.TeamInviteCategory_SEITAN:
-			displayName, err = AnnotateSeitanInvite(mctx.Ctx(), team, invite)
+			displayName, err = ComputeSeitanInviteDisplayName(mctx.Ctx(), team, invite)
 			if err != nil {
 				// There are seitan invites in the wild from before
 				// https://github.com/keybase/client/pull/9816 These can no
@@ -650,7 +650,7 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 				continue
 			}
 		case keybase1.TeamInviteCategory_INVITELINK:
-			displayName, err = AnnotateInvitelink(mctx, team, invite)
+			displayName, err = ComputeInvitelinkDisplayName(mctx, team, invite)
 			if err != nil {
 				mctx.Warning("error annotating invitelink (%v): %v", id, err)
 				continue

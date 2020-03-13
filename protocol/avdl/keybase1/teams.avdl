@@ -620,7 +620,9 @@ protocol teams {
 
   // For Keybase, Seitan, Invitelink, etc. invites, we want to show a different
   // invite name than what is in the sigchain (which may be an encoded
-  // userversion or a messagepack blob, e.g.)
+  // userversion or a messagepack blob, e.g.).
+  // For example, it could be a formatted URL or a social assertion like
+  // maxtaco@twitter.
   @typedef("string")
   record TeamInviteDisplayName {}
 
@@ -629,9 +631,9 @@ protocol teams {
     TeamInviteID id;
     TeamInviteType type;
 
-    // For SBS, name is the username (`type` will specify the service)
-    // for phone/email, name is the number/address
-    // for keybase-type invite, name is the percent-form UV
+    // for SBS, name is the username (`type` will specify the service);
+    // for phone/email, name is the number/address;
+    // for keybase-type invite, name is the percent-form UV;
     // for seitan or invitelink, name is the messagepack encoded pkey
     TeamInviteName name;
 
@@ -651,7 +653,7 @@ protocol teams {
     // null for multiuse invites
     union { null, TeamMemberStatus } status;
 
-    // non-empty for multiuse invites
+    // possibly non-empty for multiuse invites
     array<AnnotatedTeamUsedInviteLogPoint> usedInvites;
   }
 
