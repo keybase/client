@@ -130,50 +130,12 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       mb.tray.setToolTip('Show Keybase')
     }
 
-    const adjustForWindows = () => {
-      // Account for different taskbar positions on Windows
-      if (!isWindows || !mb.window || !mb.tray) {
-        return
-      }
-      const cursorPoint = Electron.screen.getCursorScreenPoint()
-      const screenSize = Electron.screen.getDisplayNearestPoint(cursorPoint).workArea
-      const menuBounds = mb.window.getBounds()
-      logger.info('Showing menu:', cursorPoint, screenSize)
-      let iconBounds = mb.tray.getBounds()
-      let x = iconBounds.x
-      let y = iconBounds.y - iconBounds.height - menuBounds.height
-
-      // rough guess where the menu bar is, since it's not
-      // available on electron
-      if (cursorPoint.x < screenSize.width / 2) {
-        if (cursorPoint.y > screenSize.height / 2) {
-          logger.info('- start menu on left -')
-          // start menu on left
-          x += iconBounds.width
-        }
-      } else {
-        // start menu on top or bottom
-        x -= menuBounds.width
-        if (cursorPoint.y < screenSize.height / 2) {
-          logger.info('- start menu on top -')
-          // start menu on top
-          y = iconBounds.y + iconBounds.height
-        } else {
-          // start menu on right/bottom
-          logger.info('- start menu on bottom -')
-        }
-      }
-      mb.setOption('x', x)
-      mb.setOption('y', y)
-    }
-
     mb.on('show', () => {
       mainWindowDispatch(
         Chat2Gen.createInboxRefresh({
           reason: 'widgetRefresh',
         })
       )
-      adjustForWindows()
       isDarwin && updateIcon(true)
     })
     mb.on('hide', () => {
