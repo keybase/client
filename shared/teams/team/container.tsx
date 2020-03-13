@@ -14,7 +14,7 @@ type OwnProps = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.T
 const maybeHeaderHoc = flags.teamsRedesign ? a => a : Kb.HeaderHoc
 const Connected = Container.compose(
   Container.connect(
-    () => {},
+    () => ({}),
     (dispatch: Container.TypedDispatch) => ({
       onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     }),
@@ -35,7 +35,6 @@ const newNavigationOptions = () => ({
   headerHideBorder: true,
 })
 
-// TODO: hide the tab bar when the selection popup is present on mobile
 // @ts-ignore until the compose situation above can go away
 Connected.navigationOptions = flags.teamsRedesign
   ? newNavigationOptions

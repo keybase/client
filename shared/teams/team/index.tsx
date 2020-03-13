@@ -1,40 +1,31 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as BotsGen from '../../actions/bots-gen'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Types from '../../constants/types/teams'
+import {memoize} from '../../util/memoize'
+import flags from '../../util/feature-flags'
+import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
+import SelectionPopup from '../common/selection-popup'
 import TeamTabs from './tabs/container'
 import NewTeamHeader from './new-header'
 import TeamHeader from './header/container'
-import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
-import SelectionPopup from '../common/selection-popup'
-import flags from '../../util/feature-flags'
-import {memoize} from '../../util/memoize'
-import * as BotsGen from '../../actions/bots-gen'
-import {Section as _Section} from '../../common-adapters/section-list'
+import Settings from './settings-tab/container'
 import {
   useMembersSections,
   useBotSections,
   useInvitesSections,
   useSubteamsSections,
   useChannelsSections,
+  Section,
 } from './rows'
-import Settings from './settings-tab/container'
-// TODO: order these imports sensibly
 
 export type Props = {
   teamID: Types.TeamID
   initialTab?: Types.TabKey
 }
-export type Section = _Section<
-  any,
-  {
-    collapsed?: boolean
-    onToggleCollapsed?: () => void
-    title?: string
-  }
->
 
 // keep track during session
 const lastSelectedTabs = {}
@@ -166,6 +157,7 @@ const Team = (props: Props) => {
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
         onScroll={onScroll}
       />
       <SelectionPopup

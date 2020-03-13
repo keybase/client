@@ -3,6 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
+import {Section as _Section} from '../../../common-adapters/section-list'
 import flags from '../../../util/feature-flags'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
@@ -12,7 +13,15 @@ import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import LoadingRow from './loading'
-import {Section} from '..'
+
+export type Section = _Section<
+  any,
+  {
+    collapsed?: boolean
+    onToggleCollapsed?: () => void
+    title?: string
+  }
+>
 
 export const useMembersSections = (
   teamID: Types.TeamID,
@@ -145,7 +154,7 @@ export const useSubteamsSections = (
   sections.push({
     data: subteams,
     key: 'subteams',
-    renderItem: ({item}) => <SubteamTeamRow teamID={item.teamID} />,
+    renderItem: ({item}) => <SubteamTeamRow teamID={item} />,
   })
   if (flags.teamsRedesign) {
     sections.push({data: ['subteam-info'], key: 'subteam-info', renderItem: () => <SubteamInfoRow />})
