@@ -24,6 +24,7 @@ func newTeamMembersRenderer(g *libkb.GlobalContext, json, showInviteID bool) *te
 	return &teamMembersRenderer{
 		Contextified: libkb.NewContextified(g),
 		json:         json,
+		showInviteID: showInviteID,
 	}
 }
 
@@ -80,7 +81,19 @@ func (c *teamMembersRenderer) outputRole(team, role string, members []keybase1.T
 }
 
 func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
+	var inviteList []keybase1.AnnotatedTeamInvite
 	for _, annotatedInvite := range invites {
+		inviteList = append(inviteList, annotatedInvite)
+	}
+	sort.SliceStable(inviteList, func(i, j int) bool {
+		a, aErr := inviteList[i].Invite.Type.C()
+		b, bErr := inviteList[j].Invite.Type.C()
+		if aErr != nil || bErr != nil {
+			return bErr != nil
+		}
+		return strings.Compare(a.String(), b.String()) < 0
+	})
+	for _, annotatedInvite := range inviteList {
 		invite := annotatedInvite.Invite
 		category, err := invite.Type.C()
 		if err != nil {
