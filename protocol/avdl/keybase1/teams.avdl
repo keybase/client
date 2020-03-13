@@ -1288,7 +1288,7 @@ protocol teams {
   TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
   record UserRolePair {
-    string assertionOrEmail;
+    string assertion;
     TeamRole role;
     union { null, TeamBotSettings } botSettings;
   }

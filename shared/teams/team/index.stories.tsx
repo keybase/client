@@ -6,6 +6,7 @@ import {store, fakeTeamID} from '../stories'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import makeRows from './rows'
+import {useAllChannelMetas} from '../common/channel-hooks'
 
 const teamID = fakeTeamID
 const getRows = (selectedTab: Types.TabKey) =>
@@ -16,7 +17,9 @@ const getRows = (selectedTab: Types.TabKey) =>
     store.config.username,
     Constants.getCanPerformByID(store, teamID),
     store.teams.invitesCollapsed,
-    store.teams.teamIDToChannelInfos.get(teamID)
+    // this hook is mocked in stories and it's fine to call here
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useAllChannelMetas(teamID)
   )
 const getProps = (selectedTab: Types.TabKey) => ({
   sections: [

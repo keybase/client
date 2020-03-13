@@ -3441,6 +3441,8 @@ func (cr *ConflictResolver) recordFinishResolve(
 		cr.config.Reporter().NotifyFavoritesChanged(ctx)
 		cr.config.SubscriptionManagerPublisher().PublishChange(
 			keybase1.SubscriptionTopic_FILES_TAB_BADGE)
+		cr.config.GetPerfLog().CDebugf(
+			ctx, "Conflict resolution failed too many times for %v", err)
 	}
 }
 
@@ -3525,6 +3527,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	case ErrTooManyCRAttempts:
 		cr.log.CWarningf(ctx,
 			"Too many failed CR attempts for folder: %v", cr.fbo.id())
+		cr.config.GetPerfLog().CDebugf(
+			ctx, "Conflict resolution failed too many times for %v", err)
 		return
 	case nil:
 		defer func() {

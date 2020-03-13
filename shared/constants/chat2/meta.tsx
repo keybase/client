@@ -22,8 +22,10 @@ const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMe
       return 'active'
     case RPCChatTypes.ConversationMemberStatus.reset:
       return 'youAreReset'
-    default:
+    case RPCChatTypes.ConversationMemberStatus.preview:
       return 'youArePreviewing'
+    default:
+      return 'notMember'
   }
 }
 

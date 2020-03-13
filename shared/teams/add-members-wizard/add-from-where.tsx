@@ -3,13 +3,12 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 type Props = Container.RouteProps<{
   newTeam?: boolean
-  teamID: Types.TeamID
 }>
 
 const AddFromWhere = (props: Props) => {
@@ -17,14 +16,14 @@ const AddFromWhere = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const newTeam = Container.getRouteProps(props, 'newTeam', false)
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
 
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-  const onContinuePhone = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamAddToTeamPhone'}]}))
-  const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder())
+  const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
+  const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
+  const onContinueEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
   return (
     <Kb.Modal
       allowOverflow={true}
@@ -75,7 +74,7 @@ const AddFromWhere = (props: Props) => {
           icon="icon-teams-add-email-list-64"
           title="A list of email addresses"
           description="Enter one or multiple email addresses."
-          onClick={() => {} /* TODO add nav */}
+          onClick={onContinueEmail}
         />
         {Styles.isMobile && (
           <Kb.RichButton

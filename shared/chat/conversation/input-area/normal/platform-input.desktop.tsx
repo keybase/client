@@ -89,9 +89,9 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     return false
   }
 
-  _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
+  _onKeyDown = (e: React.KeyboardEvent) => {
     this._commonOnKeyDown(e)
-    this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
+    this.props.onKeyDown && this.props.onKeyDown(e)
   }
 
   _onChangeText = (text: string) => {
@@ -250,7 +250,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             />
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
-                className="mousetrap"
+                allowKeyboardEvents={true}
                 disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}

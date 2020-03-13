@@ -148,6 +148,7 @@ public class MainActivity extends ReactActivity {
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
+    NativeLogger.info("Activity onCreate");
     ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
     if (!this.createdReact) {
       this.createdReact = true;
@@ -202,6 +203,7 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected void onPause() {
+    NativeLogger.info("Activity onPause");
     super.onPause();
     if (Keybase.appDidEnterBackground()) {
       Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this, new Bundle()));
@@ -371,6 +373,7 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected void onResume() {
+    NativeLogger.info("Activity onPause");
     super.onResume();
     Keybase.setAppStateForeground();
 
@@ -383,12 +386,14 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected void onStart() {
+    NativeLogger.info("Activity onStart");
     super.onStart();
     Keybase.setAppStateForeground();
   }
 
   @Override
   protected void onDestroy() {
+    NativeLogger.info("Activity onDestroy");
     super.onDestroy();
     Keybase.appWillExit(new KBPushNotifier(this, new Bundle()));
   }

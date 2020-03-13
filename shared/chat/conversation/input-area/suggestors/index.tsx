@@ -78,7 +78,7 @@ type SuggestorHooks = {
   suggestionsVisible: boolean
   inputRef: React.RefObject<Kb.PlainInput> | null
   onChangeText: (arg0: string) => void
-  onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyDown: (event: React.KeyboardEvent) => void
   onBlur: () => void
   onFocus: () => void
   onSelectionChange: (arg0: {start: number | null; end: number | null}) => void
@@ -243,14 +243,14 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       this._checkTrigger()
     }
 
-    _onKeyDown = (evt: React.KeyboardEvent, ici: boolean) => {
+    _onKeyDown = (evt: React.KeyboardEvent) => {
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
         this._checkTrigger()
       }
 
       if (!this.state.active || this._getResults().data.length === 0) {
         // not showing list, bail
-        this.props.onKeyDown && this.props.onKeyDown(evt, ici)
+        this.props.onKeyDown && this.props.onKeyDown(evt)
         return
       }
 
@@ -281,7 +281,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
 
       if (shouldCallParentCallback) {
-        this.props.onKeyDown && this.props.onKeyDown(evt, ici)
+        this.props.onKeyDown && this.props.onKeyDown(evt)
       }
     }
 

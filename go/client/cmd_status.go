@@ -114,6 +114,7 @@ type jsonStatus struct {
 		Running          bool
 		Pid              string
 		Log              string
+		PerfLog          string
 		Mount            string
 	}
 	Desktop struct {
@@ -128,7 +129,8 @@ type jsonStatus struct {
 		Log string
 	}
 	Git struct {
-		Log string
+		Log     string
+		PerfLog string
 	}
 
 	DefaultUsername        string
@@ -194,6 +196,7 @@ func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
 	status.KBFS.Running = fstatus.Kbfs.Running
 	status.KBFS.Pid = fstatus.Kbfs.Pid
 	status.KBFS.Log = fstatus.Kbfs.Log
+	status.KBFS.PerfLog = fstatus.Kbfs.PerfLog
 	status.KBFS.Mount = fstatus.Kbfs.Mount
 
 	status.Desktop.Version = fstatus.Desktop.Version
@@ -202,7 +205,9 @@ func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
 
 	status.Updater.Log = fstatus.Updater.Log
 	status.Start.Log = fstatus.Start.Log
+
 	status.Git.Log = fstatus.Git.Log
+	status.Git.PerfLog = fstatus.Git.PerfLog
 
 	b, err := json.MarshalIndent(status, "", "    ")
 	if err != nil {
@@ -259,6 +264,7 @@ func (c *CmdStatus) outputTerminal(status *keybase1.FullStatus) error {
 	dui.Printf("    version:   %s\n", status.Kbfs.Version)
 	dui.Printf("    installed: %s\n", status.Kbfs.InstalledVersion)
 	dui.Printf("    log:       %s\n", status.Kbfs.Log)
+	dui.Printf("    perfLog:   %s\n", status.Kbfs.PerfLog)
 	dui.Printf("    mount:     %s\n", status.Kbfs.Mount)
 	dui.Printf("\nService:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))

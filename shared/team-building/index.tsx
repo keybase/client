@@ -614,7 +614,17 @@ class TeamBuilding extends React.PureComponent<Props> {
           return {
             hideBorder: true,
             leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
-            rightButton,
+            rightButton: Styles.isMobile ? (
+              <Kb.Text
+                type="BodyBigLink"
+                onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
+                style={!this.props.teamSoFar.length && styles.hide}
+              >
+                Done
+              </Kb.Text>
+            ) : (
+              undefined
+            ),
             title: <TeamsModalTitle teamname={this.props.teamname ?? ''} title="Search people" />,
           }
         }

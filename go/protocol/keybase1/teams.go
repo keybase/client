@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/teams.avdl
 
 package keybase1
@@ -3358,15 +3358,15 @@ func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
 }
 
 type UserRolePair struct {
-	AssertionOrEmail string           `codec:"assertionOrEmail" json:"assertionOrEmail"`
-	Role             TeamRole         `codec:"role" json:"role"`
-	BotSettings      *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
+	Assertion   string           `codec:"assertion" json:"assertion"`
+	Role        TeamRole         `codec:"role" json:"role"`
+	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
 func (o UserRolePair) DeepCopy() UserRolePair {
 	return UserRolePair{
-		AssertionOrEmail: o.AssertionOrEmail,
-		Role:             o.Role.DeepCopy(),
+		Assertion: o.Assertion,
+		Role:      o.Role.DeepCopy(),
 		BotSettings: (func(x *TeamBotSettings) *TeamBotSettings {
 			if x == nil {
 				return nil

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/config.avdl
 
 package keybase1
@@ -356,6 +356,7 @@ type KBFSStatus struct {
 	Running          bool   `codec:"running" json:"running"`
 	Pid              string `codec:"pid" json:"pid"`
 	Log              string `codec:"log" json:"log"`
+	PerfLog          string `codec:"perfLog" json:"perfLog"`
 	Mount            string `codec:"mount" json:"mount"`
 }
 
@@ -366,6 +367,7 @@ func (o KBFSStatus) DeepCopy() KBFSStatus {
 		Running:          o.Running,
 		Pid:              o.Pid,
 		Log:              o.Log,
+		PerfLog:          o.PerfLog,
 		Mount:            o.Mount,
 	}
 }
@@ -405,12 +407,14 @@ func (o StartStatus) DeepCopy() StartStatus {
 }
 
 type GitStatus struct {
-	Log string `codec:"log" json:"log"`
+	Log     string `codec:"log" json:"log"`
+	PerfLog string `codec:"perfLog" json:"perfLog"`
 }
 
 func (o GitStatus) DeepCopy() GitStatus {
 	return GitStatus{
-		Log: o.Log,
+		Log:     o.Log,
+		PerfLog: o.PerfLog,
 	}
 }
 

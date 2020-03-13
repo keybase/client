@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -57,6 +58,7 @@ type Context interface {
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
 	GetVDebugSetting() string
+	GetPerfLog() logger.Logger
 }
 
 // KBFSContext is an implementation for libkbfs.Context
@@ -86,10 +88,7 @@ func NewContextFromGlobalContext(g *libkb.GlobalContext) *KBFSContext {
 	return c
 }
 
-// NewContext constructs a context. This should only be called once in
-// main functions.
-func NewContext() *KBFSContext {
-	g := libkb.NewGlobalContextInit()
+func newContextFromG(g *libkb.GlobalContext) *KBFSContext {
 	err := g.ConfigureConfig()
 	if err != nil {
 		panic(err)
@@ -107,6 +106,28 @@ func NewContext() *KBFSContext {
 		panic(err)
 	}
 	return NewContextFromGlobalContext(g)
+}
+
+// NewContext constructs a context. This should only be called once in
+// main functions.
+func NewContext() *KBFSContext {
+	g := libkb.NewGlobalContextInit()
+	return newContextFromG(g)
+}
+
+// NewContextWithPerfLog constructs a context with a specific perf
+// log. This should only be called once in main functions.
+func NewContextWithPerfLog(logName string) *KBFSContext {
+	g := libkb.NewGlobalContextInit()
+
+	// Override the perf file for this process, before logging is
+	// initialized.
+	if os.Getenv("KEYBASE_PERF_LOG_FILE") == "" {
+		os.Setenv("KEYBASE_PERF_LOG_FILE", filepath.Join(
+			g.Env.GetLogDir(), logName))
+	}
+
+	return newContextFromG(g)
 }
 
 // GetLogDir returns log dir
@@ -132,6 +153,11 @@ func (c *KBFSContext) GetEnv() *libkb.Env {
 // GetRunMode returns run mode
 func (c *KBFSContext) GetRunMode() kbconst.RunMode {
 	return c.g.GetRunMode()
+}
+
+// GetPerfLog returns the perf log.
+func (c *KBFSContext) GetPerfLog() logger.Logger {
+	return c.g.GetPerfLog()
 }
 
 // NextAppStateUpdate implements AppStateUpdater.

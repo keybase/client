@@ -105,6 +105,7 @@ export const TextInput = (props: TextProps) => {
             multiline={true}
             rowsMax={value ? undefined : 1}
             autoFocus={true}
+            allowKeyboardEvents={true}
             hideBorder={true}
             growAndScroll={true}
             padding="tiny"

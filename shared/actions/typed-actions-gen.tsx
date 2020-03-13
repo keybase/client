@@ -900,8 +900,6 @@ export type TypedActionsMap = {
   'teams:clearAddUserToTeamsResults': teams.ClearAddUserToTeamsResultsPayload
   'teams:setAddUserToTeamsResults': teams.SetAddUserToTeamsResultsPayload
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
-  'teams:getChannelInfo': teams.GetChannelInfoPayload
-  'teams:getChannels': teams.GetChannelsPayload
   'teams:setChannelSelected': teams.SetChannelSelectedPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
@@ -947,8 +945,6 @@ export type TypedActionsMap = {
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
-  'teams:setTeamChannelInfo': teams.SetTeamChannelInfoPayload
-  'teams:setTeamChannels': teams.SetTeamChannelsPayload
   'teams:setTeamInfo': teams.SetTeamInfoPayload
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
@@ -960,7 +956,6 @@ export type TypedActionsMap = {
   'teams:updateTopic': teams.UpdateTopicPayload
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
-  'teams:deleteChannelInfo': teams.DeleteChannelInfoPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload
@@ -971,6 +966,12 @@ export type TypedActionsMap = {
   'teams:setWelcomeMessage': teams.SetWelcomeMessagePayload
   'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
   'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
+  'teams:startAddMembersWizard': teams.StartAddMembersWizardPayload
+  'teams:setAddMembersWizardRole': teams.SetAddMembersWizardRolePayload
+  'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
+  'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
+  'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
+  'teams:finishAddMembersWizard': teams.FinishAddMembersWizardPayload
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
@@ -980,10 +981,8 @@ export type TypedActionsMap = {
   'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
-  'tracker2:updateUserReset': tracker2.UpdateUserResetPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
   'tracker2:closeTracker': tracker2.CloseTrackerPayload
-  'tracker2:updateAssertion': tracker2.UpdateAssertionPayload
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
   'tracker2:updateFollows': tracker2.UpdateFollowsPayload

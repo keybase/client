@@ -1,10 +1,7 @@
 import * as React from 'react'
-import * as Container from '../../../../../util/container'
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as ChatTypes from '../../../../../constants/types/chat2'
-import * as TeamTypes from '../../../../../constants/types/teams'
 
 export type Action =
   | {
@@ -19,7 +16,6 @@ type Props = {
   actions: Array<Action>
   conversationIDKey: ChatTypes.ConversationIDKey
   image: Kb.IconType | null
-  loadTeamID?: TeamTypes.TeamID
   onAuthorClick: () => void
   onDismiss: () => void
   teamname: string
@@ -29,13 +25,7 @@ type Props = {
 }
 
 export const TeamJourney = (props: Props) => {
-  // Load the team once on mount for its channel list if required.
-  const {conversationIDKey, loadTeamID, teamname, mode} = props
-
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    loadTeamID && dispatch(TeamsGen.createGetChannels({teamID: loadTeamID}))
-  }, [loadTeamID, dispatch])
+  const {conversationIDKey, teamname, mode} = props
 
   const contentHorizontalPadStyle =
     mode === 'chat' ? styles.contentHorizontalPadChat : styles.contentHorizontalPadTeamSettings

@@ -23,19 +23,12 @@
       "blocked": "boolean",
       "hidFromFollowers": "boolean"
     },
-    "updateUserReset": {
-      "guiID": "string"
-    },
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",
       "reason?": "string"
     },
     "closeTracker": {
-      "guiID": "string"
-    },
-    "updateAssertion": {
-      "assertion": "Types.Assertion",
       "guiID": "string"
     },
     "changeFollow": {

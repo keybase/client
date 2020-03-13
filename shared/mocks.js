@@ -10,6 +10,7 @@ module.exports = {
     '@msgpack': '<rootDir>/node_modules/@msgpack/msgpack/dist.es5/msgpack.js',
     '\\.(jpg|png|gif|ttf|css)$': '<rootDir>/__mocks__/file-mock.tsx',
     '^electron$': '<rootDir>/__mocks__/electron.tsx',
+    'channel-hooks': '<rootDir>/teams/common/__mocks__/channel-hooks.tsx',
     'constants/platform': '<rootDir>/__mocks__/platform.tsx',
     'desktop/app/resolve-root': '<rootDir>/__mocks__/resolve-root.tsx',
     'engine/saga$': '<rootDir>/__mocks__/engine-saga.tsx',
@@ -25,14 +26,15 @@ module.exports = {
   // These are used in metro.config.js and .storybook/webpack.config.js to mock things out
   // in storybook on mobile and desktop respectively.
   replacements: [
-    [/^electron$/, '/../__mocks__/electron'],
+    [/^electron$/, '__mocks__/electron'],
     // Don't match files that are named `dark-mode.png` accidentally
-    [/dark-mode.tsx/, '/../styles/__mocks__/dark-mode'],
-    [/engine$/, '/../__mocks__/engine'],
-    [/feature-flags/, '/../__mocks__/feature-flags'],
-    [/navigation-hooks/, '/../util/__mocks__/navigation-hooks'],
-    [/route-tree$/, '/../__mocks__/empty'],
-    [/typed-connect/, '/../util/__mocks__/typed-connect'],
-    [/util\/saga/, '/../__mocks__/saga'],
+    [/dark-mode.tsx/, 'styles/__mocks__/dark-mode'],
+    [/engine$/, '__mocks__/engine'],
+    [/feature-flags/, '__mocks__/feature-flags'],
+    [/navigation-hooks/, 'util/__mocks__/navigation-hooks'],
+    [/route-tree$/, '__mocks__/empty'],
+    [/typed-connect/, 'util/__mocks__/typed-connect'],
+    [/util\/saga/, '__mocks__/saga'],
+    [/channel-hooks/, 'teams/common/__mocks__/channel-hooks'],
   ],
 }

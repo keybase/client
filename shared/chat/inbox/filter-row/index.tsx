@@ -23,8 +23,8 @@ export type Props = {
 class ConversationFilterInput extends React.PureComponent<Props> {
   private input = React.createRef<Kb.SearchFilter>()
 
-  private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
-    if (e.key === 'Escape' && !isComposingIME) {
+  private onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
       this.props.onStopSearch()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()

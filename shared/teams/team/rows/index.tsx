@@ -20,7 +20,12 @@ type InviteRow =
   | {key: string; id: string; type: 'invites-invite'}
   | {key: string; type: 'invites-none'}
 type ChannelRow =
-  | {key: string; channel: Types.ChannelInfo; type: 'channel'; conversationIDKey: ChatTypes.ConversationIDKey}
+  | {
+      key: string
+      channel: ChatTypes.ConversationMeta
+      type: 'channel'
+      conversationIDKey: ChatTypes.ConversationIDKey
+    }
   | {key: string; type: 'channel-header'}
   | {key: string; type: 'channel-footer'}
 type SubteamRow =
@@ -50,7 +55,7 @@ const makeRows = (
   yourUsername: string,
   yourOperations: Types.TeamOperations,
   invitesCollapsed: Set<Types.TeamID>,
-  channelInfos?: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
+  channelMetas?: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>,
   subteamsFiltered?: Set<Types.TeamID>
 ): Array<Row> => {
   const rows: Array<Row> = []
@@ -204,8 +209,11 @@ const makeRows = (
       break
     case 'channels': {
       rows.push({key: 'channel-header', type: 'channel-header'})
-      let channels: Array<{channel: Types.ChannelInfo; conversationIDKey: ChatTypes.ConversationIDKey}> = []
-      channelInfos?.forEach((channel, conversationIDKey) => channels.push({channel, conversationIDKey}))
+      const channels: Array<{
+        channel: ChatTypes.ConversationMeta
+        conversationIDKey: ChatTypes.ConversationIDKey
+      }> = []
+      channelMetas?.forEach((channel, conversationIDKey) => channels.push({channel, conversationIDKey}))
       channels
         .sort((a, b) =>
           a.channel.channelname === 'general'

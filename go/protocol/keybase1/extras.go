@@ -853,7 +853,10 @@ func FromTime(t Time) time.Time {
 	if t == 0 {
 		return time.Time{}
 	}
-	return time.Unix(0, int64(t)*1000000)
+	// t is in millisecond.
+	tSec := int64(t) / 1000
+	tNanoSecOffset := (int64(t) - tSec*1000) * 1000000
+	return time.Unix(tSec, tNanoSecOffset)
 }
 
 func (t Time) Time() time.Time {
@@ -864,21 +867,12 @@ func (t Time) UnixSeconds() int64 {
 	return t.Time().Unix()
 }
 
-func (t Time) UnixMilliseconds() int64 {
-	return t.Time().UnixNano() / 1e6
-}
-
-func (t Time) UnixMicroseconds() int64 {
-	return t.Time().UnixNano() / 1e3
-}
-
 func ToTime(t time.Time) Time {
-	// the result of calling UnixNano on the zero Time is undefined.
-	// https://golang.org/pkg/time/#Time.UnixNano
 	if t.IsZero() {
 		return 0
 	}
-	return Time(t.UnixNano() / 1000000)
+
+	return Time(t.Unix()*1000 + (int64(t.Nanosecond()) / 1000000))
 }
 
 func ToTimePtr(t *time.Time) *Time {
@@ -903,7 +897,10 @@ func FormatTime(t Time) string {
 }
 
 func FromUnixTime(u UnixTime) time.Time {
-	return FromTime(Time(u * 1000))
+	if u == 0 {
+		return time.Time{}
+	}
+	return time.Unix(int64(u), 0)
 }
 
 func (u UnixTime) Time() time.Time {
@@ -912,14 +909,6 @@ func (u UnixTime) Time() time.Time {
 
 func (u UnixTime) UnixSeconds() int64 {
 	return int64(u)
-}
-
-func (u UnixTime) UnixMilliseconds() int64 {
-	return int64(u) * 1000
-}
-
-func (u UnixTime) UnixMicroseconds() int64 {
-	return int64(u) * 1000000
 }
 
 func ToUnixTime(t time.Time) UnixTime {
@@ -3943,44 +3932,26 @@ func (e TeamSearchExport) Hash() string {
 }
 
 // web-of-trust
+// In order of descending quality.
+// Keep in sync with server: helpers/wot.ts
 const (
-	UsernameVerificationType_NONE       = ""
-	UsernameVerificationType_AUDIO      = "audio"
-	UsernameVerificationType_VIDEO      = "video"
-	UsernameVerificationType_EMAIL      = "email"
-	UsernameVerificationType_OTHER_CHAT = "other_chat"
 	UsernameVerificationType_IN_PERSON  = "in_person"
+	UsernameVerificationType_PROOFS     = "proofs"
+	UsernameVerificationType_VIDEO      = "video"
+	UsernameVerificationType_AUDIO      = "audio"
+	UsernameVerificationType_OTHER_CHAT = "other_chat"
+	UsernameVerificationType_FAMILIAR   = "familiar"
+	UsernameVerificationType_OTHER      = "other"
 )
 
 var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
-	"":           UsernameVerificationType_NONE,
-	"none":       UsernameVerificationType_NONE,
-	"audio":      UsernameVerificationType_AUDIO,
-	"video":      UsernameVerificationType_VIDEO,
-	"email":      UsernameVerificationType_EMAIL,
-	"other_chat": UsernameVerificationType_OTHER_CHAT,
 	"in_person":  UsernameVerificationType_IN_PERSON,
-}
-
-func (c Confidence) ToJsonw() *jsonw.Wrapper {
-	j := jsonw.NewDictionary()
-	if c.UsernameVerifiedVia != UsernameVerificationType_NONE {
-		_ = j.SetKey("username_verified_via", jsonw.NewString(string(c.UsernameVerifiedVia)))
-	}
-	if len(c.VouchedBy) > 0 {
-		vb := jsonw.NewArray(len(c.VouchedBy))
-		for i, uid := range c.VouchedBy {
-			_ = vb.SetIndex(i, jsonw.NewString(uid.String()))
-		}
-		_ = j.SetKey("vouched_by", vb)
-	}
-	if c.KnownOnKeybaseDays > 0 {
-		_ = j.SetKey("known_on_keybase_days", jsonw.NewInt(c.KnownOnKeybaseDays))
-	}
-	if c.Other != "" {
-		_ = j.SetKey("other", jsonw.NewString(c.Other))
-	}
-	return j
+	"proofs":     UsernameVerificationType_PROOFS,
+	"video":      UsernameVerificationType_VIDEO,
+	"audio":      UsernameVerificationType_AUDIO,
+	"other_chat": UsernameVerificationType_OTHER_CHAT,
+	"familiar":   UsernameVerificationType_FAMILIAR,
+	"other":      UsernameVerificationType_OTHER,
 }
 
 func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
@@ -4013,4 +3984,15 @@ func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
 
 func (t SeitanIKeyInvitelink) String() string {
 	return string(t)
+}
+
+// UserRolePairsHaveOwner check if a list of UserRolePair has user with role
+// OWNER.
+func UserRolePairsHaveOwner(users []UserRolePair) bool {
+	for _, urp := range users {
+		if urp.Role == TeamRole_OWNER {
+			return true
+		}
+	}
+	return false
 }
