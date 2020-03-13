@@ -51,7 +51,8 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 
 	details := alice.teamGetDetails(teamName.String())
 	require.Len(t, details.AnnotatedActiveInvites, 1)
-	for _, invite := range details.AnnotatedActiveInvites {
+	for _, aInvite := range details.AnnotatedActiveInvites {
+		invite := aInvite.Invite
 		require.Equal(t, keybase1.TeamRole_ADMIN, invite.Role)
 		tic, err := invite.Type.C()
 		require.NoError(t, err)

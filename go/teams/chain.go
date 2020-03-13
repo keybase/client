@@ -1107,7 +1107,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLog),
+				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLogPoint),
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
@@ -1497,7 +1497,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLog),
+				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLogPoint),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
@@ -2333,7 +2333,7 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
 		}
 		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],
-			keybase1.TeamUsedInviteLog{
+			keybase1.TeamUsedInviteLogPoint{
 				Uv:       uv,
 				LogPoint: logPoint,
 			})
