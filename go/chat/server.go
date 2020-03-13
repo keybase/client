@@ -2956,7 +2956,7 @@ func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.Conversa
 func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (res chat1.GetMutualTeamsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "ListBotCommandsLocal")()
+	defer h.Trace(ctx, func() error { return err }, "GetMutualTeamsLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {

@@ -102,6 +102,9 @@ func (m RemoteConversationMetadata) DeepCopy() (res RemoteConversationMetadata) 
 	res.Snippet = m.Snippet
 	res.SnippetDecoration = m.SnippetDecoration
 	res.Headline = m.Headline
+	res.WriterNames = make([]string, len(m.WriterNames))
+	res.FullNamesForSearch = make([]*string, len(m.FullNamesForSearch))
+	res.ResetParticipants = make([]string, len(m.ResetParticipants))
 	copy(res.WriterNames, m.WriterNames)
 	copy(res.FullNamesForSearch, m.FullNamesForSearch)
 	copy(res.ResetParticipants, m.ResetParticipants)

@@ -65,6 +65,8 @@ type inboxDiskIndex struct {
 }
 
 func (i inboxDiskIndex) DeepCopy() (res inboxDiskIndex) {
+	res.ConversationIDs = make([]chat1.ConversationID, len(i.ConversationIDs))
+	res.Queries = make([]inboxDiskQuery, len(i.Queries))
 	copy(res.ConversationIDs, i.ConversationIDs)
 	copy(res.Queries, i.Queries)
 	return res
