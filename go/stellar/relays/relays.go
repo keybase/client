@@ -52,19 +52,19 @@ func GetKey(mctx libkb.MetaContext, recipient stellarcommon.Recipient) (key keyb
 
 func getKeyForDecryption(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID:      teamID,
-		StaleOK: true,
-		Refreshers: keybase1.TeamRefreshers{
-			NeedApplicationsAtGenerations: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				generation: {keybase1.TeamApplication_STELLAR_RELAY},
-			},
-		},
-	})
+	arg := keybase1.FastTeamLoadArg{
+		ID:                   teamID,
+		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_STELLAR_RELAY},
+		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{generation},
+	}
+	team, err := teams.FTL(mctx, arg)
 	if err != nil {
 		return res, err
 	}
-	return team.ApplicationKeyAtGeneration(mctx.Ctx(), keybase1.TeamApplication_STELLAR_RELAY, generation)
+	if len(team.ApplicationKeys) != 1 {
+		return res, errors.New("expected one ApplicationKey")
+	}
+	return team.ApplicationKeys[0], nil
 }
 
 type Input struct {
