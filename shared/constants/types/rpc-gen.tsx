@@ -1463,6 +1463,10 @@ export type MessageTypes = {
     inParam: {readonly teamID: TeamID; readonly settings: TeamSettings}
     outParam: void
   }
+  'keybase.1.teams.untrustedTeamExists': {
+    inParam: {readonly teamName: TeamName}
+    outParam: UntrustedTeamExistsResult
+  }
   'keybase.1.teams.uploadTeamAvatar': {
     inParam: {readonly teamname: String; readonly filename: String; readonly crop?: ImageCropRect | null; readonly sendChatNotification: Boolean}
     outParam: void
@@ -3788,6 +3792,7 @@ export const teamsTeamReAddMemberAfterResetRpcPromise = (params: MessageTypes['k
 export const teamsTeamRemoveMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamRemoveMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamRemoveMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamRemoveMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamRenameRpcPromise = (params: MessageTypes['keybase.1.teams.teamRename']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamRename']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamRename', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamSetSettingsRpcPromise = (params: MessageTypes['keybase.1.teams.teamSetSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamSetSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamSetSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsUntrustedTeamExistsRpcPromise = (params: MessageTypes['keybase.1.teams.untrustedTeamExists']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.untrustedTeamExists']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.untrustedTeamExists', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsUploadTeamAvatarRpcPromise = (params: MessageTypes['keybase.1.teams.uploadTeamAvatar']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.uploadTeamAvatar']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.uploadTeamAvatar', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const testEchoRpcPromise = (params: MessageTypes['keybase.1.test.echo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.test.echo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.test.echo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const trackCheckTrackingRpcPromise = (params: MessageTypes['keybase.1.track.checkTracking']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.track.checkTracking']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.checkTracking', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4183,7 +4188,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamEditMembers'
 // 'keybase.1.teams.teamGetBotSettings'
 // 'keybase.1.teams.teamSetBotSettings'
-// 'keybase.1.teams.untrustedTeamExists'
 // 'keybase.1.teams.teamAcceptInvite'
 // 'keybase.1.teams.teamRequestAccess'
 // 'keybase.1.teams.teamTree'
