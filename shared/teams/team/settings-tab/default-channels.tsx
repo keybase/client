@@ -23,8 +23,8 @@ const DefaultChannels = (props: Props) => {
       [{teamID}],
       result => {
         setDefaultChannels([
-          ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
           {channelname: 'general', conversationIDKey: 'unused'},
+          ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
         ])
         setWaiting(false)
       },
@@ -34,12 +34,22 @@ const DefaultChannels = (props: Props) => {
   const onAdd = (channels: Array<Types.ChannelNameID>) => {
     setWaiting(true)
     setDefaultChannelsRPC(
-      [{convs: channels.map(c => c.conversationIDKey), teamID}],
+      [
+        {
+          convs: (defaultChannels || [])
+            .filter(c => c.channelname !== 'general')
+            .concat(channels)
+            .map(c => c.conversationIDKey),
+          teamID,
+        },
+      ],
       result => {
         setWaiting(false)
         setDefaultChannels([...defaultChannels, ...channels])
       },
-      _ => {}
+      error => {
+        console.error(error)
+      }
     )
   }
 
