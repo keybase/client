@@ -3,9 +3,9 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 
-const useAutocompleter = <T extends React.Component>(
-  items: Array<string>,
-  onSelect: (value: string) => void,
+const useAutocompleter = <T extends React.Component<any>, U>(
+  items: Array<{label: string; value: U}>,
+  onSelect: (value: U) => void,
   filter: string
 ) => {
   const [selected, setSelected] = React.useState(0)
@@ -16,7 +16,7 @@ const useAutocompleter = <T extends React.Component>(
       setSelected(0)
     }
   }, [setSelected, prevFilterLCase, filterLCase])
-  let itemsFiltered = filter ? items.filter(item => item.toLowerCase().includes(filterLCase)) : items
+  let itemsFiltered = filter ? items.filter(item => item.label.toLowerCase().includes(filterLCase)) : items
   itemsFiltered = itemsFiltered.slice(0, 5)
 
   const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup<T>(
@@ -31,8 +31,8 @@ const useAutocompleter = <T extends React.Component>(
       >
         {itemsFiltered.map((item, idx) => (
           <Kb.ClickableBox
-            key={item}
-            onMouseDown={() => onSelect(item)}
+            key={item.label}
+            onMouseDown={() => onSelect(item.value)}
             onMouseOver={() => setSelected(idx)}
             style={styles.optionOuter}
           >
@@ -66,7 +66,7 @@ const useAutocompleter = <T extends React.Component>(
           break
         case 'Enter':
           setSelected(0)
-          onSelect(selectedItem)
+          onSelect(selectedItem.value)
           return
       }
       let newSelected = selected + diff

@@ -46,24 +46,24 @@ type ChannelInputProps = {
 const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
   const channels = useAllChannelMetas(teamID)
-  const channelnames = [...channels.values()]
+  const channelItems = [...channels.values()]
     .filter(c => !selected.find(channel => channel.conversationIDKey === c.conversationIDKey))
-    .map(c => `#${c.channelname}`)
+    .map(c => ({
+      label: `#${c.channelname}`,
+      value: {channelname: c.channelname, conversationIDKey: c.conversationIDKey},
+    }))
 
-  const onSelect = value => {
-    onAdd(value)
+  const onSelect = (value: Unpacked<typeof channelItems>['value']) => {
+    onAdd([value])
     setFilter('')
   }
 
-  const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter<Kb.SearchFilter>(
-    channelnames,
-    onSelect,
-    filter
-  )
+  const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter(channelItems, onSelect, filter)
 
   return (
     <>
       <Kb.SearchFilter
+        // @ts-ignore complaining that popupAnchor is missing properties that SearchFilter has
         ref={popupAnchor}
         onFocus={() => setShowingPopup(true)}
         onBlur={() => setShowingPopup(false)}
