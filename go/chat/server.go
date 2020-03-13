@@ -28,6 +28,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/teams/opensearch"
+	"github.com/keybase/pipeliner"
 	"golang.org/x/net/context"
 )
 
@@ -2982,39 +2983,50 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 	}
 
 	// loop through convs
+	var resLock sync.Mutex
+	pipeliner := pipeliner.NewPipeliner(4)
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.GetMembersType() != chat1.ConversationMembersType_TEAM {
 			continue
 		}
-		userPresent := make(map[keybase1.UID]bool)
-		for _, uid := range providedUIDs {
-			userPresent[keybase1.UID(uid.String())] = false
-		}
-		members, err := h.G().ParticipantsSource.Get(ctx, uid, conv.GetConvID(),
-			types.InboxSourceDataSourceAll)
-		if err != nil {
+		if err := pipeliner.WaitForRoom(ctx); err != nil {
 			return res, err
 		}
-		for _, uid := range members {
-			if _, exists := userPresent[keybase1.UID(uid.String())]; exists {
-				// if we see a user in a team that we're looking for, mark that in the userPresent map
-				userPresent[keybase1.UID(uid.String())] = true
+		go func(conv types.RemoteConversation) {
+			var err error
+			userPresent := make(map[keybase1.UID]bool)
+			for _, uid := range providedUIDs {
+				userPresent[keybase1.UID(uid.String())] = false
 			}
-		}
-
-		allOK := true
-		for _, inTeam := range userPresent {
-			if !inTeam {
-				allOK = false
-				break
+			members, err := h.G().ParticipantsSource.Get(ctx, uid, conv.GetConvID(),
+				types.InboxSourceDataSourceAll)
+			if err != nil {
+				pipeliner.CompleteOne(err)
+				return
 			}
-		}
-
-		if allOK {
-			res.TeamIDs = append(res.TeamIDs, keybase1.TeamID(conv.Conv.Metadata.IdTriple.Tlfid.String()))
-		}
-
+			for _, uid := range members {
+				if _, exists := userPresent[keybase1.UID(uid.String())]; exists {
+					// if we see a user in a team that we're looking for, mark that in the userPresent map
+					userPresent[keybase1.UID(uid.String())] = true
+				}
+			}
+			allOK := true
+			for _, inTeam := range userPresent {
+				if !inTeam {
+					allOK = false
+					break
+				}
+			}
+			if allOK {
+				resLock.Lock()
+				res.TeamIDs = append(res.TeamIDs,
+					keybase1.TeamID(conv.Conv.Metadata.IdTriple.Tlfid.String()))
+				resLock.Unlock()
+			}
+			pipeliner.CompleteOne(nil)
+		}(conv)
 	}
+	err = pipeliner.Flush(ctx)
 	return res, err
 }
 
