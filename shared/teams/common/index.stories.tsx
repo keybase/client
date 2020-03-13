@@ -5,7 +5,15 @@ import ChannelsWidget from './channels-widget'
 import {fakeTeamID, store} from '../stories'
 
 const channelsWidgetProps = {
-  channels: ['general', 'stir-fry', 'salad', 'veg', 'plate-presentation', 'team-sqawk', 'team-beasts'],
+  channels: [
+    {channelname: 'general', conversationIDKey: '1'},
+    {channelname: 'stir-fry', conversationIDKey: '2'},
+    {channelname: 'salad', conversationIDKey: '3'},
+    {channelname: 'veg', conversationIDKey: '4'},
+    {channelname: 'plate-presentation', conversationIDKey: '5'},
+    {channelname: 'team-sqawk', conversationIDKey: '6'},
+    {channelname: 'team-beasts', conversationIDKey: '7'},
+  ],
   onAddChannel: Sb.action('onAddChannel'),
   onRemoveChannel: Sb.action('onRemoveChannel'),
   teamID: fakeTeamID,

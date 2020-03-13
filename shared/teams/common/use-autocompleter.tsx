@@ -42,7 +42,7 @@ const useAutocompleter = <T extends React.Component<any>, U>(
               style={Styles.collapseStyles([styles.option, selected === idx && styles.optionSelected])}
             >
               <Kb.Text type="BodySemibold" lineClamp={1}>
-                {item}
+                {item.label}
               </Kb.Text>
             </Kb.Box2>
           </Kb.ClickableBox>

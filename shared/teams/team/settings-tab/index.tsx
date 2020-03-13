@@ -346,7 +346,7 @@ export class Settings extends React.Component<Props, State> {
             waiting={this.props.waitingForSavePublicity}
           />
         </Kb.Box2>
-        {flags.teamsRedesign && (
+        {flags.teamsRedesign && this.props.isBigTeam && (
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <DefaultChannels teamID={this.props.teamID} />
           </Kb.Box2>

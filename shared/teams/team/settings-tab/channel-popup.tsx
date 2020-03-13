@@ -6,9 +6,9 @@ import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = {
-  disabledChannels?: Array<string>
+  disabledChannels?: Array<Types.ChannelNameID>
   onCancel: () => void
-  onComplete: (channels: Array<string>) => void
+  onComplete: (channels: Array<Types.ChannelNameID>) => void
   teamID: Types.TeamID
 }
 
@@ -19,20 +19,26 @@ const ChannelPopup = (props: Props) => {
   const onChangeFilter = (value: string) => setFilter(value)
 
   const channelMetas = useAllChannelMetas(teamID)
-  const channels = [...channelMetas.values()].map(ci => ci.channelname)
-  const channelsFiltered = filter ? channels.filter(c => c.toLowerCase().includes(filterLCase)) : channels
+  const channels = [...channelMetas.values()].map(ci => ({
+    channelname: ci.channelname,
+    conversationIDKey: ci.conversationIDKey,
+  }))
+  const channelsFiltered = filter
+    ? channels.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channels
 
-  const [selected, setSelected] = React.useState(new Set<string>())
-  const onSelect = (channelname: string) => {
-    if (selected.has(channelname)) {
-      selected.delete(channelname)
+  const [selected, setSelected] = React.useState<Array<Types.ChannelNameID>>([])
+  const onSelect = (channel: Types.ChannelNameID) => {
+    const idx = selected.findIndex(c => c.conversationIDKey === channel.conversationIDKey)
+    if (idx >= 0) {
+      selected.splice(idx, 1)
     } else {
-      selected.add(channelname)
+      selected.push(channel)
     }
-    setSelected(new Set(selected))
+    setSelected([...selected])
   }
 
-  const onAdd = () => onComplete([...selected])
+  const onAdd = () => onComplete(selected)
   return (
     <Kb.MobilePopup overlayStyle={Styles.globalStyles.fullHeight}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header} gap="tiny">
@@ -42,10 +48,10 @@ const ChannelPopup = (props: Props) => {
           </Kb.Text>
           <Kb.Text
             type="BodyBigLink"
-            onClick={selected.size ? onAdd : undefined}
-            style={!selected.size && styles.addDisabled}
+            onClick={selected.length ? onAdd : undefined}
+            style={!selected.length && styles.addDisabled}
           >
-            Add{!!selected.size && ` (${selected.size})`}
+            Add{!!selected.length && ` (${selected.length})`}
           </Kb.Text>
         </Kb.Box2>
         <Kb.SearchFilter
@@ -61,20 +67,22 @@ const ChannelPopup = (props: Props) => {
         <Kb.List2
           itemHeight={{height: 48, type: 'fixed'}}
           items={channelsFiltered}
-          itemAsKey={true}
-          renderItem={(_, channelname) => {
-            const disabled = disabledChannels?.includes(channelname)
-            const onClick = disabled ? undefined : () => onSelect(channelname)
+          keyProperty="conversationIDKey"
+          renderItem={(_, channel) => {
+            const disabled = disabledChannels?.some(c => c.conversationIDKey === channel.conversationIDKey)
+            const onClick = disabled ? undefined : () => onSelect(channel)
             return (
-              <Kb.ClickableBox key={channelname} onClick={onClick}>
+              <Kb.ClickableBox key={channel.conversationIDKey} onClick={onClick}>
                 <Kb.Box2 direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true}>
                   <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
-                    #{channelname}
+                    #{channel.channelname}
                   </Kb.Text>
                   <Kb.CheckCircle
                     onCheck={onClick}
-                    checked={disabled || selected.has(channelname)}
-                    disabled={disabledChannels?.includes(channelname)}
+                    checked={
+                      disabled || selected.some(c => c.conversationIDKey === channel.conversationIDKey)
+                    }
+                    disabled={disabled}
                   />
                 </Kb.Box2>
               </Kb.ClickableBox>

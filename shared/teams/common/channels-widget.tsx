@@ -2,20 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
-import * as ChatTypes from '../../constants/types/chat2'
 import ChannelPopup from '../team/settings-tab/channel-popup'
 import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'
 
-type ChannelNameID = {
-  channelname: string
-  conversationIDKey: ChatTypes.ConversationIDKey
-}
-
 type Props = {
-  channels: Array<ChannelNameID>
-  onAddChannel: (toAdd: Array<ChannelNameID>) => void
-  onRemoveChannel: (toRemove: ChannelNameID) => void
+  channels: Array<Types.ChannelNameID>
+  onAddChannel: (toAdd: Array<Types.ChannelNameID>) => void
+  onRemoveChannel: (toRemove: Types.ChannelNameID) => void
   teamID: Types.TeamID
 }
 
@@ -38,8 +32,8 @@ const ChannelsWidget = (props: Props) => {
 }
 
 type ChannelInputProps = {
-  onAdd: (toAdd: Array<ChannelNameID>) => void
-  selected: Array<ChannelNameID>
+  onAdd: (toAdd: Array<Types.ChannelNameID>) => void
+  selected: Array<Types.ChannelNameID>
   teamID: Types.TeamID
 }
 
@@ -82,9 +76,9 @@ const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
 
 const ChannelInputMobile = ({onAdd, selected, teamID}: ChannelInputProps) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
-  const onComplete = (channelnames: Array<string>) => {
+  const onComplete = (channels: Array<Types.ChannelNameID>) => {
     setShowingPopup(false)
-    channelnames.forEach(c => onAdd(c))
+    onAdd(channels)
   }
   return (
     <Kb.ClickableBox onClick={() => setShowingPopup(true)}>
