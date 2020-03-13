@@ -76,16 +76,26 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: 12,
     },
   }),
-  headerIcon: {
-    backgroundClip: 'padding-box',
-    backgroundColor: Styles.globalColors.red,
-    borderColor: Styles.globalColors.white,
-    borderRadius: 50,
-    borderStyle: 'solid',
-    borderWidth: 3,
-    color: Styles.globalColors.white,
-    padding: 4,
-  },
+  headerIcon: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.red,
+      borderColor: Styles.globalColors.white,
+      borderStyle: 'solid',
+      borderWidth: 3,
+      color: Styles.globalColors.white,
+      padding: 4,
+    },
+    isElectron: {
+      backgroundClip: 'padding-box',
+      borderRadius: 50,
+    },
+    isMobile: {
+      borderRadius: 18,
+      marginRight: -46,
+      marginTop: -30,
+      zIndex: 1,
+    },
+  }),
   iconContainer: {
     marginRight: -46,
     marginTop: -20,
