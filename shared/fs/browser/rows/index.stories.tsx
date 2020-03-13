@@ -168,28 +168,25 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
     name: 'New Folder',
     originalName: 'New Folder',
     parentPath: Types.stringToPath('/keybae/private/meatball'),
-    status: Types.EditStatusType.Editing,
     type: Types.EditType.NewFolder,
   })
   draftState.fs.edits.set('edit-new-folder-saving', {
     name: 'New Folder 2',
     originalName: 'New Folder 2',
     parentPath: Types.stringToPath('/keybae/private/meatball'),
-    status: Types.EditStatusType.Saving,
     type: Types.EditType.NewFolder,
   })
   draftState.fs.edits.set('edit-rename', {
     name: 'original file name',
     originalName: 'original file name',
     parentPath: Types.stringToPath('/keybae/private/meatball'),
-    status: Types.EditStatusType.Editing,
     type: Types.EditType.Rename,
   })
   draftState.fs.edits.set('edit-rename-failed', {
+    error: 'this is an error message',
     name: 'original file name',
     originalName: 'original file name',
     parentPath: Types.stringToPath('/keybae/private/meatball'),
-    status: Types.EditStatusType.Failed,
     type: Types.EditType.Rename,
   })
 })

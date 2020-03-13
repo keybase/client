@@ -246,7 +246,9 @@
         "SCTeambotKeyBadGeneration_3802",
         "SCAirdropRegisterFailedMisc_4207",
         "SCSimpleFSNameExists_5101",
-        "SCSimpleFSDirNotEmpty_5102"
+        "SCSimpleFSDirNotEmpty_5102",
+        "SCSimpleFSNotExist_5103",
+        "SCSimpleFSNoAccess_5104"
       ]
     }
   ],

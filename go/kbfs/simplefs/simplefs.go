@@ -84,20 +84,31 @@ var errNoSuchHandle = simpleFSError{reason: "No such handle"}
 var errNoResult = simpleFSError{reason: "Async result not found"}
 var errNameExists = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNameExists, reason: "name exists"}
 var errDirNotEmpty = simpleFSError{code: keybase1.StatusCode_SCSimpleFSDirNotEmpty, reason: "dir not empty"}
+var errNotExist = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNotExist, reason: "file or folder does not exist"}
+var errNoAccess = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNoAccess, reason: "no access to this file or folder"}
 
 func translateErr(err error) error {
 	cause := errors.Cause(err)
-	if cause == os.ErrExist {
+
+	switch cause {
+	case os.ErrExist:
 		return errNameExists
+	case os.ErrNotExist:
+		return errNotExist
+	case os.ErrPermission:
+		return errNoAccess
 	}
+
 	switch cause.(type) {
 	case data.NameExistsError:
 		return errNameExists
 	case libkbfs.DirNotEmptyError:
 		return errDirNotEmpty
-	default:
-		return err
+	case idutil.BadTLFNameError, tlf.BadNameError, tlfhandle.ReadAccessError:
+		return errNoAccess
 	}
+
+	return err
 }
 
 type newFSFunc func(
@@ -923,6 +934,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 			}),
 		&arg.Path, nil,
 		func(ctx context.Context) (err error) {
+			defer func() { err = translateErr(err) }()
 			var res []keybase1.Dirent
 
 			rawPath, err := rawPathFromKbfsPath(arg.Path)
@@ -1018,6 +1030,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 	path keybase1.Path, filter keybase1.ListFilter,
 	finalDepth int, refreshSubscription bool) func(context.Context) error {
 	return func(ctx context.Context) (err error) {
+		defer func() { err = translateErr(err) }()
 		// A stack of paths to process - ordering does not matter.
 		// Here we don't walk symlinks, so no loops possible.
 		type pathStackElem struct {
@@ -1951,6 +1964,7 @@ func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 
 // SimpleFSStat - Get info about file
 func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (de keybase1.Dirent, err error) {
+	defer func() { err = translateErr(err) }()
 	ctx, err = k.startSyncOp(ctx, "Stat", arg.Path, &arg.Path, nil)
 	if err != nil {
 		return keybase1.Dirent{}, err
@@ -2691,6 +2705,7 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 func (k *SimpleFS) SimpleFSGetFolder(
 	ctx context.Context, kbfsPath keybase1.KBFSPath) (
 	res keybase1.FolderWithFavFlags, err error) {
+	defer func() { err = translateErr(err) }()
 	ctx, err = k.makeContextWithIdentifyBehavior(ctx, kbfsPath.IdentifyBehavior)
 	if err != nil {
 		return keybase1.FolderWithFavFlags{}, err
@@ -3156,6 +3171,7 @@ func (k *SimpleFS) SimpleFSSubscribePath(
 	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (err error) {
 	defer func() {
 		err = k.filterEmptyErr(ctx, arg.KbfsPath, err)
+		err = translateErr(err)
 	}()
 	ctx, err = k.makeContextWithIdentifyBehavior(ctx, arg.IdentifyBehavior)
 	if err != nil {
