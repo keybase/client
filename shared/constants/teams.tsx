@@ -189,6 +189,7 @@ const emptyState: Types.State = {
   newTeamRequests: new Map(),
   newTeamWizard: {
     description: '',
+    isBig: false,
     name: '',
     open: false,
     openTeamJoinRole: 'writer',
@@ -662,7 +663,16 @@ export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
   td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
 export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
+  teamID === Types.newTeamWizardTeamID
+    ? makeTeamMeta({
+        id: teamID,
+        isMember: true,
+        isOpen: state.teams.newTeamWizard.open,
+        memberCount: 0,
+        showcasing: state.teams.newTeamWizard.showcase,
+        teamname: state.teams.newTeamWizard.name,
+      })
+    : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMembership = (
   state: TypedState,

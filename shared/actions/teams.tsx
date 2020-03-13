@@ -1340,7 +1340,24 @@ const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescript
       },
     ],
   })
-
+const setTeamWizardAvatar = (state: TypedState) => {
+  switch (state.teams.newTeamWizard.teamType) {
+    case 'friends':
+    case 'other':
+      return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
+    case 'project':
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
+    case 'community':
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard4TeamSize'}]})
+  }
+}
+const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
+  action.payload.isBig
+    ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
+    : TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
+const setTeamWizardChannels = () =>
+  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
+const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
 const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: ['teamAddToTeamFromWhere'],
@@ -1431,8 +1448,13 @@ const teamsSaga = function*() {
 
   yield* Saga.chainAction(TeamsGen.getMemberSubteamDetails, getMemberSubteamDetails)
 
+  // New team wizard
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
   yield* Saga.chainAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)
+  yield* Saga.chainAction2(TeamsGen.setTeamWizardAvatar, setTeamWizardAvatar)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardTeamSize, setTeamWizardTeamSize)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)

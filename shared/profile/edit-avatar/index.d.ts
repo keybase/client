@@ -6,8 +6,10 @@ export type Props = {
   createdTeam?: boolean
   error: string
   image?: ImagePickerResult
+  onBack: () => void
   onClose: () => void
   onSave: (filename: string, crop?: RPCTypes.ImageCropRect) => void
+  onSkip: () => void
   sendChatNotification?: boolean
   submitting: boolean
   teamname?: string

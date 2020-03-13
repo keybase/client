@@ -2,24 +2,25 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {ModalTitle} from '../../common'
 
-type Props = {
-  teamname: string
-}
-
-const MakeBigTeam = (props: Props) => {
+const MakeBigTeam = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => dispatch(RouteTreeGen.createClearModals())
+  const onSubmit = (isBig: boolean) => dispatch(TeamsGen.createSetTeamWizardTeamSize({isBig}))
 
+  const teamname = Container.useSelector(state => state.teams.newTeamWizard.name)
   return (
     <Kb.Modal
-      onClose={onBack}
+      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={props.teamname} title="Make it a big team?" />,
+        title: <ModalTitle teamname={teamname} title="Make it a big team?" />,
       }}
       allowOverflow={true}
     >
@@ -32,14 +33,14 @@ const MakeBigTeam = (props: Props) => {
         <Kb.RichButton
           description="With multiple roles and channels. Big team chats appear in the lower section in the inbox."
           icon="icon-teams-size-big-64"
-          onClick={() => undefined} //TODO: Implement this
+          onClick={() => onSubmit(true)}
           title="Yes, make it a big team"
         />
 
         <Kb.RichButton
           description="You can always make it a big team later."
           icon="icon-teams-size-small-64"
-          onClick={() => undefined} //TODO: Implement this
+          onClick={() => onSubmit(false)}
           title="No, keep it a simple conversation for now"
         />
       </Kb.Box2>

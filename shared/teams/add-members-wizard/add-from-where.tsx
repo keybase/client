@@ -3,23 +3,24 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
-type Props = Container.RouteProps<{
-  newTeam?: boolean
-}>
+type Props = Container.RouteProps<{}>
 
-const AddFromWhere = (props: Props) => {
+const AddFromWhere = (_: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const newTeam = Container.getRouteProps(props, 'newTeam', false)
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
+  const newTeam: boolean = teamID === Types.newTeamWizardTeamID
 
   const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onSkip = () => dispatch(TeamsGen.createFinishNewTeamWizard())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
@@ -30,7 +31,7 @@ const AddFromWhere = (props: Props) => {
       onClose={onClose}
       header={{
         leftButton: newTeam ? (
-          <Kb.Icon type="iconfont-arrow-left" onClick={onClose} />
+          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
         ) : Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
@@ -40,9 +41,11 @@ const AddFromWhere = (props: Props) => {
         ),
         rightButton: newTeam ? (
           Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink">Skip</Kb.Text>
+            <Kb.Text type="BodyBigLink" onClick={onSkip}>
+              Skip
+            </Kb.Text>
           ) : (
-            <Kb.Button mode="Secondary" label="Skip" small={true} />
+            <Kb.Button mode="Secondary" label="Skip" small={true} onClick={onSkip} />
           )
         ) : (
           undefined

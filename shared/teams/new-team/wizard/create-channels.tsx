@@ -2,20 +2,25 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
-type Props = {
-  teamname: string
-}
-
-const CreateChannel = (props: Props) => {
+const CreateChannel = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const [channels, setChannels] = React.useState<Array<string>>(['hellos', 'random', ''])
+  const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
+  const initialChannels = Container.useSelector(s => s.teams.newTeamWizard.channels) ?? [
+    'hellos',
+    'random',
+    '',
+  ]
+
+  const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
   const setChannel = (i: number) => (value: string) => {
     channels[i] = value
     setChannels([...channels])
@@ -29,7 +34,9 @@ const CreateChannel = (props: Props) => {
     setChannels([...channels])
   }
 
+  const onContinue = () => dispatch(TeamsGen.createSetTeamWizardChannels({channels}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const numChannels = channels.filter(c => !!c.trim()).length
   const continueLabel = numChannels
@@ -38,12 +45,12 @@ const CreateChannel = (props: Props) => {
 
   return (
     <Kb.Modal
-      onClose={onBack}
+      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={props.teamname} title="Create channels" />,
+        title: <ModalTitle teamname={teamname} title="Create channels" />,
       }}
-      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} />}}
+      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>

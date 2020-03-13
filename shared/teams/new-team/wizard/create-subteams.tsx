@@ -2,20 +2,21 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
-type Props = {
-  teamname: string
-}
-
-const CreateSubteams = (props: Props) => {
+const CreateSubteams = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const [subteams, setSubteams] = React.useState<Array<string>>(['', '', ''])
+  const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
+  const initialSubteams = Container.useSelector(s => s.teams.newTeamWizard.subteams) ?? ['', '', '']
+
+  const [subteams, setSubteams] = React.useState<Array<string>>([...initialSubteams])
   const setSubteam = (i: number, value: string) => {
     subteams[i] = value
     setSubteams([...subteams])
@@ -29,7 +30,9 @@ const CreateSubteams = (props: Props) => {
     setSubteams([...subteams])
   }
 
+  const onContinue = () => dispatch(TeamsGen.createSetTeamWizardSubteams({subteams}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const numSubteams = subteams.filter(c => !!c.trim()).length
   const continueLabel = numSubteams
@@ -38,12 +41,12 @@ const CreateSubteams = (props: Props) => {
 
   return (
     <Kb.Modal
-      onClose={onBack}
+      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={props.teamname} title="Create subteams" />,
+        title: <ModalTitle teamname={teamname} title="Create subteams" />,
       }}
-      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} />}}
+      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
@@ -62,7 +65,7 @@ const CreateSubteams = (props: Props) => {
             onChangeText={text => setSubteam(idx, cleanSubteamName(text))}
             decoration={<Kb.Icon type="iconfont-remove" onClick={() => onClear(idx)} />}
             placeholder="subteam"
-            prefix={`${props.teamname}.`}
+            prefix={`${teamname}.`}
             containerStyle={styles.input}
             maxLength={16}
             key={idx}

@@ -281,6 +281,19 @@ export default Container.makeReducer<
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
     draftState.newTeamWizard.showcase = action.payload.showcase
   },
+  [TeamsGen.setTeamWizardAvatar]: (draftState, action) => {
+    draftState.newTeamWizard.avatarCrop = action.payload.crop
+    draftState.newTeamWizard.avatarFilename = action.payload.filename
+  },
+  [TeamsGen.setTeamWizardTeamSize]: (draftState, action) => {
+    draftState.newTeamWizard.isBig = action.payload.isBig
+  },
+  [TeamsGen.setTeamWizardChannels]: (draftState, action) => {
+    draftState.newTeamWizard.channels = action.payload.channels
+  },
+  [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
+    draftState.newTeamWizard.subteams = action.payload.subteams
+  },
   [TeamsGen.startAddMembersWizard]: (draftState, action) => {
     const {teamID} = action.payload
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, teamID}

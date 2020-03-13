@@ -20,6 +20,9 @@ import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
 import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
+import TeamWizardTeamSize from './new-team/wizard/make-big-team'
+import TeamWizardChannels from './new-team/wizard/create-channels'
+import TeamWizardSubteams from './new-team/wizard/create-subteams'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
@@ -98,6 +101,15 @@ export const newModalRoutes = {
   },
   teamWizard2TeamInfo: {
     getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
+  },
+  teamWizard4TeamSize: {
+    getScreen: (): typeof TeamWizardTeamSize => require('./new-team/wizard/make-big-team').default,
+  },
+  teamWizard5Channels: {
+    getScreen: (): typeof TeamWizardChannels => require('./new-team/wizard/create-channels').default,
+  },
+  teamWizard6Subteams: {
+    getScreen: (): typeof TeamWizardSubteams => require('./new-team/wizard/create-subteams').default,
   },
   teamsContactsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
