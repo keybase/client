@@ -10,6 +10,8 @@ import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
 import * as TeamsGen from '../../actions/teams-gen'
+import {useChannelMeta} from '../common/channel-hooks'
+
 type HeaderTitleProps = {
   teamID: TeamID
   conversationIDKey: ConversationIDKey
@@ -18,13 +20,9 @@ type HeaderTitleProps = {
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
   const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const {channelname, description} = Container.useSelector(
-    s =>
-      Constants.getChannelInfoFromConvID(s, teamID, conversationIDKey) ?? {
-        channelname: '',
-        description: '',
-      }
-  )
+  const channelMeta = useChannelMeta(teamID, conversationIDKey)
+  const channelname = channelMeta?.channelname ?? ''
+  const description = channelMeta?.description ?? ''
   const numParticipants = Container.useSelector(
     s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
   )

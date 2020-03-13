@@ -1,11 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import ChannelPopup from '../team/settings-tab/channel-popup'
 import useAutocompleter from './use-autocompleter'
+import {useAllChannelMetas} from './channel-hooks'
 
 type Props = {
   channels: Array<string>
@@ -36,7 +35,7 @@ type ChannelInputProps = {onAdd: (channelname: string) => void; selected: Array<
 
 const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
-  const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  const channels = useAllChannelMetas(teamID)
   const channelnames = [...channels.values()]
     .filter(c => !selected.includes(c.channelname))
     .map(c => `#${c.channelname}`)

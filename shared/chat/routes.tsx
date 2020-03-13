@@ -93,7 +93,6 @@ export const newModalRoutes = {
     getScreen: (): typeof ChatLocationPopup =>
       require('./conversation/input-area/normal/location-popup').default,
   },
-  // TODO connect broken
   chatManageChannels: {
     getScreen: (): typeof ChatManageChannels => require('./manage-channels/container').default,
   },

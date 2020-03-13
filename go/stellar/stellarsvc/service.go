@@ -825,7 +825,7 @@ func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxUR
 		}
 	}
 
-	if txEnv.Tx.SeqNum == 0 {
+	if txEnv.Tx.SeqNum == 0 || validated.ReplaceSeqnum {
 		// need to fill in SeqNum
 		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
 		defer unlock()

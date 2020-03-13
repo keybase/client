@@ -2,11 +2,10 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import ManageChannels, {RowProps} from '.'
+import ManageChannels from '.'
 import * as Types from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
@@ -14,27 +13,28 @@ import * as TeamsConstants from '../../constants/teams'
 import isEqual from 'lodash/isEqual'
 import {makeInsertMatcher} from '../../util/string'
 import {memoize} from '../../util/memoize'
+import {useAllChannelMetas} from '../../teams/common/channel-hooks'
 
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 
 const getChannels = memoize(
   (
-    channelInfos: Map<string, Types.ChannelInfo>,
+    channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>,
     participantMap: Map<ChatTypes.ConversationIDKey, ChatTypes.ParticipantInfo>,
     searchText: string,
     teamSize: number
   ) =>
-    [...channelInfos.entries()]
+    [...channelMetas.entries()]
       .map(([convID, info]) => {
         const numParticipants = (participantMap.get(convID) ?? ChatConstants.noParticipantInfo).all.length
         return {
           convID,
           description: info.description,
           hasAllMembers: numParticipants === teamSize,
-          mtimeHuman: formatTimeRelativeToNow(info.mtime),
+          mtimeHuman: formatTimeRelativeToNow(info.timestamp),
           name: info.channelname,
           numParticipants,
-          selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
+          selected: info.membershipType === 'active',
         }
       })
       .filter(conv => {
@@ -68,8 +68,6 @@ type Props = {
   ) => void
   canCreateChannels: boolean
   canEditChannels: boolean
-  channels: Array<RowProps & {convID: ChatTypes.ConversationIDKey}>
-  isFiltered: boolean
   onChangeSearch: (text: string) => void
   onClose: () => void
   onCreate: () => void
@@ -80,7 +78,14 @@ type Props = {
 }
 
 const Wrapper = (p: Props) => {
-  const {_teamID, _onView, _saveSubscriptions, channels, selectedChatID, teamname, ...rest} = p
+  const {_teamID, _onView, _saveSubscriptions, selectedChatID, teamname, ...rest} = p
+
+  const channelMetas = useAllChannelMetas(_teamID)
+  const teamSize = Container.useSelector(state => state.teams.teamIDToMembers.get(_teamID)?.size ?? 0)
+  const participantMap = Container.useSelector(state => state.chat2.participantMap)
+  const searchText = Container.useSelector(state => state.chat2.channelSearchText)
+  const channels = getChannels(channelMetas, participantMap, searchText, teamSize)
+
   const oldChannelState = React.useMemo(
     () =>
       channels.reduce<{[key: string]: boolean}>((acc, c) => {
@@ -119,7 +124,6 @@ const Wrapper = (p: Props) => {
 
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    dispatch(TeamsGen.createGetChannels({teamID: _teamID}))
     dispatch(TeamsGen.createGetMembers({teamID: _teamID}))
   }, [dispatch, _teamID])
 
@@ -146,7 +150,7 @@ const Wrapper = (p: Props) => {
       onClose={rest.onClose}
       onCreate={rest.onCreate}
       canEditChannels={rest.canEditChannels}
-      isFiltered={rest.isFiltered}
+      isFiltered={!!searchText}
       canCreateChannels={rest.canCreateChannels}
       channels={channels}
       nextChannelState={nextChannelState}
@@ -163,7 +167,6 @@ export default Container.connect(
     const teamID = Container.getRouteProps(ownProps, 'teamID', '')
     const waitingKey = TeamsConstants.getChannelsWaitingKey(teamID)
     const waitingForGet = anyWaiting(state, waitingKey)
-    const channelInfos = TeamsConstants.getTeamChannelInfos(state, teamID)
     const yourOperations = TeamsConstants.getCanPerformByID(state, teamID)
     const teamname = TeamsConstants.getTeamNameFromID(state, teamID) || ''
 
@@ -171,19 +174,12 @@ export default Container.connect(
       yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
     const canCreateChannels = yourOperations.createChannel
 
-    const teamSize = state.teams.teamIDToMembers.get(teamID)?.size ?? 0
-
-    const searchText = state.chat2.channelSearchText
-    const isFiltered = !!searchText
-
     const selectedChatID = state.chat2.selectedConversation
 
     return {
       _teamID: teamID,
       canCreateChannels,
       canEditChannels,
-      channels: getChannels(channelInfos, state.chat2.participantMap, searchText, teamSize),
-      isFiltered,
       selectedChatID,
       teamname,
       waitingForGet,
@@ -250,8 +246,11 @@ export default Container.connect(
         ),
     }
   },
-  (s, d, _: OwnProps) => ({
-    ...s,
-    ...d,
-  })
+  (s, d, _: OwnProps) => {
+    const p: Props = {
+      ...s,
+      ...d,
+    }
+    return p
+  }
 )(Wrapper)

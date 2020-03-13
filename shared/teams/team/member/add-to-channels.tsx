@@ -4,13 +4,13 @@ import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
+import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = Container.RouteProps<{
   teamID: Types.TeamID
@@ -18,20 +18,22 @@ type Props = Container.RouteProps<{
   test: React.ReactElement
 }>
 
-const getChannelsForList = memoize((channels: Map<string, Types.ChannelInfo>) => {
-  const processed = [...channels.values()].reduce(
-    ({list, general}: {general: Types.ChannelInfo; list: Array<Types.ChannelInfo>}, c) =>
-      c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
-    {general: Constants.initialChannelInfo, list: []}
-  )
-  const {list, general} = processed
-  const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
-  return {
-    channelInfoGeneral: general,
-    channelInfosAll: [general, ...sortedList],
-    channelInfosFiltered: sortedList,
+const getChannelsForList = memoize(
+  (channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>) => {
+    const processed = [...channels.values()].reduce(
+      ({list, general}: {general: ChatTypes.ConversationMeta; list: Array<ChatTypes.ConversationMeta>}, c) =>
+        c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
+      {general: ChatConstants.makeConversationMeta(), list: []}
+    )
+    const {list, general} = processed
+    const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
+    return {
+      channelMetaGeneral: general,
+      channelMetasAll: [general, ...sortedList],
+      channelMetasFiltered: sortedList,
+    }
   }
-})
+)
 
 const AddToChannels = (props: Props) => {
   const dispatch = Container.useDispatch()
@@ -39,20 +41,17 @@ const AddToChannels = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const usernames = Container.getRouteProps(props, 'usernames', [])
 
-  React.useEffect(() => {
-    dispatch(TeamsGen.createGetChannels({teamID}))
-  }, [dispatch, teamID])
-
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
-  const {channelInfosAll, channelInfosFiltered, channelInfoGeneral} = getChannelsForList(channelInfos)
+  const {channelMetasAll, channelMetasFiltered, channelMetaGeneral} = getChannelsForList(
+    useAllChannelMetas(teamID)
+  )
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
   const channels = filterLCase
-    ? channelInfosAll.filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : channelInfosAll
+    ? channelMetasAll.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channelMetasAll
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
@@ -64,7 +63,7 @@ const AddToChannels = (props: Props) => {
   ]
   const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
   const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
-    if (convIDKey === channelInfoGeneral.conversationIDKey) return
+    if (convIDKey === channelMetaGeneral.conversationIDKey) return
     if (selected.has(convIDKey)) {
       selected.delete(convIDKey)
       setSelected(new Set(selected))
@@ -74,7 +73,7 @@ const AddToChannels = (props: Props) => {
     }
   }
   const onSelectAll = () =>
-    setSelected(new Set([...channelInfosFiltered.values()].map(c => c.conversationIDKey)))
+    setSelected(new Set([...channelMetasFiltered.values()].map(c => c.conversationIDKey)))
   const onSelectNone = () => setSelected(new Set())
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
@@ -107,7 +106,7 @@ const AddToChannels = (props: Props) => {
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channelInfosFiltered.length
+        const allSelected = selected.size === channelMetasFiltered.length
         return (
           <HeaderRow
             key="{header}"
@@ -126,7 +125,7 @@ const AddToChannels = (props: Props) => {
             numMembers={item.numMembers}
             selected={
               selected.has(item.conversationIDKey) ||
-              item.conversationIDKey === channelInfoGeneral.conversationIDKey
+              item.conversationIDKey === channelMetaGeneral.conversationIDKey
             }
             onSelect={() => onSelect(item.conversationIDKey)}
           />
@@ -192,9 +191,9 @@ const AddToChannels = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channelInfosAll.length} ${pluralize(
+            placeholderText={`Search ${channelMetasAll.length} ${pluralize(
               'channel',
-              channelInfosAll.length
+              channelMetasAll.length
             )}`}
             icon="iconfont-search"
             onChange={setFilter}

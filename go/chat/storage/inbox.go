@@ -422,9 +422,9 @@ func (i *Inbox) readDiskVersionsIndexMissOk(ctx context.Context, uid gregor1.UID
 }
 
 func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "MergeLocalMetadata")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "MergeLocalMetadata")()
 	for _, convLocal := range convs {
 		conv, err := i.readConv(ctx, uid, convLocal.GetConvID())
 		if err != nil {
@@ -651,7 +651,7 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 
 		if convs, err = i.readConvs(ctx, uid, iboxIndex.ConversationIDs); err != nil {
 			i.Debug(ctx, "Read: unexpected miss on index read: %s", err)
-			return 0, nil, MissError{}
+			return 0, nil, NewInternalError(ctx, i.DebugLabeler, "index out of sync with convs")
 		}
 	}
 

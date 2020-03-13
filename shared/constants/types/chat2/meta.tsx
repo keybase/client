@@ -5,7 +5,7 @@ import * as RPCChatTypes from '../rpc-chat-gen'
 import * as TeamTypes from '../teams'
 import {RetentionPolicy} from '../retention-policy'
 
-export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
+export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset' | 'notMember'
 export type TeamType = 'small' | 'big' | 'adhoc'
 
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'

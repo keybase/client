@@ -17,21 +17,21 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-avdl-compiler@1.4.6:
-  version "1.4.6"
-  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.6.tgz#3bf90f980b4292780f93202b128aabd9413e03de"
-  integrity sha512-KG32hL3RBqVa4cwKAuxIXC9gaNOSDj6tKux2fhaPYEpwwmZyfhCuZeSYDL0NytIh8a9T6s6gf7DT1R0UG/wLvA==
+avdl-compiler@1.4.8:
+  version "1.4.8"
+  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.8.tgz#012abef6f669c35a68eb5104ea4ff19f1b1895ae"
+  integrity sha512-dMLeZtz5Hc84BXkjoC/mXwa9WQsGMtvyhVXetmIH0zKhwe7WDKus6+sbV8ZDi4G5EBCRb0mR2QawRmdrZAK2OQ==
   dependencies:
-    avdl2json "^2.2.4"
+    avdl2json "^2.2.5"
     iced-error "0.0.9"
     iced-runtime "^1.0.3"
     lodash "4.17.15"
     minimist "^1.2.0"
 
-avdl2json@2.2.4, avdl2json@^2.2.4:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/avdl2json/-/avdl2json-2.2.4.tgz#b21443fc709f469d87564642fc703affe5aa619e"
-  integrity sha1-shRD/HCfRp2HVkZC/HA6/+WqYZ4=
+avdl2json@2.2.5, avdl2json@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/avdl2json/-/avdl2json-2.2.5.tgz#65b05673325217f5aa0a9fd03b138bbfc3cf60e7"
+  integrity sha512-66g8A5P+QN5xLq6gOGlVqJ9OaQUBZDlL0hQWjBMAAiwmONDXSxJaWYNW3ntH94z+unZnWLXH2n/bsOT4g2ADBg==
   dependencies:
     colors "^1.1.2"
     iced-error "0.0.9"

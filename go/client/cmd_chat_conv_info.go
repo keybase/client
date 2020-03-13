@@ -97,8 +97,8 @@ func (c *CmdChatConvInfo) Run() error {
 	if info.Triple.TopicType != chat1.TopicType_CHAT {
 		topicType = fmt.Sprintf(" (%s)", info.Triple.TopicType)
 	}
-	_, err = dui.Printf("ConversationName: %s%s\nConversationID: %v\n",
-		utils.FormatConversationName(info, c.G().Env.GetUsername().String()), topicType, info.Id)
+	_, err = dui.Printf("ConversationName: %s%s\nConversationID: %v\nConvIDShort: %v\n",
+		utils.FormatConversationName(info, c.G().Env.GetUsername().String()), topicType, info.Id, info.Id.DbShortFormString())
 	return err
 }
 

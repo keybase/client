@@ -2384,23 +2384,18 @@ const dismissJourneycard = (action: Chat2Gen.DismissJourneycardPayload, logger: 
   return Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [ordinal]})
 }
 
-// Get the full channel names/descs for a team if we don't already have them.
+// Get the list of mutual teams if we need to.
 function* loadSuggestionData(
   state: Container.TypedState,
   action: Chat2Gen.ChannelSuggestionsTriggeredPayload
 ) {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  const teamID = meta.teamID
   // If this is an impteam, try to refresh mutual team info
   if (!meta.teamname) {
     yield Saga.put(Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey}))
     return
   }
-  // This only happens when user enters '#' which isn't that often. If this
-  // becomes a problem, we can make a notification from service for when
-  // channels change, and skip the load here if nothing has changed yet.
-  yield Saga.put(TeamsGen.createGetChannels({teamID}))
 }
 
 const refreshMutualTeamsInConv = async (
@@ -2414,10 +2409,7 @@ const refreshMutualTeamsInConv = async (
     {usernames: otherParticipants},
     Constants.waitingKeyMutualTeams(conversationIDKey)
   )
-  return [
-    ...(results.teamIDs?.map(teamID => TeamsGen.createGetChannels({teamID})) ?? []),
-    Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []}),
-  ]
+  return Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []})
 }
 
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()

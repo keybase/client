@@ -11,19 +11,33 @@ protocol wot {
     REVOKED_4
   }
 
-  // none (""), audio, video, email, other_chat, in_person
+  // How the voucher knows they have the right vouchee.
+  // See extras.go for values
   @typedef("string")
   record UsernameVerificationType {}
 
+  // One of the vouchee's proofs.
+  // Why not SigID? SigID doesn't uniquely identify old proofs.
+  record WotProof {
+    @jsonkey("proof_type")
+    ProofType proofType;
+
+    // For social proofs.
+    @jsonkey("name,omitempty") string name;
+    @jsonkey("username,omitempty") string username;
+
+    @jsonkey("protocol,omitempty") string protocol; // For https, http, and dns.
+    @jsonkey("hostname,omitempty") string hostname; // For https, http.
+    @jsonkey("domain,omitempty") string domain; // For dns.
+  }
+
   record Confidence {
-    @jsonkey("vouched_by,omitempty")
-    array<UID> vouchedBy;
-    array<SigID> proofs;
     @jsonkey("username_verified_via,omitempty")
     UsernameVerificationType usernameVerifiedVia;
+    @jsonkey("proofs,omitempty")
+    array<WotProof> proofs;
+    @jsonkey("other,omitempty")
     string other;
-    @jsonkey("known_on_keybase_days,omitempty")
-    int knownOnKeybaseDays;
   }
 
   void wotVouch(int sessionID, UserVersion uv /* vouchee */, array<string> vouchTexts, Confidence confidence);
@@ -38,7 +52,7 @@ protocol wot {
 
   record WotVouch {
     WotStatusType status;
-    SigID vouchProof;
+    SigID vouchProof; // ID of the voucher's sigchain link where they did the vouching.
     UserVersion voucher;
     array<string> vouchTexts;
     Time vouchedAt;

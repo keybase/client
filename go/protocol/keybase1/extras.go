@@ -3932,44 +3932,26 @@ func (e TeamSearchExport) Hash() string {
 }
 
 // web-of-trust
+// In order of descending quality.
+// Keep in sync with server: helpers/wot.ts
 const (
-	UsernameVerificationType_NONE       = ""
-	UsernameVerificationType_AUDIO      = "audio"
-	UsernameVerificationType_VIDEO      = "video"
-	UsernameVerificationType_EMAIL      = "email"
-	UsernameVerificationType_OTHER_CHAT = "other_chat"
 	UsernameVerificationType_IN_PERSON  = "in_person"
+	UsernameVerificationType_PROOFS     = "proofs"
+	UsernameVerificationType_VIDEO      = "video"
+	UsernameVerificationType_AUDIO      = "audio"
+	UsernameVerificationType_OTHER_CHAT = "other_chat"
+	UsernameVerificationType_FAMILIAR   = "familiar"
+	UsernameVerificationType_OTHER      = "other"
 )
 
 var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
-	"":           UsernameVerificationType_NONE,
-	"none":       UsernameVerificationType_NONE,
-	"audio":      UsernameVerificationType_AUDIO,
-	"video":      UsernameVerificationType_VIDEO,
-	"email":      UsernameVerificationType_EMAIL,
-	"other_chat": UsernameVerificationType_OTHER_CHAT,
 	"in_person":  UsernameVerificationType_IN_PERSON,
-}
-
-func (c Confidence) ToJsonw() *jsonw.Wrapper {
-	j := jsonw.NewDictionary()
-	if c.UsernameVerifiedVia != UsernameVerificationType_NONE {
-		_ = j.SetKey("username_verified_via", jsonw.NewString(string(c.UsernameVerifiedVia)))
-	}
-	if len(c.VouchedBy) > 0 {
-		vb := jsonw.NewArray(len(c.VouchedBy))
-		for i, uid := range c.VouchedBy {
-			_ = vb.SetIndex(i, jsonw.NewString(uid.String()))
-		}
-		_ = j.SetKey("vouched_by", vb)
-	}
-	if c.KnownOnKeybaseDays > 0 {
-		_ = j.SetKey("known_on_keybase_days", jsonw.NewInt(c.KnownOnKeybaseDays))
-	}
-	if c.Other != "" {
-		_ = j.SetKey("other", jsonw.NewString(c.Other))
-	}
-	return j
+	"proofs":     UsernameVerificationType_PROOFS,
+	"video":      UsernameVerificationType_VIDEO,
+	"audio":      UsernameVerificationType_AUDIO,
+	"other_chat": UsernameVerificationType_OTHER_CHAT,
+	"familiar":   UsernameVerificationType_FAMILIAR,
+	"other":      UsernameVerificationType_OTHER,
 }
 
 func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
