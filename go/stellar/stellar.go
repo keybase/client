@@ -215,6 +215,9 @@ func ImportSecretKey(mctx libkb.MetaContext, secretKey stellar1.SecretKey, makeP
 		return err
 	}
 
+	// inform the global stellar object that there is a new bundle.
+	mctx.G().GetStellar().InformBundle(mctx, nextBundle.Revision, nextBundle.Accounts)
+
 	// after import, mark all the transactions in this account as "read"
 	// any errors in this process are not fatal, since the important task
 	// has been accomplished.
