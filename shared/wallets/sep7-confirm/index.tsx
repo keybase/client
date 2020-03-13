@@ -271,7 +271,7 @@ const SEP7Confirm = (props: Props) => (
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
             exchangeRate={props.path.exchangeRate}
-            memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
+            memo={props.memoType === 'MEMO_TEXT' || props.memoType === 'MEMO_ID' ? props.memo : ''}
             message={props.message}
             onChangeAmount={props.onChangeAmount}
             recipient={props.recipient || ''}
