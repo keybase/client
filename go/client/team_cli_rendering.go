@@ -91,7 +91,7 @@ func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]ke
 		if aErr != nil || bErr != nil {
 			return bErr != nil
 		}
-		return strings.Compare(a.String(), b.String()) < 0
+		return a.String() < b.String()
 	})
 	for _, annotatedInvite := range inviteList {
 		invite := annotatedInvite.Invite
