@@ -1,10 +1,14 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -156,4 +160,57 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 		Reaction:  arg.Reaction,
 	}
 	return h.WotReact(ctx, rarg)
+}
+
+const wotGregorHandlerName = "wotHandler"
+
+type wotGregorHandler struct {
+	libkb.Contextified
+}
+
+var _ libkb.GregorInBandMessageHandler = (*wotGregorHandler)(nil)
+
+func newWotGregorHandler(g *libkb.GlobalContext) *wotGregorHandler {
+	return &wotGregorHandler{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (r *wotGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	switch category {
+	case "wot.new_vouch", "wot.rejected", "wot.accepted":
+		// TODO: add `wot.revoked` and `wot.suggestion` (and tests)
+		return true, r.handleWotMsg(ctx, cli, category, item)
+	default:
+		if strings.HasPrefix(category, "wot.") {
+			return false, fmt.Errorf("unknown wotGregorHandler category: %q", category)
+		}
+		return false, nil
+	}
+}
+
+func (r *wotGregorHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	return false, nil
+}
+
+func (r *wotGregorHandler) IsAlive() bool {
+	return true
+}
+
+func (r *wotGregorHandler) Name() string {
+	return wotGregorHandlerName
+}
+
+func (r *wotGregorHandler) handleWotMsg(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+	mctx := libkb.NewMetaContext(ctx, r.G())
+	mctx.Debug("wotGregorHandler: %s received", category)
+	var msg keybase1.WotChangedMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		mctx.Debug("error unmarshaling %s item: %s", category, err)
+		return err
+	}
+	mctx.Debug("%s unmarshaled: %+v", category, msg)
+
+	r.G().NotifyRouter.HandleWotChanged(ctx, category, msg.VoucherUID, msg.VoucheeUID)
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

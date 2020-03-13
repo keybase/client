@@ -13,10 +13,10 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type cmdWotVouch struct {
-	assertion  string
-	message    string
-	confidence keybase1.Confidence
+type CmdWotVouch struct {
+	Assertion  string
+	Message    string
+	Confidence keybase1.Confidence
 	libkb.Contextified
 }
 
@@ -38,7 +38,7 @@ func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			Usage: "Other information about your confidence in knowing this user",
 		},
 	}
-	cmd := &cmdWotVouch{
+	cmd := &CmdWotVouch{
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
@@ -52,13 +52,13 @@ func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
-func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
+func (c *CmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return errors.New("vouch requires a user assertion argument")
 	}
-	c.assertion = ctx.Args()[0]
-	c.message = ctx.String("message")
-	if len(c.message) == 0 {
+	c.Assertion = ctx.Args()[0]
+	c.Message = ctx.String("message")
+	if len(c.Message) == 0 {
 		return errors.New("vouch requires an attestation e.g. `-m \"Alice plays the banjo\"`")
 	}
 	via := ctx.String("verified-via")
@@ -69,26 +69,26 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	if !ok {
 		return fmt.Errorf("invalid verified-via value '%v'. Expected one of: %v", via, verifiedViaChoices)
 	}
-	c.confidence.UsernameVerifiedVia = viaType
+	c.Confidence.UsernameVerifiedVia = viaType
 	other := ctx.String("other")
-	if (other != "") != (c.confidence.UsernameVerifiedVia == keybase1.UsernameVerificationType_OTHER) {
+	if (other != "") != (c.Confidence.UsernameVerifiedVia == keybase1.UsernameVerificationType_OTHER) {
 		return errors.New("--other must be paired with --verified-via 'other'")
 	}
 	if other != "" {
-		c.confidence.Other = ctx.String("other")
+		c.Confidence.Other = ctx.String("other")
 	}
 	return nil
 }
 
-func (c *cmdWotVouch) Run() error {
+func (c *CmdWotVouch) Run() error {
 	protocols := []rpc.Protocol{NewIdentifyUIProtocol(c.G())}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	arg := keybase1.WotVouchCLIArg{
-		Assertion:  c.assertion,
-		VouchTexts: []string{c.message},
-		Confidence: c.confidence,
+		Assertion:  c.Assertion,
+		VouchTexts: []string{c.Message},
+		Confidence: c.Confidence,
 	}
 	cli, err := GetWebOfTrustClient(c.G())
 	if err != nil {
@@ -97,7 +97,7 @@ func (c *cmdWotVouch) Run() error {
 	return cli.WotVouchCLI(context.Background(), arg)
 }
 
-func (c *cmdWotVouch) GetUsage() libkb.Usage {
+func (c *CmdWotVouch) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

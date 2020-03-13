@@ -184,6 +184,7 @@ export const keybase1NotifyTrackingTrackingInfo = 'engine-gen:keybase1NotifyTrac
 export const keybase1NotifyUsersIdentifyUpdate = 'engine-gen:keybase1NotifyUsersIdentifyUpdate'
 export const keybase1NotifyUsersPasswordChanged = 'engine-gen:keybase1NotifyUsersPasswordChanged'
 export const keybase1NotifyUsersUserChanged = 'engine-gen:keybase1NotifyUsersUserChanged'
+export const keybase1NotifyWotWotChanged = 'engine-gen:keybase1NotifyWotWotChanged'
 export const keybase1PgpUiFinished = 'engine-gen:keybase1PgpUiFinished'
 export const keybase1PgpUiKeyGenerated = 'engine-gen:keybase1PgpUiKeyGenerated'
 export const keybase1PgpUiOutputPGPWarning = 'engine-gen:keybase1PgpUiOutputPGPWarning'
@@ -1548,6 +1549,15 @@ type _Keybase1NotifyUsersUserChangedPayload = {
     sessionID: number
   }
 }
+type _Keybase1NotifyWotWotChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyWot.wotChanged']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyWot.wotChanged']['outParam']) => void
+  }
+}
 type _Keybase1PgpUiFinishedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.finished']['inParam'] & {sessionID: number}
   response: {
@@ -2528,6 +2538,9 @@ export const createKeybase1NotifyUsersPasswordChanged = (
 export const createKeybase1NotifyUsersUserChanged = (
   payload: _Keybase1NotifyUsersUserChangedPayload
 ): Keybase1NotifyUsersUserChangedPayload => ({payload, type: keybase1NotifyUsersUserChanged})
+export const createKeybase1NotifyWotWotChanged = (
+  payload: _Keybase1NotifyWotWotChangedPayload
+): Keybase1NotifyWotWotChangedPayload => ({payload, type: keybase1NotifyWotWotChanged})
 export const createKeybase1PgpUiFinished = (
   payload: _Keybase1PgpUiFinishedPayload
 ): Keybase1PgpUiFinishedPayload => ({payload, type: keybase1PgpUiFinished})
@@ -3339,6 +3352,10 @@ export type Keybase1NotifyUsersUserChangedPayload = {
   readonly payload: _Keybase1NotifyUsersUserChangedPayload
   readonly type: typeof keybase1NotifyUsersUserChanged
 }
+export type Keybase1NotifyWotWotChangedPayload = {
+  readonly payload: _Keybase1NotifyWotWotChangedPayload
+  readonly type: typeof keybase1NotifyWotWotChanged
+}
 export type Keybase1PgpUiFinishedPayload = {
   readonly payload: _Keybase1PgpUiFinishedPayload
   readonly type: typeof keybase1PgpUiFinished
@@ -3696,6 +3713,7 @@ export type Actions =
   | Keybase1NotifyUsersIdentifyUpdatePayload
   | Keybase1NotifyUsersPasswordChangedPayload
   | Keybase1NotifyUsersUserChangedPayload
+  | Keybase1NotifyWotWotChangedPayload
   | Keybase1PgpUiFinishedPayload
   | Keybase1PgpUiKeyGeneratedPayload
   | Keybase1PgpUiOutputPGPWarningPayload
