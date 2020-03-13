@@ -77,8 +77,8 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   headerIcon: {
-    backgroundColor: Styles.globalColors.red,
     backgroundClip: 'padding-box',
+    backgroundColor: Styles.globalColors.red,
     borderColor: Styles.globalColors.white,
     borderRadius: 50,
     borderStyle: 'solid',
