@@ -13,10 +13,9 @@ import {pluralize} from '../../../../util/string'
 type ChannelRowProps = {
   channel: ChatTypes.ConversationMeta
   teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
 }
 const ChannelRow = (props: ChannelRowProps) => {
-  const {channel, teamID, conversationIDKey} = props
+  const {channel, teamID} = props
   const isGeneral = channel.channelname === 'general'
 
   const selected = Container.useSelector(
@@ -26,7 +25,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const canDelete = canPerform.deleteChannel
 
   const numParticipants = Container.useSelector(
-    state => ChatConstants.getParticipantInfo(state, conversationIDKey).all.length
+    state => ChatConstants.getParticipantInfo(state, channel.conversationIDKey).all.length
   )
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
@@ -47,7 +46,8 @@ const ChannelRow = (props: ChannelRowProps) => {
       })
     )
 
-  const onDeleteChannel = () => dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
+  const onDeleteChannel = () =>
+    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey: channel.conversationIDKey, teamID}))
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}

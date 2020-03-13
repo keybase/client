@@ -72,7 +72,6 @@ const useLoadDataForChannelPage = (
 const lastSelectedTabs: {[T: string]: TabKey} = {}
 const defaultTab: TabKey = 'members'
 
-// TODO: consider using this for the teams/team/tabs state code
 const useTabsState = (
   conversationIDKey: ChatTypes.ConversationIDKey,
   providedTab?: TabKey
