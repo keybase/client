@@ -23,8 +23,9 @@ const DefaultChannels = (props: Props) => {
       _ => {}
     )
   }, [getDefaultChannelsRPC, teamID])
+  const onAdd = (channelName: string) => {}
 
-  return <ChannelsWidget teamID={teamID} channels={defaultChannel} />
+  return <ChannelsWidget teamID={teamID} channels={defaultChannels} />
 }
 
 export default DefaultChannels

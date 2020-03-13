@@ -2,28 +2,34 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
 import ChannelPopup from '../team/settings-tab/channel-popup'
 import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'
 
+type ChannelNameID = {
+  channelname: string
+  conversationIDKey: ChatTypes.ConversationIDKey
+}
+
 type Props = {
-  channels: Array<string>
-  onAddChannel: (channelname: string) => void
-  onRemoveChannel: (channelname: string) => void
+  channels: Array<ChannelNameID>
+  onAddChannel: (toAdd: Array<ChannelNameID>) => void
+  onRemoveChannel: (toRemove: ChannelNameID) => void
   teamID: Types.TeamID
 }
 
 // always shows #general
 const ChannelsWidget = (props: Props) => {
   return (
-    <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
+    <Kb.Box2 direction="vertical" gap="tiny" style={styles.container} fullWidth={true}>
       <ChannelInput onAdd={props.onAddChannel} teamID={props.teamID} selected={props.channels} />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
-        {props.channels.map(channelname => (
+        {props.channels.map(channel => (
           <ChannelPill
-            key={channelname}
-            channelname={channelname}
-            onRemove={channelname === 'general' ? undefined : () => props.onRemoveChannel(channelname)}
+            key={channel.channelname}
+            channelname={channel.channelname}
+            onRemove={channel.channelname === 'general' ? undefined : () => props.onRemoveChannel(channel)}
           />
         ))}
       </Kb.Box2>
@@ -31,13 +37,17 @@ const ChannelsWidget = (props: Props) => {
   )
 }
 
-type ChannelInputProps = {onAdd: (channelname: string) => void; selected: Array<string>; teamID: Types.TeamID}
+type ChannelInputProps = {
+  onAdd: (toAdd: Array<ChannelNameID>) => void
+  selected: Array<ChannelNameID>
+  teamID: Types.TeamID
+}
 
 const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
   const channels = useAllChannelMetas(teamID)
   const channelnames = [...channels.values()]
-    .filter(c => !selected.includes(c.channelname))
+    .filter(c => !selected.find(channel => channel.conversationIDKey === c.conversationIDKey))
     .map(c => `#${c.channelname}`)
 
   const onSelect = value => {
