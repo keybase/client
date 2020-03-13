@@ -584,6 +584,7 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 		inviterUsername := namePkgs[invite.Inviter.Uid].NormalizedUsername
 
 		// default displayName; overridden by some invite types later
+		// kept the same for emails and phones
 		displayName := keybase1.TeamInviteDisplayName(invite.Name)
 
 		category, err := invite.Type.C()

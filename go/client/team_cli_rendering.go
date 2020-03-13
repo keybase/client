@@ -112,7 +112,7 @@ func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]ke
 			trailer = fmt.Sprintf("(* invited via secret token by %s)%s",
 				annotatedInvite.InviterUsername, inviteIDTrailer)
 		case keybase1.TeamInviteCategory_INVITELINK:
-			trailer = fmt.Sprintf("(* invitelink created by %s)%s",
+			trailer = fmt.Sprintf("(* invite link created by %s)%s",
 				annotatedInvite.InviterUsername, inviteIDTrailer)
 		}
 
