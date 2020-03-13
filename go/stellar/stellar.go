@@ -215,6 +215,9 @@ func ImportSecretKey(mctx libkb.MetaContext, secretKey stellar1.SecretKey, makeP
 		return err
 	}
 
+	// inform the global stellar object that there is a new bundle.
+	mctx.G().GetStellar().InformBundle(mctx, nextBundle.Revision, nextBundle.Accounts)
+
 	// after import, mark all the transactions in this account as "read"
 	// any errors in this process are not fatal, since the important task
 	// has been accomplished.
@@ -275,20 +278,29 @@ func ExportSecretKey(mctx libkb.MetaContext, accountID stellar1.AccountID) (res 
 }
 
 func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
+	own, isPrimary, _, err = OwnAccountPlusName(mctx, accountID)
+	return own, isPrimary, err
+}
+
+func OwnAccountPlusName(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, accountName string, err error) {
 	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
-		return false, false, err
+		return false, false, "", err
 	}
 	for _, account := range bundle.Accounts {
 		if account.AccountID.Eq(accountID) {
-			return true, account.IsPrimary, nil
+			return true, account.IsPrimary, account.Name, nil
 		}
 	}
-	return false, false, nil
+	return false, false, "", nil
 }
 
 func OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
 	return getGlobal(mctx.G()).OwnAccountCached(mctx, accountID)
+}
+
+func OwnAccountPlusNameCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, accountName string, err error) {
+	return getGlobal(mctx.G()).OwnAccountPlusNameCached(mctx, accountID)
 }
 
 func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntry, stellar1.AccountBundle, error) {
