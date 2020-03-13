@@ -3011,11 +3011,7 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 		}
 
 		if allOK {
-			teamID, _, err := h.teamIDFromConvID(ctx, uid, conv.GetConvID())
-			if err != nil {
-				return res, err
-			}
-			res.TeamIDs = append(res.TeamIDs, teamID)
+			res.TeamIDs = append(res.TeamIDs, keybase1.TeamID(conv.Conv.Metadata.IdTriple.Tlfid.String()))
 		}
 
 	}
