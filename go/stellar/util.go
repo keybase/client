@@ -63,7 +63,6 @@ func NewOwnAccountLookupCache(mctx libkb.MetaContext) OwnAccountLookupCache {
 func (o *ownAccountLookupCacheFromGlobal) OwnAccount(ctx context.Context, accountID stellar1.AccountID) (own bool, accountName string, err error) {
 	mctx := libkb.NewMetaContext(ctx, o.G())
 	own, _, accountName, err = OwnAccountPlusNameCached(mctx, accountID)
-	mctx.Debug("QWER OwnAccount(%s) => %v, %s, %s", accountID, own, accountName, err)
 	return own, accountName, err
 }
 
