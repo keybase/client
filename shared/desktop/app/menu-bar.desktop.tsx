@@ -117,10 +117,6 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     })
     mb.tray.on('double-click', (e: Electron.Event) => e.preventDefault())
 
-    mb.tray.on('ready', (e: Electron.Event) => {
-      mb.tray.setContextMenu(null)
-    })
-
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
     mb.window && mb.window.removeAllListeners('close')
