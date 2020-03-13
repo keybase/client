@@ -2,11 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
-import {Activity, ModalTitle} from '../../common'
+import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
 import {useAllChannelMetas} from '../../common/channel-hooks'
@@ -17,8 +18,21 @@ type Props = Container.RouteProps<{
   test: React.ReactElement
 }>
 
-const getChannelsForList = memoize((channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>) =>
-  [...channels.values()].filter(c => c.channelname !== 'general')
+const getChannelsForList = memoize(
+  (channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>) => {
+    const processed = [...channels.values()].reduce(
+      ({list, general}: {general: ChatTypes.ConversationMeta; list: Array<ChatTypes.ConversationMeta>}, c) =>
+        c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
+      {general: ChatConstants.makeConversationMeta(), list: []}
+    )
+    const {list, general} = processed
+    const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
+    return {
+      channelMetaGeneral: general,
+      channelMetasAll: [general, ...sortedList],
+      channelMetasFiltered: sortedList,
+    }
+  }
 )
 
 const AddToChannels = (props: Props) => {
@@ -28,14 +42,16 @@ const AddToChannels = (props: Props) => {
   const usernames = Container.getRouteProps(props, 'usernames', [])
 
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const channelMetas = getChannelsForList(useAllChannelMetas(teamID))
+  const {channelMetasAll, channelMetasFiltered, channelMetaGeneral} = getChannelsForList(
+    useAllChannelMetas(teamID)
+  )
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
   const channels = filterLCase
-    ? channelMetas.filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : channelMetas
+    ? channelMetasAll.filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : channelMetasAll
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
@@ -47,6 +63,7 @@ const AddToChannels = (props: Props) => {
   ]
   const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
   const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
+    if (convIDKey === channelMetaGeneral.conversationIDKey) return
     if (selected.has(convIDKey)) {
       selected.delete(convIDKey)
       setSelected(new Set(selected))
@@ -55,7 +72,8 @@ const AddToChannels = (props: Props) => {
       setSelected(new Set(selected))
     }
   }
-  const onSelectAll = () => setSelected(new Set([...channelMetas.values()].map(c => c.conversationIDKey)))
+  const onSelectAll = () =>
+    setSelected(new Set([...channelMetasFiltered.values()].map(c => c.conversationIDKey)))
   const onSelectNone = () => setSelected(new Set())
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
@@ -88,7 +106,7 @@ const AddToChannels = (props: Props) => {
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channelMetas.length
+        const allSelected = selected.size === channelMetasFiltered.length
         return (
           <HeaderRow
             key="{header}"
@@ -103,8 +121,12 @@ const AddToChannels = (props: Props) => {
           <ChannelRow
             key={item.channelname}
             channelname={item.channelname}
+            conversationIDKey={item.conversationIDKey}
             numMembers={item.numMembers}
-            selected={selected.has(item.conversationIDKey)}
+            selected={
+              selected.has(item.conversationIDKey) ||
+              item.conversationIDKey === channelMetaGeneral.conversationIDKey
+            }
             onSelect={() => onSelect(item.conversationIDKey)}
           />
         )
@@ -130,7 +152,7 @@ const AddToChannels = (props: Props) => {
           undefined
         ),
         title: (
-          <ModalTitle
+          <Common.ModalTitle
             teamname={meta.teamname}
             title={`Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`}
           />
@@ -169,7 +191,10 @@ const AddToChannels = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channelMetas.length} ${pluralize('channel', channelMetas.length)}`}
+            placeholderText={`Search ${channelMetasAll.length} ${pluralize(
+              'channel',
+              channelMetasAll.length
+            )}`}
             icon="iconfont-search"
             onChange={setFilter}
             size="full-width"
@@ -205,14 +230,24 @@ const HeaderRow = ({onCreate, onSelectAll, onSelectNone}) => (
   </Kb.Box2>
 )
 
-const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
-  Styles.isMobile ? (
+const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSelect}) => {
+  const numParticipants = Container.useSelector(
+    s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
+  )
+  const activityLevel = 'active' // TODO: plumbing
+  return Styles.isMobile ? (
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
-        <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
-          #{channelname}
-        </Kb.Text>
-        <Kb.CheckCircle checked={selected} onCheck={onSelect} />
+        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+          <Kb.Box2 direction="horizontal" gap="small" alignSelf="flex-start">
+            <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
+              #{channelname}
+            </Kb.Text>
+            <Common.ParticipantMeta numParticipants={numParticipants} />
+          </Kb.Box2>
+          <Common.Activity level={activityLevel} />
+        </Kb.Box2>
+        <Kb.CheckCircle checked={selected} onCheck={onSelect} disabled={channelname === 'general'} />
       </Kb.Box2>
     </Kb.ClickableBox>
   ) : (
@@ -241,21 +276,28 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
             <Kb.Text type="BodySmall">
               {numMembers} {pluralize('member', numMembers)} •
             </Kb.Text>
-            <Activity level="recently" />
+            <Common.Activity level="recently" />
           </Kb.Box2>
         </Kb.Box2>
       }
       containerStyleOverride={{marginLeft: 16, marginRight: 8}}
     />
   )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
+  channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
   item: Styles.platformStyles({
-    common: {justifyContent: 'space-between', ...Styles.padding(0, Styles.globalMargins.small)},
-    isElectron: {height: 56},
-    isMobile: {height: 48},
+    common: {justifyContent: 'space-between'},
+    isElectron: {
+      height: 56,
+      ...Styles.padding(0, Styles.globalMargins.small),
+    },
+    isMobile: {
+      ...Styles.padding(Styles.globalMargins.small),
+    },
   }),
   listContainer: Styles.platformStyles({
     isElectron: {
