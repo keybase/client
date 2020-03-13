@@ -3404,28 +3404,6 @@
     },
     {
       "type": "record",
-      "name": "AnnotatedSubteamMemberDetails",
-      "fields": [
-        {
-          "type": "TeamName",
-          "name": "teamName"
-        },
-        {
-          "type": "TeamID",
-          "name": "teamID"
-        },
-        {
-          "type": "TeamMemberDetails",
-          "name": "details"
-        },
-        {
-          "type": "TeamRole",
-          "name": "role"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "TeamTreeMembershipValue",
       "fields": [
         {
@@ -3438,6 +3416,14 @@
             "Time"
           ],
           "name": "joinTime"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "int",
+          "name": "memberCount"
         }
       ]
     },
@@ -3478,12 +3464,56 @@
       "name": "TeamTreeMembership",
       "fields": [
         {
-          "type": "TeamName",
+          "type": "string",
           "name": "teamName"
         },
         {
           "type": "TeamTreeMembershipResult",
           "name": "result"
+        },
+        {
+          "type": "TeamID",
+          "name": "targetTeamID"
+        },
+        {
+          "type": "string",
+          "name": "targetUsername"
+        },
+        {
+          "type": "int",
+          "name": "sessionID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeMembershipsDoneResult",
+      "fields": [
+        {
+          "type": "int",
+          "name": "expectedCount"
+        },
+        {
+          "type": "TeamID",
+          "name": "targetTeamID"
+        },
+        {
+          "type": "string",
+          "name": "targetUsername"
+        },
+        {
+          "type": "int",
+          "name": "sessionID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeInitial",
+      "fields": [
+        {
+          "type": "int",
+          "name": "guid"
         }
       ]
     }
@@ -4575,22 +4605,6 @@
       ],
       "response": "AnnotatedTeam"
     },
-    "getUserSubteamMemberships": {
-      "request": [
-        {
-          "name": "teamID",
-          "type": "TeamID"
-        },
-        {
-          "name": "username",
-          "type": "string"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "AnnotatedSubteamMemberDetails"
-      }
-    },
     "loadTeamTreeMemberships": {
       "request": [
         {
@@ -4606,7 +4620,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "TeamTreeInitial"
     },
     "cancelLoadTeamTree": {
       "request": [

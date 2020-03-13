@@ -1385,75 +1385,63 @@ function* getMemberSubteamDetails(
 ) {
   const {teamID, username} = action.payload
 
-  // We start by fetching the memberships and processing them...
-  let subteamIDs = []
-  const membershipsWaitingKey = Constants.loadSubteamMembershipsWaitingKey(teamID, username)
+  logger.info(`GOT HEJ ${teamID}:${username}`)
+
+  // Spawn a request to the service.
+  yield RPCTypes.teamsLoadTeamTreeMembershipsRpcPromise({
+    teamID,
+    username,
+  })
+}
+
+function* loadTreeTeamActivity(
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload,
+  logger: Saga.SagaLogger
+) {
+  logger.info("PARAMS ", action.payload)
+  const {membership} = action.payload.params
+  if (RPCTypes.TeamTreeMembershipStatus.ok != membership.result.s) {
+    return
+  }
+  const teamIDs = [membership.result.ok.teamID]
+  const username = membership.targetUsername
+  const targetTeamID = membership.targetTeamID
+
   try {
-    yield Saga.put(WaitingGen.createIncrementWaiting({key: membershipsWaitingKey}))
-    const memberships = yield RPCTypes.teamsGetUserSubteamMembershipsRpcPromise({
-      teamID,
+    yield Saga.put(
+      WaitingGen.createBatchChangeWaiting({
+        changes: teamIDs.map(id => ({
+          increment: true,
+          key: Constants.loadSubteamActivityWaitingKey(id, username),
+        })),
+      })
+    )
+
+    const activityMap = yield RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise({
+      teamIDs: teamIDs,
       username,
     })
-    if (!memberships) {
-      throw new Error(`retrieved no results for ${teamID}:${username}`)
-    }
-
-    subteamIDs = memberships.map(membership => membership.teamID)
-
-    const res = new Map<string, Types.MemberInfoWithLastActivity>()
-    for (const membership of memberships) {
-      res.set(membership.teamID, Constants.subteamDetailsToMemberInfo(username, membership))
-    }
     yield Saga.put(
-      TeamsGen.createSetMemberSubteamDetails({
-        memberships: res,
+      TeamsGen.createSetMemberActivityDetails({
+        activityMap: new Map(Object.entries(activityMap)),
         username,
       })
     )
   } catch (e) {
-    logger.info(`getMemberSubteamDetails: unable to get details for ${teamID}:${username}: ${e.toString()}`)
+    logger.info(
+      `loadTreeTeamActivity: unable to get activity for tree of ${targetTeamID}:${username}: zz${e.message}`
+    )
   } finally {
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: membershipsWaitingKey}))
-  }
-
-  if (subteamIDs.length > 0) {
-    try {
-      yield Saga.put(
-        WaitingGen.createBatchChangeWaiting({
-          changes: subteamIDs.map(id => ({
-            increment: true,
-            key: Constants.loadSubteamActivityWaitingKey(id, username),
-          })),
-        })
-      )
-
-      const activityMap = yield RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise({
-        teamIDs: subteamIDs,
-        username,
+    yield Saga.put(
+      WaitingGen.createBatchChangeWaiting({
+        changes: teamIDs.map(id => ({
+          increment: false,
+          key: Constants.loadSubteamActivityWaitingKey(id, username),
+        })),
       })
-      yield Saga.put(
-        TeamsGen.createSetMemberActivityDetails({
-          activityMap: new Map(Object.entries(activityMap)),
-          username,
-        })
-      )
-    } catch (e) {
-      logger.info(
-        `getMemberSubteamDetails: unable to get activity for ${teamID}:${username}: ${e.toString()}`
-      )
-    } finally {
-      yield Saga.put(
-        WaitingGen.createBatchChangeWaiting({
-          changes: subteamIDs.map(id => ({
-            increment: false,
-            key: Constants.loadSubteamActivityWaitingKey(id, username),
-          })),
-        })
-      )
-    }
+    )
   }
-
-  return
 }
 
 const launchNewTeamWizardOrModal = (action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
@@ -1622,6 +1610,10 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<TeamsGen.GetMemberSubteamDetailsPayload>(
     TeamsGen.getMemberSubteamDetails,
     getMemberSubteamDetails
+  )
+  yield* Saga.chainGenerator<EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload>(
+    EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial,
+    loadTreeTeamActivity
   )
 
   // New team wizard

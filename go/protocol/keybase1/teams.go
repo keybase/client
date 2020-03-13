@@ -3872,25 +3872,11 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 	}
 }
 
-type AnnotatedSubteamMemberDetails struct {
-	TeamName TeamName          `codec:"teamName" json:"teamName"`
-	TeamID   TeamID            `codec:"teamID" json:"teamID"`
-	Details  TeamMemberDetails `codec:"details" json:"details"`
-	Role     TeamRole          `codec:"role" json:"role"`
-}
-
-func (o AnnotatedSubteamMemberDetails) DeepCopy() AnnotatedSubteamMemberDetails {
-	return AnnotatedSubteamMemberDetails{
-		TeamName: o.TeamName.DeepCopy(),
-		TeamID:   o.TeamID.DeepCopy(),
-		Details:  o.Details.DeepCopy(),
-		Role:     o.Role.DeepCopy(),
-	}
-}
-
 type TeamTreeMembershipValue struct {
-	Role     TeamRole `codec:"role" json:"role"`
-	JoinTime *Time    `codec:"joinTime,omitempty" json:"joinTime,omitempty"`
+	Role        TeamRole `codec:"role" json:"role"`
+	JoinTime    *Time    `codec:"joinTime,omitempty" json:"joinTime,omitempty"`
+	TeamID      TeamID   `codec:"teamID" json:"teamID"`
+	MemberCount int      `codec:"memberCount" json:"memberCount"`
 }
 
 func (o TeamTreeMembershipValue) DeepCopy() TeamTreeMembershipValue {
@@ -3903,6 +3889,8 @@ func (o TeamTreeMembershipValue) DeepCopy() TeamTreeMembershipValue {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.JoinTime),
+		TeamID:      o.TeamID.DeepCopy(),
+		MemberCount: o.MemberCount,
 	}
 }
 
@@ -4009,14 +3997,46 @@ func (o TeamTreeMembershipResult) DeepCopy() TeamTreeMembershipResult {
 }
 
 type TeamTreeMembership struct {
-	TeamName TeamName                 `codec:"teamName" json:"teamName"`
-	Result   TeamTreeMembershipResult `codec:"result" json:"result"`
+	TeamName       string                   `codec:"teamName" json:"teamName"`
+	Result         TeamTreeMembershipResult `codec:"result" json:"result"`
+	TargetTeamID   TeamID                   `codec:"targetTeamID" json:"targetTeamID"`
+	TargetUsername string                   `codec:"targetUsername" json:"targetUsername"`
+	SessionID      int                      `codec:"sessionID" json:"sessionID"`
 }
 
 func (o TeamTreeMembership) DeepCopy() TeamTreeMembership {
 	return TeamTreeMembership{
-		TeamName: o.TeamName.DeepCopy(),
-		Result:   o.Result.DeepCopy(),
+		TeamName:       o.TeamName,
+		Result:         o.Result.DeepCopy(),
+		TargetTeamID:   o.TargetTeamID.DeepCopy(),
+		TargetUsername: o.TargetUsername,
+		SessionID:      o.SessionID,
+	}
+}
+
+type TeamTreeMembershipsDoneResult struct {
+	ExpectedCount  int    `codec:"expectedCount" json:"expectedCount"`
+	TargetTeamID   TeamID `codec:"targetTeamID" json:"targetTeamID"`
+	TargetUsername string `codec:"targetUsername" json:"targetUsername"`
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+}
+
+func (o TeamTreeMembershipsDoneResult) DeepCopy() TeamTreeMembershipsDoneResult {
+	return TeamTreeMembershipsDoneResult{
+		ExpectedCount:  o.ExpectedCount,
+		TargetTeamID:   o.TargetTeamID.DeepCopy(),
+		TargetUsername: o.TargetUsername,
+		SessionID:      o.SessionID,
+	}
+}
+
+type TeamTreeInitial struct {
+	Guid int `codec:"guid" json:"guid"`
+}
+
+func (o TeamTreeInitial) DeepCopy() TeamTreeInitial {
+	return TeamTreeInitial{
+		Guid: o.Guid,
 	}
 }
 
@@ -4384,11 +4404,6 @@ type GetAnnotatedTeamArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
-type GetUserSubteamMembershipsArg struct {
-	TeamID   TeamID `codec:"teamID" json:"teamID"`
-	Username string `codec:"username" json:"username"`
-}
-
 type LoadTeamTreeMembershipsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamID    TeamID `codec:"teamID" json:"teamID"`
@@ -4481,8 +4496,7 @@ type TeamsInterface interface {
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
-	GetUserSubteamMemberships(context.Context, GetUserSubteamMembershipsArg) ([]AnnotatedSubteamMemberDetails, error)
-	LoadTeamTreeMemberships(context.Context, LoadTeamTreeMembershipsArg) error
+	LoadTeamTreeMemberships(context.Context, LoadTeamTreeMembershipsArg) (TeamTreeInitial, error)
 	CancelLoadTeamTree(context.Context, int) error
 }
 
@@ -5430,21 +5444,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getUserSubteamMemberships": {
-				MakeArg: func() interface{} {
-					var ret [1]GetUserSubteamMembershipsArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetUserSubteamMembershipsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetUserSubteamMembershipsArg)(nil), args)
-						return
-					}
-					ret, err = i.GetUserSubteamMemberships(ctx, typedArgs[0])
-					return
-				},
-			},
 			"loadTeamTreeMemberships": {
 				MakeArg: func() interface{} {
 					var ret [1]LoadTeamTreeMembershipsArg
@@ -5456,7 +5455,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LoadTeamTreeMembershipsArg)(nil), args)
 						return
 					}
-					err = i.LoadTeamTreeMemberships(ctx, typedArgs[0])
+					ret, err = i.LoadTeamTreeMemberships(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5829,13 +5828,8 @@ func (c TeamsClient) GetAnnotatedTeam(ctx context.Context, teamID TeamID) (res A
 	return
 }
 
-func (c TeamsClient) GetUserSubteamMemberships(ctx context.Context, __arg GetUserSubteamMembershipsArg) (res []AnnotatedSubteamMemberDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.getUserSubteamMemberships", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c TeamsClient) LoadTeamTreeMemberships(ctx context.Context, __arg LoadTeamTreeMembershipsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMemberships", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c TeamsClient) LoadTeamTreeMemberships(ctx context.Context, __arg LoadTeamTreeMembershipsArg) (res TeamTreeInitial, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMemberships", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

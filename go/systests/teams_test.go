@@ -1064,7 +1064,6 @@ type teamNotifyHandler struct {
 	newlyAddedToTeam   chan keybase1.TeamID
 	teamRoleMapCh      chan keybase1.UserTeamVersion
 	metadataUpdateCh   chan struct{}
-
 	teamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
 	teamTreeMembershipsDoneCh    chan int
 }
@@ -1159,14 +1158,14 @@ func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keyb
 }
 
 func (n *teamNotifyHandler) TeamTreeMembershipsPartial(ctx context.Context,
-	arg keybase1.TeamTreeMembershipsPartialArg) error {
+	arg keybase1.TeamTreeMembership) error {
 
-	n.teamTreeMembershipsPartialCh <- arg.Membership
+	n.teamTreeMembershipsPartialCh <- arg
 	return nil
 }
 
 func (n *teamNotifyHandler) TeamTreeMembershipsDone(ctx context.Context,
-	arg keybase1.TeamTreeMembershipsDoneArg) error {
+	arg keybase1.TeamTreeMembershipsDoneResult) error {
 
 	n.teamTreeMembershipsDoneCh <- arg.ExpectedCount
 	return nil
@@ -2145,8 +2144,8 @@ func mustCreateSubteam(t *testing.T, tc *libkb.TestContext,
 }
 
 func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNotifyHandler,
-	teamID keybase1.TeamID, username string, converter teams.TreeloaderStateConverter,
-	teamFailures []keybase1.TeamName) ([]keybase1.TeamTreeMembership, error) {
+	teamID keybase1.TeamID, username string, converter teams.ITreeloaderStateConverter,
+	teamFailures []string) ([]keybase1.TeamTreeMembership, error) {
 	var err error
 	if converter == nil {
 		err = teams.LoadTeamTreeMemberships(tmctx, teamID, username)
@@ -2191,7 +2190,7 @@ loop:
 }
 
 func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
-	failureTeamNames []keybase1.TeamName, results []keybase1.TeamTreeMembership) {
+	failureTeamNames []string, results []keybase1.TeamTreeMembership) {
 	require.Equal(t, len(expected)+len(failureTeamNames),
 		len(results), "got right number of results back")
 	m := make(map[string]struct{})
@@ -2199,13 +2198,12 @@ func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 		_, alreadyExists := m[result.TeamName.String()]
 		require.False(t, alreadyExists, "got a duplicate got %s", result.TeamName.String())
 		m[result.TeamName.String()] = struct{}{}
-
 		s, err := result.Result.S()
 		require.NoError(t, err)
 
 		switch s {
 		case keybase1.TeamTreeMembershipStatus_OK:
-			r, ok := expected[result.TeamName.String()]
+			r, ok := expected[result.TeamName]
 			require.True(t, ok, "should not have gotten a result for %s", result.TeamName)
 			val := result.Result.Ok()
 			require.Equal(t, r, val.Role, "expected role %v for team %s, but got role %v",
@@ -2249,6 +2247,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 
 	t.Logf("Creating users")
 	alfa := tt.addUserWithPaper("alfa")
+<<<<<<< HEAD
 	zulu := tt.addUser("zulu")
 	yank := tt.addUser("yank")
 	xray := tt.addUser("xray")
@@ -2281,6 +2280,25 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	// H: zulu, xray
 	// I: zulu, unif
 
+=======
+	t.Logf("ALFAPAPER %s %s", alfa.username, alfa.backupKey.secret)
+	zulu := tt.addUserWithPaper("zulu")
+	t.Logf("ZULUPAPER %s %s", zulu.username, zulu.backupKey.secret)
+	yank := tt.addUserWithPaper("yank")
+	t.Logf("YANKPAPER %s %s", yank.username, yank.backupKey.secret)
+	xray := tt.addUserWithPaper("xray")
+	t.Logf("XRAYPAPER %s %s", xray.username, xray.backupKey.secret)
+	whis := tt.addUserWithPaper("whis")
+	t.Logf("WHISPAPER %s %s", whis.username, whis.backupKey.secret)
+	vict := tt.addUserWithPaper("vict")
+	t.Logf("VICTPAPER %s %s", vict.username, vict.backupKey.secret)
+	unif := tt.addUserWithPaper("unif")
+	t.Logf("UNIF PAPER %s %s", unif.username, unif.backupKey.secret)
+	tang := tt.addUserWithPaper("tang")
+	t.Logf("TANGPAPER %s %s", tang.username, tang.backupKey.secret)
+
+	t.Logf("Creating teams")
+>>>>>>> e093eca6d6... whatever
 	aID, aName := alfa.createTeam2()
 	bName := mustAppend(t, aName, "bb")
 	cName := mustAppend(t, aName, "cc")
@@ -2568,7 +2586,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 		requester         *userPlusDevice
 		target            *userPlusDevice
 		failureTeamIDs    []keybase1.TeamID
-		failureTeamNames  []keybase1.TeamName
+		failureTeamNames  []string
 		expectedSuccesses map[string]keybase1.TeamRole
 	}{
 		{
@@ -2576,7 +2594,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			requester:        yank,
 			target:           whis,
 			failureTeamIDs:   []keybase1.TeamID{dID, gID},
-			failureTeamNames: []keybase1.TeamName{dName, gName},
+			failureTeamNames: []string{dName.String(), gName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
@@ -2589,7 +2607,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			requester:        yank,
 			target:           whis,
 			failureTeamIDs:   []keybase1.TeamID{iID},
-			failureTeamNames: []keybase1.TeamName{iName},
+			failureTeamNames: []string{iName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
@@ -2604,7 +2622,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			requester:        yank,
 			target:           whis,
 			failureTeamIDs:   []keybase1.TeamID{cID},
-			failureTeamNames: []keybase1.TeamName{cName},
+			failureTeamNames: []string{cName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{
 				eName.String(): keybase1.TeamRole_NONE,
 				gName.String(): keybase1.TeamRole_ADMIN,
@@ -2616,7 +2634,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			requester:        yank,
 			target:           whis,
 			failureTeamIDs:   []keybase1.TeamID{aID},
-			failureTeamNames: []keybase1.TeamName{aName},
+			failureTeamNames: []string{aName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{
 				cName.String(): keybase1.TeamRole_NONE,
 				eName.String(): keybase1.TeamRole_NONE,
@@ -2629,7 +2647,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			requester:        yank,
 			target:           whis,
 			failureTeamIDs:   []keybase1.TeamID{aID, iID},
-			failureTeamNames: []keybase1.TeamName{aName, iName},
+			failureTeamNames: []string{aName.String(), iName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{
 				cName.String(): keybase1.TeamRole_NONE,
 				eName.String(): keybase1.TeamRole_NONE,
@@ -2641,7 +2659,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			requester:         yank,
 			target:            whis,
 			failureTeamIDs:    []keybase1.TeamID{eID},
-			failureTeamNames:  []keybase1.TeamName{eName},
+			failureTeamNames:  []string{eName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{},
 		},
 	}

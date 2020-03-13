@@ -25,10 +25,11 @@ func LoadTeamTreeMemberships(mctx libkb.MetaContext,
 }
 
 // LoadTeamTreeMembershipsWithConverter lets us mock load failures for tests.
-func LoadTeamTreeMembershipsWithConverter(mctx libkb.MetaContext, teamID keybase1.TeamID,
+func LoadTeamTreeMembershipsWithConverter(mctx libkb.MetaContext,
+	teamID keybase1.TeamID,
 	username string, converter TreeloaderStateConverter) error {
-	defer mctx.TraceTimed(fmt.Sprintf("LoadTeamTreeMembershipsWithConverter(%s, %s)",
-		teamID, username), func() error { return nil })()
+	defer mctx.TraceTimed(fmt.Sprintf("loadTeamTreeMembershipsRecursiveWithConverter(%s, %s, %d)",
+		teamID, username, libkb.GetSessionIDOrZero(mctx.Ctx())), func() error { return nil })()
 
 	start := time.Now()
 
@@ -45,9 +46,20 @@ func LoadTeamTreeMembershipsWithConverter(mctx libkb.MetaContext, teamID keybase
 	}
 
 	go func() {
-		expectedCount := loadTeamTreeMembershipsRecursive(mctx, teamID, target.Name(), uv,
+		ctx := libkb.CopyTagsToBackground(mctx.Ctx())
+		imctx := mctx.WithContext(ctx)
+		expectedCount := loadTeamTreeMembershipsRecursive(imctx, teamID, teamID, target.Name(), uv,
+			username,
 			nodePositionTarget, converter)
-		mctx.G().NotifyRouter.HandleTeamTreeMembershipsDone(mctx.Ctx(), int(expectedCount))
+		mctx.Debug("@@@ notify FINISHED w/ count %d", expectedCount)
+
+		imctx.G().NotifyRouter.HandleTeamTreeMembershipsDone(mctx.Ctx(), keybase1.TeamTreeMembershipsDoneResult{
+			SessionID:      int(libkb.GetSessionIDOrZero(ctx)),
+			TargetTeamID:   teamID,
+			TargetUsername: username,
+			ExpectedCount:  int(expectedCount),
+		})
+
 		mctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
 			EventType: keybase1.PerfEventType_TEAMTREELOAD,
 			Message:   fmt.Sprintf("Loaded %d teams in tree for %s", expectedCount, teamID),
@@ -58,16 +70,18 @@ func LoadTeamTreeMembershipsWithConverter(mctx libkb.MetaContext, teamID keybase
 	return nil
 }
 
-func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	teamName keybase1.TeamName, uv keybase1.UserVersion, np nodePosition,
+func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext,
+	targetTeamID keybase1.TeamID,
+	teamID keybase1.TeamID,
+	teamName keybase1.TeamName, uv keybase1.UserVersion, username string, np nodePosition,
 	converter TreeloaderStateConverter) (nTeamsLoaded int32) {
-	defer mctx.TraceTimed(fmt.Sprintf("loadTeamTreeMembershipsRecursive(%s, %s)", teamName, uv),
-		func() error { return nil })()
+	defer mctx.TraceTimed(fmt.Sprintf("loadTeamTreeMembershipsRecursive(%s, %s, %d)",
+		teamName, uv, libkb.GetSessionIDOrZero(mctx.Ctx())), func() error { return nil })()
 
 	// Load this team first
 	node, res := loadTeamTreeMembershipsSingle(mctx, teamID, uv, converter)
 	nTeamsLoaded = 1
-	notifyTeamTreeMembershipResult(mctx, teamName, res)
+	notifyTeamTreeMembershipResult(mctx, targetTeamID, username, teamName, res)
 	s, _ := res.S()
 	if s == keybase1.TeamTreeMembershipStatus_ERROR {
 		mctx.Debug("loadTeamTreeMembershipsRecursive: short-circuiting load due to failure")
@@ -79,7 +93,7 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 	// Load ancestors
 	if np == nodePositionTarget && !teamName.IsRootTeam() {
 		eg.Go(func() error {
-			incr := loadTeamAncestorsMemberships(mctx, teamID, teamName, uv, converter)
+			incr := loadTeamAncestorsMemberships(mctx, targetTeamID, teamID, teamName, uv, username, converter)
 			mctx.Debug("loadTeamTreeMembershipsRecursive: loaded %d teams from ancestors", incr)
 			atomic.AddInt32(&nTeamsLoaded, incr)
 			return nil
@@ -93,7 +107,7 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 		// This is unbounded but assuming subteam spread isn't too high, should be ok.
 		eg.Go(func() error {
 			incr := loadTeamTreeMembershipsRecursive(
-				mctx, idAndName.Id, idAndName.Name, uv, nodePositionChild, converter,
+				mctx, targetTeamID, idAndName.Id, idAndName.Name, uv, username, nodePositionChild, converter,
 			)
 			mctx.Debug("loadTeamTreeMembershipsRecursive: loaded %d teams from subtree", incr)
 			atomic.AddInt32(&nTeamsLoaded, incr)
@@ -106,13 +120,13 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 	return nTeamsLoaded
 }
 
-func loadTeamAncestorsMemberships(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	targetTeamName keybase1.TeamName, uv keybase1.UserVersion,
+func loadTeamAncestorsMemberships(mctx libkb.MetaContext, targetTeamID keybase1.TeamID, teamID keybase1.TeamID,
+	teamName keybase1.TeamName, uv keybase1.UserVersion, username string,
 	converter TreeloaderStateConverter) (nTeamsLoaded int32) {
-	defer mctx.TraceTimed(fmt.Sprintf("loadTeamAncestorsMemberships(%s, %s)", targetTeamName, uv),
+	defer mctx.TraceTimed(fmt.Sprintf("loadTeamAncestorsMemberships(%s, %s)", teamName, uv),
 		func() error { return nil })()
 
-	handleAncestor := func(t keybase1.TeamSigChainState, teamName keybase1.TeamName) error {
+	handleAncestor := func(t keybase1.TeamSigChainState, localTeamName keybase1.TeamName) error {
 		res := converter.SigchainStateToTeamTreeMembership(mctx, &t, uv)
 		s, err := res.S()
 		if err != nil {
@@ -123,14 +137,14 @@ func loadTeamAncestorsMemberships(mctx libkb.MetaContext, teamID keybase1.TeamID
 		if s == keybase1.TeamTreeMembershipStatus_ERROR {
 			return fmt.Errorf("failed to load ancestor: %s", res.Error().Message)
 		}
-		notifyTeamTreeMembershipResult(mctx, teamName, res)
+		notifyTeamTreeMembershipResult(mctx, targetTeamID, username, localTeamName, res)
 		return nil
 	}
 	err := mctx.G().GetTeamLoader().MapTeamAncestors(
 		mctx.Ctx(), handleAncestor, teamID, "LoadTeamTreeMemberships", nil)
 	switch e := err.(type) {
 	case nil:
-		nTeamsLoaded = int32(targetTeamName.Depth()) - 1
+		nTeamsLoaded = int32(teamName.Depth()) - 1
 	case *MapAncestorsError:
 		mctx.Debug("loadTeamAncestorsMemberships: map failed: %s at idx %d", e,
 			e.failedLoadingAtAncestorIdx)
@@ -138,22 +152,25 @@ func loadTeamAncestorsMemberships(mctx libkb.MetaContext, teamID keybase1.TeamID
 		// calculate the team name of the team it failed at
 		// e.g. if failedLoadingAtAncestorIdx was 1 and the target team was A.B.C,
 		// maxInt(0, 3 - 1 - 1) = 1, and A.B.C[:1+1] = A.B
-		idx := maxInt(0, targetTeamName.Depth()-1-e.failedLoadingAtAncestorIdx)
-		name := keybase1.TeamName{Parts: targetTeamName.Parts[:idx+1]}
+		idx := maxInt(0, teamName.Depth()-1-e.failedLoadingAtAncestorIdx)
+		nameFailedAt := keybase1.TeamName{Parts: teamName.Parts[:idx+1]}
 
 		nTeamsLoaded = maxInt32(0, int32(e.failedLoadingAtAncestorIdx))
-		notifyTeamTreeMembershipResult(mctx, name, MakeLoadTeamTreeErrorResult(err))
+		notifyTeamTreeMembershipResult(mctx, targetTeamID, username, nameFailedAt, MakeLoadTeamTreeErrorResult(err))
 	default:
 		mctx.Debug("loadTeamAncestorsMemberships: map failed for unknown reason: %s", e)
 		// Should never happen.
 		// Not sure where the error failed: prompt to reload the entire thing
-		notifyTeamTreeMembershipResult(mctx, targetTeamName, MakeLoadTeamTreeErrorResult(err))
+		notifyTeamTreeMembershipResult(mctx, targetTeamID, username, teamName, MakeLoadTeamTreeErrorResult(err))
 	}
 	return nTeamsLoaded
 }
 
 func loadTeamTreeMembershipsSingle(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	uv keybase1.UserVersion, converter TreeloaderStateConverter) (team *Team, res keybase1.TeamTreeMembershipResult) {
+	uv keybase1.UserVersion, converter TreeloaderStateConverter) (team *Team,
+	res keybase1.TeamTreeMembershipResult) {
+	defer mctx.TraceTimed(fmt.Sprintf("loadTeamTreeMembershipsSingle(%s, %s)", teamID, uv),
+		func() error { return nil })()
 
 	team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
 	if err != nil {
@@ -165,11 +182,17 @@ func loadTeamTreeMembershipsSingle(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 // notifyTeamTreeMembershipResult requires teamName so it can give an intelligible error if the load
 // fails.
-func notifyTeamTreeMembershipResult(mctx libkb.MetaContext, teamName keybase1.TeamName,
+func notifyTeamTreeMembershipResult(mctx libkb.MetaContext, targetTeamID keybase1.TeamID,
+	username string,
+	teamName keybase1.TeamName,
 	res keybase1.TeamTreeMembershipResult) {
+	mctx.Debug("@@@ notifyTeamTreeMembershipResult %#v", res)
 	mctx.G().NotifyRouter.HandleTeamTreeMembershipsPartial(mctx.Ctx(), keybase1.TeamTreeMembership{
-		TeamName: teamName,
-		Result:   res,
+		SessionID:      int(libkb.GetSessionIDOrZero(mctx.Ctx())),
+		TargetTeamID:   targetTeamID,
+		TargetUsername: username,
+		TeamName:       teamName.String(),
+		Result:         res,
 	})
 }
 func MakeLoadTeamTreeErrorResult(err error) keybase1.TeamTreeMembershipResult {
@@ -203,8 +226,10 @@ func (t *DefaultTreeloaderStateConverter) SigchainStateToTeamTreeMembership(
 		}
 	}
 	return keybase1.NewTeamTreeMembershipResultWithOk(keybase1.TeamTreeMembershipValue{
-		Role:     role,
-		JoinTime: joinTime,
+		Role:        role,
+		JoinTime:    joinTime,
+		TeamID:      s.Id,
+		MemberCount: len(s.GetAllUVs()),
 	})
 }
 

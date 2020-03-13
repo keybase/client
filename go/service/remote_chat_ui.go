@@ -241,5 +241,5 @@ func (r *RemoteChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID c
 }
 
 func (r *RemoteChatUI) TriggerContactSync(ctx context.Context) error {
-	return r.cli.TriggerContactSync(ctx, 0)
+	return r.cli.TriggerContactSync(ctx, r.sessionID)
 }

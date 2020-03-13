@@ -225,13 +225,14 @@ const emptyState: Types.State = {
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
   teamMemberToLastActivity: new Map(),
-  teamMemberToSubteams: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamProfileAddList: [],
+  treeLoaderTeamIDToSparseMemberInfos: new Map(),
+  teamMemberToTreeMemberships: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
@@ -702,10 +703,10 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
     : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMembership = (
-  state: TypedState,
-  teamID: Types.TeamID,
-  username: string
-): Types.MemberInfo | null => state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
+  _: TypedState,
+  _2: Types.TeamID,
+  _3: string
+): Types.MemberInfo | null => null //state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
 
 export const getTeamMemberLastActivity = (
   state: TypedState,
@@ -801,20 +802,6 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
       teamShowcased: t.showcase.isShowcased,
     },
     subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
-  }
-}
-
-export const subteamDetailsToMemberInfo = (
-  username: string,
-  t: RPCTypes.AnnotatedSubteamMemberDetails
-): Types.MemberInfo => {
-  const maybeRole = teamRoleByEnum[t.role]
-  return {
-    fullName: t.details.fullName,
-    joinTime: t.details.joinTime || undefined,
-    status: rpcMemberStatusToStatus[t.details.status],
-    type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
-    username,
   }
 }
 
@@ -938,4 +925,19 @@ export const stringifyPeople = (people: string[]): string => {
     default:
       return `${people[0]}, ${people[1]}, and ${people.length - 2} others`
   }
+
+export const teamTreeMembershipValueToSparseMembership = (value) => {
+  // TODO cannot put a none in here!
+  return {
+    teamID: value.teamID,
+    type: teamRoleByEnum[value.role] || 'reader',
+  }
+}
+
+export const maybeGetSparseMembership = (detailsMap, sparseMembershipMap, teamID, username) => {
+  const t = detailsMap.get(teamID)
+  if (t) {
+    return t.members.get(username)
+  }
+  return sparseMembershipMap.get(teamID)?.get(username)
 }

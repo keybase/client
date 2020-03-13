@@ -2361,82 +2361,82 @@ func GetTeamIDByNameRPC(mctx libkb.MetaContext, teamName string) (res keybase1.T
 	return id, nil
 }
 
-func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username string) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
-	tracer := m.G().CTimeTracer(m.Ctx(), "GetUserSubteamMemberships", true)
-	defer tracer.Finish()
+// func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username string) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
+// 	tracer := m.G().CTimeTracer(m.Ctx(), "GetUserSubteamMemberships", true)
+// 	defer tracer.Finish()
 
-	tracer.Stage("resolving user")
-	upak, _, err := m.G().GetUPAKLoader().LoadV2(
-		libkb.NewLoadUserArgWithMetaContext(m).WithName(username),
-	)
-	if err != nil {
-		return nil, err
-	}
+// 	tracer.Stage("resolving user")
+// 	upak, _, err := m.G().GetUPAKLoader().LoadV2(
+// 		libkb.NewLoadUserArgWithMetaContext(m).WithName(username),
+// 	)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	tracer.Stage("resolving team and subteams")
-	name, err := ResolveIDToName(m.Ctx(), m.G(), id)
-	if err != nil {
-		return nil, err
-	}
-	tree, err := ListSubteamsUnverified(m, name)
-	if err != nil {
-		return nil, err
-	}
+// 	tracer.Stage("resolving team and subteams")
+// 	name, err := ResolveIDToName(m.Ctx(), m.G(), id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	tree, err := ListSubteamsUnverified(m, name)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// Inject the root team into the result
-	for _, entry := range append([]keybase1.SubteamListEntry{
-		{TeamID: id},
-	}, tree.Entries...) {
-		tracer.Stage(fmt.Sprintf("resolving membership in %s", entry.Name))
+// 	// Inject the root team into the result
+// 	for _, entry := range append([]keybase1.SubteamListEntry{
+// 		{TeamID: id},
+// 	}, tree.Entries...) {
+// 		tracer.Stage(fmt.Sprintf("resolving membership in %s", entry.Name))
 
-		team, err := GetMaybeAdminByID(m.Ctx(), m.G(), entry.TeamID, entry.TeamID.IsPublic())
-		if err != nil {
-			return nil, err
-		}
-		members, err := MembersDetails(m.Ctx(), m.G(), team)
-		if err != nil {
-			return nil, err
-		}
-		role, err := team.MemberRole(m.Ctx(), upak.ToUserVersion())
-		if err != nil {
-			return nil, err
-		}
+// 		team, err := GetMaybeAdminByID(m.Ctx(), m.G(), entry.TeamID, entry.TeamID.IsPublic())
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		members, err := MembersDetails(m.Ctx(), m.G(), team)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		role, err := team.MemberRole(m.Ctx(), upak.ToUserVersion())
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		var (
-			details keybase1.TeamMemberDetails
-			ok      bool
-		)
-		switch role {
-		case keybase1.TeamRole_NONE:
-			continue
-		case keybase1.TeamRole_READER:
-			details, ok = findMemberDetails(members.Readers, upak.GetUID())
-		case keybase1.TeamRole_WRITER:
-			details, ok = findMemberDetails(members.Writers, upak.GetUID())
-		case keybase1.TeamRole_ADMIN:
-			details, ok = findMemberDetails(members.Admins, upak.GetUID())
-		case keybase1.TeamRole_OWNER:
-			details, ok = findMemberDetails(members.Owners, upak.GetUID())
-		case keybase1.TeamRole_BOT:
-			details, ok = findMemberDetails(members.Bots, upak.GetUID())
-		case keybase1.TeamRole_RESTRICTEDBOT:
-			details, ok = findMemberDetails(members.RestrictedBots, upak.GetUID())
-		}
-		if !ok {
-			// We're not a member, possibly a race condition?
-			continue
-		}
+// 		var (
+// 			details keybase1.TeamMemberDetails
+// 			ok      bool
+// 		)
+// 		switch role {
+// 		case keybase1.TeamRole_NONE:
+// 			continue
+// 		case keybase1.TeamRole_READER:
+// 			details, ok = findMemberDetails(members.Readers, upak.GetUID())
+// 		case keybase1.TeamRole_WRITER:
+// 			details, ok = findMemberDetails(members.Writers, upak.GetUID())
+// 		case keybase1.TeamRole_ADMIN:
+// 			details, ok = findMemberDetails(members.Admins, upak.GetUID())
+// 		case keybase1.TeamRole_OWNER:
+// 			details, ok = findMemberDetails(members.Owners, upak.GetUID())
+// 		case keybase1.TeamRole_BOT:
+// 			details, ok = findMemberDetails(members.Bots, upak.GetUID())
+// 		case keybase1.TeamRole_RESTRICTEDBOT:
+// 			details, ok = findMemberDetails(members.RestrictedBots, upak.GetUID())
+// 		}
+// 		if !ok {
+// 			// We're not a member, possibly a race condition?
+// 			continue
+// 		}
 
-		res = append(res, keybase1.AnnotatedSubteamMemberDetails{
-			TeamName: team.Name(),
-			TeamID:   team.ID,
-			Details:  details,
-			Role:     role,
-		})
+// 		res = append(res, keybase1.AnnotatedSubteamMemberDetails{
+// 			TeamName: team.Name(),
+// 			TeamID:   team.ID,
+// 			Details:  details,
+// 			Role:     role,
+// 		})
 
-	}
-	return res, nil
-}
+// 	}
+// 	return res, nil
+// }
 
 func findMemberDetails(input []keybase1.TeamMemberDetails, uid keybase1.UID) (keybase1.TeamMemberDetails, bool) {
 	for _, details := range input {

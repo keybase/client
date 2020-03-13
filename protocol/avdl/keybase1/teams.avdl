@@ -1621,19 +1621,13 @@ protocol teams {
 
   AnnotatedTeam getAnnotatedTeam(TeamID teamID);
 
-  record AnnotatedSubteamMemberDetails {
-    TeamName teamName;
-    TeamID teamID;
-    TeamMemberDetails details;
-    TeamRole role;
-  }
-  array<AnnotatedSubteamMemberDetails> getUserSubteamMemberships(TeamID teamID, string username);
-
   // For member page
   record TeamTreeMembershipValue {
     TeamRole role;
     // last time the user joined the team
     union { null, Time } joinTime;
+    TeamID teamID;
+    int memberCount;
   }
   enum TeamTreeMembershipStatus {
     OK_0,
@@ -1644,8 +1638,24 @@ protocol teams {
     case ERROR: GenericError;
   }
   record TeamTreeMembership {
-    TeamName teamName;
+    string teamName;
     TeamTreeMembershipResult result;
+
+    // bookkeeping params
+    TeamID targetTeamID;
+    string targetUsername;
+    int sessionID;
+  }
+  record TeamTreeMembershipsDoneResult {
+    int expectedCount;
+
+    // bookkeeping params
+    TeamID targetTeamID;
+    string targetUsername;
+    int sessionID;
+  }
+  record TeamTreeInitial {
+    int guid;
   }
   // loadTeamTreeMemberships takes a teamID and a username and asynchronously spawns notifications
   // indicating the role of the user in each of the teams of the partial tree wrt the teamID.  The
@@ -1679,7 +1689,7 @@ protocol teams {
   // were started at E and (for whatever reason) the load failed at C and G, then this function
   // would not attempt to load A or J, but would continue to load the rest of the tree. In this
   // case, there would only be 5 Partial notifications (C, E, G, H, I) instead of all 7.
-  void loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
+  TeamTreeInitial loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
   // called when navigating out of page
   void cancelLoadTeamTree(int sessionID);
 }

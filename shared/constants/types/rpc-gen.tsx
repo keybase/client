@@ -220,7 +220,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeam.teamTreeMembershipsDone': {
-    inParam: {readonly expectedCount: Int}
+    inParam: {readonly result: TeamTreeMembershipsDoneResult}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamTreeMembershipsPartial': {
@@ -1399,9 +1399,9 @@ export type MessageTypes = {
     inParam: {readonly teamName: TeamName}
     outParam: UntrustedTeamInfo
   }
-  'keybase.1.teams.getUserSubteamMemberships': {
+  'keybase.1.teams.loadTeamTreeMemberships': {
     inParam: {readonly teamID: TeamID; readonly username: String}
-    outParam: Array<AnnotatedSubteamMemberDetails> | null
+    outParam: TeamTreeInitial
   }
   'keybase.1.teams.setTarsDisabled': {
     inParam: {readonly teamID: TeamID; readonly disabled: Boolean}
@@ -2784,7 +2784,6 @@ export type APIUserServiceSummary = {readonly serviceName: APIUserServiceID; rea
 export type AirdropDetails = {readonly uid: UID; readonly kid: BinaryKID; readonly vid: VID; readonly vers: String; readonly time: Time}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
-export type AnnotatedSubteamMemberDetails = {readonly teamName: TeamName; readonly teamID: TeamID; readonly details: TeamMemberDetails; readonly role: TeamRole}
 export type AnnotatedTeam = {readonly teamID: TeamID; readonly name: String; readonly transitiveSubteamsUnverified: SubteamListResult; readonly members?: Array<AnnotatedTeamMemberDetails> | null; readonly invites?: Array<AnnotatedTeamInvite> | null; readonly joinRequests?: Array<TeamJoinRequest> | null; readonly tarsDisabled: Boolean; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
 export type AnnotatedTeamInvite = {readonly invite: TeamInvite; readonly displayName: TeamInviteDisplayName; readonly inviterUsername: String; readonly inviteeUv: UserVersion; readonly teamName: String; readonly status?: TeamMemberStatus | null; readonly usedInvites?: Array<AnnotatedTeamUsedInviteLogPoint> | null}
 export type AnnotatedTeamList = {readonly teams?: Array<AnnotatedMemberInfo> | null; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}
@@ -3300,9 +3299,11 @@ export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
 export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly usedInvites: {[key: string]: Array<TeamUsedInviteLogPoint> | null}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly bots: {[key: string]: TeamBotSettings}; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
-export type TeamTreeMembership = {readonly teamName: TeamName; readonly result: TeamTreeMembershipResult}
+export type TeamTreeInitial = {readonly guid: Int}
+export type TeamTreeMembership = {readonly teamName: String; readonly result: TeamTreeMembershipResult; readonly targetTeamID: TeamID; readonly targetUsername: String; readonly sessionID: Int}
 export type TeamTreeMembershipResult = {s: TeamTreeMembershipStatus.ok; ok: TeamTreeMembershipValue} | {s: TeamTreeMembershipStatus.error; error: GenericError}
-export type TeamTreeMembershipValue = {readonly role: TeamRole; readonly joinTime?: Time | null}
+export type TeamTreeMembershipValue = {readonly role: TeamRole; readonly joinTime?: Time | null; readonly teamID: TeamID; readonly memberCount: Int}
+export type TeamTreeMembershipsDoneResult = {readonly expectedCount: Int; readonly targetTeamID: TeamID; readonly targetUsername: String; readonly sessionID: Int}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
 export type TeamUsedInvite = {readonly inviteID: TeamInviteID; readonly uv: UserVersionPercentForm}
 export type TeamUsedInviteLogPoint = {readonly uv: UserVersion; readonly logPoint: Int}
@@ -3862,7 +3863,7 @@ export const teamsGetTeamAndMemberShowcaseRpcPromise = (params: MessageTypes['ke
 export const teamsGetTeamIDRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamRoleMapRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamRoleMap']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamRoleMap']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamRoleMap', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetUntrustedTeamInfoRpcPromise = (params: MessageTypes['keybase.1.teams.getUntrustedTeamInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getUntrustedTeamInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getUntrustedTeamInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const teamsGetUserSubteamMembershipsRpcPromise = (params: MessageTypes['keybase.1.teams.getUserSubteamMemberships']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getUserSubteamMemberships']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getUserSubteamMemberships', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsLoadTeamTreeMembershipsRpcPromise = (params: MessageTypes['keybase.1.teams.loadTeamTreeMemberships']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.loadTeamTreeMemberships']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.loadTeamTreeMemberships', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.teams.setTarsDisabled']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTarsDisabled']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTarsDisabled', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTeamMemberShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.setTeamMemberShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTeamMemberShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTeamMemberShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTeamShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.setTeamShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTeamShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTeamShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4314,7 +4315,6 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamName'
 // 'keybase.1.teams.ftl'
-// 'keybase.1.teams.loadTeamTreeMemberships'
 // 'keybase.1.teams.cancelLoadTeamTree'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
