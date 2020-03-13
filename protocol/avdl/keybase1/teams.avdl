@@ -1384,7 +1384,7 @@ protocol teams {
   // Sorted alphabetically like a tree.
   // Example: "a" or "a.b" -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   // This list is generated without loading each team, and is therefore server-trust.
-  SubteamListResult teamGetSubteams(int sessionID, TeamName name);
+  SubteamListResult teamGetSubteamsUnverified(int sessionID, TeamName name);
 
   void teamDelete(int sessionID, TeamID teamID);
 
