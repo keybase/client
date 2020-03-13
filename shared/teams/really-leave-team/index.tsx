@@ -27,7 +27,7 @@ const Spinner = Kb.HeaderOnMobile(_Spinner)
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Icon type="icon-team-leave-28" style={styles.headerIcon} />
+    <Kb.Icon boxStyle={styles.iconContainer} type="iconfont-leave" style={styles.headerIcon} />
   </>
 )
 
@@ -77,7 +77,17 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   headerIcon: {
-    marginRight: -60,
+    backgroundColor: Styles.globalColors.red,
+    backgroundClip: 'padding-box',
+    borderColor: Styles.globalColors.white,
+    borderRadius: 50,
+    borderStyle: 'solid',
+    borderWidth: 3,
+    color: Styles.globalColors.white,
+    padding: 4,
+  },
+  iconContainer: {
+    marginRight: -46,
     marginTop: -20,
     zIndex: 1,
   },
