@@ -1481,6 +1481,28 @@ func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, acco
 	return res, nil
 }
 
+func PendingPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
+	defer mctx.TraceTimed("Stellar.PendingPaymentsCLILocal", func() error { return err })()
+	page, err := remoter.PendingPayments(mctx.Ctx(), accountID, 0)
+	if err != nil {
+		return nil, err
+	}
+	for _, payment := range page {
+		lp, err := localizePayment(mctx, payment)
+		if err == nil {
+			res = append(res, stellar1.PaymentOrErrorCLILocal{
+				Payment: &lp,
+			})
+		} else {
+			errStr := err.Error()
+			res = append(res, stellar1.PaymentOrErrorCLILocal{
+				Err: &errStr,
+			})
+		}
+	}
+	return res, nil
+}
+
 func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, txID string) (res stellar1.PaymentCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PaymentDetailCLILocal", func() error { return err })()
 	payment, err := remoter.PaymentDetailsGeneric(ctx, txID)

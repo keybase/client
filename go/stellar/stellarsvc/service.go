@@ -332,6 +332,33 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 	return stellar.Claim(mctx, s.walletState, arg.TxID, into, nil, nil)
 }
 
+func (s *Server) CancelCLILocal(ctx context.Context, arg stellar1.CancelCLILocalArg) (res stellar1.RelayClaimResult, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "CancelCLILocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	details, err := s.remoter.PaymentDetailsGeneric(mctx.Ctx(), arg.TxID)
+	if err != nil {
+		return res, err
+	}
+	typ, err := details.Summary.Typ()
+	if err != nil {
+		return res, err
+	}
+	if typ != stellar1.PaymentSummaryType_RELAY {
+		return res, errors.New("tried to cancel a non-relay payment")
+	}
+	relay := details.Summary.Relay()
+	dir := stellar1.RelayDirection_YANK
+	return stellar.Claim(mctx, s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
+}
+
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "RecentPaymentsCLILocal",
@@ -353,6 +380,29 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 		selectAccountID = *accountID
 	}
 	return stellar.RecentPaymentsCLILocal(mctx, s.remoter, selectAccountID)
+}
+
+func (s *Server) PendingPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "PendingPaymentsCLILocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return nil, err
+	}
+
+	var selectAccountID stellar1.AccountID
+	if accountID == nil {
+		selectAccountID, err = stellar.GetOwnPrimaryAccountID(mctx)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		selectAccountID = *accountID
+	}
+	return stellar.PendingPaymentsCLILocal(mctx, s.remoter, selectAccountID)
 }
 
 func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {

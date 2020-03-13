@@ -37,6 +37,8 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		newCmdWalletSetMobileOnly(cl, g),
 		newCmdWalletSetPrimary(cl, g),
 		newCmdWalletSign(cl, g),
+		newCmdWalletPending(cl, g),
+		newCmdWalletYank(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificWalletCommands(cl, g)...)
 	sort.Sort(cli.ByName(subcommands))

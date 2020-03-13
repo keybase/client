@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -476,4 +477,102 @@ func TestAccountMerge(t *testing.T) {
 	lowerBoundFinalExpectedAmount := int64(stellarnet.StroopsPerLumen * 9999.99)
 	require.True(t, afterMergeBalance > lowerBoundFinalExpectedAmount)
 	t.Logf("value of the second account was merged into the first account")
+}
+
+// test canceling all (a lot of) pending payments for a given account
+func TestStellarCancelingAllPending(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	useStellarTestNet(t)
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+	charlie := tt.addPuklessUser("charl")
+
+	alice.kickTeamRekeyd()
+
+	t.Logf("alice gets funded")
+	acceptDisclaimer(alice)
+
+	res, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	accountID := res[0].AccountID
+	gift(t, accountID)
+
+	attachIdentifyUI(t, alice.tc.G, newSimpleIdentifyUI())
+	var wg sync.WaitGroup
+
+	t.Logf("alice sends payments to bob and charlie")
+	bcmd := client.CmdWalletSend{
+		Contextified: libkb.NewContextified(alice.tc.G),
+		Recipient:    bob.username,
+		Amount:       "3",
+	}
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for i := 0; i < retryCount; i++ {
+				err = bcmd.Run()
+				if err == nil {
+					break
+				}
+				require.NoError(t, err)
+			}
+		}()
+	}
+
+	ccmd := client.CmdWalletSend{
+		Contextified: libkb.NewContextified(alice.tc.G),
+		Recipient:    charlie.username,
+		Amount:       "3",
+	}
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for i := 0; i < retryCount; i++ {
+				err = ccmd.Run()
+				if err == nil {
+					break
+				}
+				require.NoError(t, err)
+			}
+		}()
+	}
+
+	wg.Wait()
+	t.Logf("alice cancels pending payments")
+
+	cli, err := client.GetWalletClient(alice.tc.G)
+	pending, err := cli.PendingPaymentsCLILocal(context.TODO(), &accountID)
+	require.NoError(t, err)
+	require.Equal(t, 20, len(pending))
+	for i, payment := range pending {
+		t.Logf("...canceling payment %d", i)
+		go func(txID string) {
+			defer wg.Done()
+			cmd := client.CmdWalletYank{
+				Contextified: libkb.NewContextified(alice.tc.G),
+				TxID:         txID,
+			}
+
+			for i := 0; i < retryCount; i++ {
+				wg.Add(1)
+				err = cmd.Run()
+				if err == nil {
+					break
+				}
+				require.NoError(t, err)
+			}
+		}(payment.Payment.TxID.String())
+	}
+
+	wg.Wait()
+	t.Logf("alice has finished canceling pending payments")
+	pending, err = cli.PendingPaymentsCLILocal(context.TODO(), &accountID)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(pending))
 }

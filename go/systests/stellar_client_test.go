@@ -369,9 +369,29 @@ func (s *stellarRetryClient) ClaimCLILocal(ctx context.Context, arg stellar1.Cla
 	return res, err
 }
 
+func (s *stellarRetryClient) CancelCLILocal(ctx context.Context, arg stellar1.CancelCLILocalArg) (res stellar1.RelayClaimResult, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.CancelCLILocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) RecentPaymentsCLILocal(ctx context.Context, acctID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.RecentPaymentsCLILocal(ctx, acctID)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) PendingPaymentsCLILocal(ctx context.Context, acctID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.PendingPaymentsCLILocal(ctx, acctID)
 		if err == nil {
 			break
 		}

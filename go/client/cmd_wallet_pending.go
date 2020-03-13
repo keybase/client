@@ -13,19 +13,19 @@ import (
 	"golang.org/x/net/context"
 )
 
-type CmdWalletHistory struct {
+type CmdWalletPending struct {
 	libkb.Contextified
-	accountID *stellar1.AccountID
-	verbose   bool
+	AccountID *stellar1.AccountID
+	Verbose   bool
 }
 
-func newCmdWalletHistory(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	cmd := &CmdWalletHistory{
+func newCmdWalletPending(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cmd := &CmdWalletPending{
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name:         "history",
-		Usage:        "List recent payments to and from a stellar account",
+		Name:         "pending",
+		Usage:        "List pending payments to and from a stellar account",
 		ArgumentHelp: "[--account G...] [--verbose]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "history", c)
@@ -43,7 +43,7 @@ func newCmdWalletHistory(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 	}
 }
 
-func (c *CmdWalletHistory) ParseArgv(ctx *cli.Context) (err error) {
+func (c *CmdWalletPending) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 0 {
 		return errors.New("expected no arguments")
 	}
@@ -53,19 +53,19 @@ func (c *CmdWalletHistory) ParseArgv(ctx *cli.Context) (err error) {
 		if err != nil {
 			return err
 		}
-		c.accountID = &accountID
+		c.AccountID = &accountID
 	}
-	c.verbose = ctx.Bool("verbose")
+	c.Verbose = ctx.Bool("verbose")
 	return nil
 }
 
-func (c *CmdWalletHistory) Run() (err error) {
+func (c *CmdWalletPending) Run() (err error) {
 	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
 	}
-	payments, err := cli.RecentPaymentsCLILocal(context.TODO(), c.accountID)
+	payments, err := cli.PendingPaymentsCLILocal(context.TODO(), c.AccountID)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,8 @@ func (c *CmdWalletHistory) Run() (err error) {
 	for i := len(payments) - 1; i >= 0; i-- {
 		p := payments[i]
 		if p.Payment != nil {
-			printPayment(c.G(), *p.Payment, c.verbose, false /* details */, dui)
+			printPayment(c.G(), *p.Payment, c.Verbose, false /* details */, dui)
+			dui.Printf(">>>> p = %+v", p.Payment)
 		} else {
 			lineUnescaped(ColorString(c.G(), "red", "error in payment: %v", p.Err))
 		}
@@ -90,7 +91,7 @@ func (c *CmdWalletHistory) Run() (err error) {
 	return err
 }
 
-func (c *CmdWalletHistory) GetUsage() libkb.Usage {
+func (c *CmdWalletPending) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

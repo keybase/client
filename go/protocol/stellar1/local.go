@@ -5,9 +5,10 @@ package stellar1
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type WalletAccountLocal struct {
@@ -1661,7 +1662,15 @@ type ClaimCLILocalArg struct {
 	Into *AccountID `codec:"into,omitempty" json:"into,omitempty"`
 }
 
+type CancelCLILocalArg struct {
+	TxID string `codec:"txID" json:"txID"`
+}
+
 type RecentPaymentsCLILocalArg struct {
+	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
+}
+
+type PendingPaymentsCLILocalArg struct {
 	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
 }
 
@@ -1825,7 +1834,9 @@ type LocalInterface interface {
 	SendPathCLILocal(context.Context, SendPathCLILocalArg) (SendResultCLILocal, error)
 	AccountMergeCLILocal(context.Context, AccountMergeCLILocalArg) (TransactionID, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
+	CancelCLILocal(context.Context, CancelCLILocalArg) (RelayClaimResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
+	PendingPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
@@ -2738,6 +2749,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"cancelCLILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelCLILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CancelCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CancelCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.CancelCLILocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"recentPaymentsCLILocal": {
 				MakeArg: func() interface{} {
 					var ret [1]RecentPaymentsCLILocalArg
@@ -2750,6 +2776,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.RecentPaymentsCLILocal(ctx, typedArgs[0].AccountID)
+					return
+				},
+			},
+			"pendingPaymentsCLILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]PendingPaymentsCLILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PendingPaymentsCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PendingPaymentsCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.PendingPaymentsCLILocal(ctx, typedArgs[0].AccountID)
 					return
 				},
 			},
@@ -3356,9 +3397,20 @@ func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) 
 	return
 }
 
+func (c LocalClient) CancelCLILocal(ctx context.Context, __arg CancelCLILocalArg) (res RelayClaimResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentOrErrorCLILocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) PendingPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentOrErrorCLILocal, err error) {
+	__arg := PendingPaymentsCLILocalArg{AccountID: accountID}
+	err = c.Cli.Call(ctx, "stellar.1.local.pendingPaymentsCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
