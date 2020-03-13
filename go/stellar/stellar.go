@@ -287,8 +287,25 @@ func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPr
 	return false, false, nil
 }
 
+func OwnAccountPlusName(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, accountName string, err error) {
+	bundle, err := remote.FetchSecretlessBundle(mctx)
+	if err != nil {
+		return false, false, "", err
+	}
+	for _, account := range bundle.Accounts {
+		if account.AccountID.Eq(accountID) {
+			return true, account.IsPrimary, account.Name, nil
+		}
+	}
+	return false, false, "", nil
+}
+
 func OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
 	return getGlobal(mctx.G()).OwnAccountCached(mctx, accountID)
+}
+
+func OwnAccountPlusNameCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, accountName string, err error) {
+	return getGlobal(mctx.G()).OwnAccountPlusNameCached(mctx, accountID)
 }
 
 func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntry, stellar1.AccountBundle, error) {

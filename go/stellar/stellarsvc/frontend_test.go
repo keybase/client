@@ -1033,12 +1033,14 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, "", p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
 
+	err = tcs[1].Srv.walletState.RefreshAll(tcs[1].MetaContext(), "test")
+	require.NoError(t, err)
 	recipPaymentsPage, err = srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip2})
 	require.NoError(t, err)
 	recipPayments = recipPaymentsPage.Payments
 	require.Len(t, recipPayments, 1)
-	t.Logf("recipPayments: %+v", recipPayments)
 	p = recipPayments[0].Payment
+	t.Logf("recipPayments[0]: %+v", p)
 	require.NotNil(t, p)
 	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 	require.Equal(t, accountIDSender, p.FromAccountID)
