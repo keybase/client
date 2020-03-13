@@ -216,7 +216,7 @@ var _ Config = (*ConfigLocal)(nil)
 
 // getDefaultCleanBlockCacheCapacity returns the default clean block
 // cache capacity. If we can get total RAM of the system, we cap at
-// the smaller of <1/4 of available memory> and
+// the smaller of <1/8 of available memory> and
 // <MaxBlockSizeBytesDefault * DefaultBlocksInMemCache>; otherwise,
 // fallback to latter.
 func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
