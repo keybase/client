@@ -16,21 +16,39 @@ const DefaultChannels = (props: Props) => {
   const getDefaultChannelsRPC = Container.useRPC(RPCChatGen.localGetDefaultTeamChannelsLocalRpcPromise)
   const setDefaultChannelsRPC = Container.useRPC(RPCChatGen.localSetDefaultTeamChannelsLocalRpcPromise)
   const [defaultChannels, setDefaultChannels] = React.useState<Array<Types.ChannelNameID>>([])
+  const [waiting, setWaiting] = React.useState(false)
   React.useEffect(() => {
+    setWaiting(true)
     getDefaultChannelsRPC(
       [{teamID}],
-      result =>
-        setDefaultChannels(
-          result.convs?.map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})) ?? [
-            {channelname: 'general', conversationIDKey: 'unused'},
-          ]
-        ),
+      result => {
+        setDefaultChannels([
+          ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
+          {channelname: 'general', conversationIDKey: 'unused'},
+        ])
+        setWaiting(false)
+      },
       _ => {}
     )
   }, [getDefaultChannelsRPC, teamID])
-  const onAdd = (channelName: string) => {}
+  const onAdd = (channels: Array<Types.ChannelNameID>) => {
+    setWaiting(true)
+    setDefaultChannelsRPC(
+      [{convs: channels.map(c => c.conversationIDKey), teamID}],
+      result => {
+        setWaiting(false)
+        setDefaultChannels([...defaultChannels, ...channels])
+      },
+      _ => {}
+    )
+  }
 
-  return <ChannelsWidget teamID={teamID} channels={defaultChannels} />
+  return (
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+      {waiting && <Kb.ProgressIndicator />}
+      <ChannelsWidget teamID={teamID} channels={defaultChannels} onAddChannel={onAdd} />
+    </Kb.Box2>
+  )
 }
 
 export default DefaultChannels
