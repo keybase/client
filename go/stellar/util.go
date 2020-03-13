@@ -54,6 +54,8 @@ type ownAccountLookupCacheFromGlobal struct {
 	libkb.Contextified
 }
 
+// NewOwnAccountLookupCache was obsoleted and exists only as an interface bridge.
+// Feel free to continue this refactor and remove it.
 func NewOwnAccountLookupCache(mctx libkb.MetaContext) OwnAccountLookupCache {
 	return &ownAccountLookupCacheFromGlobal{
 		Contextified: libkb.NewContextified(mctx.G()),

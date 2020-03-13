@@ -275,16 +275,8 @@ func ExportSecretKey(mctx libkb.MetaContext, accountID stellar1.AccountID) (res 
 }
 
 func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
-	bundle, err := remote.FetchSecretlessBundle(mctx)
-	if err != nil {
-		return false, false, err
-	}
-	for _, account := range bundle.Accounts {
-		if account.AccountID.Eq(accountID) {
-			return true, account.IsPrimary, nil
-		}
-	}
-	return false, false, nil
+	own, isPrimary, _, err = OwnAccountPlusName(mctx, accountID)
+	return own, isPrimary, err
 }
 
 func OwnAccountPlusName(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, accountName string, err error) {
