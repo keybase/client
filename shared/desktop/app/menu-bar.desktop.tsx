@@ -24,19 +24,12 @@ type Bounds = {
 }
 
 export default (menubarWindowIDCallback: (id: number) => void) => {
-    const iconPath = resolveImage(
-      'menubarIcon',
-      isWindows
-        ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
-        : 'icon-keybase-menubar-regular-white-22@2x.png'
-    )
   const mb = menubar({
     browserWindow: {
       hasShadow: true,
       height: 640,
       resizable: false,
       transparent: true,
-		icon:iconPath,
       webPreferences: {
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
