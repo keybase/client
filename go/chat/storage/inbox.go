@@ -64,6 +64,12 @@ type inboxDiskIndex struct {
 	Queries         []inboxDiskQuery       `codec:"Q"`
 }
 
+func (i inboxDiskIndex) DeepCopy() (res inboxDiskIndex) {
+	copy(res.ConversationIDs, i.ConversationIDs)
+	copy(res.Queries, i.Queries)
+	return res
+}
+
 func (i *inboxDiskIndex) mergeConvs(convIDs []chat1.ConversationID) {
 	m := make(map[string]chat1.ConversationID, len(convIDs))
 	for _, convID := range convIDs {

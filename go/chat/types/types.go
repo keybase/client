@@ -96,6 +96,18 @@ type RemoteConversationMetadata struct {
 	ResetParticipants  []string                `codec:"r"`
 }
 
+func (m RemoteConversationMetadata) DeepCopy() (res RemoteConversationMetadata) {
+	res.Name = m.Name
+	res.TopicName = m.TopicName
+	res.Snippet = m.Snippet
+	res.SnippetDecoration = m.SnippetDecoration
+	res.Headline = m.Headline
+	copy(res.WriterNames, m.WriterNames)
+	copy(res.FullNamesForSearch, m.FullNamesForSearch)
+	copy(res.ResetParticipants, m.ResetParticipants)
+	return res
+}
+
 type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
 	ConvIDStr      chat1.ConvIDStr             `codec:"i"`
@@ -114,6 +126,22 @@ func NewEmptyRemoteConversation(convID chat1.ConversationID) RemoteConversation 
 		},
 		ConvIDStr: convID.ConvIDStr(),
 	}
+}
+
+func (rc RemoteConversation) DeepCopy() (res RemoteConversation) {
+	res.Conv = rc.Conv.DeepCopy()
+	res.ConvIDStr = rc.ConvIDStr
+	if rc.LocalMetadata != nil {
+		res.LocalMetadata = new(RemoteConversationMetadata)
+		*res.LocalMetadata = rc.LocalMetadata.DeepCopy()
+	}
+	res.LocalReadMsgID = rc.LocalReadMsgID
+	if rc.LocalDraft != nil {
+		res.LocalDraft = new(string)
+		*res.LocalDraft = *rc.LocalDraft
+	}
+	res.LocalMtime = rc.LocalMtime
+	return res
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
