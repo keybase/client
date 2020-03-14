@@ -782,7 +782,7 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 	found := false
 	for _, invite := range annotatedTeamList.AnnotatedActiveInvites {
-		if invite.TeamName == name && string(invite.Name) == address {
+		if invite.TeamName == name && string(invite.Invite.Name) == address {
 			found = true
 		}
 	}
@@ -796,7 +796,7 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 	found = false
 	for _, invite := range details.AnnotatedActiveInvites {
-		if invite.TeamName == name && string(invite.Name) == address {
+		if invite.TeamName == name && string(invite.Invite.Name) == address {
 			found = true
 		}
 	}

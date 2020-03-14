@@ -1234,6 +1234,15 @@ func (c *ConfigLocal) GetQuotaUsage(
 	return quota
 }
 
+// GetPerfLog returns the performance logger for KBFS.
+func (c *ConfigLocal) GetPerfLog() logger.Logger {
+	perfLog := c.kbCtx.GetPerfLog()
+	if perfLog != nil {
+		return perfLog
+	}
+	return c.MakeLogger("")
+}
+
 // EnableDiskLimiter fills in c.diskLimiter for use in journaling and
 // disk caching. It returns the EventuallyConsistentQuotaUsage object
 // used by the disk limiter.
@@ -1518,6 +1527,9 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 			// case, since the cleaning behavior depends on it being
 			// nil if there has been an error.
 			c.syncedTlfs = nil
+			c.GetPerfLog().CDebugf(
+				context.TODO(),
+				"KBFS failed to open synced TLFs database: %v", err)
 		}
 	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)

@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	logger "github.com/keybase/client/go/logger"
@@ -716,4 +717,8 @@ var _ logger.ContextInterface = MetaContext{}
 
 func (m MetaContext) UpdateContextToLoggerContext(c context.Context) logger.ContextInterface {
 	return m.WithContext(c)
+}
+
+func (m MetaContext) DebugStack() {
+	m.Debug("stack trace:\n%s", string(debug.Stack()))
 }

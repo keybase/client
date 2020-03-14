@@ -27,7 +27,7 @@ const Spinner = Kb.HeaderOnMobile(_Spinner)
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Icon type="icon-team-leave-28" style={styles.headerIcon} />
+    <Kb.Icon boxStyle={styles.iconContainer} type="iconfont-leave" style={styles.headerIcon} />
   </>
 )
 
@@ -51,6 +51,7 @@ const _ReallyLeaveTeam = (props: Props) => {
           labelSubtitle="Future attempts by admins to add you to the team will be ignored."
           onCheck={setLeavePermanently}
           checked={leavePermanently}
+          style={styles.checkBox}
         />
       }
       description={`You will lose access to all the ${props.name} chats and folders${
@@ -59,15 +60,44 @@ const _ReallyLeaveTeam = (props: Props) => {
       header={<Header {...props} />}
       onCancel={props.onBack}
       onConfirm={onLeave}
-      prompt={`Are you sure you want to leave ${props.name}?`}
+      prompt={`Leave ${props.name}?`}
       waitingKey={Constants.leaveTeamWaitingKey(props.name)}
     />
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  headerIcon: {
-    marginRight: -60,
+  checkBox: Styles.platformStyles({
+    common: {
+      marginLeft: 48,
+      marginRight: 48,
+    },
+    isMobile: {
+      marginTop: 12,
+    },
+  }),
+  headerIcon: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.red,
+      borderColor: Styles.globalColors.white,
+      borderStyle: 'solid',
+      borderWidth: 3,
+      color: Styles.globalColors.white,
+      padding: 4,
+    },
+    isElectron: {
+      backgroundClip: 'padding-box',
+      borderRadius: 50,
+    },
+    isMobile: {
+      borderRadius: 18,
+      marginRight: -46,
+      marginTop: -30,
+      zIndex: 1,
+    },
+  }),
+  iconContainer: {
+    marginRight: -46,
     marginTop: -20,
     zIndex: 1,
   },

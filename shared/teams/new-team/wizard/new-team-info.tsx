@@ -9,15 +9,47 @@ import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
+import debounce from 'lodash/debounce'
+
+const getTeamTakenMessage = (status: number): string => {
+  switch (status) {
+    case RPCTypes.StatusCode.scteambadnamereserveddb:
+      return 'This name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
+
+    case RPCTypes.StatusCode.scteamnameconflictswithuser:
+    case RPCTypes.StatusCode.scteamexists:
+    default:
+      return 'This team name is already taken'
+  }
+}
 
 const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const teamWizardState = Container.useSelector(state => state.teams.newTeamWizard)
-  const teamNameTaken = false // TODO: get this live (Y2K-1524 and probably useRPC)
 
   const [name, setName] = React.useState(teamWizardState.name)
+  const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<number>(0)
+  const [teamNameTaken, setTeamNameTaken] = React.useState(false)
+  const checkTeamNameTaken = debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100)
+  React.useEffect(() => {
+    if (name.length >= 3) {
+      checkTeamNameTaken(
+        [{teamName: {parts: name.split('.')}}],
+        ({exists, status}) => {
+          setTeamNameTaken(exists)
+          setTeamNameTakenStatus(status)
+        },
+        () => {} // TODO: handle errors?
+      )
+    } else {
+      setTeamNameTaken(false)
+      setTeamNameTakenStatus(0)
+    }
+  }, [name, setTeamNameTaken, checkTeamNameTaken])
+
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, setOpenTeam] = React.useState(
     teamWizardState.name ? teamWizardState.open : teamWizardState.teamType === 'community'
@@ -67,7 +99,7 @@ const NewTeamInfo = () => {
         />
         {teamNameTaken ? (
           <Kb.Text type="BodySmallError" style={styles.extraLineText}>
-            This team name is already taken
+            {getTeamTakenMessage(teamNameTakenStatus)}
           </Kb.Text>
         ) : (
           <Kb.Text type="BodySmall">

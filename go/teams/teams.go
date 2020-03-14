@@ -379,20 +379,11 @@ func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) 
 	}
 
 	// Add the invites
-	chainInvites := t.chain().inner.ActiveInvites
-	inviteMap, err := AnnotateInvites(ctx, t.G(), t)
-	if err != nil {
-		return res, err
-	}
 	isFullyResolved := true
-	for inviteID := range chainInvites {
-		invite, ok := inviteMap[inviteID]
-		if !ok {
-			// this should never happen
-			return res, fmt.Errorf("missing invite: %v", inviteID)
-		}
+	for _, invite := range t.chain().inner.ActiveInvites {
 		invtyp, err := invite.Type.C()
 		if err != nil {
+			t.G().Log.CDebugf(ctx, "ImplicitTeamDisplayName: failed to compute type of invite: %s", err.Error())
 			continue
 		}
 		switch invtyp {
@@ -412,17 +403,25 @@ func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) 
 			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// Check to make sure we don't already have the user in the name
-			iname := string(invite.Name)
-			if seenKBUsers[iname] {
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				return res, err
+			}
+			normalizedUsername, err := t.G().GetUPAKLoader().LookupUsername(ctx, uv.Uid)
+			if err != nil {
+				return res, err
+			}
+			username := normalizedUsername.String()
+
+			if seenKBUsers[username] {
 				continue
 			}
-			seenKBUsers[iname] = true
-			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
+			seenKBUsers[username] = true
 			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
-				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, iname)
+				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, username)
 			case keybase1.TeamRole_READER:
-				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, iname)
+				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, username)
 			default:
 				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role,
 					invite.Id)
@@ -1398,7 +1397,7 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
 	maxUses keybase1.TeamInviteMaxUses,
 	etime *keybase1.UnixTime) (ikey keybase1.SeitanIKeyInvitelink, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
 
 	// Experimental code: we are figuring out how to do invite links.
 

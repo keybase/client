@@ -72,7 +72,7 @@ const ConfirmModal = (props: Props) => (
           />
         </ButtonBar>
       ),
-      hideBorder: true,
+      hideBorder: Styles.isMobile,
     }}
     onClose={props.onCancel || undefined}
     mode="Wide"

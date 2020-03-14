@@ -667,23 +667,28 @@ func (s *Stellar) InformDefaultCurrencyChange(mctx libkb.MetaContext) {
 }
 
 func (s *Stellar) OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
+	own, isPrimary, _, err = s.OwnAccountPlusNameCached(mctx, accountID)
+	return own, isPrimary, err
+}
+
+func (s *Stellar) OwnAccountPlusNameCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, accountName string, err error) {
 	err = libkb.AcquireWithContextAndTimeout(mctx.Ctx(), &s.accountsLock, 5*time.Second)
 	if err != nil {
-		mctx.Debug("OwnAccountCached: error acquiring lock")
+		mctx.Debug("OwnAccountPlusNameCached: error acquiring lock")
 		return
 	}
 	if s.accounts != nil && mctx.G().Clock().Now().Sub(s.accounts.Stored.Round(0)) < 2*time.Minute {
 		for _, acc := range s.accounts.Accounts {
 			if acc.AccountID.Eq(accountID) {
 				s.accountsLock.Unlock()
-				return true, acc.IsPrimary, nil
+				return true, acc.IsPrimary, acc.Name, nil
 			}
 		}
 		s.accountsLock.Unlock()
-		return false, false, nil
+		return false, false, "", nil
 	}
 	s.accountsLock.Unlock()
-	return OwnAccount(mctx, accountID)
+	return OwnAccountPlusName(mctx, accountID)
 }
 
 func (s *Stellar) Refresh(mctx libkb.MetaContext, reason string) {

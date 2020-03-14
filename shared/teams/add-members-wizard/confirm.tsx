@@ -18,6 +18,13 @@ const AddMembersConfirm = () => {
   const {teamID, role, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
+  const onlyEmails = React.useMemo(
+    () =>
+      addingMembers.length > 0 &&
+      addingMembers.findIndex(member => !member.assertion.endsWith('@email')) === -1,
+    [addingMembers]
+  )
+  const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
 
@@ -29,6 +36,7 @@ const AddMembersConfirm = () => {
     addMembers(
       [
         {
+          emailInviteMessage: emailMessage || undefined,
           sendChatNotification: true,
           teamID,
           users: addingMembers.map(member => ({
@@ -93,6 +101,28 @@ const AddMembersConfirm = () => {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
+        {onlyEmails && (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+            <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
+            {emailMessage === null ? (
+              <Kb.Text type="BodySmallPrimaryLink" onClick={() => setEmailMessage('')}>
+                Include a note in your email
+              </Kb.Text>
+            ) : (
+              <Kb.LabeledInput
+                autoFocus={true}
+                hoverPlaceholder="Ex: Hey folks, here is my team on Keybase. Can't wait to chat securely!"
+                maxLength={250}
+                multiline={true}
+                onChangeText={text => setEmailMessage(text)}
+                placeholder="Include a note in your email"
+                rowsMax={8}
+                rowsMin={3}
+                value={emailMessage}
+              />
+            )}
+          </Kb.Box2>
+        )}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
     </Kb.Modal>
