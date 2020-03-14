@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 30
+const inboxVersion = 31
 
 type InboxFlushMode int
 
@@ -62,6 +62,14 @@ func (q inboxDiskQuery) match(other inboxDiskQuery) bool {
 type inboxDiskIndex struct {
 	ConversationIDs []chat1.ConversationID `codec:"C"`
 	Queries         []inboxDiskQuery       `codec:"Q"`
+}
+
+func (i inboxDiskIndex) DeepCopy() (res inboxDiskIndex) {
+	res.ConversationIDs = make([]chat1.ConversationID, len(i.ConversationIDs))
+	res.Queries = make([]inboxDiskQuery, len(i.Queries))
+	copy(res.ConversationIDs, i.ConversationIDs)
+	copy(res.Queries, i.Queries)
+	return res
 }
 
 func (i *inboxDiskIndex) mergeConvs(convIDs []chat1.ConversationID) {
@@ -1700,7 +1708,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	iboxIndex.ConversationIDs = nil
 	for _, convID := range convIDs {
-		dirty := true
+		dirty := false
 		conv, err := i.readConv(ctx, uid, convID)
 		if err != nil {
 			return nil, err

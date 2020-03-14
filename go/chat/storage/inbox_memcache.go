@@ -10,7 +10,7 @@ import (
 )
 
 type inboxMemCacheImpl struct {
-	sync.RWMutex
+	sync.Mutex
 
 	versMap  map[string]*inboxDiskVersions
 	indexMap map[string]*inboxDiskIndex
@@ -26,8 +26,8 @@ func newInboxMemCacheImpl() *inboxMemCacheImpl {
 }
 
 func (i *inboxMemCacheImpl) GetVersions(uid gregor1.UID) *inboxDiskVersions {
-	i.RLock()
-	defer i.RUnlock()
+	i.Lock()
+	defer i.Unlock()
 	if ibox, ok := i.versMap[uid.String()]; ok {
 		return ibox
 	}
@@ -41,10 +41,11 @@ func (i *inboxMemCacheImpl) PutVersions(uid gregor1.UID, ibox *inboxDiskVersions
 }
 
 func (i *inboxMemCacheImpl) GetIndex(uid gregor1.UID) *inboxDiskIndex {
-	i.RLock()
-	defer i.RUnlock()
+	i.Lock()
+	defer i.Unlock()
 	if ibox, ok := i.indexMap[uid.String()]; ok {
-		return ibox
+		ret := ibox.DeepCopy()
+		return &ret
 	}
 	return nil
 }
@@ -60,10 +61,11 @@ func (i *inboxMemCacheImpl) convKey(uid gregor1.UID, convID chat1.ConversationID
 }
 
 func (i *inboxMemCacheImpl) GetConv(uid gregor1.UID, convID chat1.ConversationID) *types.RemoteConversation {
-	i.RLock()
-	defer i.RUnlock()
+	i.Lock()
+	defer i.Unlock()
 	if conv, ok := i.convMap[i.convKey(uid, convID)]; ok {
-		return &conv
+		ret := conv.DeepCopy()
+		return &ret
 	}
 	return nil
 }

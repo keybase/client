@@ -882,6 +882,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			allUsers := []gregor1.UID{uid, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
+			expected[i].Conv.ReaderInfo.UntrustedTeamRole = keybase1.TeamRole_WRITER
 			require.Equal(t, expected[i], res[i])
 		}
 	}
