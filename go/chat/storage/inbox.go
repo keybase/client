@@ -1708,7 +1708,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	iboxIndex.ConversationIDs = nil
 	for _, convID := range convIDs {
-		dirty := true
+		dirty := false
 		conv, err := i.readConv(ctx, uid, convID)
 		if err != nil {
 			return nil, err
