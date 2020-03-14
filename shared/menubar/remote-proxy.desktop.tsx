@@ -16,7 +16,6 @@ import {ProxyProps, RemoteTlfUpdates} from './remote-serializer.desktop'
 import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
 import shallowEqual from 'shallowequal'
-import {useInterval} from '../common-adapters/use-timers'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
