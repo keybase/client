@@ -169,18 +169,22 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     this.props.toggleShowingMenu()
   }
 
-  render() {
-    let hintText = 'Write a message'
+  _getHintText = () => {
     if (this.props.cannotWrite) {
-      hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
+      return `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
       } to post.`
     } else if (this.props.isEditing) {
-      hintText = 'Edit your message'
+      return 'Edit your message'
     } else if (this.props.isExploding) {
-      hintText = 'Write an exploding message'
+      return this.props.conversationName
+        ? `Exploding message ${this.props.conversationName}`
+        : 'Eploding message'
     }
+    return this.props.conversationName ? `Message ${this.props.conversationName}` : 'Write a message'
+  }
 
+  render() {
     return (
       <KeyEventHandler
         onKeyDown={this._globalKeyDownPressHandler}
@@ -254,7 +258,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
-                placeholder={hintText}
+                placeholder={this._getHintText()}
                 style={Styles.collapseStyles([styles.input, this.props.isEditing && styles.inputEditing])}
                 onChangeText={this._onChangeText}
                 multiline={true}

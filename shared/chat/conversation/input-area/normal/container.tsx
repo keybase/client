@@ -115,6 +115,7 @@ export default Container.namedConnect(
     const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
+    const conversationName = Constants.getConversationNameForInput(state, conversationIDKey)
 
     const _you = state.config.username
 
@@ -143,6 +144,7 @@ export default Container.namedConnect(
       _you,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
+      conversationName,
       editText: editInfo ? editInfo.text : '',
       explodingModeSeconds,
       infoPanelShowing: state.chat2.infoPanelShowing,
@@ -257,6 +259,7 @@ export default Container.namedConnect(
       cannotWrite: stateProps.cannotWrite,
       clearInboxFilter: dispatchProps.clearInboxFilter,
       conversationIDKey: stateProps.conversationIDKey,
+      conversationName: stateProps.conversationName,
       editText: stateProps.editText,
       explodingModeSeconds: stateProps.explodingModeSeconds,
       focusInputCounter: ownProps.focusInputCounter,

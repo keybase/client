@@ -71,6 +71,7 @@ export type InputProps = {
 } & CommonProps
 
 export type PlatformInputProps = {
+  conversationName: string
   inputSetRef: (r: null | PlainInput) => void
   onChangeText: (newText: string) => void
   onKeyDown: (evt: React.KeyboardEvent) => void
