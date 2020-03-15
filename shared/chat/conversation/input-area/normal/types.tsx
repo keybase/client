@@ -8,6 +8,7 @@ type CommonProps = {
   cannotWrite: boolean | null
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
+  conversationName: string
   editText: string
   explodingModeSeconds: number
   focusInputCounter: number
@@ -71,7 +72,6 @@ export type InputProps = {
 } & CommonProps
 
 export type PlatformInputProps = {
-  conversationName: string
   inputSetRef: (r: null | PlainInput) => void
   onChangeText: (newText: string) => void
   onKeyDown: (evt: React.KeyboardEvent) => void
