@@ -428,12 +428,13 @@ export const makeInboxQuery = (
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
-    memberStatus: (allStatuses
-      ? Object.values(RPCChatTypes.ConversationMemberStatus)
-      : (Object.keys(RPCChatTypes.ConversationMemberStatus)
-          .filter(k => typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number')
-          .filter(k => !['neverJoined', 'left', 'removed'].includes(k as any))
-          .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown)) as Array<
+    memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
+      .filter(
+        k =>
+          typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number' &&
+          (!!allStatuses || !['neverJoined', 'left', 'removed'].includes(k as any))
+      )
+      .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
       RPCChatTypes.ConversationMemberStatus
     >,
     readOnly: false,
