@@ -1,14 +1,17 @@
 #!/bin/bash
-set -euo pipefail
+set -euox pipefail
 
 U=vagrant
 echo "setting up tuxbot for $U"
 
+# keybase/tuxbot
+systemctl --user enable --now keybase.service kbfs.service
+# systemctl --user enable tuxbot.service
+# systemctl --user enable nightly.timer
+
 # clone tuxbot in gopath
 mkdir -p "$HOME/go/src/github.com/keybase"
-git clone git@github.com:keybase/client.git "$HOME/go/src/github.com/keybase"
+git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase/client"
 
-# clone for hte 
-git clone git@github.com:keybase/client.git "$HOME/go/src/github.com/keybase"
-
-# keybase/tuxbot
+# clone for the build
+git clone https://github.com/keybase/client.git "$HOME/client"

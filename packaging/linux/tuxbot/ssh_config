@@ -1,0 +1,4 @@
+Host github.com
+    HostName github.com
+    IdentityFile /keybase/team/keybase.bots.build.linux/secrets/tuxbot_ed25519
+    User git

@@ -1,0 +1,10 @@
+[Unit]
+Description=tuxbot
+
+[Service]
+ExecStart=go run %h/go/src/github.com/keybase/keybase/deploy/flutebot/tuxbot
+EnvironmentFile=%h/tuxbot.env
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
