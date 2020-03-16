@@ -14,7 +14,7 @@ import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
-import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {errorToActionOrThrow} from './shared'
 import {NotifyPopup} from '../../native/notifications'
 import {RPCError} from '../../util/errors'
 
@@ -105,11 +105,11 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
         }),
       ]
     }
-    return makeRetriableErrorHandler(action, action.payload.tlfPath)(e)
+    return errorToActionOrThrow(e, action.payload.tlfPath)
   }
 }
 
-const loadFavorites = async (state: Container.TypedState, action: FsGen.FavoritesLoadPayload) => {
+const loadFavorites = async (state: Container.TypedState) => {
   try {
     if (!state.config.loggedIn) {
       return false
@@ -156,7 +156,7 @@ const loadFavorites = async (state: Container.TypedState, action: FsGen.Favorite
     )
     return payload.private.size ? FsGen.createFavoritesLoaded(payload) : undefined
   } catch (e) {
-    return makeRetriableErrorHandler(action)(e)
+    return errorToActionOrThrow(e)
   }
 }
 
@@ -201,7 +201,7 @@ const loadTlfSyncConfig = async (action: FsGen.LoadTlfSyncConfigPayload | FsGen.
       tlfType: parsedPath.tlfType,
     })
   } catch (e) {
-    return makeUnretriableErrorHandler(action, tlfPath)(e)
+    return errorToActionOrThrow(e, tlfPath)
   }
 }
 
@@ -385,7 +385,7 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
     ]
     yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: new Map(pathItems)}))
   } catch (error) {
-    yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
+    yield Saga.put(errorToActionOrThrow(error, rootPath))
   }
 }
 
@@ -419,16 +419,16 @@ const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
     })
     return false
   } catch (err) {
-    return makeUnretriableErrorHandler(action)(err)
+    return errorToActionOrThrow(err)
   }
 }
 
-const loadUploadStatus = async (_: Container.TypedState, action: FsGen.LoadUploadStatusPayload) => {
+const loadUploadStatus = async (_: Container.TypedState) => {
   try {
     const uploadStates = await RPCTypes.SimpleFSSimpleFSGetUploadStatusRpcPromise()
     return FsGen.createLoadedUploadStatus({uploadStates: uploadStates || []})
   } catch (err) {
-    return makeUnretriableErrorHandler(action)(err)
+    return errorToActionOrThrow(err)
   }
 }
 
@@ -525,7 +525,10 @@ const ignoreFavorite = async (_: Container.TypedState, action: FsGen.FavoriteIgn
     await RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
     return null
   } catch (error) {
-    return makeRetriableErrorHandler(action, action.payload.path)(error)
+    return [
+      FsGen.createFavoriteIgnore({path: action.payload.path}),
+      errorToActionOrThrow(error, action.payload.path),
+    ]
   }
 }
 
@@ -538,14 +541,17 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
   switch (edit.type) {
     case Types.EditType.NewFolder:
       try {
-        await RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
-          dest: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
-          flags: RPCTypes.OpenFlags.directory,
-          opID: Constants.makeUUID(),
-        })
+        await RPCTypes.SimpleFSSimpleFSOpenRpcPromise(
+          {
+            dest: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+            flags: RPCTypes.OpenFlags.directory,
+            opID: Constants.makeUUID(),
+          },
+          Constants.commitEditWaitingKey
+        )
         return FsGen.createEditSuccess({editID})
       } catch (e) {
-        return makeRetriableErrorHandler(action, edit.parentPath)(e)
+        return errorToActionOrThrow(e, edit.parentPath)
       }
     case Types.EditType.Rename:
       try {
@@ -556,7 +562,7 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
           overwriteExistingFiles: false,
           src: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
         })
-        await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+        await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.commitEditWaitingKey)
         return FsGen.createEditSuccess({editID})
       } catch (e) {
         if (
@@ -564,9 +570,9 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
             e.code
           )
         ) {
-          return makeUnretriableErrorHandler(action, edit.parentPath)(e)
+          return FsGen.createEditError({editID, error: e.desc || 'name exists'})
         }
-        return makeRetriableErrorHandler(action, edit.parentPath)(e)
+        throw e
       }
   }
 }
@@ -586,7 +592,7 @@ const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathM
       pathItem: makeEntry(dirent),
     })
   } catch (err) {
-    return makeRetriableErrorHandler(action, path)(err)
+    return errorToActionOrThrow(err, path)
   }
 }
 
@@ -610,7 +616,7 @@ const deleteFile = async (action: FsGen.DeleteFilePayload) => {
     })
     return RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
   } catch (e) {
-    return makeRetriableErrorHandler(action, action.payload.path)(e)
+    return errorToActionOrThrow(e, action.payload.path)
   }
 }
 
@@ -683,7 +689,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
     // just retry it. If we do want retry in the future we can include those
     // paths in the action.
   } catch (e) {
-    return makeUnretriableErrorHandler(action, action.payload.destinationParentPath)(e)
+    return errorToActionOrThrow(e, action.payload.destinationParentPath)
   }
 }
 
@@ -854,7 +860,7 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
       // We'll handle this error in loadAdditionalTLF instead.
       return
     }
-    return makeUnretriableErrorHandler(action, action.payload.path)(err)
+    return errorToActionOrThrow(err, action.payload.path)
   }
 }
 
@@ -868,7 +874,7 @@ const subscribeNonPath = async (action: FsGen.SubscribeNonPathPayload) => {
     })
     return null
   } catch (err) {
-    return makeUnretriableErrorHandler(action)(err)
+    return errorToActionOrThrow(err)
   }
 }
 
@@ -943,11 +949,11 @@ const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownl
       },
     })
   } catch (error) {
-    return makeUnretriableErrorHandler(action)(error)
+    return errorToActionOrThrow(error)
   }
 }
 
-const loadDownloadStatus = async (_: Container.TypedState, action: FsGen.LoadDownloadStatusPayload) => {
+const loadDownloadStatus = async (_: Container.TypedState) => {
   try {
     const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
     return FsGen.createLoadedDownloadStatus({
@@ -967,7 +973,7 @@ const loadDownloadStatus = async (_: Container.TypedState, action: FsGen.LoadDow
       ),
     })
   } catch (error) {
-    return makeUnretriableErrorHandler(action)(error)
+    return errorToActionOrThrow(error)
   }
 }
 
@@ -985,7 +991,7 @@ const loadFileContext = async (action: FsGen.LoadFileContextPayload) => {
       path: action.payload.path,
     })
   } catch (err) {
-    return makeUnretriableErrorHandler(action)(err)
+    return errorToActionOrThrow(err)
   }
 }
 

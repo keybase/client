@@ -18,15 +18,6 @@ export enum ProgressType {
   Loaded = 'loaded',
 }
 
-// not naming Error because it has meaning in js.
-export type FsError = {
-  readonly time: number
-  readonly errorMessage: string
-  readonly erroredAction: any // FsGen.Actions | EngineGen.Actions // using this type in the actions itself causes an explosive loop
-  readonly statusCode?: RPCTypes.StatusCode
-  readonly retriableAction?: any // FsGen.Actions | EngineGen.Actions
-}
-
 export type Device = {
   readonly type: Devices.DeviceType
   readonly name: string
@@ -296,19 +287,13 @@ export enum EditType {
   NewFolder = 'new-folder',
   Rename = 'rename',
 }
-export enum EditStatusType {
-  Editing = 'editing',
-  Saving = 'saving',
-  Failed = 'failed',
-}
-
 export type Edit = {
   readonly type: EditType
   readonly parentPath: Path
   readonly name: string
   // For new folders, this is the automatically generated hint.
   readonly originalName: string
-  readonly status: EditStatusType
+  readonly error?: string
 }
 
 export enum SortSetting {
@@ -544,7 +529,7 @@ export type State = {
   readonly destinationPicker: DestinationPicker
   readonly downloads: Downloads
   readonly edits: Edits
-  readonly errors: Map<string, FsError>
+  readonly errors: Array<string>
   readonly fileContext: Map<Path, FileContext>
   readonly folderViewFilter: string | null // on mobile, '' is exapnded empty, null is unexpanded
   readonly kbfsDaemonStatus: KbfsDaemonStatus

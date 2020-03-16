@@ -12,18 +12,8 @@ type Props = {
 }
 
 const Editing = ({editID}: Props) => {
-  const errors = Container.useSelector(state => state.fs.errors)
   const dispatch = Container.useDispatch()
-  const onCancel = () => {
-    dispatch(FsGen.createDiscardEdit({editID}))
-    // Also dismiss any errors associated with this edit.
-    ;[...errors]
-      .filter(
-        ([_, error]) =>
-          error.erroredAction.type === FsGen.commitEdit && editID === error.erroredAction.payload.editID
-      )
-      .forEach(([key]) => dispatch(FsGen.createDismissFsError({key})))
-  }
+  const onCancel = () => dispatch(FsGen.createDiscardEdit({editID}))
   const onSubmit = () => dispatch(FsGen.createCommitEdit({editID}))
   const edit = Container.useSelector(state => state.fs.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
@@ -63,20 +53,18 @@ const Editing = ({editID}: Props) => {
       }
       action={
         <Kb.Box key="right" style={styles.rightBox}>
-          {edit.status === Types.EditStatusType.Failed && <Kb.Text type="BodySmallError">Failed</Kb.Text>}
-          <Kb.Button
+          {!!edit.error && (
+            <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
+              <Kb.Icon type="iconfont-exclamation" color={Styles.globalColors.red} />
+            </Kb.WithTooltip>
+          )}
+          <Kb.WaitingButton
             key="create"
             style={styles.button}
             small={true}
-            label={
-              edit.status === Types.EditStatusType.Failed
-                ? 'Retry'
-                : edit.type === Types.EditType.NewFolder
-                ? 'Create'
-                : 'Save'
-            }
-            waiting={edit.status === Types.EditStatusType.Saving}
-            onClick={edit.status === Types.EditStatusType.Saving ? undefined : onSubmit}
+            label={edit.error ? 'Retry' : edit.type === Types.EditType.NewFolder ? 'Create' : 'Save'}
+            waitingKey={Constants.commitEditWaitingKey}
+            onClick={onSubmit}
           />
           <Kb.Icon
             onClick={onCancel}

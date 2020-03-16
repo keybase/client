@@ -252,6 +252,8 @@ const (
 	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
 	StatusCode_SCSimpleFSNameExists                        StatusCode = 5101
 	StatusCode_SCSimpleFSDirNotEmpty                       StatusCode = 5102
+	StatusCode_SCSimpleFSNotExist                          StatusCode = 5103
+	StatusCode_SCSimpleFSNoAccess                          StatusCode = 5104
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -498,6 +500,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCAirdropRegisterFailedMisc":                 4207,
 	"SCSimpleFSNameExists":                        5101,
 	"SCSimpleFSDirNotEmpty":                       5102,
+	"SCSimpleFSNotExist":                          5103,
+	"SCSimpleFSNoAccess":                          5104,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -742,6 +746,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	4207: "SCAirdropRegisterFailedMisc",
 	5101: "SCSimpleFSNameExists",
 	5102: "SCSimpleFSDirNotEmpty",
+	5103: "SCSimpleFSNotExist",
+	5104: "SCSimpleFSNoAccess",
 }
 
 func (e StatusCode) String() string {

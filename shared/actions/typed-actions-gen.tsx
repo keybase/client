@@ -596,9 +596,10 @@ export type TypedActionsMap = {
   'fs:setEditName': fs.SetEditNamePayload
   'fs:commitEdit': fs.CommitEditPayload
   'fs:editSuccess': fs.EditSuccessPayload
+  'fs:editError': fs.EditErrorPayload
   'fs:discardEdit': fs.DiscardEditPayload
-  'fs:fsError': fs.FsErrorPayload
-  'fs:dismissFsError': fs.DismissFsErrorPayload
+  'fs:redbar': fs.RedbarPayload
+  'fs:dismissRedbar': fs.DismissRedbarPayload
   'fs:setLastPublicBannerClosedTlf': fs.SetLastPublicBannerClosedTlfPayload
   'fs:openFilesFromWidget': fs.OpenFilesFromWidgetPayload
   'fs:letResetUserBackIn': fs.LetResetUserBackInPayload

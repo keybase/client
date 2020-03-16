@@ -2534,6 +2534,8 @@ export enum StatusCode {
   scairdropregisterfailedmisc = 4207,
   scsimplefsnameexists = 5101,
   scsimplefsdirnotempty = 5102,
+  scsimplefsnotexist = 5103,
+  scsimplefsnoaccess = 5104,
 }
 
 export enum SubscriptionTopic {

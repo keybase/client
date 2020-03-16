@@ -12,13 +12,14 @@ export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
-export const dismissFsError = 'fs:dismissFsError'
+export const dismissRedbar = 'fs:dismissRedbar'
 export const dismissUpload = 'fs:dismissUpload'
 export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
 export const driverEnable = 'fs:driverEnable'
 export const driverKextPermissionError = 'fs:driverKextPermissionError'
+export const editError = 'fs:editError'
 export const editSuccess = 'fs:editSuccess'
 export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
@@ -29,7 +30,6 @@ export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
-export const fsError = 'fs:fsError'
 export const getOnlineStatus = 'fs:getOnlineStatus'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
@@ -64,6 +64,7 @@ export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const pollJournalStatus = 'fs:pollJournalStatus'
+export const redbar = 'fs:redbar'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
@@ -115,15 +116,16 @@ type _CopyPayload = {readonly destinationParentPath: Types.Path}
 type _DeleteFilePayload = {readonly path: Types.Path}
 type _DiscardEditPayload = {readonly editID: Types.EditID}
 type _DismissDownloadPayload = {readonly downloadID: string}
-type _DismissFsErrorPayload = {readonly key: string}
+type _DismissRedbarPayload = {readonly index: number}
 type _DismissUploadPayload = {readonly uploadID: string}
 type _DownloadPayload = {readonly path: Types.Path}
 type _DriverDisablePayload = void
 type _DriverDisablingPayload = void
 type _DriverEnablePayload = {readonly isRetry?: boolean | null}
 type _DriverKextPermissionErrorPayload = void
+type _EditErrorPayload = {readonly editID: Types.EditID; readonly error: string}
 type _EditSuccessPayload = {readonly editID: Types.EditID}
-type _FavoriteIgnoreErrorPayload = {readonly path: Types.Path; readonly error: Types.FsError}
+type _FavoriteIgnoreErrorPayload = {readonly path: Types.Path}
 type _FavoriteIgnorePayload = {readonly path: Types.Path}
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = {
@@ -143,7 +145,6 @@ type _FolderListLoadedPayload = {
   readonly path: Types.Path
   readonly pathItems: Map<Types.Path, Types.PathItem>
 }
-type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
 type _GetOnlineStatusPayload = void
 type _JournalUpdatePayload = {
   readonly syncingPaths: Array<Types.Path>
@@ -188,6 +189,7 @@ type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Typ
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
 type _PlaceholderActionPayload = void
 type _PollJournalStatusPayload = void
+type _RedbarPayload = {readonly error: string}
 type _RefreshDriverStatusPayload = void
 type _RefreshMountDirsAfter10sPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path}
@@ -270,9 +272,9 @@ export const createDismissDownload = (payload: _DismissDownloadPayload): Dismiss
   payload,
   type: dismissDownload,
 })
-export const createDismissFsError = (payload: _DismissFsErrorPayload): DismissFsErrorPayload => ({
+export const createDismissRedbar = (payload: _DismissRedbarPayload): DismissRedbarPayload => ({
   payload,
-  type: dismissFsError,
+  type: dismissRedbar,
 })
 export const createDismissUpload = (payload: _DismissUploadPayload): DismissUploadPayload => ({
   payload,
@@ -293,6 +295,7 @@ export const createDriverEnable = (
 export const createDriverKextPermissionError = (
   payload: _DriverKextPermissionErrorPayload
 ): DriverKextPermissionErrorPayload => ({payload, type: driverKextPermissionError})
+export const createEditError = (payload: _EditErrorPayload): EditErrorPayload => ({payload, type: editError})
 export const createEditSuccess = (payload: _EditSuccessPayload): EditSuccessPayload => ({
   payload,
   type: editSuccess,
@@ -329,7 +332,6 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   payload,
   type: folderListLoaded,
 })
-export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
 export const createGetOnlineStatus = (payload: _GetOnlineStatusPayload): GetOnlineStatusPayload => ({
   payload,
   type: getOnlineStatus,
@@ -453,6 +455,7 @@ export const createPollJournalStatus = (payload: _PollJournalStatusPayload): Pol
   payload,
   type: pollJournalStatus,
 })
+export const createRedbar = (payload: _RedbarPayload): RedbarPayload => ({payload, type: redbar})
 export const createRefreshDriverStatus = (
   payload: _RefreshDriverStatusPayload
 ): RefreshDriverStatusPayload => ({payload, type: refreshDriverStatus})
@@ -608,9 +611,9 @@ export type DismissDownloadPayload = {
   readonly payload: _DismissDownloadPayload
   readonly type: typeof dismissDownload
 }
-export type DismissFsErrorPayload = {
-  readonly payload: _DismissFsErrorPayload
-  readonly type: typeof dismissFsError
+export type DismissRedbarPayload = {
+  readonly payload: _DismissRedbarPayload
+  readonly type: typeof dismissRedbar
 }
 export type DismissUploadPayload = {
   readonly payload: _DismissUploadPayload
@@ -630,6 +633,7 @@ export type DriverKextPermissionErrorPayload = {
   readonly payload: _DriverKextPermissionErrorPayload
   readonly type: typeof driverKextPermissionError
 }
+export type EditErrorPayload = {readonly payload: _EditErrorPayload; readonly type: typeof editError}
 export type EditSuccessPayload = {readonly payload: _EditSuccessPayload; readonly type: typeof editSuccess}
 export type FavoriteIgnoreErrorPayload = {
   readonly payload: _FavoriteIgnoreErrorPayload
@@ -667,7 +671,6 @@ export type FolderListLoadedPayload = {
   readonly payload: _FolderListLoadedPayload
   readonly type: typeof folderListLoaded
 }
-export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: typeof fsError}
 export type GetOnlineStatusPayload = {
   readonly payload: _GetOnlineStatusPayload
   readonly type: typeof getOnlineStatus
@@ -792,6 +795,7 @@ export type PollJournalStatusPayload = {
   readonly payload: _PollJournalStatusPayload
   readonly type: typeof pollJournalStatus
 }
+export type RedbarPayload = {readonly payload: _RedbarPayload; readonly type: typeof redbar}
 export type RefreshDriverStatusPayload = {
   readonly payload: _RefreshDriverStatusPayload
   readonly type: typeof refreshDriverStatus
@@ -944,13 +948,14 @@ export type Actions =
   | DeleteFilePayload
   | DiscardEditPayload
   | DismissDownloadPayload
-  | DismissFsErrorPayload
+  | DismissRedbarPayload
   | DismissUploadPayload
   | DownloadPayload
   | DriverDisablePayload
   | DriverDisablingPayload
   | DriverEnablePayload
   | DriverKextPermissionErrorPayload
+  | EditErrorPayload
   | EditSuccessPayload
   | FavoriteIgnoreErrorPayload
   | FavoriteIgnorePayload
@@ -961,7 +966,6 @@ export type Actions =
   | FinishedRegularDownloadPayload
   | FolderListLoadPayload
   | FolderListLoadedPayload
-  | FsErrorPayload
   | GetOnlineStatusPayload
   | JournalUpdatePayload
   | KbfsDaemonOnlineStatusChangedPayload
@@ -996,6 +1000,7 @@ export type Actions =
   | PickAndUploadPayload
   | PlaceholderActionPayload
   | PollJournalStatusPayload
+  | RedbarPayload
   | RefreshDriverStatusPayload
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
