@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
+import * as ReactNative from 'react-native'
 
 export type SectionListRenderItem<ItemT, ExtraT> = (info: {
   index: number
@@ -100,6 +101,12 @@ export type Props<SectionT extends Section<any, any>> = {
 
   // iOS only
   alwaysBounceVertical?: boolean
+
+  /**
+   * Fires at most once per frame during scrolling.
+   * The frequency of the events can be contolled using the scrollEventThrottle prop.
+   */
+  onScroll?: (event: ReactNative.NativeSyntheticEvent<ReactNative.NativeScrollEvent>) => void
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}

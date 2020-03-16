@@ -1,86 +1,171 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as BotsGen from '../../actions/bots-gen'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import TeamTabs from './tabs/container'
-import {Row} from './rows'
-import renderRow from './rows/render'
-import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
-import SelectionPopup from '../common/selection-popup'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Types from '../../constants/types/teams'
+import {memoize} from '../../util/memoize'
 import flags from '../../util/feature-flags'
-export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
+import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
+import SelectionPopup from '../common/selection-popup'
+import TeamTabs from './tabs/container'
+import NewTeamHeader from './new-header'
+import TeamHeader from './header/container'
+import Settings from './settings-tab/container'
+import {
+  useMembersSections,
+  useBotSections,
+  useInvitesSections,
+  useSubteamsSections,
+  useChannelsSections,
+  Section,
+} from './rows'
 
 export type Props = {
   teamID: Types.TeamID
-  selectedTab: Types.TabKey
-  sections: Sections
-  setSelectedTab: (arg0: Types.TabKey) => void
+  initialTab?: Types.TabKey
+}
+
+// keep track during session
+const lastSelectedTabs = {}
+const defaultTab: Types.TabKey = 'members'
+
+const useTabsState = (
+  teamID: Types.TeamID,
+  providedTab?: Types.TabKey
+): [Types.TabKey, (t: Types.TabKey) => void] => {
+  const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
+  const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
+  const setSelectedTab = React.useCallback(
+    t => {
+      lastSelectedTabs[teamID] = t
+      _setSelectedTab(t)
+    },
+    [teamID, _setSelectedTab]
+  )
+
+  const prevTeamID = Container.usePrevious(teamID)
+
+  React.useEffect(() => {
+    if (teamID !== prevTeamID) {
+      setSelectedTab(defaultSelectedTab)
+    }
+  }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
+  return [selectedTab, setSelectedTab]
+}
+
+const getBots = memoize((members: Map<string, Types.MemberInfo>) =>
+  [...members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
+)
+const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean) => {
+  const dispatch = Container.useDispatch()
+  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
+  const _bots = getBots(teamDetails.members)
+  React.useEffect(() => {
+    if (shouldLoad) {
+      _bots.forEach(bot => {
+        if (!featuredBotsMap.has(bot.username)) {
+          dispatch(BotsGen.createSearchFeaturedBots({query: bot.username}))
+        }
+      })
+    }
+  }, [shouldLoad, _bots, featuredBotsMap, dispatch])
 }
 
 const Team = (props: Props) => {
-  const renderItem = ({item}: {item: Row}) => {
-    switch (item.type) {
-      case 'tabs':
-        return (
-          <TeamTabs
-            teamID={props.teamID}
-            selectedTab={props.selectedTab}
-            setSelectedTab={props.setSelectedTab}
-          />
+  const {teamID, initialTab} = props
+  const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
+
+  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+
+  useTeamsSubscribe()
+  useTeamDetailsSubscribe(teamID)
+  useLoadFeaturedBots(teamDetails, selectedTab === 'bots' /* shouldLoad */)
+
+  // Sections
+  const headerSection = {
+    data: Container.isMobile || flags.teamsRedesign ? ['header', 'tabs'] : ['tabs'],
+    key: 'headerSection',
+    renderItem: ({item}) =>
+      item === 'header' ? (
+        flags.teamsRedesign ? (
+          <NewTeamHeader teamID={teamID} />
+        ) : (
+          <TeamHeader teamID={teamID} />
         )
-      case 'settings':
-      case 'header':
-      case 'divider':
-      case 'member':
-      case 'bot':
-      case 'bot-add':
-      case 'channel':
-      case 'channel-header':
-      case 'channel-footer':
-      case 'invites-invite':
-      case 'invites-request':
-      case 'invites-divider':
-      case 'invites-none':
-      case 'subteam-intro':
-      case 'subteam-add':
-      case 'subteam-none':
-      case 'subteam-subteam':
-      case 'subteam-info':
-      case 'loading':
-        return renderRow(item, props.teamID)
-      default: {
-        throw new Error(`Impossible case encountered in team page list: ${item}`)
-      }
-    }
+      ) : (
+        <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      ),
   }
 
-  const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
+  const sections: Array<Section> = [headerSection]
+  const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
+  const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
+  const invitesSections = useInvitesSections(teamID, teamDetails)
+  const channelsSections = useChannelsSections(teamID, selectedTab === 'channels')
+  const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
 
-  const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
+  switch (selectedTab) {
+    case 'members':
+      if (yourOperations.manageMembers && flags.teamsRedesign) {
+        sections.push(...invitesSections)
+      }
+      sections.push(...membersSections)
+      break
+    case 'bots':
+      sections.push(...botSections)
+      break
+    case 'invites':
+      sections.push(...invitesSections)
+      break
+    case 'settings':
+      sections.push({data: ['settings'], key: 'settings', renderItem: () => <Settings teamID={teamID} />})
+      break
+    case 'channels':
+      sections.push(...channelsSections)
+      break
+    case 'subteams':
+      sections.push(...subteamsSections)
+      break
+  }
+
+  // Animation
+  const SectionList: typeof Kb.SectionList = Styles.isMobile
+    ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+    : Kb.SectionList
   const offset = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
   const onScroll = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
     : undefined
-  const selectionPopupTabName =
-    props.selectedTab === 'members' ? 'teamMembers' : props.selectedTab === 'channels' ? 'teamChannels' : ''
 
+  const renderSectionHeader = ({section}) =>
+    section.title ? (
+      <Kb.SectionDivider
+        label={section.title}
+        collapsed={section.collapsed}
+        onToggleCollapsed={section.onToggleCollapsed}
+      />
+    ) : null
   return (
     <Kb.Box style={styles.container}>
-      <TeamsSubscriber />
-      <TeamDetailsSubscriber teamID={props.teamID} />
-      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={props.teamID} offset={offset} />}
+      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset} />}
       <SectionList
-        renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
-        sections={props.sections}
-        style={styles.list}
+        sections={sections}
         contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
         onScroll={onScroll}
       />
-      <SelectionPopup selectedTab={selectionPopupTabName} teamID={props.teamID} />
+      <SelectionPopup
+        selectedTab={
+          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+        }
+        teamID={props.teamID}
+      />
     </Kb.Box>
   )
 }
