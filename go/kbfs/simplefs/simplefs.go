@@ -3233,10 +3233,7 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	}
 	viewType, invariance := libhttpserver.GetGUIFileContextFromContentType(contentType)
 
-	// Refresh the token every time. This RPC is called everytime a file is
-	// being viewed and we have a cache size of 64 so this shouldn't be a
-	// problem.
-	token, err := k.localHTTPServer.NewToken()
+	token, err := k.localHTTPServer.CurrentToken()
 	if err != nil {
 		return keybase1.GUIFileContext{}, err
 	}
