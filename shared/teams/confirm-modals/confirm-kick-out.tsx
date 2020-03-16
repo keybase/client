@@ -47,7 +47,7 @@ const ConfirmKickOut = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch])
+  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
