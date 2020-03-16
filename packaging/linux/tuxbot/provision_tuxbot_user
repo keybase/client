@@ -1,17 +1,24 @@
 #!/bin/bash
 set -euox pipefail
 
-U=vagrant
-echo "setting up tuxbot for $U"
+KBCLID="$HOME/go/src/github.com/keybase/client"
+TUXBOTD="$KBCLID/packaging/linux/tuxbot"
 
-# keybase/tuxbot
-systemctl --user enable --now keybase.service kbfs.service
-# systemctl --user enable tuxbot.service
-# systemctl --user enable nightly.timer
-
-# clone tuxbot in gopath
+# clone in gopath for bot
 mkdir -p "$HOME/go/src/github.com/keybase"
 git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase/client"
+git -C "$KBCLID" checkout surya/vagranttuxbot
+(
+    # install deps
+    cd "$TUXBOTD/bot"
+    go mod tidy
+)
+systemctl --user link "$TUXBOTD/tuxbot.service"
+systemctl --user link "$TUXBOTD/nightly.service"
+systemctl --user link "$TUXBOTD/nightly.timer"
+systemctl --user enable "$TUXBOTD/nightly.timer"
+
+systemctl --user enable --now keybase.service kbfs.service
 
 # clone for the build
 git clone https://github.com/keybase/client.git "$HOME/client"

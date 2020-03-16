@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euox pipefail
 
 apt-get update
 apt-get install -y git docker curl vim

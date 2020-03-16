@@ -1,0 +1,17 @@
+# Rename this file to `test_config.yaml`
+
+keybase: "/path/to/keybase"
+bots:
+  # Alice should have an active Stellar account with a little bit of XLM in it
+  alice:
+    username: "alice"
+    paperkey: "foo bar car..."
+  bob:
+    username: "bob"
+    paperkey: "one two three four..."
+teams:
+  acme:
+    # A real team that you add your alice and bob into
+    name: "acme"
+    # The channel to use
+    topicname: "mysupercoolchannel"
