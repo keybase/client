@@ -929,7 +929,8 @@ func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType cha
 	case chat1.TopicType_NONE:
 		return n.getNotificationChannels(id).Chat ||
 			n.getNotificationChannels(id).Chatdev ||
-			n.getNotificationChannels(id).Chatkbfsedits
+			n.getNotificationChannels(id).Chatkbfsedits ||
+			n.getNotificationChannels(id).Chatemoji
 	}
 	return false
 }
