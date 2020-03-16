@@ -54,6 +54,7 @@ export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username:
   `loadSubteamMemberships:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
+export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
   fullName: '',
