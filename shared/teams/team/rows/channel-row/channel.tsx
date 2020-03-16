@@ -20,7 +20,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const isGeneral = channel.channelname === 'general'
 
   const selected = Container.useSelector(
-    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.channelname)
+    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
   )
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel
@@ -34,7 +34,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSelect = (selected: boolean) => {
-    dispatch(TeamsGen.createSetChannelSelected({channel: channel.channelname, selected, teamID}))
+    dispatch(TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected, teamID}))
   }
   const onEditChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
