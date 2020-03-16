@@ -70,7 +70,9 @@ type SelectorOwnProps =
       tab: Panel | null
       attachmentview: RPCChatTypes.GalleryItemTyp
     }>
-  | {}
+  | {
+      conversationIDKey: Types.ConversationIDKey
+    }
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -104,11 +106,9 @@ const InfoPanelSelector = (props: Props) => {
 
 const InfoConnected = Container.connect(
   (state, ownProps: SelectorOwnProps) => {
-    const conversationIDKey: Types.ConversationIDKey = Container.getRouteProps(
-      ownProps as any,
-      'conversationIDKey',
-      Constants.noConversationIDKey
-    )
+    const op = ownProps as any
+    const conversationIDKey: Types.ConversationIDKey =
+      op.conversationIDKey ?? Container.getRouteProps(op, 'conversationIDKey', Constants.noConversationIDKey)
 
     const meta = Constants.getMeta(state, conversationIDKey)
     return {
