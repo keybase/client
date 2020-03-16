@@ -275,8 +275,8 @@ const styles = Styles.styleSheetCreate(
 )
 
 const Connected = Container.connect(
-  (state, ownProps) => {
-    const _conversationIDKey = ownProps.params?.conversationIDKey
+  (state, ownProps: OwnProps) => {
+    const _conversationIDKey = ownProps.params?.conversationIDKey ?? Constants.noConversationIDKey
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)

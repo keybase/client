@@ -104,11 +104,11 @@ const InfoPanelSelector = (props: Props) => {
 
 const InfoConnected = Container.connect(
   (state, ownProps: SelectorOwnProps) => {
-    const conversationIDKey: Types.ConversationIDKey =
-      // @ts-ignore
-      typeof ownProps.navigation !== 'undefined'
-        ? Container.getRouteProps(ownProps as any, 'conversationIDKey', Constants.noConversationIDKey)
-        : Constants.getSelectedConversation()
+    const conversationIDKey: Types.ConversationIDKey = Container.getRouteProps(
+      ownProps as any,
+      'conversationIDKey',
+      Constants.noConversationIDKey
+    )
 
     const meta = Constants.getMeta(state, conversationIDKey)
     return {
