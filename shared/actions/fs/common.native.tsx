@@ -5,7 +5,7 @@ import * as Constants from '../../constants/fs'
 import * as Saga from '../../util/saga'
 import {TypedState} from '../../constants/reducer'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
-import {makeRetriableErrorHandler} from './shared'
+import {errorToActionOrThrow} from './shared'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
 const pickAndUploadToPromise = async (_: TypedState, action: FsGen.PickAndUploadPayload) => {
@@ -18,7 +18,7 @@ const pickAndUploadToPromise = async (_: TypedState, action: FsGen.PickAndUpload
           parentPath: action.payload.parentPath,
         })
   } catch (e) {
-    return makeRetriableErrorHandler(action)(e)
+    return errorToActionOrThrow(e)
   }
 }
 
@@ -35,9 +35,8 @@ const finishedDownloadWithIntent = async (
   if (downloadState.error) {
     return [
       FsGen.createDismissDownload({downloadID}),
-      FsGen.createFsError({
-        error: Constants.makeError({error: downloadState.error, erroredAction: action}),
-        expectedIfOffline: false,
+      FsGen.createRedbar({
+        error: downloadState.error,
       }),
     ]
   }
@@ -57,7 +56,7 @@ const finishedDownloadWithIntent = async (
         return null
     }
   } catch (err) {
-    return makeRetriableErrorHandler(action)(err)
+    return errorToActionOrThrow(err)
   }
 }
 

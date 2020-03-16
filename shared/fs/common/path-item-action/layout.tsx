@@ -11,6 +11,7 @@ export type Layout = {
   newFolder: boolean
   openChatNonTeam: boolean
   openChatTeam: boolean
+  rename: boolean
   saveMedia: boolean
   showInSystemFileManager: boolean
   sendAttachmentToChat: boolean
@@ -26,6 +27,7 @@ const empty = {
   newFolder: false,
   openChatNonTeam: false,
   openChatTeam: false,
+  rename: false,
   saveMedia: false,
   showInSystemFileManager: false,
   // share items
@@ -88,6 +90,7 @@ const getRawLayout = (
         delete: pathItem.writable,
         download: pathItem.type === Types.PathType.File && !isIOS,
         moveOrCopy: true,
+        rename: pathItem.writable && mode === 'row',
         saveMedia:
           isMobile && pathItem.type === Types.PathType.File && Constants.canSaveMedia(pathItem, fileContext),
         showInSystemFileManager: !isMobile,

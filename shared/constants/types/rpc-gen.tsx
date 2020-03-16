@@ -2532,6 +2532,10 @@ export enum StatusCode {
   scteambotkeyoldboxedgeneration = 3801,
   scteambotkeybadgeneration = 3802,
   scairdropregisterfailedmisc = 4207,
+  scsimplefsnameexists = 5101,
+  scsimplefsdirnotempty = 5102,
+  scsimplefsnotexist = 5103,
+  scsimplefsnoaccess = 5104,
 }
 
 export enum SubscriptionTopic {

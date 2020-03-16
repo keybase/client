@@ -52,6 +52,7 @@ const (
 	workingSetCacheName             string = "WorkingSetBlockCache"
 	crDirtyBlockCacheName           string = "DirtyBlockCache"
 	minDiskBlockWriteBufferSize            = 3 * data.MaxBlockSizeBytesDefault // ~ 1 MB
+	deleteCompactThreshold          int    = 25
 )
 
 var errTeamOrUnknownTLFAddedAsHome = errors.New(
@@ -897,9 +898,47 @@ func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 	return numRemoved, sizeRemoved, nil
 }
 
+// compactDBs forces the disk cache to compact.  It should be called
+// after bulk deletion events, since level db doesn't run compactions
+// after those (only after a certain number of lookups occur).
+func (cache *DiskBlockCacheLocal) compactDBs(ctx context.Context) (err error) {
+	// We need to lock here to make sure the caches don't get shut
+	// down.  TODO: make this less restrictive so this cache can still
+	// serve writes during compaction; however, I'm not yet sure if
+	// this is even allowed on the leveldb side or not.
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	err = cache.checkCacheLocked("compactDBs")
+	if err != nil {
+		return err
+	}
+
+	cache.log.CDebugf(ctx, "Compacting DBs for cacheType=%s", cache.cacheType)
+	defer func() {
+		cache.log.CDebugf(
+			ctx, "Done compacting DBs for cacheType=%s: %+v", cache.cacheType,
+			err)
+	}()
+	err = cache.blockDb.CompactRange(util.Range{})
+	if err != nil {
+		return err
+	}
+	err = cache.tlfDb.CompactRange(util.Range{})
+	if err != nil {
+		return err
+	}
+	return cache.metaDb.CompactRange(util.Range{})
+}
+
 // Delete implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+	defer func() {
+		if err == nil && numRemoved > deleteCompactThreshold {
+			err = cache.compactDBs(ctx)
+		}
+	}()
+
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	err = cache.checkCacheLocked("Block(Delete)")
@@ -1238,6 +1277,9 @@ func (cache *DiskBlockCacheLocal) ClearAllTlfBlocks(
 	defer func() {
 		cache.log.CDebugf(ctx,
 			"Finished clearing blocks from %s: %+v", tlfID, err)
+		if err == nil {
+			err = cache.compactDBs(ctx)
+		}
 	}()
 
 	// Delete the blocks in batches, so we don't keep the lock for too
@@ -1529,6 +1571,9 @@ func (cache *DiskBlockCacheLocal) DeleteUnmarked(
 		cache.log.CDebugf(ctx,
 			"Finished deleting unmarked blocks (tag=%s) from %s: %+v",
 			tag, tlfID, err)
+		if err == nil {
+			err = cache.compactDBs(ctx)
+		}
 	}()
 
 	// Delete the blocks in batches, so we don't keep the lock for too

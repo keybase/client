@@ -13,6 +13,7 @@ export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
 export const statWaitingKey = 'fs:stat'
 export const acceptMacOSFuseExtClosedSourceWaitingKey = 'fs:acceptMacOSFuseExtClosedSourceWaitingKey'
+export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -23,11 +24,11 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const emptyNewFolder: Types.NewFolder = {
-  hint: 'New Folder',
+export const emptyNewFolder: Types.Edit = {
+  error: undefined,
   name: 'New Folder',
+  originalName: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
-  status: Types.EditStatusType.Editing,
   type: Types.EditType.NewFolder,
 }
 
@@ -183,26 +184,6 @@ export const emptyDownloadInfo: Types.DownloadInfo = {
   startTime: 0,
 }
 
-const placeholderAction = FsGen.createPlaceholderAction()
-
-type _MakeErrorArgs = {
-  time?: number
-  error: any
-  erroredAction: any
-  retriableAction?: any
-}
-export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
-  // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
-  const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
-  return {
-    errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
-    erroredAction: erroredAction || placeholderAction,
-    retriableAction,
-    time: time || Date.now(),
-  }
-}
-export const emptyError = makeError()
-
 export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
   downloadID: null,
   downloadIntent: null,
@@ -311,16 +292,6 @@ export const humanReadableFileSize = (size: number) => {
   if (size >= mib) return `${Math.round(size / mib)} MB`
   if (size >= kib) return `${Math.round(size / kib)} KB`
   return `${size} B`
-}
-
-export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
-  switch (type) {
-    case Types.EditType.NewFolder:
-      return Types.PathType.Folder
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
-      return Types.PathType.Unknown
-  }
 }
 
 export const downloadIsOngoing = (dlState: Types.DownloadState) =>
@@ -998,51 +969,3 @@ export const hasSpecialFileElement = (path: Types.Path): boolean =>
 
 export const sfmiInfoLoaded = (settings: Types.Settings, driverStatus: Types.DriverStatus): boolean =>
   settings.loaded && driverStatus !== driverStatusUnknown
-
-export const erroredActionToMessage = (
-  action: any /*FsGen.Actions | EngineGen.Actions too complex*/,
-  error: string
-): string => {
-  // We have FsError.expectedIfOffline now to take care of real offline
-  // scenarios, but we still need to keep this timeout check here in case we
-  // get a timeout error when we think we think we're online. In this case it's
-  // likely bad network condition.
-  const errorIsTimeout = error.includes('context deadline exceeded')
-  const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
-  const suffix = errorIsTimeout ? ` ${timeoutExplain}` : ''
-  switch (action.type) {
-    case FsGen.move:
-      return 'Failed to move file(s).' + suffix
-    case FsGen.copy:
-      return 'Failed to copy file(s).' + suffix
-    case FsGen.favoritesLoad:
-      return 'Failed to load TLF lists.' + suffix
-    case FsGen.loadPathMetadata:
-      return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
-    case FsGen.folderListLoad:
-      return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
-    case FsGen.download:
-    case FsGen.finishedDownloadWithIntent:
-      return `Failed to download.` + suffix
-    case FsGen.shareNative:
-      return `Failed to share: ${Types.getPathName(action.payload.path)}.` + suffix
-    case FsGen.saveMedia:
-      return `Failed to save: ${Types.getPathName(action.payload.path)}.` + suffix
-    case FsGen.upload:
-      return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.` + suffix
-    case FsGen.favoriteIgnore:
-      return `Failed to ignore: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openPathInSystemFileManager:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openLocalPathInSystemFileManager:
-      return `Failed to open path: ${action.payload.localPath}.` + suffix
-    case FsGen.deleteFile:
-      return `Failed to delete file: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.pickAndUpload:
-      return 'Failed to upload. ' + (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
-    case FsGen.driverEnable:
-      return 'Failed to enable driver.'
-    default:
-      return errorIsTimeout ? timeoutExplain : 'An unexplainable error has occurred.'
-  }
-}

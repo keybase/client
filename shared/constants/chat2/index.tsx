@@ -422,14 +422,18 @@ export const getDraft = (state: TypedState, convID: Types.ConversationIDKey) =>
 export const seenWalletsGregorKey = 'chat.seenWallets'
 
 export const makeInboxQuery = (
-  convIDKeys: Array<Types.ConversationIDKey>
+  convIDKeys: Array<Types.ConversationIDKey>,
+  allStatuses?: boolean
 ): RPCChatTypes.GetInboxLocalQuery => {
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
     memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
-      .filter(k => typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number')
-      .filter(k => !['neverJoined', 'left', 'removed'].includes(k as any))
+      .filter(
+        k =>
+          typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number' &&
+          (!!allStatuses || !['neverJoined', 'left', 'removed'].includes(k as any))
+      )
       .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
       RPCChatTypes.ConversationMemberStatus
     >,
