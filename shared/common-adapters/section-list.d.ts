@@ -61,6 +61,7 @@ export type Props<SectionT extends Section<any, any>> = {
   onEndReached?: ((info: {distanceFromEnd: number}) => void) | null
 
   contentContainerStyle?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
 
   /**
    * A marker property for telling the list to re-render (since it implements PureComponent).
@@ -96,6 +97,9 @@ export type Props<SectionT extends Section<any, any>> = {
    * How many items to render in the initial batch
    */
   initialNumToRender?: number
+
+  // iOS only
+  alwaysBounceVertical?: boolean
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}

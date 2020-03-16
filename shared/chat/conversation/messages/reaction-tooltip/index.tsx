@@ -58,6 +58,7 @@ const ReactionTooltip = (props: Props) => {
           </Kb.Box2>
         )}
         <Kb.SectionList
+          alwaysBounceVertical={false}
           initialNumToRender={19} // Keeps height from trashing on mobile
           sections={sections}
           stickySectionHeadersEnabled={true}

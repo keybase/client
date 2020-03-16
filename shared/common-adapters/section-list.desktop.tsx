@@ -236,7 +236,8 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {this.props.disableAbsoluteStickyHeader && stickyHeader}
         <Kb.ScrollView
-          style={Styles.collapseStyles([styles.scroll, this.props.contentContainerStyle])}
+          contentContainerStyle={this.props.contentContainerStyle}
+          style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
