@@ -23,9 +23,9 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const emptyNewFolder: Types.NewFolder = {
-  hint: 'New Folder',
+export const emptyNewFolder: Types.Edit = {
   name: 'New Folder',
+  originalName: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
   status: Types.EditStatusType.Editing,
   type: Types.EditType.NewFolder,
@@ -198,6 +198,7 @@ export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
     errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction: erroredAction || placeholderAction,
     retriableAction,
+    statusCode: error?.code || 0,
     time: time || Date.now(),
   }
 }
@@ -311,16 +312,6 @@ export const humanReadableFileSize = (size: number) => {
   if (size >= mib) return `${Math.round(size / mib)} MB`
   if (size >= kib) return `${Math.round(size / kib)} KB`
   return `${size} B`
-}
-
-export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
-  switch (type) {
-    case Types.EditType.NewFolder:
-      return Types.PathType.Folder
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
-      return Types.PathType.Unknown
-  }
 }
 
 export const downloadIsOngoing = (dlState: Types.DownloadState) =>
@@ -1045,4 +1036,33 @@ export const erroredActionToMessage = (
     default:
       return errorIsTimeout ? timeoutExplain : 'An unexplainable error has occurred.'
   }
+}
+
+const editTypeToActionStr = (editType: Types.EditType) => {
+  switch (editType) {
+    case Types.EditType.NewFolder:
+      return 'make a new folder'
+    case Types.EditType.Rename:
+      return 'rename'
+  }
+}
+
+export const erroredActionToMessageWithEdits = (edits: Types.Edits, error: Types.FsError): string => {
+  if (error.erroredAction.type === FsGen.commitEdit) {
+    const edit = edits.get(error.erroredAction.payload.editID) || emptyNewFolder
+    const actionStr = editTypeToActionStr(edit.type)
+    let errorMsg = ''
+    switch (error.statusCode) {
+      case RPCTypes.StatusCode.scsimplefsnameexists:
+        errorMsg = 'name already exists'
+        break
+      case RPCTypes.StatusCode.scsimplefsdirnotempty:
+        errorMsg = "folder already exists and it's not empty"
+        break
+      default:
+        errorMsg = 'unknown error'
+    }
+    return `Failed to ${actionStr}: ${errorMsg}`
+  }
+  return erroredActionToMessage(error.erroredAction, error.errorMessage)
 }

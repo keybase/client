@@ -119,7 +119,10 @@
     "newFolderRow": {
       "parentPath": "Types.Path"
     },
-    "newFolderName": {
+    "startRename": {
+      "path": "Types.Path"
+    },
+    "setEditName": {
       "editID": "Types.EditID",
       "name": "string"
     },
@@ -127,8 +130,7 @@
       "editID": "Types.EditID"
     },
     "editSuccess": {
-      "editID": "Types.EditID",
-      "parentPath": "Types.Path"
+      "editID": "Types.EditID"
     },
     "discardEdit": {
       "editID": "Types.EditID"

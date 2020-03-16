@@ -8,7 +8,7 @@ import Placeholder from './placeholder'
 import TlfType from './tlf-type-container'
 import Tlf from './tlf-container'
 import Still from './still-container'
-import Editing from './editing-container'
+import Editing from './editing'
 import {normalRowHeight} from './common'
 import {memoize} from '../../../util/memoize'
 import {useFsChildren} from '../../common'
@@ -57,10 +57,14 @@ class Rows extends React.PureComponent<Props> {
       case RowTypes.RowType.Still:
         return (
           <WrapRow>
-            <Still path={item.path} destinationPickerIndex={this.props.destinationPickerIndex} />
+            {item.editID ? (
+              <Editing editID={item.editID} />
+            ) : (
+              <Still path={item.path} destinationPickerIndex={this.props.destinationPickerIndex} />
+            )}
           </WrapRow>
         )
-      case RowTypes.RowType.Editing:
+      case RowTypes.RowType.NewFolder:
         return (
           <WrapRow>
             <Editing editID={item.editID} />

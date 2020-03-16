@@ -535,22 +535,39 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
   if (!edit) {
     return false
   }
-  const {parentPath, name, type} = edit as Types.Edit
-  switch (type) {
+  switch (edit.type) {
     case Types.EditType.NewFolder:
       try {
         await RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
-          dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
+          dest: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
           flags: RPCTypes.OpenFlags.directory,
           opID: Constants.makeUUID(),
         })
-        return FsGen.createEditSuccess({editID, parentPath})
+        return FsGen.createEditSuccess({editID})
       } catch (e) {
-        return makeRetriableErrorHandler(action, parentPath)(e)
+        return makeRetriableErrorHandler(action, edit.parentPath)(e)
       }
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
-      return false
+    case Types.EditType.Rename:
+      try {
+        const opID = Constants.makeUUID()
+        await RPCTypes.SimpleFSSimpleFSMoveRpcPromise({
+          dest: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+          opID,
+          overwriteExistingFiles: false,
+          src: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
+        })
+        await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+        return FsGen.createEditSuccess({editID})
+      } catch (e) {
+        if (
+          [RPCTypes.StatusCode.scsimplefsnameexists, RPCTypes.StatusCode.scsimplefsdirnotempty].includes(
+            e.code
+          )
+        ) {
+          return makeUnretriableErrorHandler(action, edit.parentPath)(e)
+        }
+        return makeRetriableErrorHandler(action, edit.parentPath)(e)
+      }
   }
 }
 

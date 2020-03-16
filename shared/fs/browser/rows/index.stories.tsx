@@ -2,6 +2,7 @@ import React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
+import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {Box} from '../../../common-adapters'
 import {WrapRow} from './rows'
@@ -162,19 +163,63 @@ export const rowsProvider = {
   },
 }
 
+const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.fs.edits.set('edit-new-folder', {
+    name: 'New Folder',
+    originalName: 'New Folder',
+    parentPath: Types.stringToPath('/keybae/private/meatball'),
+    status: Types.EditStatusType.Editing,
+    type: Types.EditType.NewFolder,
+  })
+  draftState.fs.edits.set('edit-new-folder-saving', {
+    name: 'New Folder 2',
+    originalName: 'New Folder 2',
+    parentPath: Types.stringToPath('/keybae/private/meatball'),
+    status: Types.EditStatusType.Saving,
+    type: Types.EditType.NewFolder,
+  })
+  draftState.fs.edits.set('edit-rename', {
+    name: 'original file name',
+    originalName: 'original file name',
+    parentPath: Types.stringToPath('/keybae/private/meatball'),
+    status: Types.EditStatusType.Editing,
+    type: Types.EditType.Rename,
+  })
+  draftState.fs.edits.set('edit-rename-failed', {
+    name: 'original file name',
+    originalName: 'original file name',
+    parentPath: Types.stringToPath('/keybae/private/meatball'),
+    status: Types.EditStatusType.Failed,
+    type: Types.EditType.Rename,
+  })
+})
+
 const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
   ...topBarProvider,
   ...rowsProvider,
 })
 
-const makeEditingRowNameProps = (name: string) => ({
-  hint: name,
-  name,
-  projectedPath: Types.stringToPath(`/keybase/team/kbkbfstest/${name}`),
-})
-
-const load = () =>
+const load = () => {
+  Sb.storiesOf('Files', module)
+    .addDecorator(Sb.scrollViewDecorator)
+    .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('Rows - Editing', () => (
+      <>
+        <WrapRow key="2">
+          <EditingRow editID="edit-new-folder" />
+        </WrapRow>
+        <WrapRow key="3">
+          <EditingRow editID="edit-new-folder-saving" />
+        </WrapRow>
+        <WrapRow key="4">
+          <EditingRow editID="edit-rename" />
+        </WrapRow>
+        <WrapRow key="5">
+          <EditingRow editID="edit-rename-failed" />
+        </WrapRow>
+      </>
+    ))
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
@@ -182,38 +227,6 @@ const load = () =>
       <Box>
         <WrapRow key="1">
           <ConnectedStillRow path={Types.stringToPath('/keybase/private/meatball/a')} />
-        </WrapRow>
-        <WrapRow key="2">
-          <EditingRow
-            {...makeEditingRowNameProps('New Folder (editing)')}
-            status={Types.EditStatusType.Editing}
-            isCreate={true}
-            {...commonRowProps}
-          />
-        </WrapRow>
-        <WrapRow key="3">
-          <EditingRow
-            {...makeEditingRowNameProps('From Dropbox (rename) (editing)')}
-            status={Types.EditStatusType.Editing}
-            isCreate={false}
-            {...commonRowProps}
-          />
-        </WrapRow>
-        <WrapRow key="4">
-          <EditingRow
-            {...makeEditingRowNameProps('New Folder (saving)')}
-            status={Types.EditStatusType.Saving}
-            isCreate={true}
-            {...commonRowProps}
-          />
-        </WrapRow>
-        <WrapRow key="5">
-          <EditingRow
-            {...makeEditingRowNameProps('New Folder (failed)')}
-            status={Types.EditStatusType.Failed}
-            isCreate={true}
-            {...commonRowProps}
-          />
         </WrapRow>
         <WrapRow key="6">
           <StillRow
@@ -356,11 +369,6 @@ const load = () =>
         </WrapRow>
       </Box>
     ))
-
-const commonRowProps = {
-  onCancel: Sb.action('onCancel'),
-  onSubmit: Sb.action('onSubmit'),
-  onUpdate: Sb.action('onUpdate'),
 }
 
 export default load

@@ -9,6 +9,7 @@ import {isMobile} from '../../constants/platform'
 
 export default namedConnect(
   state => ({
+    _edits: state.fs.edits,
     _errors: state.fs.errors,
     _loggedIn: state.config.loggedIn,
   }),
@@ -31,20 +32,20 @@ export default namedConnect(
   (stateProps, dispatchProps) => ({
     errs: [...stateProps._errors]
       .reduce(
-        (errs, [key, {errorMessage, erroredAction, retriableAction, time}]) => [
+        (errs, [key, error]) => [
           ...errs,
           {
             dismiss: () => dispatchProps._dismiss(key),
             key,
-            msg: Constants.erroredActionToMessage(erroredAction, errorMessage),
+            msg: Constants.erroredActionToMessageWithEdits(stateProps._edits, error),
             onFeedback: isMobile ? () => dispatchProps._onFeedback(stateProps._loggedIn) : undefined,
-            retry: retriableAction
+            retry: error.retriableAction
               ? () => {
-                  dispatchProps._retry(retriableAction)
+                  dispatchProps._retry(error.retriableAction)
                   dispatchProps._dismiss(key)
                 }
               : undefined,
-            time,
+            time: error.time,
           },
         ],
         [] as Array<ErrProps>
