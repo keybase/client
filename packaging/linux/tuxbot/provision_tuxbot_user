@@ -1,0 +1,14 @@
+#!/bin/bash
+set -euo pipefail
+
+U=vagrant
+echo "setting up tuxbot for $U"
+
+# clone tuxbot in gopath
+mkdir -p "$HOME/go/src/github.com/keybase"
+git clone git@github.com:keybase/client.git "$HOME/go/src/github.com/keybase"
+
+# clone for hte 
+git clone git@github.com:keybase/client.git "$HOME/go/src/github.com/keybase"
+
+# keybase/tuxbot
