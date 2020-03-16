@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2} from './box'
 import Text from './text'
-import SectionList from './section-list'
+import {default as SectionList, Section} from './section-list'
 import * as Sb from '../stories/storybook'
 import * as Styles from '../styles'
 
@@ -33,16 +33,16 @@ const customRowRender = ({item}) => (
   </Kb.Text>
 )
 
-const small: Array<unknown> = []
+const small: Array<Section<string, {title: string}>> = []
 for (let i = 0; i < 5; i++) {
   small.push({
     data: [`• item${i * 2 + 1}`, `• item${i * 2 + 2}`],
     title: `title${i + 1}`,
   })
 }
-const large: Array<unknown> = []
+const large: Array<Section<string, {title: string}>> = []
 for (let i = 0; i < 500; i++) {
-  const data: Array<unknown> = []
+  const data: Array<string> = []
   const maxData = 5 + (i % 20)
   for (let j = 0; j < maxData; ++j) {
     data.push(`• item${j}`)
@@ -53,7 +53,7 @@ for (let i = 0; i < 500; i++) {
   })
 }
 
-const customRow: Array<any> = [...small]
+const customRow = [...small]
 customRow[2] = {...customRow[2], renderItem: customRowRender}
 
 const load = () => {
@@ -78,7 +78,8 @@ const load = () => {
         sections={customRow}
         renderItem={simpleRender}
         renderSectionHeader={simpleHeaderRender}
-        keyExtractor={item => item.title || item}
+        keyExtractor={item => item}
+        sectionKeyExtractor={section => section?.title}
       />
     ))
     .add('Large', () => (

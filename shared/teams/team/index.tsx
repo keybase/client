@@ -72,7 +72,6 @@ const Team = (props: Props) => {
       <TeamDetailsSubscriber teamID={props.teamID} />
       {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={props.teamID} offset={offset} />}
       <SectionList
-        alwaysVounceVertical={false}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}

@@ -7,7 +7,7 @@ import HiddenString from '../../util/hidden-string'
 import InboxSearch from '.'
 
 type OwnProps = {
-  header?: React.ReactNode
+  header?: React.ReactElement | null
 }
 
 const emptySearch = Constants.makeInboxSearchInfo()
