@@ -592,6 +592,19 @@ const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathM
       pathItem: makeEntry(dirent),
     })
   } catch (err) {
+    if (err.code === RPCTypes.StatusCode.scidentifiesfailed) {
+      // This is specifically to address the situation where when user tries to
+      // remove a shared TLF from their favorites but another user of the TLF has
+      // deleted their account the subscribePath call cauused from the popup will
+      // get SCIdentifiesFailed error. We can't do anything here so just move on.
+      // (Ideally we'd be able to tell it's becaue the user was deleted, but we
+      // don't have that from Go right now.)
+      //
+      // TODO: TRIAGE-2379 this should probably be ignored on Go side. We
+      // already use fsGui identifyBehavior and there's no reason we should get
+      // an identify error here.
+      return null
+    }
     return errorToActionOrThrow(err, path)
   }
 }
