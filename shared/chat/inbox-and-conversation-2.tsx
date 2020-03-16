@@ -19,9 +19,9 @@ const InboxAndConversation = (props: Props) => {
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
   const conversationIDKey = props.navigation.state?.params?.conversationIDKey
-  const goodConvoID = Constants.isValidConversationIDKey(conversationIDKey)
-  const firstConvo = Container.useSelector(state => {
-    if (!goodConvoID) {
+  const validConvoID = Constants.isValidConversationIDKey(conversationIDKey)
+  const needSelectConvoID = Container.useSelector(state => {
+    if (validConvoID) {
       return null
     }
     const first = state.chat2.inboxLayout?.smallTeams?.[0]
@@ -30,8 +30,15 @@ const InboxAndConversation = (props: Props) => {
   const navKey = props.navigation.state.key
 
   React.useEffect(() => {
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey: firstConvo}))
-  }, [firstConvo, dispatch])
+    if (needSelectConvoID) {
+      dispatch(
+        Chat2Gen.createSelectConversation({
+          conversationIDKey: needSelectConvoID,
+          reason: 'findNewestConversation',
+        })
+      )
+    }
+  }, [needSelectConvoID, dispatch])
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
