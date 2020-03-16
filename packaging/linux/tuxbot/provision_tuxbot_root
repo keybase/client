@@ -2,7 +2,7 @@
 set -euox pipefail
 
 apt-get update
-apt-get install -y git docker curl vim
+apt-get install -y git docker curl vim python3-pip
 
 # install go
 GOLANG_VERSION=1.13.7
@@ -16,3 +16,5 @@ rm /root/go.tar.gz
 # install keybase
 curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
 apt install -y ./keybase_amd64.deb
+
+pip3 install s3cmd

@@ -6,7 +6,7 @@
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 # This avoids getting yes/no dialogs if a git repo isn't in your
 # ~/.ssh/known_hosts file.
@@ -14,7 +14,7 @@ export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
 
 bucket="${BUCKET_NAME:-prerelease.keybase.io}"
 echo "Checking credentials for s3://$bucket (~/.s3cfg)..."
-s3cmd ls "s3://$bucket" > /dev/null
+"$here/s3cmdwr" ls "s3://$bucket" > /dev/null
 
 echo 'Checking Arch AUR credentials (~/.ssh)...'
 git ls-remote aur@aur.archlinux.org:keybase-git > /dev/null

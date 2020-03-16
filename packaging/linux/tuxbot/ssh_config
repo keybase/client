@@ -1,4 +1,9 @@
-Host github.com
-    HostName github.com
-    IdentityFile /keybase/team/keybase.bots.build.linux/secrets/tuxbot_ed25519
-    User git
+# Host github.com
+#     User git
+#     HostName github.com
+#     IdentityFile /keybase/team/keybase.builds.linux/tuxbot_ed25519
+
+Host aur
+    User aur
+    HostName aur.archlinux.org
+    IdentityFile /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/aur_id_ed25519
