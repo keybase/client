@@ -55,7 +55,7 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
-    isElectron: {minHeight: 326},
+    isElectron: {minHeight: 479},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
 }))

@@ -104,6 +104,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.xlarge),
       borderBottomRadius: 4,
+      minHeight: 479,
     },
     isMobile: {
       ...Styles.globalStyles.flexOne,
