@@ -70,7 +70,8 @@
     NONE_0,
     CHAT_1,
     DEV_2,
-    KBFSFILEEDIT_3
+    KBFSFILEEDIT_3,
+    EMOJI_4
   }
 
   enum TeamType {
