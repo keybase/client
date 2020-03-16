@@ -77,17 +77,21 @@ const getChannelSuggestions = (
       return noChannel
     }
     // TODO: maybe we shouldn't rely on this inboxlayout being around?
-    return (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string; teamname: string}>>(
-      (arr, t) => {
-        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-          if (mutualTeams.includes(t.channel.teamname)) {
-            arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
-          }
+    const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<
+      Array<{channelname: string; teamname: string}>
+    >((arr, t) => {
+      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (mutualTeams.includes(t.channel.teamname)) {
+          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
         }
-        return arr
-      },
-      []
-    )
+      }
+      return arr
+    }, [])
+
+    if (!shallowEqual(_channelSuggestions, suggestions)) {
+      _channelSuggestions = suggestions
+    }
+    return _channelSuggestions
   }
   // TODO: get all the channels in the team, too, for this
   const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>(
