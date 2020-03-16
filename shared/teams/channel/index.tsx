@@ -200,6 +200,7 @@ const Channel = (props: OwnProps) => {
       <SelectionPopup
         selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
         conversationIDKey={conversationIDKey}
+        teamID={teamID}
       />
     </Kb.Box>
   )
