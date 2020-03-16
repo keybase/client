@@ -603,7 +603,7 @@ const letResetUserBackIn = async (action: FsGen.LetResetUserBackInPayload) => {
       username: action.payload.username,
     })
   } catch (error) {
-    return makeUnretriableErrorHandler(action, Constants.defaultPath)(error)
+    return errorToActionOrThrow(error)
   }
 }
 
