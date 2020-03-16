@@ -659,12 +659,12 @@
           "name": "resetList"
         },
         {
-          "type": "boolean",
+          "type": "int",
           "name": "botMemberCount",
           "mpackkey": "b"
         },
         {
-          "type": "boolean",
+          "type": "int",
           "name": "fullMemberCount",
           "mpackkey": "f"
         },

@@ -870,8 +870,8 @@ type ConversationMetadata struct {
 	ActiveList      []gregor1.UID             `codec:"activeList" json:"activeList"`
 	AllList         []gregor1.UID             `codec:"allList" json:"allList"`
 	ResetList       []gregor1.UID             `codec:"resetList" json:"resetList"`
-	BotMemberCount  bool                      `codec:"b" json:"botMemberCount"`
-	FullMemberCount bool                      `codec:"f" json:"fullMemberCount"`
+	BotMemberCount  int                       `codec:"b" json:"botMemberCount"`
+	FullMemberCount int                       `codec:"f" json:"fullMemberCount"`
 	IsDefaultConv   bool                      `codec:"d" json:"isDefaultConv"`
 }
 
