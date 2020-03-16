@@ -82,7 +82,6 @@ export const makeState = (): Types.State => ({
   paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   prependTextMap: new Map(),
-  previousSelectedConversation: noConversationIDKey,
   quote: undefined,
   replyToMap: new Map(),
   selectedConversation: noConversationIDKey,

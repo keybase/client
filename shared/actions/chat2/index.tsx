@@ -2518,19 +2518,6 @@ const ensureWidgetMetas = (state: Container.TypedState) => {
   })
 }
 
-const refreshPreviousSelected = (state: Container.TypedState) => {
-  const {previousSelectedConversation} = state.chat2
-  if (previousSelectedConversation !== Constants.noConversationIDKey) {
-    return Chat2Gen.createMetaRequestTrusted({
-      conversationIDKeys: [previousSelectedConversation],
-      force: true,
-      noWaiting: true,
-      reason: 'refreshPreviousSelected',
-    })
-  }
-  return false
-}
-
 const deselectConversation = (
   state: Container.TypedState,
   action: Chat2Gen.DeselectConversationPayload,
@@ -3862,7 +3849,6 @@ function* chat2Saga() {
     loadAttachmentView
   )
 
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
   yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
 
   yield* Saga.chainAction(Chat2Gen.showInfoPanel, onShowInfoPanel)

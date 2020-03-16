@@ -546,7 +546,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     messageCenterOrdinals.delete(conversationIDKey)
     threadLoadStatus.delete(conversationIDKey)
     containsLatestMessageMap.set(conversationIDKey, true)
-    draftState.previousSelectedConversation = selectedConversation
     draftState.selectedConversation = conversationIDKey
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
