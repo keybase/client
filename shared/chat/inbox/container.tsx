@@ -125,7 +125,7 @@ const Connected = Container.namedConnect(
       _badgeMap: state.chat2.badgeMap,
       _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
       _inboxLayout: inboxLayout,
-      _selectedConversationIDKey: state.chat2.selectedConversation,
+      _selectedConversationIDKey: Constants.getSelectedConversation(),
       allowShowFloatingButton,
       inboxNumSmallRows,
       isLoading: isPhone ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it

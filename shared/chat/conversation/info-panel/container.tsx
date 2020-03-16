@@ -108,7 +108,7 @@ const InfoConnected = Container.connect(
       // @ts-ignore
       typeof ownProps.navigation !== 'undefined'
         ? Container.getRouteProps(ownProps as any, 'conversationIDKey', Constants.noConversationIDKey)
-        : state.chat2.selectedConversation
+        : Constants.getSelectedConversation()
 
     const meta = Constants.getMeta(state, conversationIDKey)
     return {

@@ -84,7 +84,6 @@ export const makeState = (): Types.State => ({
   prependTextMap: new Map(),
   quote: undefined,
   replyToMap: new Map(),
-  selectedConversation: noConversationIDKey,
   shouldDeleteZzzJourneycard: new Map(),
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
@@ -230,7 +229,15 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.badgeMap.get(id) || 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
-export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
+export const getSelectedConversation = (): Types.ConversationIDKey => {
+  const maybeVisibleScreen = Router2.getVisibleScreen()
+  // TODO mobile
+  if (maybeVisibleScreen?.routeName === 'chatRoot') {
+    return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
+  }
+  return noConversationIDKey
+}
+
 export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   return state.chat2.replyToMap.get(conversationIDKey) || null
 }
@@ -277,7 +284,7 @@ export const isUserActivelyLookingAtThisThread = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey
 ) => {
-  const selectedConversationIDKey = getSelectedConversation(state)
+  const selectedConversationIDKey = getSelectedConversation()
 
   let chatThreadSelected = false
   if (!isSplit) {
@@ -298,7 +305,7 @@ export const isUserActivelyLookingAtThisThread = (
   )
 }
 export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
-  const meta = getMeta(state, getSelectedConversation(state))
+  const meta = getMeta(state, getSelectedConversation())
   return meta.teamname === teamname
 }
 

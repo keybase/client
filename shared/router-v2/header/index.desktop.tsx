@@ -19,6 +19,7 @@ type Props = {
   options: any
   style?: any
   useNativeFrame: boolean
+  params?: any
 }
 
 const PlainTitle = ({title}) => (
@@ -111,7 +112,7 @@ class Header extends React.PureComponent<Props> {
         title = opt.headerTitle
       } else if (ReactIs.isValidElementType(opt.headerTitle)) {
         const CustomTitle = opt.headerTitle
-        title = <CustomTitle>{opt.title}</CustomTitle>
+        title = <CustomTitle params={this.props.params}>{opt.title}</CustomTitle>
       }
     }
 

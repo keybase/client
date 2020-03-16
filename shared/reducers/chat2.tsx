@@ -498,8 +498,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.focus = action.payload.nextFocus
   },
   [Chat2Gen.selectConversation]: (draftState, action) => {
+    const selectedConversation = Constants.getSelectedConversation()
     const {conversationIDKey} = action.payload
-    const {selectedConversation, threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
+    const {threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
     const {metaMap, messageCenterOrdinals} = draftState
     // ignore non-changing
     if (selectedConversation === conversationIDKey) {
@@ -546,7 +547,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     messageCenterOrdinals.delete(conversationIDKey)
     threadLoadStatus.delete(conversationIDKey)
     containsLatestMessageMap.set(conversationIDKey, true)
-    draftState.selectedConversation = conversationIDKey
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
       // error msg.

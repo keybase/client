@@ -22,9 +22,7 @@ const BigTeamChannel = (props: Props) => {
   const getDraft = Container.useSelector(state => !!Constants.getDraft(state, conversationIDKey))
   const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
-  const isSelected = Container.useSelector(
-    state => !Container.isPhone && Constants.getSelectedConversation(state) === conversationIDKey
-  )
+  const isSelected = Constants.getSelectedConversation() === conversationIDKey
 
   const onSelectConversation = () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxBig'}))

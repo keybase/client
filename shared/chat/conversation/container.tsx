@@ -18,11 +18,7 @@ type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rek
 type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 let Conversation = (p: SwitchProps) => {
-  const _storeConvoIDKey = Container.useSelector(state => Constants.getSelectedConversation(state))
-  const conversationIDKey = Container.isPhone
-    ? Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
-    : _storeConvoIDKey
-
+  const conversationIDKey = Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 
   let type: ConvoType

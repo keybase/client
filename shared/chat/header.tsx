@@ -10,7 +10,11 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
 
-type OwnProps = {}
+type OwnProps = {
+  params?: {
+    conversationIDKey: Types.ConversationIDKey
+  }
+}
 
 type Props = {
   canEditDesc: boolean
@@ -271,8 +275,8 @@ const styles = Styles.styleSheetCreate(
 )
 
 const Connected = Container.connect(
-  state => {
-    const _conversationIDKey = Constants.getSelectedConversation(state)
+  (state, ownProps) => {
+    const _conversationIDKey = ownProps.params?.conversationIDKey
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)

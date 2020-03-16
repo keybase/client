@@ -235,7 +235,7 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 }
 
 let _lastPersist = ''
-function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
+function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
   const mainOrModal = path && path[1] && path[1].routeName
 
@@ -250,7 +250,7 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
       // a specific convo?
       if (convo.routeName === 'chatConversation') {
         routeName = convo.routeName
-        param = {selectedConversationIDKey: state.chat2.selectedConversation}
+        param = {selectedConversationIDKey: convo.params?.conversationIDKey}
       } else {
         // just the inbox
         routeName = tab.routeName
