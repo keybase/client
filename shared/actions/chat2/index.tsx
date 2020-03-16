@@ -3626,6 +3626,14 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   }
 }
 
+const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  if (prev[2]?.routeName !== Tabs.chatTab && next[2]?.routeName === Tabs.chatTab) {
+    return Chat2Gen.createTabSelected()
+  }
+  return false
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isPhone) {
@@ -3880,6 +3888,8 @@ function* chat2Saga() {
 
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
+
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeChatTabSelected)
 }
 
 export default chat2Saga

@@ -1064,6 +1064,15 @@ const subscribeAndLoadSettings = (state: Container.TypedState) => {
   )
 }
 
+const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  // Clear critical update when we nav away from tab
+  if (state.fs.criticalUpdate && prev[2]?.routeName === Tabs.fsTab && next[2]?.routeName !== Tabs.fsTab) {
+    return FsGen.createSetCriticalUpdate({val: false})
+  }
+  return false
+}
+
 function* fsSaga() {
   yield* Saga.chainAction2(FsGen.upload, upload)
   yield* Saga.chainAction2(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
@@ -1125,6 +1134,8 @@ function* fsSaga() {
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadJournalStatus)
 
   yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
+
+  yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearCriticalUpdate)
 
   yield Saga.spawn(platformSpecificSaga)
 }

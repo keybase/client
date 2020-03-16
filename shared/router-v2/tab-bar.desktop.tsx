@@ -1,12 +1,9 @@
 import './tab-bar.css'
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
-import * as FsGen from '../actions/fs-gen'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
-import * as PeopleGen from '../actions/people-gen'
 import * as Platforms from '../constants/platform'
 import * as ProfileGen from '../actions/profile-gen'
 import * as ProvisionGen from '../actions/provision-gen'
@@ -15,7 +12,6 @@ import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from '../constants/settings'
 import * as SettingsGen from '../actions/settings-gen'
-import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as TrackerConstants from '../constants/tracker2'
@@ -172,35 +168,13 @@ const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
 const hotKeys = Object.keys(keysMap)
 
 const TabBar = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const {selectedTab, navigation} = props
-
   const username = Container.useSelector(state => state.config.username)
-  const justSignedUpEmail = Container.useSelector(state => state.signup.justSignedUpEmail)
-  const settingsEmailBanner = Container.useSelector(state => state.settings.email.addedEmail)
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
   // TODO move this logic into the sagas
   const onTabClick = (tab: Tabs.AppTab) => {
-    if (selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
-      dispatch(PeopleGen.createMarkViewed())
-    }
-    if (selectedTab !== Tabs.chatTab && tab === Tabs.chatTab) {
-      dispatch(Chat2Gen.createTabSelected())
-    }
-    // Clear "just signed up email" when you leave the people tab after signup
-    if (justSignedUpEmail && selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
-      dispatch(SignupGen.createClearJustSignedUpEmail())
-    }
-    // Clear "check your inbox" in settings when you leave the settings tab
-    if (settingsEmailBanner && selectedTab === Tabs.settingsTab && tab !== Tabs.settingsTab) {
-      dispatch(SettingsGen.createClearAddedEmail())
-    }
-    // Clear critical update when we nav away from tab
-    if (fsCriticalUpdate && selectedTab === Tabs.fsTab && tab !== Tabs.fsTab) {
-      dispatch(FsGen.createSetCriticalUpdate({val: false}))
-    }
     if (selectedTab === tab) {
       navigation.navigate(tabRoots[tab])
     } else {
