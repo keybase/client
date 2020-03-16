@@ -529,6 +529,14 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, conv types.U
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+	// sanity check against conv ID
+	for _, msg := range msgs {
+		if msg.IsValid() && !msg.Valid().ClientHeader.Conv.Derivable(convID) {
+			s.Debug(ctx, "PushUnboxed: pushing an unboxed message from wrong conv: correct: %s trip: %+v id: %d",
+				convID, msg.Valid().ClientHeader.Conv, msg.GetMessageID())
+			return errors.New("cannot push into a different conversation")
+		}
+	}
 	if err = s.mergeMaybeNotify(ctx, conv, uid, msgs, chat1.GetThreadReason_PUSH); err != nil {
 		return err
 	}
