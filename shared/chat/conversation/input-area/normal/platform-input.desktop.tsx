@@ -169,7 +169,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     this.props.toggleShowingMenu()
   }
 
-  _getHintText = () => {
+  private getHintText = () => {
     if (this.props.cannotWrite) {
       return `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
@@ -258,7 +258,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
-                placeholder={this._getHintText()}
+                placeholder={this.getHintText()}
                 style={Styles.collapseStyles([styles.input, this.props.isEditing && styles.inputEditing])}
                 onChangeText={this._onChangeText}
                 multiline={true}

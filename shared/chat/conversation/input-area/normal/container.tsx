@@ -7,6 +7,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Waiting from '../../../../constants/waiting'
+import * as Platform from '../../../../constants/platform'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -107,6 +108,28 @@ const getChannelSuggestions = (
   return _channelSuggestions
 }
 
+const getConversationNameForInput = (
+  state: Container.TypedState,
+  conversationIDKey: Types.ConversationIDKey
+): string => {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  if (meta.teamType === 'big') {
+    return meta.channelname ? `in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
+  }
+  if (meta.teamType === 'small') {
+    return meta.teamname ? `in ${meta.teamname}` : ''
+  }
+  if (meta.teamType === 'adhoc') {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
+    if (participantInfo.name.length) {
+      return participantInfo.name.length > 2
+        ? 'in the group'
+        : `to @${participantInfo.name.find(n => n !== state.config.username)}`
+    }
+  }
+  return ''
+}
+
 export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
@@ -115,7 +138,7 @@ export default Container.namedConnect(
     const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
-    const conversationName = Constants.getConversationNameForInput(state, conversationIDKey)
+    const conversationName = getConversationNameForInput(state, conversationIDKey)
 
     const _you = state.config.username
 

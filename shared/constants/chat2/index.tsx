@@ -510,30 +510,6 @@ export const getParticipantInfo = (
   return participantInfo ? participantInfo : noParticipantInfo
 }
 
-export const getConversationNameForInput = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-): string => {
-  const meta = getMeta(state, conversationIDKey)
-  console.log({songgao: 'container', meta})
-  if (meta.teamType === 'big') {
-    return meta.channelname ? `in ${isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
-  }
-  if (meta.teamType === 'small') {
-    return meta.teamname ? `in ${meta.teamname}` : ''
-  }
-  if (meta.teamType === 'adhoc') {
-    const participantInfo = state.chat2.participantMap.get(conversationIDKey) || noParticipantInfo
-    console.log({songgao: 'container', participantInfo})
-    if (participantInfo.name.length) {
-      return participantInfo.name.length > 2
-        ? 'in the group'
-        : `to @${participantInfo.name.find(n => n !== state.config.username)}`
-    }
-  }
-  return ''
-}
-
 const _getParticipantSuggestionsMemoized = memoize(
   (
     teamMembers: Map<string, TeamTypes.MemberInfo> | undefined,
