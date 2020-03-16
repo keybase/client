@@ -1,6 +1,7 @@
 import * as TeamBuildingConstants from './team-building'
 import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/crypto'
+import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {RPCError} from '../util/errors'
@@ -95,11 +96,22 @@ export const Operations: {[key: string]: Types.Operations} = {
   Verify: 'verify',
 }
 
+const operationToInfoMessage: {[k in Types.Operations]: string} = {
+  decrypt: '',
+  encrypt: "Encrypt to anyone, even if they're not on Keybase yet.",
+  sign: 'Add your cryptographic signature to a message or file.',
+  verify: '',
+}
+
 const operationToInputPlaceholder: {[k in Types.Operations]: string} = {
-  decrypt: 'Enter ciphertext, drop an encrypted file or folder, or',
-  encrypt: 'Enter text, drop a file or folder, or',
-  sign: 'Enter text, drop a file or folder, or',
-  verify: 'Enter a signed message, drop a signed file or folder, or',
+  decrypt: Platform.isMobile
+    ? 'Enter text to decrypt'
+    : 'Enter ciphertext, drop an encrypted file or folder, or',
+  encrypt: Platform.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or',
+  sign: Platform.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or',
+  verify: Platform.isMobile
+    ? 'Enter text to verify'
+    : 'Enter a signed message, drop a signed file or folder, or',
 }
 
 const operationToInputTextType: {[k in Types.Operations]: Types.TextType} = {
@@ -151,6 +163,14 @@ const operationToAllowInputFolders: {[k in Types.Operations]: boolean} = {
   verify: false,
 } as const
 
+const operationToOutputRoute: {[k in Types.Operations]: Types.CryptoOutputRoute} = {
+  decrypt: decryptOutput,
+  encrypt: encryptOutput,
+  sign: signOutput,
+  verify: verifyOutput,
+} as const
+
+export const getInfoMessage = (operation: Types.Operations) => operationToInfoMessage[operation]
 export const getInputPlaceholder = (operation: Types.Operations) => operationToInputPlaceholder[operation]
 export const getInputTextType = (operation: Types.Operations) => operationToInputTextType[operation]
 export const getOutputTextType = (operation: Types.Operations) => operationToOutputTextType[operation]
@@ -159,6 +179,7 @@ export const getOutputFileIcon = (operation: Types.Operations) => operationToOut
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
 export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
 export const getAllowInputFolders = (operation: Types.Operations) => operationToAllowInputFolders[operation]
+export const getOutputRoute = (operation: Types.Operations) => operationToOutputRoute[operation]
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`

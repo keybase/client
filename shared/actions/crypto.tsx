@@ -7,6 +7,7 @@ import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from '../util/container'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
@@ -20,10 +21,7 @@ type OperationActionArgs = {
   destinationDir?: HiddenString
 }
 
-type SetRecipientsSagaActions =
-  | TeamBuildingGen.CancelTeamBuildingPayload
-  | CryptoGen.SetRecipientsPayload
-  | CryptoGen.SetEncryptOptionsPayload
+type SetRecipientsSagaActions = CryptoGen.SetRecipientsPayload | CryptoGen.SetEncryptOptionsPayload
 // Get list of users from crypto TeamBuilding for encrypt operation
 const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuildingPayload) => {
   const {username: currentUser} = state.config
@@ -45,9 +43,7 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
     return user.username
   })
 
-  const actions: Array<SetRecipientsSagaActions> = [
-    TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'}),
-  ]
+  const actions: Array<SetRecipientsSagaActions> = []
 
   // User set themselves as a recipient, so don't show 'includeSelf' option
   // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
@@ -69,6 +65,19 @@ const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => 
   const tab = Constants.CryptoSubTabs[operation]
   return RouteTreeGen.createNavigateAppend({
     path: ['cryptoRoot', tab],
+  })
+}
+
+// Mobile is split into two routes (input and output). This Saga handler
+// transitions to the output route on success
+const handleMobileOperationSuccess = (action: CryptoGen.OnOperationSuccessPayload) => {
+  if (!Platform.isMobile) return
+
+  const {operation} = action.payload
+  const outputRoute = Constants.getOutputRoute(operation)
+
+  return RouteTreeGen.createNavigateAppend({
+    path: [outputRoute],
   })
 }
 
@@ -96,6 +105,7 @@ const handleRunOperation = (
     | CryptoGen.SetEncryptOptionsPayload
     | CryptoGen.ClearRecipientsPayload
     | CryptoGen.RunFileOperationPayload
+    | CryptoGen.RunTextOperationPayload
 ) => {
   switch (action.type) {
     case CryptoGen.setInputThrottled: {
@@ -106,6 +116,9 @@ const handleRunOperation = (
       if (!value.stringValue()) {
         return CryptoGen.createClearInput({operation})
       }
+
+      // Do not run operations automatically on mobile. Wait for CryptoGen.runTextOperation
+      if (Platform.isMobile) return
 
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (type === 'file') return
@@ -148,6 +161,9 @@ const handleRunOperation = (
       const {inProgress, input, inputType, options} = state.crypto.encrypt
       const unhiddenInput = input.stringValue()
 
+      // Do not run operations automatically on mobile. Wait for CryptoGen.runTextOperation
+      if (Platform.isMobile) return
+
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (inputType === 'file') return
 
@@ -170,6 +186,9 @@ const handleRunOperation = (
       const {username} = state.config
       const {inProgress, input, inputType, options} = state.crypto.encrypt
       const unhiddenInput = input.stringValue()
+
+      // Do not run operations automatically on mobile. Wait for CryptoGen.runTextOperation
+      if (Platform.isMobile) return
 
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (inputType === 'file') return
@@ -195,6 +214,9 @@ const handleRunOperation = (
       const {username} = state.config
       const unhiddenInput = input.stringValue()
 
+      // Do not run operations automatically on mobile. Wait for CryptoGen.runTextOperation
+      if (Platform.isMobile) return
+
       // Bail on automatically running file operations. Wait for CryptoGen.runFileOperation
       if (inputType === 'file') return
 
@@ -213,6 +235,28 @@ const handleRunOperation = (
         })
       }
       return
+    }
+    // Mobile: Run text operation and transition to output route
+    case CryptoGen.runTextOperation: {
+      const {operation} = action.payload
+      const {input, inputType} = state.crypto[operation]
+      const {username} = state.config
+
+      const args: OperationActionArgs = {
+        input,
+        inputType,
+        operation,
+      }
+
+      if (operation === Constants.Operations.Encrypt) {
+        const recipients = state.crypto.encrypt.recipients?.length
+          ? state.crypto.encrypt.recipients
+          : [username]
+        args.recipients = recipients
+        args.options = state.crypto.encrypt.options
+      }
+
+      return makeOperationAction(args)
     }
     // Run file RPCs after destination set
     case CryptoGen.runFileOperation: {
@@ -633,6 +677,7 @@ function* cryptoSaga() {
       CryptoGen.setRecipients,
       CryptoGen.setEncryptOptions,
       CryptoGen.clearRecipients,
+      CryptoGen.runTextOperation,
       CryptoGen.runFileOperation,
     ],
     handleRunOperation
@@ -642,6 +687,7 @@ function* cryptoSaga() {
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
   yield* Saga.chainAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
+  yield* Saga.chainAction(CryptoGen.onOperationSuccess, handleMobileOperationSuccess)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)

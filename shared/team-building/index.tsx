@@ -656,6 +656,20 @@ class TeamBuilding extends React.PureComponent<Props> {
         )
         return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
       }
+      case 'crypto': {
+        const rightButton = Styles.isMobile ? (
+          <Kb.Button
+            label={this.props.goButtonLabel ?? 'Start'}
+            onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
+            small={true}
+            type="Success"
+            style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+          />
+        ) : (
+          undefined
+        )
+        return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
+      }
       default: {
         return {hideBorder: true, leftButton: mobileCancel, title: this.props.title}
       }

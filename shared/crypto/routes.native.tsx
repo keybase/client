@@ -1,5 +1,6 @@
 import CryptoSubNav from './sub-nav'
 import * as Constants from '../constants/crypto'
+import TeamBuilder from '../team-building/container'
 import {EncryptInput, EncryptOutput} from './operations/encrypt'
 import {DecryptInput, DecryptOutput} from './operations/decrypt'
 import {SignInput, SignOutput} from './operations/sign'
@@ -38,4 +39,6 @@ export const newRoutes = {
     getScreen: (): typeof VerifyOutput => require('./operations/verify/index').VerifyOutput,
   },
 }
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  cryptoTeamBuilder: {getScreen: (): typeof TeamBuilder => require('../team-building/container').default},
+}

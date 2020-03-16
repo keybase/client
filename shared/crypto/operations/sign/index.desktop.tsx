@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/crypto'
 import * as Kb from '../../../common-adapters'
 import openURL from '../../../util/open-url'
 import {Input, DragAndDrop, OperationBanner} from '../../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
+import {OperationOutput, OutputActionsBar, OutputInfoBanner, SignedSender} from '../../output'
 
 const operation = Constants.Operations.Sign
 
@@ -29,10 +29,7 @@ const SignOutputBanner = () => {
 
 export const SignInput = () => (
   <>
-    <OperationBanner
-      operation={operation}
-      infoMessage="Add your cryptographic signature to a message or file."
-    />
+    <OperationBanner operation={operation} />
     <Input operation={operation} />
   </>
 )
@@ -42,7 +39,7 @@ export const SignOutput = () => (
     <SignOutputBanner />
     <SignedSender operation={operation} />
     <OperationOutput operation={operation} />
-    <OutputBar operation={operation} />
+    <OutputActionsBar operation={operation} />
   </>
 )
 

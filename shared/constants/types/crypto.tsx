@@ -18,8 +18,15 @@ type DecryptTab = 'decryptTab'
 type SignTab = 'signTab'
 type VerifyTab = 'verifyTab'
 
+type EncryptOutput = 'encryptOutput'
+type DecryptOutput = 'decryptOutput'
+type SignOutput = 'signOutput'
+type VerifyOutput = 'verifyOutput'
+
 export type TabTitles = 'Encrypt' | 'Decrypt' | 'Sign' | 'Verify'
 export type CryptoSubTab = EncryptTab | DecryptTab | SignTab | VerifyTab
+// Mobile only
+export type CryptoOutputRoute = EncryptOutput | DecryptOutput | SignOutput | VerifyOutput
 
 export type Tab = {
   title: TabTitles

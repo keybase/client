@@ -22,7 +22,7 @@ type OutputProps = {
   operation: Types.Operations
 }
 
-type OutputBarProps = {
+type OutputActionsBarProps = {
   operation: Types.Operations
 }
 
@@ -59,6 +59,9 @@ export const SignedSender = (props: SignedSenderProps) => {
   const avatarSize = isSelfSigned ? 16 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
+  const space = Styles.isMobile ? '' : ' '
+  const signedByText = `Signed by ${isSelfSigned ? `${space}you` : ''}`
+
   if (!outputStatus || (outputStatus && outputStatus === 'error')) {
     return null
   }
@@ -66,27 +69,26 @@ export const SignedSender = (props: SignedSenderProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
       {signed && signedByUsername ? (
-        <Kb.Box2
-          direction="horizontal"
-          gap={isSelfSigned ? 'xtiny' : 'xsmall'}
-          alignItems="center"
-          style={styles.signedSender}
-        >
+        <Kb.Box2 direction="horizontal" gap={isSelfSigned ? 'xtiny' : 'xsmall'} style={styles.signedSender}>
           <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
 
           {isSelfSigned ? (
-            [
+            <Kb.Box2
+              direction="horizontal"
+              gap={isSelfSigned ? 'xtiny' : 'xsmall'}
+              style={styles.signedByText}
+            >
               <Kb.Text key="signedByUsername" type="BodySmall">
-                Signed by {isSelfSigned ? ' you, ' : ''}
-              </Kb.Text>,
+                {signedByText}
+              </Kb.Text>
               <Kb.ConnectedUsernames
                 key="username"
                 type={usernameType}
                 usernames={signedByUsername.stringValue()}
                 colorFollowing={true}
                 colorYou={true}
-              />,
-            ]
+              />
+            </Kb.Box2>
           ) : (
             <Kb.Box2 key="signedByUsername" direction="vertical">
               <Kb.ConnectedUsernames
@@ -138,13 +140,18 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
   const {operation} = props
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   return outputStatus && outputStatus === 'success' ? (
-    <Kb.Banner color="grey" style={styles.banner}>
+    <Kb.Banner
+      color="grey"
+      style={styles.banner}
+      textContainerStyle={styles.bannerContainer}
+      narrow={Styles.isMobile}
+    >
       {props.children}
     </Kb.Banner>
   ) : null
 }
 
-export const OutputBar = (props: OutputBarProps) => {
+export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
   const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
@@ -202,8 +209,8 @@ export const OutputBar = (props: OutputBarProps) => {
   }, [showingToast, setHideToastTimeout])
 
   return outputStatus && outputStatus === 'success' ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
-      {outputType === 'file' ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
+      {outputType === 'file' && !Styles.isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
           <Kb.Button
             mode="Secondary"
@@ -227,14 +234,17 @@ export const OutputBar = (props: OutputBarProps) => {
                 Copied to clipboard
               </Kb.Text>
             </Kb.Toast>
-            <Kb.Button
-              mode="Secondary"
-              label="Copy to clipboard"
-              disabled={actionsDisabled}
-              onClick={() => copy()}
-            />
+            {Styles.isMobile && canReplyInChat ? null : (
+              <Kb.Button
+                mode={Styles.isMobile ? 'Primary' : 'Secondary'}
+                label="Copy to clipboard"
+                disabled={actionsDisabled}
+                fullWidth={Styles.isMobile}
+                onClick={() => copy()}
+              />
+            )}
           </Kb.Box2>
-          {canSaveAsText && (
+          {canSaveAsText && !Styles.isMobile && (
             <Kb.Button
               mode="Secondary"
               label="Save as TXT"
@@ -249,7 +259,7 @@ export const OutputBar = (props: OutputBarProps) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([styles.outputBarContainer, styles.outputPlaceholder])}
+      style={Styles.collapseStyles([styles.outputActionsBarContainer, styles.outputPlaceholder])}
     >
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {null}
@@ -295,7 +305,7 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   )
 }
 
-const Output = (props: OutputProps) => {
+export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
   const textType = Constants.getOutputTextType(operation)
   const dispatch = Container.useDispatch()
@@ -371,15 +381,18 @@ const Output = (props: OutputProps) => {
   }
 
   // Text output
+  const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-      <Kb.Text
-        type={textType === 'cipher' ? 'Terminal' : 'Body'}
-        selectable={!actionsDisabled}
-        style={Styles.collapseStyles([styles.output, outputLargeStyle])}
-      >
-        {output}
-      </Kb.Text>
+      <MobileScroll>
+        <Kb.Text
+          type={textType === 'cipher' ? 'Terminal' : 'Body'}
+          selectable={!actionsDisabled}
+          style={Styles.collapseStyles([styles.output, outputLargeStyle])}
+        >
+          {output}
+        </Kb.Text>
+      </MobileScroll>
     </Kb.Box2>
   )
 }
@@ -391,6 +404,9 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.tiny),
         minHeight: 40,
       },
+      bannerContainer: {
+        ...Styles.padding(0),
+      },
       buttonBar: {
         height: Styles.globalMargins.large,
         minHeight: Styles.globalMargins.large,
@@ -401,6 +417,11 @@ const styles = Styles.styleSheetCreate(
           ...Styles.padding(Styles.globalMargins.tiny),
           overflowY: 'auto',
         },
+        isMobile: {
+          flexShrink: 1,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
       }),
       coverOutput: {...Styles.globalStyles.flexBoxCenter},
       fileOutputContainer: {...Styles.padding(Styles.globalMargins.xsmall)},
@@ -409,21 +430,48 @@ const styles = Styles.styleSheetCreate(
         common: {color: Styles.globalColors.black},
         isElectron: {whiteSpace: 'pre-wrap', wordBreak: 'break-word'},
       }),
-      outputBarContainer: {...Styles.padding(Styles.globalMargins.tiny)},
+      outputActionsBarContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.padding(Styles.globalMargins.tiny),
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small),
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+      }),
       outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
       outputVerifiedContainer: {marginBottom: Styles.globalMargins.xlarge},
       placeholder: {color: Styles.globalColors.black_50},
       progressBar: {
         width: 200,
       },
-      signedContainer: {
-        minHeight: Styles.globalMargins.mediumLarge,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+      signedByText: {
+        alignItems: 'baseline',
       },
+      signedContainer: Styles.platformStyles({
+        common: {
+          flexShrink: 0,
+          minHeight: Styles.globalMargins.mediumLarge,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+        },
+      }),
       signedIcon: {color: Styles.globalColors.green},
-      signedSender: {...Styles.globalStyles.flexGrow},
+      signedSender: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexGrow,
+        },
+        isElectron: {
+          alignItems: 'center',
+        },
+        isMobile: {
+          alignItems: 'baseline',
+        },
+      }),
       toastText: {
         color: Styles.globalColors.white,
         textAlign: 'center',
@@ -431,4 +479,3 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Output

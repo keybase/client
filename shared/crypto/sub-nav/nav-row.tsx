@@ -20,9 +20,10 @@ type Props = {
 const NavRow = (props: Props) => {
   const {tab, isSelected, title, icon, illustration, description} = props
   const dispatch = Container.useDispatch()
+  const replace = Styles.isMobile ? {} : {replace: true}
 
   const onSelect = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [tab], replace: true}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [tab], ...replace}))
   }
 
   const desktopRow = icon ? (
