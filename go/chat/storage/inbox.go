@@ -340,8 +340,9 @@ func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.R
 	i.summarizeConvs(convs)
 	for _, conv := range convs {
 		existing, err := i.readConv(ctx, uid, conv.GetConvID())
-		if err == nil && existing.GetVersion() > conv.GetVersion() {
-			i.Debug(ctx, "writeConvs: skipping write because of newer stored version: convID: %s old: %d new: %d", conv.ConvIDStr, existing.GetVersion(), conv.GetVersion())
+		if err == nil && existing.GetVersion() >= conv.GetVersion() {
+			i.Debug(ctx, "writeConvs: skipping write because of newer stored version: convID: %s old: %d new: %d",
+				conv.ConvIDStr, existing.GetVersion(), conv.GetVersion())
 			continue
 		}
 		i.Debug(ctx, "writeConvs: writing conv: %s", conv.ConvIDStr)
