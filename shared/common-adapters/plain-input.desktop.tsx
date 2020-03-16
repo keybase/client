@@ -14,6 +14,7 @@ const maybeParseInt = (input: string | number, radix: number): number =>
 class PlainInput extends React.PureComponent<InternalProps> {
   _input: HTMLTextAreaElement | HTMLInputElement | null = null
   _isComposingIME: boolean = false
+  private mounted: boolean = true
 
   static defaultProps = {
     allowKeyboardEvents: true,
@@ -160,11 +161,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _onFocus = () => {
     this.props.onFocus && this.props.onFocus()
     this.props.selectTextOnFocus &&
-      setTimeout(() =>
-        this.setSelection({
-          end: this.props.value?.length || 0,
-          start: 0,
-        })
+      // doesn't work within the same tick
+      setTimeout(
+        () =>
+          this.mounted &&
+          this.setSelection({
+            end: this.props.value?.length || 0,
+            start: 0,
+          })
       )
   }
 
@@ -259,6 +263,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   componentWillUnmount = () => {
     this._registerBodyEvents(false)
+    this.mounted = false
   }
 
   _registerBodyEvents = (add: boolean) => {

@@ -1038,20 +1038,19 @@ export const erroredActionToMessage = (
   }
 }
 
+const editTypeToActionStr = (editType: Types.EditType) => {
+  switch (editType) {
+    case Types.EditType.NewFolder:
+      return 'make a new folder'
+    case Types.EditType.Rename:
+      return 'rename'
+  }
+}
+
 export const erroredActionToMessageWithEdits = (edits: Types.Edits, error: Types.FsError): string => {
   if (error.erroredAction.type === FsGen.commitEdit) {
     const edit = edits.get(error.erroredAction.payload.editID) || emptyNewFolder
-    let actionStr = ''
-    switch (edit.type) {
-      case Types.EditType.NewFolder:
-        actionStr = 'make a new folder'
-        break
-      case Types.EditType.Rename:
-        actionStr = 'rename'
-        break
-      default:
-        ;((_: never) => {})(edit.type)
-    }
+    const actionStr = editTypeToActionStr(edit.type)
     let errorMsg = ''
     switch (error.statusCode) {
       case RPCTypes.StatusCode.scsimplefsnameexists:
