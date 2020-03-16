@@ -8,12 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func skipWebOfTrustTest(t *testing.T) {
-	t.Skip("skipping web-of-trust test until PICNIC-875")
-}
-
 func TestWebOfTrustVouch(t *testing.T) {
-	skipWebOfTrustTest(t)
 	tc1 := SetupEngineTest(t, "wot")
 	tc2 := SetupEngineTest(t, "wot")
 	tc3 := SetupEngineTest(t, "wot")
@@ -99,7 +94,6 @@ func TestWebOfTrustVouch(t *testing.T) {
 }
 
 func TestWebOfTrustPending(t *testing.T) {
-	skipWebOfTrustTest(t)
 	tcAlice := SetupEngineTest(t, "wot")
 	tcBob := SetupEngineTest(t, "wot")
 	defer tcAlice.Cleanup()
@@ -197,7 +191,6 @@ func TestWebOfTrustPending(t *testing.T) {
 }
 
 func TestWebOfTrustAccept(t *testing.T) {
-	skipWebOfTrustTest(t)
 	tcAlice := SetupEngineTest(t, "wot")
 	tcBob := SetupEngineTest(t, "wot")
 	defer tcAlice.Cleanup()
@@ -267,7 +260,6 @@ func TestWebOfTrustAccept(t *testing.T) {
 }
 
 func TestWebOfTrustReject(t *testing.T) {
-	skipWebOfTrustTest(t)
 	tcAlice := SetupEngineTest(t, "wot")
 	tcBob := SetupEngineTest(t, "wot")
 	defer tcAlice.Cleanup()
@@ -336,7 +328,6 @@ func TestWebOfTrustReject(t *testing.T) {
 
 // perhaps revisit after Y2K-1494
 func TestWebOfTrustSigBug(t *testing.T) {
-	skipWebOfTrustTest(t)
 	tcAlice := SetupEngineTest(t, "wot")
 	tcBob := SetupEngineTest(t, "wot")
 	defer tcAlice.Cleanup()
