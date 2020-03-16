@@ -2479,7 +2479,7 @@ func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase
 func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetStaticConfig")()
 	return chat1.StaticConfig{
-		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+		DeletableByDeleteHistory: chat1.DeletableByDeleteHistoryMessageTypes(),
 		BuiltinCommands:          h.G().CommandsSource.GetBuiltins(ctx),
 	}, nil
 }

@@ -182,31 +182,255 @@ func (t MessageType) String() string {
 	return "UNKNOWN"
 }
 
+type messagePropertyCache struct {
+	sync.Mutex
+	done     bool
+	list     []MessageType
+	lookup   map[MessageType]bool
+	selector func(messageTypePropertySet) bool
+}
+
+func (c *messagePropertyCache) init() {
+	c.Lock()
+	defer c.Unlock()
+	if c.done {
+		return
+	}
+	c.lookup = make(map[MessageType]bool)
+	for mt, p := range messageTypeProperties {
+		if c.selector(p) {
+			c.list = append(c.list, mt)
+			c.lookup[mt] = true
+		}
+	}
+	sort.Slice(c.list, func(i, j int) bool { return c.list[i] < c.list[j] })
+	c.done = true
+}
+
+func (c *messagePropertyCache) List() []MessageType {
+	c.init()
+	return c.list
+}
+
+func (c *messagePropertyCache) Lookup(mt MessageType) bool {
+	c.init()
+	return c.lookup[mt]
+}
+
+var visiblePC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.Visible }}
+var badgeablePC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.Badgeable }}
+var nonEmptyConvPC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.NonEmptyConv }}
+var snippetPC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.Snippet }}
+var editableByEditPC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.EditableByEdit }}
+var deletableByDeletePC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.DeletableByDelete }}
+var deletableByDeleteHistoryPC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.DeletableByDeleteHistory }}
+var ephemeralSupersederPC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.EphemeralSuperseder }}
+var ephemeralNonSupersederPC = messagePropertyCache{selector: func(v messageTypePropertySet) bool { return v.EphemeralNonSuperseder }}
+
+type messageTypePropertySet struct {
+	Visible                  bool
+	Badgeable                bool
+	NonEmptyConv             bool
+	Snippet                  bool
+	EditableByEdit           bool
+	DeletableByDelete        bool
+	DeletableByDeleteHistory bool
+	EphemeralSuperseder      bool
+	EphemeralNonSuperseder   bool
+}
+
+var messageTypeProperties = map[MessageType]messageTypePropertySet{
+	MessageType_NONE: {},
+	MessageType_TEXT: {
+		Visible:                  true,
+		Badgeable:                true,
+		NonEmptyConv:             true,
+		Snippet:                  true,
+		EditableByEdit:           true,
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+		EphemeralNonSuperseder:   true,
+	},
+	MessageType_ATTACHMENT: {
+		Visible:                  true,
+		Badgeable:                true,
+		NonEmptyConv:             true,
+		Snippet:                  true,
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+		EphemeralNonSuperseder:   true,
+	},
+	MessageType_EDIT: {
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+		EphemeralSuperseder:      true,
+	},
+	MessageType_DELETE: {},
+	MessageType_METADATA: {
+
+		DeletableByDeleteHistory: true,
+	},
+	MessageType_TLFNAME: {},
+	MessageType_HEADLINE: {
+		Visible:                  true,
+		Badgeable:                true,
+		NonEmptyConv:             true,
+		Snippet:                  true,
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+	},
+	MessageType_ATTACHMENTUPLOADED: {
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+		EphemeralSuperseder:      true,
+	},
+	MessageType_JOIN: {
+		Visible:                  true,
+		DeletableByDeleteHistory: true,
+	},
+	MessageType_LEAVE: {
+		Visible:                  true,
+		DeletableByDeleteHistory: true,
+	},
+	MessageType_SYSTEM: {
+		Visible:                  true,
+		Badgeable:                true,
+		NonEmptyConv:             true,
+		Snippet:                  true,
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+	},
+	MessageType_DELETEHISTORY: {
+		Snippet: true,
+	},
+	MessageType_REACTION: {
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+		EphemeralSuperseder:      true,
+	},
+	MessageType_SENDPAYMENT: {
+		Visible:                  true,
+		Badgeable:                true,
+		Snippet:                  true,
+		NonEmptyConv:             true,
+		DeletableByDeleteHistory: true,
+	},
+	MessageType_REQUESTPAYMENT: {
+		Visible:                  true,
+		Badgeable:                true,
+		NonEmptyConv:             true,
+		Snippet:                  true,
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+	},
+	MessageType_UNFURL: {
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+		EphemeralSuperseder:      true,
+	},
+	MessageType_FLIP: {
+		Visible:                  true,
+		Badgeable:                true,
+		NonEmptyConv:             true,
+		Snippet:                  true,
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+		EphemeralNonSuperseder:   true,
+	},
+	MessageType_PIN: {
+		Visible:                  true,
+		Badgeable:                true,
+		NonEmptyConv:             true,
+		Snippet:                  true,
+		DeletableByDelete:        true,
+		DeletableByDeleteHistory: true,
+	},
+}
+
+// Visible chat messages appear visually as a message in the conv.
+// For counterexample REACTION and DELETE_HISTORY have visual effects but do not appear as a message.
+func VisibleMessageTypes() []MessageType {
+	return visiblePC.List()
+}
+
+func IsVisibleMessageType(mt MessageType) bool {
+	return visiblePC.Lookup(mt)
+}
+
+// Message types that cause badges.
+// JOIN and LEAVE are Visible but are too minute to badge.
+func BadgeableMessageTypes() []MessageType {
+	return badgeablePC.List()
+}
+
+func IsBadgeableMessageType(mt MessageType) bool {
+	return badgeablePC.Lookup(mt)
+}
+
+// A conversation is considered 'empty' unless it has one of these message types.
+// Used for filtering empty convs out of the the inbox.
+func NonEmptyConvMessageTypes() []MessageType {
+	return nonEmptyConvPC.List()
+}
+
+func IsNonEmptyConvMessageType(mt MessageType) bool {
+	return nonEmptyConvPC.Lookup(mt)
+}
+
+// Snippet messages can be the snippet of a conversation.
+func SnippetMessageTypes() []MessageType {
+	return snippetPC.List()
+}
+
+func IsSnippetMessageType(mt MessageType) bool {
+	return snippetPC.Lookup(mt)
+}
+
+func EditableByEditMessageTypes() []MessageType {
+	return editableByEditPC.List()
+}
+
+func IsEditableByEditMessageType(mt MessageType) bool {
+	return editableByEditPC.Lookup(mt)
+}
+
 // Message types deletable by a standard DELETE message.
-var deletableMessageTypesByDelete = []MessageType{
-	MessageType_TEXT,
-	MessageType_ATTACHMENT,
-	MessageType_EDIT,
-	MessageType_ATTACHMENTUPLOADED,
-	MessageType_REACTION,
-	MessageType_REQUESTPAYMENT,
-	MessageType_UNFURL,
-	MessageType_PIN,
-	MessageType_HEADLINE,
-	MessageType_SYSTEM,
-	MessageType_FLIP,
+// There are special rules for SYSTEM messages, see chat/utils/utils.go:IsDeleteableByDeleteMessageType
+func DeletableByDeleteMessageTypes() []MessageType {
+	return deletableByDeletePC.List()
 }
 
-// Messages types NOT deletable by a DELETEHISTORY message.
-var nonDeletableMessageTypesByDeleteHistory = []MessageType{
-	MessageType_NONE,
-	MessageType_DELETE,
-	MessageType_TLFNAME,
-	MessageType_DELETEHISTORY,
+func IsDeletableByDeleteMessageType(mt MessageType) bool {
+	return deletableByDeletePC.Lookup(mt)
 }
 
-func DeletableMessageTypesByDelete() []MessageType {
-	return deletableMessageTypesByDelete
+// Message types deletable a DELETEHISTORY message.
+func DeletableByDeleteHistoryMessageTypes() []MessageType {
+	return deletableByDeleteHistoryPC.List()
+}
+
+func IsDeletableByDeleteHistoryMessageType(mt MessageType) bool {
+	return deletableByDeleteHistoryPC.Lookup(mt)
+}
+
+func EphemeralSupsederMessageTypes() []MessageType {
+	return ephemeralSupersederPC.List()
+}
+
+func IsEphemeralSupersederMessageType(mt MessageType) bool {
+	return ephemeralSupersederPC.Lookup(mt)
+}
+
+func EphemeralNonSupsederMessageTypes() []MessageType {
+	return ephemeralNonSupersederPC.List()
+}
+
+func IsEphemeralNonSupersederMessageType(mt MessageType) bool {
+	return ephemeralNonSupersederPC.Lookup(mt)
+}
+
+func IsEphemeralType(typ MessageType) bool {
+	return IsEphemeralNonSupersederMessageType(typ) || IsEphemeralSupersederMessageType(typ)
 }
 
 func IsSystemMsgDeletableByDelete(typ MessageSystemType) bool {
@@ -226,134 +450,6 @@ func IsSystemMsgDeletableByDelete(typ MessageSystemType) bool {
 	default:
 		return false
 	}
-}
-
-var visibleMessageTypes = []MessageType{
-	MessageType_TEXT,
-	MessageType_ATTACHMENT,
-	MessageType_JOIN,
-	MessageType_LEAVE,
-	MessageType_SYSTEM,
-	MessageType_SENDPAYMENT,
-	MessageType_REQUESTPAYMENT,
-	MessageType_FLIP,
-	MessageType_HEADLINE,
-	MessageType_PIN,
-}
-
-// Visible chat messages appear visually as a message in the conv.
-// For counterexample REACTION and DELETE_HISTORY have visual effects but do not appear as a message.
-func VisibleChatMessageTypes() []MessageType {
-	return visibleMessageTypes
-}
-
-var badgeableMessageTypes = []MessageType{
-	MessageType_TEXT,
-	MessageType_ATTACHMENT,
-	MessageType_SYSTEM,
-	MessageType_SENDPAYMENT,
-	MessageType_REQUESTPAYMENT,
-	MessageType_FLIP,
-	MessageType_HEADLINE,
-	MessageType_PIN,
-}
-
-// Message types that cause badges.
-// JOIN and LEAVE are Visible but are too minute to badge.
-func BadgeableMessageTypes() []MessageType {
-	return badgeableMessageTypes
-}
-
-// A conversation is considered 'empty' unless it has one of these message types.
-// Used for filtering empty convs out of the the inbox.
-func NonEmptyConvMessageTypes() []MessageType {
-	return badgeableMessageTypes
-}
-
-var snippetMessageTypes = []MessageType{
-	MessageType_TEXT,
-	MessageType_ATTACHMENT,
-	MessageType_SYSTEM,
-	MessageType_DELETEHISTORY,
-	MessageType_SENDPAYMENT,
-	MessageType_REQUESTPAYMENT,
-	MessageType_FLIP,
-	MessageType_HEADLINE,
-	MessageType_PIN,
-}
-
-// Snippet chat messages can be the snippet of a conversation.
-func SnippetChatMessageTypes() []MessageType {
-	return snippetMessageTypes
-}
-
-var editableMessageTypesByEdit = []MessageType{
-	MessageType_TEXT,
-}
-
-func EditableMessageTypesByEdit() []MessageType {
-	return editableMessageTypesByEdit
-}
-
-func IsEphemeralSupersederType(typ MessageType) bool {
-	switch typ {
-	case MessageType_EDIT,
-		MessageType_ATTACHMENTUPLOADED,
-		MessageType_REACTION,
-		MessageType_UNFURL:
-		return true
-	default:
-		return false
-	}
-}
-
-func IsEphemeralNonSupersederType(typ MessageType) bool {
-	switch typ {
-	case MessageType_TEXT,
-		MessageType_ATTACHMENT,
-		MessageType_FLIP:
-		return true
-	default:
-		return false
-	}
-}
-
-func IsEphemeralType(typ MessageType) bool {
-	return IsEphemeralNonSupersederType(typ) || IsEphemeralSupersederType(typ)
-}
-
-func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
-	banned := make(map[MessageType]bool)
-	for _, mt := range nonDeletableMessageTypesByDeleteHistory {
-		banned[mt] = true
-	}
-	for _, mt := range MessageTypeMap {
-		if !banned[mt] {
-			res = append(res, mt)
-		}
-	}
-	sort.Slice(res, func(i, j int) bool {
-		return res[i] < res[j]
-	})
-	return res
-}
-
-func IsDeletableByDelete(typ MessageType) bool {
-	for _, typ2 := range deletableMessageTypesByDelete {
-		if typ == typ2 {
-			return true
-		}
-	}
-	return false
-}
-
-func IsDeletableByDeleteHistory(typ MessageType) bool {
-	for _, typ2 := range nonDeletableMessageTypesByDeleteHistory {
-		if typ == typ2 {
-			return false
-		}
-	}
-	return true
 }
 
 func (t TopicType) String() string {
@@ -585,13 +681,7 @@ func (m MessageUnboxed) IsValidDeleted() bool {
 }
 
 func (m MessageUnboxed) IsVisible() bool {
-	typ := m.GetMessageType()
-	for _, visType := range VisibleChatMessageTypes() {
-		if typ == visType {
-			return true
-		}
-	}
-	return false
+	return IsVisibleMessageType(m.GetMessageType())
 }
 
 func (m MessageUnboxed) HasReactions() bool {
@@ -838,13 +928,7 @@ func (m MessagePlaintext) MessageType() MessageType {
 }
 
 func (m MessagePlaintext) IsVisible() bool {
-	typ := m.MessageType()
-	for _, visType := range VisibleChatMessageTypes() {
-		if typ == visType {
-			return true
-		}
-	}
-	return false
+	return IsVisibleMessageType(m.MessageType())
 }
 
 func (m MessagePlaintext) IsBadgableType() bool {
@@ -1459,14 +1543,9 @@ func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
 }
 
 func maxVisibleMsgIDFromSummaries(maxMessages []MessageSummary) MessageID {
-	visibleTyps := VisibleChatMessageTypes()
-	visibleTypsMap := map[MessageType]bool{}
-	for _, typ := range visibleTyps {
-		visibleTypsMap[typ] = true
-	}
 	maxMsgID := MessageID(0)
 	for _, msg := range maxMessages {
-		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
+		if IsVisibleMessageType(msg.GetMessageType()) && msg.GetMessageID() > maxMsgID {
 			maxMsgID = msg.GetMessageID()
 		}
 	}
@@ -1618,42 +1697,6 @@ func (m MessageSummary) GetMessageID() MessageID {
 func (m MessageSummary) GetMessageType() MessageType {
 	return m.MessageType
 }
-
-/*
-func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
-	t, err := v1.MessageType()
-	if err != nil {
-		return MessageBody{}, err
-	}
-	switch t {
-	case MessageType_TEXT:
-		return NewMessageBodyWithText(v1.Text()), nil
-	case MessageType_ATTACHMENT:
-		previous := v1.Attachment()
-		upgraded := MessageAttachment{
-			Object:   previous.Object,
-			Metadata: previous.Metadata,
-			Uploaded: true,
-		}
-		if previous.Preview != nil {
-			upgraded.Previews = []Asset{*previous.Preview}
-		}
-		return NewMessageBodyWithAttachment(upgraded), nil
-	case MessageType_EDIT:
-		return NewMessageBodyWithEdit(v1.Edit()), nil
-	case MessageType_DELETE:
-		return NewMessageBodyWithDelete(v1.Delete()), nil
-	case MessageType_METADATA:
-		return NewMessageBodyWithMetadata(v1.Metadata()), nil
-	case MessageType_HEADLINE:
-		return NewMessageBodyWithHeadline(v1.Headline()), nil
-	case MessageType_NONE:
-		return MessageBody{MessageType__: MessageType_NONE}, nil
-	}
-
-	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
-}
-*/
 
 func (a *MerkleRoot) Eq(b *MerkleRoot) bool {
 	if a != nil && b != nil {

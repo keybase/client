@@ -1298,7 +1298,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		if useRemoteMock {
 			t.Logf("check that the deletable messages are gone")
 			for _, m := range tv.Messages {
-				require.False(t, chat1.IsDeletableByDeleteHistory(m.GetMessageType()),
+				require.False(t, chat1.IsDeletableByDeleteHistoryMessageType(m.GetMessageType()),
 					"deletable message found: %v %v", m.GetMessageID(), m.GetMessageType())
 			}
 		}
@@ -6699,7 +6699,7 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 	res, err := ctc.as(t, ctc.users()[0]).chatLocalHandler().GetStaticConfig(ctx)
 	require.NoError(t, err)
 	require.Equal(t, chat1.StaticConfig{
-		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+		DeletableByDeleteHistory: chat1.DeletableByDeleteHistoryMessageTypes(),
 		BuiltinCommands:          tc.Context().CommandsSource.GetBuiltins(ctx),
 	}, res)
 }
