@@ -63,7 +63,6 @@ export type Props<SectionT extends Section<any, any>> = {
 
   contentContainerStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
-  contentContainerStyle?: Styles.StylesCrossPlatform
 
   /**
    * A marker property for telling the list to re-render (since it implements PureComponent).

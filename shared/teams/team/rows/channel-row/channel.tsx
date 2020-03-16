@@ -35,10 +35,14 @@ const ChannelRow = (props: ChannelRowProps) => {
   const onSelect = (selected: boolean) => {
     dispatch(TeamsGen.createSetChannelSelected({channel: channel.channelname, selected, teamID}))
   }
+  const navPropsForAction = {
+    conversationIDKey: channel.conversationIDKey,
+    teamID,
+  }
   const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'chatEditChannel'}]}))
   const onNavToChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamChannel'}]}))
   const onNavToSettings = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
