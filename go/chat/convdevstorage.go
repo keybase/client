@@ -12,76 +12,57 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type TeamDevConversationBackedStorage struct {
+type ConvDevConversationBackedStorage struct {
 	globals.Contextified
 	utils.DebugLabeler
 
 	adminOnly bool
-
-	ri func() chat1.RemoteInterface
+	topicType chat1.TopicType
+	ri        func() chat1.RemoteInterface
 }
 
-var _ types.TeamConversationBackedStorage = &TeamDevConversationBackedStorage{}
+var _ types.ConvConversationBackedStorage = &ConvDevConversationBackedStorage{}
 
-func NewTeamDevConversationBackedStorage(g *globals.Context, adminOnly bool,
-	ri func() chat1.RemoteInterface) *TeamDevConversationBackedStorage {
-	return &TeamDevConversationBackedStorage{
+func NewConvDevConversationBackedStorage(g *globals.Context, topicType chat1.TopicType, adminOnly bool,
+	ri func() chat1.RemoteInterface) *ConvDevConversationBackedStorage {
+	return &ConvDevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ConvDevConversationBackedStorage", false),
 		adminOnly:    adminOnly,
-		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConversationBackedStorage", false),
 		ri:           ri,
+		topicType:    topicType,
 	}
 }
 
-func (s *TeamDevConversationBackedStorage) tlfName(ctx context.Context, teamID keybase1.TeamID) (tlfname string, err error) {
-	tlfID, err := chat1.TeamIDToTLFID(teamID)
-	if err != nil {
-		return tlfname, err
+func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.ConversationLocal) chat1.ConversationMembersType {
+	mt := conv.GetMembersType()
+	switch mt {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		return chat1.ConversationMembersType_IMPTEAMNATIVE
+	default:
+		return mt
 	}
-	info, err := CreateNameInfoSource(ctx, s.G(), chat1.ConversationMembersType_TEAM).
-		LookupName(ctx, tlfID, false /* public */, "")
-	if err != nil {
-		return tlfname, err
-	}
-	return info.CanonicalName, nil
 }
 
-func (s *TeamDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
-	teamID keybase1.TeamID, name string, src interface{}) (err error) {
+func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, name string, src interface{}) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
-
-	tlfname, err := s.tlfName(ctx, teamID)
-	if err != nil {
-		return err
-	}
 
 	dat, err := json.Marshal(src)
 	if err != nil {
 		return err
 	}
-
 	var conv chat1.ConversationLocal
-
-	// TODO(TRIAGE-1972): NewConversation should return the existing
-	// conversation without an error if one already exists, but currently a bug
-	// makes it so this doesn't work properly for team conversations one is not
-	// in yet. After that bug is fixed, this block can be replaced by just
-	// a call to NewConversation.
-	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
-		tlfname, chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE, name, nil)
+	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}
-	if len(convs) == 0 {
-		conv, _, err = NewConversation(ctx, s.G(), uid, tlfname, &name, chat1.TopicType_DEV,
-			chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
-		if err != nil {
-			return err
-		}
-	} else {
-		conv = convs[0]
+	tlfname := baseConv.Info.TlfName
+	conv, _, err = NewConversation(ctx, s.G(), uid, tlfname, &name, s.topicType,
+		s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
+	if err != nil {
+		return err
 	}
-
 	if s.adminOnly && !conv.ReaderInfo.UntrustedTeamRole.IsAdminOrAbove() {
 		return NewDevStoragePermissionDeniedError(conv.ReaderInfo.UntrustedTeamRole)
 	}
@@ -114,17 +95,17 @@ func (s *TeamDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 	return nil
 }
 
-func (s *TeamDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
-	teamID keybase1.TeamID, name string, dest interface{}) (found bool, err error) {
+func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, name string, dest interface{}) (found bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
 
-	tlfname, err := s.tlfName(ctx, teamID)
+	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return false, err
 	}
-
 	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
-		tlfname, chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE, name, nil)
+		baseConv.Info.TlfName, s.topicType, s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, name,
+		nil)
 	if err != nil {
 		return false, err
 	}

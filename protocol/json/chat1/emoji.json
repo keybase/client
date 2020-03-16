@@ -1,0 +1,81 @@
+{
+  "protocol": "emoji",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "EmojiLoadSourceTyp",
+      "symbols": [
+        "HTTPSRV_0"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "EmojiLoadSource",
+      "switch": {
+        "type": "EmojiLoadSourceTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "HTTPSRV",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Emoji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "alias"
+        },
+        {
+          "type": "EmojiLoadSource",
+          "name": "source"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiGroup",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Emoji"
+          },
+          "name": "emojis"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserEmojis",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "EmojiGroup"
+          },
+          "name": "emojis"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

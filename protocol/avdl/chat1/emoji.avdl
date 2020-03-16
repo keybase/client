@@ -1,0 +1,27 @@
+@namespace("chat.1")
+
+protocol emoji {
+  import idl "common.avdl";
+
+  enum EmojiLoadSourceTyp {
+    HTTPSRV_0
+  }
+
+  variant EmojiLoadSource switch (EmojiLoadSourceTyp typ) {
+    case HTTPSRV: string;
+  }
+
+  record Emoji {
+    string alias;
+    EmojiLoadSource source;
+  }
+
+  record EmojiGroup {
+    string name; // a team name or a impteam conv name
+    array<Emoji> emojis;
+  }
+
+  record UserEmojis {
+    array<EmojiGroup> emojis;
+  }  
+}
