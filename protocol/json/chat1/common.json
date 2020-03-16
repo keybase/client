@@ -660,6 +660,16 @@
         },
         {
           "type": "boolean",
+          "name": "botMemberCount",
+          "mpackkey": "b"
+        },
+        {
+          "type": "boolean",
+          "name": "fullMemberCount",
+          "mpackkey": "f"
+        },
+        {
+          "type": "boolean",
           "name": "isDefaultConv",
           "mpackkey": "d"
         }

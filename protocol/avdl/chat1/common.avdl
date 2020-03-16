@@ -272,6 +272,10 @@
     array<gregor1.UID> allList;   // all of the users in the conversation (can be skipped for TEAMS)
     array<gregor1.UID> resetList; // all of the reset users in the conversation (only for TEAM and IMPTEAM chats)
 
+    @mpackkey("b")
+    boolean botMemberCount;
+    @mpackkey("f")
+    boolean fullMemberCount;
     @mpackkey("d")
     boolean isDefaultConv;
   }

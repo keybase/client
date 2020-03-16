@@ -855,22 +855,24 @@ func (o Expunge) DeepCopy() Expunge {
 }
 
 type ConversationMetadata struct {
-	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
-	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
-	Visibility     keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
-	Status         ConversationStatus        `codec:"status" json:"status"`
-	MembersType    ConversationMembersType   `codec:"membersType" json:"membersType"`
-	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
-	Existence      ConversationExistence     `codec:"existence" json:"existence"`
-	Version        ConversationVers          `codec:"version" json:"version"`
-	LocalVersion   LocalConversationVers     `codec:"localVersion" json:"localVersion"`
-	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
-	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
-	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
-	AllList        []gregor1.UID             `codec:"allList" json:"allList"`
-	ResetList      []gregor1.UID             `codec:"resetList" json:"resetList"`
-	IsDefaultConv  bool                      `codec:"d" json:"isDefaultConv"`
+	IdTriple        ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
+	ConversationID  ConversationID            `codec:"conversationID" json:"conversationID"`
+	Visibility      keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
+	Status          ConversationStatus        `codec:"status" json:"status"`
+	MembersType     ConversationMembersType   `codec:"membersType" json:"membersType"`
+	TeamType        TeamType                  `codec:"teamType" json:"teamType"`
+	Existence       ConversationExistence     `codec:"existence" json:"existence"`
+	Version         ConversationVers          `codec:"version" json:"version"`
+	LocalVersion    LocalConversationVers     `codec:"localVersion" json:"localVersion"`
+	FinalizeInfo    *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes      []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
+	SupersededBy    []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
+	ActiveList      []gregor1.UID             `codec:"activeList" json:"activeList"`
+	AllList         []gregor1.UID             `codec:"allList" json:"allList"`
+	ResetList       []gregor1.UID             `codec:"resetList" json:"resetList"`
+	BotMemberCount  bool                      `codec:"b" json:"botMemberCount"`
+	FullMemberCount bool                      `codec:"f" json:"fullMemberCount"`
+	IsDefaultConv   bool                      `codec:"d" json:"isDefaultConv"`
 }
 
 func (o ConversationMetadata) DeepCopy() ConversationMetadata {
@@ -946,7 +948,9 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 			}
 			return ret
 		})(o.ResetList),
-		IsDefaultConv: o.IsDefaultConv,
+		BotMemberCount:  o.BotMemberCount,
+		FullMemberCount: o.FullMemberCount,
+		IsDefaultConv:   o.IsDefaultConv,
 	}
 }
 
