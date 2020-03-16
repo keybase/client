@@ -229,7 +229,12 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
       })
     )
   const onEditRoles = () => {}
-  const onRemoveFromTeam = () => {}
+  const onRemoveFromTeam = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {members: [...members], teamID}, selected: 'teamReallyRemoveMember'}],
+      })
+    )
 
   return (
     <ActionsWrapper>

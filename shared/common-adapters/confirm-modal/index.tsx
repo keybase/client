@@ -22,13 +22,13 @@ export type Props = {
   onConfirm?: () => void
   onConfirmDeactivated?: boolean
   prompt: React.ReactNode
-  waitingKey?: string
+  waitingKey?: string | string[]
 }
 
 const ConfirmModal = (props: Props) => (
   <Modal
     header={
-      Styles.isMobile
+      Styles.isMobile && props.onCancel
         ? {
             leftButton: (
               <Text type="BodyBigLink" onClick={props.onCancel}>
