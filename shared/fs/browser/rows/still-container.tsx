@@ -22,10 +22,11 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
     (dispatch: Container.Dispatch) => ({
       dismissUploadError: (uploadID: string) => dispatch(FsGen.createDismissUpload({uploadID})),
     }),
-    (stateProps, dispatchProps, {path}: OwnProps) => {
+    (stateProps, dispatchProps, {destinationPickerIndex, path}: OwnProps) => {
       const {_downloads, _pathItem, _pathItemActionMenu} = stateProps
       const writingToJournalUploadState = stateProps._uploads.writingToJournal.get(path)
       return {
+        destinationPickerIndex, // needed by OpenHOC
         dismissUploadError: writingToJournalUploadState?.error
           ? () => dispatchProps.dismissUploadError(writingToJournalUploadState.uploadID)
           : undefined,
