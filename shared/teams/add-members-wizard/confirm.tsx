@@ -246,9 +246,15 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={Styles.globalStyles.flexOne}>
         <Kb.Avatar size={16} username={props.assertion} />
-        <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.assertion]} />
+        <Kb.ConnectedUsernames
+          type="BodySemibold"
+          lineClamp={1}
+          usernames={[props.assertion]}
+          containerStyle={Styles.globalStyles.flexOne}
+          style={Styles.globalStyles.flexOne}
+        />
       </Kb.Box2>
       {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
     </Kb.Box2>
