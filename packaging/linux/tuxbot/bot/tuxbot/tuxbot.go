@@ -86,33 +86,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 
 	switch command {
 	case "help":
-		c.Info("`release revision?, nightly revision?, test revision?, tuxjournal, journal, archive revision, build-docker revision?, release-docker tag, smoketest versionstring, cleanup, restartdocker`")
-		return nil
-	case "smoketest":
-		if len(args) < 1 {
-			return fmt.Errorf("need a versionstring (e.g. !smoketest 4.8.0-20191025160031+3170fc3ccd)")
-		}
-		versionstring := args[0]
-		c.Info("Smoketesting %s", versionstring)
-		err := makeCmd(currentUser, "git", "checkout", "-f", "master").Run()
-		if err != nil {
-			return err
-		}
-
-		err = makeCmd(currentUser, "git", "pull", "--ff-only").Run()
-		if err != nil {
-			return err
-		}
-
-		err = makeCmd(currentUser, "./packaging/linux/smoketest/smoketest_all.bash", versionstring).Run()
-		if err != nil {
-			c.Info("error: %s", err)
-			if _, err := c.API().SendMessage(c.sendChannel, "!tuxjournal"); err != nil {
-				c.Info("error: %s", err)
-			}
-			return err
-		}
-
+		c.Info("`release revision?, nightly revision?, test revision?, tuxjournal, journal, archive revision, build-docker revision?, release-docker tag`")
 		return nil
 	case "archive":
 		if len(args) < 1 {
@@ -456,28 +430,6 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 	case "journal":
 		ret, _ := exec.Command("journalctl", "-n", "50").CombinedOutput()
 		c.Debug("```%s```", ret)
-		return nil
-	case "cleanup":
-		if c.Locked {
-			return fmt.Errorf("locked by another command; aborting")
-		}
-
-		ret, err := exec.Command("/bin/bash", "-c", "sudo /home/keybasebuild/tuxbotcleanup.sh").CombinedOutput()
-		if err != nil {
-			c.Debug("Error: ```%s```", err)
-		}
-		c.Debug("Out: ```%s```", ret)
-		return nil
-	case "restartdocker":
-		if c.Locked {
-			return fmt.Errorf("locked by another command; aborting")
-		}
-
-		ret, err := exec.Command("/bin/bash", "-c", "sudo systemctl restart docker").CombinedOutput()
-		if err != nil {
-			c.Debug("Error: ```%s```", err)
-		}
-		c.Debug("Out: ```%s```", ret)
 		return nil
 	default:
 		return fmt.Errorf("invalid command %s", command)
