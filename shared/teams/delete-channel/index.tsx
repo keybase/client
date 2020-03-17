@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
@@ -25,10 +26,14 @@ const DeleteChannel = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
   const channelIDs = Container.useSelector(state => getTeamSelectedCount(state, teamID))
 
+  if (channelIDs == undefined) {
+    throw new Error('conversationIDKeys unexpectedly empty')
+  }
+
   const channels = useAllChannelMetas(teamID)
   var channelnames: string[] = []
 
-  channelIDs?.forEach(channelID => {
+  channelIDs.forEach(channelID => {
     const conversationMeta = channels?.get(channelID)
     const channelname = conversationMeta ? conversationMeta.channelname : ''
     channelnames.push(channelname)
@@ -52,14 +57,12 @@ const DeleteChannel = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const onDelete = () => {
-    channelIDs?.forEach(conversationIDKey => {
-      dispatch(
-        TeamsGen.createDeleteChannelConfirmed({
-          conversationIDKey,
-          teamID,
-        })
-      )
-    })
+    dispatch(
+      TeamsGen.createDeleteMultiChannelsConfirmed({
+        channels: channelIDs,
+        teamID,
+      })
+    )
     dispatch(
       TeamsGen.createSetChannelSelected({
         channel: '',
