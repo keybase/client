@@ -56,7 +56,7 @@ export const SignedSender = (props: SignedSenderProps) => {
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
 
   const isSelfSigned = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
-  const avatarSize = isSelfSigned ? 16 : 48
+  const avatarSize = isSelfSigned ? 16 : Styles.isMobile ? 32 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
   const space = Styles.isMobile ? '' : ' '
@@ -67,9 +67,22 @@ export const SignedSender = (props: SignedSenderProps) => {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      alignItems="center"
+      style={Styles.collapseStyles([
+        styles.signedContainer,
+        isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
+      ])}
+    >
       {signed && signedByUsername ? (
-        <Kb.Box2 direction="horizontal" gap={isSelfSigned ? 'xtiny' : 'xsmall'} style={styles.signedSender}>
+        <Kb.Box2
+          direction="horizontal"
+          gap={isSelfSigned ? 'xtiny' : 'xsmall'}
+          alignItems="center"
+          style={styles.signedSender}
+        >
           <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
 
           {isSelfSigned ? (
@@ -97,7 +110,9 @@ export const SignedSender = (props: SignedSenderProps) => {
                 colorFollowing={true}
                 colorYou={true}
               />
-              {signedByFullname && <Kb.Text type="BodySmall">{signedByFullname.stringValue()}</Kb.Text>}
+              {signedByFullname?.stringValue() ? (
+                <Kb.Text type="BodySmall">{signedByFullname?.stringValue()}</Kb.Text>
+              ) : null}
             </Kb.Box2>
           )}
         </Kb.Box2>
@@ -224,8 +239,9 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
             <Kb.Button
               mode="Primary"
               label="Reply in chat"
-              onClick={() => onReplyInChat(signedByUsername)}
               disabled={actionsDisabled}
+              fullWidth={Styles.isMobile}
+              onClick={() => onReplyInChat(signedByUsername)}
             />
           )}
           <Kb.Box2 direction="horizontal" ref={attachmentRef}>
@@ -419,16 +435,22 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           flexShrink: 1,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
         },
       }),
       coverOutput: {...Styles.globalStyles.flexBoxCenter},
       fileOutputContainer: {...Styles.padding(Styles.globalMargins.xsmall)},
       fileOutputText: {...Styles.globalStyles.fontSemibold},
       output: Styles.platformStyles({
-        common: {color: Styles.globalColors.black},
-        isElectron: {whiteSpace: 'pre-wrap', wordBreak: 'break-word'},
+        common: {
+          color: Styles.globalColors.black,
+        },
+        isElectron: {
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small),
+        },
       }),
       outputActionsBarContainer: Styles.platformStyles({
         isElectron: {
@@ -451,31 +473,40 @@ const styles = Styles.styleSheetCreate(
       signedContainer: Styles.platformStyles({
         common: {
           flexShrink: 0,
+          justifyContent: 'center',
           minHeight: Styles.globalMargins.mediumLarge,
+        },
+        isMobile: {
+          minHeight: Styles.globalMargins.large,
+        },
+      }),
+      signedContainerOther: Styles.platformStyles({
+        isElectron: {
           paddingLeft: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
+          ...Styles.padding(Styles.globalMargins.small),
+        },
+      }),
+      signedContainerSelf: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.tiny),
         },
       }),
       signedIcon: {color: Styles.globalColors.green},
-      signedSender: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexGrow,
-        },
-        isElectron: {
-          alignItems: 'center',
-        },
-        isMobile: {
-          alignItems: 'baseline',
-        },
-      }),
+      signedSender: {
+        ...Styles.globalStyles.flexGrow,
+      },
       toastText: {
         color: Styles.globalColors.white,
         textAlign: 'center',
       },
     } as const)
 )
-

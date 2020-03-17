@@ -378,20 +378,16 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           ...Styles.globalStyles.fullHeight,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.xsmall,
+          ...Styles.padding(0),
         },
       }),
       inputContainerEmpty: Styles.platformStyles({
         isElectron: {
-          padding: 0,
+          ...Styles.padding(0),
         },
         isMobile: {
           ...Styles.globalStyles.fullHeight,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.xsmall,
+          ...Styles.padding(0),
         },
       }),
       inputEmpty: Styles.platformStyles({
@@ -401,7 +397,9 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'hidden',
         },
         isMobile: {
-          ...Styles.padding(0),
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
         },
       }),
       inputFull: Styles.platformStyles({
@@ -410,6 +408,12 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           paddingRight: 46,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.xsmall,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
         },
       }),
     } as const)
