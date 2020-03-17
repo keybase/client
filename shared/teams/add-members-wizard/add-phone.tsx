@@ -5,7 +5,10 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SettingsGen from '../../actions/settings-gen'
+import * as RPCGen from '../../constants/types/rpc-gen'
 import {ModalTitle} from '../common'
+
+const waitingKey = 'addMembersWizard:phoneNumbers'
 
 const AddPhone = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
@@ -43,12 +46,24 @@ const AddPhone = () => {
     }
   }, [defaultCountry, dispatch])
 
-  // TODO Y2K-1557 useRPC to get associated usernames if they exist
+  const [err, setErr] = React.useState('')
+  const resolveAndParsePhoneNumbers = Container.useRPC(RPCGen.contactsParsePhoneNumbersRpcPromise)
   const onContinue = () =>
-    dispatch(
-      TeamsGen.createAddMembersWizardPushMembers({
-        members: phoneNumbers.map(pn => ({assertion: `${pn.phoneNumber}@phone`, role: 'writer'})),
-      })
+    resolveAndParsePhoneNumbers(
+      [{userProvidedNumbers: phoneNumbers.map(p => p.phoneNumber)}, waitingKey],
+      parsedNumbers => {
+        if (parsedNumbers !== null) {
+          dispatch(
+            TeamsGen.createAddMembersWizardPushMembers({
+              members: parsedNumbers.map(pn => ({
+                assertion: pn.username ? `${pn.username}+${pn.assertion}` : pn.assertion,
+                role: 'writer',
+              })),
+            })
+          )
+        }
+      },
+      rpcError => setErr(rpcError.message)
     )
 
   return (
@@ -61,8 +76,25 @@ const AddPhone = () => {
       }}
       allowOverflow={true}
       footer={{
-        content: <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />,
+        content: (
+          <Kb.WaitingButton
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+            waitingKey={waitingKey}
+          />
+        ),
       }}
+      banners={
+        err
+          ? [
+              <Kb.Banner key="banner" color="red">
+                {err}
+              </Kb.Banner>,
+            ]
+          : undefined
+      }
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>

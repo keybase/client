@@ -175,6 +175,7 @@
   "keybase.1.contacts.getContactsForUserRecommendations": {"promise": true},
   "keybase.1.contacts.lookupSavedContactsList": {"promise": true},
   "keybase.1.contacts.saveContactList": {"promise": true},
+  "keybase.1.contacts.parsePhoneNumbers": {"promise": true},
   "keybase.1.cryptocurrency.registerAddress": {"promise": true},
   "keybase.1.ctl.dbClean": {"promise": true},
   "keybase.1.ctl.dbNuke": {"promise": true},

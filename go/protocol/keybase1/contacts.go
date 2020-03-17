@@ -132,6 +132,22 @@ func (o ContactListResolutionResult) DeepCopy() ContactListResolutionResult {
 	}
 }
 
+type ParsedPhoneNumber struct {
+	Resolved  bool   `codec:"resolved" json:"resolved"`
+	Uid       UID    `codec:"uid" json:"uid"`
+	Username  string `codec:"username" json:"username"`
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
+func (o ParsedPhoneNumber) DeepCopy() ParsedPhoneNumber {
+	return ParsedPhoneNumber{
+		Resolved:  o.Resolved,
+		Uid:       o.Uid.DeepCopy(),
+		Username:  o.Username,
+		Assertion: o.Assertion,
+	}
+}
+
 type LookupContactListArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	Contacts  []Contact `codec:"contacts" json:"contacts"`
@@ -150,11 +166,16 @@ type GetContactsForUserRecommendationsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type ParsePhoneNumbersArg struct {
+	UserProvidedNumbers []RawPhoneNumber `codec:"userProvidedNumbers" json:"userProvidedNumbers"`
+}
+
 type ContactsInterface interface {
 	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
 	SaveContactList(context.Context, SaveContactListArg) (ContactListResolutionResult, error)
 	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 	GetContactsForUserRecommendations(context.Context, int) ([]ProcessedContact, error)
+	ParsePhoneNumbers(context.Context, []RawPhoneNumber) ([]ParsedPhoneNumber, error)
 }
 
 func ContactsProtocol(i ContactsInterface) rpc.Protocol {
@@ -221,6 +242,21 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"parsePhoneNumbers": {
+				MakeArg: func() interface{} {
+					var ret [1]ParsePhoneNumbersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ParsePhoneNumbersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ParsePhoneNumbersArg)(nil), args)
+						return
+					}
+					ret, err = i.ParsePhoneNumbers(ctx, typedArgs[0].UserProvidedNumbers)
+					return
+				},
+			},
 		},
 	}
 }
@@ -248,5 +284,11 @@ func (c ContactsClient) LookupSavedContactsList(ctx context.Context, sessionID i
 func (c ContactsClient) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
 	__arg := GetContactsForUserRecommendationsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.contacts.getContactsForUserRecommendations", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ContactsClient) ParsePhoneNumbers(ctx context.Context, userProvidedNumbers []RawPhoneNumber) (res []ParsedPhoneNumber, err error) {
+	__arg := ParsePhoneNumbersArg{UserProvidedNumbers: userProvidedNumbers}
+	err = c.Cli.Call(ctx, "keybase.1.contacts.parsePhoneNumbers", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

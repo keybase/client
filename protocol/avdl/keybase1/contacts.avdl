@@ -76,4 +76,10 @@ protocol contacts {
     // Remove duplicates, do not display unresolved components for already
     // resolved contact, etc.
     array<ProcessedContact> getContactsForUserRecommendations(int sessionID);
+
+    record ParsedPhoneNumber {
+      string username; // Keybase username, if resolved
+      string assertion; // for use in team / chat building
+    }
+    array<ParsedPhoneNumber> parsePhoneNumbers(array<RawPhoneNumber> userProvidedNumbers);
 }

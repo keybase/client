@@ -125,6 +125,28 @@
           "name": "resolved"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ParsedPhoneNumber",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "resolved"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        }
+      ]
     }
   ],
   "messages": {
@@ -185,6 +207,21 @@
       "response": {
         "type": "array",
         "items": "ProcessedContact"
+      }
+    },
+    "parsePhoneNumbers": {
+      "request": [
+        {
+          "name": "userProvidedNumbers",
+          "type": {
+            "type": "array",
+            "items": "RawPhoneNumber"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ParsedPhoneNumber"
       }
     }
   },

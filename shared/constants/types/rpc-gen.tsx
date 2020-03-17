@@ -595,6 +595,10 @@ export type MessageTypes = {
     inParam: void
     outParam: Array<ProcessedContact> | null
   }
+  'keybase.1.contacts.parsePhoneNumbers': {
+    inParam: {readonly userProvidedNumbers?: Array<RawPhoneNumber> | null}
+    outParam: Array<ParsedPhoneNumber> | null
+  }
   'keybase.1.contacts.saveContactList': {
     inParam: {readonly contacts?: Array<Contact> | null}
     outParam: ContactListResolutionResult
@@ -3001,6 +3005,7 @@ export type PGPVerifyOptions = {readonly signedBy: String; readonly signature: B
 export type ParamProofJSON = {readonly sigHash: SigID; readonly kbUsername: String}
 export type ParamProofServiceConfig = {readonly version: Int; readonly domain: String; readonly displayName: String; readonly description: String; readonly usernameConfig: ParamProofUsernameConfig; readonly brandColor: String; readonly prefillUrl: String; readonly profileUrl: String; readonly checkUrl: String; readonly checkPath?: Array<SelectorEntry> | null; readonly avatarPath?: Array<SelectorEntry> | null}
 export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; readonly max: Int}
+export type ParsedPhoneNumber = {readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly assertion: String}
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
 export type Path = {PathType: PathType.local; local: String} | {PathType: PathType.kbfs; kbfs: KBFSPath} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath}
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
@@ -3659,6 +3664,7 @@ export const configUpdateLastLoggedInAndServerConfigRpcPromise = (params: Messag
 export const configWaitForClientRpcPromise = (params: MessageTypes['keybase.1.config.waitForClient']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.waitForClient']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.waitForClient', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const contactsGetContactsForUserRecommendationsRpcPromise = (params: MessageTypes['keybase.1.contacts.getContactsForUserRecommendations']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.contacts.getContactsForUserRecommendations']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.contacts.getContactsForUserRecommendations', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const contactsLookupSavedContactsListRpcPromise = (params: MessageTypes['keybase.1.contacts.lookupSavedContactsList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.contacts.lookupSavedContactsList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.contacts.lookupSavedContactsList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const contactsParsePhoneNumbersRpcPromise = (params: MessageTypes['keybase.1.contacts.parsePhoneNumbers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.contacts.parsePhoneNumbers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.contacts.parsePhoneNumbers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const contactsSaveContactListRpcPromise = (params: MessageTypes['keybase.1.contacts.saveContactList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.contacts.saveContactList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.contacts.saveContactList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const cryptocurrencyRegisterAddressRpcPromise = (params: MessageTypes['keybase.1.cryptocurrency.registerAddress']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.cryptocurrency.registerAddress']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.cryptocurrency.registerAddress', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbCleanRpcPromise = (params: MessageTypes['keybase.1.ctl.dbClean']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.dbClean']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbClean', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

@@ -248,3 +248,29 @@ func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context,
 
 	return res, nil
 }
+
+func (h *ContactsHandler) ParsePhoneNumbers(ctx context.Context, nums []keybase1.RawPhoneNumber) (res []keybase1.
+	ParsedPhoneNumber, err error) {
+	mctx := h.MetaContext(ctx)
+	results, err := h.contactsProvider.LookupAll(mctx, nil, nums)
+	if err != nil {
+		return nil, err
+	}
+
+	var uids []keybase1.UID
+	for _, result := range results.Results {
+		uids = append(uids, result.UID)
+	}
+
+	uidsmap, err := h.contactsProvider.FindUsernames(mctx, uids)
+	if err != nil {
+		return nil, err
+	}
+	for _, result := range results.Results {
+		res = append(res, keybase1.ParsedPhoneNumber{
+			Assertion: keybase1.PhoneNumberToAssertionValue(result.Coerced),
+			Username:  uidsmap[result.UID].Username,
+		})
+	}
+	return res, nil
+}
