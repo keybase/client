@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type DevConvEmojiSource struct {
@@ -39,15 +41,23 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	alias, filename string) error {
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage()
-	_, err := storage.Get(ctx, uid, convID, s.topicName(), &stored)
+	_, storageConv, err := storage.Get(ctx, uid, convID, s.topicName(), &stored)
 	if err != nil {
 		return err
 	}
-	// TODO: fill in actual attachment here
 	if stored.Mapping == nil {
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
 	}
-	stored.Mapping[alias] = chat1.NewEmojiRemoteSourceWithMessage(0)
+	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
+	_, msgID, err := attachments.NewSender(s.G()).PostFileAttachment(ctx, sender, uid, storageConv.GetConvID(),
+		storageConv.Info.TlfName, keybase1.TLFVisibility_PRIVATE, nil, filename, "", nil, 0, nil, nil)
+	if err != nil {
+		return err
+	}
+	if msgID == nil {
+		return errors.New("no messageID from attachment")
+	}
+	stored.Mapping[alias] = chat1.NewEmojiRemoteSourceWithMessage(*msgID)
 	return storage.Put(ctx, uid, convID, s.topicName(), stored)
 }
 

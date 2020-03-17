@@ -454,7 +454,7 @@ type StellarSender interface {
 
 type ConvConversationBackedStorage interface {
 	Put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, data interface{}) error
-	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res interface{}) (bool, error)
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res interface{}) (bool, chat1.ConversationLocal, error)
 	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest interface{}) (bool, error)
 }
 
