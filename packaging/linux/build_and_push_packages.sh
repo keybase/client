@@ -7,7 +7,7 @@
 #   4) Push all of this to S3.
 #   5) Push new version metadata to our Arch Linux AUR package.
 
-set -e -u -o pipefail
+set -euox pipefail
 
 mode="$1"
 build_dir="$2"
@@ -59,6 +59,8 @@ echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
 GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$release_gopath/bin/release"
+
+echo "ECHO '$mode' '$build_dir'"
 
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
