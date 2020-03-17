@@ -49,6 +49,7 @@ const banner = {
 
 const sendFailedBanner = {
   action: Sb.action('onExitFailed'),
+  actionText: 'Review payments',
   bannerBackground: 'HighRisk' as 'HighRisk',
   bannerText:
     'The request to the stellar network timed out. Please make sure your payment failed before trying again.',
