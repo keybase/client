@@ -12,6 +12,7 @@ export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
 export const onNavChanged = 'route-tree:onNavChanged'
 export const resetStack = 'route-tree:resetStack'
+export const setParams = 'route-tree:setParams'
 export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
 
@@ -30,6 +31,7 @@ type _ResetStackPayload = {
   readonly actions: Array<any>
   readonly index: number
 }
+type _SetParamsPayload = {readonly params: Object}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
 
@@ -66,6 +68,10 @@ export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload
   payload,
   type: resetStack,
 })
+/**
+ * deprecated soon
+ */
+export const createSetParams = (payload: _SetParamsPayload): SetParamsPayload => ({payload, type: setParams})
 export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => ({
   payload,
   type: navigateAppend,
@@ -92,6 +98,7 @@ export type NavigateAppendPayload = {
 export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: typeof navigateUp}
 export type OnNavChangedPayload = {readonly payload: _OnNavChangedPayload; readonly type: typeof onNavChanged}
 export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: typeof resetStack}
+export type SetParamsPayload = {readonly payload: _SetParamsPayload; readonly type: typeof setParams}
 export type SwitchLoggedInPayload = {
   readonly payload: _SwitchLoggedInPayload
   readonly type: typeof switchLoggedIn
@@ -107,6 +114,7 @@ export type Actions =
   | NavigateUpPayload
   | OnNavChangedPayload
   | ResetStackPayload
+  | SetParamsPayload
   | SwitchLoggedInPayload
   | SwitchTabPayload
   | {type: 'common:resetStore', payload: {}}

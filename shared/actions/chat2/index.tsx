@@ -2443,13 +2443,35 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     // looking at the pending / waiting screen
     if (!Constants.isValidConversationIDKey(visibleConvo)) {
       replace = true
-    } else if (Constants.isSplit) {
-      // in split mode we always replace it
-      replace = true
     }
   } else if (reason === 'findNewestConversation') {
     // service is telling us to change our selection but we're not looking, ignore
     return false
+  }
+
+  // we select the chat tab and change the params
+  if (Constants.isSplit) {
+    // const path = Router2Constants.getVisiblePath()
+    // const keys = path.map(p => p.key)
+    // let childNav = Router2Constants._getNavigator().navigation
+    // while (keys.length && childNav) {
+    // childNav = childNav.getChildNavigation(keys.shift())
+    // }
+    // childNav?.setParams('conversationIDKey', conversationIDKey)
+
+    return [
+      RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createSetParams({params: {conversationIDKey}}),
+    ]
+  } else {
+    return [
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
+        replace,
+      }),
+    ]
   }
 
   return [

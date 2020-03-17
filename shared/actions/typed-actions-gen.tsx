@@ -783,6 +783,7 @@ export type TypedActionsMap = {
   'route-tree:switchTab': routetree.SwitchTabPayload
   'route-tree:resetStack': routetree.ResetStackPayload
   'route-tree:onNavChanged': routetree.OnNavChangedPayload
+  'route-tree:setParams': routetree.SetParamsPayload
   'settings:addPhoneNumber': settings.AddPhoneNumberPayload
   'settings:addedPhoneNumber': settings.AddedPhoneNumberPayload
   'settings:resendVerificationForPhoneNumber': settings.ResendVerificationForPhoneNumberPayload

@@ -606,6 +606,7 @@ const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
 
 const newNavigation = (
   action:
+    | RouteTreeGen.SetParamsPayload
     | RouteTreeGen.NavigateAppendPayload
     | RouteTreeGen.NavigateUpPayload
     | RouteTreeGen.SwitchLoggedInPayload
@@ -812,6 +813,7 @@ function* configSaga() {
 
   yield* Saga.chainAction(
     [
+      RouteTreeGen.setParams,
       RouteTreeGen.navigateAppend,
       RouteTreeGen.navigateUp,
       RouteTreeGen.switchLoggedIn,
