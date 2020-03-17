@@ -66,9 +66,9 @@ date
 "$here/build_binaries.sh" "$mode" "$build_dir"
 date
 version="$(cat "$build_dir/VERSION")"
-[ -z "$KEYBASE_NO_DEB" ] && "$here/deb/layout_repo.sh" "$build_dir"
+[ -z "$KEYBASE_NO_DEB" ] && "$here/deb/layout_repo.sh" "$build_dir" || echo "not making deb repo"
 date
-[ -z "$KEYBASE_NO_RPM" ] && "$here/rpm/layout_repo.sh" "$build_dir"
+[ -z "$KEYBASE_NO_RPM" ] && "$here/rpm/layout_repo.sh" "$build_dir" || echo "not making rpm repo"
 date
 
 # Short-circuit devel mode.
@@ -175,4 +175,3 @@ echo "Updating AUR packages"
 date
 echo "Deleting old build files"
 find "$(dirname "$build_dir")" -mindepth 1 ! -wholename "$build_dir" -type d -exec rm -rf {} +
-# find $(dirname hello/g) -mindepth 1 ! -wholename hello/b -type d -exec rm -rf {} +

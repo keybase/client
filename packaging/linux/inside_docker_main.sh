@@ -58,3 +58,7 @@ date
 
 # Do the build!
 "$client_clone/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"
+
+date
+
+echo "done!"
