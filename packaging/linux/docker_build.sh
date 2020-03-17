@@ -88,10 +88,6 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e KEYBASE_RELEASE \
   -e KEYBASE_NIGHTLY \
   -e KEYBASE_TEST \
-  -e KEYBASE_SKIP_32_BIT \
-  -e KEYBASE_SKIP_64_BIT \
-  -e KEYBASE_NO_KBFS \
-  -e KEYBASE_NO_GUI \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

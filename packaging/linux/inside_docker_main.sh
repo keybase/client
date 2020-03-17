@@ -14,7 +14,6 @@ commit="$2"
 
 client_clone="/root/client"
 build_dir="/root/build"
-date
 
 # Copy the s3cmd config to root's home dir.
 cp /S3CMD/.s3cfg ~
@@ -49,16 +48,13 @@ git config --global user.email "example@example.com"
 echo "Cloning the client repo..."
 git clone https://github.com/keybase/client.git "$client_clone" --reference /CLIENT
 
-date
 
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"
 
-date
 
 # Do the build!
 "$client_clone/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"
 
-date
 
 echo "done!"

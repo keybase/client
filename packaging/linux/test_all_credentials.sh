@@ -14,9 +14,9 @@ export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
 
 bucket="${BUCKET_NAME:-prerelease.keybase.io}"
 echo "Checking credentials for s3://$bucket..."
-"$here/s3cmdwr" ls "s3://$bucket" > /dev/null
+s3cmd ls "s3://$bucket" > /dev/null
 
-echo 'Checking Arch AUR credentials...'
+echo 'Checking Arch AUR credentials... (uses ssh_config)'
 git ls-remote aur:keybase-git > /dev/null
 git ls-remote aur:keybase-bin > /dev/null
 
