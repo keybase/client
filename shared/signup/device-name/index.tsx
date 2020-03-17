@@ -15,17 +15,17 @@ type Props = {
 }
 
 const EnterDevicename = (props: Props) => {
-  const [devicename, onChangeDevicename] = React.useState(props.initialDevicename || '')
-  const disabled = React.useMemo(() => {
-    const normalized = devicename.replace(Constants.normalizeDeviceRE, '')
-    return (
-      normalized.length < 3 ||
-      normalized.length > 64 ||
-      !Constants.goodDeviceRE.test(devicename) ||
-      Constants.badDeviceRE.test(devicename)
-    )
-  }, [devicename])
-  const onContinue = () => (disabled ? {} : props.onContinue(devicename))
+  const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
+  const cleanDeviceName = Constants.cleanDeviceName(deviceName)
+  const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
+  const disabled =
+    normalized.length < 3 ||
+    normalized.length > 64 ||
+    !Constants.goodDeviceRE.test(cleanDeviceName) ||
+    Constants.badDeviceRE.test(cleanDeviceName)
+  const _setDeviceName = (deviceName: string) =>
+    setDeviceName(deviceName.replace(Constants.badDeviceChars, ''))
+  const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
   return (
     <SignupScreen
       banners={errorBanner(props.error)}
@@ -60,10 +60,11 @@ const EnterDevicename = (props: Props) => {
             autoFocus={true}
             containerStyle={styles.input}
             error={disabled}
+            maxLength={64}
             placeholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
-            onChangeText={onChangeDevicename}
+            onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
-            value={devicename}
+            value={cleanDeviceName}
           />
           {disabled && (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>

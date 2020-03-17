@@ -19,19 +19,18 @@ type Props = {
 const SetPublicName = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState(defaultDevicename)
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
-  const disabled = React.useMemo(() => {
-    const normalized = deviceName.replace(Constants.normalizeDeviceRE, '')
-    return (
-      normalized.length < 3 ||
-      normalized.length > 64 ||
-      !Constants.goodDeviceRE.test(deviceName) ||
-      Constants.badDeviceRE.test(deviceName)
-    )
-  }, [deviceName])
+  const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
+  const disabled =
+    normalized.length < 3 ||
+    normalized.length > 64 ||
+    !Constants.goodDeviceRE.test(cleanDeviceName) ||
+    Constants.badDeviceRE.test(cleanDeviceName)
   const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
     _onSubmit(Constants.cleanDeviceName(cleanDeviceName))
   }, [cleanDeviceName, _onSubmit])
+  const _setDeviceName = (deviceName: string) =>
+    setDeviceName(deviceName.replace(Constants.badDeviceChars, ''))
 
   const maybeIcon = Styles.isMobile
     ? Platform.isLargeScreen
@@ -72,9 +71,10 @@ const SetPublicName = (props: Props) => {
           <Kb.NewInput
             autoFocus={true}
             error={disabled}
+            maxLength={64}
             placeholder="Pick a device name"
             onEnterKeyDown={onSubmit}
-            onChangeText={setDeviceName}
+            onChangeText={_setDeviceName}
             value={cleanDeviceName}
             style={styles.nameInput}
           />

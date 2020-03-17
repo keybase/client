@@ -74,3 +74,5 @@ export const normalizeDeviceRE = /[^a-zA-Z0-9]/
 
 export const deviceNameInstructions =
   'Your device name must have 3-64 characters and not end with punctuation.'
+
+export const badDeviceChars = /[^a-zA-Z0-9-_' ]/g
