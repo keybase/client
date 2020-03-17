@@ -38,8 +38,8 @@ cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/dot_s3cfg "$s3cm
 # Copy necessary SSH keys out of KBFS
 ssh_temp="$(mktemp -d)"
 cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/aur_id_ed25519 "$ssh_temp"
-cp .ssh/config "$ssh_temp"
-cp .ssh/known_hosts "$ssh_temp"
+cp "$HOME/.ssh/config" "$ssh_temp"
+cp "$HOME/.ssh/known_hosts" "$ssh_temp"
 
 # Prepare a folder that we'll share with the container, as the container's
 # /root directory, where all the build work gets done. Docker recommends that
