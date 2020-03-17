@@ -44,6 +44,9 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 		return err
 	}
 	// TODO: fill in actual attachment here
+	if stored.Mapping == nil {
+		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
+	}
 	stored.Mapping[alias] = chat1.NewEmojiRemoteSourceWithMessage(0)
 	return storage.Put(ctx, uid, convID, s.topicName(), stored)
 }

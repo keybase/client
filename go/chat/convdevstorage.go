@@ -79,6 +79,10 @@ func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 		}, 0, nil, nil, nil); err != nil {
 		return err
 	}
+	// only do min writer role stuff for team convs
+	if baseConv.GetMembersType() != chat1.ConversationMembersType_TEAM {
+		return nil
+	}
 	minWriterUnset := conv.ConvSettings == nil ||
 		conv.ConvSettings.MinWriterRoleInfo == nil ||
 		conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN
@@ -116,7 +120,8 @@ func (s *ConvDevConversationBackedStorage) GetFromKnownConv(ctx context.Context,
 	if !body.IsType(chat1.MessageType_TEXT) {
 		return false, nil
 	}
-	if s.adminOnly {
+
+	if conv.GetMembersType() == chat1.ConversationMembersType_TEAM && s.adminOnly {
 		if conv.ConvSettings == nil || conv.ConvSettings.MinWriterRoleInfo == nil {
 			return false, NewDevStorageAdminOnlyError("no conversation settings")
 		}
