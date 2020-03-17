@@ -7,7 +7,7 @@
 #
 # For example: ./inside_docker_main.sh staging v1.0.0-27
 
-set -e -u -o pipefail
+set -euox pipefail
 
 mode="$1"
 commit="$2"
@@ -46,7 +46,7 @@ gpg --sign --use-agent --local-user "$code_signing_fingerprint" \
 git config --global user.name "Keybase Linux Build"
 git config --global user.email "example@example.com"
 echo "Cloning the client repo..."
-git clone git@github.com:keybase/client "$client_clone" --reference /CLIENT
+git clone https://github.com/keybase/client.git "$client_clone" --reference /CLIENT
 
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"
