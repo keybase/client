@@ -2858,6 +2858,24 @@ function* createConversation(
       if (meta) {
         yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
       }
+
+      const participants: Array<{
+        conversationIDKey: Types.ConversationIDKey
+        participants: Types.ParticipantInfo
+      }> = []
+
+      const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
+        uiConv.participants ?? []
+      )
+      if (participantInfo.all.length > 0) {
+        participants.push({
+          conversationIDKey: Types.stringToConversationIDKey(uiConv.convID),
+          participants: participantInfo,
+        })
+      }
+      if (participants.length > 0) {
+        yield Saga.put(Chat2Gen.createSetParticipants({participants}))
+      }
       yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
     }
   } catch (_error) {
