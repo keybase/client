@@ -164,7 +164,7 @@ const RoleSelector = () => {
         selectedRole={role || 'writer'}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
-        confirmLabel={`Add as ${pluralize(role || 'writer')}`} // TODO Y2K-1560 fix when this can actually be undefined
+        confirmLabel={`Add as ${pluralize(role || 'writer')}`}
         footerComponent={
           !Styles.isMobile && (
             <Kb.Box2
@@ -268,6 +268,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
             selectedRole={rolePickerRole}
             onSelectRole={onSelectRole}
             onConfirm={onConfirmRole}
+            confirmLabel={`Add as ${rolePickerRole}`}
           >
             <Kb.InlineDropdown
               type="BodySmallSemibold"
