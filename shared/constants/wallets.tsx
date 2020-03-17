@@ -786,3 +786,8 @@ export const trustlineHoldingBalance = 0.5
 // Info text for cancelable payments
 export const makeCancelButtonInfo = (username: string) =>
   `${assertionToDisplay(username)} can claim this when they set up their wallet.`
+
+// Error descriptions to match on for reworded service errors; ideally these
+// would be separate error codes instead.
+export const exchangeRateErrorText = 'exchange rate'
+export const recipientRequiresAMemoErrorText = 'recipient requires a memo'
