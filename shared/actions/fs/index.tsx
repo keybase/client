@@ -385,7 +385,10 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
     ]
     yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: new Map(pathItems)}))
   } catch (error) {
-    yield Saga.put(errorToActionOrThrow(error, rootPath))
+    const toPut = errorToActionOrThrow(error, rootPath)
+    if (toPut) {
+      yield Saga.put(toPut)
+    }
   }
 }
 
@@ -596,8 +599,15 @@ const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathM
   }
 }
 
-const letResetUserBackIn = async ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) => {
-  await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
+const letResetUserBackIn = async (action: FsGen.LetResetUserBackInPayload) => {
+  try {
+    return await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({
+      id: action.payload.id,
+      username: action.payload.username,
+    })
+  } catch (error) {
+    return errorToActionOrThrow(error)
+  }
 }
 
 const updateFsBadge = (state: Container.TypedState) => {
