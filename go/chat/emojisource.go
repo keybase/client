@@ -1,4 +1,4 @@
-package emoji
+package chat
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type DevConvEmojiSource struct {
 
 var _ types.EmojiSource = (*DevConvEmojiSource)(nil)
 
-func NewEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) *DevConvEmojiSource {
+func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) *DevConvEmojiSource {
 	return &DevConvEmojiSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConvEmojiSource", false),
@@ -66,8 +66,8 @@ func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, convID cha
 func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID) (res chat1.UserEmojis, err error) {
 	storage := s.makeStorage()
 	topicType := chat1.TopicType_EMOJI
-	ibox, err := s.G().InboxSource.Read(ctx, uid, types.InboxSourceDataSourceAll,
-		&chat1.GetInboxQueryLocal{
+	ibox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
 			TopicType:    &topicType,
 			MemberStatus: chat1.AllConversationMemberStatuses(),
 		})
@@ -79,7 +79,8 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID) (res chat
 		var stored chat1.EmojiStorage
 		found, err := storage.GetFromKnownConv(ctx, uid, conv, &stored)
 		if err != nil {
-			return res, err
+			s.Debug(ctx, "Get: failed to read from known conv: %s", err)
+			continue
 		}
 		if !found {
 			s.Debug(ctx, "Get: no stored info for: %s", conv.GetConvID())
