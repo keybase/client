@@ -597,6 +597,7 @@ type _SelectConversationPayload = {
     | 'extension'
     | 'files'
     | 'findNewestConversation'
+    | 'findNewestConversationFromLayout'
     | 'inboxBig'
     | 'inboxFilterArrow'
     | 'inboxFilterChanged'

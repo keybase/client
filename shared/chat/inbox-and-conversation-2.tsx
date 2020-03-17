@@ -34,7 +34,7 @@ const InboxAndConversation = (props: Props) => {
       dispatch(
         Chat2Gen.createSelectConversation({
           conversationIDKey: needSelectConvoID,
-          reason: 'findNewestConversation',
+          reason: 'findNewestConversationFromLayout',
         })
       )
     }
