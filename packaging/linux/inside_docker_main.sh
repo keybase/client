@@ -14,7 +14,7 @@ commit="$2"
 
 client_clone="/root/client"
 build_dir="/root/build"
-datet
+date
 
 # Copy the s3cmd config to root's home dir.
 cp /S3CMD/.s3cfg ~
