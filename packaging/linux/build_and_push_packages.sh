@@ -55,18 +55,21 @@ echo "=============================="
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
 
+date
 echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
 GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$release_gopath/bin/release"
 
-echo "ECHO '$mode' '$build_dir'"
-
+date
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
+date
 version="$(cat "$build_dir/VERSION")"
 [ -z "$KEYBASE_NO_DEB" ] && "$here/deb/layout_repo.sh" "$build_dir"
+date
 [ -z "$KEYBASE_NO_RPM" ] && "$here/rpm/layout_repo.sh" "$build_dir"
+date
 
 # Short-circuit devel mode.
 if [ "$mode" = "devel" ] ; then
@@ -78,6 +81,7 @@ elif [ "$mode" != "prerelease" ] ; then
 fi
 
 echo Doing a prerelease push to S3...
+date
 
 # Parse the shared .s3cfg file and export the keys as environment variables.
 # (Our s3cmd commands would be happy to read that file directly if we put it
@@ -136,6 +140,7 @@ copy_bins "$BUCKET_NAME"
 json_tmp=$(mktemp)
 echo "Writing version into JSON to $json_tmp"
 
+date
 "$release_bin" update-json --version="$version" > "$json_tmp"
 
 copy_metadata() {
@@ -163,9 +168,11 @@ if [ -n "$KEYBASE_TEST" ] ; then
     exit 0
 fi
 
+date
 echo "Updating AUR packages"
 "$here/arch/update_aur_packages.sh" "$build_dir"
 
+date
 echo "Deleting old build files"
 find "$(dirname "$build_dir")" -mindepth 1 ! -wholename "$build_dir" -type d -exec rm -rf {} +
 # find $(dirname hello/g) -mindepth 1 ! -wholename hello/b -type d -exec rm -rf {} +
