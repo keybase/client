@@ -1604,9 +1604,8 @@ func (k *SimpleFS) SimpleFSMove(
 			if sameTlf {
 				k.log.CDebugf(ctx, "Renaming within same TLF: %s",
 					tlfHandle.GetCanonicalPath())
-				fs, err := libfs.NewFS(
-					ctx, k.config, tlfHandle, data.MasterBranch, "", "",
-					keybase1.MDPriorityNormal)
+				fs, err := k.newFS(
+					ctx, k.config, tlfHandle, data.MasterBranch, "", false)
 				if err != nil {
 					return err
 				}
@@ -1699,9 +1698,8 @@ func (k *SimpleFS) SimpleFSRename(
 	if err != nil {
 		return err
 	}
-	fs, err := libfs.NewFS(
-		ctx, k.config, tlfHandle, data.MasterBranch, "", "",
-		keybase1.MDPriorityNormal)
+	fs, err := k.newFS(
+		ctx, k.config, tlfHandle, data.MasterBranch, "", false)
 	if err != nil {
 		return err
 	}
