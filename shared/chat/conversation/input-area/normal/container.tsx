@@ -8,6 +8,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Waiting from '../../../../constants/waiting'
 import * as Platform from '../../../../constants/platform'
+import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -125,11 +126,19 @@ const getConversationNameForInput = (
   }
   if (meta.teamType === 'adhoc') {
     const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
-    if (participantInfo.name.length) {
-      return participantInfo.name.length > 2
-        ? 'in the group'
-        : `to @${participantInfo.name.find(n => n !== state.config.username)}`
+    if (participantInfo.name.length > 2) {
+      return 'in the group'
+    } else if (participantInfo.name.length === 2) {
+      const other = participantInfo.name.find(n => n !== state.config.username)
+      if (!other) {
+        return ''
+      }
+      const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
+      return other ? `to ${otherText}` : ''
+    } else if (participantInfo.name.length === 1) {
+      return 'to yourself'
     }
+    return ''
   }
   return ''
 }
