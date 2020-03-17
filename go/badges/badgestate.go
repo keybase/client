@@ -193,7 +193,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			continue
 		}
 		category := categoryObj.String()
-		if strings.HasPrefix(category, "team.request_access") {
+		if strings.HasPrefix(category, "team.request_access:") {
 			b.state.NewTeamAccessRequests++
 			continue
 		}
