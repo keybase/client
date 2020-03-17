@@ -9,45 +9,9 @@
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
-    // Deselct if this is still selected, used in nav2 when you go away from a chat convo
-    "deselectConversation": {
-      "ifConversationIDKey": "Types.ConversationIDKey"
-    },
-    // Select a conversation (or leave nothing selected)
-    "selectConversation": {
+    // Selected a conversation (used by nav only)
+    "selectedConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
-      // why this happened, sometimes there's different side effects
-      "reason": [
-        "'focused'", // nav focus changed
-        "'clearSelected'", // deselect
-        "'desktopNotification'", // clicked notification
-        "'createdMessagePrivately'", // messaging privately and maybe made it
-        "'extension'", // from a notification from iOS share extension
-        "'files'", // from the Files tab
-        "'findNewestConversation'", // find a new chat to select (from service)
-        "'findNewestConversationFromLayout'", // find a small chat to select (from js)
-        "'inboxBig'", // inbox row
-        "'inboxFilterArrow'", // arrow keys in inbox filter
-        "'inboxFilterChanged'", // inbox filter made first one selected
-        "'inboxSmall'", // inbox row
-        "'inboxNewConversation'", // new conversation row
-        "'inboxSearch'", // selected from inbox seaech
-        "'jumpFromReset'", // from older reset convo
-        "'jumpToReset'", // going to an older reset convo
-        "'justCreated'", // just made it and select it
-        "'manageView'", // clicked from manage screen
-        "'previewResolved'", // did a preview and are now selecting it
-        "'push'", // from a push
-        "'savedLastState'", // last seen chat tab
-        "'startFoundExisting'", // starting a conversation and found one already
-        "'teamChat'", // from team
-        "'addedToChannel'", // just added people to this channel
-        "'navChanged'", // the nav state changed
-        "'teamMention'" // from team mention
-      ],
-      "skipNav?": "boolean",
-      "navKey?": "string",
-      "pushBody?": "string"
     },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
@@ -422,7 +386,38 @@
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {},
-    "navigateToThread": {},
+    "navigateToThread": {
+      // why this happened, sometimes there's different side effects
+      "reason": [
+        "'focused'", // nav focus changed
+        "'clearSelected'", // deselect
+        "'desktopNotification'", // clicked notification
+        "'createdMessagePrivately'", // messaging privately and maybe made it
+        "'extension'", // from a notification from iOS share extension
+        "'files'", // from the Files tab
+        "'findNewestConversation'", // find a new chat to select (from service)
+        "'findNewestConversationFromLayout'", // find a small chat to select (from js)
+        "'inboxBig'", // inbox row
+        "'inboxFilterArrow'", // arrow keys in inbox filter
+        "'inboxFilterChanged'", // inbox filter made first one selected
+        "'inboxSmall'", // inbox row
+        "'inboxNewConversation'", // new conversation row
+        "'inboxSearch'", // selected from inbox seaech
+        "'jumpFromReset'", // from older reset convo
+        "'jumpToReset'", // going to an older reset convo
+        "'justCreated'", // just made it and select it
+        "'manageView'", // clicked from manage screen
+        "'previewResolved'", // did a preview and are now selecting it
+        "'push'", // from a push
+        "'savedLastState'", // last seen chat tab
+        "'startFoundExisting'", // starting a conversation and found one already
+        "'teamChat'", // from team
+        "'addedToChannel'", // just added people to this channel
+        "'navChanged'", // the nav state changed
+        "'teamMention'" // from team mention
+      ],
+      "pushBody?": "string"
+    },
     // Share to external app on mobile
     "messageAttachmentNativeShare": {
       "message": "Types.Message"

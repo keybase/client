@@ -266,15 +266,14 @@ const maybeChangeSelectedConv = (
     }
     if (reselectInfo.newConvID) {
       logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
-      return Chat2Gen.createSelectConversation({
+      return Chat2Gen.createNavigateToThread({
         conversationIDKey: reselectInfo.newConvID,
         reason: 'findNewestConversation',
       })
     } else {
       logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-      return Chat2Gen.createSelectConversation({
+      return Chat2Gen.createSelectedConversation({
         conversationIDKey: Constants.noConversationIDKey,
-        reason: 'clearSelected',
       })
     }
   } else {

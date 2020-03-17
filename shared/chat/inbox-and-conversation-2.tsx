@@ -32,7 +32,7 @@ const InboxAndConversation = (props: Props) => {
   React.useEffect(() => {
     if (needSelectConvoID) {
       dispatch(
-        Chat2Gen.createSelectConversation({
+        Chat2Gen.createNavigateToThread({
           conversationIDKey: needSelectConvoID,
           reason: 'findNewestConversationFromLayout',
         })
