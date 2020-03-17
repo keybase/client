@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euox pipefail
 
-[ "tuxbot" = "$(keybase whoami)" ]
+keybase login -u tuxbot
