@@ -59,6 +59,29 @@ func (s *site) fetchConfigAndRefreshCache() (cfg config.Config, err error) {
 		return s.cachedConfig, nil
 	}
 
+	// Makes sure we don't serve a subdir of a site that's already configured
+	// with a .kbp_config, which can potentially limit permissions.  This is to
+	// prevent an attack where an evil user can override subdir config of
+	// another site if they know the subdir name. It's pretty bad when a site
+	// has limited permissions configured (e.g. disallow listing, http auth)
+	// where the attacker can just configure a "site" using a different domain
+	// but pointed to a subdir, and causes the kbp bot serve content that the
+	// site owner doesn't intend to share.
+	//
+	// Example:
+	// 1. Alice configures a site alice.example.com
+	//    (kbp=/keybase/private/alice,kbpbot) with /.kbp_config that disallows
+	//    list at "/", i.e. no file listing site wide.
+	// 2. Eve knows Alice has a secret folder /secrets where she puts files
+	//    with random names to share with other people through URL. Eve
+	//    configures eve.example.com rooted at /secrets
+	//    (kbp=/keybase/private/alice,kbpbot/secrets). Since /secrets doesn't
+	//    have a restrictive .kbp_config, Eve can now list the content even
+	//    though they don't have access to /keybase/private/alice,kbpbot.
+	if err = s.fs.EnsureNoSuchFileOutsideRoot(config.DefaultConfigFilename); err != nil {
+		return nil, err
+	}
+
 	realFS, err := s.fs.Use()
 	if err != nil {
 		return nil, err

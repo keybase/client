@@ -9,7 +9,6 @@ type TeamTabsProps = {
   admin: boolean
   error?: string
   isBig: boolean
-  loadBots: () => void
   loading: boolean
   newRequests: number
   numInvites: number
@@ -34,17 +33,11 @@ const TeamTabs = (props: TeamTabsProps) => {
           },
         ]
       : []),
+    // TODO: should we not show bots if there are no bots and you have no permissions?
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
     {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
   ]
-
-  const onSelect = (title: Types.TabKey) => {
-    if (title === 'bots') {
-      props.loadBots()
-    }
-    props.setSelectedTab(title)
-  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -53,7 +46,7 @@ const TeamTabs = (props: TeamTabsProps) => {
           clickableBoxStyle={styles.clickableBox}
           tabs={tabs}
           selectedTab={props.selectedTab}
-          onSelect={onSelect}
+          onSelect={props.setSelectedTab}
           style={styles.tabContainer}
           showProgressIndicator={!isMobile && props.loading && !flags.teamsRedesign}
           tabStyle={styles.tab}

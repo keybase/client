@@ -1,13 +1,22 @@
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 export const fakeTeamID = 'fakeTeamID'
 const teamID2 = 'faketeamID2'
 const teamID3 = 'faketeamID3'
 export const fakeTeamIDs = [fakeTeamID, teamID2, teamID3]
 
 export const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.chat2.inboxLayout = {
+    bigTeams: [
+      {
+        label: {id: fakeTeamID, name: 'keybase_storybook'},
+        state: RPCChatTypes.UIInboxBigTeamRowTyp.label,
+      },
+    ],
+    totalSmallTeams: 0,
+  }
   draftState.teams = {
     ...Constants.makeState(),
     teamDetails: new Map([

@@ -20,6 +20,7 @@ type Props = {
   availableToSendNative: string
   callbackURL: string | null
   displayAmountFiat: string
+  fromQRCode: boolean
   loading: boolean
   memo: string | null
   memoType: string | null
@@ -95,6 +96,7 @@ const InfoRow = (props: InfoRowProps) => (
 )
 
 type HeaderProps = {
+  fromQRCode: boolean
   requester: string | null
   isPayment: boolean
   sendError: string
@@ -110,7 +112,7 @@ const Header = (props: HeaderProps) => (
           </Kb.Banner>
         </Kb.Box2>
       )}
-      {!props.signed && (
+      {!props.signed && !props.fromQRCode && (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Banner color="yellow">
             <Kb.BannerParagraph
@@ -258,6 +260,7 @@ const SEP7Confirm = (props: Props) => (
         alwaysBounceVertical={false}
       >
         <Header
+          fromQRCode={props.fromQRCode}
           isPayment={props.operation === 'pay'}
           requester={props.signed ? props.originDomain : TrimString(props.recipient)}
           sendError={props.sendError}
@@ -271,7 +274,7 @@ const SEP7Confirm = (props: Props) => (
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
             exchangeRate={props.path.exchangeRate}
-            memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
+            memo={props.memoType === 'MEMO_TEXT' || props.memoType === 'MEMO_ID' ? props.memo : ''}
             message={props.message}
             onChangeAmount={props.onChangeAmount}
             recipient={props.recipient || ''}

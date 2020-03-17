@@ -40,14 +40,14 @@ protocol wot {
     string other;
   }
 
-  void wotVouch(int sessionID, UserVersion uv /* vouchee */, array<string> vouchTexts, Confidence confidence);
+  void wotVouch(int sessionID, UserVersion vouchee, array<string> vouchTexts, Confidence confidence);
   void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
 
   enum WotReactionType {
     ACCEPT_0,
     REJECT_1
   }
-  void wotReact(int sessionID, UserVersion uv /* voucher */, SigID proof, WotReactionType reaction);
+  void wotReact(int sessionID, UserVersion voucher, SigID proof, WotReactionType reaction);
   void wotReactCLI(int sessionID, string username /* voucher */, WotReactionType reaction);
 
   record WotVouch {
