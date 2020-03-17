@@ -47,6 +47,10 @@ func populateContent(t *testing.T, config libkbfs.Config) {
 
 func makeTestKBFSConfig(t *testing.T) (
 	kbfsConfig libkbfs.Config, shutdown func()) {
+	// This env is needed for the regression test for HOTPOT-2207.
+	oldEnv := os.Getenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest)
+	os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, "1")
+
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	cfg := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "bot", "user")
@@ -62,6 +66,7 @@ func makeTestKBFSConfig(t *testing.T) (
 	require.NoError(t, err)
 	shutdown = func() {
 		libkbfs.CheckConfigAndShutdown(ctx, t, cfg)
+		os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, oldEnv)
 		err := ioutil.RemoveAll(tempdir)
 		require.NoError(t, err)
 	}
@@ -109,8 +114,7 @@ func TestServerDefault(t *testing.T) {
 	server.ServeHTTP(w, httptest.NewRequest("GET", "/non-existent", nil))
 	require.Equal(t, http.StatusNotFound, w.Code)
 
-	// Regression test HOTPOT-2207. Need to run with
-	// KEYBASE_TEST_OBFUSCATE_LOGS=1.
+	// Regression test HOTPOT-2207.
 	w = httptest.NewRecorder()
 	server.ServeHTTP(w, httptest.NewRequest("GET", "/dir-link/file", nil))
 	require.Equal(t, http.StatusOK, w.Code)
