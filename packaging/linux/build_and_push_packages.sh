@@ -17,13 +17,13 @@ client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 
 echo "================================="
 echo "================================="
-if [ -v "$KEYBASE_TEST" ]; then
+if [ -v KEYBASE_TEST ]; then
     default_bucket_name="tests.keybase.io"
     echo "= This build+push is a TEST. ="
-elif [ -v "$KEYBASE_NIGHTLY" ]; then
+elif [ -v KEYBASE_NIGHTLY ]; then
     default_bucket_name="tests.keybase.io"
     echo "= This build+push is a NIGHTLY. ="
-elif [ -v "$KEYBASE_RELEASE" ]; then
+elif [ -v KEYBASE_RELEASE ]; then
     default_bucket_name="prerelease.keybase.io"
     echo "= This build+push is a RELEASE. ="
 else
@@ -137,14 +137,13 @@ GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
   echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
 NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
-if [ -v "$KEYBASE_NIGHTLY" ] ; then
-    echo "Ending coping binaries to nightly alias."
+if [ -v KEYBASE_NIGHTLY ] ; then
     copy_bins "$NIGHTLY_DIR"
     copy_metadata "$NIGHTLY_DIR"
     echo "Ending nightly."
     exit 0
 fi
-if [ -v "$KEYBASE_TEST" ] ; then
+if [ -v KEYBASE_TEST ] ; then
     echo "Ending test build."
     exit 0
 fi
