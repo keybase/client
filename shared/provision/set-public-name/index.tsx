@@ -19,6 +19,15 @@ type Props = {
 const SetPublicName = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState(defaultDevicename)
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
+  const disabled = React.useMemo(() => {
+    const normalized = deviceName.replace(Constants.normalizeDeviceRE, '')
+    return (
+      normalized.length < 3 ||
+      normalized.length > 64 ||
+      !Constants.goodDeviceRE.test(deviceName) ||
+      Constants.badDeviceRE.test(deviceName)
+    )
+  }, [deviceName])
   const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
     _onSubmit(Constants.cleanDeviceName(cleanDeviceName))
@@ -41,7 +50,7 @@ const SetPublicName = (props: Props) => {
       banners={errorBanner(props.error)}
       buttons={[
         {
-          disabled: deviceName.length < 3 || deviceName.length > 64,
+          disabled,
           label: 'Continue',
           onClick: onSubmit,
           type: 'Success',
@@ -62,13 +71,21 @@ const SetPublicName = (props: Props) => {
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.NewInput
             autoFocus={true}
+            error={disabled}
             placeholder="Pick a device name"
             onEnterKeyDown={onSubmit}
             onChangeText={setDeviceName}
             value={cleanDeviceName}
             style={styles.nameInput}
           />
-          <Kb.Text type="BodySmall">Your device name will be public.</Kb.Text>
+          {disabled && (
+            <Kb.Text type="BodySmall" style={styles.deviceNameError}>
+              {Constants.deviceNameInstructions}
+            </Kb.Text>
+          )}
+          <Kb.Text type="BodySmall">
+            Your device name will be public and can not be changed in the future.
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>
@@ -90,6 +107,9 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {width: '100%'},
     isTablet: {width: undefined},
   }),
+  deviceNameError: {
+    color: Styles.globalColors.redDark,
+  },
   nameInput: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.tiny,

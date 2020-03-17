@@ -65,3 +65,12 @@ export const decodeForgotUsernameError = (error: RPCError) => {
 export const cleanDeviceName = (name: string) =>
   // map 'smart apostrophes' to ASCII (typewriter apostrophe)
   name.replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
+
+// Copied from go/libkb/checkers.go
+export const goodDeviceRE = /^[a-zA-Z0-9][ _'a-zA-Z0-9+‘’—–-]*$/
+// eslint-disable-next-line
+export const badDeviceRE = /  |[ '_-]$|['_-][ ]?['_-]/
+export const normalizeDeviceRE = /[^a-zA-Z0-9]/
+
+export const deviceNameInstructions =
+  'Your device name must have 3-64 characters and not end with punctuation.'

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/provision'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner, InfoIcon} from '../common'
@@ -13,21 +14,15 @@ type Props = {
   waiting: boolean
 }
 
-// Copied from go/libkb/checkers.go
-const deviceRE = /^[a-zA-Z0-9][ _'a-zA-Z0-9+‘’—–-]*$/
-// eslint-disable-next-line
-const badDeviceRE = /  |[ '_-]$|['_-][ ]?['_-]/
-const normalizeDeviceRE = /[^a-zA-Z0-9]/
-
 const EnterDevicename = (props: Props) => {
   const [devicename, onChangeDevicename] = React.useState(props.initialDevicename || '')
   const disabled = React.useMemo(() => {
-    const normalized = devicename.replace(normalizeDeviceRE, '')
+    const normalized = devicename.replace(Constants.normalizeDeviceRE, '')
     return (
       normalized.length < 3 ||
       normalized.length > 64 ||
-      !deviceRE.test(devicename) ||
-      badDeviceRE.test(devicename)
+      !Constants.goodDeviceRE.test(devicename) ||
+      Constants.badDeviceRE.test(devicename)
     )
   }, [devicename])
   const onContinue = () => (disabled ? {} : props.onContinue(devicename))
@@ -64,11 +59,17 @@ const EnterDevicename = (props: Props) => {
           <Kb.LabeledInput
             autoFocus={true}
             containerStyle={styles.input}
+            error={disabled}
             placeholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={onChangeDevicename}
             onEnterKeyDown={onContinue}
             value={devicename}
           />
+          {disabled && (
+            <Kb.Text type="BodySmall" style={styles.deviceNameError}>
+              {Constants.deviceNameInstructions}
+            </Kb.Text>
+          )}
           <Kb.Text type="BodySmall" style={styles.inputSub}>
             Your device name will be public and can not be changed in the future.
           </Kb.Text>
@@ -92,6 +93,10 @@ EnterDevicename.navigationOptions = {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  deviceNameError: {
+    color: Styles.globalColors.redDark,
+    marginLeft: 2,
+  },
   input: Styles.platformStyles({
     isElectron: {
       width: 368,
