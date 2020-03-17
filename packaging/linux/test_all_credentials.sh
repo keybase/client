@@ -13,20 +13,12 @@ here="$(dirname "${BASH_SOURCE[0]}")"
 export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
 
 bucket="${BUCKET_NAME:-prerelease.keybase.io}"
-echo "Checking credentials for s3://$bucket (~/.s3cfg)..."
+echo "Checking credentials for s3://$bucket..."
 "$here/s3cmdwr" ls "s3://$bucket" > /dev/null
 
-echo 'Checking Arch AUR credentials (~/.ssh)...'
-git ls-remote aur@aur.archlinux.org:keybase-git > /dev/null
-git ls-remote aur@aur.archlinux.org:keybase-bin > /dev/null
-
-# We are no longer checking CI during builds.
-# # The release tool needs a GitHub API token to check test status. This is
-# # independent of the SSH keys we checked above.
-# echo 'Checking GitHub API credentials (~/.github_token)...'
-# github_token="$(cat ~/.github_token)"
-# github_url="https://api.github.com/?access_token=$github_token"
-# curl --fail --silent --show-error "$github_url" > /dev/null
+echo 'Checking Arch AUR credentials...'
+git ls-remote aur:keybase-git > /dev/null
+git ls-remote aur:keybase-bin > /dev/null
 
 echo 'Checking the GPG code signing key...'
 fingerprint="$(cat "$here/code_signing_fingerprint")"

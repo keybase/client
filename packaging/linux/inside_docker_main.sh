@@ -18,9 +18,6 @@ build_dir="/root/build"
 # Copy the s3cmd config to root's home dir.
 cp /S3CMD/.s3cfg ~
 
-# Same with the GitHub token.
-cp /GITHUB_TOKEN/.github_token ~
-
 # Copy the SSH configs to the home dir. We copy instead of sharing directly
 # from the host, because SSH complains if ~/.ssh/config is owned by anyone
 # other than the current user. Cloning repos below will test these credentials.

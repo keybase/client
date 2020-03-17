@@ -1,2 +1,5 @@
 #!/usr/bin/env bash
-s3cmd -c /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/dot_s3cfg "$@"
+s3cmd "$@"
+
+# for local testing
+# s3cmd -c /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/dot_s3cfg "$@"

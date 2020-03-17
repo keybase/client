@@ -21,26 +21,23 @@ fi
 
 mode="$1"
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 clientdir="$(git -C "$here" rev-parse --show-toplevel)"
-kbfsdir="$clientdir/../kbfs"
 
 # Run `git fetch` in all the repos we'll share with the container. This
 # prevents an unattended build machine from falling behind over time.
-for repo in "$clientdir" "$kbfsdir" ; do
-  echo "Fetching $repo"
-  git -C "$repo" fetch
-done
+echo "Fetching $clientdir"
+git -C "$clientdir" fetch
 
 # Arrange to share the S3 credentials. We have to do this with a directory
 # instead of sharing the file directly, because the latter only works on Linux.
 s3cmd_temp="$(mktemp -d)"
-cp ~/.s3cfg "$s3cmd_temp"
+cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/s3cfg "$s3cmd_temp"
 
-# Same with the GitHub token.
-github_token_temp="$(mktemp -d)"
-cp ~/.github_token "$github_token_temp"
+# Copy necessary SSH keys out of KBFS
+ssh_temp="$(mktemp -d)"
+cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/aur_id_ed25519 "$ssh_temp"
 
 # Prepare a folder that we'll share with the container, as the container's
 # /root directory, where all the build work gets done. Docker recommends that
@@ -82,16 +79,19 @@ echo '=== docker ==='
 docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
-  -v "$kbfsdir:/KBFS:ro" \
   -v "$gpg_tempdir:/GPG" \
-  -v "$HOME/.ssh:/SSH:ro" \
+  -v "$ssh_temp:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
-  -v "$github_token_temp:/GITHUB_TOKEN:ro" \
   -e BUCKET_NAME \
-  -e NOWAIT \
-  -e KEYBASE_DRY_RUN \
+  -e KEYBASE_RELEASE \
   -e KEYBASE_NIGHTLY \
   -e KEYBASE_TEST \
+  -e KEYBASE_SKIP_32_BIT \
+  -e KEYBASE_SKIP_64_BIT \
+  -e KEYBASE_NO_KBFS \
+  -e KEYBASE_NO_GUI \
+  -e KEYBASE_NO_RPM \
+  -e KEYBASE_NO_DEB \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

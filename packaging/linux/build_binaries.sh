@@ -1,10 +1,10 @@
 #! /usr/bin/env bash
 
-set -e -u -o pipefail
+set -e -u -o -x pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 this_repo="$(git -C "$here" rev-parse --show-toplevel ||
-  echo -n $GOPATH/src/github.com/keybase/client)"
+  echo -n "$GOPATH/src/github.com/keybase/client")"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
@@ -71,6 +71,7 @@ if should_build_electron ; then
   (cd "$this_repo/shared" && yarn install --pure-lockfile --ignore-engines)
   unset KEYBASE_SKIP_DEV_TOOLS
   export NODE_ENV=production
+  echo "Installed Node modules for Electron"
 fi
 
 build_one_architecture() {
@@ -145,6 +146,7 @@ build_one_architecture() {
       "$layout_dir/opt/keybase"
     chmod 4755 "$layout_dir/opt/keybase/chrome-sandbox"
   )
+  echo "Built Electron client for $electron_arch"
 
   # Copy in the icon images and .saltpack file images.
   for size in 16 32 128 256 512 ; do
