@@ -1162,7 +1162,6 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const actions: Array<TypedActions> = []
   const deletedTeams = badgeState.deletedTeams || []
   const newTeams = new Set<string>(badgeState.newTeams || [])
-  const newTeamRequests = badgeState.newTeamAccessRequests || []
 
   const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
   const teamsWithResetUsersMap = new Map<Types.TeamID, Set<string>>()
@@ -1175,7 +1174,6 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   actions.push(
     TeamsGen.createSetNewTeamInfo({
       deletedTeams,
-      newTeamRequests,
       newTeams,
       teamIDToResetUsers: teamsWithResetUsersMap,
     })
@@ -1189,6 +1187,7 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
   let sawChatBanner = false
   let sawSubteamsBanner = false
   let chosenChannels: any
+  const newTeamRequests = new Map<Types.TeamID, Set<string>>()
   items.forEach(i => {
     if (i.item.category === 'sawChatBanner') {
       sawChatBanner = true
@@ -1198,6 +1197,14 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
     }
     if (i.item.category === Constants.chosenChannelsGregorKey) {
       chosenChannels = i
+    }
+    if (i.item.category.startsWith(Constants.newRequestsGregorPrefix)) {
+      const body = i.item.body.toString()
+      if (body) {
+        const request: {id: Types.TeamID; username: string} = JSON.parse(body)
+        const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
+        requests.add(request.username)
+      }
     }
   })
 
@@ -1209,7 +1216,9 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
     actions.push(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 
-  const teamsWithChosenChannelsStr: string | undefined = chosenChannels?.item?.body?.toString()
+  actions.push(TeamsGen.createSetNewTeamRequests({newTeamRequests}))
+
+  const teamsWithChosenChannelsStr: string | undefined = chosenChannels?.item.body.toString()
   const teamsWithChosenChannels = teamsWithChosenChannelsStr
     ? new Set<Types.Teamname>(JSON.parse(teamsWithChosenChannelsStr))
     : new Set<Types.Teamname>()

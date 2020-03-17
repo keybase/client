@@ -63,6 +63,7 @@ export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMemberSubteamDetails = 'teams:setMemberSubteamDetails'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
+export const setNewTeamRequests = 'teams:setNewTeamRequests'
 export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
@@ -245,9 +246,9 @@ type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>
-  readonly newTeamRequests: Array<Types.TeamID>
   readonly teamIDToResetUsers: Map<Types.TeamID, Set<string>>
 }
+type _SetNewTeamRequestsPayload = {readonly newTeamRequests: Map<Types.TeamID, Set<string>>}
 type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
 type _SetSubteamFilterPayload = {readonly filter: string; readonly parentTeam?: Types.TeamID}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
@@ -455,6 +456,13 @@ export const createSetAddMembersWizardRole = (
 export const createSetWelcomeMessage = (payload: _SetWelcomeMessagePayload): SetWelcomeMessagePayload => ({
   payload,
   type: setWelcomeMessage,
+})
+/**
+ * Set which requests we haven't seen yet for a team.
+ */
+export const createSetNewTeamRequests = (payload: _SetNewTeamRequestsPayload): SetNewTeamRequestsPayload => ({
+  payload,
+  type: setNewTeamRequests,
 })
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
@@ -936,6 +944,10 @@ export type SetNewTeamInfoPayload = {
   readonly payload: _SetNewTeamInfoPayload
   readonly type: typeof setNewTeamInfo
 }
+export type SetNewTeamRequestsPayload = {
+  readonly payload: _SetNewTeamRequestsPayload
+  readonly type: typeof setNewTeamRequests
+}
 export type SetPublicityPayload = {readonly payload: _SetPublicityPayload; readonly type: typeof setPublicity}
 export type SetSubteamFilterPayload = {
   readonly payload: _SetSubteamFilterPayload
@@ -1148,6 +1160,7 @@ export type Actions =
   | SetMemberSubteamDetailsPayload
   | SetMembersPayload
   | SetNewTeamInfoPayload
+  | SetNewTeamRequestsPayload
   | SetPublicityPayload
   | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload

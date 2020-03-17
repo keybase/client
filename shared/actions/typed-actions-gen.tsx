@@ -951,6 +951,7 @@ export type TypedActionsMap = {
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
   'teams:setNewTeamInfo': teams.SetNewTeamInfoPayload
+  'teams:setNewTeamRequests': teams.SetNewTeamRequestsPayload
   'teams:setTeamSawChatBanner': teams.SetTeamSawChatBannerPayload
   'teams:setTeamSawSubteamsBanner': teams.SetTeamSawSubteamsBannerPayload
   'teams:updateChannelName': teams.UpdateChannelNamePayload

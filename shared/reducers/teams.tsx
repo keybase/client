@@ -340,6 +340,9 @@ export default Container.makeReducer<
   [TeamsGen.finishAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
   },
+  [TeamsGen.setNewTeamRequests]: (draftState, action) => {
+    draftState.newTeamRequests = action.payload.newTeamRequests
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)
