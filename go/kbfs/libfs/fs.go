@@ -124,7 +124,7 @@ func pathForLogging(
 		childName := n.ChildName(p)
 		ret = path.Join(ret, childName.String())
 		nextNode, _, err := config.KBFSOps().Lookup(ctx, n, childName)
-		if err != nil {
+		if err != nil || nextNode == nil {
 			// Just keep using the parent node to obfuscate.
 			continue
 		}
