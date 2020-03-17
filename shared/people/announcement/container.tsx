@@ -36,38 +36,34 @@ const mapDispatchToProps = dispatch => ({
         dispatch(Chat2Gen.createNavigateToInbox())
         break
       case RPCTypes.AppLinkType.files:
-        dispatch(
-          RouteTree.createNavigateAppend({
-            path: isMobile ? [Tabs.settingsTab, SettingsTabs.fsTab] : [Tabs.fsTab],
-          })
-        )
+        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.fsTab}))
+        if (isMobile) {
+          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.fsTab]}))
+        }
         break
       case RPCTypes.AppLinkType.wallet:
-        dispatch(
-          RouteTree.createNavigateAppend({
-            path: isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
-          })
-        )
+        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+        if (isMobile) {
+          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.walletsTab]}))
+        }
         break
       case RPCTypes.AppLinkType.git:
-        dispatch(
-          RouteTree.createNavigateAppend({
-            path: isMobile ? [Tabs.settingsTab, SettingsTabs.gitTab] : [Tabs.gitTab],
-          })
-        )
+        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.gitTab}))
+        if (isMobile) {
+          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.gitTab]}))
+        }
         break
       case RPCTypes.AppLinkType.devices:
-        dispatch(
-          RouteTree.createNavigateAppend({
-            path: isMobile ? [Tabs.settingsTab, SettingsTabs.devicesTab] : [Tabs.devicesTab],
-          })
-        )
+        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab}))
+        if (isMobile) {
+          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.devicesTab]}))
+        }
         break
       case RPCTypes.AppLinkType.settings:
-        dispatch(RouteTree.createNavigateAppend({path: [Tabs.settingsTab]}))
+        dispatch(RouteTree.createSwitchTab({tab: Tabs.settingsTab}))
         break
       case RPCTypes.AppLinkType.teams:
-        dispatch(RouteTree.createNavigateAppend({path: [Tabs.teamsTab]}))
+        dispatch(RouteTree.createSwitchTab({tab: Tabs.teamsTab}))
         break
     }
     dispatch(PeopleGen.createDismissAnnouncement({id}))
