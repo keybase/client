@@ -109,6 +109,9 @@ func ParseSeitanTokenFromPaste(token string) (parsed string, isSeitany bool) {
 		}
 		return token, true
 	}
+	if groups := invitelinkIKeyRxx.FindStringSubmatch(token); groups != nil {
+		return groups[len(groups)-1], true
+	}
 	if IsSeitany(token) {
 		return token, true
 	}

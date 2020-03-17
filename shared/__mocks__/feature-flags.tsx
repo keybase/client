@@ -10,7 +10,7 @@ const ff: FeatureFlags = {
   foldersInProfileTab: true,
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,
-  tabletSupport: false,
+  tabletSupport: true,
   teamInvites: false,
   teamsRedesign: true,
   webOfTrust: false,

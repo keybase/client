@@ -43,14 +43,6 @@ export type TeamSettings = {} & RPCTypes.TeamSettings
 
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
-export type ChannelInfo = {
-  channelname: string
-  conversationIDKey: ConversationIDKey
-  description: string
-  memberStatus: RPCChatTypes.ConversationMemberStatus
-  mtime: number
-}
-
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type MemberInfo = {
   fullName: string
@@ -184,7 +176,6 @@ export type State = {
   readonly teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   readonly teamDetails: Map<TeamID, TeamDetails>
   readonly teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
-  readonly teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
   readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   readonly teamVersion: Map<TeamID, TeamVersion>
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>

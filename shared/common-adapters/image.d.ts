@@ -5,7 +5,10 @@ export type Props = {
   src: string
   style?: any
   onDragStart?: (e: React.SyntheticEvent) => void
+  draggable?: boolean
   onLoad?: (e: React.BaseSyntheticEvent) => void
+  onError?: () => void
+  showLoadingStateUntilLoaded?: boolean
 }
 
 export type ReqProps = {

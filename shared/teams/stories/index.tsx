@@ -1,30 +1,22 @@
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 export const fakeTeamID = 'fakeTeamID'
 const teamID2 = 'faketeamID2'
 const teamID3 = 'faketeamID3'
 export const fakeTeamIDs = [fakeTeamID, teamID2, teamID3]
 
-const fakeChannelMap = new Map([
-  ['0', {...Constants.initialChannelInfo, channelname: 'general'}],
-  ['1', {...Constants.initialChannelInfo, channelname: 'random'}],
-  ['2', {...Constants.initialChannelInfo, channelname: 'hellos'}],
-  ['3', {...Constants.initialChannelInfo, channelname: 'NY_MemorialDay', description: 'zapu is in town'}],
-  ['4', {...Constants.initialChannelInfo, channelname: 'sandwiches', description: 'the best foods'}],
-  ['5', {...Constants.initialChannelInfo, channelname: 'soups', description: 'the worst foods'}],
-  ['6', {...Constants.initialChannelInfo, channelname: 'stir-fry'}],
-  ['7', {...Constants.initialChannelInfo, channelname: 'ice-cream'}],
-  ['8', {...Constants.initialChannelInfo, channelname: 'salad'}],
-  ['9', {...Constants.initialChannelInfo, channelname: 'veg'}],
-  ['10', {...Constants.initialChannelInfo, channelname: 'plate-presentation'}],
-  ['11', {...Constants.initialChannelInfo, channelname: 'team-sqawk'}],
-  ['12', {...Constants.initialChannelInfo, channelname: 'team-birbs'}],
-  ['13', {...Constants.initialChannelInfo, channelname: 'team-beasts'}],
-  ['14', {...Constants.initialChannelInfo, channelname: 'team-dogs-of-the-sea-and-other-creatures'}],
-])
 export const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.chat2.inboxLayout = {
+    bigTeams: [
+      {
+        label: {id: fakeTeamID, name: 'keybase_storybook'},
+        state: RPCChatTypes.UIInboxBigTeamRowTyp.label,
+      },
+    ],
+    totalSmallTeams: 0,
+  }
   draftState.teams = {
     ...Constants.makeState(),
     teamDetails: new Map([
@@ -50,11 +42,6 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
           ]),
         },
       ],
-    ]),
-    teamIDToChannelInfos: new Map([
-      [fakeTeamID, fakeChannelMap],
-      [teamID2, fakeChannelMap],
-      [teamID3, fakeChannelMap],
     ]),
     teamMeta: new Map([
       [fakeTeamID, Constants.makeTeamMeta({memberCount: 32, teamname: 'keybase_storybook'})],

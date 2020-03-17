@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/wot.avdl
 
 package keybase1
@@ -51,41 +51,47 @@ func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
 	return o
 }
 
+type WotProof struct {
+	ProofType ProofType `codec:"proofType" json:"proof_type"`
+	Name      string    `codec:"name" json:"name,omitempty"`
+	Username  string    `codec:"username" json:"username,omitempty"`
+	Protocol  string    `codec:"protocol" json:"protocol,omitempty"`
+	Hostname  string    `codec:"hostname" json:"hostname,omitempty"`
+	Domain    string    `codec:"domain" json:"domain,omitempty"`
+}
+
+func (o WotProof) DeepCopy() WotProof {
+	return WotProof{
+		ProofType: o.ProofType.DeepCopy(),
+		Name:      o.Name,
+		Username:  o.Username,
+		Protocol:  o.Protocol,
+		Hostname:  o.Hostname,
+		Domain:    o.Domain,
+	}
+}
+
 type Confidence struct {
-	VouchedBy           []UID                    `codec:"vouchedBy" json:"vouched_by,omitempty"`
-	Proofs              []SigID                  `codec:"proofs" json:"proofs"`
 	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"username_verified_via,omitempty"`
-	Other               string                   `codec:"other" json:"other"`
-	KnownOnKeybaseDays  int                      `codec:"knownOnKeybaseDays" json:"known_on_keybase_days,omitempty"`
+	Proofs              []WotProof               `codec:"proofs" json:"proofs,omitempty"`
+	Other               string                   `codec:"other" json:"other,omitempty"`
 }
 
 func (o Confidence) DeepCopy() Confidence {
 	return Confidence{
-		VouchedBy: (func(x []UID) []UID {
+		UsernameVerifiedVia: o.UsernameVerifiedVia.DeepCopy(),
+		Proofs: (func(x []WotProof) []WotProof {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UID, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.VouchedBy),
-		Proofs: (func(x []SigID) []SigID {
-			if x == nil {
-				return nil
-			}
-			ret := make([]SigID, len(x))
+			ret := make([]WotProof, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
 		})(o.Proofs),
-		UsernameVerifiedVia: o.UsernameVerifiedVia.DeepCopy(),
-		Other:               o.Other,
-		KnownOnKeybaseDays:  o.KnownOnKeybaseDays,
+		Other: o.Other,
 	}
 }
 

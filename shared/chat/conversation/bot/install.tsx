@@ -5,8 +5,7 @@ import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as WaitingGen from '../../../actions/waiting-gen'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as Teams from '../../../constants/teams'
+import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
@@ -67,7 +66,6 @@ const InstallBotPopup = (props: Props) => {
   const [disableDone, setDisableDone] = React.useState(false)
   const {
     commands,
-    channelInfos,
     featured,
     inTeam,
     inTeamUnrestricted,
@@ -81,8 +79,7 @@ const InstallBotPopup = (props: Props) => {
     let isBot: boolean | undefined
     let teamRole: TeamTypes.TeamRoleType | null | undefined
     let teamName: string | null | undefined
-    let teamID: TeamTypes.TeamID | undefined
-    let channelInfos: Map<string, TeamTypes.ChannelInfo> | undefined
+    let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
     let readOnly = false
     let commands: Array<string> = []
     if (conversationIDKey) {
@@ -94,7 +91,6 @@ const InstallBotPopup = (props: Props) => {
         teamID = meta.teamID
         teamName = meta.teamname
         readOnly = !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots
-        channelInfos = Teams.getTeamChannelInfos(state, teamID)
       }
       teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
       if (teamRole !== undefined) {
@@ -107,7 +103,6 @@ const InstallBotPopup = (props: Props) => {
     }
     const convCommands: Types.BotPublicCommands = {commands, loadError: false}
     return {
-      channelInfos,
       commands: commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername),
       featured: state.chat2.featuredBotsMap.get(botUsername),
       inTeam,
@@ -121,6 +116,7 @@ const InstallBotPopup = (props: Props) => {
       teamName,
     }
   })
+  const channelMetas = useAllChannelMetas(teamID)
   const error = Container.useAnyErrors(Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove)
   // dispatch
   const dispatch = Container.useDispatch()
@@ -198,12 +194,6 @@ const InstallBotPopup = (props: Props) => {
       }
     }
   }, [conversationIDKey, inTeam, dispatch, botUsername])
-  React.useEffect(() => {
-    if (!teamID) {
-      return
-    }
-    dispatch(TeamsGen.createGetChannels({teamID}))
-  }, [teamID, dispatch])
   const noCommands = !commands?.commands
   React.useEffect(() => {
     dispatch(
@@ -257,7 +247,7 @@ const InstallBotPopup = (props: Props) => {
       </Kb.Box2>
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
-          channelInfos={channelInfos}
+          channelMetas={channelMetas}
           commands={commands}
           settings={settings}
           username={botUsername}
@@ -278,7 +268,7 @@ const InstallBotPopup = (props: Props) => {
       <Kb.NameWithIcon horizontal={true} username={botUsername} size="big" />
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
-          channelInfos={channelInfos}
+          channelMetas={channelMetas}
           settings={settings}
           commands={commands}
           username={botUsername}
@@ -315,7 +305,7 @@ const InstallBotPopup = (props: Props) => {
               onCheck={() => setInstallWithMentions(!installWithMentions)}
             />
           </Kb.Box2>
-          {teamID && teamName && channelInfos && (
+          {teamID && teamName && channelMetas && (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               <Kb.Text type="BodyBig">In these channels:</Kb.Text>
               <Kb.DropdownButton
@@ -329,7 +319,7 @@ const InstallBotPopup = (props: Props) => {
                     <Kb.Text type="BodySemibold">
                       {teamName}{' '}
                       {installInConvs.length === 1
-                        ? `(#${channelInfos.get(installInConvs[0])?.channelname ?? ''})`
+                        ? `(#${channelMetas.get(installInConvs[0])?.channelname ?? ''})`
                         : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
                     </Kb.Text>
                   </Kb.Box2>
@@ -359,10 +349,10 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2>
   )
 
-  const channelPickerContent = channelPickerScreen && teamID && teamName && channelInfos && (
+  const channelPickerContent = channelPickerScreen && teamID && teamName && channelMetas && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <ChannelPicker
-        channelInfos={channelInfos}
+        channelMetas={channelMetas}
         installInConvs={installInConvs}
         setChannelPickerScreen={setChannelPickerScreen}
         setDisableDone={setDisableDone}
@@ -594,7 +584,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 }
 
 type PermsListProps = {
-  channelInfos?: Map<string, TeamTypes.ChannelInfo>
+  channelMetas?: Map<Types.ConversationIDKey, Types.ConversationMeta>
   commands: Types.BotPublicCommands | undefined
   settings?: RPCTypes.TeamBotSettings
   username: string
@@ -620,11 +610,11 @@ const PermsList = (props: PermsListProps) => {
               <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
             )}
           </Kb.Box2>
-          {props.settings.convs && props.channelInfos && (
+          {props.settings.convs && props.channelMetas && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
               {props.settings.convs?.map(convID => (
-                <Kb.Text type="Body" key={convID}>{`• #${props.channelInfos?.get(convID)?.channelname ??
+                <Kb.Text type="Body" key={convID}>{`• #${props.channelMetas?.get(convID)?.channelname ??
                   ''}`}</Kb.Text>
               ))}
             </Kb.Box2>

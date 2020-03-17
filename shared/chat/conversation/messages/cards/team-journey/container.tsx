@@ -13,6 +13,7 @@ import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
 import {renderWelcomeMessage} from './util'
+import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
@@ -23,10 +24,7 @@ type Props = {
   cannotWrite: boolean
   channelname: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  loadTeamID: TeamTypes.TeamID
   message: MessageTypes.MessageJourneycard
-  otherChannelsForPopular: Array<string>
-  otherChannelsForNoAnswer: Array<string>
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
   onCreateChatChannels: () => void
@@ -36,6 +34,7 @@ type Props = {
   onScrollBack: () => void
   onShowTeam: () => void
   onAuthorClick: () => void
+  teamID: TeamTypes.TeamID
   teamname: string
   isBigTeam: boolean
   welcomeMessage: RPCChatTypes.WelcomeMessageDisplay | null
@@ -45,7 +44,20 @@ const TeamJourneyContainer = (props: Props) => {
   let textComponent: React.ReactNode
   let image: Kb.IconType | null = null
   let actions: Array<Action> = []
-  let loadTeamID: TeamTypes.TeamID | undefined
+
+  const dontCallRPC =
+    props.message.cardType !== RPCChatTypes.JourneycardType.popularChannels &&
+    props.message.cardType !== RPCChatTypes.JourneycardType.msgNoAnswer
+  const channelMetas = useAllChannelMetas(props.teamID, dontCallRPC)
+  // Take the top three channels with most recent activity.
+  const joinableStatuses = new Set<ChatTypes.ConversationMeta['membershipType']>([
+    // keep in sync with journey_card_manager.go
+    'notMember' as const,
+    'youAreReset' as const,
+  ])
+  const otherChannelsBase = [...channelMetas.values()]
+    .filter(info => info.channelname !== props.channelname)
+    .sort((x, y) => y.timestamp - x.timestamp)
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
@@ -66,23 +78,28 @@ const TeamJourneyContainer = (props: Props) => {
       }
       break
     case RPCChatTypes.JourneycardType.popularChannels:
-      actions = props.otherChannelsForPopular.map(chan => ({
-        label: `#${chan}`,
-        onClick: () => props.onGoToChannel(chan),
-      }))
-      loadTeamID = props.loadTeamID
-      textComponent = (
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="BodySmall">
-            You are in <Kb.Text type="BodySmallBold">#{props.channelname}</Kb.Text>.
-          </Kb.Text>
-          <Kb.Text type="BodySmall">
-            {props.otherChannelsForPopular.length
-              ? `Other channels in this team are:`
-              : `And you're in all the other channels, nice.`}
-          </Kb.Text>
-        </Kb.Box2>
-      )
+      {
+        const otherChannelsForPopular = otherChannelsBase
+          .filter(({membershipType}) => joinableStatuses.has(membershipType))
+          .slice(0, Container.isMobile ? 2 : 3)
+          .map(info => info.channelname)
+        actions = otherChannelsForPopular.map(chan => ({
+          label: `#${chan}`,
+          onClick: () => props.onGoToChannel(chan),
+        }))
+        textComponent = (
+          <Kb.Box2 direction="vertical">
+            <Kb.Text type="BodySmall">
+              You are in <Kb.Text type="BodySmallBold">#{props.channelname}</Kb.Text>.
+            </Kb.Text>
+            <Kb.Text type="BodySmall">
+              {otherChannelsForPopular.length
+                ? `Other channels in this team are:`
+                : `And you're in all the other channels, nice.`}
+            </Kb.Text>
+          </Kb.Box2>
+        )
+      }
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
@@ -127,16 +144,20 @@ const TeamJourneyContainer = (props: Props) => {
       )
       break
     case RPCChatTypes.JourneycardType.msgNoAnswer:
-      actions = props.otherChannelsForNoAnswer.map(chan => ({
-        label: `#${chan}`,
-        onClick: () => props.onGoToChannel(chan),
-      }))
-      loadTeamID = props.loadTeamID
-      textComponent = (
-        <Kb.Text type="BodySmall">
-          People haven’t been talkative in a while. Perhaps post in another channel?
-        </Kb.Text>
-      )
+      {
+        const otherChannelsForNoAnswer = otherChannelsBase
+          .slice(0, Container.isMobile ? 2 : 3)
+          .map(info => info.channelname)
+        actions = otherChannelsForNoAnswer.map(chan => ({
+          label: `#${chan}`,
+          onClick: () => props.onGoToChannel(chan),
+        }))
+        textComponent = (
+          <Kb.Text type="BodySmall">
+            People haven’t been talkative in a while. Perhaps post in another channel?
+          </Kb.Text>
+        )
+      }
       break
     default:
       console.warn(`Unexpected journey card type: ${props.message.cardType}`)
@@ -147,7 +168,6 @@ const TeamJourneyContainer = (props: Props) => {
     <TeamJourney
       actions={actions}
       image={image}
-      loadTeamID={loadTeamID}
       onAuthorClick={props.onAuthorClick}
       teamname={props.teamname}
       conversationIDKey={props.conversationIDKey}
@@ -163,7 +183,6 @@ const TeamJourneyConnected = Container.connect(
     const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
     const {cannotWrite, channelname, conversationIDKey, teamname, teamID} = conv
     return {
-      _channelInfos: TeamConstants.getTeamChannelInfos(state, teamID),
       _teamID: teamID,
       canShowcase: TeamConstants.canShowcase(state, teamID),
       cannotWrite: cannotWrite,
@@ -209,24 +228,6 @@ const TeamJourneyConnected = Container.connect(
       isBigTeam,
       welcomeMessage,
     } = stateProps
-    // Take the top three channels with most recent activity.
-    const joinableStatuses = new Set([
-      // keep in sync with journey_card_manager.go
-      RPCChatTypes.ConversationMemberStatus.removed,
-      RPCChatTypes.ConversationMemberStatus.left,
-      RPCChatTypes.ConversationMemberStatus.reset,
-      RPCChatTypes.ConversationMemberStatus.neverJoined,
-    ])
-    const otherChannelsBase = [...stateProps._channelInfos.values()]
-      .filter(info => info.channelname !== channelname)
-      .sort((x, y) => y.mtime - x.mtime)
-    const otherChannelsForPopular = otherChannelsBase
-      .filter(info => joinableStatuses.has(info.memberStatus))
-      .slice(0, Container.isMobile ? 2 : 3)
-      .map(info => info.channelname)
-    const otherChannelsForNoAnswer = otherChannelsBase
-      .slice(0, Container.isMobile ? 2 : 3)
-      .map(info => info.channelname)
 
     return {
       canShowcase,
@@ -234,7 +235,6 @@ const TeamJourneyConnected = Container.connect(
       channelname,
       conversationIDKey,
       isBigTeam,
-      loadTeamID: stateProps._teamID,
       message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
       onAuthorClick: () => dispatchProps._onAuthorClick(stateProps._teamID),
@@ -250,8 +250,7 @@ const TeamJourneyConnected = Container.connect(
       onPublishTeam: () => dispatchProps._onPublishTeam(),
       onScrollBack: () => console.log('onScrollBack'),
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
-      otherChannelsForNoAnswer,
-      otherChannelsForPopular,
+      teamID: stateProps._teamID,
       teamname,
       welcomeMessage,
     }

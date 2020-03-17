@@ -108,6 +108,18 @@ const Actions = (p: Props) => {
         chatButton,
         dropdown,
       ]
+    } else if (p.state === 'needsUpgrade') {
+      buttons = [
+        chatButton,
+        <Kb.WaitingButton
+          key="Accept"
+          type="Success"
+          label="Accept"
+          waitingKey={Constants.waitingKey}
+          onClick={p.onAccept}
+        />,
+        dropdown,
+      ]
     } else {
       buttons = [
         <Kb.WaitingButton

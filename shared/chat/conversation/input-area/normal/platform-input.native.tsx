@@ -146,19 +146,20 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   private getHintText = () => {
-    let hintText = 'Write a message'
     if (this.props.isExploding && isLargeScreen) {
-      hintText = 'Exploding message'
+      return this.props.conversationName
+        ? `Exploding message ${this.props.conversationName}`
+        : 'Exploding message'
     } else if (this.props.isExploding && !isLargeScreen) {
-      hintText = 'Exploding'
+      return this.props.conversationName ? `Exploding ${this.props.conversationName}` : 'Exploding'
     } else if (this.props.isEditing) {
-      hintText = 'Edit your message'
+      return 'Edit your message'
     } else if (this.props.cannotWrite) {
-      hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
+      return `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
       } to post.`
     }
-    return hintText
+    return this.props.conversationName ? `Message ${this.props.conversationName}` : 'Write a message'
   }
 
   private getMenu = () => {

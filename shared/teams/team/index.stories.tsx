@@ -3,28 +3,12 @@ import * as Sb from '../../stories/storybook'
 import Team from '.'
 import * as Container from '../../util/container'
 import {store, fakeTeamID} from '../stories'
-import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import makeRows from './rows'
 
 const teamID = fakeTeamID
-const getRows = (selectedTab: Types.TabKey) =>
-  makeRows(
-    Constants.getTeamMeta(store, teamID),
-    Constants.getTeamDetails(store, teamID),
-    selectedTab,
-    store.config.username,
-    Constants.getCanPerformByID(store, teamID),
-    store.teams.invitesCollapsed,
-    store.teams.teamIDToChannelInfos.get(teamID)
-  )
+
 const getProps = (selectedTab: Types.TabKey) => ({
-  sections: [
-    {data: [{key: 'header-inner', type: 'header' as const}], key: 'header'},
-    {data: getRows(selectedTab), header: {key: 'tabs', type: 'tabs' as const}, key: 'body'},
-  ],
-  selectedTab,
-  setSelectedTab: Sb.action('setSelectedTab'),
+  initialTab: selectedTab,
   teamID,
 })
 

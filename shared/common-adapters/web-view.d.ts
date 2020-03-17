@@ -15,7 +15,7 @@ export type WebViewProps = {
   pinnedURLMode: boolean // only tested on iOS
   injections?: WebViewInjections
   style?: Object
-  onLoadingStateChange?: (isLoading: boolean) => void
+  showLoadingStateUntilLoaded?: boolean
   onError?: (err: string) => void
 }
 declare const toExport: React.ComponentType<WebViewProps>

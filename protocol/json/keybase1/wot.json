@@ -26,36 +26,61 @@
     },
     {
       "type": "record",
-      "name": "Confidence",
+      "name": "WotProof",
       "fields": [
         {
-          "type": {
-            "type": "array",
-            "items": "UID"
-          },
-          "name": "vouchedBy",
-          "jsonkey": "vouched_by,omitempty"
+          "type": "ProofType",
+          "name": "proofType",
+          "jsonkey": "proof_type"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "SigID"
-          },
-          "name": "proofs"
+          "type": "string",
+          "name": "name",
+          "jsonkey": "name,omitempty"
         },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "username,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "protocol",
+          "jsonkey": "protocol,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "hostname",
+          "jsonkey": "hostname,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "domain",
+          "jsonkey": "domain,omitempty"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Confidence",
+      "fields": [
         {
           "type": "UsernameVerificationType",
           "name": "usernameVerifiedVia",
           "jsonkey": "username_verified_via,omitempty"
         },
         {
-          "type": "string",
-          "name": "other"
+          "type": {
+            "type": "array",
+            "items": "WotProof"
+          },
+          "name": "proofs",
+          "jsonkey": "proofs,omitempty"
         },
         {
-          "type": "int",
-          "name": "knownOnKeybaseDays",
-          "jsonkey": "known_on_keybase_days,omitempty"
+          "type": "string",
+          "name": "other",
+          "jsonkey": "other,omitempty"
         }
       ]
     },

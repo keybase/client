@@ -9,7 +9,7 @@ import * as Electron from 'electron'
 import {intersect} from '../util/set'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
-import {isDarwin, isWindows} from '../constants/platform'
+import {isDarwin, isWindows, isLinux} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 import {ProxyProps, RemoteTlfUpdates} from './remote-serializer.desktop'
@@ -32,9 +32,10 @@ const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   }
 
   const size = isWindows ? 16 : 22
-  const icon = `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}@2x.png`
+  const x = isLinux ? '' : '@2x'
+  const icon = `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}${x}.png`
   // Only used on Darwin
-  const iconSelected = `icon-${platform}keybase-menubar-${iconType}-${colorSelected}-${size}${devMode}@2x.png`
+  const iconSelected = `icon-${platform}keybase-menubar-${iconType}-${colorSelected}-${size}${devMode}${x}.png`
   return [icon, iconSelected]
 }
 

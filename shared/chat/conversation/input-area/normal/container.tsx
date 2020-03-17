@@ -7,6 +7,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Waiting from '../../../../constants/waiting'
+import * as Platform from '../../../../constants/platform'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -61,7 +62,7 @@ let _channelSuggestions: Array<{channelname: string; teamname?: string}> = noCha
 const getChannelSuggestions = (
   state: Container.TypedState,
   teamname: string,
-  teamID: TeamsTypes.TeamID,
+  _: TeamsTypes.TeamID,
   convID?: Types.ConversationIDKey
 ) => {
   if (!teamname) {
@@ -69,50 +70,68 @@ const getChannelSuggestions = (
     if (!convID) {
       return noChannel
     }
-    const mutualTeams = state.chat2.mutualTeamMap.get(convID)
+    const mutualTeams = (state.chat2.mutualTeamMap.get(convID) ?? []).map(teamID =>
+      TeamsConstants.getTeamNameFromID(state, teamID)
+    )
     if (!mutualTeams) {
       return noChannel
     }
-    return mutualTeams.reduce<Array<{channelname: string; teamname: string}>>((arr, id) => {
-      const teamname = TeamsConstants.getTeamNameFromID(state, id)
-      if (!teamname) {
-        return arr
+    // TODO: maybe we shouldn't rely on this inboxlayout being around?
+    const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<
+      Array<{channelname: string; teamname: string}>
+    >((arr, t) => {
+      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (mutualTeams.includes(t.channel.teamname)) {
+          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+        }
       }
-      const channels: TeamsTypes.ChannelInfo[] = Array.from(
-        state.teams.teamIDToChannelInfos.get(id)?.values() ?? []
-      )
-
-      return arr.concat(
-        [...channels.values()].map(conv => ({
-          channelname: conv.channelname,
-          teamname,
-        }))
-      )
+      return arr
     }, [])
+
+    if (!shallowEqual(_channelSuggestions, suggestions)) {
+      _channelSuggestions = suggestions
+    }
+    return _channelSuggestions
   }
-  // First try channelinfos (all channels in a team), then try inbox (the
-  // partial list of channels that you have joined).
-  const convs = state.teams.teamIDToChannelInfos.get(teamID)
-  let suggestions: Array<{channelname: string}>
-  if (convs) {
-    suggestions = [...convs.values()].map(conv => ({
-      channelname: conv.channelname,
-    }))
-  } else {
-    suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>((arr, t) => {
+  // TODO: get all the channels in the team, too, for this
+  const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>(
+    (arr, t) => {
       if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
         if (t.channel.teamname === teamname) {
           arr.push({channelname: t.channel.channelname})
         }
       }
       return arr
-    }, [])
-  }
+    },
+    []
+  )
 
   if (!shallowEqual(_channelSuggestions, suggestions)) {
     _channelSuggestions = suggestions
   }
   return _channelSuggestions
+}
+
+const getConversationNameForInput = (
+  state: Container.TypedState,
+  conversationIDKey: Types.ConversationIDKey
+): string => {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  if (meta.teamType === 'big') {
+    return meta.channelname ? `in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
+  }
+  if (meta.teamType === 'small') {
+    return meta.teamname ? `in ${meta.teamname}` : ''
+  }
+  if (meta.teamType === 'adhoc') {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
+    if (participantInfo.name.length) {
+      return participantInfo.name.length > 2
+        ? 'in the group'
+        : `to @${participantInfo.name.find(n => n !== state.config.username)}`
+    }
+  }
+  return ''
 }
 
 export default Container.namedConnect(
@@ -123,6 +142,7 @@ export default Container.namedConnect(
     const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
+    const conversationName = getConversationNameForInput(state, conversationIDKey)
 
     const _you = state.config.username
 
@@ -151,6 +171,7 @@ export default Container.namedConnect(
       _you,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
+      conversationName,
       editText: editInfo ? editInfo.text : '',
       explodingModeSeconds,
       infoPanelShowing: state.chat2.infoPanelShowing,
@@ -265,6 +286,7 @@ export default Container.namedConnect(
       cannotWrite: stateProps.cannotWrite,
       clearInboxFilter: dispatchProps.clearInboxFilter,
       conversationIDKey: stateProps.conversationIDKey,
+      conversationName: stateProps.conversationName,
       editText: stateProps.editText,
       explodingModeSeconds: stateProps.explodingModeSeconds,
       focusInputCounter: ownProps.focusInputCounter,

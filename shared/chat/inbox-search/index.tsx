@@ -12,6 +12,7 @@ import {inboxWidth} from '../inbox/row/sizes'
 import {TeamAvatar} from '../avatars'
 import Rover from './background'
 import TeamInfo from '../../profile/user/teams/teaminfo'
+import {Section as _Section} from '../../common-adapters/section-list'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -26,9 +27,19 @@ type TextResult = {
   numHits: number
   query: string
 }
+type SectionExtra<T> = {
+  indexOffset: number
+  isCollapsed: boolean
+  onCollapse: () => void
+  onSelect: (item: T, index: number) => void
+  renderHeader: (section: Section<T>) => React.ReactNode
+  status: Types.InboxSearchStatus
+  title: string
+}
+type Section<T> = _Section<T, SectionExtra<T>>
 
 export type Props = {
-  header?: React.ReactNode
+  header?: React.ReactElement | null
   indexPercent: number
   nameResults: Array<NameResult>
   nameResultsUnread: boolean
@@ -51,7 +62,7 @@ type State = {
   openTeamsCollapsed: boolean
 }
 
-const emptyUnreadPlaceholder = '---EMPTYRESULT---'
+const emptyUnreadPlaceholder = {conversationIDKey: '', name: '---EMPTYRESULT---', type: 'small' as const}
 
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, openTeamsAll: false, openTeamsCollapsed: false, textCollapsed: false}
@@ -77,26 +88,27 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   private renderHit = (h: {
-    item: TextResult | string
-    section: {indexOffset: number; onSelect: any}
+    item: TextResult | NameResult
+    section: {indexOffset: number; onSelect: (item: any, index: number) => void}
     index: number
   }) => {
-    if (typeof h.item === 'string') {
-      return h.item === emptyUnreadPlaceholder ? (
+    if (h.item === emptyUnreadPlaceholder) {
+      return (
         <Kb.Text style={styles.emptyUnreadPlaceholder} type="BodySmall" center={true}>
           No unread messages or conversations
         </Kb.Text>
-      ) : null
+      )
     }
 
     const {item, section, index} = h
+    const numHits = (item as TextResult)?.numHits || undefined
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
         name={item.name}
-        numSearchHits={item?.numHits}
+        numSearchHits={numHits}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
       />
@@ -105,7 +117,7 @@ class InboxSearch extends React.Component<Props, State> {
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
         name={item.name}
-        numSearchHits={item?.numHits}
+        numSearchHits={numHits}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
       />
@@ -210,10 +222,10 @@ class InboxSearch extends React.Component<Props, State> {
   private renderSectionHeader = ({section}: any) => {
     return section.renderHeader(section)
   }
-  private keyExtractor = (_: unknown, index: number) => index
+  private keyExtractor = (_: Types.InboxSearchOpenTeamHit | NameResult | TextResult, index: number) => index
 
   render() {
-    const nameResults: Array<NameResult | string> = this.state.nameCollapsed ? [] : this.props.nameResults
+    const nameResults: Array<NameResult> = this.state.nameCollapsed ? [] : this.props.nameResults
     const textResults = this.state.textCollapsed ? [] : this.props.textResults
     const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.getOpenTeamsResults()
 
@@ -223,50 +235,50 @@ class InboxSearch extends React.Component<Props, State> {
       nameResults.push(emptyUnreadPlaceholder)
     }
 
+    const nameSection: Section<NameResult> = {
+      data: nameResults,
+      indexOffset: 0,
+      isCollapsed: this.state.nameCollapsed,
+      onCollapse: this.toggleCollapseName,
+      onSelect: this.selectName,
+      renderHeader: this.renderNameHeader,
+      renderItem: this.renderHit,
+      status: this.props.nameStatus,
+      title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
+    }
+    const openTeamsSection: Section<Types.InboxSearchOpenTeamHit> = {
+      data: openTeamsResults,
+      indexOffset: nameResults.length,
+      isCollapsed: this.state.openTeamsCollapsed,
+      onCollapse: this.toggleCollapseOpenTeams,
+      // @ts-ignore TODO: pretty sure this line is just wrong:
+      onSelect: this.selectText,
+      renderHeader: this.renderTeamHeader,
+      renderItem: this.renderOpenTeams,
+      status: this.props.openTeamsStatus,
+      title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
+    }
+    const messagesSection: Section<TextResult> = {
+      data: textResults,
+      indexOffset,
+      isCollapsed: this.state.textCollapsed,
+      onCollapse: this.toggleCollapseText,
+      onSelect: this.selectText,
+      renderHeader: this.renderTextHeader,
+      renderItem: this.renderHit,
+      status: this.props.textStatus,
+      title: 'Messages',
+    }
     const sections = [
-      {
-        data: nameResults,
-        indexOffset: 0,
-        isCollapsed: this.state.nameCollapsed,
-        onCollapse: this.toggleCollapseName,
-        onSelect: this.selectName,
-        renderHeader: this.renderNameHeader,
-        renderItem: this.renderHit,
-        status: this.props.nameStatus,
-        title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
-      },
-      {
-        data: openTeamsResults,
-        indexOffset: nameResults.length,
-        isCollapsed: this.state.openTeamsCollapsed,
-        onCollapse: this.toggleCollapseOpenTeams,
-        onSelect: this.selectText,
-        renderHeader: this.renderTeamHeader,
-        renderItem: this.renderOpenTeams,
-        status: this.props.openTeamsStatus,
-        title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
-      },
-      ...(!this.props.nameResultsUnread
-        ? [
-            {
-              data: textResults,
-              indexOffset,
-              isCollapsed: this.state.textCollapsed,
-              onCollapse: this.toggleCollapseText,
-              onSelect: this.selectText,
-              renderHeader: this.renderTextHeader,
-              renderItem: this.renderHit,
-              status: this.props.textStatus,
-              title: 'Messages',
-            },
-          ]
-        : []),
+      nameSection,
+      openTeamsSection,
+      ...(!this.props.nameResultsUnread ? [messagesSection] : []),
     ]
 
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         <Rover />
-        <Kb.SectionList
+        <Kb.SectionList<Section<NameResult> | Section<Types.InboxSearchOpenTeamHit> | Section<TextResult>>
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={this.renderSectionHeader}

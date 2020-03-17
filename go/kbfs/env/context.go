@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -57,6 +58,7 @@ type Context interface {
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
 	GetVDebugSetting() string
+	GetPerfLog() logger.Logger
 }
 
 // KBFSContext is an implementation for libkbfs.Context
@@ -151,6 +153,11 @@ func (c *KBFSContext) GetEnv() *libkb.Env {
 // GetRunMode returns run mode
 func (c *KBFSContext) GetRunMode() kbconst.RunMode {
 	return c.g.GetRunMode()
+}
+
+// GetPerfLog returns the perf log.
+func (c *KBFSContext) GetPerfLog() logger.Logger {
+	return c.g.GetPerfLog()
 }
 
 // NextAppStateUpdate implements AppStateUpdater.

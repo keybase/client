@@ -1,4 +1,3 @@
-import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import Tabs from '.'
@@ -17,11 +16,7 @@ export default Container.connect(
     const teamDetails = Constants.getTeamDetails(state, teamID)
     const yourOperations = Constants.getCanPerformByID(state, teamID)
 
-    const _featuredBotsMap = state.chat2.featuredBotsMap
-    const _members = teamDetails.members
     return {
-      _featuredBotsMap,
-      _members,
       admin: yourOperations.manageMembers,
       error: state.teams.errorInAddToTeam,
       isBig: Constants.isBigTeam(state, teamID),
@@ -41,31 +36,19 @@ export default Container.connect(
       teamname: teamMeta.teamname,
     }
   },
-  dispatch => ({
-    _searchFeaturedBot: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
-  }),
-  (stateProps, dispatchProps, ownProps) => {
-    const _bots = [...(stateProps._members?.values() ?? [])].filter(
-      m => m.type === 'restrictedbot' || m.type === 'bot'
-    )
-    return {
-      admin: stateProps.admin,
-      error: stateProps.error,
-      isBig: stateProps.isBig,
-      loadBots: () =>
-        _bots.map(
-          bot =>
-            !stateProps._featuredBotsMap.has(bot.username) && dispatchProps._searchFeaturedBot(bot.username)
-        ),
-      loading: stateProps.loading,
-      newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,
-      numInvites: stateProps.numInvites,
-      numRequests: stateProps.numRequests,
-      numSubteams: stateProps.numSubteams,
-      resetUserCount: stateProps.resetUserCount,
-      selectedTab: stateProps.selectedTab,
-      setSelectedTab: stateProps.setSelectedTab,
-      showSubteams: stateProps.showSubteams,
-    }
-  }
+  () => ({}),
+  (stateProps, _, ownProps: OwnProps) => ({
+    admin: stateProps.admin,
+    error: stateProps.error,
+    isBig: stateProps.isBig,
+    loading: stateProps.loading,
+    newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,
+    numInvites: stateProps.numInvites,
+    numRequests: stateProps.numRequests,
+    numSubteams: stateProps.numSubteams,
+    resetUserCount: stateProps.resetUserCount,
+    selectedTab: stateProps.selectedTab,
+    setSelectedTab: stateProps.setSelectedTab,
+    showSubteams: stateProps.showSubteams,
+  })
 )(Tabs)

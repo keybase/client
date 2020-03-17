@@ -11,12 +11,11 @@ import {Activity} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
-  channel: Types.ChannelInfo
+  channel: ChatTypes.ConversationMeta
   teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
 }
 const ChannelRow = (props: ChannelRowProps) => {
-  const {channel, teamID, conversationIDKey} = props
+  const {channel, teamID} = props
   const isGeneral = channel.channelname === 'general'
 
   const selected = Container.useSelector(
@@ -26,7 +25,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const canDelete = canPerform.deleteChannel
 
   const numParticipants = Container.useSelector(
-    state => ChatConstants.getParticipantInfo(state, conversationIDKey).all.length
+    state => ChatConstants.getParticipantInfo(state, channel.conversationIDKey).all.length
   )
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
@@ -36,10 +35,14 @@ const ChannelRow = (props: ChannelRowProps) => {
   const onSelect = (selected: boolean) => {
     dispatch(TeamsGen.createSetChannelSelected({channel: channel.channelname, selected, teamID}))
   }
+  const navPropsForAction = {
+    conversationIDKey: channel.conversationIDKey,
+    teamID,
+  }
   const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'chatEditChannel'}]}))
   const onNavToChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamChannel'}]}))
   const onNavToSettings = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
@@ -47,7 +50,8 @@ const ChannelRow = (props: ChannelRowProps) => {
       })
     )
 
-  const onDeleteChannel = () => dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
+  const onDeleteChannel = () =>
+    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey: channel.conversationIDKey, teamID}))
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}

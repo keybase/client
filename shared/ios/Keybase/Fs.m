@@ -133,6 +133,16 @@
   // Setup app level directories
   NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString* chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
+  NSString* kbfsBlockCacheDBPath = [@"~/Library/Application Support/Keybase/kbfs_block_cache" stringByExpandingTildeInPath];
+  NSString* kbfsBlockMetaDBPath = [@"~/Library/Application Support/Keybase/kbfs_block_metadata" stringByExpandingTildeInPath];
+  NSString* kbfsConflictsDBPath = [@"~/Library/Application Support/Keybase/kbfs_conflicts" stringByExpandingTildeInPath];
+  NSString* kbfsFavoritesDBPath = [@"~/Library/Application Support/Keybase/kbfs_favorites" stringByExpandingTildeInPath];
+  NSString* kbfsJournalPath = [@"~/Library/Application Support/Keybase/kbfs_journal" stringByExpandingTildeInPath];
+  NSString* kbfsMDCachePath = [@"~/Library/Application Support/Keybase/kbfs_md_cache" stringByExpandingTildeInPath];
+  NSString* kbfsQuotaCachePath = [@"~/Library/Application Support/Keybase/kbfs_quota_cache" stringByExpandingTildeInPath];
+  NSString* kbfsSyncCachePath = [@"~/Library/Application Support/Keybase/kbfs_sync_cache" stringByExpandingTildeInPath];
+  NSString* kbfsSettingsPath = [@"~/Library/Application Support/Keybase/kbfs_settings" stringByExpandingTildeInPath];
+  NSString* kbfsSyncedTlfsPath = [@"~/Library/Application Support/Keybase/synced_tlf_config" stringByExpandingTildeInPath];
   NSString* oldLogPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   // Put logs in a subdir that is entirely background readable
   NSString* logPath = [oldLogPath stringByAppendingString:@"/logs"];
@@ -152,6 +162,16 @@
   // mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsBlockCacheDBPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsBlockMetaDBPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsConflictsDBPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsFavoritesDBPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsJournalPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsMDCachePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsQuotaCachePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsSyncCachePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsSettingsPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:kbfsSyncedTlfsPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:YES];
 
   return @{@"home": home,

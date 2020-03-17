@@ -3,7 +3,6 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/teams'
 import * as Types from '../constants/types/teams'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Container from '../util/container'
 import {editTeambuildingDraft} from './team-building'
 import {mapGetEnsureValue} from '../util/map'
@@ -97,19 +96,6 @@ export default Container.makeReducer<
   [TeamsGen.setTeamCanPerform]: (draftState, action) => {
     draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
   },
-  [TeamsGen.setTeamChannelInfo]: (draftState, action) => {
-    const {conversationIDKey, channelInfo, teamID} = action.payload
-    draftState.teamIDToChannelInfos.set(
-      teamID,
-      mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map()).set(
-        conversationIDKey,
-        channelInfo
-      )
-    )
-  },
-  [TeamsGen.setTeamChannels]: (draftState, action) => {
-    draftState.teamIDToChannelInfos.set(action.payload.teamID, action.payload.channelInfos)
-  },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
       draftState.errorInEmailInvite = Constants.emptyEmailInviteError
@@ -179,42 +165,11 @@ export default Container.makeReducer<
   [TeamsGen.setTeamsWithChosenChannels]: (draftState, action) => {
     draftState.teamsWithChosenChannels = action.payload.teamsWithChosenChannels
   },
-  [TeamsGen.setUpdatedChannelName]: (draftState, action) => {
-    const {teamID, conversationIDKey, newChannelName} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
-    const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
-    oldChannelInfo.channelname = newChannelName
-  },
-  [TeamsGen.setUpdatedTopic]: (draftState, action) => {
-    const {teamID, conversationIDKey, newTopic} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
-    const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
-    oldChannelInfo.description = newTopic
-  },
-  [TeamsGen.deleteChannelInfo]: (draftState, action) => {
-    const {teamID, conversationIDKey} = action.payload
-    const oldChannelInfos = draftState.teamIDToChannelInfos.get(teamID)
-    if (oldChannelInfos) {
-      oldChannelInfos.delete(conversationIDKey)
-    }
-  },
   [TeamsGen.setEditDescriptionError]: (draftState, action) => {
     draftState.errorInEditDescription = action.payload.error
   },
   [TeamsGen.editTeamDescription]: draftState => {
     draftState.errorInEditDescription = ''
-  },
-  [TeamsGen.addParticipant]: (draftState, action) => {
-    const {teamID, conversationIDKey} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
-    const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
-    oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.active
-  },
-  [TeamsGen.removeParticipant]: (draftState, action) => {
-    const {teamID, conversationIDKey} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
-    const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
-    oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.left
   },
   [TeamsGen.setChannelSelected]: (draftState, action) => {
     const {teamID, channel, selected, clearAll} = action.payload
@@ -333,6 +288,19 @@ export default Container.makeReducer<
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
     draftState.addMembersWizard.role = role
+    if (role) {
+      // keep roles stored with indiv members in sync with top level one
+      draftState.addMembersWizard.addingMembers.forEach(member => {
+        member.role = role
+      })
+    }
+  },
+  [TeamsGen.setAddMembersWizardIndividualRole]: (draftState, action) => {
+    const {assertion, role} = action.payload
+    const maybeMember = draftState.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
+    if (maybeMember) {
+      maybeMember.role = role
+    }
   },
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
     draftState.addMembersWizard.justFinished = action.payload.justFinished
