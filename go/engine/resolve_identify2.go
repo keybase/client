@@ -155,6 +155,13 @@ func (e *ResolveThenIdentify2) Result(m libkb.MetaContext) (*keybase1.Identify2R
 	return e.i2eng.Result(m)
 }
 
+func (e *ResolveThenIdentify2) ResultWotFailingProofs(mctx libkb.MetaContext) (failingProofs []keybase1.WotProof, err error) {
+	if e.i2eng == nil {
+		return nil, errors.New("ResolveThenIdentify2#ResultWotFailingProofs: no result available if the engine did not run")
+	}
+	return e.i2eng.ResultWotFailingProofs(mctx)
+}
+
 func (e *ResolveThenIdentify2) SetResponsibleGregorItem(item gregor.Item) {
 	e.responsibleGregorItem = item
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
 
@@ -80,12 +81,15 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *cmdWotVouch) Run() error {
+	protocols := []rpc.Protocol{NewIdentifyUIProtocol(c.G())}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
 	arg := keybase1.WotVouchCLIArg{
 		Assertion:  c.assertion,
 		VouchTexts: []string{c.message},
 		Confidence: c.confidence,
 	}
-
 	cli, err := GetWebOfTrustClient(c.G())
 	if err != nil {
 		return err

@@ -13,9 +13,10 @@ import (
 )
 
 type WotVouchArg struct {
-	Vouchee    keybase1.UserVersion
-	Confidence keybase1.Confidence
-	VouchTexts []string
+	Vouchee       keybase1.UserVersion
+	Confidence    keybase1.Confidence
+	FailingProofs []keybase1.WotProof
+	VouchTexts    []string
 }
 
 // WotVouch is an engine.
@@ -85,14 +86,23 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	if err := statement.SetKey("user", them.ToWotStatement()); err != nil {
 		return err
 	}
-	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
-		return err
-	}
 	confidenceJw, err := jsonw.WrapperFromObject(e.arg.Confidence)
 	if err != nil {
 		return err
 	}
 	if err := statement.SetKey("confidence", confidenceJw); err != nil {
+		return err
+	}
+	if len(e.arg.FailingProofs) > 0 {
+		failingProofsJw, err := jsonw.WrapperFromObject(e.arg.FailingProofs)
+		if err != nil {
+			return err
+		}
+		if err := statement.SetKey("failing_proofs", failingProofsJw); err != nil {
+			return err
+		}
+	}
+	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
 		return err
 	}
 	expansions, sum, err := libkb.EmbedExpansionObj(statement)
