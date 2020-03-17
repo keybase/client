@@ -37,7 +37,6 @@ fi
 echo "-tags '$go_tags'"
 
 # Determine the LD flags.
-buildmode=""
 ldflags_client=""
 ldflags_kbfs=""
 ldflags_kbnm=""
@@ -89,7 +88,7 @@ build_one_architecture() {
 
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
+  go build -tags "$go_tags" -o \
     "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
   # Short-circuit if we're not building electron.
@@ -107,12 +106,12 @@ build_one_architecture() {
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
+  go build -tags "$go_tags"  -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/client/go/kbfs/kbfsfuse
 
   # Build the git-remote-keybase binary, also from the kbfs repo.
   echo "Building git-remote-keybase for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
+  go build -tags "$go_tags" -o \
     "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase
 
   # Short-circuit if we're doing a Docker multi-stage build
@@ -123,12 +122,12 @@ build_one_architecture() {
 
   # Build the root redirector binary.
   echo "Building keybase-redirector for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
+  go build -tags "$go_tags" -o \
     "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector
 
   # Build the kbnm binary
   echo "Building kbnm for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
+  go build -tags "$go_tags" -o \
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
 
   # Write whitelists into the overlay. Note that we have to explicitly set USER
