@@ -52,7 +52,7 @@ const load = () => {
           onCreateTeam={Sb.action('onCreateTeam')}
           onHideChatBanner={Sb.action('onHideChatBanner')}
           sawChatBanner={Sb.action('sawChatBanner')}
-          newTeamRequests={new Map([['techtonica_id', 2]])}
+          newTeamRequests={new Map([['techtonica_id', new Set(['a', 'b'])]])}
           teamresetusers={new Map()}
           onOpenFolder={Sb.action('onOpenFolder')}
           onManageChat={Sb.action('onManageChat')}
