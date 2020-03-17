@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -157,36 +156,4 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 		Reaction:  arg.Reaction,
 	}
 	return h.WotReact(ctx, rarg)
-}
-
-// Just get a list of proof results.
-type identifyUIResultShim struct {
-	libkb.IdentifyUI
-	mu   sync.Mutex
-	rows []identifyUIResultShimRow
-}
-
-type identifyUIResultShimRow struct {
-	Proof  keybase1.RemoteProof
-	Result keybase1.LinkCheckResult
-}
-
-func (i *identifyUIResultShim) FinishWebProofCheck(mctx libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-	i.rows = append(i.rows, identifyUIResultShimRow{p, l})
-	return i.IdentifyUI.FinishWebProofCheck(mctx, p, l)
-}
-
-func (i *identifyUIResultShim) FinishSocialProofCheck(mctx libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-	i.rows = append(i.rows, identifyUIResultShimRow{p, l})
-	return i.IdentifyUI.FinishSocialProofCheck(mctx, p, l)
-}
-
-func (i *identifyUIResultShim) ProofResults() []identifyUIResultShimRow {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-	return i.rows
 }
