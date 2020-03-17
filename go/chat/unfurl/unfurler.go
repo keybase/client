@@ -67,7 +67,7 @@ type Unfurler struct {
 var _ types.Unfurler = (*Unfurler)(nil)
 
 func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer,
-	storage types.ConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface) *Unfurler {
+	storage types.UserConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface) *Unfurler {
 	extractor := NewExtractor(g)
 	scraper := NewScraper(g)
 	packager := NewPackager(g, store, s3signer, ri)
