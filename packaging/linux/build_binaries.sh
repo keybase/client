@@ -37,11 +37,11 @@ fi
 echo "-tags '$go_tags'"
 
 # Determine the LD flags.
-buildmode="pie"
+buildmode=""
 ldflags_client=""
 ldflags_kbfs=""
 ldflags_kbnm=""
-strip_flag=" -s -w "
+strip_flag=" "
 if [ "$mode" != "production" ] ; then
   # The non-production build number is everything in the version after the hyphen.
   build_number="$(echo -n "$version" | sed 's/.*-//')"

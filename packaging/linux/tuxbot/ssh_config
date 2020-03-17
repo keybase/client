@@ -6,4 +6,4 @@
 Host aur
     User aur
     HostName aur.archlinux.org
-    # IdentityFile /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/aur_id_ed25519
+    IdentityFile ~/.ssh/aur_id_ed25519
