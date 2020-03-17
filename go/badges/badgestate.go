@@ -118,16 +118,6 @@ type unverifiedCountBody struct {
 	UnverifiedCount int `json:"unverified_count"`
 }
 
-type homeTodoMap map[keybase1.HomeScreenTodoType]int
-type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
-
-type homeStateBody struct {
-	Version              int           `json:"version"`
-	BadgeCountMap        homeItemMap   `json:"badge_count_map"`
-	LastViewedTime       keybase1.Time `json:"last_viewed_time"`
-	AnnouncementsVersion int           `json:"announcements_version"`
-}
-
 // countKnownBadges looks at the map sent down by gregor and considers only those
 // types that are known to the client. The rest, it assumes it cannot display,
 // and doesn't count those badges toward the badge count. Note that the shape
@@ -138,7 +128,7 @@ type homeStateBody struct {
 // Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
 // and 1 badges in ANNOUNCEMENTs.
 //
-func countKnownBadges(m homeItemMap) int {
+func countKnownBadges(m libkb.HomeItemMap) int {
 	var ret int
 	for itemType, todoMap := range m {
 		if _, found := keybase1.HomeScreenItemTypeRevMap[itemType]; !found {
@@ -153,22 +143,6 @@ func countKnownBadges(m homeItemMap) int {
 		}
 	}
 	return ret
-}
-
-func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
-	if a == nil {
-		return true
-	}
-	if a.Version < b.Version {
-		return true
-	}
-	if a.Version == b.Version && a.LastViewedTime < b.LastViewedTime {
-		return true
-	}
-	if a.AnnouncementsVersion < b.AnnouncementsVersion {
-		return true
-	}
-	return false
 }
 
 func (b *BadgeState) ConversationBadgeStr(ctx context.Context, convIDStr chat1.ConvIDStr) int {
@@ -204,7 +178,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.UnverifiedEmails = 0
 	b.state.UnverifiedPhones = 0
 
-	var hsb *homeStateBody
+	var hsb *libkb.HomeStateBody
 
 	teamsWithResets := make(map[string]bool)
 
@@ -220,7 +194,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		category := categoryObj.String()
 		switch category {
 		case "home.state":
-			var tmp homeStateBody
+			var tmp libkb.HomeStateBody
 			byt := item.Body().Bytes()
 			dec := json.NewDecoder(bytes.NewReader(byt))
 			if err := dec.Decode(&tmp); err != nil {
@@ -228,12 +202,12 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			sentUp := false
-			if homeStateLessThan(hsb, tmp) {
+			if hsb.LessThan(tmp) {
 				hsb = &tmp
 				b.state.HomeTodoItems = countKnownBadges(hsb.BadgeCountMap)
 				sentUp = true
 			}
-			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
+			b.log.CDebugf(ctx, "incoming home.state (sentUp=%v): %+v", sentUp, tmp)
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {

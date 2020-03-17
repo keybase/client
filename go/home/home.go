@@ -6,11 +6,12 @@ package home
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/keybase/client/go/contacts"
 	"math/rand"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/contacts"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
@@ -432,20 +433,30 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 
 	h.G().Log.CDebugf(ctx, "home.update unmarshaled: %+v", msg)
 
-	h.Lock()
-	defer h.Unlock()
-
-	if h.homeCache != nil {
-		h.G().Log.CDebugf(ctx, "home.update state: (version=%d,announcementsVersion=%d)", h.homeCache.obj.Version, h.homeCache.obj.AnnouncementsVersion)
-		if msg.Version > h.homeCache.obj.Version || msg.AnnouncementsVersion > h.homeCache.obj.AnnouncementsVersion {
-			h.G().Log.CDebugf(ctx, "home.update: clearing cache")
-			h.homeCache = nil
-		}
-	}
-
-	// Ignore the error code...
-	_ = h.updateUI(ctx)
+	h.handleUpdateWithVersions(ctx, msg.Version, msg.AnnouncementsVersion, true /* send up update UI */)
 	return nil
+}
+
+func (h *Home) handleUpdateWithVersions(ctx context.Context, homeVersion int, announcementsVersion int, refreshHome bool) {
+
+	h.Lock()
+	defer func() {
+		if refreshHome {
+			_ = h.updateUI(ctx)
+		}
+		h.Unlock()
+	}()
+
+	if h.homeCache == nil {
+		return
+	}
+	h.G().Log.CDebugf(ctx, "home gregor msg state: (version=%d,announcementsVersion=%d)", h.homeCache.obj.Version, h.homeCache.obj.AnnouncementsVersion)
+	if homeVersion > h.homeCache.obj.Version || announcementsVersion > h.homeCache.obj.AnnouncementsVersion {
+		h.G().Log.CDebugf(ctx, "home gregor msg: clearing cache (new version is <%d,%d>)", homeVersion, announcementsVersion)
+		h.homeCache = nil
+		refreshHome = true
+	}
+	return
 }
 
 func (h *Home) IsAlive() bool {
@@ -456,10 +467,35 @@ func (h *Home) Name() string {
 	return "Home"
 }
 
+func (h *Home) handleUpdateState(ctx context.Context, item gregor.Item) (err error) {
+	defer h.G().CTraceTimed(ctx, "Home#handleUpdateState", func() error { return err })()
+	var msg libkb.HomeStateBody
+	if err = json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		h.G().Log.Debug("error unmarshaling home.update item: %s", err.Error())
+		return err
+	}
+
+	h.G().Log.CDebugf(ctx, "home.state unmarshaled: %+v", msg)
+	h.handleUpdateWithVersions(ctx, msg.Version, msg.AnnouncementsVersion, false /* send up update UI */)
+	return nil
+}
+
 func (h *Home) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	switch category {
 	case "home.update":
 		return true, h.handleUpdate(ctx, ibm)
+	case "home.state":
+		// MK 2020.03.17: This case fixes a race that we observed in the wild, with **announcements**.
+		// The issue is that if you view the home page via home/get and then an announcement is inserted
+		// at roughly the same time. The home/get can then trigger a gregor since the announcement version
+		// bumped. That'll bump the badge state and show a 1 on the home tab. But then when you visit it,
+		// home/get will not be repolled, since there is a fresh home state that just got loaded. You'll have
+		// to wait for 1 hour in which you have a phantom badge. To break this race, we'll clear out the
+		// home state if home.state says the state has moved forward (though we mainly intend that message
+		// to drive badging).
+		// Note that we return false since we still want this message to be handled by other parts
+		// of the system (like the badger).
+		return false, h.handleUpdateState(ctx, ibm)
 	default:
 		if strings.HasPrefix(category, "home.") {
 			return false, fmt.Errorf("unknown home handler category: %q", category)
