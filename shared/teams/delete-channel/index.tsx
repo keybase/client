@@ -1,113 +1,87 @@
 import * as React from 'react'
-import * as WaitingGen from '../../actions/waiting-gen'
-import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as TeamsTypes from '../../constants/types/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
+import {useAllChannelMetas} from '../common/channel-hooks'
+import {pluralize} from '../../util/string'
 
-export type Props = {
-  deleteWaiting: boolean
-  onBack: () => void
-  onDelete: () => void
-  teamID: Types.TeamID
-  teamname: string
-}
+type Props = Container.RouteProps<{
+  teamID: TeamsTypes.TeamID
+}>
 
-const Header = (props: Props) => (
+const Header = () => (
   <>
-    <Kb.Avatar teamname={props.teamname} size={64} />
+    <Kb.Icon type={'icon-teams-channel-64'} />
     <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
-    <Kb.Text style={styles.headerTeamname} type="BodySemibold">
-      {props.teamname}
-    </Kb.Text>
   </>
 )
 
-export type CheckboxesProps = {
-  checkChats: boolean
-  checkFolder: boolean
-  checkNotify: boolean
-  onSetCheckChats: (checked: boolean) => void
-  onSetCheckFolder: (checked: boolean) => void
-  onSetCheckNotify: (checked: boolean) => void
+const getTeamSelectedCount = (state: Container.TypedState, teamID: TeamsTypes.TeamID) => {
+  return state.teams.teamSelectedChannels.get(teamID)
 }
 
-const Checkboxes = (props: CheckboxesProps) => (
-  <Kb.Box2 direction="vertical">
-    <Kb.Checkbox
-      checked={props.checkChats}
-      label="Team chats will be lost"
-      onCheck={checked => props.onSetCheckChats(checked)}
-    />
-    <Kb.Checkbox
-      checked={props.checkFolder}
-      label="Data in the team folder will be lost"
-      onCheck={checked => props.onSetCheckFolder(checked)}
-    />
-    <Kb.Checkbox
-      checked={props.checkNotify}
-      label="Team members will be notified"
-      onCheck={checked => props.onSetCheckNotify(checked)}
-    />
-  </Kb.Box2>
-)
-
 const DeleteChannel = (props: Props) => {
-  const [checks, setChecks] = React.useState({
-    checkChats: false,
-    checkFolder: false,
-    checkNotify: false,
+  const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
+  const channelIDs = Container.useSelector(state => getTeamSelectedCount(state, teamID))
+
+  const channels = useAllChannelMetas(teamID)
+  var channelnames: string[] = []
+
+  channelIDs?.forEach(channelID => {
+    const conversationMeta = channels?.get(channelID)
+    const channelname = conversationMeta ? conversationMeta.channelname : ''
+    channelnames.push(channelname)
   })
-  const {checkChats, checkFolder, checkNotify} = checks
-  const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
-  const disabled = !checkChats || !checkFolder || !checkNotify
-  const {deleteWaiting, onBack, teamID} = props
-  const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
-  const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
-  React.useEffect(() => {
-    if (prevDeleteWaiting !== undefined && !deleteWaiting && prevDeleteWaiting && !error) {
-      // Finished, nav up
-      onBack()
-    }
-  }, [deleteWaiting, prevDeleteWaiting, onBack, error])
+
+  var deleteMsg: string
+  if (channelnames.length == 1) {
+    deleteMsg = `#${channelnames[0]}`
+  } else if (channelnames.length == 2) {
+    deleteMsg = `#${channelnames[0]} and #${channelnames[1]}`
+  } else if (channelnames.length == 3) {
+    deleteMsg = `#${channelnames[0]}, #${channelnames[1]} and #${channelnames[2]}`
+  } else {
+    const numOtherChans = channelnames.length - 3
+    deleteMsg = `#${channelnames[0]}, #${channelnames[1]}, #${
+      channelnames[2]
+    } and ${numOtherChans} other ${pluralize('channel', numOtherChans)}`
+  }
 
   const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    return () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamID)}))
-    }
-  }, [dispatch, teamID])
+  const nav = Container.useSafeNavigation()
+
+  const onDelete = () => {
+    channelIDs?.forEach(conversationIDKey => {
+      dispatch(
+        TeamsGen.createDeleteChannelConfirmed({
+          conversationIDKey,
+          teamID,
+        })
+      )
+    })
+    dispatch(
+      TeamsGen.createSetChannelSelected({
+        channel: '',
+        clearAll: true,
+        selected: false,
+        teamID: teamID,
+      })
+    )
+  }
+
+  const onClose = () => dispatch(nav.safeNavigateUpPayload())
 
   return (
     <Kb.ConfirmModal
-      error={error ? error.message : ''}
-      confirmText="Delete team"
-      content={
-        <Checkboxes
-          checkChats={checkChats}
-          checkFolder={checkFolder}
-          checkNotify={checkNotify}
-          onSetCheckChats={onCheck('checkChats')}
-          onSetCheckFolder={onCheck('checkFolder')}
-          onSetCheckNotify={onCheck('checkNotify')}
-        />
-      }
-      description="This cannot be undone. By deleting the team, you agree that:"
-      header={<Header {...props} />}
-      onCancel={props.onBack}
-      onConfirm={disabled ? undefined : props.onDelete}
-      prompt={`Are you sure you want to delete ${props.teamname}?`}
-      waitingKey={Constants.deleteTeamWaitingKey(props.teamID)}
+      confirmText={`Delete ${pluralize('channel', channelnames.length)}`}
+      description="This cannot be undone. All messages in the channel will be lost."
+      header={<Header />}
+      onCancel={onClose}
+      onConfirm={onDelete}
+      prompt={`Delete ${deleteMsg}?`}
     />
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      headerTeamname: {color: Styles.globalColors.redDark, textDecorationLine: 'line-through'},
-    } as const)
-)
 
 export default DeleteChannel
