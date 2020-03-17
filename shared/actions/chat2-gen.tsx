@@ -500,6 +500,7 @@ type _MetasReceivedPayload = {
 type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly muted: boolean}
 type _NavigateToInboxPayload = void
 type _NavigateToThreadPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
   readonly reason:
     | 'focused'
     | 'clearSelected'
@@ -526,6 +527,7 @@ type _NavigateToThreadPayload = {
     | 'teamChat'
     | 'addedToChannel'
     | 'navChanged'
+    | 'misc'
     | 'teamMention'
   readonly pushBody?: string
 }

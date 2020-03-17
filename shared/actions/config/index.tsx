@@ -464,7 +464,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
           conversationIDKey: state.config.startupConversation,
           pushBody: state.config.startupPushPayload,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
-          skipNav: true,
         }),
       ]
     }

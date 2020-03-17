@@ -151,7 +151,7 @@ function* requestMeta(state: Container.TypedState, _: Chat2Gen.MetaHandleQueuePa
 // Get valid keys that we aren't already loading or have loaded
 const rpcMetaRequestConversationIDKeys = (
   state: Container.TypedState,
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectedConversationPayload
 ) => {
   let keys: Array<Types.ConversationIDKey>
   switch (action.type) {
@@ -161,7 +161,7 @@ const rpcMetaRequestConversationIDKeys = (
         return keys.filter(Constants.isValidConversationIDKey)
       }
       break
-    case Chat2Gen.selectConversation:
+    case Chat2Gen.selectedConversation:
       keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
       break
     default:
@@ -287,7 +287,7 @@ const maybeChangeSelectedConv = (
 // We want to unbox rows that have scroll into view
 const unboxRows = (
   state: Container.TypedState,
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectedConversationPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
@@ -297,8 +297,8 @@ const unboxRows = (
     case Chat2Gen.metaRequestTrusted:
       logger.info(`unboxRows: metaRequestTrusted: reason: ${action.payload.reason}`)
       break
-    case Chat2Gen.selectConversation:
-      logger.info(`unboxRows: selectConversation`)
+    case Chat2Gen.selectedConversation:
+      logger.info(`unboxRows: selectedConversation`)
       break
   }
   const conversationIDKeys = rpcMetaRequestConversationIDKeys(state, action)
@@ -974,7 +974,8 @@ const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad
 function* loadMoreMessages(
   state: Container.TypedState,
   action:
-    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.NavigateToThreadPayload
+    | Chat2Gen.SelectedConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -1013,12 +1014,16 @@ function* loadMoreMessages(
       }
       reason = 'got stale'
       break
-    case Chat2Gen.selectConversation:
+    case Chat2Gen.navigateToThread:
       key = action.payload.conversationIDKey
-      reason = action.payload.reason || 'selected'
+      reason = action.payload.reason || 'navigated'
       if (action.payload.pushBody && action.payload.pushBody.length > 0) {
         knownRemotes.push(action.payload.pushBody)
       }
+      break
+    case Chat2Gen.selectedConversation:
+      key = action.payload.conversationIDKey
+      reason = 'nav'
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -1187,13 +1192,13 @@ function* maybeKickedFromTeam() {
 
 function* getUnreadline(
   state: Container.TypedState,
-  action: Chat2Gen.SelectConversationPayload,
+  action: Chat2Gen.SelectedConversationPayload,
   logger: Saga.SagaLogger
 ) {
   // Get the conversationIDKey
   let key: Types.ConversationIDKey | null = null
   switch (action.type) {
-    case Chat2Gen.selectConversation:
+    case Chat2Gen.selectedConversation:
       key = action.payload.conversationIDKey
       break
     default:
@@ -1264,14 +1269,8 @@ function* desktopNotify(
         const onClick = () => {
           resolve(
             Saga.sequentially([
-              Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'})),
-              Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'})),
-              Saga.put(
-                Chat2Gen.createSelectConversation({
-                  conversationIDKey,
-                  reason: 'desktopNotification',
-                })
-              ),
+              Saga.put(Chat2Gen.createNavigateToInbox()),
+              Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'})),
               Saga.put(ConfigGen.createShowMain()),
             ])
           )
@@ -1444,7 +1443,7 @@ const onToggleThreadSearch = (state: Container.TypedState, action: Chat2Gen.Togg
   return visible ? false : RPCChatTypes.localCancelActiveSearchRpcPromise()
 }
 
-const hideThreadSearch = (state: Container.TypedState, action: Chat2Gen.SelectConversationPayload) => {
+const hideThreadSearch = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
   const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
   return visible
     ? Chat2Gen.createToggleThreadSearch({conversationIDKey: action.payload.conversationIDKey})
@@ -1537,7 +1536,7 @@ const onInboxSearchSelect = (state: Container.TypedState, action: Chat2Gen.Inbox
   }
 
   return [
-    Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'}),
+    Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSearch'}),
     ...(query
       ? [
           Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query}),
@@ -1845,7 +1844,7 @@ const previewConversationPersonMakesAConversation = (action: Chat2Gen.PreviewCon
   return (
     !teamname &&
     participants && [
-      Chat2Gen.createSelectConversation({
+      Chat2Gen.createNavigateToThread({
         conversationIDKey: Constants.pendingWaitingConversationIDKey,
         reason: 'justCreated',
       }),
@@ -1894,10 +1893,10 @@ const previewConversationTeam = async (
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
       })
-      return Chat2Gen.createSelectConversation({conversationIDKey, reason: 'previewResolved'})
+      return Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'previewResolved'})
     }
 
-    return Chat2Gen.createSelectConversation({conversationIDKey, reason: 'previewResolved'})
+    return Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'previewResolved'})
   }
 
   if (!teamname) {
@@ -1946,7 +1945,7 @@ const previewConversationTeam = async (
       actions.push(Chat2Gen.createMetasReceived({metas: [meta]}))
     }
     actions.push(
-      Chat2Gen.createSelectConversation({
+      Chat2Gen.createNavigateToThread({
         conversationIDKey: first.conversationIDKey,
         reason: 'previewResolved',
       })
@@ -2111,7 +2110,8 @@ const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
   })
 }
 
-const cancelAudioFromDeselect = () =>
+const cancelAudioFromDeselect = (action: Chat2Gen.SelectedConversationPayload) =>
+  action.payload.conversationIDKey === Constants.noConversationIDKey &&
   Chat2Gen.createStopAudioRecording({
     conversationIDKey: Constants.getSelectedConversation(),
     stopType: Types.AudioStopType.CANCEL,
@@ -2431,19 +2431,15 @@ const navigateToInbox = (
   ]
 }
 
-// Unchecked version of Chat2Gen.createNavigateToThread() --
-// Saga.put() this if you want to select the pending conversation
-// (which doesn't count as valid).
-//
-const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromKey?: string) => {
+const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
+  const {conversationIDKey, reason} = action.payload
   let replace = false
   const visible = Router2Constants.getVisibleScreen()
-  const selected = Container.isPhone ? 'chatConversation' : 'chatRoot'
 
   const visibleConvo = visible?.params?.conversationIDKey
   const visibleRouteName = visible?.routeName
 
-  if (visibleRouteName === selected) {
+  if (visibleRouteName === threadRouteName) {
     // looking at the pending / waiting screen
     if (!Constants.isValidConversationIDKey(visibleConvo)) {
       replace = true
@@ -2451,22 +2447,18 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
       // in split mode we always replace it
       replace = true
     }
+  } else if (reason === 'findNewestConversation') {
+    // service is telling us to change our selection but we're not looking, ignore
+    return false
   }
 
-  return RouteTreeGen.createNavigateAppend({
-    fromKey,
-    path: [{props: {conversationIDKey}, selected}],
-    replace,
-  })
-}
-
-const navigateToThread = (_state: Container.TypedState) => {
-  const selectedConversation = Constants.getSelectedConversation()
-  if (!Constants.isValidConversationIDKey(selectedConversation)) {
-    console.log('Skip nav to thread on invalid conversation')
-    return
-  }
-  return navigateToThreadRoute(selectedConversation)
+  return [
+    ...(Constants.isSplit ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []),
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey}, selected: threadRouteName}],
+      replace,
+    }),
+  ]
 }
 
 const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
@@ -2476,12 +2468,12 @@ const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
 
 const ensureSelectedTeamLoaded = (
   state: Container.TypedState,
-  action: Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload
+  action: Chat2Gen.SelectedConversationPayload | Chat2Gen.MetasReceivedPayload
 ) => {
   const selectedConversation = Constants.getSelectedConversation()
   const meta = state.chat2.metaMap.get(selectedConversation)
   return meta
-    ? action.type === Chat2Gen.selectConversation || !state.teams.teamIDToMembers.get(meta.teamID)
+    ? action.type === Chat2Gen.selectedConversation || !state.teams.teamIDToMembers.get(meta.teamID)
       ? maybeLoadTeamFromMeta(meta)
       : false
     : false
@@ -2524,73 +2516,53 @@ const ensureWidgetMetas = (state: Container.TypedState) => {
   })
 }
 
-const deselectConversation = (
-  _state: Container.TypedState,
-  action: Chat2Gen.DeselectConversationPayload,
-  logger: Saga.SagaLogger
-) => {
-  const selectedConversation = Constants.getSelectedConversation()
-  if (selectedConversation === action.payload.ifConversationIDKey) {
-    logger.info(`deselectConversation: selected conv: ${selectedConversation}`)
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey: Constants.noConversationIDKey,
-      reason: 'clearSelected',
-    })
-  } else {
-    logger.info(
-      `deselectConversation: skipping, selected: ${selectedConversation} param: ${action.payload.ifConversationIDKey}`
-    )
-  }
-  return false
-}
+// const mobileNavigateOnSelect = (
+// _state: Container.TypedState,
+// action: Chat2Gen.SelectConversationPayload,
+// logger: Saga.SagaLogger
+// ) => {
+// const selectedConversation = Constants.getSelectedConversation()
+// const {conversationIDKey, navKey, reason, skipNav} = action.payload
+// if (skipNav) {
+// logger.info(
+// `mobileNavigateOnSelect: skipNav passed selected: ${selectedConversation} param: ${conversationIDKey}`
+// )
+// return
+// }
+// if (Constants.isValidConversationIDKey(conversationIDKey)) {
+// if (reason === 'focused') {
+// logger.info(
+// `mobileNavigateOnSelect: not navigating, reason focused: selected: ${selectedConversation} param: ${conversationIDKey}`
+// )
+// return false // never nav if this is from a nav
+// }
+// logger.info(
+// `mobileNavigateOnSelect: navigating to param: ${conversationIDKey} selected: ${selectedConversation}`
+// )
+// return navigateToThreadRoute(conversationIDKey, navKey)
+// } else if (
+// conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+// conversationIDKey === Constants.pendingErrorConversationIDKey
+// ) {
+// logger.info(
+// `mobileNavigateOnSelect: navigating to param: selected: ${selectedConversation} param: ${conversationIDKey}`
+// )
+// return navigateToThreadRoute(conversationIDKey, navKey)
+// }
+// logger.info(
+// `mobileNavigateOnSelect: not navigating, default case: selected: ${selectedConversation} param: ${conversationIDKey}`
+// )
+// return false
+// }
 
-const mobileNavigateOnSelect = (
-  _state: Container.TypedState,
-  action: Chat2Gen.SelectConversationPayload,
-  logger: Saga.SagaLogger
-) => {
-  const selectedConversation = Constants.getSelectedConversation()
-  const {conversationIDKey, navKey, reason, skipNav} = action.payload
-  if (skipNav) {
-    logger.info(
-      `mobileNavigateOnSelect: skipNav passed selected: ${selectedConversation} param: ${conversationIDKey}`
-    )
-    return
-  }
-  if (Constants.isValidConversationIDKey(conversationIDKey)) {
-    if (reason === 'focused') {
-      logger.info(
-        `mobileNavigateOnSelect: not navigating, reason focused: selected: ${selectedConversation} param: ${conversationIDKey}`
-      )
-      return false // never nav if this is from a nav
-    }
-    logger.info(
-      `mobileNavigateOnSelect: navigating to param: ${conversationIDKey} selected: ${selectedConversation}`
-    )
-    return navigateToThreadRoute(conversationIDKey, navKey)
-  } else if (
-    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
-    conversationIDKey === Constants.pendingErrorConversationIDKey
-  ) {
-    logger.info(
-      `mobileNavigateOnSelect: navigating to param: selected: ${selectedConversation} param: ${conversationIDKey}`
-    )
-    return navigateToThreadRoute(conversationIDKey, navKey)
-  }
-  logger.info(
-    `mobileNavigateOnSelect: not navigating, default case: selected: ${selectedConversation} param: ${conversationIDKey}`
-  )
-  return false
-}
-
-const desktopNavigateOnSelect = (
-  _state: Container.TypedState,
-  action: Chat2Gen.SelectConversationPayload
-) => {
-  const {conversationIDKey, reason, navKey} = action.payload
-  if (reason === 'findNewestConversation' || reason === 'clearSelected') return
-  return navigateToThreadRoute(conversationIDKey, navKey)
-}
+// const desktopNavigateOnSelect = (
+// _state: Container.TypedState,
+// action: Chat2Gen.SelectConversationPayload
+// ) => {
+// const {conversationIDKey, reason, navKey} = action.payload
+// if (reason === 'findNewestConversation' || reason === 'clearSelected') return
+// return navigateToThreadRoute(conversationIDKey, navKey)
+// }
 
 // Native share sheet for attachments
 function* mobileMessageAttachmentShare(
@@ -2672,7 +2644,7 @@ const joinConversation = async (action: Chat2Gen.JoinConversationPayload) => {
 
 const fetchConversationBio = async (
   state: Container.TypedState,
-  action: Chat2Gen.SelectConversationPayload
+  action: Chat2Gen.SelectedConversationPayload
 ) => {
   const {conversationIDKey} = action.payload
   const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
@@ -2872,7 +2844,7 @@ function* createConversation(
       if (participants.length > 0) {
         yield Saga.put(Chat2Gen.createSetParticipants({participants}))
       }
-      yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
+      yield Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'justCreated'}))
     }
   } catch (_error) {
     const error = _error as RPCError
@@ -2891,7 +2863,7 @@ function* createConversation(
       })
     )
     yield Saga.put(
-      Chat2Gen.createSelectConversation({
+      Chat2Gen.createNavigateToThread({
         conversationIDKey: Constants.pendingErrorConversationIDKey,
         reason: 'justCreated',
       })
@@ -2937,7 +2909,7 @@ const messageReplyPrivately = async (
   }
   return [
     Chat2Gen.createMetasReceived({metas: [meta]}),
-    Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
+    Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}),
     Chat2Gen.createMessageSetQuoting({
       ordinal: action.payload.ordinal,
       sourceConversationIDKey: action.payload.sourceConversationIDKey,
@@ -3272,9 +3244,7 @@ const onUpdateLastCoord = async (action: Chat2Gen.UpdateLastCoordPayload) => {
 const openChatFromWidget = ({payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-  ...(conversationIDKey
-    ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
-    : []),
+  ...(conversationIDKey ? [Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'})] : []),
 ]
 
 const gregorPushState = (
@@ -3387,9 +3357,8 @@ const addUsersToChannel = async (action: Chat2Gen.AddUsersToChannelPayload, logg
       Constants.waitingKeyAddUsersToChannel
     )
     return [
-      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
       RouteTreeGen.createClearModals(),
-      Chat2Gen.createNavigateToThread(),
+      Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'addedToChannel'}),
     ]
   } catch (err) {
     logger.error(`addUsersToChannel: ${err.message}`) // surfaced in UI via waiting key
@@ -3404,10 +3373,7 @@ const addUserToChannel = async (action: Chat2Gen.AddUserToChannelPayload, logger
       {convID: Types.keyToConversationID(conversationIDKey), usernames: [username]},
       Constants.waitingKeyAddUserToChannel(username, conversationIDKey)
     )
-    return [
-      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
-      Chat2Gen.createNavigateToThread(),
-    ]
+    return Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'addedToChannel'})
   } catch (err) {
     logger.error(`addUserToChannel: ${err.message}`) // surfaced in UI via waiting key
     return false
@@ -3426,7 +3392,7 @@ const createConversationFromTeamBuilder = (
   state: Container.TypedState,
   {payload: {namespace}}: TeamBuildingGen.FinishedTeamBuildingPayload
 ) => [
-  Chat2Gen.createSelectConversation({
+  Chat2Gen.createNavigateToThread({
     conversationIDKey: Constants.pendingWaitingConversationIDKey,
     reason: 'justCreated',
   }),
@@ -3640,20 +3606,23 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   }
 }
 
-const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload) => {
+// in split mode the root is the 'inbox'
+const threadRouteName = Constants.isSplit ? 'chatRoot' : 'chatConversation'
+
+const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logger: Saga.SagaLogger) => {
   const {prev, next} = action.payload
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
-  const wasChat = p?.routeName === 'chatConversation'
-  const isChat = n?.routeName === 'chatConversation'
+  const wasChat = p?.routeName === threadRouteName
+  const isChat = n?.routeName === threadRouteName
 
   // nothing to do with chat
   if (!wasChat && !isChat) {
     return false
   }
 
-  const wasID = p?.params?.converationIDKey
-  const isID = n?.params?.converationIDKey
+  const wasID = p?.params?.conversationIDKey
+  const isID = n?.params?.conversationIDKey
 
   logger.info('maybeChangeChatSelection ', {wasChat, isChat, wasID, isID})
 
@@ -3664,19 +3633,16 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload) => {
 
   // still chatting? just select new one
   if (wasChat && isChat && Constants.isValidConversationIDKey(isID)) {
-    return Chat2Gen.createSelectConversation({conversationIDKey: isID, reason: 'navChanged'})
+    return Chat2Gen.createSelectedConversation({conversationIDKey: isID})
   }
 
   // leaving a chat
   if (wasChat) {
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey: Constants.noConversationIDKey,
-      reason: 'clearSelected',
-    })
+    return Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey})
   }
 
   if (isChat) {
-    return Chat2Gen.createSelectConversation({conversationIDKey: isID, reason: 'navChanged'})
+    return Chat2Gen.createSelectedConversation({conversationIDKey: isID})
   }
 
   return false
@@ -3694,7 +3660,7 @@ function* chat2Saga() {
   // Platform specific actions
   if (Container.isPhone) {
     // Push us into the conversation
-    yield* Saga.chainAction2(Chat2Gen.selectConversation, mobileNavigateOnSelect)
+    // yield* Saga.chainAction2(Chat2Gen.selectedConversation, mobileNavigateOnSelect)
   }
   if (Container.isMobile) {
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
@@ -3711,19 +3677,19 @@ function* chat2Saga() {
       desktopNotify
     )
     // Switch to the chat tab
-    yield* Saga.chainAction2(Chat2Gen.selectConversation, desktopNavigateOnSelect)
+    // yield* Saga.chainAction2(Chat2Gen.selectConversation, desktopNavigateOnSelect)
   }
 
   // Refresh the inbox
   yield* Saga.chainAction2([Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale], inboxRefresh)
-  yield* Saga.chainAction2([Chat2Gen.selectConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
+  yield* Saga.chainAction2([Chat2Gen.selectedConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
   yield* Saga.chainGenerator<Chat2Gen.MetaHandleQueuePayload>(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
-  yield* Saga.chainAction2([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
+  yield* Saga.chainAction2([Chat2Gen.metaRequestTrusted, Chat2Gen.selectedConversation], unboxRows)
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxConversation, onGetInboxConvsUnboxed)
   yield* Saga.chainAction(EngineGen.chat1ChatUiChatInboxUnverified, onGetInboxUnverifiedConvs)
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed)
@@ -3732,7 +3698,8 @@ function* chat2Saga() {
 
   // Load the selected thread
   yield* Saga.chainGenerator<
-    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.NavigateToThreadPayload
+    | Chat2Gen.SelectedConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -3741,7 +3708,8 @@ function* chat2Saga() {
     | ConfigGen.ChangedFocusPayload
   >(
     [
-      Chat2Gen.selectConversation,
+      Chat2Gen.navigateToThread,
+      Chat2Gen.selectedConversation,
       Chat2Gen.jumpToRecent,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,
@@ -3753,7 +3721,10 @@ function* chat2Saga() {
   )
 
   // get the unread (orange) line
-  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, getUnreadline)
+  yield* Saga.chainGenerator<Chat2Gen.SelectedConversationPayload>(
+    Chat2Gen.selectedConversation,
+    getUnreadline
+  )
 
   yield* Saga.chainAction(Chat2Gen.messageRetry, messageRetry)
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)
@@ -3829,7 +3800,7 @@ function* chat2Saga() {
     [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
     navigateToInbox
   )
-  yield* Saga.chainAction2(Chat2Gen.navigateToThread, navigateToThread)
+  yield* Saga.chainAction(Chat2Gen.navigateToThread, navigateToThread)
 
   yield* Saga.chainAction(Chat2Gen.joinConversation, joinConversation)
   yield* Saga.chainAction(Chat2Gen.leaveConversation, leaveConversation)
@@ -3911,9 +3882,8 @@ function* chat2Saga() {
 
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
   yield* Saga.chainAction2(Chat2Gen.toggleThreadSearch, onToggleThreadSearch)
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, hideThreadSearch)
-  yield* Saga.chainAction2(Chat2Gen.deselectConversation, cancelAudioFromDeselect)
-  yield* Saga.chainAction2(Chat2Gen.deselectConversation, deselectConversation)
+  yield* Saga.chainAction2(Chat2Gen.selectedConversation, hideThreadSearch)
+  yield* Saga.chainAction(Chat2Gen.selectedConversation, cancelAudioFromDeselect)
 
   yield* Saga.chainAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
@@ -3928,11 +3898,11 @@ function* chat2Saga() {
     loadAttachmentView
   )
 
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
+  yield* Saga.chainAction2(Chat2Gen.selectedConversation, ensureSelectedMeta)
 
   yield* Saga.chainAction(Chat2Gen.showInfoPanel, onShowInfoPanel)
 
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
+  yield* Saga.chainAction2(Chat2Gen.selectedConversation, fetchConversationBio)
 
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, sendAudioRecording)
 

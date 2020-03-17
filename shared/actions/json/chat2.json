@@ -387,6 +387,7 @@
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {},
     "navigateToThread": {
+      "conversationIDKey": "Types.ConversationIDKey",
       // why this happened, sometimes there's different side effects
       "reason": [
         "'focused'", // nav focus changed
@@ -414,6 +415,7 @@
         "'teamChat'", // from team
         "'addedToChannel'", // just added people to this channel
         "'navChanged'", // the nav state changed
+        "'misc'", // misc
         "'teamMention'" // from team mention
       ],
       "pushBody?": "string"

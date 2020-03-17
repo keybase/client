@@ -15,7 +15,7 @@ type Props = {
 }
 
 const BigTeamChannel = (props: Props) => {
-  const {conversationIDKey, navKey} = props
+  const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const hasBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
@@ -25,7 +25,7 @@ const BigTeamChannel = (props: Props) => {
   const isSelected = Constants.getSelectedConversation() === conversationIDKey
 
   const onSelectConversation = () =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxBig'}))
+    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxBig'}))
 
   const channelname = meta.channelname || props.channelname
   const hasDraft = getDraft && !isSelected
