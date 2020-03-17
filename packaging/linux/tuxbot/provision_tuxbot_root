@@ -10,10 +10,11 @@ GOLANG_DOWNLOAD_SHA256=b3dd4bd781a0271b33168e627f7f43886b4c5d1c794a4015abf34e99c
 wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
 echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
 tar -C /usr/local -xzf /root/go.tar.gz
-rm /root/go.tar.gz
+ln -sf /usr/local/go/bin/go /usr/bin/go
 
 curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
 apt install -y ./keybase_amd64.deb
+rm ./keybase_amd64.deb
 
 pip3 install s3cmd
 
