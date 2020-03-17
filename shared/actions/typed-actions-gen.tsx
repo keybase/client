@@ -990,6 +990,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
+  'teams:teamSeen': teams.TeamSeenPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

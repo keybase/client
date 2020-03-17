@@ -1409,6 +1409,15 @@ const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
 
+const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogger) => {
+  const {teamID} = action.payload
+  try {
+    await RPCTypes.gregorDismissCategoryRpcPromise({category: Constants.newRequestsGregorKey(teamID)})
+  } catch (e) {
+    logger.error(e.message)
+  }
+}
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1508,6 +1517,8 @@ const teamsSaga = function*() {
     [TeamsGen.cancelAddMembersWizard, TeamsGen.finishAddMembersWizard],
     navAwayFromAddMembersWizard
   )
+
+  yield* Saga.chainAction(TeamsGen.teamSeen, teamSeen)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

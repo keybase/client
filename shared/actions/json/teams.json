@@ -410,6 +410,10 @@
     "setTeamWizardSubteams": {
       "subteams": "Array<string>"
     },
-    "finishNewTeamWizard": {}
+    "finishNewTeamWizard": {},
+    "teamSeen": {
+      "_description": "User has viewed this team. Clear related badges.",
+      "teamID": "Types.TeamID"
+    }
   }
 }
