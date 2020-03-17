@@ -52,7 +52,11 @@ const packagerOpts: any = {
   buildVersion: String(appVersion) + String(comment),
   darwinDarkModeSupport: true,
   dir: desktopPath('./build'),
-  download: { },
+  download: {
+    mirrorOptions: {
+      mirror: 'https://kbelectron.keybase.pub/electron-download/',
+    },
+  },
   electronVersion: 0,
   // macOS file association to saltpack files
   extendInfo: {
