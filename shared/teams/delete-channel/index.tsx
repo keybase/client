@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
