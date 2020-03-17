@@ -42,7 +42,12 @@ export const ModalTitle = ({title, teamname}: {title: string; teamname: string})
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
-      <Kb.Avatar size={32} teamname={teamname} style={styles.avatar} />
+      <Kb.Avatar
+        size={32}
+        teamname={teamname == 'New team' ? '' : teamname}
+        style={styles.avatar}
+        isTeam={true}
+      />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>
           {teamname}
