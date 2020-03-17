@@ -5,6 +5,8 @@ Vagrant.configure("2") do |config|
   end
   config.vm.provision "file", source: "~/go/src/github.com/keybase/client/packaging/linux/tuxbot/ssh_config",
     destination: "~/.ssh/config"
+  config.vm.provision "file", source: "~/go/src/github.com/keybase/client/packaging/linux/tuxbot/ssh_known_hosts",
+    destination: "~/.ssh/known_hosts"
   config.vm.provision "shell", inline: "> /etc/profile.d/env.sh", run: "always"
   config.vm.provision "shell", inline: "echo \"export GNUPGHOME=/tmp\" >> /etc/profile.d/env.sh", run: "always"
   config.vm.provision "shell", path: "provision_tuxbot_root", privileged: true
