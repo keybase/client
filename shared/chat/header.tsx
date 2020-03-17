@@ -11,13 +11,7 @@ import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
 
 type OwnProps = {
-  navigation: {
-    state: {
-      params?: {
-        conversationIDKey: Types.ConversationIDKey
-      }
-    }
-  }
+  navigation: any
 }
 
 type Props = {
