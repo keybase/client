@@ -368,3 +368,39 @@ func IdentifyHandle(
 	return identifyUsersForTLF(
 		ctx, nug, identifier, h.ResolvedUsersMap(), h.Type(), offline)
 }
+
+// IdentifySingleAssertion identifies a single assertion, and takes
+// care of any necessary extended identify behaviors.  It does not
+// relay any broken identify warnings back to the caller, however.
+func IdentifySingleAssertion(
+	ctx context.Context, assertion, reason string, identifier idutil.Identifier,
+	offline keybase1.OfflineAvailability) (
+	name kbname.NormalizedUsername, err error) {
+	ei := GetExtendedIdentify(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Make sure to wait on any errors.
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- ei.makeTlfBreaksIfNeeded(ctx, 1)
+	}()
+
+	name, _, err = identifier.Identify(ctx, assertion, reason, offline)
+	if err != nil {
+		return "", err
+	}
+
+	// Wait for the goroutine to finish, but ignore the error.
+	select {
+	case <-errCh:
+	case <-ctx.Done():
+		return "", ctx.Err()
+	}
+
+	if ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() {
+		_ = GetExtendedIdentify(ctx).GetTlfBreakAndClose()
+	}
+
+	return name, nil
+}

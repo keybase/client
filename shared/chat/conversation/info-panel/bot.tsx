@@ -9,11 +9,14 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import {Section as _Section} from '../../../common-adapters/section-list'
 
 type AddToChannelProps = {
   conversationIDKey: Types.ConversationIDKey
   username: string
 }
+type Extra = {renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null}
+type Section = _Section<string | RPCTypes.FeaturedBot, Extra> | _Section<{key: string}, Extra>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
@@ -184,8 +187,8 @@ const styles = Styles.styleSheetCreate(
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  renderTabs: () => React.ReactNode
-  commonSections: Array<unknown>
+  renderTabs: () => React.ReactElement | null
+  commonSections: Array<Section>
 }
 
 const inThisChannelHeader = 'bots: in this channel'
@@ -290,7 +293,7 @@ export default (props: Props) => {
     }
   }, [featuredBotsLength, dispatch, conversationIDKey, loadedAllBots])
 
-  const items = [
+  const items: Array<string | RPCTypes.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),
     ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
     ...usernamesToFeaturedBots(botsInConv),
@@ -302,17 +305,18 @@ export default (props: Props) => {
     ...(loadingBots ? [featuredBotSpinner] : []),
   ]
 
-  const sections = [
+  const sections: Section[] = [
     {
       data: items,
       key: 'bots',
+      // @ts-ignore this is a mobile-only property we don't want to generally expose because it might end up confusing people.
       keyExtractor: (item: Unpacked<typeof items>, index: number) => {
         if (typeof item === 'string' || item instanceof String) {
           return item
         }
         return item.botUsername ? 'abot-' + item.botUsername : index
       },
-      renderItem: ({item}: {item: any}) => {
+      renderItem: ({item}) => {
         if (item === addBotButton) {
           return (
             <Kb.Button
@@ -382,7 +386,7 @@ export default (props: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
+      renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[...props.commonSections, ...sections]}
     />
   )

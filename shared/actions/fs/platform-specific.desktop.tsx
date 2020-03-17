@@ -11,7 +11,7 @@ import {TypedState, TypedActions} from '../../util/container'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
-import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
 
 const {path} = KB
@@ -109,7 +109,7 @@ const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSys
     const pathType = await getPathType(action.payload.localPath)
     return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
   } catch (e) {
-    return makeUnretriableErrorHandler(action, null)(e)
+    return errorToActionOrThrow(e)
   }
 }
 
@@ -128,7 +128,7 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
         ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
           Constants.parsePath(action.payload.path).kind
         ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
-      ).catch(makeRetriableErrorHandler(action, action.payload.path))
+      ).catch(e => errorToActionOrThrow(action.payload.path, e))
     : (new Promise((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
           // This usually indicates a developer error as
@@ -311,7 +311,7 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
+const installCachedDokan = () =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -339,7 +339,7 @@ const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
     })
   })
     .then(() => FsGen.createRefreshDriverStatus())
-    .catch(makeUnretriableErrorHandler(action, null))
+    .catch(e => errorToActionOrThrow(e))
 
 const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
   Electron.remote.dialog
@@ -358,14 +358,14 @@ const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
-const loadUserFileEdits = async (_: TypedState, action: FsGen.UserFileEditsLoadPayload) => {
+const loadUserFileEdits = async (_: TypedState) => {
   try {
     const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
     return FsGen.createUserFileEditsLoaded({
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
     })
   } catch (error) {
-    return makeUnretriableErrorHandler(action)(error)
+    return errorToActionOrThrow(error)
   }
 }
 

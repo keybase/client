@@ -1,23 +1,24 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {Box2} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {ImageViewProps} from './image-view'
 
 const ImageView = ({url, onUrlError}: ImageViewProps) => (
-  <Box2
+  <Kb.Box2
     direction="vertical"
     fullWidth={true}
     fullHeight={true}
     centerChildren={true}
     style={styles.container}
   >
-    <img
+    <Kb.Image
       src={url}
-      draggable={false}
       style={styles.image}
-      onError={onUrlError && (() => onUrlError('video loading error'))}
+      draggable={false}
+      showLoadingStateUntilLoaded={true}
+      onError={onUrlError && (() => onUrlError('image loading error'))}
     />
-  </Box2>
+  </Kb.Box2>
 )
 const styles = Styles.styleSheetCreate(
   () =>

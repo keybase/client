@@ -2,34 +2,49 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
+import {useAllChannelMetas} from '../../teams/common/channel-hooks'
+import * as GitGen from '../../actions/git-gen'
+import * as Constants from '../../constants/teams'
 
-export type Props = {
-  channelNames: Array<string>
-  onBack?: () => void
-  onCancel: () => void
-  onSubmit: (channelName: string) => void
-  selected: string
+type OwnProps = Container.RouteProps<{
   teamID: Types.TeamID
-  waiting: boolean
-}
+  repoID: string
+  selected: string
+}>
 
-const SelectChannel = (props: Props) => {
-  const {onSubmit, onCancel, teamID} = props
+const SelectChannel = (ownProps: OwnProps) => {
+  const teamID = Container.getRouteProps(ownProps, 'teamID', '')
+  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
+  const _selected = Container.getRouteProps(ownProps, 'selected', '')
+  const repoID = Container.getRouteProps(ownProps, 'repoID', '')
+
+  const channelMetas = useAllChannelMetas(teamID)
+  const waiting = channelMetas === null
+  const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []
+
+  const [selected, setSelected] = React.useState(_selected)
+
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
-  React.useEffect(() => {
-    teamID && dispatch(TeamsGen.createGetChannels({teamID}))
-  }, [teamID, dispatch])
-
-  const [selected, setSelected] = React.useState(props.selected)
+  const onSubmit = (channelName: string) =>
+    dispatch(
+      GitGen.createSetTeamRepoSettings({
+        channelName,
+        chatDisabled: false,
+        repoID: repoID,
+        teamname: teamname,
+      })
+    )
+  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
 
   const submit = () => {
     onSubmit(selected)
     onCancel()
   }
 
+  // TODO: this modal could use a little bit of love
   return (
     <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
       <Kb.Box
@@ -49,7 +64,7 @@ const SelectChannel = (props: Props) => {
             marginTop: Styles.globalMargins.medium,
           }}
         >
-          {props.channelNames.map(name => (
+          {channelNames.map(name => (
             <Kb.Box
               key={name}
               style={
@@ -66,7 +81,7 @@ const SelectChannel = (props: Props) => {
             </Kb.Box>
           ))}
         </Kb.Box>
-        <Kb.Button waiting={props.waiting} label="Submit" onClick={submit} small={true} />
+        <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
       </Kb.Box>
     </Kb.ScrollView>
   )
@@ -79,4 +94,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default SelectChannel
+export default Kb.HeaderOrPopup(SelectChannel)

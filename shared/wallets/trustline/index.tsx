@@ -69,7 +69,7 @@ const getSectionListKey = (props: BodyProps) =>
     props.popularAssets.length ? 'pa' : '_'
   }`
 
-const sectionHeader = section => !section.title || <Kb.SectionDivider label={section.title} />
+const sectionHeader = section => (section.title ? <Kb.SectionDivider label={section.title} /> : null)
 
 const ListUpdateOnMount = (props: BodyProps) => {
   // hack to get `ReactList` to render more than one item on initial mount.

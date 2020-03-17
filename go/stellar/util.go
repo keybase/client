@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"runtime/debug"
-	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
 )
 
@@ -52,52 +50,22 @@ type OwnAccountLookupCache interface {
 	OwnAccount(ctx context.Context, accountID stellar1.AccountID) (own bool, accountName string, err error)
 }
 
-type ownAccountLookupCacheImpl struct {
-	sync.RWMutex
-	loadErr  error
-	accounts map[stellar1.AccountID]*string
+type ownAccountLookupCacheFromGlobal struct {
+	libkb.Contextified
 }
 
-// NewOwnAccountLookupCache fetches the list of accounts in the background and stores them.
-// Was created before Stellar.accounts, and could probably benefit from using that cache.
+// NewOwnAccountLookupCache was obsoleted and exists only as an interface bridge.
+// Feel free to continue this refactor and remove it.
 func NewOwnAccountLookupCache(mctx libkb.MetaContext) OwnAccountLookupCache {
-	c := &ownAccountLookupCacheImpl{
-		accounts: make(map[stellar1.AccountID]*string),
+	return &ownAccountLookupCacheFromGlobal{
+		Contextified: libkb.NewContextified(mctx.G()),
 	}
-	c.Lock()
-	go c.fetch(mctx)
-	return c
 }
 
-// Fetch populates the cache in the background.
-func (c *ownAccountLookupCacheImpl) fetch(mctx libkb.MetaContext) {
-	go func() {
-		mc := mctx.BackgroundWithLogTags()
-		defer c.Unlock()
-		bundle, err := remote.FetchSecretlessBundle(mc)
-		c.loadErr = err
-		if err != nil {
-			return
-		}
-		for _, account := range bundle.Accounts {
-			name := account.Name
-			c.accounts[account.AccountID] = &name
-		}
-	}()
-}
-
-// OwnAccount queries the cache. Blocks until the populating RPC returns.
-func (c *ownAccountLookupCacheImpl) OwnAccount(ctx context.Context, accountID stellar1.AccountID) (own bool, accountName string, err error) {
-	c.RLock()
-	defer c.RLock()
-	if c.loadErr != nil {
-		return false, "", c.loadErr
-	}
-	name := c.accounts[accountID]
-	if name == nil {
-		return false, "", nil
-	}
-	return true, *name, nil
+func (o *ownAccountLookupCacheFromGlobal) OwnAccount(ctx context.Context, accountID stellar1.AccountID) (own bool, accountName string, err error) {
+	mctx := libkb.NewMetaContext(ctx, o.G())
+	own, _, accountName, err = OwnAccountPlusNameCached(mctx, accountID)
+	return own, accountName, err
 }
 
 func LookupSenderSeed(mctx libkb.MetaContext) (stellar1.AccountID, stellarnet.SeedStr, error) {

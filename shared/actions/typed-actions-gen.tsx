@@ -592,12 +592,14 @@ export type TypedActionsMap = {
   'fs:favoriteIgnore': fs.FavoriteIgnorePayload
   'fs:favoriteIgnoreError': fs.FavoriteIgnoreErrorPayload
   'fs:newFolderRow': fs.NewFolderRowPayload
-  'fs:newFolderName': fs.NewFolderNamePayload
+  'fs:startRename': fs.StartRenamePayload
+  'fs:setEditName': fs.SetEditNamePayload
   'fs:commitEdit': fs.CommitEditPayload
   'fs:editSuccess': fs.EditSuccessPayload
+  'fs:editError': fs.EditErrorPayload
   'fs:discardEdit': fs.DiscardEditPayload
-  'fs:fsError': fs.FsErrorPayload
-  'fs:dismissFsError': fs.DismissFsErrorPayload
+  'fs:redbar': fs.RedbarPayload
+  'fs:dismissRedbar': fs.DismissRedbarPayload
   'fs:setLastPublicBannerClosedTlf': fs.SetLastPublicBannerClosedTlfPayload
   'fs:openFilesFromWidget': fs.OpenFilesFromWidgetPayload
   'fs:letResetUserBackIn': fs.LetResetUserBackInPayload
@@ -900,8 +902,6 @@ export type TypedActionsMap = {
   'teams:clearAddUserToTeamsResults': teams.ClearAddUserToTeamsResultsPayload
   'teams:setAddUserToTeamsResults': teams.SetAddUserToTeamsResultsPayload
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
-  'teams:getChannelInfo': teams.GetChannelInfoPayload
-  'teams:getChannels': teams.GetChannelsPayload
   'teams:setChannelSelected': teams.SetChannelSelectedPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
@@ -947,8 +947,6 @@ export type TypedActionsMap = {
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
-  'teams:setTeamChannelInfo': teams.SetTeamChannelInfoPayload
-  'teams:setTeamChannels': teams.SetTeamChannelsPayload
   'teams:setTeamInfo': teams.SetTeamInfoPayload
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
@@ -960,7 +958,6 @@ export type TypedActionsMap = {
   'teams:updateTopic': teams.UpdateTopicPayload
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
-  'teams:deleteChannelInfo': teams.DeleteChannelInfoPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload

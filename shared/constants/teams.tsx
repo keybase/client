@@ -1,8 +1,6 @@
-import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import {noConversationIDKey} from './types/chat2/common'
 import {getFullRoute} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
@@ -56,14 +54,7 @@ export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username:
   `loadSubteamMemberships:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
-
-export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
-  channelname: '',
-  conversationIDKey: noConversationIDKey,
-  description: '',
-  memberStatus: RPCChatTypes.ConversationMemberStatus.active,
-  mtime: 0,
-})
+export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
   fullName: '',
@@ -215,7 +206,6 @@ const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
-  teamIDToChannelInfos: new Map(),
   teamIDToMembers: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
@@ -357,28 +347,11 @@ export const getEmailInviteError = (state: TypedState) => state.teams.errorInEma
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
 
-const noInfos = new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
-
-export const getTeamChannelInfos = (
-  state: TypedState,
-  teamID: Types.TeamID
-): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> =>
-  state.teams.teamIDToChannelInfos.get(teamID) ?? noInfos
-
-export const getChannelInfoFromConvID = (
-  state: TypedState,
-  teamID: Types.TeamID,
-  conversationIDKey: ChatTypes.ConversationIDKey
-): Types.ChannelInfo | null => getTeamChannelInfos(state, teamID).get(conversationIDKey) || null
-
 export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
   state.teams.teamRoleMap.roles.get(teamID)?.role || 'none'
 
 export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeTeamRoleType =>
   getRole(state, getTeamID(state, teamname))
-
-export const hasChannelInfos = (state: TypedState, teamID: Types.TeamID): boolean =>
-  state.teams.teamIDToChannelInfos.has(teamID)
 
 export const isLastOwner = (state: TypedState, teamID: Types.TeamID): boolean =>
   isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(state, teamID)
@@ -722,22 +695,24 @@ export const annotatedInvitesToInviteInfo = (
   invites: Array<RPCTypes.AnnotatedTeamInvite>
 ): Array<Types.InviteInfo> =>
   Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
-    const role = teamRoleByEnum[invite.role]
+    const role = teamRoleByEnum[invite.invite.role]
     if (!role || role === 'none') {
       return arr
     }
 
     let username = ''
-    const t = invite.type
-    if (t.c === RPCTypes.TeamInviteCategory.sbs) {
-      const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
-      username = `${invite.name}@${sbs}`
+    if (invite.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
+      username = invite.displayName
     }
     arr.push({
-      email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
-      id: invite.id,
-      name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.name : '',
+      email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
+      id: invite.invite.id,
+      name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
+        invite.invite.type.c
+      )
+        ? invite.displayName
+        : '',
+      phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
       role,
       username,
     })

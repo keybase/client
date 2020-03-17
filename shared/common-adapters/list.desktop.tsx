@@ -10,34 +10,15 @@ import {Props} from './list'
 
 class List extends PureComponent<Props<any>> {
   _list: ReactList | null = null
-  _itemRender = index => {
+  _itemRender = (index: number, _: number | string): JSX.Element => {
     // ReactList has an issue where it caches the list length into its own state so can ask
     // for indices outside of the items...
     if (index >= this.props.items.length) {
+      // @ts-ignore
       return null
     }
     const item = this.props.items[index]
-    let children
-
-    // If we're in dev, let's warn if we're using margins (not supported by react-list)
-    if (__DEV__ && !!this.props.itemSizeEstimator) {
-      const renderedItem = this.props.renderItem(index, item)
-      // @ts-ignore - Not every rendered item has props
-      if (renderedItem && renderedItem.props && renderedItem.props.style) {
-        // @ts-ignore - Not every rendered item has props
-        const hasMargin = Object.keys(renderedItem.props.style).some(styleProp => styleProp.match(/^margin/))
-        hasMargin &&
-          console.warn(
-            `Item at ${index} (key: ${
-              item[this.props.keyProperty || 'key']
-            }) has margins. Margins do not work on react-list`
-          )
-      }
-
-      children = renderedItem
-    } else {
-      children = this.props.renderItem(index, item)
-    }
+    const children = this.props.renderItem(index, item)
 
     if (this.props.indexAsKey) {
       // if indexAsKey is set, just use index.
@@ -74,9 +55,6 @@ class List extends PureComponent<Props<any>> {
   }
 
   _getType() {
-    if (this.props.itemSizeEstimator) {
-      return 'variable'
-    }
     return this.props.fixedHeight ? 'uniform' : 'simple'
   }
 
@@ -106,7 +84,6 @@ class List extends PureComponent<Props<any>> {
               useTranslate3d={false}
               useStaticSize={!!this.props.fixedHeight}
               itemRenderer={this._itemRender}
-              itemSizeEstimator={this.props.itemSizeEstimator}
               length={this.props.items.length}
               type={this._getType()}
             />

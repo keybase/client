@@ -6,9 +6,12 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+
+	humanize "github.com/dustin/go-humanize"
 )
 
 type teamMembersRenderer struct {
@@ -21,6 +24,7 @@ func newTeamMembersRenderer(g *libkb.GlobalContext, json, showInviteID bool) *te
 	return &teamMembersRenderer{
 		Contextified: libkb.NewContextified(g),
 		json:         json,
+		showInviteID: showInviteID,
 	}
 }
 
@@ -76,44 +80,54 @@ func (c *teamMembersRenderer) outputRole(team, role string, members []keybase1.T
 	}
 }
 
-func (c *teamMembersRenderer) formatInviteName(invite keybase1.AnnotatedTeamInvite) (res string) {
-	res = string(invite.Name)
-	category, err := invite.Type.C()
-	if err == nil {
-		switch category {
-		case keybase1.TeamInviteCategory_SBS:
-			res = fmt.Sprintf("%s@%s", invite.Name, string(invite.Type.Sbs()))
-		case keybase1.TeamInviteCategory_SEITAN:
-			if res == "" {
-				res = "<token without label>"
-			}
-		}
-	}
-	return res
-}
-
 func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
-	for _, invite := range invites {
+	var inviteList []keybase1.AnnotatedTeamInvite
+	for _, annotatedInvite := range invites {
+		inviteList = append(inviteList, annotatedInvite)
+	}
+	sort.SliceStable(inviteList, func(i, j int) bool {
+		a, aErr := inviteList[i].Invite.Type.C()
+		b, bErr := inviteList[j].Invite.Type.C()
+		if aErr != nil || bErr != nil {
+			return bErr != nil
+		}
+		return a.String() < b.String()
+	})
+	for _, annotatedInvite := range inviteList {
+		invite := annotatedInvite.Invite
 		category, err := invite.Type.C()
 		if err != nil {
 			category = keybase1.TeamInviteCategory_UNKNOWN
 		}
-		trailer := fmt.Sprintf("(* invited by %s, awaiting acceptance)", invite.InviterUsername)
+		trailer := fmt.Sprintf("(* invited by %s)", annotatedInvite.InviterUsername)
+		inviteIDTrailer := ""
+		if c.showInviteID {
+			// Show invite IDs for SEITAN tokens, which can be used to cancel the invite.
+			inviteIDTrailer = fmt.Sprintf(" (Invite ID: %s)", invite.Id)
+		}
 		switch category {
 		case keybase1.TeamInviteCategory_EMAIL:
-			trailer = fmt.Sprintf("(* invited via email by %s, awaiting acceptance)", invite.InviterUsername)
+			trailer = fmt.Sprintf("(* invited via email by %s)", annotatedInvite.InviterUsername)
 		case keybase1.TeamInviteCategory_SEITAN:
-			inviteIDTrailer := ""
-			if c.showInviteID {
-				// Show invite IDs for SEITAN tokens, which can be used to cancel the invite.
-				inviteIDTrailer = fmt.Sprintf(" (Invite ID: %s)", invite.Id)
-			}
-			trailer = fmt.Sprintf("(* invited via secret token by %s, awaiting acceptance)%s",
-				invite.InviterUsername, inviteIDTrailer)
+			trailer = fmt.Sprintf("(* invited via secret token by %s)%s",
+				annotatedInvite.InviterUsername, inviteIDTrailer)
+		case keybase1.TeamInviteCategory_INVITELINK:
+			trailer = fmt.Sprintf("(* invite link created by %s)%s",
+				annotatedInvite.InviterUsername, inviteIDTrailer)
 		}
-		fmtstring := "%s\t%s*\t%s\t%s\n"
-		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()),
-			c.formatInviteName(invite), trailer)
+
+		etime := "does not expire"
+		if invite.Etime != nil {
+			t := keybase1.FromUnixTime(*invite.Etime)
+			etime = "expiration: " + humanize.RelTime(t, time.Now(), "ago", "from now")
+		}
+
+		usesLeft := invite.MaxUses.String(len(annotatedInvite.UsedInvites))
+
+		fmtstring := "%s\t%s*\t%s\t%s\t%s\t%s\n"
+		fmt.Fprintf(c.tabw, fmtstring, annotatedInvite.TeamName,
+			strings.ToLower(invite.Role.String()), annotatedInvite.DisplayName,
+			etime, usesLeft, trailer)
 	}
 }
 

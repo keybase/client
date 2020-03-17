@@ -13,6 +13,7 @@ import RoleButton from '../../role-button'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {TeamDetailsSubscriber} from '../../subscriber'
 import {formatTimeForTeamMember} from '../../../util/timestamp'
+import {Section as _Section} from '../../../common-adapters/section-list'
 
 type Props = {
   teamID: Types.TeamID
@@ -21,9 +22,8 @@ type Props = {
 type OwnProps = Container.RouteProps<Props>
 type MetaPlusMembership = {
   key: string
-  teamMeta: Types.TeamMeta
   memberInfo: Types.MemberInfo
-}
+} & Types.TeamMeta
 
 const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
   const subteamsAll = [...Constants.getTeamDetails(state, teamID).subteams.values()]
@@ -38,7 +38,7 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
       subteamsIn.push({
         key: `member:${username}:${subteamMeta.teamname}`,
         memberInfo: subteamMembership,
-        teamMeta: subteamMeta,
+        ...subteamMeta,
       })
     } else {
       subteamsNotIn.push(subteamMeta)
@@ -49,6 +49,9 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
     subteamsNotIn,
   }
 }
+
+type Extra = {title: string}
+type Section = _Section<MetaPlusMembership, Extra> | _Section<Types.TeamMeta, Extra>
 
 const TeamMember = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
@@ -82,53 +85,48 @@ const TeamMember = (props: OwnProps) => {
     )
   }
 
+  const subteamsInSection: Section = {
+    data: subteamsIn,
+    key: 'section-subteams',
+    renderItem: ({item, index}: {item: MetaPlusMembership; index: number}) => (
+      <SubteamInRow
+        teamID={teamID}
+        subteam={item}
+        membership={item.memberInfo}
+        idx={index}
+        username={username}
+        expanded={expandedSet.has(item.id)}
+        setExpanded={newExpanded => {
+          if (newExpanded) {
+            expandedSet.add(item.id)
+          } else {
+            expandedSet.delete(item.id)
+          }
+          setExpandedSet(new Set([...expandedSet]))
+        }}
+      />
+    ),
+    title: `${username} is in:`,
+  }
+  const subteamsNotInSection = {
+    data: subteamsNotIn,
+    key: 'section-add-subteams',
+    renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
+      <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
+    ),
+    title: `Add ${username} to:`,
+  }
+
   const sections = [
-    ...(subteamsIn.length > 0
-      ? [
-          {
-            data: subteamsIn,
-            key: 'section-subteams',
-            renderItem: ({item, index}: {item: MetaPlusMembership; index: number}) => (
-              <SubteamInRow
-                teamID={teamID}
-                subteam={item.teamMeta}
-                membership={item.memberInfo}
-                idx={index}
-                username={username}
-                expanded={expandedSet.has(item.teamMeta.id)}
-                setExpanded={newExpanded => {
-                  if (newExpanded) {
-                    expandedSet.add(item.teamMeta.id)
-                  } else {
-                    expandedSet.delete(item.teamMeta.id)
-                  }
-                  setExpandedSet(new Set([...expandedSet]))
-                }}
-              />
-            ),
-            title: `${username} is in:`,
-          },
-        ]
-      : []),
-    ...(subteamsNotIn.length > 0
-      ? [
-          {
-            data: subteamsNotIn,
-            key: 'section-add-subteams',
-            renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
-              <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
-            ),
-            title: `Add ${username} to:`,
-          },
-        ]
-      : []),
+    ...(subteamsIn.length > 0 ? [subteamsInSection] : []),
+    ...(subteamsNotIn.length > 0 ? [subteamsNotInSection] : []),
   ]
   return (
-    <Kb.SectionList
+    <Kb.SectionList<Section>
       stickySectionHeadersEnabled={true}
       renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
       sections={sections}
-      keyExtractor={item => item.key ?? `member:${username}:${item.teamname}`}
+      keyExtractor={item => `member:${username}:${item.teamname}`}
     />
   )
 }

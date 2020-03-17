@@ -345,55 +345,57 @@ export class Settings extends React.Component<Props, State> {
             waiting={this.props.waitingForSavePublicity}
           />
         </Kb.Box2>
-        {flags.teamsRedesign && (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
-          <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
-            <Kb.Box>
-              <Kb.Text style={styles.header} type="BodySmallSemibold">
-                Welcome message
-              </Kb.Text>
-            </Kb.Box>
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.welcomeMessageCard}>
-              <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
-              <Kb.Box2
-                alignItems="flex-start"
-                direction="vertical"
-                style={styles.welcomeMessageContainer}
-                fullWidth={true}
-              >
-                {this.props.waitingForWelcomeMessage ? (
-                  <Kb.ProgressIndicator type="Small" style={styles.spinner} />
-                ) : (
-                  this.props.welcomeMessage && (
-                    <TeamJourney
-                      actions={[]}
-                      teamname={this.props.teamname}
-                      conversationIDKey=""
-                      image="icon-illustration-welcome-96"
-                      onAuthorClick={() => {}}
-                      onDismiss={() => {}}
-                      textComponent={renderWelcomeMessage(
-                        this.props.welcomeMessage!,
-                        false /* cannotWrite */
-                      )}
-                      deactivateButtons={true}
-                      mode="team-settings"
-                    />
-                  )
-                )}
+        {flags.teamsRedesign &&
+          this.props.yourOperations.editTeamDescription &&
+          (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
+            <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
+              <Kb.Box>
+                <Kb.Text style={styles.header} type="BodySmallSemibold">
+                  Welcome message
+                </Kb.Text>
+              </Kb.Box>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.welcomeMessageCard}>
+                <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
+                <Kb.Box2
+                  alignItems="flex-start"
+                  direction="vertical"
+                  style={styles.welcomeMessageContainer}
+                  fullWidth={true}
+                >
+                  {this.props.waitingForWelcomeMessage ? (
+                    <Kb.ProgressIndicator type="Small" style={styles.spinner} />
+                  ) : (
+                    this.props.welcomeMessage && (
+                      <TeamJourney
+                        actions={[]}
+                        teamname={this.props.teamname}
+                        conversationIDKey=""
+                        image="icon-illustration-welcome-96"
+                        onAuthorClick={() => {}}
+                        onDismiss={() => {}}
+                        textComponent={renderWelcomeMessage(
+                          this.props.welcomeMessage!,
+                          false /* cannotWrite */
+                        )}
+                        deactivateButtons={true}
+                        mode="team-settings"
+                      />
+                    )
+                  )}
+                </Kb.Box2>
               </Kb.Box2>
+              {!this.props.waitingForWelcomeMessage && this.props.welcomeMessage && (
+                <Kb.Box2 direction="vertical" alignSelf="flex-start">
+                  <Kb.Button
+                    label="Edit"
+                    onClick={this.props.onEditWelcomeMessage}
+                    small={true}
+                    mode="Secondary"
+                  />
+                </Kb.Box2>
+              )}
             </Kb.Box2>
-            {!this.props.waitingForWelcomeMessage && this.props.welcomeMessage && (
-              <Kb.Box2 direction="vertical" alignSelf="flex-start">
-                <Kb.Button
-                  label="Edit"
-                  onClick={this.props.onEditWelcomeMessage}
-                  small={true}
-                  mode="Secondary"
-                />
-              </Kb.Box2>
-            )}
-          </Kb.Box2>
-        )}
+          )}
       </Kb.Box2>
     )
   }

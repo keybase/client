@@ -14,13 +14,12 @@ import * as Platform from '../../constants/platform'
 
 type Props = {
   path: Types.Path
-  onLoadingStateChange: (isLoading: boolean) => void
   onUrlError: (err: string) => void
 }
 
 const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
-const FilePreviewView = ({path, onLoadingStateChange, onUrlError}: Props) => {
+const FilePreviewView = ({path, onUrlError}: Props) => {
   const pathItem = Container.useSelector(state => {
     return Constants.getPathItem(state.fs.pathItems, path)
   })
@@ -77,14 +76,14 @@ const FilePreviewView = ({path, onLoadingStateChange, onUrlError}: Props) => {
       ) : (
         <>
           {reloadBanner}
-          <TextView url={url} onLoadingStateChange={onLoadingStateChange} onUrlError={onUrlError} />
+          <TextView url={url} onUrlError={onUrlError} />
         </>
       )
     case RPCTypes.GUIViewType.image:
       return (
         <>
           {reloadBanner}
-          <ImageView url={url} onLoadingStateChange={onLoadingStateChange} onUrlError={onUrlError} />
+          <ImageView url={url} onUrlError={onUrlError} />
         </>
       )
     case RPCTypes.GUIViewType.audio:
@@ -92,11 +91,18 @@ const FilePreviewView = ({path, onLoadingStateChange, onUrlError}: Props) => {
       return (
         <>
           {reloadBanner}
-          <AVView url={url} onLoadingStateChange={onLoadingStateChange} onUrlError={onUrlError} />
+          <AVView url={url} onUrlError={onUrlError} />
         </>
       )
     case RPCTypes.GUIViewType.pdf:
-      return Platform.isIOS ? <PdfView url={url} onUrlError={onUrlError} /> : <DefaultView path={path} />
+      return Platform.isIOS ? (
+        <>
+          {reloadBanner}
+          <PdfView url={url} onUrlError={onUrlError} />
+        </>
+      ) : (
+        <DefaultView path={path} />
+      )
     default:
       return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>
   }

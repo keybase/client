@@ -14,21 +14,6 @@ type OwnProps = {
   headerRows?: Array<RowTypes.HeaderRowItem> | null
 }
 
-const getEditingRows = memoize(
-  (edits: Map<Types.EditID, Types.Edit>, parentPath: Types.Path): Array<RowTypes.EditingRowItem> =>
-    [...edits]
-      .filter(([_, edit]) => edit.parentPath === parentPath)
-      .map(([editID, edit]) => ({
-        editID,
-        editType: edit.type,
-        key: `edit:${Types.editIDToString(editID)}`,
-        name: edit.name,
-        // fields for sortable
-        rowType: RowTypes.RowType.Editing,
-        type: Types.PathType.Folder,
-      }))
-)
-
 const getStillRows = memoize(
   (
     pathItems: Map<Types.Path, Types.PathItem>,
@@ -61,7 +46,37 @@ const _getPlaceholderRows = (type): Array<RowTypes.PlaceholderRowItem> => [
 const filePlaceholderRows = _getPlaceholderRows(Types.PathType.File)
 const folderPlaceholderRows = _getPlaceholderRows(Types.PathType.Folder)
 
-const _makeInTlfRows = memoize((editingRows, amendedStillRows) => editingRows.concat(amendedStillRows))
+const _makeInTlfRows = memoize(
+  (parentPath: Types.Path, edits: Map<Types.EditID, Types.Edit>, stillRows: Array<RowTypes.StillRowItem>) => {
+    const relevantEdits = [...edits].filter(([_, edit]) => edit.parentPath === parentPath)
+    const newFolderRows: Array<SortableRowItem> = relevantEdits
+      .filter(([_, edit]) => edit.type === Types.EditType.NewFolder)
+      .map(([editID, edit]) => ({
+        editID,
+        editType: edit.type,
+        key: `edit:${Types.editIDToString(editID)}`,
+        name: edit.name,
+        // fields for sortable
+        rowType: RowTypes.RowType.NewFolder,
+        type: Types.PathType.Folder,
+      }))
+    const renameEdits = new Map(
+      relevantEdits
+        .filter(([_, edit]) => edit.type === Types.EditType.Rename)
+        .map(([editID, edit]) => [edit.originalName, editID])
+    )
+    return newFolderRows.concat(
+      stillRows.map(row =>
+        renameEdits.has(row.name)
+          ? {
+              ...row,
+              editID: renameEdits.get(row.name),
+            }
+          : row
+      )
+    )
+  }
+)
 
 const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): Array<RowTypes.NamedRowItem> => {
   const _pathItem = Constants.getPathItem(stateProps._pathItems, path)
@@ -73,10 +88,9 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): Array<RowTyp
     return filePlaceholderRows
   }
 
-  const editingRows = getEditingRows(stateProps._edits, path)
   const stillRows = getStillRows(stateProps._pathItems, path, _pathItem.children)
 
-  return sortRowItems(_makeInTlfRows(editingRows, stillRows), stateProps._sortSetting, '')
+  return sortRowItems(_makeInTlfRows(path, stateProps._edits, stillRows), stateProps._sortSetting, '')
 }
 
 const getTlfRowsFromTlfs = memoize(

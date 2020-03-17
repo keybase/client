@@ -11,11 +11,7 @@ const TextView = (props: Props) => (
       style={styles.webview}
       injections={injections}
       onError={props.onUrlError}
-      renderLoading={() => (
-        <Kb.Box2 direction="vertical" style={styles.progressContainer} fullWidth={true} fullHeight={true}>
-          <Kb.ProgressIndicator white={true} />
-        </Kb.Box2>
-      )}
+      showLoadingStateUntilLoaded={true}
     />
   </Kb.Box2>
 )

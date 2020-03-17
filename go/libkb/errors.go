@@ -565,7 +565,9 @@ func IsEphemeralRetryableError(err error) bool {
 			keybase1.StatusCode_SCEphemeralKeyBadGeneration,
 			keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
 			keybase1.StatusCode_SCEphemeralKeyMissingBox,
-			keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys:
+			keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
+			keybase1.StatusCode_SCTeambotKeyBadGeneration,
+			keybase1.StatusCode_SCTeambotKeyOldBoxedGeneration:
 			return true
 		default:
 			return false
