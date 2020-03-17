@@ -92,8 +92,6 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e KEYBASE_SKIP_64_BIT \
   -e KEYBASE_NO_KBFS \
   -e KEYBASE_NO_GUI \
-  -e KEYBASE_NO_RPM \
-  -e KEYBASE_NO_DEB \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

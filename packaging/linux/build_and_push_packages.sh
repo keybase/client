@@ -17,23 +17,15 @@ client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 
 echo "================================="
 echo "================================="
-if [ -n "$KEYBASE_TEST" ]; then
+if [ -v "$KEYBASE_TEST" ]; then
     default_bucket_name="tests.keybase.io"
     echo "= This build+push is a TEST. ="
-elif [ -n "$KEYBASE_NIGHTLY" ]; then
+elif [ -v "$KEYBASE_NIGHTLY" ]; then
     default_bucket_name="tests.keybase.io"
     echo "= This build+push is a NIGHTLY. ="
-elif [ -n "$KEYBASE_RELEASE" ]; then
+elif [ -v "$KEYBASE_RELEASE" ]; then
     default_bucket_name="prerelease.keybase.io"
     echo "= This build+push is a RELEASE. ="
-	if [ -n "$KEYBASE_NO_DEB" ]; then
-		echo "Cannot use KEYBASE_NO_DEB for a release"
-		exit 1
-	fi
-	if [ -n "$KEYBASE_NO_RPM" ]; then
-		echo "Cannot use KEYBASE_NO_RPM for a release"
-		exit 1
-	fi
 else
     echo "Neither KEYBASE_TEST, KEYBASE_NIGHTLY, nor KEYBASE_RELEASE were specified. Aborting."
     exit 1
@@ -55,21 +47,16 @@ echo "=============================="
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
 
-date
 echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
 GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$release_gopath/bin/release"
 
-date
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
-date
 version="$(cat "$build_dir/VERSION")"
-[ -z "$KEYBASE_NO_DEB" ] && "$here/deb/layout_repo.sh" "$build_dir" || echo "not making deb repo"
-date
-[ -z "$KEYBASE_NO_RPM" ] && "$here/rpm/layout_repo.sh" "$build_dir" || echo "not making rpm repo"
-date
+"$here/deb/layout_repo.sh" "$build_dir"
+"$here/rpm/layout_repo.sh" "$build_dir"
 
 # Short-circuit devel mode.
 if [ "$mode" = "devel" ] ; then
@@ -81,7 +68,6 @@ elif [ "$mode" != "prerelease" ] ; then
 fi
 
 echo Doing a prerelease push to S3...
-date
 
 # Parse the shared .s3cfg file and export the keys as environment variables.
 # (Our s3cmd commands would be happy to read that file directly if we put it
@@ -93,32 +79,28 @@ AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
 export AWS_SECRET_KEY
 
 # Upload both repos to S3.
-[ -z "$KEYBASE_NO_DEB" ] && echo Syncing the deb repo...
-[ -z "$KEYBASE_NO_DEB" ] && s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
-[ -z "$KEYBASE_NO_RPM" ] && echo Syncing the rpm repo...
-[ -z "$KEYBASE_NO_RPM" ] && s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
+echo Syncing the deb repo...
+s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
+echo Syncing the rpm repo...
+s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
 
 # For each .deb and .rpm file we just uploaded, unset the Cache-Control
 # header (because these files are large, and they have versioned names), and
 # also make a copy in /linux_binaries/{deb,rpm}.
-if [ -z "$KEYBASE_NO_DEB" ]; then
-	echo Unsetting .deb Cache-Control headers...
-	dot_deb_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/deb" | awk '{print $4}' | grep '\.deb$')"
-	for blob in $dot_deb_blobs ; do
-	  s3cmd modify --remove-header "Cache-Control" "$blob"
-	  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
-	  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
-	done
-fi
-if [ -z "$KEYBASE_NO_RPM" ]; then
-	echo Unsetting .rpm Cache-Control headers...
-	dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
-	for blob in $dot_rpm_blobs ; do
-	  s3cmd modify --remove-header "Cache-Control" "$blob"
-	  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
-	  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
-	done
-fi
+echo Unsetting .deb Cache-Control headers...
+dot_deb_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/deb" | awk '{print $4}' | grep '\.deb$')"
+for blob in $dot_deb_blobs ; do
+  s3cmd modify --remove-header "Cache-Control" "$blob"
+  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
+  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
+done
+echo Unsetting .rpm Cache-Control headers...
+dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
+for blob in $dot_rpm_blobs ; do
+  s3cmd modify --remove-header "Cache-Control" "$blob"
+  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+done
 
 # Make yet another copy of the .deb and .rpm packages we just made, in a
 # constant location for the friend-of-keybase instructions. Also make a
@@ -130,17 +112,16 @@ another_copy() {
   s3cmd put --follow-symlinks "$1.sig" "$2.sig"
 }
 copy_bins() {
-    [ -z "$KEYBASE_NO_DEB" ] && another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
-    [ -z "$KEYBASE_NO_DEB" ] && another_copy "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$1/keybase_i386.deb"
-    [ -z "$KEYBASE_NO_RPM" ] && another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
-    [ -z "$KEYBASE_NO_RPM" ] && another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
+    another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
+    another_copy "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$1/keybase_i386.deb"
+    another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
+    another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
 }
 copy_bins "$BUCKET_NAME"
 
 json_tmp=$(mktemp)
 echo "Writing version into JSON to $json_tmp"
 
-date
 "$release_bin" update-json --version="$version" > "$json_tmp"
 
 copy_metadata() {
@@ -156,22 +137,20 @@ GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
   echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
 NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
-if [ -n "$KEYBASE_NIGHTLY" ] ; then
+if [ -v "$KEYBASE_NIGHTLY" ] ; then
     echo "Ending coping binaries to nightly alias."
     copy_bins "$NIGHTLY_DIR"
     copy_metadata "$NIGHTLY_DIR"
     echo "Ending nightly."
     exit 0
 fi
-if [ -n "$KEYBASE_TEST" ] ; then
+if [ -v "$KEYBASE_TEST" ] ; then
     echo "Ending test build."
     exit 0
 fi
 
-date
 echo "Updating AUR packages"
 "$here/arch/update_aur_packages.sh" "$build_dir"
 
-date
 echo "Deleting old build files"
 find "$(dirname "$build_dir")" -mindepth 1 ! -wholename "$build_dir" -type d -exec rm -rf {} +
