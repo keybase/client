@@ -252,6 +252,7 @@ export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
 
 export type Banner = {
   action?: () => void
+  actionText?: string
   bannerBackground: BannerBackground
   bannerText: string
   reviewProofs?: boolean

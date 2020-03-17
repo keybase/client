@@ -54,7 +54,8 @@ export default namedConnect(
       ...(_sentPaymentError
         ? [
             {
-              action: exchangeRateChanged || recipientRequiresAMemo ? undefined : dispatchProps.onExitFailed,
+              action: exchangeRateChanged ? undefined : dispatchProps.onExitFailed,
+              actionText: recipientRequiresAMemo ? 'Go back' : 'Review payments',
               bannerBackground: 'HighRisk',
               bannerText: recipientRequiresAMemo ? 'This recipient requires a memo.' : _sentPaymentError,
               sendFailed: true,
