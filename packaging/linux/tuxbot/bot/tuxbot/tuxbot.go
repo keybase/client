@@ -64,7 +64,6 @@ func makeCmd(currentUser *user.User, proc string, args ...string) *exec.Cmd {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "NOWAIT=1") // always skip ci
 	return cmd
 }
 
@@ -232,6 +231,9 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			}
 			if command == "test" {
 				cmd.Env = append(cmd.Env, "KEYBASE_TEST=1")
+			}
+			if command == "release" {
+				cmd.Env = append(cmd.Env, "KEYBASE_RELEASE=1")
 			}
 			err = cmd.Run()
 			if err != nil {
