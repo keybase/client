@@ -2439,7 +2439,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const visibleConvo = visible?.params?.conversationIDKey
   const visibleRouteName = visible?.routeName
 
-  if (visibleRouteName === threadRouteName) {
+  if (visibleRouteName === Constants.threadRouteName) {
     // looking at the pending / waiting screen
     if (!Constants.isValidConversationIDKey(visibleConvo)) {
       replace = true
@@ -2454,8 +2454,9 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
 
   return [
     ...(Constants.isSplit ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []),
+    RouteTreeGen.createClearModals(),
     RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey}, selected: threadRouteName}],
+      path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
       replace,
     }),
   ]
@@ -3606,15 +3607,12 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   }
 }
 
-// in split mode the root is the 'inbox'
-const threadRouteName = Constants.isSplit ? 'chatRoot' : 'chatConversation'
-
 const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logger: Saga.SagaLogger) => {
   const {prev, next} = action.payload
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
-  const wasChat = p?.routeName === threadRouteName
-  const isChat = n?.routeName === threadRouteName
+  const wasChat = p?.routeName === Constants.threadRouteName
+  const isChat = n?.routeName === Constants.threadRouteName
 
   // nothing to do with chat
   if (!wasChat && !isChat) {

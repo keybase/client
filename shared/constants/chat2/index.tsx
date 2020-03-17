@@ -29,6 +29,9 @@ const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
+// in split mode the root is the 'inbox'
+export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
+
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
@@ -231,8 +234,7 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (): Types.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
-  // TODO mobile
-  if (maybeVisibleScreen?.routeName === 'chatRoot') {
+  if (maybeVisibleScreen?.routeName === threadRouteName) {
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
   return noConversationIDKey
@@ -294,7 +296,7 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected =
       (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined
-        : maybeVisibleScreen.routeName) === 'chatRoot'
+        : maybeVisibleScreen.routeName) === threadRouteName
   }
 
   return (
@@ -457,9 +459,6 @@ export const makeInboxQuery = (
 }
 
 export const isAssertion = (username: string) => username.includes('@')
-
-export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
-export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
