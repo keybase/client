@@ -6,7 +6,7 @@
 //  Copyright © 2018 Keybase. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import   <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 
 #ifndef PushPrompt_h

@@ -9,6 +9,7 @@ import InfoPanel from './conversation/info-panel/container'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
+import {withNavigation} from '@react-navigation/core'
 
 type Props = {
   navigation?: any
@@ -51,7 +52,7 @@ const InboxAndConversation = (props: Props) => {
 
 InboxAndConversation.navigationOptions = {
   header: undefined,
-  headerTitle: Header,
+  headerTitle: withNavigation(Header),
   headerTitleContainerStyle: {left: 0, right: 0},
 }
 

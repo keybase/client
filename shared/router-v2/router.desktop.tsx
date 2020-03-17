@@ -51,8 +51,6 @@ class AppView extends React.PureComponent<NavigationViewProps<any>> {
     const activeIndex = getActiveIndex(navigation.state)
     const activeKey = getActiveKey(navigation.state)
 
-    const params = descriptor.state.params
-
     const sceneView = (
       <SceneView
         navigation={childNav}
@@ -84,7 +82,6 @@ class AppView extends React.PureComponent<NavigationViewProps<any>> {
               // @ts-ignore
               loggedIn={!!selectedTab}
               options={descriptor.options}
-              params={params}
               onPop={() => childNav.goBack(activeKey)}
               allowBack={activeIndex !== 0}
             />

@@ -11,8 +11,12 @@ import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
 
 type OwnProps = {
-  params?: {
-    conversationIDKey: Types.ConversationIDKey
+  navigation: {
+    state: {
+      params?: {
+        conversationIDKey: Types.ConversationIDKey
+      }
+    }
   }
 }
 
@@ -276,7 +280,11 @@ const styles = Styles.styleSheetCreate(
 
 const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
-    const _conversationIDKey = ownProps.params?.conversationIDKey ?? Constants.noConversationIDKey
+    // temp until nav 5 when this all goes away
+    const _conversationIDKey =
+      (Container.isTablet
+        ? ownProps.navigation.state.params?.conversationIDKey
+        : ownProps.navigation.state.routes[0]?.params?.conversationIDKey) ?? Constants.noConversationIDKey
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
