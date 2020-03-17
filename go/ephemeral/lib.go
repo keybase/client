@@ -39,7 +39,7 @@ type EKLib struct {
 	clock                    clockwork.Clock
 	backgroundCreationTestCh chan bool
 	backgroundDeletionTestCh chan bool
-	stopCh                   chan struct{}
+	stopCh                   chan<- struct{}
 }
 
 var _ libkb.EKLib = (*EKLib)(nil)
@@ -55,15 +55,16 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
+	stopCh := make(chan struct{})
 	ekLib := &EKLib{
 		teamEKGenCache:         nlru,
 		teambotEKMetadataCache: nlru2,
 		locktab:                libkb.NewLockTable(),
 		clock:                  clockwork.NewRealClock(),
-		stopCh:                 make(chan struct{}),
+		stopCh:                 stopCh,
 	}
 	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
-		go ekLib.backgroundKeygen(mctx)
+		go ekLib.backgroundKeygen(mctx, stopCh)
 	}
 	return ekLib
 }
@@ -84,7 +85,7 @@ func (e *EKLib) Shutdown(mctx libkb.MetaContext) error {
 	return nil
 }
 
-func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext) {
+func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{}) {
 	mctx = mctx.WithLogTag("EKBKG")
 	mctx.Debug("backgroundKeygen: starting up")
 	keygenInterval := time.Hour
@@ -123,7 +124,7 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext) {
 				time.Sleep(libkb.RandomJitter(time.Second))
 				runIfNeeded(false /* force */)
 			}
-		case <-e.stopCh:
+		case <-stopCh:
 			ticker.Stop()
 			return
 		}

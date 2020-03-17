@@ -124,7 +124,12 @@ func pathForLogging(
 		childName := n.ChildName(p)
 		ret = path.Join(ret, childName.String())
 		nextNode, _, err := config.KBFSOps().Lookup(ctx, n, childName)
-		if err != nil {
+		// If filename is a path that includes a symlink, we can get a nil node
+		// here. So just move on if nextNode == nil. In the very rare case of
+		// an entry that gets a duplicated obfuscated name within a directory,
+		// this could give the wrong answer. But it's not worth it at this time
+		// to follow the symlnk for logging.
+		if err != nil || nextNode == nil {
 			// Just keep using the parent node to obfuscate.
 			continue
 		}

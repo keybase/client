@@ -8,6 +8,8 @@ import (
 )
 
 func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
+	t.Skip("Y2K-1062")
+
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)
@@ -62,6 +64,8 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 }
 
 func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T) {
+	t.Skip("Y2K-1062")
+
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)

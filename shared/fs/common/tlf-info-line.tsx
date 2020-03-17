@@ -15,11 +15,13 @@ export type Props = {
 
 const getOtherResetText = (names: Array<string>): string => {
   if (names.length === 1) {
-    return `${names[0]} has reset their account.`
+    return `${names[0]} has reset or deleted their account.`
   } else if (names.length === 2) {
-    return `${names[0]} and ${names[1]} have reset their accounts.`
+    return `${names[0]} and ${names[1]} have reset or deleted their accounts.`
   }
-  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]} have reset their accounts.`
+  return `${names.slice(0, -1).join(', ')}, and ${
+    names[names.length - 1]
+  } have reset or deleted their accounts.`
 }
 
 const newMetaMaybe = (props: Props) =>
