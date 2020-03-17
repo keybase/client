@@ -134,7 +134,7 @@ const getConversationNameForInput = (
         return ''
       }
       const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
-      return other ? `to ${otherText}` : ''
+      return otherText.length < 20 ? `to ${otherText}` : ''
     } else if (participantInfo.name.length === 1) {
       return 'to yourself'
     }
