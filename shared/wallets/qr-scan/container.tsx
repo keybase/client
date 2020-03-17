@@ -12,7 +12,7 @@ const mapDispatchToProps = dispatch => ({
     if (to) {
       if (to.startsWith('web+stellar:')) {
         // Switch from the send form to the SEP7 handler.
-        dispatch(WalletsGen.createValidateSEP7Link({link: to}))
+        dispatch(WalletsGen.createValidateSEP7Link({fromQR: true, link: to}))
         dispatch(WalletsGen.createClearBuilding())
       } else {
         // Just a plain address.

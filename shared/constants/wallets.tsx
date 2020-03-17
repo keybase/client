@@ -225,6 +225,7 @@ export const makeState = (): Types.State => ({
   sep7ConfirmError: '',
   sep7ConfirmPath: emptyBuiltPaymentAdvanced,
   sep7ConfirmURI: '',
+  sep7ConfirmFromQR: false,
   sep7SendError: '',
   teamBuilding: TeamBuildingConstants.makeSubState(),
   trustline: emptyTrustline,

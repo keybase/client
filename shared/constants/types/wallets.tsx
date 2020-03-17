@@ -331,6 +331,7 @@ export type State = {
   readonly sep6Error: boolean
   readonly sep6Message: string
   readonly sep7ConfirmError: string
+  readonly sep7ConfirmFromQR: boolean
   readonly sep7ConfirmInfo?: SEP7ConfirmInfo
   readonly sep7ConfirmPath: BuiltPaymentAdvanced
   readonly sep7ConfirmURI: string
