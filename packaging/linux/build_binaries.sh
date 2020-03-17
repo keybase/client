@@ -6,8 +6,6 @@ here="$(dirname "${BASH_SOURCE[0]}")"
 this_repo="$(git -C "$here" rev-parse --show-toplevel ||
   echo -n "$GOPATH/src/github.com/keybase/client")"
 
-echo "HELLO ARGS $@"
-
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
 

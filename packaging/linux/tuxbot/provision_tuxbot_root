@@ -31,3 +31,4 @@ dpkg -i /root/containerd.deb
 dpkg -i /root/dockercli.deb
 dpkg -i /root/docker.deb
 usermod -aG docker vagrant
+rm /root/*

@@ -165,3 +165,7 @@ fi
 
 echo "Updating AUR packages"
 "$here/arch/update_aur_packages.sh" "$build_dir"
+
+echo "Deleting old build files"
+find "$(dirname "$build_dir")" -mindepth 1 ! -wholename "$build_dir" -type d -exec rm -rf {} +
+# find $(dirname hello/g) -mindepth 1 ! -wholename hello/b -type d -exec rm -rf {} +
