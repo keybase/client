@@ -11,11 +11,12 @@ import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {ModalTitle} from '../common'
 import {pluralize} from '../../util/string'
+import logger from '../../logger'
 
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
-  const {teamID, role, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
+  const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const onlyEmails = React.useMemo(
@@ -41,7 +42,7 @@ const AddMembersConfirm = () => {
           teamID,
           users: addingMembers.map(member => ({
             assertion: member.assertion,
-            role: RPCGen.TeamRole[role || 'writer'], // TODO Y2K-1560 handle individual roles
+            role: RPCGen.TeamRole[member.role],
           })),
         },
       ],
@@ -51,6 +52,7 @@ const AddMembersConfirm = () => {
       },
       err => {
         setWaiting(false)
+        logger.error(err.message)
         setError(err.message)
       }
     )
@@ -179,19 +181,41 @@ const RoleSelector = () => {
     setShowingMenu(false)
     dispatch(TeamsGen.createSetAddMembersWizardRole({role: newRole}))
   }
+  const onSetIndividually = () => {
+    setRole(undefined)
+    setShowingMenu(false)
+    dispatch(TeamsGen.createSetAddMembersWizardRole({role: undefined}))
+  }
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
       <Kb.Text type="BodySmall">Invite as: </Kb.Text>
       <FloatingRolePicker
         open={showingMenu}
-        selectedRole={role}
+        selectedRole={role || 'writer'}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
-        confirmLabel={`Add as ${pluralize(role || 'reader')}`} // TODO Y2K-1560 fix when this can actually be undefined
+        confirmLabel={`Add as ${pluralize(role || 'writer')}`}
+        footerComponent={
+          !Styles.isMobile && (
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              centerChildren={true}
+              style={styles.setIndividuallyBox}
+            >
+              <Kb.Text type="BodySmall">
+                Or{' '}
+                <Kb.Text type="BodySmallPrimaryLink" onClick={onSetIndividually}>
+                  set roles individually
+                </Kb.Text>
+              </Kb.Text>
+            </Kb.Box2>
+          )
+        }
       >
         <Kb.InlineDropdown
           type="BodySmallSemibold"
-          label={capitalize(storeRole) + 's'}
+          label={storeRole ? capitalize(storeRole) + 's' : 'Set individually'}
           onPress={() => setShowingMenu(true)}
         />
       </FloatingRolePicker>
@@ -244,6 +268,23 @@ const AddingMembers = () => {
 const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
   const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+  const role = Container.useSelector(s => s.teams.addMembersWizard.role)
+  const individualRole = Container.useSelector(
+    s => s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ?? role
+  )
+  const showDropdown = role === undefined
+  const [showingMenu, setShowingMenu] = React.useState(false)
+  const [rolePickerRole, setRole] = React.useState(individualRole)
+  const onOpenRolePicker = () => {
+    setRole(individualRole)
+    setShowingMenu(true)
+  }
+  const onSelectRole = newRole => setRole(newRole)
+  const onConfirmRole = newRole => {
+    setRole(newRole)
+    setShowingMenu(false)
+    dispatch(TeamsGen.createSetAddMembersWizardIndividualRole({assertion: props.assertion, role: newRole}))
+  }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={Styles.globalStyles.flexOne}>
@@ -256,7 +297,24 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
           style={Styles.globalStyles.flexOne}
         />
       </Kb.Box2>
-      {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
+        {showDropdown && (
+          <FloatingRolePicker
+            open={showingMenu}
+            selectedRole={rolePickerRole}
+            onSelectRole={onSelectRole}
+            onConfirm={onConfirmRole}
+            confirmLabel={`Add as ${rolePickerRole}`}
+          >
+            <Kb.InlineDropdown
+              type="BodySmallSemibold"
+              onPress={onOpenRolePicker}
+              label={capitalize(individualRole)}
+            />
+          </FloatingRolePicker>
+        )}
+        {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -299,6 +357,7 @@ const styles = Styles.styleSheetCreate(() => ({
   controls: {
     justifyContent: 'space-between',
   },
+  setIndividuallyBox: Styles.padding(Styles.globalMargins.small),
 }))
 
 export default AddMembersConfirm
