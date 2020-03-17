@@ -67,7 +67,7 @@ func TestServerDefault(t *testing.T) {
 	addr, err := s.Address()
 	require.NoError(t, err)
 
-	token, err := s.NewToken()
+	token, err := s.CurrentToken()
 	require.NoError(t, err)
 
 	resp, err := http.Get(fmt.Sprintf(

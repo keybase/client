@@ -7,6 +7,7 @@ import SEP7Confirm from '.'
 const mapStateToProps = (state: Container.TypedState) => ({
   _inputURI: state.wallets.sep7ConfirmURI,
   loading: !state.wallets.sep7ConfirmInfo,
+  sep7ConfirmFromQR: state.wallets.sep7ConfirmFromQR,
   sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
   sep7ConfirmPath: state.wallets.sep7ConfirmPath,
   sep7SendError: state.wallets.sep7SendError,
@@ -30,6 +31,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
       availableToSendNative: '',
       callbackURL: null,
       displayAmountFiat: '',
+      fromQRCode: false,
       loading: true,
       memo: null,
       memoType: null,
@@ -72,6 +74,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
   const sendError = stateProps.sep7SendError
   const path = stateProps.sep7ConfirmPath
   const rawOp = stateProps.sep7ConfirmInfo.operation
+  const fromQRCode = stateProps.sep7ConfirmFromQR
   const operation = rawOp === 'pay' ? ('pay' as const) : rawOp === 'tx' ? ('tx' as const) : ('' as const)
 
   if (operation === '') {
@@ -84,6 +87,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     availableToSendNative,
     callbackURL,
     displayAmountFiat,
+    fromQRCode,
     loading: stateProps.loading,
     memo,
     memoType,

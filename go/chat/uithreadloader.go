@@ -946,7 +946,17 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				if err != nil {
 					return err
 				}
-				if err := t.G().ConvSource.PushUnboxed(ctx, rconv, uid, resolved); err != nil {
+				var pushConv types.RemoteConversation
+				if skip.ConvID.Eq(rconv.GetConvID()) {
+					pushConv = rconv
+				} else {
+					var err error
+					if pushConv, err = utils.GetUnverifiedConv(ctx, t.G(), uid, skip.ConvID,
+						types.InboxSourceDataSourceAll); err != nil {
+						return err
+					}
+				}
+				if err := t.G().ConvSource.PushUnboxed(ctx, pushConv, uid, resolved); err != nil {
 					return err
 				}
 				if !skip.ConvID.Eq(convID) {

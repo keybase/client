@@ -27,7 +27,7 @@ func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchA
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
 	earg := &engine.WotVouchArg{
-		Vouchee:    arg.Uv,
+		Vouchee:    arg.Vouchee,
 		VouchTexts: arg.VouchTexts,
 		Confidence: arg.Confidence,
 	}
@@ -40,21 +40,49 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
-	// TODO PICNIC-875 fill in FailingProofs by ID-ing the vouchee.
-
 	upak, _, err := h.G().GetUPAKLoader().Load(libkb.NewLoadUserArg(h.G()).WithName(arg.Assertion))
 	if err != nil {
 		return err
 	}
 
-	earg := &engine.WotVouchArg{
-		Vouchee:    upak.Base.ToUserVersion(),
-		VouchTexts: arg.VouchTexts,
-		Confidence: arg.Confidence,
+	eng := engine.NewResolveThenIdentify2(mctx.G(), &keybase1.Identify2Arg{
+		Uid:              upak.GetUID(),
+		UserAssertion:    arg.Assertion,
+		NeedProofSet:     true,
+		UseDelegateUI:    true,
+		Reason:           keybase1.IdentifyReason{Reason: fmt.Sprintf("Vouch for %v", arg.Assertion)},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+	})
+	err = engine.RunEngine2(mctx.WithUIs(libkb.UIs{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, mctx.G()),
+	}), eng)
+	if err != nil {
+		return err
 	}
-
-	eng := engine.NewWotVouch(h.G(), earg)
-	return engine.RunEngine2(mctx, eng)
+	idRes, err := eng.Result(mctx)
+	if err != nil {
+		return err
+	}
+	if idRes == nil {
+		return fmt.Errorf("missing identify result")
+	}
+	if idRes.TrackBreaks != nil {
+		mctx.Debug("WotVouchCLI TrackBreaks: %+v", idRes.TrackBreaks)
+		return libkb.TrackingBrokeError{}
+	}
+	failingProofs, err := eng.ResultWotFailingProofs(mctx)
+	if err != nil {
+		return err
+	}
+	for i, proof := range failingProofs {
+		mctx.Debug("WotVouchCLI failingProofs %v/%v %+v", i+1, len(failingProofs), proof)
+	}
+	return engine.RunEngine2(mctx, engine.NewWotVouch(h.G(), &engine.WotVouchArg{
+		Vouchee:       idRes.Upk.Current.ToUserVersion(),
+		Confidence:    arg.Confidence,
+		FailingProofs: failingProofs,
+		VouchTexts:    arg.VouchTexts,
+	}))
 }
 
 func (h *WebOfTrustHandler) WotListCLI(ctx context.Context, arg keybase1.WotListCLIArg) (res []keybase1.WotVouch, err error) {
@@ -71,7 +99,7 @@ func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactA
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
 	earg := &engine.WotReactArg{
-		Voucher:  arg.Uv,
+		Voucher:  arg.Voucher,
 		Proof:    arg.Proof,
 		Reaction: arg.Reaction,
 	}
@@ -123,7 +151,7 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 
 	rarg := keybase1.WotReactArg{
 		SessionID: arg.SessionID,
-		Uv:        expectedVoucher,
+		Voucher:   expectedVoucher,
 		Proof:     reactingVouch.VouchProof,
 		Reaction:  arg.Reaction,
 	}

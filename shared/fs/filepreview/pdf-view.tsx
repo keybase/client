@@ -15,28 +15,17 @@ const PdfView = (props: Props) => (
       pinnedURLMode={true}
       style={styles.webview}
       onError={props.onUrlError}
-      renderLoading={() => (
-        <Kb.Box2 direction="vertical" style={styles.progressContainer} fullWidth={true} fullHeight={true}>
-          <Kb.ProgressIndicator white={true} />
-        </Kb.Box2>
-      )}
+      showLoadingStateUntilLoaded={true}
     />
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      progressContainer: {
-        justifyContent: 'center',
-        position: 'absolute',
-      },
-      webview: {
-        height: '100%',
-        width: '100%',
-      },
-    } as const)
-)
+const styles = Styles.styleSheetCreate(() => ({
+  webview: {
+    height: '100%',
+    width: '100%',
+  },
+}))
 
 // Only supported on iOS for now.
 export default Platform.isIOS ? PdfView : () => null

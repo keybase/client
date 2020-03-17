@@ -36,7 +36,7 @@ const EditChannelWrapper = (props: OwnProps) => {
   const yourRole = Container.useSelector(state => Constants.getRole(state, teamID))
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   const errorText = Container.useSelector(state => state.teams.errorInChannelCreation)
-  const waitingOnSave = Container.useAnyWaiting(Constants.teamWaitingKey(teamname))
+  const waitingOnSave = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
 
   const dispatch = Container.useDispatch()
 

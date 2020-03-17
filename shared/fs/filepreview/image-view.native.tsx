@@ -33,7 +33,7 @@ class ImageView extends React.Component<ImageViewProps, State> {
   }
 
   render() {
-    const {onLoadingStateChange, onUrlError} = this.props
+    const {onUrlError} = this.props
     return (
       <Kb.ZoomableBox
         contentContainerStyle={styles.zoomableBoxContainer}
@@ -51,8 +51,7 @@ class ImageView extends React.Component<ImageViewProps, State> {
               width: Math.min(this.state.width, screenWidth),
             },
           ])}
-          onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
-          onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
+          showLoadingStateUntilLoaded={true}
           onError={onUrlError && (() => onUrlError('image fetching error'))}
           resizeMode="contain"
         />

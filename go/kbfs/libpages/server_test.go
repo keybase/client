@@ -47,7 +47,11 @@ func (l TestRootLoader) LoadRoot(domain string) (root Root, err error) {
 	if !ok {
 		return Root{}, ErrKeybasePagesRecordNotFound{}
 	}
-	return ParseRoot(str)
+	r, err := ParseRoot(str)
+	if err != nil {
+		return Root{}, err
+	}
+	return *r, nil
 }
 
 func TestServerDefault(t *testing.T) {

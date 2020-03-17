@@ -10,7 +10,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as UsersGen from '../../actions/users-gen'
 import * as BotsGen from '../../actions/bots-gen'
-import {SectionBase} from '../../common-adapters/section-list'
+import {Section} from '../../common-adapters/section-list'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import SelectionPopup from '../common/selection-popup'
 import ChannelTabs from './tabs'
@@ -72,7 +72,6 @@ const useLoadDataForChannelPage = (
 const lastSelectedTabs: {[T: string]: TabKey} = {}
 const defaultTab: TabKey = 'members'
 
-// TODO: consider using this for the teams/team/tabs state code
 const useTabsState = (
   conversationIDKey: ChatTypes.ConversationIDKey,
   providedTab?: TabKey
@@ -139,7 +138,7 @@ const Channel = (props: OwnProps) => {
     true // variable width
   )
 
-  const sections: Array<SectionBase<any> & {title?: string}> = [headerSection]
+  const sections: Array<Section<string, {title?: string}>> = [headerSection]
   switch (selectedTab) {
     case 'members':
       sections.push({
@@ -193,16 +192,15 @@ const Channel = (props: OwnProps) => {
     <Kb.Box style={styles.container}>
       {Styles.isMobile && <MobileHeader />}
       <Kb.SectionList
-        alwaysVounceVertical={false}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={sections}
-        style={styles.list}
         contentContainerStyle={styles.listContentContainer}
       />
       <SelectionPopup
         selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
         conversationIDKey={conversationIDKey}
+        teamID={teamID}
       />
     </Kb.Box>
   )
@@ -242,19 +240,12 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 0,
   },
   header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
-  list: Styles.platformStyles({
+  listContentContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
-      position: 'relative',
-      top: 40,
-    },
-  }),
-  listContentContainer: Styles.platformStyles({
     isMobile: {
       display: 'flex',
       flexGrow: 1,

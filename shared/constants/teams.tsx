@@ -54,6 +54,7 @@ export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username:
   `loadSubteamMemberships:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
+export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
   fullName: '',
@@ -706,10 +707,11 @@ export const annotatedInvitesToInviteInfo = (
     arr.push({
       email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
       id: invite.invite.id,
-      name:
-        invite.invite.type.c in [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink]
-          ? invite.displayName
-          : '',
+      name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
+        invite.invite.type.c
+      )
+        ? invite.displayName
+        : '',
       phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
       role,
       username,

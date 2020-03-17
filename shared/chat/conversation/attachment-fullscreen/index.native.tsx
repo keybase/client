@@ -131,10 +131,15 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               />
             )}
             {!this.state.loaded && (
-              <Kb.ProgressIndicator
-                style={{alignSelf: 'center', margin: 'auto', position: 'absolute', top: '50%', width: 48}}
-                white={true}
-              />
+              <Kb.Box2
+                direction="vertical"
+                style={styles.progressWrapper}
+                centerChildren={true}
+                fullHeight={true}
+                fullWidth={true}
+              >
+                <Kb.ProgressIndicator style={styles.progressIndicator} white={true} />
+              </Kb.Box2>
             )}
           </Kb.Box2>
         </Kb.BoxGrow>
@@ -192,11 +197,10 @@ const styles = Styles.styleSheetCreate(
       },
       headerWrapper: {backgroundColor: Styles.globalColors.blackOrBlack},
       progressIndicator: {
-        alignSelf: 'center',
-        margin: 'auto',
-        position: 'absolute',
-        top: '50%',
         width: 48,
+      },
+      progressWrapper: {
+        position: 'absolute',
       },
       safeAreaTop: {
         ...Styles.globalStyles.flexBoxColumn,

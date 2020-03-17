@@ -5,6 +5,7 @@ import * as Styles from '../../styles'
 import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'
 
 export type Props = {
+  actionText?: string
   background: Background
   offerAdvancedSendForm?: AdvancedBanner
   onAction?: (() => void) | null
@@ -71,7 +72,7 @@ const Banner = (props: Props) => (
         negative={true}
         onClick={props.onAction}
       >
-        Review payments
+        {props.actionText}
       </Text>
     )}
   </Box2>

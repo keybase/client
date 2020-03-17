@@ -440,6 +440,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [WalletsGen.setSEP7Tx]: (draftState, action) => {
     draftState.sep7ConfirmInfo = action.payload.tx
+    draftState.sep7ConfirmFromQR = action.payload.fromQR
     draftState.sep7ConfirmURI = action.payload.confirmURI
   },
   [WalletsGen.setTrustlineExpanded]: (draftState, action) => {
