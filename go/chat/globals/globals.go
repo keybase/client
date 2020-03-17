@@ -79,7 +79,7 @@ func (c *ChatContext) Describe() string {
   UIThreadLoader: %v,
   Badger: %v,
   ParticipantSource %v,
-  EmojiSrouce: %v
+  EmojiSource: %v
 }`,
 		c.CtxFactory != nil,
 		c.InboxSource != nil,
