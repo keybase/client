@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euox pipefail
 
 KBCLID="$HOME/go/src/github.com/keybase/client"

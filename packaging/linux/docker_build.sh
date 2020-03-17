@@ -12,7 +12,7 @@
 # This script mostly concerns itself with updating git repos and organizing
 # GPG/SSH/S3 keys for the docker container.
 
-set -e -u -o pipefail
+set -euox pipefail
 
 if [ "$#" != 2 ] ; then
   echo Usage: docker_build.sh MODE COMMIT
@@ -33,11 +33,13 @@ git -C "$clientdir" fetch
 # Arrange to share the S3 credentials. We have to do this with a directory
 # instead of sharing the file directly, because the latter only works on Linux.
 s3cmd_temp="$(mktemp -d)"
-cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/s3cfg "$s3cmd_temp"
+cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/dot_s3cfg "$s3cmd_temp/.s3cfg"
 
 # Copy necessary SSH keys out of KBFS
 ssh_temp="$(mktemp -d)"
 cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/aur_id_ed25519 "$ssh_temp"
+cp .ssh/config "$ssh_temp"
+cp .ssh/known_hosts "$ssh_temp"
 
 # Prepare a folder that we'll share with the container, as the container's
 # /root directory, where all the build work gets done. Docker recommends that
@@ -56,7 +58,7 @@ gpg_tempfile="$gpg_tempdir/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Make sure the Docker image is built.
-image=keybase_packaging_v25
+image=keybase_packaging_v28
 if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
