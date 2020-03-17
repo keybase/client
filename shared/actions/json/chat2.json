@@ -42,6 +42,7 @@
         "'startFoundExisting'", // starting a conversation and found one already
         "'teamChat'", // from team
         "'addedToChannel'", // just added people to this channel
+        "'navChanged'", // the nav state changed
         "'teamMention'" // from team mention
       ],
       "skipNav?": "boolean",

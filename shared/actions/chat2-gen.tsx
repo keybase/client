@@ -614,6 +614,7 @@ type _SelectConversationPayload = {
     | 'startFoundExisting'
     | 'teamChat'
     | 'addedToChannel'
+    | 'navChanged'
     | 'teamMention'
   readonly skipNav?: boolean
   readonly navKey?: string

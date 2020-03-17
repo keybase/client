@@ -3638,6 +3638,48 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   }
 }
 
+const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  const p = prev[prev.length - 1]
+  const n = next[next.length - 1]
+  const wasChat = p?.routeName === 'chatConversation'
+  const isChat = n?.routeName === 'chatConversation'
+
+  // nothing to do with chat
+  if (!wasChat && !isChat) {
+    return false
+  }
+
+  const wasID = p?.params?.converationIDKey
+  const isID = n?.params?.converationIDKey
+
+  logger.info('maybeChangeChatSelection ', {wasChat, isChat, wasID, isID})
+
+  // same? should be impossible
+  if (wasChat && isChat && wasID === isID) {
+    return false
+  }
+
+  // still chatting? just select new one
+  if (wasChat && isChat && Constants.isValidConversationIDKey(isID)) {
+    return Chat2Gen.createSelectConversation({conversationIDKey: isID, reason: 'navChanged'})
+  }
+
+  // leaving a chat
+  if (wasChat) {
+    return Chat2Gen.createSelectConversation({
+      conversationIDKey: Constants.noConversationIDKey,
+      reason: 'clearSelected',
+    })
+  }
+
+  if (isChat) {
+    return Chat2Gen.createSelectConversation({conversationIDKey: isID, reason: 'navChanged'})
+  }
+
+  return false
+}
+
 const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
   if (prev[2]?.routeName !== Tabs.chatTab && next[2]?.routeName === Tabs.chatTab) {
@@ -3901,6 +3943,7 @@ function* chat2Saga() {
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeChangeChatSelection)
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeChatTabSelected)
 }
 
