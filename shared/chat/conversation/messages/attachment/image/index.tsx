@@ -180,7 +180,21 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                                 />
                               </Kb.Box>
                             )}
-                            {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
+                            {!this.state.loaded && (
+                              <Kb.Box2
+                                direction="vertical"
+                                centerChildren={true}
+                                style={Styles.collapseStyles([
+                                  styles.spinnerContainer,
+                                  {
+                                    height: this.props.height,
+                                    width: this.props.width,
+                                  },
+                                ])}
+                              >
+                                <Kb.ProgressIndicator style={styles.progress} />
+                              </Kb.Box2>
+                            )}
                           </Kb.Box>
                         )}
                       </Kb.Box2>
@@ -203,7 +217,19 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   </Kb.Box2>
                 )}
                 {Styles.isMobile && this.state.loadingVideo === 'loading' && (
-                  <Kb.ProgressIndicator style={styles.progress} />
+                  <Kb.Box2
+                    style={Styles.collapseStyles([
+                      styles.spinnerContainer,
+                      {
+                        height: this.props.height,
+                        width: this.props.width,
+                      },
+                    ])}
+                    centerChildren={true}
+                    direction="vertical"
+                  >
+                    <Kb.ProgressIndicator style={styles.progress} />
+                  </Kb.Box2>
                 )}
               </Kb.Box>
               <Kb.Box style={styles.progressContainer}>
@@ -326,15 +352,6 @@ const styles = Styles.styleSheetCreate(
         top: '50%',
       },
       progress: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -24,
-        marginLeft: -24,
-        marginRight: -24,
-        marginTop: -24,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
         width: 48,
       },
       progressContainer: {
@@ -348,6 +365,9 @@ const styles = Styles.styleSheetCreate(
       retry: {
         color: Styles.globalColors.redDark,
         textDecorationLine: 'underline',
+      },
+      spinnerContainer: {
+        position: 'absolute',
       },
       title: Styles.platformStyles({
         common: {
