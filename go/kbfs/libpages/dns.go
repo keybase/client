@@ -19,9 +19,10 @@ type RootLoader interface {
 	LoadRoot(domain string) (root Root, err error)
 }
 
-// Ideally we'd cache it propely according to the TTL we get from the DNS. But
-// unfortunately Go doesn't expose that through the `net` package. So just
-// cache for a fixed duration of 10 seconds for now.
+// cachedRootValidDuration specifies the duration that a Root can be cached
+// for.  Ideally we'd cache it properly according to the TTL we get from the
+// DNS. But unfortunately Go doesn't expose that through the `net` package. So
+// just cache for a fixed duration of 10 seconds for now.
 const cachedRootValidDuration = 10 * time.Second
 
 type cachedRoot struct {
@@ -40,7 +41,7 @@ type dnsRootLoader struct {
 // the root for a short period time. This is the RootLoader that should be
 // used in all non-test scenarios.
 //
-// When loadinig from DNS, it does so with following steps:
+// When loading from DNS, it does so with following steps:
 //   1. Construct a domain name by prefixing the `domain` parameter with
 //      "_keybase_pages." or "_keybasepages". So for example,
 //      "static.keybase.io" turns into "_keybase_pages.static.keybase.io" or
@@ -51,15 +52,15 @@ type dnsRootLoader struct {
 //
 // There must be exactly one "kbp=" TXT record configured for domain. If more
 // than one exists, an ErrKeybasePagesRecordTooMany{} is returned. If none is
-// found, an ErrKeybasePagesRecordNotFound{} is returned. In case user has some
-// configuration that requires other records that we can't foresee for now,
-// other records (TXT or not) can co-exist with the "kbp=" record (as long as
-// no CNAME record exists on the "_keybase_pages." or "_keybasepages." prefixed
-// domain of course).
+// found, an ErrKeybasePagesRecordNotFound{} is returned. In case the user has
+// some configuration that requires other records that we can't foresee for
+// now, other records (TXT or not) can co-exist with the "kbp=" record (as long
+// as no CNAME record exists on the "_keybase_pages." or "_keybasepages."
+// prefixed domain of course).
 //
-// If the given domain is invalid, it would cause the domain name constructed
-// in step will be invalid too, which causes Go's DNS resolver to return a
-// net.DNSError typed "no such host" error.
+// If the given domain is invalid, the domain name constructed in this step
+// will be invalid too, which causes Go's DNS resolver to return a net.DNSError
+// typed "no such host" error.
 //
 // Examples for "static.keybase.io", "meatball.gao.io", "song.gao.io",
 // "blah.strib.io", and "kbp.jzila.com" respectively:

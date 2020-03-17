@@ -72,12 +72,12 @@ func (s *site) fetchConfigAndRefreshCache() (cfg config.Config, err error) {
 	// 1. Alice configures a site alice.example.com
 	//    (kbp=/keybase/private/alice,kbpbot) with /.kbp_config that disallows
 	//    list at "/", i.e. no file listing site wide.
-	// 2. Eve knows Alice has a secret folder /secrets wehre she puts files
+	// 2. Eve knows Alice has a secret folder /secrets where she puts files
 	//    with random names to share with other people through URL. Eve
-	//    configures eve.example.com rooted at /secret
-	//    (kbp=/keybase/private/alice,kbpbot/secret). Since /secret doesn't
+	//    configures eve.example.com rooted at /secrets
+	//    (kbp=/keybase/private/alice,kbpbot/secrets). Since /secrets doesn't
 	//    have a restrictive .kbp_config, Eve can now list the content even
-	//    though he doesn't have access to /keybase/private/alice,kbpbot.
+	//    though they don't have access to /keybase/private/alice,kbpbot.
 	if err = s.fs.EnsureNoSuchFileOutsideRoot(config.DefaultConfigFilename); err != nil {
 		return nil, err
 	}

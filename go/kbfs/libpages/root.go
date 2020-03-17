@@ -100,7 +100,7 @@ func (fs CacheableFS) IsObsolete() bool {
 //
 // For example, if a subdir /dir1/dir2/dir3 is configured as root dir, calling
 // this function makes sure none of /a/b/{name}, /a/{name}, and /{name} exist.
-// Thouhg /a/b/c/{name} can exist.
+// Though /a/b/c/{name} can exist.
 func (fs CacheableFS) EnsureNoSuchFileOutsideRoot(name string) (err error) {
 	p := path.Clean(fs.subdir)
 	if !strings.HasPrefix(p, "/") {
@@ -115,8 +115,13 @@ func (fs CacheableFS) EnsureNoSuchFileOutsideRoot(name string) (err error) {
 		if strings.HasSuffix(p, "/") {
 			p = p[:len(p)-1]
 		}
-		if _, statErr := fs.tlfFS.Stat(path.Join(p, name)); statErr != os.ErrNotExist {
+		_, statErr := fs.tlfFS.Stat(path.Join(p, name))
+		switch statErr {
+		case os.ErrNotExist:
+		case nil:
 			return fmt.Errorf("%s exists in a parent dir", name)
+		default:
+			return statErr
 		}
 	}
 }
