@@ -1186,19 +1186,30 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
 const gregorPushState = (action: GregorGen.PushStatePayload) => {
   const actions: Array<TypedActions> = []
   const items = action.payload.state
-  const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
+  let sawChatBanner = false
+  let sawSubteamsBanner = false
+  let chosenChannels: any
+  items.forEach(i => {
+    if (i.item.category === 'sawChatBanner') {
+      sawChatBanner = true
+    }
+    if (i.item.category === 'sawSubteamsBanner') {
+      sawSubteamsBanner = true
+    }
+    if (i.item.category === Constants.chosenChannelsGregorKey) {
+      chosenChannels = i
+    }
+  })
+
   if (sawChatBanner) {
     actions.push(TeamsGen.createSetTeamSawChatBanner())
   }
 
-  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawSubteamsBanner) {
     actions.push(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 
-  const chosenChannels = items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
-  const teamsWithChosenChannelsStr =
-    chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
+  const teamsWithChosenChannelsStr: string | undefined = chosenChannels?.item?.body?.toString()
   const teamsWithChosenChannels = teamsWithChosenChannelsStr
     ? new Set<Types.Teamname>(JSON.parse(teamsWithChosenChannelsStr))
     : new Set<Types.Teamname>()
@@ -1221,7 +1232,6 @@ const renameTeam = async (action: TeamsGen.RenameTeamPayload) => {
 const clearNavBadges = async () => {
   try {
     await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.newly_added_to_team'})
-    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.request_access'})
     await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
   } catch (err) {
     logError(err)
