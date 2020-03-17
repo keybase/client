@@ -95,7 +95,6 @@ type NotifyListener interface {
 	TeamMetadataUpdate()
 	CanUserPerformChanged(teamName string)
 	PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber)
-	WotChanged(category string, voucher *keybase1.UID, vouchee *keybase1.UID)
 	EmailAddressVerified(emailAddress keybase1.EmailAddress)
 	EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress)
 	PasswordChanged()
@@ -228,8 +227,6 @@ func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.Accou
 func (n *NoopNotifyListener) TeamMetadataUpdate()                   {}
 func (n *NoopNotifyListener) CanUserPerformChanged(teamName string) {}
 func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
-}
-func (n *NoopNotifyListener) WotChanged(category string, voucher *keybase1.UID, vouchee *keybase1.UID) {
 }
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
 func (n *NoopNotifyListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
@@ -2428,30 +2425,6 @@ func (n *NotifyRouter) HandlePhoneNumbersChanged(ctx context.Context, list []key
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.PhoneNumbersChanged(list, category, phoneNumber)
-	})
-}
-
-func (n *NotifyRouter) HandleWotChanged(ctx context.Context, category string, voucher *keybase1.UID, vouchee *keybase1.UID) {
-	if n == nil {
-		return
-	}
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Team {
-			go func() {
-				_ = (keybase1.NotifyWotClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).WotChanged(context.Background(), keybase1.WotChangedArg{
-					Category: category,
-					Voucher:  voucher,
-					Vouchee:  vouchee,
-				})
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WotChanged(category, voucher, vouchee)
 	})
 }
 

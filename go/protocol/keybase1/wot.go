@@ -10,41 +10,6 @@ import (
 	"time"
 )
 
-type WotStatusType int
-
-const (
-	WotStatusType_NONE     WotStatusType = 0
-	WotStatusType_PROPOSED WotStatusType = 1
-	WotStatusType_ACCEPTED WotStatusType = 2
-	WotStatusType_REJECTED WotStatusType = 3
-	WotStatusType_REVOKED  WotStatusType = 4
-)
-
-func (o WotStatusType) DeepCopy() WotStatusType { return o }
-
-var WotStatusTypeMap = map[string]WotStatusType{
-	"NONE":     0,
-	"PROPOSED": 1,
-	"ACCEPTED": 2,
-	"REJECTED": 3,
-	"REVOKED":  4,
-}
-
-var WotStatusTypeRevMap = map[WotStatusType]string{
-	0: "NONE",
-	1: "PROPOSED",
-	2: "ACCEPTED",
-	3: "REJECTED",
-	4: "REVOKED",
-}
-
-func (e WotStatusType) String() string {
-	if v, ok := WotStatusTypeRevMap[e]; ok {
-		return v
-	}
-	return fmt.Sprintf("%v", int(e))
-}
-
 type UsernameVerificationType string
 
 func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
@@ -189,12 +154,19 @@ type WotListCLIArg struct {
 	Username  *string `codec:"username,omitempty" json:"username,omitempty"`
 }
 
+type DismissWotNotificationsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Voucher   string `codec:"voucher" json:"voucher"`
+	Vouchee   string `codec:"vouchee" json:"vouchee"`
+}
+
 type WotInterface interface {
 	WotVouch(context.Context, WotVouchArg) error
 	WotVouchCLI(context.Context, WotVouchCLIArg) error
 	WotReact(context.Context, WotReactArg) error
 	WotReactCLI(context.Context, WotReactCLIArg) error
 	WotListCLI(context.Context, WotListCLIArg) ([]WotVouch, error)
+	DismissWotNotifications(context.Context, DismissWotNotificationsArg) error
 }
 
 func WotProtocol(i WotInterface) rpc.Protocol {
@@ -276,6 +248,21 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 					return
 				},
 			},
+			"dismissWotNotifications": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissWotNotificationsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DismissWotNotificationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DismissWotNotificationsArg)(nil), args)
+						return
+					}
+					err = i.DismissWotNotifications(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -306,5 +293,10 @@ func (c WotClient) WotReactCLI(ctx context.Context, __arg WotReactCLIArg) (err e
 
 func (c WotClient) WotListCLI(ctx context.Context, __arg WotListCLIArg) (res []WotVouch, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.wot.wotListCLI", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c WotClient) DismissWotNotifications(ctx context.Context, __arg DismissWotNotificationsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.dismissWotNotifications", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

@@ -3,10 +3,9 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -162,55 +161,67 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 	return h.WotReact(ctx, rarg)
 }
 
-const wotGregorHandlerName = "wotHandler"
-
-type wotGregorHandler struct {
-	libkb.Contextified
+type _wotMsg struct {
+	Voucher *string `json:"voucher,omitempty"`
+	Vouchee *string `json:"vouchee,omitempty"`
 }
 
-var _ libkb.GregorInBandMessageHandler = (*wotGregorHandler)(nil)
-
-func newWotGregorHandler(g *libkb.GlobalContext) *wotGregorHandler {
-	return &wotGregorHandler{
-		Contextified: libkb.NewContextified(g),
-	}
-}
-
-func (r *wotGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
-	switch category {
-	case "wot.new_vouch", "wot.rejected", "wot.accepted":
-		// TODO: add `wot.revoked` and `wot.suggestion` (and tests)
-		return true, r.handleWotMsg(ctx, cli, category, item)
-	default:
-		if strings.HasPrefix(category, "wot.") {
-			return false, fmt.Errorf("unknown wotGregorHandler category: %q", category)
+func hasWotMsg(testable string) bool {
+	for _, match := range []string{"wot.new_vouch", "wot.accepted", "wot.rejected"} {
+		if match == testable {
+			return true
 		}
-		return false, nil
+	}
+	return false
+}
+
+func isDismissable(mctx libkb.MetaContext, category string, msg _wotMsg, voucher, vouchee kbun.NormalizedUsername) bool {
+	voucherMatches := (msg.Voucher != nil && kbun.NewNormalizedUsername(*msg.Voucher) == voucher)
+	voucheeMatches := (msg.Vouchee != nil && kbun.NewNormalizedUsername(*msg.Vouchee) == vouchee)
+	me := mctx.ActiveDevice().Username(mctx)
+	switch category {
+	case "wot.new_vouch":
+		return voucherMatches && (voucheeMatches || vouchee == me)
+	case "wot.accepted", "wot.rejected":
+		return voucheeMatches && (voucherMatches || voucher == me)
+	default:
+		return false
 	}
 }
 
-func (r *wotGregorHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
-	return false, nil
-}
+func (h *WebOfTrustHandler) DismissWotNotifications(ctx context.Context, arg keybase1.DismissWotNotificationsArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("DismissWotNotifications", func() error { return err })()
 
-func (r *wotGregorHandler) IsAlive() bool {
-	return true
-}
-
-func (r *wotGregorHandler) Name() string {
-	return wotGregorHandlerName
-}
-
-func (r *wotGregorHandler) handleWotMsg(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx := libkb.NewMetaContext(ctx, r.G())
-	mctx.Debug("wotGregorHandler: %s received", category)
-	var msg keybase1.WotChangedMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		mctx.Debug("error unmarshaling %s item: %s", category, err)
+	dismisser := h.G().GregorState
+	state, err := h.G().GregorState.State(ctx)
+	if err != nil {
 		return err
 	}
-	mctx.Debug("%s unmarshaled: %+v", category, msg)
-
-	r.G().NotifyRouter.HandleWotChanged(ctx, category, msg.VoucherUID, msg.VoucheeUID)
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+	categoryPrefix, err := gregor1.ObjFactory{}.MakeCategory("wot")
+	if err != nil {
+		return err
+	}
+	items, err := state.ItemsWithCategoryPrefix(categoryPrefix)
+	if err != nil {
+		return err
+	}
+	var wotMsg _wotMsg
+	for _, item := range items {
+		category := item.Category().String()
+		if !hasWotMsg(category) {
+			continue
+		}
+		if err := json.Unmarshal(item.Body().Bytes(), &wotMsg); err != nil {
+			return err
+		}
+		if isDismissable(mctx, category, wotMsg, kbun.NewNormalizedUsername(arg.Voucher), kbun.NewNormalizedUsername(arg.Vouchee)) {
+			itemID := item.Metadata().MsgID()
+			mctx.Debug("dismissing %s for %s,%s", category, arg.Voucher, arg.Vouchee)
+			if err := dismisser.DismissItem(mctx.Ctx(), nil, itemID); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

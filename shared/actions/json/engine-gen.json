@@ -484,9 +484,6 @@
         "keybase1NotifyUsersIdentifyUpdate": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['outParam']) => void}"
         },
-        "keybase1NotifyWotWotChanged": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyWot.wotChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyWot.wotChanged']['outParam']) => void}"
-        },
         "keybase1PgpUiOutputPGPWarning": {
             "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['outParam']) => void}"
         },
