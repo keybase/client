@@ -95,24 +95,9 @@ func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 	return nil
 }
 
-func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, name string, dest interface{}) (found bool, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
-
-	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return false, err
-	}
-	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
-		baseConv.Info.TlfName, s.topicType, s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, name,
-		nil)
-	if err != nil {
-		return false, err
-	}
-	if len(convs) == 0 {
-		return false, nil
-	}
-	conv := convs[0]
+func (s *ConvDevConversationBackedStorage) GetFromKnownConv(ctx context.Context, uid gregor1.UID,
+	conv chat1.ConversationLocal, dest interface{}) (found bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "GetFromKnownConv(%s)", conv.GetConvID())()
 	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -146,4 +131,25 @@ func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.
 		return false, err
 	}
 	return true, nil
+}
+
+func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, name string, dest interface{}) (found bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
+
+	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return false, err
+	}
+	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
+		baseConv.Info.TlfName, s.topicType, s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, name,
+		nil)
+	if err != nil {
+		return false, err
+	}
+	if len(convs) == 0 {
+		return false, nil
+	}
+	conv := convs[0]
+	return s.GetFromKnownConv(ctx, uid, conv, dest)
 }

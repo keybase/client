@@ -455,6 +455,7 @@ type StellarSender interface {
 type ConvConversationBackedStorage interface {
 	Put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, data interface{}) error
 	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res interface{}) (bool, error)
+	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest interface{}) (bool, error)
 }
 
 type UserConversationBackedStorage interface {
@@ -610,7 +611,7 @@ type ParticipantSource interface {
 }
 
 type EmojiSource interface {
-	Add(ctx context.Context, alias, filename string) error
+	Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias, filename string) error
 	Get(ctx context.Context, uid gregor1.UID) (chat1.UserEmojis, error)
 	Decorate(ctx context.Context, body string) string
 }

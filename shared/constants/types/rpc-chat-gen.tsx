@@ -722,6 +722,14 @@ export enum ConversationStatus {
   reported = 5,
 }
 
+export enum EmojiLoadSourceTyp {
+  httpsrv = 0,
+}
+
+export enum EmojiRemoteSourceTyp {
+  message = 0,
+}
+
 export enum ExternalAPIKeyTyp {
   googlemaps = 0,
   giphy = 1,
@@ -1159,6 +1167,11 @@ export type DeviceInfo = {readonly deviceID: Keybase1.DeviceID; readonly deviceD
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
+export type Emoji = {readonly alias: String; readonly source: EmojiLoadSource}
+export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
+export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String}
+export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: MessageID}
+export type EmojiStorage = {readonly mapping: {[key: string]: EmojiRemoteSource}}
 export type EmptyRes = {readonly rateLimits?: Array<RateLimitRes> | null}
 export type EmptyStruct = {}
 export type EncryptedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
@@ -1465,6 +1478,7 @@ export type UpdateConversations = {readonly inboxVers: InboxVers; readonly convU
 export type UserBotCommandInput = {readonly name: String; readonly description: String; readonly usage: String; readonly extendedDescription?: UserBotExtendedDescription | null}
 export type UserBotCommandOutput = {readonly name: String; readonly description: String; readonly usage: String; readonly extendedDescription?: UserBotExtendedDescription | null; readonly username: String}
 export type UserBotExtendedDescription = {readonly title: String; readonly desktopBody: String; readonly mobileBody: String}
+export type UserEmojis = {readonly emojis?: Array<EmojiGroup> | null}
 export type VersionKind = String
 export type WelcomeMessage = {readonly set: Boolean; readonly raw: String}
 export type WelcomeMessageDisplay = {readonly set: Boolean; readonly display: String; readonly raw: String}

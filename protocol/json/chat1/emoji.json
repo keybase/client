@@ -32,6 +32,30 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "EmojiRemoteSourceTyp",
+      "symbols": [
+        "MESSAGE_0"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "EmojiRemoteSource",
+      "switch": {
+        "type": "EmojiRemoteSourceTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "MESSAGE",
+            "def": false
+          },
+          "body": "MessageID"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "Emoji",
       "fields": [
@@ -72,6 +96,20 @@
             "items": "EmojiGroup"
           },
           "name": "emojis"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiStorage",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "EmojiRemoteSource",
+            "keys": "string"
+          },
+          "name": "mapping"
         }
       ]
     }

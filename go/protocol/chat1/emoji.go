@@ -78,6 +78,75 @@ func (o EmojiLoadSource) DeepCopy() EmojiLoadSource {
 	}
 }
 
+type EmojiRemoteSourceTyp int
+
+const (
+	EmojiRemoteSourceTyp_MESSAGE EmojiRemoteSourceTyp = 0
+)
+
+func (o EmojiRemoteSourceTyp) DeepCopy() EmojiRemoteSourceTyp { return o }
+
+var EmojiRemoteSourceTypMap = map[string]EmojiRemoteSourceTyp{
+	"MESSAGE": 0,
+}
+
+var EmojiRemoteSourceTypRevMap = map[EmojiRemoteSourceTyp]string{
+	0: "MESSAGE",
+}
+
+func (e EmojiRemoteSourceTyp) String() string {
+	if v, ok := EmojiRemoteSourceTypRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type EmojiRemoteSource struct {
+	Typ__     EmojiRemoteSourceTyp `codec:"typ" json:"typ"`
+	Message__ *MessageID           `codec:"message,omitempty" json:"message,omitempty"`
+}
+
+func (o *EmojiRemoteSource) Typ() (ret EmojiRemoteSourceTyp, err error) {
+	switch o.Typ__ {
+	case EmojiRemoteSourceTyp_MESSAGE:
+		if o.Message__ == nil {
+			err = errors.New("unexpected nil value for Message__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o EmojiRemoteSource) Message() (res MessageID) {
+	if o.Typ__ != EmojiRemoteSourceTyp_MESSAGE {
+		panic("wrong case accessed")
+	}
+	if o.Message__ == nil {
+		return
+	}
+	return *o.Message__
+}
+
+func NewEmojiRemoteSourceWithMessage(v MessageID) EmojiRemoteSource {
+	return EmojiRemoteSource{
+		Typ__:     EmojiRemoteSourceTyp_MESSAGE,
+		Message__: &v,
+	}
+}
+
+func (o EmojiRemoteSource) DeepCopy() EmojiRemoteSource {
+	return EmojiRemoteSource{
+		Typ__: o.Typ__.DeepCopy(),
+		Message__: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Message__),
+	}
+}
+
 type Emoji struct {
 	Alias  string          `codec:"alias" json:"alias"`
 	Source EmojiLoadSource `codec:"source" json:"source"`
@@ -129,6 +198,27 @@ func (o UserEmojis) DeepCopy() UserEmojis {
 			}
 			return ret
 		})(o.Emojis),
+	}
+}
+
+type EmojiStorage struct {
+	Mapping map[string]EmojiRemoteSource `codec:"mapping" json:"mapping"`
+}
+
+func (o EmojiStorage) DeepCopy() EmojiStorage {
+	return EmojiStorage{
+		Mapping: (func(x map[string]EmojiRemoteSource) map[string]EmojiRemoteSource {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]EmojiRemoteSource, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Mapping),
 	}
 }
 

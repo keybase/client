@@ -11,6 +11,14 @@ protocol emoji {
     case HTTPSRV: string;
   }
 
+  enum EmojiRemoteSourceTyp {
+    MESSAGE_0
+  }
+
+  variant EmojiRemoteSource switch (EmojiRemoteSourceTyp typ) {
+    case MESSAGE: MessageID;
+  }
+
   record Emoji {
     string alias;
     EmojiLoadSource source;
@@ -24,4 +32,8 @@ protocol emoji {
   record UserEmojis {
     array<EmojiGroup> emojis;
   }  
+
+  record EmojiStorage {
+    map<string, EmojiRemoteSource> mapping;
+  }
 }
