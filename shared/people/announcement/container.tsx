@@ -1,5 +1,6 @@
 import Announcement from '.'
 import * as PeopleGen from '../../actions/people-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTree from '../../actions/route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
@@ -32,7 +33,7 @@ const mapDispatchToProps = dispatch => ({
       case RPCTypes.AppLinkType.people:
         break
       case RPCTypes.AppLinkType.chat:
-        dispatch(RouteTree.createNavigateAppend({path: [Tabs.chatTab]}))
+        dispatch(Chat2Gen.createNavigateToInbox())
         break
       case RPCTypes.AppLinkType.files:
         dispatch(
