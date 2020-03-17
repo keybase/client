@@ -3,6 +3,7 @@ package chat
 import (
 	"testing"
 
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -24,18 +25,23 @@ func TestEmojiSourceBasic(t *testing.T) {
 		manager.NewSrv(tc.Context().ExternalG()),
 		types.DummyAttachmentFetcher{},
 		func() chat1.RemoteInterface { return ri })
+	store := attachments.NewStoreTesting(tc.Context(), nil)
+	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
+		func() chat1.RemoteInterface { return ri }, 1)
+	tc.ChatG.AttachmentUploader = uploader
+	filename := "./testdata/ship.jpg"
 
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 
-	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "party_parrot", ""))
-	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "mike", ""))
+	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "party_parrot", filename))
+	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "mike", filename))
 
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
 
-	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "mike", ""))
-	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot", ""))
+	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "mike", filename))
+	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot", filename))
 
 	res, err := tc.Context().EmojiSource.Get(ctx, uid)
 	require.NoError(t, err)

@@ -146,16 +146,11 @@ func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.
 	if err != nil {
 		return false, conv, err
 	}
-	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
-		baseConv.Info.TlfName, s.topicType, s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, name,
-		nil)
+	conv, _, err = NewConversation(ctx, s.G(), uid, baseConv.Info.TlfName, &name, s.topicType,
+		s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
 	if err != nil {
 		return false, conv, err
 	}
-	if len(convs) == 0 {
-		return false, conv, nil
-	}
-	conv = convs[0]
 	found, err = s.GetFromKnownConv(ctx, uid, conv, dest)
 	return found, conv, err
 }
