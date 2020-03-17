@@ -133,6 +133,10 @@
           "name": "bigTeamBadgeCount"
         },
         {
+          "type": "int",
+          "name": "newTeamAccessRequests"
+        },
+        {
           "type": {
             "type": "array",
             "items": "DeviceID"
@@ -173,13 +177,6 @@
             "items": "DeletedTeamInfo"
           },
           "name": "deletedTeams"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "TeamID"
-          },
-          "name": "newTeamAccessRequests"
         },
         {
           "type": {
