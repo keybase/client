@@ -70,9 +70,7 @@ type SelectorOwnProps =
       tab: Panel | null
       attachmentview: RPCChatTypes.GalleryItemTyp
     }>
-  | {
-      conversationIDKey: Types.ConversationIDKey
-    }
+  | {conversationIDKey: Types.ConversationIDKey}
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey

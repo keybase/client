@@ -2436,12 +2436,6 @@ const navigateToInbox = (
 const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromKey?: string) => {
   let replace = false
   const visible = Router2Constants.getVisibleScreen()
-
-  // if (Constants.isSplit && visible && visible.routeName === 'chatRoot') {
-  // // Don't append; we don't want to increase the size of the stack with a split chat view.
-  // return
-  // }
-
   const selected = Container.isPhone ? 'chatConversation' : 'chatRoot'
 
   const visibleConvo = visible?.params?.conversationIDKey
