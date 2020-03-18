@@ -309,6 +309,7 @@ export const InputActionsBar = (props: RunOperationProps) => {
   ) : null
 }
 
+const inputShrinkRatio = 2
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -323,6 +324,7 @@ const styles = Styles.styleSheetCreate(
       commonContainer: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.positionRelative,
+        flexShrink: inputShrinkRatio,
       },
       containerInputFocus: Styles.platformStyles({
         common: {
@@ -331,11 +333,11 @@ const styles = Styles.styleSheetCreate(
           display: 'flex',
         },
         isElectron: {
-          flexShrink: 1.4,
+          flexShrink: inputShrinkRatio,
         },
         isMobile: {
           flexShrink: 1,
-          // Give space on mobiel for Recipients divider
+          // Give space on mobile for Recipients divider
           marginTop: 1,
         },
       }),

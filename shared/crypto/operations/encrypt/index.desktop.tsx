@@ -20,12 +20,12 @@ export const EncryptInput = () => {
 }
 
 export const EncryptOutput = () => (
-  <>
+  <Kb.Box2 direction="vertical" fullHeight={true}>
     <EncryptOutputBanner />
     <SignedSender operation={operation} />
     <OperationOutput operation={operation} />
     <OutputActionsBar operation={operation} />
-  </>
+  </Kb.Box2>
 )
 
 const Encrypt = () => (

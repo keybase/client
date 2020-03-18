@@ -15,12 +15,12 @@ export const SignInput = () => (
 )
 
 export const SignOutput = () => (
-  <>
+  <Kb.Box2 direction="vertical" fullHeight={true}>
     <SignOutputBanner />
     <SignedSender operation={operation} />
     <OperationOutput operation={operation} />
     <OutputActionsBar operation={operation} />
-  </>
+  </Kb.Box2>
 )
 
 const Sign = () => {

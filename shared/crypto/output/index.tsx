@@ -67,70 +67,73 @@ export const SignedSender = (props: SignedSenderProps) => {
   }
 
   return (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      alignItems="center"
-      style={Styles.collapseStyles([
-        styles.signedContainer,
-        isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
-      ])}
-    >
-      {signed && signedByUsername ? (
-        <Kb.Box2
-          direction="horizontal"
-          gap={isSelfSigned ? 'xtiny' : 'xsmall'}
-          alignItems="center"
-          style={styles.signedSender}
-        >
-          <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
+    <>
+      <Kb.Divider />
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        style={Styles.collapseStyles([
+          styles.signedContainer,
+          isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
+        ])}
+      >
+        {signed && signedByUsername ? (
+          <Kb.Box2
+            direction="horizontal"
+            gap={isSelfSigned ? 'xtiny' : 'xsmall'}
+            alignItems="center"
+            style={styles.signedSender}
+          >
+            <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
 
-          {isSelfSigned ? (
-            <Kb.Box2
-              direction="horizontal"
-              gap={isSelfSigned ? 'xtiny' : 'xsmall'}
-              style={styles.signedByText}
-            >
-              <Kb.Text key="signedByUsername" type="BodySmall">
-                {signedByText}
+            {isSelfSigned ? (
+              <Kb.Box2
+                direction="horizontal"
+                gap={isSelfSigned ? 'xtiny' : 'xsmall'}
+                style={styles.signedByText}
+              >
+                <Kb.Text key="signedByUsername" type="BodySmall">
+                  {signedByText}
+                </Kb.Text>
+                <Kb.ConnectedUsernames
+                  key="username"
+                  type={usernameType}
+                  usernames={[signedByUsername.stringValue()]}
+                  colorFollowing={true}
+                  colorYou={true}
+                />
+              </Kb.Box2>
+            ) : (
+              <Kb.Box2 key="signedByUsername" direction="vertical">
+                <Kb.ConnectedUsernames
+                  type={usernameType}
+                  usernames={[signedByUsername.stringValue()]}
+                  colorFollowing={true}
+                  colorYou={true}
+                />
+                {signedByFullname?.stringValue() ? (
+                  <Kb.Text type="BodySmall">{signedByFullname?.stringValue()}</Kb.Text>
+                ) : null}
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+        ) : (
+          <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
+            <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
+            {isSelfSigned ? null : (
+              <Kb.Text key="username" type="BodySmallSemibold">
+                Anonymous sender
               </Kb.Text>
-              <Kb.ConnectedUsernames
-                key="username"
-                type={usernameType}
-                usernames={signedByUsername.stringValue()}
-                colorFollowing={true}
-                colorYou={true}
-              />
-            </Kb.Box2>
-          ) : (
-            <Kb.Box2 key="signedByUsername" direction="vertical">
-              <Kb.ConnectedUsernames
-                type={usernameType}
-                usernames={signedByUsername.stringValue()}
-                colorFollowing={true}
-                colorYou={true}
-              />
-              {signedByFullname?.stringValue() ? (
-                <Kb.Text type="BodySmall">{signedByFullname?.stringValue()}</Kb.Text>
-              ) : null}
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
-          <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
-          {isSelfSigned ? null : (
-            <Kb.Text key="username" type="BodySmallSemibold">
-              Anonymous sender
+            )}
+            <Kb.Text key="signedByUsername" type="BodySmall">
+              {isSelfSigned ? `Not signed (Sending anonymously)` : `(Not signed)`}
             </Kb.Text>
-          )}
-          <Kb.Text key="signedByUsername" type="BodySmall">
-            {isSelfSigned ? `Not signed (Sending anonymously)` : `(Not signed)`}
-          </Kb.Text>
-        </Kb.Box2>
-      )}
-      {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
-    </Kb.Box2>
+          </Kb.Box2>
+        )}
+        {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
+      </Kb.Box2>
+    </>
   )
 }
 

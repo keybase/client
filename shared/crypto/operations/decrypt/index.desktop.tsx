@@ -14,11 +14,11 @@ export const DecryptInput = () => (
 )
 
 export const DecryptOutput = () => (
-  <>
+  <Kb.Box2 direction="vertical" fullHeight={true}>
     <SignedSender operation={operation} />
     <OperationOutput operation={operation} />
     <OutputActionsBar operation={operation} />
-  </>
+  </Kb.Box2>
 )
 
 const Decrypt = () => {

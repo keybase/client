@@ -13,11 +13,11 @@ export const VerifyInput = () => (
   </>
 )
 export const VerifyOutput = () => (
-  <>
+  <Kb.Box2 direction="vertical" fullHeight={true}>
     <SignedSender operation={operation} />
     <OperationOutput operation={operation} />
     <OutputActionsBar operation={operation} />
-  </>
+  </Kb.Box2>
 )
 
 const Verify = () => {
