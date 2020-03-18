@@ -65,8 +65,7 @@ func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.U
 	}
 	// If the conversation is not being actively viewed, don't send
 	// notifications to the UI.
-	switch typ {
-	case chat1.ChatActivityType_INCOMING_MESSAGE:
+	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
 		act := activity.IncomingMessage()
 		if !act.DisplayDesktopNotification && act.Conv != nil &&
 			act.Conv.TeamType == chat1.TeamType_COMPLEX &&
