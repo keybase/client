@@ -37,6 +37,7 @@ const ConfirmSend = (props: ConfirmSendProps) => {
         />
         {(props.banners || []).map(banner => (
           <Banner
+            actionText={banner.actionText}
             background={banner.bannerBackground}
             key={banner.bannerText}
             onAction={banner.action}

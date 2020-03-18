@@ -194,8 +194,6 @@ class Teams extends React.PureComponent<Props, State> {
           />
         )
       }
-      default:
-        return null
     }
   }
 

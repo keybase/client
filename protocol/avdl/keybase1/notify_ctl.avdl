@@ -27,6 +27,7 @@ protocol notifyCtl {
     boolean teambot;
     boolean chatkbfsedits;
     boolean chatdev;
+    boolean chatemoji;
     boolean deviceclone;
     boolean chatattachments;
     boolean wallet;

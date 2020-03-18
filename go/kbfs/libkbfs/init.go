@@ -645,29 +645,27 @@ func getInitMode(
 
 	switch modeString {
 	case InitDefaultString:
-		log.CDebugf(ctx, "Initializing in default mode")
 		// Already the default
 	case InitMinimalString:
-		log.CDebugf(ctx, "Initializing in minimal mode")
 		mode = InitMinimal
 	case InitSingleOpString:
-		log.CDebugf(ctx, "Initializing in singleOp mode")
 		mode = InitSingleOp
 	case InitConstrainedString:
-		log.CDebugf(ctx, "Initializing in constrained mode")
 		mode = InitConstrained
 	case InitMemoryLimitedString:
-		log.CDebugf(ctx, "Initializing in memoryLimited mode")
 		mode = InitMemoryLimited
 	case InitTestSearchString:
-		log.CDebugf(ctx, "Initializing in testSearch mode")
 		mode = InitTestSearch
 	case InitSingleOpWithQRString:
-		log.CDebugf(ctx, "Initializing in singleOpWithQR mode")
 		mode = InitSingleOpWithQR
 	default:
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
+
+	log.CDebugf(ctx, "Initializing in %s mode", modeString)
+	kbCtx.GetPerfLog().CDebugf(
+		ctx, "KBFS initializing in %s mode, version %s", modeString,
+		VersionString())
 
 	return NewInitModeFromType(mode), nil
 }

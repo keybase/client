@@ -12,8 +12,6 @@ type Props = {
 }
 
 const BarePreview = (props: Props) => {
-  const [loading, setLoading] = React.useState(false)
-  const onLoadingStateChange = (l: boolean) => setLoading(l)
   const onUrlError = Kbfs.useFsFileContext(props.path)
   return (
     <Kb.Box style={styles.container}>
@@ -25,7 +23,7 @@ const BarePreview = (props: Props) => {
         </Kb.ClickableBox>
       </Kb.Box>
       <Kb.Box style={styles.contentContainer}>
-        <View path={props.path} onLoadingStateChange={onLoadingStateChange} onUrlError={onUrlError} />
+        <View path={props.path} onUrlError={onUrlError} />
       </Kb.Box>
       <Kb.Box style={styles.footer}>
         <Kbfs.PathItemAction
@@ -36,7 +34,6 @@ const BarePreview = (props: Props) => {
         />
       </Kb.Box>
       <Footer path={props.path} onlyShowProofBroken={true} />
-      {loading && <Kb.ProgressIndicator style={styles.loading} white={true} />}
     </Kb.Box>
   )
 }
@@ -72,17 +69,6 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         paddingLeft: Styles.globalMargins.tiny,
       },
-      loading: Styles.platformStyles({
-        common: {
-          height: 32,
-          width: 32,
-        },
-        isMobile: {
-          left: Styles.globalMargins.small,
-          position: 'absolute',
-          top: 48,
-        },
-      }),
       text: {
         color: Styles.globalColors.whiteOrBlueDark,
         lineHeight: 48,

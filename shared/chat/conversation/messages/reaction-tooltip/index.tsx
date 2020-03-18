@@ -63,7 +63,7 @@ const ReactionTooltip = (props: Props) => {
           sections={sections}
           stickySectionHeadersEnabled={true}
           disableAbsoluteStickyHeader={true}
-          style={styles.list}
+          contentContainerStyle={styles.list}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
         />

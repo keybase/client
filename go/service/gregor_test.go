@@ -317,7 +317,7 @@ func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message)
 	return errors.New("unimplemented")
 }
 func (m mockGregord) Ping(_ context.Context) (string, error) {
-	return "pong", nil
+	return "", nil
 }
 func (m mockGregord) State(ctx context.Context, arg gregor1.StateArg) (gregor1.State, error) {
 	state, err := m.sm.State(ctx, arg.Uid, arg.Deviceid, arg.TimeOrOffset)

@@ -24,10 +24,10 @@ type whitelistRecord struct {
 type Settings struct {
 	utils.DebugLabeler
 
-	storage types.ConversationBackedStorage
+	storage types.UserConversationBackedStorage
 }
 
-func NewSettings(g *globals.Context, storage types.ConversationBackedStorage) *Settings {
+func NewSettings(g *globals.Context, storage types.UserConversationBackedStorage) *Settings {
 	return &Settings{
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Settings", false),
 		storage:      storage,

@@ -226,6 +226,7 @@ class PlainInput extends Component<InternalProps> {
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
+      selectTextOnFocus: this.props.selectTextOnFocus,
       style: this._getStyle(),
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',

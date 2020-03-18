@@ -1329,6 +1329,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteDisplayName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TeamInvite",
       "fields": [
         {
@@ -1372,40 +1378,38 @@
       "name": "AnnotatedTeamInvite",
       "fields": [
         {
-          "type": "TeamRole",
-          "name": "role"
+          "type": "TeamInvite",
+          "name": "invite"
         },
         {
-          "type": "TeamInviteID",
-          "name": "id"
-        },
-        {
-          "type": "TeamInviteType",
-          "name": "type"
-        },
-        {
-          "type": "TeamInviteName",
-          "name": "name"
-        },
-        {
-          "type": "UserVersion",
-          "name": "uv"
-        },
-        {
-          "type": "UserVersion",
-          "name": "inviter"
+          "type": "TeamInviteDisplayName",
+          "name": "displayName"
         },
         {
           "type": "string",
           "name": "inviterUsername"
         },
         {
+          "type": "UserVersion",
+          "name": "inviteeUv"
+        },
+        {
           "type": "string",
           "name": "teamName"
         },
         {
-          "type": "TeamMemberStatus",
+          "type": [
+            null,
+            "TeamMemberStatus"
+          ],
           "name": "status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AnnotatedTeamUsedInviteLogPoint"
+          },
+          "name": "usedInvites"
         }
       ]
     },
@@ -1614,7 +1618,7 @@
             "type": "map",
             "values": {
               "type": "array",
-              "items": "TeamUsedInviteLog"
+              "items": "TeamUsedInviteLogPoint"
             },
             "keys": "TeamInviteID"
           },
@@ -1704,7 +1708,21 @@
     },
     {
       "type": "record",
-      "name": "TeamUsedInviteLog",
+      "name": "AnnotatedTeamUsedInviteLogPoint",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "TeamUsedInviteLogPoint",
+          "name": "teamUsedInviteLogPoint"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamUsedInviteLogPoint",
       "fields": [
         {
           "type": "UserVersion",
@@ -2969,22 +2987,7 @@
         },
         {
           "type": "string",
-          "name": "webLink"
-        },
-        {
-          "type": "string",
-          "name": "deepLink"
-        },
-        {
-          "type": "TeamInviteMaxUses",
-          "name": "maxUses"
-        },
-        {
-          "type": [
-            null,
-            "UnixTime"
-          ],
-          "name": "etime"
+          "name": "url"
         }
       ]
     },

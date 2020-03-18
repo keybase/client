@@ -113,13 +113,15 @@
       "path": "Types.Path"
     },
     "favoriteIgnoreError": {
-      "path": "Types.Path",
-      "error": "Types.FsError"
+      "path": "Types.Path"
     },
     "newFolderRow": {
       "parentPath": "Types.Path"
     },
-    "newFolderName": {
+    "startRename": {
+      "path": "Types.Path"
+    },
+    "setEditName": {
       "editID": "Types.EditID",
       "name": "string"
     },
@@ -127,18 +129,20 @@
       "editID": "Types.EditID"
     },
     "editSuccess": {
+      "editID": "Types.EditID"
+    },
+    "editError": {
       "editID": "Types.EditID",
-      "parentPath": "Types.Path"
+      "error": "string"
     },
     "discardEdit": {
       "editID": "Types.EditID"
     },
-    "fsError": {
-      "error": "Types.FsError",
-      "expectedIfOffline": "boolean"
+    "redbar": {
+      "error": "string"
     },
-    "dismissFsError": {
-      "key": "string"
+    "dismissRedbar": {
+      "index": "number"
     },
     "setLastPublicBannerClosedTlf": {
       "tlf": "string"

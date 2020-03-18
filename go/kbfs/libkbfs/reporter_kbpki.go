@@ -174,6 +174,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	if code >= 0 {
 		n := errorNotification(err, code, tlfName, t, mode, filename, params)
 		r.Notify(ctx, n)
+		r.config.GetPerfLog().CDebugf(ctx, "KBFS error: %v", err)
 	}
 }
 

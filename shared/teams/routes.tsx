@@ -1,4 +1,3 @@
-import {TeamScreenType} from './team/container'
 import TeamMember from './team/member/container'
 import TeamMemberNew from './team/member/index.new'
 import TeamsRoot from './container'
@@ -30,7 +29,7 @@ import TeamAddToTeamConfirm from './add-members-wizard/confirm'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
-  team: {getScreen: (): TeamScreenType => require('./team/container').default},
+  team: {getScreen: () => require('./team/container').default},
   teamChannel: {
     getScreen: (): typeof TeamEditChannel => require('./channel').default,
   },

@@ -1098,7 +1098,7 @@ const updateChannelname = async (state: TypedState, action: TeamsGen.UpdateChann
   }
 
   try {
-    await RPCChatTypes.localPostMetadataRpcPromise(param, Constants.teamWaitingKeyByID(teamID, state))
+    await RPCChatTypes.localPostMetadataRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
     return false
   } catch (error) {
     return TeamsGen.createSetChannelCreationError({error: error.desc})

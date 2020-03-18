@@ -2225,6 +2225,7 @@ type Config interface {
 	// PrefetchStatus returns the prefetch status of a block.
 	PrefetchStatus(context.Context, tlf.ID, data.BlockPointer) PrefetchStatus
 	GetQuotaUsage(keybase1.UserOrTeamID) *EventuallyConsistentQuotaUsage
+	GetPerfLog() logger.Logger
 
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving

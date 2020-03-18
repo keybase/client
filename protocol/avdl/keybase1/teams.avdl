@@ -230,8 +230,7 @@ protocol teams {
     // here.
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
     // If added UserVersion uses a multi-use invite, store the inviteID->UV pair
-    // here. This only applies to multi-use invites (invites with max_uses field).
-    // Any other invite should use completedInvites.
+    // here. This applies to new-style invites (invites with max_uses field).
     array<TeamUsedInvite> usedInvites;
   }
 
@@ -619,26 +618,43 @@ protocol teams {
   @typedef("string")
   record TeamInviteName {}
 
+  // For Keybase, Seitan, Invitelink, etc. invites, we want to show a different
+  // invite name than what is in the sigchain (which may be an encoded
+  // userversion or a messagepack blob, e.g.).
+  // For example, it could be a formatted URL or a social assertion like
+  // maxtaco@twitter.
+  @typedef("string")
+  record TeamInviteDisplayName {}
+
   record TeamInvite {
     TeamRole role;
     TeamInviteID id;
     TeamInviteType type;
+
+    // for SBS, name is the username (`type` will specify the service);
+    // for phone/email, name is the number/address;
+    // for keybase-type invite, name is the percent-form UV;
+    // for seitan or invitelink, name is the messagepack encoded pkey
     TeamInviteName name;
+
     UserVersion inviter;
     union { null, TeamInviteMaxUses } maxUses;
     union { null, UnixTime } etime;
   }
 
   record AnnotatedTeamInvite {
-    TeamRole role;
-    TeamInviteID id;
-    TeamInviteType type;
-    TeamInviteName name;
-    UserVersion uv;
-    UserVersion inviter;
+    TeamInvite invite;
+
+    TeamInviteDisplayName displayName;
     string inviterUsername;
+    UserVersion inviteeUv;
     string teamName;
-    TeamMemberStatus status;
+
+    // null for multiuse invites
+    union { null, TeamMemberStatus } status;
+
+    // possibly non-empty for multiuse invites
+    array<AnnotatedTeamUsedInviteLogPoint> usedInvites;
   }
 
   record TeamEncryptedKBFSKeyset {
@@ -735,7 +751,7 @@ protocol teams {
 
     // Invite uses. If an invite can be used multiple times, usedInvite
     // field is used, and this usage is saved here.
-    map<TeamInviteID,array<TeamUsedInviteLog>> usedInvites;
+    map<TeamInviteID,array<TeamUsedInviteLogPoint>> usedInvites;
 
     // Whether this is an open team.
     boolean open;
@@ -780,7 +796,12 @@ protocol teams {
     SignatureMetadata sigMeta;
   }
 
-  record TeamUsedInviteLog {
+  record AnnotatedTeamUsedInviteLogPoint {
+    string username;
+    TeamUsedInviteLogPoint teamUsedInviteLogPoint;
+  }
+
+  record TeamUsedInviteLogPoint {
     UserVersion uv;
     // index into TeamSigChainState.userLog[uv][]
     int logPoint;
@@ -1375,10 +1396,7 @@ protocol teams {
 
   record Invitelink {
     SeitanIKeyInvitelink ikey;
-    string webLink;
-    string deepLink;
-    TeamInviteMaxUses maxUses;
-    union { null, UnixTime } etime;
+    string url;
   }
 
   Invitelink teamCreateSeitanInvitelink(int sessionID, string teamname, TeamRole role,

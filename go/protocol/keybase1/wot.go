@@ -159,7 +159,7 @@ func (o WotVouch) DeepCopy() WotVouch {
 
 type WotVouchArg struct {
 	SessionID  int         `codec:"sessionID" json:"sessionID"`
-	Uv         UserVersion `codec:"uv" json:"uv"`
+	Vouchee    UserVersion `codec:"vouchee" json:"vouchee"`
 	VouchTexts []string    `codec:"vouchTexts" json:"vouchTexts"`
 	Confidence Confidence  `codec:"confidence" json:"confidence"`
 }
@@ -173,7 +173,7 @@ type WotVouchCLIArg struct {
 
 type WotReactArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Uv        UserVersion     `codec:"uv" json:"uv"`
+	Voucher   UserVersion     `codec:"voucher" json:"voucher"`
 	Proof     SigID           `codec:"proof" json:"proof"`
 	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
 }

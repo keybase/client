@@ -7,6 +7,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Waiting from '../../../../constants/waiting'
+import * as Platform from '../../../../constants/platform'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -76,17 +77,21 @@ const getChannelSuggestions = (
       return noChannel
     }
     // TODO: maybe we shouldn't rely on this inboxlayout being around?
-    return (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string; teamname: string}>>(
-      (arr, t) => {
-        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-          if (mutualTeams.includes(t.channel.teamname)) {
-            arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
-          }
+    const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<
+      Array<{channelname: string; teamname: string}>
+    >((arr, t) => {
+      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (mutualTeams.includes(t.channel.teamname)) {
+          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
         }
-        return arr
-      },
-      []
-    )
+      }
+      return arr
+    }, [])
+
+    if (!shallowEqual(_channelSuggestions, suggestions)) {
+      _channelSuggestions = suggestions
+    }
+    return _channelSuggestions
   }
   // TODO: get all the channels in the team, too, for this
   const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>(
@@ -107,6 +112,28 @@ const getChannelSuggestions = (
   return _channelSuggestions
 }
 
+const getConversationNameForInput = (
+  state: Container.TypedState,
+  conversationIDKey: Types.ConversationIDKey
+): string => {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  if (meta.teamType === 'big') {
+    return meta.channelname ? `in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
+  }
+  if (meta.teamType === 'small') {
+    return meta.teamname ? `in ${meta.teamname}` : ''
+  }
+  if (meta.teamType === 'adhoc') {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
+    if (participantInfo.name.length) {
+      return participantInfo.name.length > 2
+        ? 'in the group'
+        : `to @${participantInfo.name.find(n => n !== state.config.username)}`
+    }
+  }
+  return ''
+}
+
 export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
@@ -115,6 +142,7 @@ export default Container.namedConnect(
     const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
+    const conversationName = getConversationNameForInput(state, conversationIDKey)
 
     const _you = state.config.username
 
@@ -143,6 +171,7 @@ export default Container.namedConnect(
       _you,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
+      conversationName,
       editText: editInfo ? editInfo.text : '',
       explodingModeSeconds,
       infoPanelShowing: state.chat2.infoPanelShowing,
@@ -257,6 +286,7 @@ export default Container.namedConnect(
       cannotWrite: stateProps.cannotWrite,
       clearInboxFilter: dispatchProps.clearInboxFilter,
       conversationIDKey: stateProps.conversationIDKey,
+      conversationName: stateProps.conversationName,
       editText: stateProps.editText,
       explodingModeSeconds: stateProps.explodingModeSeconds,
       focusInputCounter: ownProps.focusInputCounter,

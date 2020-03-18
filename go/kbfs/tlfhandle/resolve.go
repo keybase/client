@@ -696,8 +696,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 		}
 		reason := fmt.Sprintf("You accessed a folder with %s.", ra.assertion)
 		var resName kbname.NormalizedUsername
-		resName, _, err = ra.identifier.Identify(
-			ctx, ra.assertion, reason, ra.offline)
+		resName, err = IdentifySingleAssertion(
+			ctx, ra.assertion, reason, ra.identifier, ra.offline)
 		if err == nil && resName != name {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID,
 				fmt.Errorf(
