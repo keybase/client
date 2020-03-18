@@ -1,0 +1,5 @@
+[Unit]
+Description=make a nightly build via keybase chat
+
+[Service]
+ExecStart=bash -c "keybase chat send $CHAT_TEAM --channel $CHAT_CHANNEL '!nightly'"
