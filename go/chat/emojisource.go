@@ -133,18 +133,22 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	return res, nil
 }
 
-var emojiPattern = regexp.MustCompile(`(?::)[^:\s]+(?::)`)
+var emojiPattern = regexp.MustCompile(`(?::)([^:\s]+)(?::)`)
 
 type emojiMatch struct {
 	name     string
 	position []int
 }
 
-func (s *DevConvEmojiSource) parse(body string) (res []emojiMatch) {
+func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emojiMatch) {
 	hits := emojiPattern.FindAllStringSubmatchIndex(body, -1)
 	for _, hit := range hits {
+		if len(hit) < 4 {
+			s.Debug(ctx, "parse: malformed hit: %d", len(hit))
+			continue
+		}
 		res = append(res, emojiMatch{
-			name:     body[hit[0]:hit[1]],
+			name:     body[hit[2]:hit[3]],
 			position: hit,
 		})
 	}
@@ -153,11 +157,12 @@ func (s *DevConvEmojiSource) parse(body string) (res []emojiMatch) {
 
 func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
 	convID chat1.ConversationID) (res []chat1.HarvestedEmoji, err error) {
-	matches := s.parse(body)
+	matches := s.parse(ctx, body)
 	if len(matches) == 0 {
 		return nil, nil
 	}
 	defer s.Trace(ctx, func() error { return err }, "Harvest")()
+	s.Debug(ctx, "Harvest: %d matches found", len(matches))
 	emojis, err := s.Get(ctx, uid, &convID)
 	if err != nil {
 		return res, err
@@ -166,6 +171,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 		return nil, nil
 	}
 	group := emojis.Emojis[0] // only consider the first hit
+	s.Debug(ctx, "Harvest: using %d emojis to search for matches", len(group.Emojis))
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(group.Emojis))
 	for _, emoji := range group.Emojis {
 		emojiMap[emoji.Alias] = emoji.RemoteSource
@@ -186,7 +192,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	if len(emojis) == 0 {
 		return body
 	}
-	matches := s.parse(body)
+	matches := s.parse(ctx, body)
 	if len(matches) == 0 {
 		return body
 	}
