@@ -20,15 +20,7 @@ export type IncomingErrorCallback = (err?: {code?: number; desc?: string} | null
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 
 // Dummy calls to avoid undelcared warnings in TS strict mode
-export const _doNotUse = (w: WaitingKey, i: IncomingReturn) =>
-  console.log(
-    'why did you call this function?',
-    w,
-    i,
-    call(() => {}),
-    engine(),
-    getEngineSaga()
-  )
+export const _doNotUse = (w: WaitingKey, i: IncomingReturn) => console.log('why did you call this function?', w, i, call(() => {}), engine(), getEngineSaga())
 
 export type MessageTypes = {
   'stellar.1.local.acceptDisclaimerLocal': {
@@ -398,7 +390,7 @@ export type AirdropDetails = {readonly isPromoted: Boolean; readonly details: St
 export type AirdropQualification = {readonly title: String; readonly subtitle: String; readonly valid: Boolean}
 export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
-export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly showDepositButton: Boolean; readonly depositButtonText: String; readonly showWithdrawButton: Boolean; readonly withdrawButtonText: String; readonly withdrawType: String; readonly transferServer: String; readonly authEndpoint: String; readonly depositReqAuth: Boolean; readonly withdrawReqAuth: Boolean}
+export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String; readonly infoUrlText: String; readonly showDepositButton: Boolean; readonly depositButtonText: String; readonly showWithdrawButton: Boolean; readonly withdrawButtonText: String; readonly withdrawType: String; readonly transferServer: String; readonly authEndpoint: String; readonly depositReqAuth: Boolean; readonly withdrawReqAuth: Boolean; readonly useSep24: Boolean}
 export type AssetActionResultLocal = {readonly externalUrl?: String | null; readonly messageFromAnchor?: String | null}
 export type AssetCode = String
 export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
