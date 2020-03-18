@@ -37,7 +37,7 @@ cp "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/dot_s3cfg" "$s3cmd_t
 
 # Copy necessary SSH keys out of KBFS
 ssh_temp="$(mktemp -d)"
-cp /keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/aur_id_ed25519 "$ssh_temp"
+cp "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/aur_id_ed25519" "$ssh_temp"
 cp "$HOME/.ssh/config" "$ssh_temp"
 cp "$HOME/.ssh/known_hosts" "$ssh_temp"
 
@@ -93,4 +93,4 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
 
 echo "Deleting old build files"
-sudo find "$(dirname "$work_dir")" -mindepth 1 ! -wholename "$work_dir" -type d -exec rm -rf {} +
+sudo find "$(dirname "$work_dir")" -maxdepth 1 -mindepth 1 ! -wholename "$work_dir" -type d -exec rm -rf {} +

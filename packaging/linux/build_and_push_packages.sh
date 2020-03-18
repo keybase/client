@@ -73,10 +73,12 @@ echo Doing a prerelease push to S3...
 # (Our s3cmd commands would be happy to read that file directly if we put it
 # in /root, but the s3_index.sh script ends up running Go code that depends
 # on the variables.)
+set +x
 AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
 export AWS_ACCESS_KEY
 AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
 export AWS_SECRET_KEY
+set -x
 
 # Upload both repos to S3.
 echo Syncing the deb repo...

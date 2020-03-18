@@ -465,6 +465,10 @@ func main() {
 		panic(err)
 	}
 
+	if *infoTeam == "" || *infoChannel == "" {
+		panic(fmt.Errorf("Chat team/channel specified: infoTeam=%q; infoChannel=%q", *infoTeam, *infoChannel))
+	}
+
 	debugC := chatbot.NewTeamChannel(*debugTeam, *debugChannel)
 	infoC := chatbot.NewTeamChannel(*infoTeam, *infoChannel)
 	logger := chatbot.ChatLogger{API: api, Name: *botName, DebugChannel: debugC, InfoChannel: infoC}
