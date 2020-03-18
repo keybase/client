@@ -1,7 +1,7 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/buster64"
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = "16384"
+    vb.memory = "32768"
   end
   config.vm.provision "file", source: "~/go/src/github.com/keybase/client/packaging/linux/tuxbot/ssh_config",
     destination: "~/.ssh/config"
