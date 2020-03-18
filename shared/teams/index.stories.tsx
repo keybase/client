@@ -4,7 +4,6 @@ import team from './team/index.stories'
 import deleteTeam from './delete-team/index.stories'
 import editTeamDescription from './edit-team-description/index.stories'
 import settings from './team/settings-tab/index.stories'
-import reallyLeaveTeam from './really-leave-team/index.stories'
 import retention from './team/settings-tab/retention/index.stories'
 import retentionWarning from './team/settings-tab/retention/warning/index.stories'
 import roleButton from './role-button/index.stories'
@@ -17,6 +16,7 @@ import teamRow from './main/team-row.stories'
 import newTeamWizard from './new-team/wizard/index.stories'
 import addMembersWizard from './add-members-wizard/index.stories'
 import channels from './channel/index.stories'
+import confirmModals from './confirm-modals/index.stories'
 
 const load = () => {
   main()
@@ -25,7 +25,6 @@ const load = () => {
   deleteTeam()
   editTeamDescription()
   settings()
-  reallyLeaveTeam()
   retention()
   retentionWarning()
   roleButton()
@@ -38,6 +37,7 @@ const load = () => {
   newTeamWizard()
   addMembersWizard()
   channels()
+  confirmModals()
 }
 
 export default load

@@ -229,7 +229,12 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
       })
     )
   const onEditRoles = () => console.log('onEditRoles not implemented') // TODO
-  const onRemoveFromTeam = () => console.log('onRemoveFromChannel not implemented') // TODO
+  const onRemoveFromTeam = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {members: [...members], teamID}, selected: 'teamReallyRemoveMember'}],
+      })
+    )
 
   return (
     <ActionsWrapper>

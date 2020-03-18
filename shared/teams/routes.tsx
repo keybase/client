@@ -12,8 +12,8 @@ import TeamInviteByEmail from './invite-by-email/container'
 import TeamInviteByContact from './invite-by-contact/container'
 import TeamJoinTeamDialog from './join-team/container'
 import TeamNewTeamDialog from './new-team/container'
-import TeamReallyLeaveTeam from './really-leave-team/container'
-import TeamReallyRemoveMember from './team/really-remove-member'
+import TeamReallyLeaveTeam from './confirm-modals/really-leave-team/container'
+import TeamReallyRemoveMember from './confirm-modals/confirm-kick-out'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
@@ -86,10 +86,11 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default,
   },
   teamReallyLeaveTeam: {
-    getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
+    getScreen: (): typeof TeamReallyLeaveTeam =>
+      require('./confirm-modals/really-leave-team/container').default,
   },
   teamReallyRemoveMember: {
-    getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member').default,
+    getScreen: (): typeof TeamReallyRemoveMember => require('./confirm-modals/confirm-kick-out').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
   teamWizard1TeamPurpose: {

@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onRemoveMember: (teamID: Types.TeamID, username: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID, username}, selected: 'teamReallyRemoveMember'}],
+        path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
       })
     )
   },
