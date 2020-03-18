@@ -126,3 +126,6 @@ export {runMode}
 export const appColorSchemeChanged = () => {}
 
 export const isRemoteDebuggerAttached = false
+export const uses24HourClock = new Date('1999 Jan 1 20:00')
+  .toLocaleString(Intl.DateTimeFormat().resolvedOptions().locale)
+  .includes(' 20:')

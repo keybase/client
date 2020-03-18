@@ -1,9 +1,13 @@
 import * as dateFns from 'date-fns'
 import {enUS} from 'date-fns/locale'
+import {uses24HourClock} from '../constants/platform'
+
+const hourMinuteString = uses24HourClock ? 'HH:mm' : 'h:mm a'
+const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
 
 export function formatTimeForChat(time: number): string | null {
   const m = new Date(time)
-  const hma = dateFns.format(m, 'h:mm a')
+  const hma = dateFns.format(m, hourMinuteString)
   const now = new Date()
   const today = dateFns.startOfToday()
   if (dateFns.isSameDay(now, m)) {
@@ -29,7 +33,7 @@ export function formatTimeForConversationList(time: number, nowOverride?: number
   const weekOld = dateFns.sub(dateFns.startOfDay(now), {days: 7})
 
   if (dateFns.isSameDay(now, m)) {
-    return dateFns.format(m, 'h:mm a')
+    return dateFns.format(m, hourMinuteString)
   } else if (dateFns.isAfter(m, weekOld)) {
     return dateFns.format(m, 'EEE')
   } else if (dateFns.isSameYear(now, m)) {
@@ -46,19 +50,19 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
 
   if (dateFns.isSameDay(now, m)) {
     // Covers interval [startOfToday, endOfToday]
-    return 'Today ' + dateFns.format(m, 'h:mm a') // Today 4:34 PM
+    return 'Today ' + dateFns.format(m, hourMinuteString) // Today 4:34 PM
   } else if (dateFns.isSameDay(dateFns.startOfYesterday(), m)) {
     // Covers interval [startOfYesterday, endOfYesterday]
-    return 'Yesterday ' + dateFns.format(m, 'h:mm a') // Yesterday 4:34 PM
+    return 'Yesterday ' + dateFns.format(m, hourMinuteString) // Yesterday 4:34 PM
   } else if (dateFns.isAfter(m, weekAgo)) {
     // Covers interval [startOfWeekAgo, startOfYesterday)
-    return dateFns.format(m, 'EEE h:mm a') // Wed 4:34 PM
+    return dateFns.format(m, 'EEE ' + hourMinuteString) // Wed 4:34 PM
   } else if (!dateFns.isSameYear(now, m)) {
     // Covers interval [foreverAgo, startOfThisYear)
-    return dateFns.format(m, 'MMM dd yyyy h:mm a') // Jan 5 2016 4:34 PM
+    return dateFns.format(m, 'MMM dd yyyy ' + hourMinuteString) // Jan 5 2016 4:34 PM
   } else {
     // Covers interval [startOfThisYear, startOfWeekAgo)
-    return dateFns.format(m, 'MMM dd h:mm a') // Jan 5 4:34 PM
+    return dateFns.format(m, 'MMM dd ' + hourMinuteString) // Jan 5 4:34 PM
   }
 }
 
@@ -137,11 +141,11 @@ export const formatDurationFromNowTo = (timeInFuture?: number): string =>
   timeInFuture ? formatDuration(timeInFuture - Date.now()) : ''
 
 export function formatTimeForPopup(time: number): string {
-  return dateFns.format(time, 'EEE MMM dd h:mm:ss a') // Wed Jan 5 2016 4:34:15 PM
+  return dateFns.format(time, 'EEE MMM dd ' + hourMinuteSecondString) // Wed Jan 5 2016 4:34:15 PM
 }
 
 export function formatTimeForStellarDetail(timestamp: Date) {
-  return dateFns.format(timestamp, 'EEE, MMM dd yyyy - h:mm a') // Tue, Jan 5 2018 - 4:34 PM
+  return dateFns.format(timestamp, 'EEE, MMM dd yyyy - ' + hourMinuteString) // Tue, Jan 5 2018 - 4:34 PM
 }
 
 export function formatTimeForStellarTooltip(timestamp: Date) {
