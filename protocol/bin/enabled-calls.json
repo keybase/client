@@ -283,6 +283,7 @@
   "keybase.1.teams.getTeamAndMemberShowcase": {"promise": true},
   "keybase.1.teams.getTeamID": {"promise": true},
   "keybase.1.teams.getTeamRoleMap": {"promise": true},
+  "keybase.1.teams.getUntrustedTeamInfo": {"promise": true},
   "keybase.1.teams.getUserSubteamMemberships": {"promise": true},
   "keybase.1.teams.setTarsDisabled": {"promise": true},
   "keybase.1.teams.setTeamMemberShowcase": {"promise": true},
