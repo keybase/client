@@ -1785,7 +1785,6 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	default:
 		return nil
 	}
-
 	body = PresentDecoratedTextNoMentions(ctx, body)
 
 	// Payment decorations

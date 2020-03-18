@@ -118,6 +118,12 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 			ID:            *lquery.Name.TlfID,
 		}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: using TLFID: %v", *lquery.Name.TlfID)
+	} else if lquery.Name.TlfID != nil {
+		rquery.TlfID = lquery.Name.TlfID
+		info = types.NameInfo{
+			ID: *lquery.Name.TlfID,
+		}
+		b.Debug(ctx, "GetInboxQueryLocalToRemote: using TLFID (nameless): %v", *lquery.Name.TlfID)
 	} else if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
 		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),

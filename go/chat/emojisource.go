@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"regexp"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -77,11 +78,21 @@ func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, convID cha
 	}
 }
 
-func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID) (res chat1.UserEmojis, err error) {
+func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res chat1.UserEmojis, err error) {
 	storage := s.makeStorage()
 	topicType := chat1.TopicType_EMOJI
+	var nq *chat1.NameQuery
+	if convID != nil {
+		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, *convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			return res, err
+		}
+		nq = new(chat1.NameQuery)
+		nq.TlfID = &conv.Conv.Metadata.IdTriple.Tlfid
+	}
 	ibox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
+			Name:         nq,
 			TopicType:    &topicType,
 			MemberStatus: chat1.AllConversationMemberStatuses(),
 		})
@@ -119,7 +130,19 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID) (res chat
 	return res, nil
 }
 
-func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string) string {
-	// TODO
+var emojiPattern = regexp.MustCompile(`(?::)[^:\s]+(?::)`)
+
+func (s *DevConvEmojiSource) parse() {}
+
+func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
+	convID chat1.ConversationID) ([]chat1.Emoji, error) {
+	emojis, err := s.Get(ctx, uid, &convID)
+	if err != nil {
+
+	}
+}
+
+func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, emojis []chat1.Emoji) string {
+
 	return body
 }
