@@ -456,7 +456,6 @@ func (h *Home) handleUpdateWithVersions(ctx context.Context, homeVersion int, an
 		h.homeCache = nil
 		refreshHome = true
 	}
-	return
 }
 
 func (h *Home) IsAlive() bool {
