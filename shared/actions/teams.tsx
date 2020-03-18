@@ -1121,7 +1121,7 @@ const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.Delete
 }
 
 const deleteMultiChannelsConfirmed = async (
-  state: TypedState,
+  _state: TypedState,
   action: TeamsGen.DeleteMultiChannelsConfirmedPayload
 ) => {
   const {teamID, channels} = action.payload
