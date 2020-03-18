@@ -5,18 +5,17 @@ Vagrant.configure("2") do |config|
   end
   config.vm.provision "file",
     source: "#{ENV['GOPATH']}/src/github.com/keybase/client/packaging/linux/tuxbot/ssh_config",
-    destination: "~/.ssh/config"
+    destination: "~/.ssh/config",
+    run: "always"
   config.vm.provision "file",
     source: "#{ENV['GOPATH']}/src/github.com/keybase/client/packaging/linux/tuxbot/ssh_known_hosts",
-    destination: "~/.ssh/known_hosts"
-  config.vm.provision "shell", path: "provision_tuxbot_env", privileged: true,
-    run: "always", env: {
-      "SECRETS_TEAM" => ENV['SECRETS_TEAM'],
-      "SECRETS_REPO" => ENV['SECRETS_REPO'],
-      "CHAT_TEAM" => ENV['CHAT_TEAM'],
-      "CHAT_CHANNEL" => ENV['CHAT_CHANNEL'],
-      "DOCKERHUB_USERNAME" => ENV['DOCKERHUB_USERNAME'],
-    }
+    destination: "~/.ssh/known_hosts",
+    run: "always"
+  config.vm.provision "file",
+    source: "~/tuxbot_vagrant_env",
+    destination: "~/env",
+    run: "always"
+  config.vm.provision "shell", path: "provision_tuxbot_env", privileged: true, run: "always"
   config.vm.provision "shell", path: "provision_tuxbot_root", privileged: true
   config.vm.provision "shell", path: "provision_tuxbot_user", privileged: false
 end
