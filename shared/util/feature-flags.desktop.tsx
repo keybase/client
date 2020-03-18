@@ -9,6 +9,7 @@ const ff: FeatureFlags = {
   admin: false,
   connectThrashCheck: false,
   foldersInProfileTab: false,
+  inviteFriends: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   tabletSupport: true, // Whether tablet support is public. Changes some UI on non-tablets.
