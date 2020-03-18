@@ -7,7 +7,6 @@ TUXBOTD="$KBCLID/packaging/linux/tuxbot"
 # clone in gopath for bot
 mkdir -p "$HOME/go/src/github.com/keybase"
 git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase/client"
-git -C "$KBCLID" checkout surya/vagranttuxbot
 (
     # install deps
     cd "$TUXBOTD/bot"
@@ -24,4 +23,3 @@ systemctl --user enable --now keybase.service kbfs.service
 
 # clone for the build
 git clone https://github.com/keybase/client.git "$HOME/client"
-git -C "$HOME/client" checkout surya/vagranttuxbot
