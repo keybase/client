@@ -33,7 +33,7 @@ git -C "$clientdir" fetch
 # Arrange to share the S3 credentials. We have to do this with a directory
 # instead of sharing the file directly, because the latter only works on Linux.
 s3cmd_temp="$(mktemp -d)"
-cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/dot_s3cfg "$s3cmd_temp/.s3cfg"
+cp "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/dot_s3cfg" "$s3cmd_temp/.s3cfg"
 
 # Copy necessary SSH keys out of KBFS
 ssh_temp="$(mktemp -d)"
