@@ -1,13 +1,16 @@
 import * as React from 'react'
-import * as TeamsTypes from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import {useAllChannelMetas} from '../common/channel-hooks'
-import {pluralize} from '../../util/string'
+import * as Constants from '../../../constants/teams'
+import * as TeamsTypes from '../../../constants/types/teams'
+import * as Types from '../../../constants/types/chat2'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as Kb from '../../../common-adapters'
+import * as Container from '../../../util/container'
+import {useAllChannelMetas} from '../../common/channel-hooks'
+import {pluralize} from '../../../util/string'
 
 type Props = Container.RouteProps<{
   teamID: TeamsTypes.TeamID
+  channelIDs: Array<Types.ConversationIDKey>
 }>
 
 const Header = () => (
@@ -17,17 +20,9 @@ const Header = () => (
   </>
 )
 
-const getTeamSelectedCount = (state: Container.TypedState, teamID: TeamsTypes.TeamID) => {
-  return state.teams.teamSelectedChannels.get(teamID)
-}
-
 const DeleteChannel = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
-  const channelIDs = Container.useSelector(state => getTeamSelectedCount(state, teamID))
-
-  if (channelIDs == undefined) {
-    throw new Error('conversationIDKeys unexpectedly empty')
-  }
+  const channelIDs = Container.getRouteProps(props, 'channelIDs', [])
 
   const channels = useAllChannelMetas(teamID)
   var channelnames: string[] = []
@@ -57,7 +52,7 @@ const DeleteChannel = (props: Props) => {
   const onDelete = () => {
     dispatch(
       TeamsGen.createDeleteMultiChannelsConfirmed({
-        channels: Array.from(channelIDs.values()),
+        channels: channelIDs,
         teamID,
       })
     )
@@ -81,6 +76,7 @@ const DeleteChannel = (props: Props) => {
       onCancel={onClose}
       onConfirm={onDelete}
       prompt={`Delete ${deleteMsg}?`}
+      waitingKey={Constants.deleteChannelWaitingKey(teamID)}
     />
   )
 }

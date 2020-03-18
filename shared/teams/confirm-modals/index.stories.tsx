@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import ConfirmKickOut from './confirm-kick-out'
+import DeleteChannel from './delete-channel'
 import {store, fakeTeamID} from '../stories'
 import reallyLeaveTeam from './really-leave-team/index.stories'
 
@@ -15,6 +16,14 @@ const load = () => {
       <ConfirmKickOut
         {...Sb.createNavigator({
           members: ['chris', 'adamjspooner', 'ayoubd', 'chrisnojima', 'jzila', 'max'],
+          teamID: fakeTeamID,
+        })}
+      />
+    ))
+    .add('Delete channel', () => (
+      <DeleteChannel
+        {...Sb.createNavigator({
+          channelIds: [],
           teamID: fakeTeamID,
         })}
       />

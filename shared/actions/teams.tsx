@@ -1133,7 +1133,7 @@ const deleteMultiChannelsConfirmed = async (
         confirmed: true,
         convID: ChatTypes.keyToConversationID(conversationIDKey),
       },
-      Constants.teamWaitingKeyByID(teamID, state)
+      Constants.deleteChannelWaitingKey(teamID)
     )
   }
 
