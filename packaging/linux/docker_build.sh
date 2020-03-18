@@ -37,7 +37,7 @@ cp "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/dot_s3cfg" "$s3cmd_t
 
 # Copy necessary SSH keys out of KBFS
 ssh_temp="$(mktemp -d)"
-cp /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/aur_id_ed25519 "$ssh_temp"
+cp /keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/aur_id_ed25519 "$ssh_temp"
 cp "$HOME/.ssh/config" "$ssh_temp"
 cp "$HOME/.ssh/known_hosts" "$ssh_temp"
 
