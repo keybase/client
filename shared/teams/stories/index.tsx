@@ -21,6 +21,10 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
   }
   draftState.teams = {
     ...Constants.makeState(),
+    newTeamWizard: {
+      ...draftState.teams.newTeamWizard,
+      name: 'greenpeace',
+    },
     teamDetails: new Map([
       [
         fakeTeamID,

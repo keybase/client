@@ -271,6 +271,9 @@ export default Container.makeReducer<
       draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
     })
   },
+  [TeamsGen.startNewTeamWizard]: draftState => {
+    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
+  },
   [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
     draftState.newTeamWizard.teamType = action.payload.teamType
   },
@@ -280,6 +283,19 @@ export default Container.makeReducer<
     draftState.newTeamWizard.open = action.payload.openTeam
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
     draftState.newTeamWizard.showcase = action.payload.showcase
+  },
+  [TeamsGen.setTeamWizardAvatar]: (draftState, action) => {
+    draftState.newTeamWizard.avatarCrop = action.payload.crop
+    draftState.newTeamWizard.avatarFilename = action.payload.filename
+  },
+  [TeamsGen.setTeamWizardTeamSize]: (draftState, action) => {
+    draftState.newTeamWizard.isBig = action.payload.isBig
+  },
+  [TeamsGen.setTeamWizardChannels]: (draftState, action) => {
+    draftState.newTeamWizard.channels = action.payload.channels
+  },
+  [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
+    draftState.newTeamWizard.subteams = action.payload.subteams
   },
   [TeamsGen.startAddMembersWizard]: (draftState, action) => {
     const {teamID} = action.payload

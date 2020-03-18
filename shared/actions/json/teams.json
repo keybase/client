@@ -379,6 +379,7 @@
       "username": "string",
       "memberships": "Map<Types.TeamID, Types.MemberInfo>"
     },
+    "startNewTeamWizard": {},
     "setTeamWizardTeamType": {
       "teamType": "Types.TeamWizardTeamType"
     },
@@ -388,6 +389,20 @@
       "openTeam": "boolean",
       "openTeamJoinRole": "Types.TeamRoleType",
       "showcase": "boolean"
-    }
+    },
+    "setTeamWizardAvatar": {
+      "crop?": "RPCTypes.ImageCropRect",
+      "filename?": "string"
+    },
+    "setTeamWizardTeamSize": {
+      "isBig": "boolean"
+    },
+    "setTeamWizardChannels": {
+      "channels": "Array<string>"
+    },
+    "setTeamWizardSubteams": {
+      "subteams": "Array<string>"
+    },
+    "finishNewTeamWizard": {}
   }
 }
