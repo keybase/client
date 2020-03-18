@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -242,4 +244,66 @@ func FetchUserWot(mctx MetaContext, username string) (res []keybase1.WotVouch, e
 	}
 	mctx.Debug("found %d web-of-trust vouches for %s", username, len(res))
 	return res, nil
+}
+
+type _wotMsg struct {
+	Voucher *string `json:"voucher,omitempty"`
+	Vouchee *string `json:"vouchee,omitempty"`
+}
+
+func hasWotMsg(testable string) bool {
+	for _, match := range []string{"wot.new_vouch", "wot.accepted", "wot.rejected"} {
+		if match == testable {
+			return true
+		}
+	}
+	return false
+}
+
+func isDismissable(mctx MetaContext, category string, msg _wotMsg, voucher, vouchee kbun.NormalizedUsername) bool {
+	voucherMatches := (msg.Voucher != nil && kbun.NewNormalizedUsername(*msg.Voucher) == voucher)
+	voucheeMatches := (msg.Vouchee != nil && kbun.NewNormalizedUsername(*msg.Vouchee) == vouchee)
+	me := mctx.ActiveDevice().Username(mctx)
+	switch category {
+	case "wot.new_vouch":
+		return voucherMatches && (voucheeMatches || vouchee == me)
+	case "wot.accepted", "wot.rejected":
+		return voucheeMatches && (voucherMatches || voucher == me)
+	default:
+		return false
+	}
+}
+
+func DismissWotNotifications(mctx MetaContext, voucherUsername, voucheeUsername string) (err error) {
+	dismisser := mctx.G().GregorState
+	state, err := mctx.G().GregorState.State(mctx.Ctx())
+	if err != nil {
+		return err
+	}
+	categoryPrefix, err := gregor1.ObjFactory{}.MakeCategory("wot")
+	if err != nil {
+		return err
+	}
+	items, err := state.ItemsWithCategoryPrefix(categoryPrefix)
+	if err != nil {
+		return err
+	}
+	var wotMsg _wotMsg
+	for _, item := range items {
+		category := item.Category().String()
+		if !hasWotMsg(category) {
+			continue
+		}
+		if err := json.Unmarshal(item.Body().Bytes(), &wotMsg); err != nil {
+			return err
+		}
+		if isDismissable(mctx, category, wotMsg, kbun.NewNormalizedUsername(voucherUsername), kbun.NewNormalizedUsername(voucheeUsername)) {
+			itemID := item.Metadata().MsgID()
+			mctx.Debug("dismissing %s for %s,%s", category, voucherUsername, voucheeUsername)
+			if err := dismisser.DismissItem(mctx.Ctx(), nil, itemID); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

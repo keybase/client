@@ -26,6 +26,7 @@ func TestWotNotifications(t *testing.T) {
 	attachIdentifyUI(t, alice.tc.G, iui)
 	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
 	alice.track(bob.username)
+	var err error
 
 	getWotUpdate := func(user *userPlusDevice) keybase1.WotUpdate {
 		pollForTrue(t, user.tc.G, func(i int) bool {
@@ -40,27 +41,39 @@ func TestWotNotifications(t *testing.T) {
 
 	dismiss := func(user *userPlusDevice) {
 		wotHandler := service.NewWebOfTrustHandler(nil, user.tc.G)
-		wotHandler.DismissWotNotifications(context.TODO(), keybase1.DismissWotNotificationsArg{
+		err := wotHandler.DismissWotNotifications(context.TODO(), keybase1.DismissWotNotificationsArg{
 			Voucher: alice.username,
 			Vouchee: bob.username,
 		})
+		require.NoError(t, err)
 		pollForTrue(t, user.tc.G, func(i int) bool {
 			badges := getBadgeState(t, user)
 			return len(badges.WotUpdates) == 0
 		})
 	}
+	aliceVouchesForBob := func() {
+		cli := &client.CmdWotVouch{
+			Contextified: libkb.NewContextified(alice.tc.G),
+			Assertion:    bob.username,
+			Message:      "whatever whatever",
+			Confidence: keybase1.Confidence{
+				UsernameVerifiedVia: keybase1.UsernameVerificationType_IN_PERSON,
+			},
+		}
+		err := cli.Run()
+		require.NoError(t, err)
+	}
+	bobAccepts := func() {
+		cli := &client.CmdWotAccept{
+			Contextified: libkb.NewContextified(bob.tc.G),
+			Username:     alice.username,
+		}
+		err := cli.Run()
+		require.NoError(t, err)
+	}
 
 	// alice vouches for bob - bob gets a notification
-	cliV := &client.CmdWotVouch{
-		Contextified: libkb.NewContextified(alice.tc.G),
-		Assertion:    bob.username,
-		Message:      "whatever whatever",
-		Confidence: keybase1.Confidence{
-			UsernameVerifiedVia: keybase1.UsernameVerificationType_IN_PERSON,
-		},
-	}
-	err := cliV.Run()
-	require.NoError(t, err)
+	aliceVouchesForBob()
 	wotUpdate := getWotUpdate(bob)
 	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_PROPOSED)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
@@ -68,12 +81,7 @@ func TestWotNotifications(t *testing.T) {
 	dismiss(bob)
 
 	// bob accepts - alice gets a notification
-	cliA := &client.CmdWotAccept{
-		Contextified: libkb.NewContextified(bob.tc.G),
-		Username:     alice.username,
-	}
-	err = cliA.Run()
-	require.NoError(t, err)
+	bobAccepts()
 	wotUpdate = getWotUpdate(alice)
 	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_ACCEPTED)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
@@ -92,4 +100,21 @@ func TestWotNotifications(t *testing.T) {
 	require.Equal(t, wotUpdate.Voucher, alice.username)
 	require.Equal(t, wotUpdate.Vouchee, bob.username)
 	dismiss(alice)
+
+	// notifications also go away if the underlying vouch was touched (i.e. implicit interaction)
+	// by the person being notified.
+	// 1. alice vouches for bob
+	aliceVouchesForBob()
+	// 2. bob has a notification
+	pollForTrue(t, bob.tc.G, func(i int) bool {
+		badges := getBadgeState(t, bob)
+		return len(badges.WotUpdates) == 1 && badges.WotUpdates[0].Status == keybase1.WotStatusType_PROPOSED
+	})
+	// 3. bob reacts
+	bobAccepts()
+	// 4. bob's notification is dismissed automatically
+	pollForTrue(t, bob.tc.G, func(i int) bool {
+		badges := getBadgeState(t, bob)
+		return len(badges.WotUpdates) == 0
+	})
 }

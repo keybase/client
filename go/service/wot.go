@@ -1,13 +1,10 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -161,67 +158,9 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 	return h.WotReact(ctx, rarg)
 }
 
-type _wotMsg struct {
-	Voucher *string `json:"voucher,omitempty"`
-	Vouchee *string `json:"vouchee,omitempty"`
-}
-
-func hasWotMsg(testable string) bool {
-	for _, match := range []string{"wot.new_vouch", "wot.accepted", "wot.rejected"} {
-		if match == testable {
-			return true
-		}
-	}
-	return false
-}
-
-func isDismissable(mctx libkb.MetaContext, category string, msg _wotMsg, voucher, vouchee kbun.NormalizedUsername) bool {
-	voucherMatches := (msg.Voucher != nil && kbun.NewNormalizedUsername(*msg.Voucher) == voucher)
-	voucheeMatches := (msg.Vouchee != nil && kbun.NewNormalizedUsername(*msg.Vouchee) == vouchee)
-	me := mctx.ActiveDevice().Username(mctx)
-	switch category {
-	case "wot.new_vouch":
-		return voucherMatches && (voucheeMatches || vouchee == me)
-	case "wot.accepted", "wot.rejected":
-		return voucheeMatches && (voucherMatches || voucher == me)
-	default:
-		return false
-	}
-}
-
 func (h *WebOfTrustHandler) DismissWotNotifications(ctx context.Context, arg keybase1.DismissWotNotificationsArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("DismissWotNotifications", func() error { return err })()
 
-	dismisser := h.G().GregorState
-	state, err := h.G().GregorState.State(ctx)
-	if err != nil {
-		return err
-	}
-	categoryPrefix, err := gregor1.ObjFactory{}.MakeCategory("wot")
-	if err != nil {
-		return err
-	}
-	items, err := state.ItemsWithCategoryPrefix(categoryPrefix)
-	if err != nil {
-		return err
-	}
-	var wotMsg _wotMsg
-	for _, item := range items {
-		category := item.Category().String()
-		if !hasWotMsg(category) {
-			continue
-		}
-		if err := json.Unmarshal(item.Body().Bytes(), &wotMsg); err != nil {
-			return err
-		}
-		if isDismissable(mctx, category, wotMsg, kbun.NewNormalizedUsername(arg.Voucher), kbun.NewNormalizedUsername(arg.Vouchee)) {
-			itemID := item.Metadata().MsgID()
-			mctx.Debug("dismissing %s for %s,%s", category, arg.Voucher, arg.Vouchee)
-			if err := dismisser.DismissItem(mctx.Ctx(), nil, itemID); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return libkb.DismissWotNotifications(mctx, arg.Voucher, arg.Vouchee)
 }
