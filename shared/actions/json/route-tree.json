@@ -38,7 +38,8 @@
     },
     "setParams": {
         "_description": "deprecated soon",
-        "params": "Object"
+        "params": "Object",
+        "key": "string"
     }
   }
 }

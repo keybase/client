@@ -2433,38 +2433,26 @@ const navigateToInbox = (
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
-  let replace = false
   const visible = Router2Constants.getVisibleScreen()
-
   const visibleConvo = visible?.params?.conversationIDKey
   const visibleRouteName = visible?.routeName
 
-  if (visibleRouteName === Constants.threadRouteName) {
-    // looking at the pending / waiting screen
-    if (!Constants.isValidConversationIDKey(visibleConvo)) {
-      replace = true
-    }
-  } else if (reason === 'findNewestConversation') {
+  if (visibleRouteName !== Constants.threadRouteName && reason === 'findNewestConversation') {
     // service is telling us to change our selection but we're not looking, ignore
     return false
   }
 
   // we select the chat tab and change the params
   if (Constants.isSplit) {
-    // const path = Router2Constants.getVisiblePath()
-    // const keys = path.map(p => p.key)
-    // let childNav = Router2Constants._getNavigator().navigation
-    // while (keys.length && childNav) {
-    // childNav = childNav.getChildNavigation(keys.shift())
-    // }
-    // childNav?.setParams('conversationIDKey', conversationIDKey)
-
     return [
       RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
       RouteTreeGen.createClearModals(),
-      RouteTreeGen.createSetParams({params: {conversationIDKey}}),
+      RouteTreeGen.createSetParams({key: 'chatRoot', params: {conversationIDKey}}),
     ]
   } else {
+    // looking at the pending / waiting screen
+    const replace =
+      visibleRouteName === Constants.threadRouteName && !Constants.isValidConversationIDKey(visibleConvo)
     return [
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({

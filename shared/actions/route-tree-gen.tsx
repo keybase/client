@@ -31,7 +31,7 @@ type _ResetStackPayload = {
   readonly actions: Array<any>
   readonly index: number
 }
-type _SetParamsPayload = {readonly params: Object}
+type _SetParamsPayload = {readonly params: Object; readonly key: string}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
 
