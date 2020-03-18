@@ -20,6 +20,7 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
+	"github.com/subosito/gotenv"
 )
 
 const dockerNamespace = "keybaseio/client"
@@ -37,6 +38,8 @@ type Tuxbot struct {
 
 	dockerUsername string
 	dockerPassword string
+
+	archiveTeam string
 }
 
 var _ chatbot.Bot = (*Tuxbot)(nil)
@@ -110,7 +113,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		archiveCmd.Dir = filepath.Join(currentUser.HomeDir, "client")
 		xzCmd := exec.Command("xz")
 
-		archiveName := fmt.Sprintf("/keybase/team/keybase.bots.build.linux/keybase-%s.tar.xz", revision)
+		archiveName := fmt.Sprintf("/keybase/team/%s/keybase-%s.tar.xz", c.archiveTeam, revision)
 		archiveHandle, err := os.OpenFile(archiveName, os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
 			return err
@@ -437,16 +440,19 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 }
 
 func main() {
+	gotenv.Load(fmt.Sprintf("/keybase/team/%s/.kbfs_autogit/%s/keybot.env", os.Getenv("SECRETS_TEAM"), os.Getenv("SECRETS_REPO")))
+
 	keybaseBinaryPath := flag.String("keybase-bin-path", "keybase", "the location of the keybase app")
 	botName := flag.String("bot-name", "tuxbot", "the name of this bot")
-	_ = flag.String("listen-team", "keybase.bots.build.linux", "team name to listen to")
-	_ = flag.String("listen-channel", "general", "channel name to listen to")
-	debugTeam := flag.String("debug-team", "keybase.bots.build.linux", "team name to debug to")
-	debugChannel := flag.String("debug-channel", "general", "channel name to debug to")
-	infoTeam := flag.String("info-team", "keybase.bots.build.linux", "team name to info to")
-	infoChannel := flag.String("info-channel", "general", "channel name to info to")
-	dockerUsername := flag.String("docker-username", "keybasebuild", "docker hub bot username")
+	_ = flag.String("listen-team", os.Getenv("CHAT_TEAM"), "team name to listen to")
+	_ = flag.String("listen-channel", os.Getenv("CHAT_CHANNEL"), "channel name to listen to")
+	debugTeam := flag.String("debug-team", os.Getenv("CHAT_TEAM"), "team name to debug to")
+	debugChannel := flag.String("debug-channel", os.Getenv("CHAT_CHANNEL"), "channel name to debug to")
+	infoTeam := flag.String("info-team", os.Getenv("CHAT_TEAM"), "team name to info to")
+	infoChannel := flag.String("info-channel", os.Getenv("CHAT_CHANNEL"), "channel name to info to")
+	dockerUsername := flag.String("docker-username", os.Getenv("DOCKERHUB_USERNAME"), "docker hub bot username")
 	dockerPassword := flag.String("docker-password", os.Getenv("DOCKERHUB_PASSWORD"), "docker hub bot password")
+	archiveTeam := flag.String("info-team", os.Getenv("CHAT_TEAM"), "team name to archive to")
 	flag.Parse()
 
 	fmt.Println("Initializing...")
@@ -476,6 +482,8 @@ func main() {
 
 		dockerUsername: *dockerUsername,
 		dockerPassword: *dockerPassword,
+
+		archiveTeam: *archiveTeam,
 	}
 
 	if err := chatbot.Listen(tuxbot); err != nil {
