@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/chat/attachments"
@@ -72,4 +73,68 @@ func TestEmojiSourceBasic(t *testing.T) {
 	uimsg := utils.PresentMessageUnboxed(ctx, tc.Context(), msg, uid, conv.Id)
 	require.True(t, uimsg.IsValid())
 	require.NotNil(t, uimsg.Valid().DecoratedTextBody)
+}
+
+type emojiTestCase struct {
+	body     string
+	expected []emojiMatch
+}
+
+func TestEmojiSourceParse(t *testing.T) {
+	es := &DevConvEmojiSource{}
+	ctx := context.TODO()
+
+	testCases := []emojiTestCase{
+		{
+			body: "x :miked:",
+			expected: []emojiMatch{
+				{
+					name:     "miked",
+					position: []int{2, 9},
+				},
+			},
+		},
+		{
+			body: ":333mm__--M:",
+			expected: []emojiMatch{
+				{
+					name:     "333mm__--M",
+					position: []int{0, 12},
+				},
+			},
+		},
+		{
+			body: ":mike: :lisa:",
+			expected: []emojiMatch{
+				{
+					name:     "mike",
+					position: []int{0, 6},
+				},
+				{
+					name:     "lisa",
+					position: []int{7, 13},
+				},
+			},
+		},
+		{
+			body: ":mike::lisa:",
+			expected: []emojiMatch{
+				{
+					name:     "mike",
+					position: []int{0, 6},
+				},
+				{
+					name:     "lisa",
+					position: []int{6, 12},
+				},
+			},
+		},
+		{
+			body: "::",
+		},
+	}
+	for _, tc := range testCases {
+		res := es.parse(ctx, tc.body)
+		require.Equal(t, tc.expected, res)
+	}
 }

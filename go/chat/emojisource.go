@@ -149,7 +149,7 @@ func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emoj
 		}
 		res = append(res, emojiMatch{
 			name:     body[hit[2]:hit[3]],
-			position: hit,
+			position: []int{hit[0], hit[1]},
 		})
 	}
 	return res
