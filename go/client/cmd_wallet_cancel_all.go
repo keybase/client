@@ -133,15 +133,12 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 		dui.Printf("Note: no outfile specified, so not keeping track of complete txIDs.\n")
 	}
 
-	maxWorkers := 100 // OR runtime.GOMAXPROCS(0); goal is to not overwhelm stellarnet
+	maxWorkers := 100 // OR runtime.GOMAXPROCS(0)
 	sem := semaphore.NewWeighted(int64(maxWorkers))
 	dui.Printf("Canceling %d txIDs with %d maxWorkers; %d txIDs already complete...\n", len(in), maxWorkers, len(out))
 
 	var wg sync.WaitGroup
-	successCount := 0
-	skipCount := 0
-	failCount := 0
-	writeErrorCount := 0
+	var successCount, skipCount, failCount, writeErrorCount int
 	for _, txID := range in {
 		if err := sem.Acquire(context.TODO(), 1); err != nil {
 			// don't expect to get here
@@ -163,7 +160,6 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 					skipCount++
 					if outfile != nil {
 						if _, err := outfile.WriteString(fmt.Sprintf("%+v\n", txID)); err != nil {
-							// would get picked up to attempt cancel on the next run...
 							fmt.Printf("WRITE ERROR, %+v, %+v\n", txID, err.Error())
 							writeErrorCount++
 						}
@@ -177,7 +173,6 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 				successCount++
 				if outfile != nil {
 					if _, err := outfile.WriteString(fmt.Sprintf("%+v\n", txID)); err != nil {
-						// would get picked up to attempt cancel on the next run...
 						fmt.Printf("WRITE ERROR, %+v, %+v\n", txID, err.Error())
 						writeErrorCount++
 					}
