@@ -8,6 +8,7 @@ const nativeBridge = NativeModules.KeybaseEngine || {
   isTestDevice: false,
   serverConfig: '',
   usingSimulator: 'fallback',
+  uses24HourClock: false,
   version: 'fallback',
 }
 export const version = nativeBridge.version
@@ -18,6 +19,7 @@ export const isDeviceSecureAndroid: boolean =
     ? nativeBridge.isDeviceSecure
     : nativeBridge.isDeviceSecure === 'true' || false
 export const isTestDevice = nativeBridge.isTestDevice
+export const uses24HourClock = nativeBridge.uses24HourClock
 
 // @ts-ignore
 export const isRemoteDebuggerAttached: boolean = typeof DedicatedWorkerGlobalScope !== 'undefined'
