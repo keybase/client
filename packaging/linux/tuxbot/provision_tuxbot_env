@@ -1,20 +1,7 @@
 #!/usr/bin/env bash
 set -euox pipefail
 
-cat > /etc/environment<<EOF
-GNUPGHOME=/tmp
-SECRETS_TEAM=$SECRETS_TEAM
-SECRETS_REPO=$SECRETS_REPO
-CHAT_TEAM=$CHAT_TEAM
-CHAT_CHANNEL=$CHAT_CHANNEL
-DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME
-EOF
-cat > /etc/systemd/user.conf<<EOF
-[Manager]
-GNUPGHOME=/tmp
-SECRETS_TEAM=$SECRETS_TEAM
-SECRETS_REPO=$SECRETS_REPO
-CHAT_TEAM=$CHAT_TEAM
-CHAT_CHANNEL=$CHAT_CHANNEL
-DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME
-EOF
+cat /home/vagrant/env > /etc/environment
+echo "[Manager]" > /etc/systemd/user.conf
+cat /home/vagrant/env >> /etc/systemd/user.conf
+rm /home/vagrant/env
