@@ -67,6 +67,14 @@ const InviteFriends = () => {
               <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
             </Kb.Box2>
           </Kb.Box2>
+          {Styles.isMobile && (
+            <Kb.ClickableBox style={styles.shareALink}>
+              <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" alignSelf="flex-start">
+                <Kb.Icon type="iconfont-link" color={Styles.globalColors.blueDark} />
+                <Kb.Text type="BodyPrimaryLink">or share a link</Kb.Text>
+              </Kb.Box2>
+            </Kb.ClickableBox>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
@@ -80,6 +88,10 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
+  },
+  shareALink: {
+    ...Styles.padding(10, 0),
+    width: '100%',
   },
 }))
 
