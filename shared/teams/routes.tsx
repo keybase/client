@@ -23,6 +23,7 @@ import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
 import TeamAddToTeamConfirm from './add-members-wizard/confirm'
+import ExternalTeam from './external-team'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
@@ -30,6 +31,7 @@ export const newRoutes = {
   teamChannel: {
     getScreen: (): typeof TeamEditChannel => require('./channel').default,
   },
+  teamExternalTeam: {getScreen: (): typeof ExternalTeam => require('./external-team').default},
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
     : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
