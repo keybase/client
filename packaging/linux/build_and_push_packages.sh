@@ -148,6 +148,3 @@ if [ -v KEYBASE_RELEASE ] ; then
     echo "Updating AUR packages"
     "$here/arch/update_aur_packages.sh" "$build_dir"
 fi
-
-echo "Deleting old build files"
-find "$(dirname "$build_dir")" -mindepth 1 ! -wholename "$build_dir" -type d -exec rm -rf {} +

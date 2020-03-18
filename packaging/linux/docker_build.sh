@@ -91,3 +91,6 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
+
+echo "Deleting old build files"
+find "$(dirname "$work_dir")" -mindepth 1 ! -wholename "$work_dir" -type d -exec rm -rf {} +
