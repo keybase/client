@@ -3459,7 +3459,7 @@ func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.
 	}
 	message = chat1.WelcomeMessageDisplay{Set: false}
 	s := NewConvDevConversationBackedStorage(g, chat1.TopicType_DEV, true /* adminOnly */, ri)
-	found, err := s.Get(ctx, uid, conv.GetConvID(), welcomeMessageName, &message)
+	found, _, err := s.Get(ctx, uid, conv.GetConvID(), welcomeMessageName, &message, false)
 	if !found {
 		return message, nil
 	}
