@@ -117,7 +117,9 @@ copy_bins() {
     another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
     another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
 }
-copy_bins "$BUCKET_NAME"
+if [ -v KEYBASE_RELEASE ]; then
+    copy_bins "$BUCKET_NAME"
+fi
 
 json_tmp=$(mktemp)
 echo "Writing version into JSON to $json_tmp"
