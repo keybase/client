@@ -30,9 +30,10 @@ func newCmdWalletCancelAll(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name:    "cancel-all",
-		Aliases: []string{"reclaim-all"},
-		//Usage:   "Cancel all pending payments",
+		Name:     "cancel-all",
+		Aliases:  []string{"reclaim-all"},
+		Usage:    "Cancel all pending payments",
+		Unlisted: true,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "cancel-all", c)
 		},
@@ -187,5 +188,9 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 }
 
 func (c *cmdWalletCancelAll) GetUsage() libkb.Usage {
-	return libkb.Usage{}
+	return libkb.Usage{
+		Config:    true,
+		API:       true,
+		KbKeyring: true,
+	}
 }
