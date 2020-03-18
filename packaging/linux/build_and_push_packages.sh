@@ -142,16 +142,12 @@ NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't res
 if [ -v KEYBASE_NIGHTLY ] ; then
     copy_bins "$NIGHTLY_DIR"
     copy_metadata "$NIGHTLY_DIR"
-    echo "Ending nightly."
-    exit 0
-fi
-if [ -v KEYBASE_TEST ] ; then
-    echo "Ending test build."
-    exit 0
 fi
 
-echo "Updating AUR packages"
-"$here/arch/update_aur_packages.sh" "$build_dir"
+if [ -v KEYBASE_RELEASE ] ; then
+    echo "Updating AUR packages"
+    "$here/arch/update_aur_packages.sh" "$build_dir"
+fi
 
 echo "Deleting old build files"
 find "$(dirname "$build_dir")" -mindepth 1 ! -wholename "$build_dir" -type d -exec rm -rf {} +
