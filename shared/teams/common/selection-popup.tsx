@@ -257,23 +257,14 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   )
 }
 
-const getChannelIDs = (state: Container.TypedState, teamID: Types.TeamID) => {
-  const channelIDs = state.teams.teamSelectedChannels.get(teamID)
-  if (channelIDs == undefined) {
-    return []
-  }
-  return Array.from(channelIDs.values())
-}
-
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   const dispatch = Container.useDispatch()
-  const channelIDs = Container.useSelector(state => getChannelIDs(state, teamID))
 
   // Channels tab functions
   const onDelete = () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {channelIDs, teamID}, selected: 'teamDeleteChannel'}],
+        path: [{props: {teamID}, selected: 'teamDeleteChannel'}],
       })
     )
 
