@@ -1258,6 +1258,11 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
     teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
   } catch (err) {
     logger.info(`team="${teamname}" cannot be loaded:`, err)
+    if (flags.teamsRedesign) {
+      // navigate to team page for team we're not in
+      logger.info('showing external team page')
+      return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]})
+    }
     return null
   }
 
