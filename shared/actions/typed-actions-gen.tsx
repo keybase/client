@@ -175,6 +175,7 @@ export type TypedActionsMap = {
   'chat2:giphySend': chat2.GiphySendPayload
   'chat2:giphyGotSearchResult': chat2.GiphyGotSearchResultPayload
   'chat2:giphyToggleWindow': chat2.GiphyToggleWindowPayload
+  'chat2:videoChatToggleWindow': chat2.VideoChatToggleWindowPayload
   'chat2:clearPaymentConfirmInfo': chat2.ClearPaymentConfirmInfoPayload
   'chat2:setPaymentConfirmInfo': chat2.SetPaymentConfirmInfoPayload
   'chat2:confirmScreenResponse': chat2.ConfirmScreenResponsePayload

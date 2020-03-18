@@ -13,6 +13,7 @@ import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
+import VideoChat from '../../video-chat/container'
 import ReplyPreview from '../../reply-preview/container'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 
@@ -625,6 +626,7 @@ class Input extends React.Component<InputProps, InputState> {
         )}
         {this.props.showCommandStatus && <CommandStatus conversationIDKey={this.props.conversationIDKey} />}
         {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
+        {this.props.showVideoChat && <VideoChat conversationIDKey={this.props.conversationIDKey} />}
         <PlatformInput
           {...platformInputProps}
           dataSources={this._suggestorDatasource}

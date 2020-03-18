@@ -1711,7 +1711,7 @@ const onReplyJump = (action: Chat2Gen.ReplyJumpPayload) =>
     messageID: action.payload.messageID,
   })
 
-const startVideoChat = (action: Chat2Gen.StartVideoChatPayload) => {
+const startVideoChat = (state: Container.TypedState, action: Chat2Gen.StartVideoChatPayload) => {
   // make an offer and post it
   /*
   return Chat2Gen.createMessageSend({
@@ -3190,6 +3190,8 @@ const onGiphyToggleWindow = (action: EngineGen.Chat1ChatUiChatGiphyToggleResultW
   })
 }
 
+const videoChatToggleWindow = (action: Chat2Gen.VideoChatToggleWindowPayload) => {}
+
 const giphySend = (state: Container.TypedState, action: Chat2Gen.GiphySendPayload) => {
   const {conversationIDKey, url} = action.payload
   const replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
@@ -3891,7 +3893,8 @@ function* chat2Saga() {
 
   yield* Saga.chainAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 
-  yield* Saga.chainAction2
+  yield* Saga.chainAction(Chat2Gen.videoChatToggleWindow, videoChatToggleWindow)
+  yield* Saga.chainAction2(Chat2Gen.startVideoChat, startVideoChat)
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 }

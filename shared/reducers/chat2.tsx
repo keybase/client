@@ -150,6 +150,14 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
+const videoChatActions: Container.ActionHandler<Actions, Types.State> = {
+  [Chat2Gen.videoChatToggleWindow]: (draftState, action) => {
+    const {conversationIDKey, show} = action.payload
+    const {videoChatWindowMap} = draftState
+    videoChatWindowMap.set(conversationIDKey, show)
+  },
+}
+
 const giphyActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.giphyToggleWindow]: (draftState, action) => {
     const {conversationIDKey, show, clearInput} = action.payload
@@ -1570,12 +1578,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
+  ...attachmentActions,
   ...audioActions,
   ...botActions,
   ...giphyActions,
   ...paymentActions,
   ...searchActions,
-  ...attachmentActions,
   ...teamBuilderReducerCreator<Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
       const val = editTeambuildingDraft('chat2', draftState.teamBuilding, action)
@@ -1584,6 +1592,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     }
   ),
+  ...videoChatActions,
 })
 
 export default reducer

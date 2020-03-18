@@ -565,6 +565,11 @@
       "show": "boolean",
       "clearInput": "boolean"
     },
+    "videoChatToggleWindow": {
+      "_description": "Toggle video chat window",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "show": "boolean"
+    },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"
     },
@@ -921,8 +926,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "teamIDs": "Array<TeamsTypes.TeamID>"
     },
-    "startVideoChat": {
-      "conversationIDKey": "Types.ConversationIDKey"
+    "startedVideoChat": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "offer": "HiddenString"
     }
   }
 }

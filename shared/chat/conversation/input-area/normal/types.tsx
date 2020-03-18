@@ -22,13 +22,14 @@ type CommonProps = {
   onAttach: (paths: Array<string>) => void
   onCancelEditing: () => void
   onCancelReply: () => void
+  onChannelSuggestionsTriggered: () => void
   onEditLastMessage: () => void
   onFilePickerError: (error: Error) => void
   onGiphyToggle: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
-  onChannelSuggestionsTriggered: () => void
+  onVideoChatToggle?: () => void
   prependText: string | null
   quoteCounter: number
   quoteText: string
@@ -40,7 +41,6 @@ type CommonProps = {
   showReplyPreview: boolean
   showTypingStatus: boolean
   showWalletsIcon: boolean
-  startVideoChat?: () => void
   unsentText: string | null
   unsentTextChanged: (text: string) => void
 }

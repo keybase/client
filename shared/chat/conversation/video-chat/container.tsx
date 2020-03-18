@@ -7,17 +7,10 @@ import GiphySearch from '.'
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 export default Container.namedConnect(
-  (state, ownProps: OwnProps) => {
-    const {conversationIDKey} = ownProps
-    const giphy = state.chat2.giphyResultMap.get(conversationIDKey) ?? null
-    return {
-      galleryURL: giphy?.galleryUrl ?? '',
-      previews: giphy?.results ?? null,
-    }
-  },
+  (state, ownProps: OwnProps) => ({}),
   (dispatch, {conversationIDKey}: OwnProps) => ({
-    onClick: (url: string) => {
-      dispatch(Chat2Gen.createGiphySend({conversationIDKey, url: new HiddenString(url)}))
+    onStartedVideoChat: (offer: string) => {
+      dispatch(Chat2Gen.createStartedVideoChat({conversationIDKey, offer: new HiddenString(offer)}))
     },
   }),
   (s, d) => ({...s, ...d}),

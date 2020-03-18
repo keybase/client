@@ -40,7 +40,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 
   _videoChatToggle = () => {
-    this.props.startVideoChat && this.props.startVideoChat()
+    this.props.onVideoChatToggle && this.props.onVideoChatToggle()
   }
 
   _emojiPickerToggle = () => {

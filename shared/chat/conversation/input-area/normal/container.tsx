@@ -153,6 +153,7 @@ export default Container.namedConnect(
     const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
     const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
+    const showVideoChat = state.chat2.videoChatWindowMap.get(conversationIDKey) || false
     const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
     const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
     const suggestBotCommandsUpdateStatus =
@@ -188,6 +189,7 @@ export default Container.namedConnect(
       showGiphySearch,
       showTypingStatus:
         Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
+      showVideoChat,
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
@@ -258,6 +260,8 @@ export default Container.namedConnect(
       ),
     _onStartVideoChat: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createStartVideoChat({conversationIDKey})),
+    _onVideoChatToggle: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createVideoChatToggleWindow({conversationIDKey, show: true})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -340,6 +344,7 @@ export default Container.namedConnect(
           ownProps.jumpToRecent()
         }
       },
+      onVideoChatToggle: () => dispatchProps._onVideoChatToggle(stateProps.conversationIDKey),
       prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
 
       quoteCounter: stateProps.quoteCounter,
@@ -377,6 +382,7 @@ export default Container.namedConnect(
       showGiphySearch: stateProps.showGiphySearch,
       showReplyPreview: !!stateProps._replyTo,
       showTypingStatus: stateProps.showTypingStatus,
+      showVideoChat: stateProps.showVideoChat,
       showWalletsIcon: stateProps.showWalletsIcon,
       suggestAllChannels: (stateProps._inboxLayout?.bigTeams ?? []).reduce<
         Array<{teamname: string; channelname: string}>

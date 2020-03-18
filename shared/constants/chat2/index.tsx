@@ -101,6 +101,7 @@ export const makeState = (): Types.State => ({
   unreadMap: new Map(),
   unsentTextMap: new Map(),
   userReacjis: defaultUserReacjis,
+  videoChatWindowMap: new Map(),
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({

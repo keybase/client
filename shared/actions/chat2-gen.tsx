@@ -181,6 +181,7 @@ export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
 export const updateUserReacjis = 'chat2:updateUserReacjis'
+export const videoChatToggleWindow = 'chat2:videoChatToggleWindow'
 
 // Payload Types
 type _AddAttachmentViewMessagePayload = {
@@ -820,6 +821,10 @@ type _UpdateUnreadlinePayload = {
   readonly messageID: Types.MessageID
 }
 type _UpdateUserReacjisPayload = {readonly userReacjis: RPCTypes.UserReacjis}
+type _VideoChatToggleWindowPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly show: boolean
+}
 
 // Action Creators
 /**
@@ -1261,6 +1266,12 @@ export const createToggleThreadSearch = (payload: _ToggleThreadSearchPayload): T
   payload,
   type: toggleThreadSearch,
 })
+/**
+ * Toggle video chat window
+ */
+export const createVideoChatToggleWindow = (
+  payload: _VideoChatToggleWindowPayload
+): VideoChatToggleWindowPayload => ({payload, type: videoChatToggleWindow})
 /**
  * Unpin a message
  */
@@ -2313,6 +2324,10 @@ export type UpdateUserReacjisPayload = {
   readonly payload: _UpdateUserReacjisPayload
   readonly type: typeof updateUserReacjis
 }
+export type VideoChatToggleWindowPayload = {
+  readonly payload: _VideoChatToggleWindowPayload
+  readonly type: typeof videoChatToggleWindow
+}
 
 // All Actions
 // prettier-ignore
@@ -2488,4 +2503,5 @@ export type Actions =
   | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
   | UpdateUserReacjisPayload
+  | VideoChatToggleWindowPayload
   | {type: 'common:resetStore', payload: {}}
