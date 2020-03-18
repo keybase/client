@@ -83,7 +83,6 @@
 }
 
 .invite-friends-little {
-  display: none;
   border-radius: 4px;
 }
 .invite-friends-little:hover {
@@ -99,6 +98,11 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+@media all and (min-width: 800px) {
+  .invite-friends-little {
+    display: none !important;
+  }
+}
 @media all and (max-width: 800px) and (min-width: 0px) {
   .tab-container {
     width: 80px;
