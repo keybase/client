@@ -1420,6 +1420,7 @@ const (
 	UITextDecorationTyp_LINK               UITextDecorationTyp = 4
 	UITextDecorationTyp_MAILTO             UITextDecorationTyp = 5
 	UITextDecorationTyp_KBFSPATH           UITextDecorationTyp = 6
+	UITextDecorationTyp_EMOJI              UITextDecorationTyp = 7
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -1432,6 +1433,7 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"LINK":               4,
 	"MAILTO":             5,
 	"KBFSPATH":           6,
+	"EMOJI":              7,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
@@ -1442,6 +1444,7 @@ var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	4: "LINK",
 	5: "MAILTO",
 	6: "KBFSPATH",
+	7: "EMOJI",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -1568,6 +1571,7 @@ type UITextDecoration struct {
 	Link__               *UILinkDecoration     `codec:"link,omitempty" json:"link,omitempty"`
 	Mailto__             *UILinkDecoration     `codec:"mailto,omitempty" json:"mailto,omitempty"`
 	Kbfspath__           *KBFSPath             `codec:"kbfspath,omitempty" json:"kbfspath,omitempty"`
+	Emoji__              *Emoji                `codec:"emoji,omitempty" json:"emoji,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1605,6 +1609,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_KBFSPATH:
 		if o.Kbfspath__ == nil {
 			err = errors.New("unexpected nil value for Kbfspath__")
+			return ret, err
+		}
+	case UITextDecorationTyp_EMOJI:
+		if o.Emoji__ == nil {
+			err = errors.New("unexpected nil value for Emoji__")
 			return ret, err
 		}
 	}
@@ -1681,6 +1690,16 @@ func (o UITextDecoration) Kbfspath() (res KBFSPath) {
 	return *o.Kbfspath__
 }
 
+func (o UITextDecoration) Emoji() (res Emoji) {
+	if o.Typ__ != UITextDecorationTyp_EMOJI {
+		panic("wrong case accessed")
+	}
+	if o.Emoji__ == nil {
+		return
+	}
+	return *o.Emoji__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1727,6 +1746,13 @@ func NewUITextDecorationWithKbfspath(v KBFSPath) UITextDecoration {
 	return UITextDecoration{
 		Typ__:      UITextDecorationTyp_KBFSPATH,
 		Kbfspath__: &v,
+	}
+}
+
+func NewUITextDecorationWithEmoji(v Emoji) UITextDecoration {
+	return UITextDecoration{
+		Typ__:   UITextDecorationTyp_EMOJI,
+		Emoji__: &v,
 	}
 }
 
@@ -1782,6 +1808,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Kbfspath__),
+		Emoji__: (func(x *Emoji) *Emoji {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Emoji__),
 	}
 }
 
