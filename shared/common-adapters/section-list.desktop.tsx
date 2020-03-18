@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
-import {Props, Section} from './section-list'
+import {Props, Section, ItemTFromSectionT} from './section-list'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import once from 'lodash/once'
@@ -27,7 +27,7 @@ type State = {
 }
 
 class SectionList<T extends Section<any, any>> extends React.Component<Props<T>, State> {
-  _flat: Array<any> = []
+  _flat: Array<FlatListElement<T>> = []
   state = {currentSectionFlatIndex: 0}
   _listRef: React.RefObject<any> = React.createRef()
   _mounted = true
@@ -73,7 +73,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       // @ts-ignore
       return null
     }
-    const section = this._flat[item.flatSectionIndex]
+    const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T>
     if (!section) {
       // data is switching out from under us. let things settle
       // @ts-ignore
@@ -103,7 +103,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
           }
           fullWidth={true}
         >
-          {this.props.renderSectionHeader?.({section: section.section})}
+          {this.props.renderSectionHeader?.({section: item.section})}
         </Kb.Box2>
       )
     } else if (item.type === 'placeholder') {
@@ -166,26 +166,24 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     this._checkStickyThrottled()
   }
 
-  _flatten = memoize(sections => {
-    this._flat = (sections || []).reduce((arr, section, sectionIndex) => {
+  _flatten = memoize((sections: ReadonlyArray<T>) => {
+    this._flat = (sections || []).reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
       const flatSectionIndex = arr.length
       arr.push({
         flatSectionIndex,
-        key:
-          (this.props.keyExtractor && this.props.keyExtractor(section, sectionIndex)) ||
-          section.key ||
-          sectionIndex,
+        key: this.props.sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
         section,
         type: 'header',
       })
       if (section.data.length) {
         arr.push(
-          ...section.data.map((item, indexWithinSection) => ({
+          ...section.data.map((item: ItemTFromSectionT<T>, indexWithinSection) => ({
             flatSectionIndex,
             indexWithinSection,
             item,
             key:
-              (this.props.sectionKeyExtractor && this.props.sectionKeyExtractor(item, indexWithinSection)) ||
+              this.props.keyExtractor?.(item, indexWithinSection) ||
+              // @ts-ignore
               item.key ||
               indexWithinSection,
             type: 'body',
@@ -198,10 +196,6 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
         // to get the sticky header back on the screen.
         arr.push({
           flatSectionIndex,
-          key: 1,
-          section: {
-            data: [],
-          },
           type: 'placeholder',
         })
       }
@@ -255,6 +249,26 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     )
   }
 }
+
+type HeaderFlatListElement<T> = {
+  flatSectionIndex: number
+  key: React.Key
+  section: T
+  type: 'header'
+}
+type FlatListElement<T> =
+  | {
+      flatSectionIndex: number
+      indexWithinSection: number
+      item: ItemTFromSectionT<T>
+      key: React.Key
+      type: 'body'
+    }
+  | HeaderFlatListElement<T>
+  | {
+      flatSectionIndex: number
+      type: 'placeholder'
+    }
 
 const styles = Styles.styleSheetCreate(
   () =>
