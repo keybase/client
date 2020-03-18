@@ -7,7 +7,7 @@
 #
 # For example: ./inside_docker_main.sh staging v1.0.0-27
 
-set -e -u -o pipefail
+set -euox pipefail
 
 mode="$1"
 commit="$2"
@@ -17,9 +17,6 @@ build_dir="/root/build"
 
 # Copy the s3cmd config to root's home dir.
 cp /S3CMD/.s3cfg ~
-
-# Same with the GitHub token.
-cp /GITHUB_TOKEN/.github_token ~
 
 # Copy the SSH configs to the home dir. We copy instead of sharing directly
 # from the host, because SSH complains if ~/.ssh/config is owned by anyone
@@ -49,10 +46,15 @@ gpg --sign --use-agent --local-user "$code_signing_fingerprint" \
 git config --global user.name "Keybase Linux Build"
 git config --global user.email "example@example.com"
 echo "Cloning the client repo..."
-git clone git@github.com:keybase/client "$client_clone" --reference /CLIENT
+git clone https://github.com/keybase/client.git "$client_clone" --reference /CLIENT
+
 
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"
 
+
 # Do the build!
 "$client_clone/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"
+
+
+echo "done!"
