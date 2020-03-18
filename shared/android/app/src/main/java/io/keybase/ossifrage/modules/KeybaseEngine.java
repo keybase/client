@@ -3,6 +3,7 @@ package io.keybase.ossifrage.modules;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.util.Log;
+import android.text.format.DateFormat;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -182,6 +183,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         constants.put("isDeviceSecure", isDeviceSecure);
         constants.put("isTestDevice", misTestDevice);
         constants.put("serverConfig", serverConfig);
+        constants.put("uses24HourClock", DateFormat.is24HourFormat(this.reactContext));
         return constants;
     }
 
