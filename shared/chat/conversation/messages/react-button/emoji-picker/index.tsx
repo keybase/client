@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Data from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
-import {isAndroid} from '../../../../../constants/platform'
+import * as Styles from '../../../../../styles'
+import {isMobile, isAndroid} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
 import {memoize} from '../../../../../util/memoize'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
@@ -54,7 +54,7 @@ const getData = memoize((topReacjis: Array<string>) => {
   }
 })
 
-const singleEmojiWidth = 32
+const singleEmojiWidth = isMobile ? 32 : 24
 const emojiPadding = 4
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
@@ -121,7 +121,7 @@ class EmojiPicker extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.width !== prevProps.width) {
+    if (this.props.width !== prevProps.width || this.props.topReacjis !== prevProps.topReacjis) {
       this._chunkData()
     }
   }
@@ -144,7 +144,7 @@ class EmojiPicker extends React.Component<Props, State> {
       return (
         <Box2
           direction="horizontal"
-          style={collapseStyles([styles.alignItemsCenter, styles.flexWrap, !!width && {width}])}
+          style={Styles.collapseStyles([styles.alignItemsCenter, styles.flexWrap, !!width && {width}])}
         >
           {results.map(e => (
             <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />
@@ -159,7 +159,7 @@ class EmojiPicker extends React.Component<Props, State> {
         keyboardShouldPersistTaps="handled"
         initialNumToRender={14}
         sections={this.state.sections}
-        stickySectionHeadersEnabled={true}
+        stickySectionHeadersEnabled={Styles.isMobile}
         renderItem={({item, index}: {item: Item; index: number}) => (
           <EmojiRow key={index} item={item} onChoose={this.props.onChoose} />
         )}
@@ -201,7 +201,7 @@ const HeaderRow = ({section}: {section: Section}) => (
   </Box2>
 )
 
-const styles = styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
       alignItemsCenter: {
@@ -216,9 +216,9 @@ const styles = styleSheetCreate(
       },
       sectionHeader: {
         alignItems: 'center',
-        backgroundColor: globalColors.white,
+        backgroundColor: Styles.globalColors.white,
         height: 32,
-        paddingLeft: globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.tiny,
       },
     } as const)
 )

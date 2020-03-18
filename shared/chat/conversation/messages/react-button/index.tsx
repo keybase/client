@@ -1,10 +1,8 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, FloatingBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
+import {Box2, ClickableBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
 import {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
-import {Picker} from './picker'
-import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import DelayInterval from './delay-interval'
 
 export type Props = {
@@ -215,16 +213,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             ))
           )}
         </Box2>
-        {this.state.showingPicker && !Styles.isMobile && (
-          <FloatingBox
-            attachTo={this.props.getAttachmentRef}
-            containerStyle={styles.emojiContainer}
-            position="top right"
-            onHidden={() => this._setShowingPicker(false)}
-          >
-            <Picker onClick={this._onAddReaction} backgroundImageFn={backgroundImageFn} />
-          </FloatingBox>
-        )}
       </ButtonBox>
     )
   }
