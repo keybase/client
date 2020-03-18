@@ -310,7 +310,11 @@ const validateSEP7Link = async (action: WalletsGen.ValidateSEP7LinkPayload) => {
   try {
     const tx = await RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link})
     return [
-      WalletsGen.createSetSEP7Tx({confirmURI: action.payload.link, tx: Constants.makeSEP7ConfirmInfo(tx)}),
+      WalletsGen.createSetSEP7Tx({
+        confirmURI: action.payload.link,
+        fromQR: action.payload.fromQR,
+        tx: Constants.makeSEP7ConfirmInfo(tx),
+      }),
       WalletsGen.createValidateSEP7LinkError({error: ''}),
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),

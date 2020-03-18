@@ -71,6 +71,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
         ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
       })
     ),
+  _rename: () => dispatch(FsGen.createStartRename({path})),
   _saveMedia: () => {
     dispatch(FsGen.createSaveMedia({path}))
   },
@@ -181,6 +182,7 @@ const mergeProps = (
     openChatNonTeam: layout.openChatNonTeam ? c(dispatchProps._openChat) : null,
     openChatTeam: layout.openChatTeam ? c(dispatchProps._openChat) : null,
     pathItemType: stateProps._pathItem.type,
+    rename: layout.rename ? c(dispatchProps._rename) : null,
     saveMedia: layout.saveMedia ? getSaveMedia(stateProps, dispatchProps, c) : null,
     showInSystemFileManager:
       layout.showInSystemFileManager && stateProps._sfmiEnabled

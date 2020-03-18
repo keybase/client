@@ -592,12 +592,14 @@ export type TypedActionsMap = {
   'fs:favoriteIgnore': fs.FavoriteIgnorePayload
   'fs:favoriteIgnoreError': fs.FavoriteIgnoreErrorPayload
   'fs:newFolderRow': fs.NewFolderRowPayload
-  'fs:newFolderName': fs.NewFolderNamePayload
+  'fs:startRename': fs.StartRenamePayload
+  'fs:setEditName': fs.SetEditNamePayload
   'fs:commitEdit': fs.CommitEditPayload
   'fs:editSuccess': fs.EditSuccessPayload
+  'fs:editError': fs.EditErrorPayload
   'fs:discardEdit': fs.DiscardEditPayload
-  'fs:fsError': fs.FsErrorPayload
-  'fs:dismissFsError': fs.DismissFsErrorPayload
+  'fs:redbar': fs.RedbarPayload
+  'fs:dismissRedbar': fs.DismissRedbarPayload
   'fs:setLastPublicBannerClosedTlf': fs.SetLastPublicBannerClosedTlfPayload
   'fs:openFilesFromWidget': fs.OpenFilesFromWidgetPayload
   'fs:letResetUserBackIn': fs.LetResetUserBackInPayload
@@ -969,6 +971,7 @@ export type TypedActionsMap = {
   'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
   'teams:startAddMembersWizard': teams.StartAddMembersWizardPayload
   'teams:setAddMembersWizardRole': teams.SetAddMembersWizardRolePayload
+  'teams:setAddMembersWizardIndividualRole': teams.SetAddMembersWizardIndividualRolePayload
   'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
@@ -978,8 +981,14 @@ export type TypedActionsMap = {
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
   'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
+  'teams:startNewTeamWizard': teams.StartNewTeamWizardPayload
   'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
   'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
+  'teams:setTeamWizardAvatar': teams.SetTeamWizardAvatarPayload
+  'teams:setTeamWizardTeamSize': teams.SetTeamWizardTeamSizePayload
+  'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
+  'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
+  'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

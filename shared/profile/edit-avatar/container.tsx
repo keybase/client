@@ -29,9 +29,13 @@ export default Container.connect(
     teamname: Container.getRouteProps(ownProps, 'teamname', ''),
   }),
   dispatch => ({
-    onClose: () => {
+    onBack: () => {
       dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
       dispatch(RouteTreeGen.createNavigateUp())
+    },
+    onClose: () => {
+      dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
+      dispatch(RouteTreeGen.createClearModals())
     },
     onSaveTeamAvatar: (
       filename: string,
@@ -41,6 +45,11 @@ export default Container.connect(
     ) => dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname})),
     onSaveUserAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
       dispatch(ProfileGen.createUploadAvatar({crop, filename})),
+    onSaveWizardAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
+      dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename})),
+    onSkip: () => {
+      dispatch(TeamsGen.createSetTeamWizardAvatar({}))
+    },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let error = ''
@@ -52,13 +61,17 @@ export default Container.connect(
           ? 'Connection lost. Please check your network and try again.'
           : 'This image format is not supported.'
     }
+    const wizard = Container.getRouteProps(ownProps, 'wizard', false)
     return {
       createdTeam: stateProps.createdTeam,
       error,
       image: stateProps.image,
+      onBack: dispatchProps.onBack,
       onClose: dispatchProps.onClose,
       onSave: (filename: string, crop?: RPCTypes.ImageCropRect) =>
-        stateProps.teamname
+        wizard
+          ? dispatchProps.onSaveWizardAvatar(filename, crop)
+          : stateProps.teamname
           ? dispatchProps.onSaveTeamAvatar(
               filename,
               stateProps.teamname,
@@ -66,11 +79,12 @@ export default Container.connect(
               crop
             )
           : dispatchProps.onSaveUserAvatar(filename, crop),
+      onSkip: dispatchProps.onSkip,
       sendChatNotification: stateProps.sendChatNotification,
       submitting: stateProps.submitting,
       teamname: stateProps.teamname,
       waitingKey: Constants.uploadAvatarWaitingKey,
-      wizard: Container.getRouteProps(ownProps, 'wizard', false),
+      wizard,
     }
   }
 )(EditAvatar)

@@ -14,19 +14,16 @@ const TlfType = (props: TlfTypeProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     writingToJournal={false}
-  >
-    <Kb.Box style={rowStyles.itemBox}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Text
-          type={Constants.pathTypeToTextType(PathType.Folder)}
-          style={rowStyles.rowText}
-          lineClamp={Styles.isMobile ? 1 : undefined}
-        >
-          {Types.getPathName(props.path)}
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.Box>
-  </StillCommon>
+    content={
+      <Kb.Text
+        type={Constants.pathTypeToTextType(PathType.Folder)}
+        style={rowStyles.rowText}
+        lineClamp={Styles.isMobile ? 1 : undefined}
+      >
+        {Types.getPathName(props.path)}
+      </Kb.Text>
+    }
+  />
 )
 
 export default TlfType

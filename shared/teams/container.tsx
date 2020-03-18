@@ -28,11 +28,11 @@ const useHeaderActions = (): HeaderActionProps => {
   const nav = Container.useSafeNavigation()
   return {
     onCreateTeam: () => {
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [flags.teamsRedesign ? 'teamWizard1TeamPurpose' : 'teamNewTeamDialog'],
-        })
-      )
+      if (flags.teamsRedesign) {
+        dispatch(TeamsGen.createStartNewTeamWizard())
+      } else {
+        dispatch(nav.safeNavigateAppendPayload({path: ['teamNewTeamDialog']}))
+      }
     },
     onJoinTeam: () => {
       dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))

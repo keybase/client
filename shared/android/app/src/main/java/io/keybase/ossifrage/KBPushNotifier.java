@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -157,6 +158,20 @@ public class KBPushNotifier implements PushNotifier {
         .setContentIntent(pending_intent)
         .setAutoCancel(true);
 
+    int notificationDefaults = NotificationCompat.DEFAULT_LIGHTS;
+
+    // Set notification sound
+    if (chatNotification.getSoundName().equals("default")) {
+      notificationDefaults |= NotificationCompat.DEFAULT_SOUND;
+    } else {
+      String soundResource = filenameResourceName(chatNotification.getSoundName());
+      String soundUriStr = "android.resource://" + this.context.getPackageName() + "/raw/" + soundResource;
+      Uri soundUri = Uri.parse(soundUriStr);
+      builder.setSound(soundUri);
+    }
+
+    builder.setDefaults(notificationDefaults);
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
       builder.addAction(newReplyAction(this.context, convData, pending_intent));
     }
@@ -191,6 +206,17 @@ public class KBPushNotifier implements PushNotifier {
 
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
     notificationManager.notify(chatNotification.getConvID(), 0, builder.build());
+  }
+
+  // Return the resource name of the specified file (i.e. name and no extension),
+  // suitable for use in a resource URI.
+  String filenameResourceName(String filename) {
+    if (filename.indexOf(".") >= 0) {
+      return filename.substring(0, filename.lastIndexOf("."));
+    } else {
+      // Not all filenames have an extension to be stripped.
+      return filename;
+    }
   }
 
   void followNotification(String username, String notificationMsg) {

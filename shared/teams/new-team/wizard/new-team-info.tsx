@@ -33,7 +33,10 @@ const NewTeamInfo = () => {
   const [name, setName] = React.useState(teamWizardState.name)
   const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<number>(0)
   const [teamNameTaken, setTeamNameTaken] = React.useState(false)
-  const checkTeamNameTaken = debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100)
+  const checkTeamNameTaken = React.useCallback(
+    debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100),
+    []
+  )
   React.useEffect(() => {
     if (name.length >= 3) {
       checkTeamNameTaken(
@@ -48,7 +51,7 @@ const NewTeamInfo = () => {
       setTeamNameTaken(false)
       setTeamNameTakenStatus(0)
     }
-  }, [name, setTeamNameTaken, checkTeamNameTaken])
+  }, [name, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus])
 
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, setOpenTeam] = React.useState(
@@ -77,6 +80,7 @@ const NewTeamInfo = () => {
 
   return (
     <Kb.Modal
+      mode="DefaultFullHeight"
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
@@ -165,7 +169,6 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
-    isElectron: {minHeight: 420},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
   container: {

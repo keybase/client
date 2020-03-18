@@ -527,6 +527,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.UIInboxLoader = chat.NewUIInboxLoader(g)
 	g.UIThreadLoader = chat.NewUIThreadLoader(g, ri)
 	g.ParticipantsSource = chat.NewCachingParticipantSource(g, ri)
+	g.EmojiSource = chat.NewDevConvEmojiSource(g, ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

@@ -26,6 +26,7 @@ const commonProps = {
   displayAmountFiat: '$23.45 USD',
   displayAmountNative: '40 XLM',
   error: '',
+  fromQRCode: false,
   loading: false,
   memo: '',
   memoType: 'MEMO_NONE',

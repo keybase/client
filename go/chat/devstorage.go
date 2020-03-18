@@ -19,6 +19,8 @@ type DevConversationBackedStorage struct {
 	ri func() chat1.RemoteInterface
 }
 
+var _ types.UserConversationBackedStorage = &DevConversationBackedStorage{}
+
 func NewDevConversationBackedStorage(g *globals.Context, ri func() chat1.RemoteInterface) *DevConversationBackedStorage {
 	return &DevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),

@@ -70,7 +70,8 @@ const Git = (props: Props) => {
         </Kb.ClickableBox>
       )}
       <Kb.SectionList
-        keyExtractor={item => (typeof item === 'string' ? item : item.title)}
+        keyExtractor={item => item}
+        sectionKeyExtractor={section => section.title}
         extraData={expandedSet}
         renderItem={({item}) => (
           <Row

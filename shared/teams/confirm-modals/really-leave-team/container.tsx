@@ -1,13 +1,13 @@
 import * as React from 'react'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/teams'
+import * as Types from '../../../constants/types/teams'
 import ReallyLeaveTeam, {Props} from '.'
 import LastOwnerDialog from './last-owner'
-import {anyWaiting} from '../../constants/waiting'
-import {useTeamDetailsSubscribeMountOnly} from '../subscriber'
+import {anyWaiting} from '../../../constants/waiting'
+import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
 
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 type ExtraProps = {_leaving: boolean; lastOwner: boolean; stillLoadingTeam: boolean; teamID: Types.TeamID}

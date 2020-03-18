@@ -279,6 +279,7 @@
     "setSEP7Tx": {
       "_description": "Prepare a SEP7 tx to be shown to the user for confirmation",
       "confirmURI": "string",
+      "fromQR": "boolean",
       "tx": "Types.SEP7ConfirmInfo"
     },
     "showTransaction": {
@@ -414,6 +415,7 @@
     },
     "validateSEP7Link": {
       "_description": "Validate and handle a SEP7 Stellar URL link sent to the app.",
+      "fromQR": "boolean",
       "link": "string"
     },
     "validateSEP7LinkError": {

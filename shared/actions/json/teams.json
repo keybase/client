@@ -343,6 +343,11 @@
       "_description": "Set the role for the add members wizard.",
       "role": ["Types.TeamRoleType", "undefined"]
     },
+    "setAddMembersWizardIndividualRole": {
+      "_description": "Set the role for a pending member in the add member wizard.",
+      "assertion": "string",
+      "role": "Types.TeamRoleType"
+    },
     "addMembersWizardPushMembers": {
       "_description": "Add pending members to the add members wizard and show the confirm screen.",
       "members": "Array<Types.AddingMember>"
@@ -378,6 +383,7 @@
       "username": "string",
       "memberships": "Map<Types.TeamID, Types.MemberInfo>"
     },
+    "startNewTeamWizard": {},
     "setTeamWizardTeamType": {
       "teamType": "Types.TeamWizardTeamType"
     },
@@ -387,6 +393,20 @@
       "openTeam": "boolean",
       "openTeamJoinRole": "Types.TeamRoleType",
       "showcase": "boolean"
-    }
+    },
+    "setTeamWizardAvatar": {
+      "crop?": "RPCTypes.ImageCropRect",
+      "filename?": "string"
+    },
+    "setTeamWizardTeamSize": {
+      "isBig": "boolean"
+    },
+    "setTeamWizardChannels": {
+      "channels": "Array<string>"
+    },
+    "setTeamWizardSubteams": {
+      "subteams": "Array<string>"
+    },
+    "finishNewTeamWizard": {}
   }
 }

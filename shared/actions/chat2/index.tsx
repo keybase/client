@@ -2425,7 +2425,10 @@ const navigateToInbox = (
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  return RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'})
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+    RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'}),
+  ]
 }
 
 // Unchecked version of Chat2Gen.createNavigateToThread() --

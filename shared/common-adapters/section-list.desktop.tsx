@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
-import {Props} from './section-list'
+import {Props, Section} from './section-list'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import once from 'lodash/once'
@@ -26,16 +26,16 @@ type State = {
   currentSectionFlatIndex: number
 }
 
-class SectionList extends React.Component<Props, State> {
+class SectionList<T extends Section<any, any>> extends React.Component<Props<T>, State> {
   _flat: Array<any> = []
   state = {currentSectionFlatIndex: 0}
   _listRef: React.RefObject<any> = React.createRef()
   _mounted = true
 
-  componentDidUpdate(prevProps: Props, _: State) {
+  componentDidUpdate(prevProps: Props<T>, _: State) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
-      this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
+      this._onEndReached = once(info => this.props.onEndReached && this.props.onEndReached(info))
     }
     if (
       this.props.selectedIndex !== -1 &&
@@ -66,15 +66,17 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, _, renderingSticky) => {
+  _itemRenderer = (index: number, _: number | string, renderingSticky: boolean): React.ReactElement => {
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
+      // @ts-ignore
       return null
     }
     const section = this._flat[item.flatSectionIndex]
     if (!section) {
       // data is switching out from under us. let things settle
+      // @ts-ignore
       return null
     }
 
@@ -101,7 +103,7 @@ class SectionList extends React.Component<Props, State> {
           }
           fullWidth={true}
         >
-          {this.props.renderSectionHeader({section: section.section})}
+          {this.props.renderSectionHeader?.({section: section.section})}
         </Kb.Box2>
       )
     } else if (item.type === 'placeholder') {
@@ -129,12 +131,12 @@ class SectionList extends React.Component<Props, State> {
   _checkOnEndReached = throttle(target => {
     const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
     if (diff < 5) {
-      this._onEndReached()
+      this._onEndReached({distanceFromEnd: diff})
     }
   }, 100)
 
   // This matches the way onEndReached works for sectionlist on RN
-  _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
+  _onEndReached = once(info => this.props.onEndReached && this.props.onEndReached(info))
 
   _checkSticky = () => {
     if (this._listRef.current) {
@@ -183,7 +185,7 @@ class SectionList extends React.Component<Props, State> {
             indexWithinSection,
             item,
             key:
-              (this.props.keyExtractor && this.props.keyExtractor(item, indexWithinSection)) ||
+              (this.props.sectionKeyExtractor && this.props.sectionKeyExtractor(item, indexWithinSection)) ||
               item.key ||
               indexWithinSection,
             type: 'body',
@@ -234,15 +236,13 @@ class SectionList extends React.Component<Props, State> {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {this.props.disableAbsoluteStickyHeader && stickyHeader}
         <Kb.ScrollView
+          contentContainerStyle={this.props.contentContainerStyle}
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
-          {/*
-          // @ts-ignore */}
           <ReactList
-            itemRenderer={this._itemRenderer as any}
-            itemSizeEstimator={this.props.itemSizeEstimator}
+            itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
             length={this._flat.length}
             // @ts-ignore
             retrigger={this._flat}

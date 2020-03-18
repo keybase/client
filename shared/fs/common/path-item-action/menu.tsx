@@ -23,6 +23,7 @@ type Props = {
   openChatNonTeam?: (() => void) | null
   openChatTeam?: (() => void) | null
   pathItemType: Types.PathType
+  rename?: (() => void) | null
   saveMedia?: ActionOrInProgress | null
   showInSystemFileManager?: (() => void) | null
   share?: (() => void) | null
@@ -149,6 +150,15 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
             progressIndicator: props.ignoreTlf === 'disabled',
             subTitle: 'Will hide the folder from your list.',
             title: 'Ignore this folder',
+          },
+        ]
+      : []),
+    ...(props.rename
+      ? [
+          {
+            icon: 'iconfont-edit',
+            onClick: hideMenuOnClick(props.rename, hideMenu),
+            title: 'Rename',
           },
         ]
       : []),
