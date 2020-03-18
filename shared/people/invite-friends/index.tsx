@@ -13,11 +13,31 @@ const InviteFriends = () => {
   const [emails, setEmails] = React.useState('')
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
 
+  // disabled if both are empty or if there are some invalid phone numbers
+  const disabled =
+    (!emails && phoneNumbers.every(pn => !pn.phoneNumber)) ||
+    phoneNumbers.some(pn => pn.phoneNumber && !pn.valid)
+
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
       onClose={onClose}
       header={{title: Styles.isMobile ? 'Invite friends' : 'Invite your friends to Keybase'}}
+      footer={{
+        content: (
+          <Kb.Box2 direction="vertical" gap="medium" fullWidth={true}>
+            <Kb.Button fullWidth={true} label="Send invite" disabled={disabled} />
+            {!Styles.isMobile && (
+              <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+                <Kb.Text type="BodySmall" center={true}>
+                  or share a link:
+                </Kb.Text>
+                <Kb.CopyText textType="BodySemibold" text="https://keybase.io/download" />
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+        ),
+      }}
     >
       <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
         <Kb.Icon type="icon-illustration-invite-friends-460-96" style={{width: '100%'}} />
