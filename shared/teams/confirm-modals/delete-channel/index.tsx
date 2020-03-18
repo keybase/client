@@ -57,17 +57,17 @@ const DeleteChannel = (props: Props) => {
 
   const onDelete = () => {
     dispatch(
-      TeamsGen.createDeleteMultiChannelsConfirmed({
-        channels: Array.from(channelIDs.values()),
-        teamID,
-      })
-    )
-    dispatch(
       TeamsGen.createSetChannelSelected({
         channel: '',
         clearAll: true,
         selected: false,
         teamID: teamID,
+      })
+    )
+    dispatch(
+      TeamsGen.createDeleteMultiChannelsConfirmed({
+        channels: Array.from(channelIDs.values()),
+        teamID,
       })
     )
   }
