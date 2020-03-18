@@ -323,6 +323,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
 	g.UIThreadLoader = NewUIThreadLoader(g, getRI)
 	g.ParticipantsSource = types.DummyParticipantSource{}
+	g.EmojiSource = NewDevConvEmojiSource(g, getRI)
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
