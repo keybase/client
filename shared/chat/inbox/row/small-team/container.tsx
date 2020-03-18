@@ -12,6 +12,7 @@ type OwnProps = {
   isTeam: boolean
   navKey: string
   name: string
+  selected: boolean
   snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   time: number
@@ -40,7 +41,7 @@ export default Container.namedConnect(
       hasBadge: Constants.getHasBadge(state, _conversationIDKey),
       hasUnread: Constants.getHasUnread(state, _conversationIDKey),
       isMuted: Constants.isMuted(state, _conversationIDKey),
-      isSelected: !Container.isPhone && Constants.getSelectedConversation() === _conversationIDKey,
+      isSelected: ownProps.selected,
       isTypingSnippet,
       snippet,
       snippetDecoration,
