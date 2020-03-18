@@ -40,6 +40,7 @@ type CommonProps = {
   showReplyPreview: boolean
   showTypingStatus: boolean
   showWalletsIcon: boolean
+  startVideoChat?: () => void
   unsentText: string | null
   unsentTextChanged: (text: string) => void
 }

@@ -256,6 +256,8 @@ export default Container.namedConnect(
           text: new HiddenString(text),
         })
       ),
+    _onStartVideoChat: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createStartVideoChat({conversationIDKey})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -325,6 +327,7 @@ export default Container.namedConnect(
       onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,
       onRequestScrollUp: ownProps.onRequestScrollUp,
+      onStartVideoChat: () => dispatchProps._onStartVideoChat(stateProps.conversationIDKey),
       onSubmit: (text: string) => {
         if (stateProps._editOrdinal) {
           dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

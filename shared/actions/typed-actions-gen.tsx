@@ -251,6 +251,7 @@ export type TypedActionsMap = {
   'chat2:addToMessageMap': chat2.AddToMessageMapPayload
   'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
   'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
+  'chat2:startVideoChat': chat2.StartVideoChatPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

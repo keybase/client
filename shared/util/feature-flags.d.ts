@@ -7,6 +7,7 @@ export type FeatureFlags = {
   newTeamBuildingForChatAllowMakeTeam: boolean
   teamInvites: boolean
   teamsRedesign: boolean
+  videoChat: boolean
   webOfTrust: boolean
   whyDidYouRender: boolean
 }

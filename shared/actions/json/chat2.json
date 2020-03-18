@@ -920,6 +920,9 @@
     "loadedMutualTeams": {
       "conversationIDKey": "Types.ConversationIDKey",
       "teamIDs": "Array<TeamsTypes.TeamID>"
+    },
+    "startVideoChat": {
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

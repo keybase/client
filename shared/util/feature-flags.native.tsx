@@ -14,6 +14,7 @@ const ff: FeatureFlags = {
   tabletSupport: true,
   teamInvites: false,
   teamsRedesign: false,
+  videoChat: false,
   webOfTrust: false,
   whyDidYouRender: false,
 }

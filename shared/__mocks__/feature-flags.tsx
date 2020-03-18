@@ -13,6 +13,7 @@ const ff: FeatureFlags = {
   tabletSupport: true,
   teamInvites: false,
   teamsRedesign: true,
+  videoChat: false,
   webOfTrust: false,
   whyDidYouRender: false,
 }

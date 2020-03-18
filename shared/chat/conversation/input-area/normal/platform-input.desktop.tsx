@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import flags from '../../../../util/feature-flags'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
@@ -36,6 +37,10 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   _inputFocus = () => {
     this._input && this._input.focus()
+  }
+
+  _videoChatToggle = () => {
+    this.props.startVideoChat && this.props.startVideoChat()
   }
 
   _emojiPickerToggle = () => {
@@ -278,6 +283,14 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
+            )}
+            {!this.props.cannotWrite && flags.videoChat && (
+              <Kb.Icon
+                color={null}
+                onClick={this._videoChatToggle}
+                style={styles.icon}
+                type="iconfont-video-library"
+              />
             )}
             {!this.props.cannotWrite && this.props.showWalletsIcon && (
               <WalletsIcon size={16} style={styles.walletsIcon} />

@@ -149,6 +149,7 @@ export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const showInfoPanel = 'chat2:showInfoPanel'
+export const startVideoChat = 'chat2:startVideoChat'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
@@ -721,6 +722,7 @@ type _ShowInfoPanelPayload = {
   readonly show: boolean
   readonly conversationIDKey?: Types.ConversationIDKey
 }
+type _StartVideoChatPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _StopAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1659,6 +1661,10 @@ export const createShowInfoPanel = (payload: _ShowInfoPanelPayload): ShowInfoPan
   payload,
   type: showInfoPanel,
 })
+export const createStartVideoChat = (payload: _StartVideoChatPayload): StartVideoChatPayload => ({
+  payload,
+  type: startVideoChat,
+})
 export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
   payload,
   type: stopAudioRecording,
@@ -2191,6 +2197,10 @@ export type ShowInfoPanelPayload = {
   readonly payload: _ShowInfoPanelPayload
   readonly type: typeof showInfoPanel
 }
+export type StartVideoChatPayload = {
+  readonly payload: _StartVideoChatPayload
+  readonly type: typeof startVideoChat
+}
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
@@ -2446,6 +2456,7 @@ export type Actions =
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | ShowInfoPanelPayload
+  | StartVideoChatPayload
   | StaticConfigLoadedPayload
   | StopAudioRecordingPayload
   | TabSelectedPayload

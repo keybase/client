@@ -14,6 +14,7 @@ const ff: FeatureFlags = {
   tabletSupport: true, // Whether tablet support is public. Changes some UI on non-tablets.
   teamInvites: false,
   teamsRedesign: false,
+  videoChat: false,
   webOfTrust: false,
   whyDidYouRender: false,
 }
@@ -22,6 +23,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   connectThrashCheck: true,
   moveOrCopy: true,
   tabletSupport: true,
+  videoChat: true,
   webOfTrust: false,
 }
 
