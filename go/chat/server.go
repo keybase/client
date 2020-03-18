@@ -733,8 +733,8 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 		if err := h.G().InboxSource.Clear(ctx, uid); err != nil {
 			h.Debug(ctx, "unable to clear inbox %v", err)
 		}
-		if err := h.G().UIInboxLoader.LoadNonblock(ctx, nil, nil, false); err != nil {
-			h.Debug(ctx, "unable to reload inbox %v", err)
+		if err := h.G().UIInboxLoader.UpdateConvs(ctx, []chat1.ConversationID{arg.ConversationID}); err != nil {
+			h.Debug(ctx, "unable to UpdateConvs %v", err)
 		}
 		return chat1.SetConversationStatusLocalRes{
 			IdentifyFailures: identBreaks,
