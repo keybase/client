@@ -35,6 +35,7 @@ func NewConvDevConversationBackedStorage(g *globals.Context, topicType chat1.Top
 }
 
 func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.ConversationLocal) chat1.ConversationMembersType {
+<<<<<<< HEAD:go/chat/convdevstorage.go
 	return conv.GetMembersType()
 	/*
 		TODO: might need this, not sure
@@ -46,6 +47,15 @@ func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.Conversatio
 			return mt
 		}
 	*/
+=======
+	mt := conv.GetMembersType()
+	switch mt {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		return chat1.ConversationMembersType_IMPTEAMNATIVE
+	default:
+		return mt
+	}
+>>>>>>> master:go/chat/convdevstorage.go
 }
 
 func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
@@ -143,18 +153,32 @@ func (s *ConvDevConversationBackedStorage) GetFromKnownConv(ctx context.Context,
 }
 
 func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, name string, dest interface{}) (found bool, conv chat1.ConversationLocal, err error) {
+	convID chat1.ConversationID, name string, dest interface{}, createConvIfMissing bool) (found bool, conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
 
 	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return false, conv, err
 	}
-	conv, _, err = NewConversation(ctx, s.G(), uid, baseConv.Info.TlfName, &name, s.topicType,
-		s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
-	if err != nil {
-		return false, conv, err
+	if !createConvIfMissing {
+		convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
+			baseConv.Info.TlfName, s.topicType, s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, name,
+			nil)
+		if err != nil {
+			return false, conv, err
+		}
+		if len(convs) == 0 {
+			return false, conv, nil
+		}
+		conv = &convs[0]
+	} else {
+		newconv, _, err := NewConversation(ctx, s.G(), uid, baseConv.Info.TlfName, &name, s.topicType,
+			s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
+		if err != nil {
+			return false, conv, err
+		}
+		conv = &newconv
 	}
-	found, err = s.GetFromKnownConv(ctx, uid, conv, dest)
+	found, err = s.GetFromKnownConv(ctx, uid, *conv, dest)
 	return found, conv, err
 }

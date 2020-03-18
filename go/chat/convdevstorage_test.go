@@ -37,10 +37,10 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 		chat1.ConversationMembersType_TEAM, bob)
 	key0 := "mykey"
 
-	found, _, err := storage.Get(ctx, uid, conv.Id, key0, &msg)
+	found, _, err := storage.Get(ctx, uid, conv.Id, key0, &msg, false)
 	require.NoError(t, err)
 	require.False(t, found)
-	found, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg)
+	found, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg, false)
 	require.NoError(t, err)
 	require.False(t, found)
 
@@ -51,11 +51,11 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
 
-	found, _, err = storage.Get(ctx, uid, conv.Id, key0, &msg)
+	found, _, err = storage.Get(ctx, uid, conv.Id, key0, &msg, false)
 	require.NoError(t, err)
 	require.True(t, found)
 	require.Equal(t, msg, "hello")
-	found, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg)
+	found, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg, false)
 	require.NoError(t, err)
 	require.True(t, found)
 	require.Equal(t, msg, "hello")
@@ -91,10 +91,10 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 		chat1.ConversationMembersType_TEAM, bob)
 	key0 := "mykey"
 
-	found, _, err := storage.Get(ctx, uid, conv.Id, key0, &msg)
+	found, _, err := storage.Get(ctx, uid, conv.Id, key0, &msg, false)
 	require.NoError(t, err)
 	require.False(t, found)
-	found, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg)
+	found, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg, false)
 	require.NoError(t, err)
 	require.False(t, found)
 
@@ -119,11 +119,11 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	_, err = ctc.as(t, bob).chatLocalHandler().PostLocal(ctc.as(t, bob).startCtx, larg)
 	require.NoError(t, err)
 
-	_, _, err = storage.Get(ctx, uid, conv.Id, key0, &msg)
+	_, _, err = storage.Get(ctx, uid, conv.Id, key0, &msg, false)
 	require.Error(t, err, "got an error after misbehavior")
 	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 
-	_, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg)
+	_, _, err = readerstorage.Get(readerctx, readeruid, conv.Id, key0, &readermsg, false)
 	require.Error(t, err, "got an error after misbehavior")
 	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 }
