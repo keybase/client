@@ -35,7 +35,6 @@ func NewConvDevConversationBackedStorage(g *globals.Context, topicType chat1.Top
 }
 
 func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.ConversationLocal) chat1.ConversationMembersType {
-<<<<<<< HEAD:go/chat/convdevstorage.go
 	return conv.GetMembersType()
 	/*
 		TODO: might need this, not sure
@@ -47,15 +46,6 @@ func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.Conversatio
 			return mt
 		}
 	*/
-=======
-	mt := conv.GetMembersType()
-	switch mt {
-	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		return chat1.ConversationMembersType_IMPTEAMNATIVE
-	default:
-		return mt
-	}
->>>>>>> master:go/chat/convdevstorage.go
 }
 
 func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
