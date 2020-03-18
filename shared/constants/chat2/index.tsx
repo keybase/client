@@ -4,7 +4,6 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
 import clamp from 'lodash/clamp'
-import {chatTab} from '../tabs'
 import {TypedState} from '../reducer'
 import {isMobile, isTablet} from '../platform'
 import {
