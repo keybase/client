@@ -41,7 +41,7 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	alias, filename string) error {
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage()
-	_, storageConv, err := storage.Get(ctx, uid, convID, s.topicName(), &stored)
+	_, storageConv, err := storage.Get(ctx, uid, convID, s.topicName(), &stored, true)
 	if err != nil {
 		return err
 	}
