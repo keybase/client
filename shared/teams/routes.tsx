@@ -4,6 +4,7 @@ import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
+import DeleteChannel from './delete-channel'
 import TeamEditChannel from './channel'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
@@ -67,6 +68,9 @@ export const newModalRoutes = {
   },
   teamAddToChannels: {
     getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
+  },
+  teamDeleteChannel: {
+    getScreen: (): typeof DeleteChannel => require('./delete-channel').default,
   },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamAvatar: {

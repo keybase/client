@@ -3759,7 +3759,12 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(Chat2Gen.messagesAdd, messagesAdd)
   yield* Saga.chainAction2(
-    [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
+    [
+      Chat2Gen.leaveConversation,
+      TeamsGen.leftTeam,
+      TeamsGen.deleteChannelConfirmed,
+      TeamsGen.deleteMultiChannelsConfirmed,
+    ],
     clearModalsFromConvEvent
   )
   yield* Saga.chainAction(

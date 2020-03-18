@@ -826,6 +826,7 @@ export type IconType =
   | 'icon-teams-add-number-list-64'
   | 'icon-teams-add-phone-contacts-64'
   | 'icon-teams-add-search-64'
+  | 'icon-teams-channel-64'
   | 'icon-teams-size-big-64'
   | 'icon-teams-size-small-64'
   | 'icon-teams-type-business-64'
@@ -8691,6 +8692,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-teams-add-search-64.png')
+    },
+  },
+  'icon-teams-channel-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-channel-64.png')
     },
   },
   'icon-teams-size-big-64': {

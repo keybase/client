@@ -958,6 +958,7 @@ export type TypedActionsMap = {
   'teams:updateTopic': teams.UpdateTopicPayload
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
+  'teams:deleteMultiChannelsConfirmed': teams.DeleteMultiChannelsConfirmedPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload

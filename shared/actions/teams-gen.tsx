@@ -24,6 +24,7 @@ export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
+export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
@@ -154,6 +155,10 @@ type _CreateNewTeamPayload = {
 type _DeleteChannelConfirmedPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
+}
+type _DeleteMultiChannelsConfirmedPayload = {
+  readonly teamID: Types.TeamID
+  readonly channels: Array<ChatTypes.ConversationIDKey>
 }
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
@@ -538,6 +543,9 @@ export const createCreateNewTeamFromConversation = (
 export const createDeleteChannelConfirmed = (
   payload: _DeleteChannelConfirmedPayload
 ): DeleteChannelConfirmedPayload => ({payload, type: deleteChannelConfirmed})
+export const createDeleteMultiChannelsConfirmed = (
+  payload: _DeleteMultiChannelsConfirmedPayload
+): DeleteMultiChannelsConfirmedPayload => ({payload, type: deleteMultiChannelsConfirmed})
 export const createDeleteTeam = (payload: _DeleteTeamPayload): DeleteTeamPayload => ({
   payload,
   type: deleteTeam,
@@ -804,6 +812,10 @@ export type CreateNewTeamPayload = {
 export type DeleteChannelConfirmedPayload = {
   readonly payload: _DeleteChannelConfirmedPayload
   readonly type: typeof deleteChannelConfirmed
+}
+export type DeleteMultiChannelsConfirmedPayload = {
+  readonly payload: _DeleteMultiChannelsConfirmedPayload
+  readonly type: typeof deleteMultiChannelsConfirmed
 }
 export type DeleteTeamPayload = {readonly payload: _DeleteTeamPayload; readonly type: typeof deleteTeam}
 export type EditMembershipPayload = {
@@ -1097,6 +1109,7 @@ export type Actions =
   | CreateNewTeamFromConversationPayload
   | CreateNewTeamPayload
   | DeleteChannelConfirmedPayload
+  | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
