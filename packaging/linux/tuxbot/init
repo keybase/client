@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+echo Enter tuxbot paperkey next
+keybase oneshot -u tuxbot
+
+echo Enter code signing key triplesec password next
+triplesec dec -b < /keybase/team/keybase.builds.linux/.kbfs_autogit/build-linux/code_signing_key.gpg.3s | gpg --import
+
+echo Starting chatbot...
+systemctl --user start tuxbot
+
+echo Done. Try !help in @keybase.bots.build.linux to ensure chatbot is up.

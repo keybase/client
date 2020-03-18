@@ -17,6 +17,8 @@ apt install -y ./keybase_amd64.deb
 rm ./keybase_amd64.deb
 
 pip3 install s3cmd
+apt-get -y install libssl-dev libffi-dev
+pip3 install triplesec
 
 export DEBIAN_FRONTEND=noninteractive
 # source: https://docs.docker.com/install/linux/docker-ce/debian/
