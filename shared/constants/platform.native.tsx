@@ -7,8 +7,8 @@ const nativeBridge = NativeModules.KeybaseEngine || {
   isDeviceSecure: 'fallback',
   isTestDevice: false,
   serverConfig: '',
-  usingSimulator: 'fallback',
   uses24HourClock: false,
+  usingSimulator: 'fallback',
   version: 'fallback',
 }
 export const version = nativeBridge.version
