@@ -8,9 +8,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
-type Props = Container.RouteProps<{}>
-
-const AddFromWhere = (_: Props) => {
+const AddFromWhere = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 

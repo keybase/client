@@ -77,6 +77,7 @@ const NewTeamInfo = () => {
 
   return (
     <Kb.Modal
+      mode="DefaultFullHeight"
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
@@ -165,7 +166,6 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
-    isElectron: {minHeight: 422},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
   container: {

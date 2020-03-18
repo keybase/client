@@ -58,7 +58,6 @@ const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
 const noChannel: Array<{channelname: string}> = []
 let _channelSuggestions: Array<{channelname: string; teamname?: string}> = noChannel
 
-// TODO: there's a render thrash here.
 const getChannelSuggestions = (
   state: Container.TypedState,
   teamname: string,

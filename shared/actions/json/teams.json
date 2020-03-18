@@ -374,6 +374,7 @@
       "username": "string",
       "memberships": "Map<Types.TeamID, Types.MemberInfo>"
     },
+    "startNewTeamWizard": {},
     "setTeamWizardTeamType": {
       "teamType": "Types.TeamWizardTeamType"
     },

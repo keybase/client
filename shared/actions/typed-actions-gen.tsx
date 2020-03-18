@@ -977,6 +977,7 @@ export type TypedActionsMap = {
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
   'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
+  'teams:startNewTeamWizard': teams.StartNewTeamWizardPayload
   'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
   'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
   'teams:setTeamWizardAvatar': teams.SetTeamWizardAvatarPayload

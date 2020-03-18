@@ -30,7 +30,8 @@ const CreateSubteams = () => {
     setSubteams([...subteams])
   }
 
-  const onContinue = () => dispatch(TeamsGen.createSetTeamWizardSubteams({subteams}))
+  const onContinue = () =>
+    dispatch(TeamsGen.createSetTeamWizardSubteams({subteams: subteams.filter(s => !!s)}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 

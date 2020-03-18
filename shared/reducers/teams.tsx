@@ -271,6 +271,9 @@ export default Container.makeReducer<
       draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
     })
   },
+  [TeamsGen.startNewTeamWizard]: draftState => {
+    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
+  },
   [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
     draftState.newTeamWizard.teamType = action.payload.teamType
   },

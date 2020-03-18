@@ -1329,6 +1329,8 @@ async function getMemberSubteamDetails(
   })
 }
 
+const startNewTeamWizard = () =>
+  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
 const setTeamWizardTeamType = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
 const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescriptionPayload) =>
@@ -1449,6 +1451,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.getMemberSubteamDetails, getMemberSubteamDetails)
 
   // New team wizard
+  yield* Saga.chainAction(TeamsGen.startNewTeamWizard, startNewTeamWizard)
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
   yield* Saga.chainAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)
   yield* Saga.chainAction2(TeamsGen.setTeamWizardAvatar, setTeamWizardAvatar)

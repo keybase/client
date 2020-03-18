@@ -34,7 +34,8 @@ const CreateChannel = () => {
     setChannels([...channels])
   }
 
-  const onContinue = () => dispatch(TeamsGen.createSetTeamWizardChannels({channels}))
+  const onContinue = () =>
+    dispatch(TeamsGen.createSetTeamWizardChannels({channels: channels.filter(c => !!c)}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 

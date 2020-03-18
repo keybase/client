@@ -17,6 +17,7 @@ const MakeBigTeam = () => {
   const teamname = Container.useSelector(state => state.teams.newTeamWizard.name)
   return (
     <Kb.Modal
+      mode="DefaultFullHeight"
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
@@ -55,7 +56,6 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
-    isElectron: {minHeight: 479},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
 }))

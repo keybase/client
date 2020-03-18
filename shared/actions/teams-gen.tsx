@@ -93,6 +93,7 @@ export const setWelcomeMessageError = 'teams:setWelcomeMessageError'
 export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const startAddMembersWizard = 'teams:startAddMembersWizard'
+export const startNewTeamWizard = 'teams:startNewTeamWizard'
 export const teamCreated = 'teams:teamCreated'
 export const teamLoaded = 'teams:teamLoaded'
 export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
@@ -318,6 +319,7 @@ type _ShowTeamByNamePayload = {
   readonly addMembers?: boolean
 }
 type _StartAddMembersWizardPayload = {readonly teamID: Types.TeamID}
+type _StartNewTeamWizardPayload = void
 type _TeamCreatedPayload = {
   readonly fromChat: boolean
   readonly teamID: Types.TeamID
@@ -708,6 +710,10 @@ export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamB
   payload,
   type: showTeamByName,
 })
+export const createStartNewTeamWizard = (payload: _StartNewTeamWizardPayload): StartNewTeamWizardPayload => ({
+  payload,
+  type: startNewTeamWizard,
+})
 export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
   payload,
   type: teamCreated,
@@ -1025,6 +1031,10 @@ export type StartAddMembersWizardPayload = {
   readonly payload: _StartAddMembersWizardPayload
   readonly type: typeof startAddMembersWizard
 }
+export type StartNewTeamWizardPayload = {
+  readonly payload: _StartNewTeamWizardPayload
+  readonly type: typeof startNewTeamWizard
+}
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
 export type TeamSetMemberSelectedPayload = {
@@ -1141,6 +1151,7 @@ export type Actions =
   | SettingsErrorPayload
   | ShowTeamByNamePayload
   | StartAddMembersWizardPayload
+  | StartNewTeamWizardPayload
   | TeamCreatedPayload
   | TeamLoadedPayload
   | TeamSetMemberSelectedPayload
