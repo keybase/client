@@ -66,6 +66,9 @@ const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfo
     token: action.payload.params.info.token,
   })
 
+const onHandleLink = (action: EngineGen.Keybase1NotifyServiceHandleKeybaseLinkPayload) =>
+  DeeplinksGen.createHandleKeybaseLink({link: action.payload.params.link})
+
 const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
   const {uid} = state.config
   logger.info(`getFollowerInfo: init; uid=${uid}`)
@@ -856,6 +859,7 @@ function* configSaga() {
   yield* Saga.chainAction2(EngineGen.disconnected, onDisconnected)
   yield* Saga.chainAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHandleKeybaseLink, onHandleLink)
 
   // Listen for updates to `whatsNewLastSeenVersion`
   yield* Saga.chainAction(GregorGen.pushState, gregorPushState)

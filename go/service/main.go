@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
@@ -63,25 +64,26 @@ type Service struct {
 	libkb.Contextified
 	globals.ChatContextified
 
-	isDaemon        bool
-	chdirTo         string
-	lockPid         *libkb.LockPIDFile
-	ForkType        keybase1.ForkType
-	startCh         chan struct{}
-	stopCh          chan keybase1.ExitCode
-	logForwarder    *logFwd
-	gregor          *gregorHandler
-	rekeyMaster     *rekeyMaster
-	badger          *badges.Badger
-	reachability    *reachability
-	home            *home.Home
-	tlfUpgrader     *tlfupgrade.BackgroundTLFUpdater
-	teamUpgrader    *teams.Upgrader
-	walletState     *stellar.WalletState
-	offlineRPCCache *offline.RPCCache
-	trackerLoader   *TrackerLoader
-	httpSrv         *manager.Srv
-	avatarSrv       *avatars.Srv
+	isDaemon         bool
+	chdirTo          string
+	lockPid          *libkb.LockPIDFile
+	ForkType         keybase1.ForkType
+	startCh          chan struct{}
+	stopCh           chan keybase1.ExitCode
+	logForwarder     *logFwd
+	gregor           *gregorHandler
+	rekeyMaster      *rekeyMaster
+	badger           *badges.Badger
+	reachability     *reachability
+	home             *home.Home
+	tlfUpgrader      *tlfupgrade.BackgroundTLFUpdater
+	teamUpgrader     *teams.Upgrader
+	walletState      *stellar.WalletState
+	offlineRPCCache  *offline.RPCCache
+	trackerLoader    *TrackerLoader
+	httpSrv          *manager.Srv
+	avatarSrv        *avatars.Srv
+	referrerListener InstallReferrerListener // Android only
 
 	loginAttemptMu  sync.Mutex
 	loginAttempt    libkb.LoginAttempt
@@ -383,6 +385,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
+	d.startInstallReferrerListener(d.MetaContext(ctx))
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
@@ -584,6 +587,95 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 	}
 
 	d.G().PushShutdownHook(eng.Shutdown)
+}
+
+type StringReceiver interface {
+	CallbackWithString(s string)
+}
+
+type InstallReferrerListener interface {
+	// StartInstallReferrerListener is used to get referrer information from the
+	// google play store on Android (to implement deferred deep links). This is
+	// asynchrounous (due to the underlying play store api being so): pass it a
+	// callback function which will be called with the referrer string once it
+	// is available (or an empty string in case of errors).
+	StartInstallReferrerListener(callback StringReceiver)
+}
+
+type installReferrerHandler struct {
+	libkb.MetaContextified
+}
+
+// CallbackWithString is called from Java when the Android Play Store api
+// returns the requested install referrer information.
+func (c installReferrerHandler) CallbackWithString(s string) {
+	c.M().Debug("installReferrerHandler#CallbackWithString")
+	defer func() {
+		err := c.G().Env.GetConfigWriter().SetAndroidInstallReferrerChecked(true)
+		if err != nil {
+			c.M().Warning("Error in SetAndroidInstallReferrerChecked: %v", err)
+		}
+	}()
+
+	// TODO remove this log line before the feature is released: invite links
+	// are sensitive and we do not want to log them.
+	c.M().Warning("installReferrerHandler InstallReferrerListener got %v", s)
+
+	inviteKey, found, err := parseInstallReferrer(s)
+	if err != nil {
+		c.M().Warning("Error in parseInstallReferrer: %v", err)
+		return
+	}
+	if !found {
+		c.M().Debug("installReferrerHandler#CallbackWithString: invite not found")
+		return
+	}
+
+	c.M().Debug("Notifying GUI of deferred deep invite link")
+	c.G().NotifyRouter.HandleHandleKeybaseLink(c.M().Ctx(), "keybase://invite/"+string(inviteKey))
+}
+
+var _ StringReceiver = installReferrerHandler{}
+
+var installReferrerLinkRegExp = regexp.MustCompile("invite\\%3D([" + teams.KBase30EncodeStd + "\\+]+)")
+
+func parseInstallReferrer(s string) (key keybase1.SeitanIKeyInvitelink, found bool, err error) {
+	matches := installReferrerLinkRegExp.FindStringSubmatch(s)
+	switch len(matches) {
+	case 0:
+		// invite link key not found
+		return "", false, nil
+	case 2:
+		return keybase1.SeitanIKeyInvitelink(matches[1]), true, nil
+	default:
+		return "", false, fmt.Errorf("Could not parse install referrer for seitan invite link: got %v matches", len(matches))
+	}
+}
+
+func (d *Service) startInstallReferrerListener(m libkb.MetaContext) {
+	m.Debug("Service#startInstallReferrerListener called")
+
+	if !libkb.IsAndroid() {
+		m.Debug("InstallReferrerListener only runs on Android; short-circuiting startInstallReferrerListener")
+		return
+	}
+
+	if d.referrerListener == nil {
+		m.Debug("referrerListener is nil; short-circuiting startInstallReferrerListener")
+		return
+	}
+
+	if m.G().Env.GetConfig().GetAndroidInstallReferrerChecked() {
+		m.Debug("AndroidInstallReferrer already checked; short-circuiting startInstallReferrerListener")
+		return
+	}
+
+	d.referrerListener.StartInstallReferrerListener(installReferrerHandler{MetaContextified: libkb.NewMetaContextified(m)})
+}
+
+func (d *Service) SetInstallReferrerListener(i InstallReferrerListener) {
+	d.G().Log.Debug("InstallReferrerListener set")
+	d.referrerListener = i
 }
 
 func (d *Service) startupGregor() {

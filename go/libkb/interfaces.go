@@ -215,6 +215,8 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
+
+	GetAndroidInstallReferrerChecked() bool
 }
 
 type UpdaterConfigReader interface {
@@ -253,6 +255,8 @@ type ConfigWriter interface {
 	SetStayLoggedOut(bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
+
+	SetAndroidInstallReferrerChecked(b bool) error
 }
 
 type HTTPRequest interface {

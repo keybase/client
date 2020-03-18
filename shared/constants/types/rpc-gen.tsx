@@ -159,6 +159,10 @@ export type MessageTypes = {
     inParam: {readonly info: HttpSrvInfo}
     outParam: void
   }
+  'keybase.1.NotifyService.handleKeybaseLink': {
+    inParam: {readonly link: String}
+    outParam: void
+  }
   'keybase.1.NotifyService.shutdown': {
     inParam: {readonly code: Int}
     outParam: void
@@ -3385,6 +3389,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifySaltpack.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySaltpack.saltpackOperationDone'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.HTTPSrvInfoUpdate'?: (params: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyService.handleKeybaseLink'?: (params: MessageTypes['keybase.1.NotifyService.handleKeybaseLink']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedOut'?: (params: MessageTypes['keybase.1.NotifySession.loggedOut']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3518,6 +3523,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifySaltpack.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySaltpack.saltpackOperationDone'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.HTTPSrvInfoUpdate'?: (params: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyService.handleKeybaseLink'?: (params: MessageTypes['keybase.1.NotifyService.handleKeybaseLink']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.handleKeybaseLink']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.loggedIn']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.clientOutOfDate'?: (params: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['outParam']) => void}) => IncomingReturn
@@ -4058,6 +4064,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.NotifySaltpack.saltpackOperationProgress'
 // 'keybase.1.NotifySaltpack.saltpackOperationDone'
 // 'keybase.1.NotifyService.HTTPSrvInfoUpdate'
+// 'keybase.1.NotifyService.handleKeybaseLink'
 // 'keybase.1.NotifyService.shutdown'
 // 'keybase.1.NotifySession.loggedOut'
 // 'keybase.1.NotifySession.loggedIn'
