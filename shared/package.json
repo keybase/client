@@ -96,7 +96,7 @@
     "lottie-react-native": "3.1.1",
     "lottie-react-web": "git://github.com/keybase/lottie-react-web#nojima/keybase-fixes-off-214",
     "memoize-one": "5.1.1",
-    "menubar": "6.0.8",
+    "menubar": "git://github.com/keybase/menubar#keybase-fixes-off-v6.0.8",
     "mousetrap": "1.6.3",
     "path-parse": "1.0.6",
     "qrcode-generator": "git://github.com/keybase/qrcode-generator#keybase-changes-off-140",
