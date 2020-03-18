@@ -212,8 +212,9 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "WotUpdate"
+            "type": "map",
+            "values": "WotUpdate",
+            "keys": "string"
           },
           "name": "wotUpdates"
         },

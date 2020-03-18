@@ -1,13 +1,13 @@
-import * as React from 'react'
 import * as Constants from '../constants/people'
-import * as Types from '../constants/types/people'
-import * as Kb from '../common-adapters'
-import People, {Header} from '.'
-import * as PeopleGen from '../actions/people-gen'
 import * as Container from '../util/container'
-import {createShowUserProfile} from '../actions/profile-gen'
-import * as WaitingConstants from '../constants/waiting'
+import * as Kb from '../common-adapters'
+import * as PeopleGen from '../actions/people-gen'
+import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Types from '../constants/types/people'
+import * as WaitingConstants from '../constants/waiting'
+import {createShowUserProfile} from '../actions/profile-gen'
+import People, {Header} from '.'
 
 type OwnProps = {}
 
@@ -28,6 +28,7 @@ const ConnectedHeader = Container.connect(
 type Props = {
   oldItems: Array<Types.PeopleScreenItem>
   newItems: Array<Types.PeopleScreenItem>
+  wotUpdates: Map<string, Types.WotUpdate>
   followSuggestions: Array<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
@@ -52,19 +53,20 @@ export class LoadOnMount extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Reloadable
-        waitingKeys={Constants.getPeopleDataWaitingKey}
         onReload={this._onReload}
         reloadOnMount={true}
+        waitingKeys={Constants.getPeopleDataWaitingKey}
       >
         <People
+          followSuggestions={this.props.followSuggestions}
+          getData={this._getData}
+          myUsername={this.props.myUsername}
           newItems={this.props.newItems}
           oldItems={this.props.oldItems}
-          followSuggestions={this.props.followSuggestions}
-          myUsername={this.props.myUsername}
-          waiting={this.props.waiting}
-          getData={this._getData}
           onClickUser={this._onClickUser}
           signupEmail={this.props.signupEmail}
+          waiting={this.props.waiting}
+          wotUpdates={this.props.wotUpdates}
         />
       </Kb.Reloadable>
     )
@@ -79,6 +81,7 @@ export default Container.connect(
     oldItems: state.people.oldItems,
     signupEmail: state.signup.justSignedUpEmail,
     waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
+    wotUpdates: state.people.wotUpdates,
   }),
   dispatch => ({
     getData: (markViewed = true) =>
@@ -86,12 +89,13 @@ export default Container.connect(
     onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   }),
   (stateProps, dispatchProps) => ({
+    ...dispatchProps,
     followSuggestions: stateProps.followSuggestions,
     myUsername: stateProps.myUsername,
     newItems: stateProps.newItems,
     oldItems: stateProps.oldItems,
     signupEmail: stateProps.signupEmail,
     waiting: stateProps.waiting,
-    ...dispatchProps,
+    wotUpdates: stateProps.wotUpdates,
   })
 )(LoadOnMount)

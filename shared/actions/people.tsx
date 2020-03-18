@@ -1,17 +1,18 @@
-import * as EngineGen from './engine-gen-gen'
-import * as TeamBuildingGen from './team-building-gen'
-import * as PeopleGen from './people-gen'
-import * as RouteTreeGen from './route-tree-gen'
-import * as ProfileGen from './profile-gen'
-import * as Saga from '../util/saga'
 import * as Constants from '../constants/people'
-import * as Types from '../constants/types/people'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
+import * as EngineGen from './engine-gen-gen'
+import * as NotificationsGen from './notifications-gen'
+import * as PeopleGen from './people-gen'
+import * as ProfileGen from './profile-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
+import * as TeamBuildingGen from './team-building-gen'
+import * as Types from '../constants/types/people'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
-import {RPCError} from '../util/errors'
 import logger from '../logger'
+import {RPCError} from '../util/errors'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false
@@ -136,6 +137,20 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
   }
 }
 
+const dismissWotNotifications = async (action: PeopleGen.DismissWotNotificationsPayload) => {
+  try {
+    await RPCTypes.wotDismissWotNotificationsRpcPromise({
+      vouchee: action.payload.vouchee,
+      voucher: action.payload.voucher,
+    })
+  } catch (e) {
+    logger.warn('dismissWotUpdate error', e)
+  }
+}
+
+const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
+  PeopleGen.createBadgeAppForWotNotifications({updates: action.payload.badgeState.wotUpdates || {}})
+
 const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload) => {
   await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
     i: action.payload.id,
@@ -215,6 +230,8 @@ const peopleSaga = function*() {
   yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
   yield* Saga.chainAction(PeopleGen.skipTodo, skipTodo)
   yield* Saga.chainAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
+  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  yield* Saga.chainAction(PeopleGen.dismissWotNotifications, dismissWotNotifications)
   yield* Saga.chainAction2(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   yield* Saga.chainAction2(EngineGen.connected, connected)
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
