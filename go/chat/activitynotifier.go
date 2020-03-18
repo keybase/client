@@ -75,11 +75,6 @@ func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.U
 			n.Debug(ctx, "skipping UI notification %v for %v", typ, act.ConvID)
 			return
 		}
-	case chat1.ChatActivityType_MEMBERS_UPDATE:
-		if !n.G().Syncer.IsSelectedConversation(activity.MembersUpdate().ConvID) {
-			n.Debug(ctx, "skipping UI notification %v for %v", typ, activity.MembersUpdate().ConvID)
-			return
-		}
 	}
 	n.notifyCh <- func() {
 		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity, source)
