@@ -39,26 +39,20 @@ func NewMemberKeyer(mctx libkb.MetaContext) *MemberKeyer {
 // out from under us while we're in the middle of posting a new key, causing
 // the post to fail. Detect these conditions and retry.
 func (k *MemberKeyer) retryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error) {
-	knownRaceConditions := []keybase1.StatusCode{
-		keybase1.StatusCode_SCSigWrongKey,
-		keybase1.StatusCode_SCSigOldSeqno,
-		keybase1.StatusCode_SCTeambotKeyBadGeneration,
-		keybase1.StatusCode_SCTeambotKeyOldBoxedGeneration,
-	}
 	for tries := 0; tries < maxRetries; tries++ {
 		if err = retryFn(); err == nil {
 			return nil
 		}
-		retryableError := false
-		for _, code := range knownRaceConditions {
-			if libkb.IsAppStatusCode(err, code) {
-				mctx.Debug("retryWrapper found a retryable error on try %d: %s", tries, err)
-				retryableError = true
-				break
-			}
-		}
-		if !retryableError {
+		if !libkb.IsEphemeralRetryableError(err) {
 			return err
+		}
+		mctx.Debug("MemberKeyer#retryWrapper found a retryable error on try %d: %v",
+			tries, err)
+		select {
+		case <-mctx.Ctx().Done():
+			return mctx.Ctx().Err()
+		default:
+			// continue retrying
 		}
 	}
 	return err

@@ -592,12 +592,14 @@ export type TypedActionsMap = {
   'fs:favoriteIgnore': fs.FavoriteIgnorePayload
   'fs:favoriteIgnoreError': fs.FavoriteIgnoreErrorPayload
   'fs:newFolderRow': fs.NewFolderRowPayload
-  'fs:newFolderName': fs.NewFolderNamePayload
+  'fs:startRename': fs.StartRenamePayload
+  'fs:setEditName': fs.SetEditNamePayload
   'fs:commitEdit': fs.CommitEditPayload
   'fs:editSuccess': fs.EditSuccessPayload
+  'fs:editError': fs.EditErrorPayload
   'fs:discardEdit': fs.DiscardEditPayload
-  'fs:fsError': fs.FsErrorPayload
-  'fs:dismissFsError': fs.DismissFsErrorPayload
+  'fs:redbar': fs.RedbarPayload
+  'fs:dismissRedbar': fs.DismissRedbarPayload
   'fs:setLastPublicBannerClosedTlf': fs.SetLastPublicBannerClosedTlfPayload
   'fs:openFilesFromWidget': fs.OpenFilesFromWidgetPayload
   'fs:letResetUserBackIn': fs.LetResetUserBackInPayload
@@ -968,6 +970,7 @@ export type TypedActionsMap = {
   'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
   'teams:startAddMembersWizard': teams.StartAddMembersWizardPayload
   'teams:setAddMembersWizardRole': teams.SetAddMembersWizardRolePayload
+  'teams:setAddMembersWizardIndividualRole': teams.SetAddMembersWizardIndividualRolePayload
   'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload

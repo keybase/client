@@ -51,18 +51,14 @@ const ChannelTabs = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  clickableBox: Styles.platformStyles({
-    isMobile: {
-      flexGrow: 1,
-    },
-  }),
+  clickableBox: {
+    flexGrow: 1,
+  },
   container: {
     backgroundColor: Styles.globalColors.white,
+    width: '100%',
   },
   tab: Styles.platformStyles({
-    isElectron: {
-      flexGrow: 1,
-    },
     isMobile: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,

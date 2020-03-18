@@ -520,7 +520,7 @@ func ListenAndServe(ctx context.Context,
 	server := &Server{
 		config:     config,
 		kbfsConfig: kbfsConfig,
-		rootLoader: DNSRootLoader{log: config.Logger},
+		rootLoader: NewDNSRootLoader(config.Logger),
 	}
 	server.siteCache, err = lru.NewWithEvict(fsCacheSize, server.siteCacheEvict)
 	if err != nil {

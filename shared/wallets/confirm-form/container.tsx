@@ -47,14 +47,18 @@ export default namedConnect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const {_built, _sentPaymentError} = stateProps
-    const exchangeRateChanged = _sentPaymentError && _sentPaymentError.toLowerCase().includes('exchange rate')
+    const exchangeRateChanged =
+      _sentPaymentError && _sentPaymentError.toLowerCase().includes(Constants.exchangeRateErrorText)
+    const recipientRequiresAMemo =
+      _sentPaymentError && _sentPaymentError.toLowerCase().includes(Constants.recipientRequiresAMemoErrorText)
     const banners: Array<Types.Banner> = [
       ...(_sentPaymentError
         ? [
             {
               action: exchangeRateChanged ? undefined : dispatchProps.onExitFailed,
+              actionText: recipientRequiresAMemo ? 'Go back' : 'Review payments',
               bannerBackground: 'HighRisk',
-              bannerText: _sentPaymentError,
+              bannerText: recipientRequiresAMemo ? 'This recipient requires a memo.' : _sentPaymentError,
               sendFailed: true,
             } as const,
           ]

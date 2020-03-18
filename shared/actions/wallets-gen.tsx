@@ -324,7 +324,11 @@ type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
 type _SetSEP6MessagePayload = {readonly error: boolean; readonly message: string}
 type _SetSEP7SendErrorPayload = {readonly error: string}
-type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7ConfirmInfo}
+type _SetSEP7TxPayload = {
+  readonly confirmURI: string
+  readonly fromQR: boolean
+  readonly tx: Types.SEP7ConfirmInfo
+}
 type _SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly username: string
   readonly assets: Array<Types.AssetDescription>
@@ -346,7 +350,7 @@ type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly pa
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _ValidateAccountNamePayload = {readonly name: string}
 type _ValidateSEP7LinkErrorPayload = {readonly error: string}
-type _ValidateSEP7LinkPayload = {readonly link: string}
+type _ValidateSEP7LinkPayload = {readonly fromQR: boolean; readonly link: string}
 type _ValidateSecretKeyPayload = {readonly secretKey: HiddenString}
 type _ValidatedAccountNamePayload = {readonly name: string; readonly error?: string}
 type _ValidatedSecretKeyPayload = {readonly secretKey: HiddenString; readonly error?: string}

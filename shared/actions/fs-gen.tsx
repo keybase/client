@@ -12,13 +12,14 @@ export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
-export const dismissFsError = 'fs:dismissFsError'
+export const dismissRedbar = 'fs:dismissRedbar'
 export const dismissUpload = 'fs:dismissUpload'
 export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
 export const driverEnable = 'fs:driverEnable'
 export const driverKextPermissionError = 'fs:driverKextPermissionError'
+export const editError = 'fs:editError'
 export const editSuccess = 'fs:editSuccess'
 export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
@@ -29,7 +30,6 @@ export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
-export const fsError = 'fs:fsError'
 export const getOnlineStatus = 'fs:getOnlineStatus'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
@@ -53,7 +53,6 @@ export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const loadedUploadStatus = 'fs:loadedUploadStatus'
 export const move = 'fs:move'
-export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
@@ -65,6 +64,7 @@ export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const pollJournalStatus = 'fs:pollJournalStatus'
+export const redbar = 'fs:redbar'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
@@ -73,6 +73,7 @@ export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
+export const setEditName = 'fs:setEditName'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareSource = 'fs:setIncomingShareSource'
 export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
@@ -93,6 +94,7 @@ export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
+export const startRename = 'fs:startRename'
 export const subscribeNonPath = 'fs:subscribeNonPath'
 export const subscribePath = 'fs:subscribePath'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
@@ -114,15 +116,16 @@ type _CopyPayload = {readonly destinationParentPath: Types.Path}
 type _DeleteFilePayload = {readonly path: Types.Path}
 type _DiscardEditPayload = {readonly editID: Types.EditID}
 type _DismissDownloadPayload = {readonly downloadID: string}
-type _DismissFsErrorPayload = {readonly key: string}
+type _DismissRedbarPayload = {readonly index: number}
 type _DismissUploadPayload = {readonly uploadID: string}
 type _DownloadPayload = {readonly path: Types.Path}
 type _DriverDisablePayload = void
 type _DriverDisablingPayload = void
 type _DriverEnablePayload = {readonly isRetry?: boolean | null}
 type _DriverKextPermissionErrorPayload = void
-type _EditSuccessPayload = {readonly editID: Types.EditID; readonly parentPath: Types.Path}
-type _FavoriteIgnoreErrorPayload = {readonly path: Types.Path; readonly error: Types.FsError}
+type _EditErrorPayload = {readonly editID: Types.EditID; readonly error: string}
+type _EditSuccessPayload = {readonly editID: Types.EditID}
+type _FavoriteIgnoreErrorPayload = {readonly path: Types.Path}
 type _FavoriteIgnorePayload = {readonly path: Types.Path}
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = {
@@ -142,7 +145,6 @@ type _FolderListLoadedPayload = {
   readonly path: Types.Path
   readonly pathItems: Map<Types.Path, Types.PathItem>
 }
-type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
 type _GetOnlineStatusPayload = void
 type _JournalUpdatePayload = {
   readonly syncingPaths: Array<Types.Path>
@@ -173,7 +175,6 @@ type _LoadedFilesTabBadgePayload = {readonly badge: RPCTypes.FilesTabBadge}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
 type _LoadedUploadStatusPayload = {readonly uploadStates: Array<RPCTypes.UploadState>}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
-type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
 type _NewFolderRowPayload = {readonly parentPath: Types.Path}
 type _OpenAndUploadPayload = {readonly type: Types.OpenDialogType; readonly parentPath: Types.Path}
 type _OpenFilesFromWidgetPayload = {readonly path: Types.Path; readonly type: Types.PathType}
@@ -188,6 +189,7 @@ type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Typ
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
 type _PlaceholderActionPayload = void
 type _PollJournalStatusPayload = void
+type _RedbarPayload = {readonly error: string}
 type _RefreshDriverStatusPayload = void
 type _RefreshMountDirsAfter10sPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path}
@@ -196,6 +198,7 @@ type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
 type _SetDirectMountDirPayload = {readonly directMountDir: string}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
+type _SetEditNamePayload = {readonly editID: Types.EditID; readonly name: string}
 type _SetFolderViewFilterPayload = {readonly filter: string | null}
 type _SetIncomingShareSourcePayload = {
   readonly source: Types.LocalPath | Array<RPCTypes.IncomingShareItem>
@@ -222,6 +225,7 @@ type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.P
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
 type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
 type _StartManualConflictResolutionPayload = {readonly tlfPath: Types.Path}
+type _StartRenamePayload = {readonly path: Types.Path}
 type _SubscribeNonPathPayload = {readonly subscriptionID: string; readonly topic: RPCTypes.SubscriptionTopic}
 type _SubscribePathPayload = {
   readonly subscriptionID: string
@@ -268,9 +272,9 @@ export const createDismissDownload = (payload: _DismissDownloadPayload): Dismiss
   payload,
   type: dismissDownload,
 })
-export const createDismissFsError = (payload: _DismissFsErrorPayload): DismissFsErrorPayload => ({
+export const createDismissRedbar = (payload: _DismissRedbarPayload): DismissRedbarPayload => ({
   payload,
-  type: dismissFsError,
+  type: dismissRedbar,
 })
 export const createDismissUpload = (payload: _DismissUploadPayload): DismissUploadPayload => ({
   payload,
@@ -291,6 +295,7 @@ export const createDriverEnable = (
 export const createDriverKextPermissionError = (
   payload: _DriverKextPermissionErrorPayload
 ): DriverKextPermissionErrorPayload => ({payload, type: driverKextPermissionError})
+export const createEditError = (payload: _EditErrorPayload): EditErrorPayload => ({payload, type: editError})
 export const createEditSuccess = (payload: _EditSuccessPayload): EditSuccessPayload => ({
   payload,
   type: editSuccess,
@@ -327,7 +332,6 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   payload,
   type: folderListLoaded,
 })
-export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
 export const createGetOnlineStatus = (payload: _GetOnlineStatusPayload): GetOnlineStatusPayload => ({
   payload,
   type: getOnlineStatus,
@@ -412,10 +416,6 @@ export const createLoadedUploadStatus = (payload: _LoadedUploadStatusPayload): L
   type: loadedUploadStatus,
 })
 export const createMove = (payload: _MovePayload): MovePayload => ({payload, type: move})
-export const createNewFolderName = (payload: _NewFolderNamePayload): NewFolderNamePayload => ({
-  payload,
-  type: newFolderName,
-})
 export const createNewFolderRow = (payload: _NewFolderRowPayload): NewFolderRowPayload => ({
   payload,
   type: newFolderRow,
@@ -455,6 +455,7 @@ export const createPollJournalStatus = (payload: _PollJournalStatusPayload): Pol
   payload,
   type: pollJournalStatus,
 })
+export const createRedbar = (payload: _RedbarPayload): RedbarPayload => ({payload, type: redbar})
 export const createRefreshDriverStatus = (
   payload: _RefreshDriverStatusPayload
 ): RefreshDriverStatusPayload => ({payload, type: refreshDriverStatus})
@@ -480,6 +481,10 @@ export const createSetDirectMountDir = (payload: _SetDirectMountDirPayload): Set
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload): SetDriverStatusPayload => ({
   payload,
   type: setDriverStatus,
+})
+export const createSetEditName = (payload: _SetEditNamePayload): SetEditNamePayload => ({
+  payload,
+  type: setEditName,
 })
 export const createSetFolderViewFilter = (
   payload: _SetFolderViewFilterPayload
@@ -549,6 +554,10 @@ export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayl
 export const createStartManualConflictResolution = (
   payload: _StartManualConflictResolutionPayload
 ): StartManualConflictResolutionPayload => ({payload, type: startManualConflictResolution})
+export const createStartRename = (payload: _StartRenamePayload): StartRenamePayload => ({
+  payload,
+  type: startRename,
+})
 export const createSubscribeNonPath = (payload: _SubscribeNonPathPayload): SubscribeNonPathPayload => ({
   payload,
   type: subscribeNonPath,
@@ -602,9 +611,9 @@ export type DismissDownloadPayload = {
   readonly payload: _DismissDownloadPayload
   readonly type: typeof dismissDownload
 }
-export type DismissFsErrorPayload = {
-  readonly payload: _DismissFsErrorPayload
-  readonly type: typeof dismissFsError
+export type DismissRedbarPayload = {
+  readonly payload: _DismissRedbarPayload
+  readonly type: typeof dismissRedbar
 }
 export type DismissUploadPayload = {
   readonly payload: _DismissUploadPayload
@@ -624,6 +633,7 @@ export type DriverKextPermissionErrorPayload = {
   readonly payload: _DriverKextPermissionErrorPayload
   readonly type: typeof driverKextPermissionError
 }
+export type EditErrorPayload = {readonly payload: _EditErrorPayload; readonly type: typeof editError}
 export type EditSuccessPayload = {readonly payload: _EditSuccessPayload; readonly type: typeof editSuccess}
 export type FavoriteIgnoreErrorPayload = {
   readonly payload: _FavoriteIgnoreErrorPayload
@@ -661,7 +671,6 @@ export type FolderListLoadedPayload = {
   readonly payload: _FolderListLoadedPayload
   readonly type: typeof folderListLoaded
 }
-export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: typeof fsError}
 export type GetOnlineStatusPayload = {
   readonly payload: _GetOnlineStatusPayload
   readonly type: typeof getOnlineStatus
@@ -745,10 +754,6 @@ export type LoadedUploadStatusPayload = {
   readonly type: typeof loadedUploadStatus
 }
 export type MovePayload = {readonly payload: _MovePayload; readonly type: typeof move}
-export type NewFolderNamePayload = {
-  readonly payload: _NewFolderNamePayload
-  readonly type: typeof newFolderName
-}
 export type NewFolderRowPayload = {readonly payload: _NewFolderRowPayload; readonly type: typeof newFolderRow}
 export type OpenAndUploadPayload = {
   readonly payload: _OpenAndUploadPayload
@@ -790,6 +795,7 @@ export type PollJournalStatusPayload = {
   readonly payload: _PollJournalStatusPayload
   readonly type: typeof pollJournalStatus
 }
+export type RedbarPayload = {readonly payload: _RedbarPayload; readonly type: typeof redbar}
 export type RefreshDriverStatusPayload = {
   readonly payload: _RefreshDriverStatusPayload
   readonly type: typeof refreshDriverStatus
@@ -819,6 +825,7 @@ export type SetDriverStatusPayload = {
   readonly payload: _SetDriverStatusPayload
   readonly type: typeof setDriverStatus
 }
+export type SetEditNamePayload = {readonly payload: _SetEditNamePayload; readonly type: typeof setEditName}
 export type SetFolderViewFilterPayload = {
   readonly payload: _SetFolderViewFilterPayload
   readonly type: typeof setFolderViewFilter
@@ -893,6 +900,7 @@ export type StartManualConflictResolutionPayload = {
   readonly payload: _StartManualConflictResolutionPayload
   readonly type: typeof startManualConflictResolution
 }
+export type StartRenamePayload = {readonly payload: _StartRenamePayload; readonly type: typeof startRename}
 export type SubscribeNonPathPayload = {
   readonly payload: _SubscribeNonPathPayload
   readonly type: typeof subscribeNonPath
@@ -940,13 +948,14 @@ export type Actions =
   | DeleteFilePayload
   | DiscardEditPayload
   | DismissDownloadPayload
-  | DismissFsErrorPayload
+  | DismissRedbarPayload
   | DismissUploadPayload
   | DownloadPayload
   | DriverDisablePayload
   | DriverDisablingPayload
   | DriverEnablePayload
   | DriverKextPermissionErrorPayload
+  | EditErrorPayload
   | EditSuccessPayload
   | FavoriteIgnoreErrorPayload
   | FavoriteIgnorePayload
@@ -957,7 +966,6 @@ export type Actions =
   | FinishedRegularDownloadPayload
   | FolderListLoadPayload
   | FolderListLoadedPayload
-  | FsErrorPayload
   | GetOnlineStatusPayload
   | JournalUpdatePayload
   | KbfsDaemonOnlineStatusChangedPayload
@@ -981,7 +989,6 @@ export type Actions =
   | LoadedPathInfoPayload
   | LoadedUploadStatusPayload
   | MovePayload
-  | NewFolderNamePayload
   | NewFolderRowPayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
@@ -993,6 +1000,7 @@ export type Actions =
   | PickAndUploadPayload
   | PlaceholderActionPayload
   | PollJournalStatusPayload
+  | RedbarPayload
   | RefreshDriverStatusPayload
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
@@ -1001,6 +1009,7 @@ export type Actions =
   | SetDestinationPickerParentPathPayload
   | SetDirectMountDirPayload
   | SetDriverStatusPayload
+  | SetEditNamePayload
   | SetFolderViewFilterPayload
   | SetIncomingShareSourcePayload
   | SetLastPublicBannerClosedTlfPayload
@@ -1021,6 +1030,7 @@ export type Actions =
   | ShowMoveOrCopyPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
+  | StartRenamePayload
   | SubscribeNonPathPayload
   | SubscribePathPayload
   | TlfSyncConfigLoadedPayload

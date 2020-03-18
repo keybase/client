@@ -320,42 +320,25 @@ const load = () => {
         errs={[
           {
             dismiss: Sb.action('dismiss'),
-            key: '1',
             msg: 'Error when downloading file blah 1.jpg',
-            time: 1534362428795,
           },
           {
             dismiss: Sb.action('dismiss'),
-            key: '2',
             msg: 'Error when downloading file blah 2.jpg',
-            retry: Sb.action('retry'),
-            time: 1534362428795,
           },
           {
             dismiss: Sb.action('dismiss'),
-            key: '3',
             msg: 'Error when downloading file blah 99.jpg',
-            onFeedback: Sb.action('onFeedback'),
-            retry: Sb.action('retry'),
-            time: 1534362428795,
           },
           {
             dismiss: Sb.action('dismiss'),
-            key: '4',
             msg:
               'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
-            onFeedback: Sb.action('onFeedback'),
-            retry: Sb.action('retry'),
-            time: 1534362428795,
           },
           {
             dismiss: Sb.action('dismiss'),
-            key: '5',
             msg:
               'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
-            onFeedback: Sb.action('onFeedback'),
-            retry: Sb.action('retry'),
-            time: 1534362428795,
           },
         ]}
       />

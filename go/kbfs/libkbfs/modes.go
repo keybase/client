@@ -707,7 +707,11 @@ func (mt modeTest) QuotaReclamationMinHeadAge() time.Duration {
 	return 0
 }
 
+// EnvKeybaseTestObfuscateLogsForTest is "KEYBASE_TEST_OBFUSCATE_LOGS" and used
+// to specify if log obfuscation should be enabled for test.
+const EnvKeybaseTestObfuscateLogsForTest = "KEYBASE_TEST_OBFUSCATE_LOGS"
+
 func (mt modeTest) DoLogObfuscation() bool {
-	e := os.Getenv("KEYBASE_TEST_OBFUSCATE_LOGS")
+	e := os.Getenv(EnvKeybaseTestObfuscateLogsForTest)
 	return e != "" && e != "0" && strings.ToLower(e) != "false"
 }

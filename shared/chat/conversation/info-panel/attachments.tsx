@@ -12,6 +12,7 @@ import MessagePopup from '../messages/message-popup'
 import chunk from 'lodash/chunk'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
 import {infoPanelWidth} from './common'
+import {Section} from '../../../common-adapters/section-list'
 
 const monthNames = [
   'January',
@@ -57,6 +58,10 @@ type Link = {
   title?: string
   url?: string
 }
+type InfoPanelSection = Section<
+  any,
+  {title?: string; renderSectionHeader?: (info: {section: Section<any, any>}) => React.ReactNode}
+>
 
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)
@@ -347,7 +352,7 @@ const linkStyleOverride = {
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   renderTabs: () => React.ReactNode
-  commonSections: Array<unknown>
+  commonSections: Array<Section<{key: string}, {title?: string}>>
 }
 
 const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null => {
@@ -360,8 +365,11 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null =>
 
 const noAttachmentView = Constants.makeAttachmentViewInfo()
 
-// TODO: fix this typing when sectionlist typing is fixed
-export const useAttachmentSections = (p: Props, loadImmediately: boolean, useFlexWrap: boolean): any => {
+export const useAttachmentSections = (
+  p: Props,
+  loadImmediately: boolean,
+  useFlexWrap: boolean
+): Array<Section<any, {title?: string}>> => {
   const {conversationIDKey} = p
   const dispatch = Container.useDispatch()
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
@@ -414,7 +422,7 @@ export const useAttachmentSections = (p: Props, loadImmediately: boolean, useFle
     message.downloadPath &&
     dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
 
-  const commonSections = [
+  const commonSections: Array<InfoPanelSection> = [
     ...p.commonSections,
     {
       data: [{key: 'avselector'}],
@@ -458,7 +466,7 @@ export const useAttachmentSections = (p: Props, loadImmediately: boolean, useFle
     },
   }
 
-  let sections: Array<unknown>
+  let sections: Array<InfoPanelSection>
   if (attachmentInfo.messages.length === 0 && attachmentInfo.status !== 'loading') {
     sections = [
       {

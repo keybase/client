@@ -336,13 +336,17 @@ func (i *Inbox) readConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 	return convs[0], nil
 }
 
-func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation) Error {
+func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
+	withVersionCheck bool) Error {
 	i.summarizeConvs(convs)
 	for _, conv := range convs {
-		existing, err := i.readConv(ctx, uid, conv.GetConvID())
-		if err == nil && existing.GetVersion() > conv.GetVersion() {
-			i.Debug(ctx, "writeConvs: skipping write because of newer stored version: convID: %s old: %d new: %d", conv.ConvIDStr, existing.GetVersion(), conv.GetVersion())
-			continue
+		if withVersionCheck {
+			existing, err := i.readConv(ctx, uid, conv.GetConvID())
+			if err == nil && existing.GetVersion() >= conv.GetVersion() {
+				i.Debug(ctx, "writeConvs: skipping write because of newer stored version: convID: %s old: %d new: %d",
+					conv.ConvIDStr, existing.GetVersion(), conv.GetVersion())
+				continue
+			}
 		}
 		i.Debug(ctx, "writeConvs: writing conv: %s", conv.ConvIDStr)
 		inboxMemCache.PutConv(uid, conv)
@@ -354,8 +358,9 @@ func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.R
 	return nil
 }
 
-func (i *Inbox) writeConv(ctx context.Context, uid gregor1.UID, conv types.RemoteConversation) Error {
-	return i.writeConvs(ctx, uid, []types.RemoteConversation{conv})
+func (i *Inbox) writeConv(ctx context.Context, uid gregor1.UID, conv types.RemoteConversation,
+	withVersionCheck bool) Error {
+	return i.writeConvs(ctx, uid, []types.RemoteConversation{conv}, withVersionCheck)
 }
 
 type ByDatabaseOrder []types.RemoteConversation
@@ -462,7 +467,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			rcm.ResetParticipants = convLocal.Info.ResetNames
 		}
 		conv.LocalMetadata = rcm
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -496,7 +501,7 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 	}
 
 	// write all the convs out
-	if err := i.writeConvs(ctx, uid, utils.RemoteConvs(convs)); err != nil {
+	if err := i.writeConvs(ctx, uid, utils.RemoteConvs(convs), true); err != nil {
 		return err
 	}
 
@@ -778,14 +783,14 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 							iconv.ConvIDStr, conv.GetConvID())
 						iconv.Conv.Metadata.SupersededBy = append(iconv.Conv.Metadata.SupersededBy, conv.Metadata)
 						iconv.Conv.Metadata.Version = vers.ToConvVers()
-						if err := i.writeConv(ctx, uid, iconv); err != nil {
+						if err := i.writeConv(ctx, uid, iconv, false); err != nil {
 							return err
 						}
 					}
 				}
 			}
 		}
-		if err := i.writeConv(ctx, uid, utils.RemoteConv(conv)); err != nil {
+		if err := i.writeConv(ctx, uid, utils.RemoteConv(conv), false); err != nil {
 			return err
 		}
 		// only chat convs for layout changed
@@ -886,7 +891,7 @@ func (i *Inbox) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, 
 		return nil
 	}
 	conv.Conv.Metadata.LocalVersion++
-	return i.writeConv(ctx, uid, conv)
+	return i.writeConv(ctx, uid, conv, false)
 }
 
 func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -904,7 +909,7 @@ func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1
 		return nil
 	}
 	conv.LocalReadMsgID = msgID
-	return i.writeConv(ctx, uid, conv)
+	return i.writeConv(ctx, uid, conv, false)
 }
 
 func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -926,7 +931,7 @@ func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 	}
 	conv.LocalDraft = text
 	conv.Conv.Metadata.LocalVersion++
-	return true, i.writeConv(ctx, uid, conv)
+	return true, i.writeConv(ctx, uid, conv, false)
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -1017,7 +1022,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 		conv.Conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
 	conv.Conv.Metadata.Version = vers.ToConvVers()
-	if err := i.writeConv(ctx, uid, conv); err != nil {
+	if err := i.writeConv(ctx, uid, conv, false); err != nil {
 		return err
 	}
 
@@ -1069,7 +1074,7 @@ func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 			conv.Conv.ReaderInfo.ReadMsgid = msgID
 		}
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1113,7 +1118,7 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 		conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
 		conv.Conv.Metadata.Status = status
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1159,7 +1164,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
 		}
 		conv.Conv.Notifications.ChannelWide = settings.ChannelWide
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1213,7 +1218,7 @@ func (i *Inbox) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVe
 
 		i.Debug(ctx, "Expunge: setting max messages from server payload")
 		conv.Conv.MaxMsgSummaries = maxMsgs
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1260,7 +1265,7 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 		}
 		layoutConvs = append(layoutConvs, conv)
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1301,7 +1306,7 @@ func (i *Inbox) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat
 	} else {
 		conv.Conv.ConvRetention = &policy
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1345,7 +1350,7 @@ func (i *Inbox) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat
 	for _, conv := range convs {
 		conv.Conv.TeamRetention = &policy
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return res, err
 		}
 		res = append(res, conv.Conv.GetConvID())
@@ -1385,7 +1390,7 @@ func (i *Inbox) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1
 	} else {
 		conv.Conv.ConvSettings = convSettings
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1422,7 +1427,7 @@ func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers 
 		i.Debug(ctx, "UpgradeKBFSToImpteam: no conversation found: convID: %s", convID)
 	} else {
 		conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1462,7 +1467,7 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 		conv.Conv.Notifications = notifInfo
 		conv.Conv.Metadata.TeamType = teamType
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1506,7 +1511,7 @@ func (i *Inbox) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 		}
 		conv.Conv.Metadata.FinalizeInfo = &finalizeInfo
 		conv.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err
 		}
 	}
@@ -1616,14 +1621,14 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 			}
 			delete(convMap, oldConv.ConvIDStr)
 			oldConv.Conv = newConv
-			if err := i.writeConv(ctx, uid, oldConv); err != nil {
+			if err := i.writeConv(ctx, uid, oldConv, false); err != nil {
 				return res, err
 			}
 		}
 	}
 	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
 	for _, conv := range convMap {
-		if err := i.writeConv(ctx, uid, utils.RemoteConv(conv)); err != nil {
+		if err := i.writeConv(ctx, uid, utils.RemoteConv(conv), false); err != nil {
 			return res, err
 		}
 		iboxIndex.ConversationIDs = append(iboxIndex.ConversationIDs, conv.GetConvID())
@@ -1687,7 +1692,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	for _, uj := range userJoined {
 		i.Debug(ctx, "MembershipUpdate: joined conv: %s", uj.GetConvID())
 		conv := utils.RemoteConv(uj)
-		if err := i.writeConv(ctx, uid, conv); err != nil {
+		if err := i.writeConv(ctx, uid, conv, true); err != nil {
 			return nil, err
 		}
 		ujids = append(ujids, conv.GetConvID())
@@ -1756,7 +1761,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 			dirty = true
 		}
 		if dirty {
-			if err := i.writeConv(ctx, uid, conv); err != nil {
+			if err := i.writeConv(ctx, uid, conv, false); err != nil {
 				return nil, err
 			}
 		}
@@ -1804,7 +1809,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 			}
 		}
 		cp.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, cp); err != nil {
+		if err := i.writeConv(ctx, uid, cp, false); err != nil {
 			return nil, err
 		}
 	}
@@ -1821,7 +1826,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		}
 		cp.Conv.Metadata.AllList = newAllList
 		cp.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, cp); err != nil {
+		if err := i.writeConv(ctx, uid, cp, false); err != nil {
 			return nil, err
 		}
 	}
@@ -1836,7 +1841,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
 		}
 		cp.Conv.Metadata.Version = vers.ToConvVers()
-		if err := i.writeConv(ctx, uid, cp); err != nil {
+		if err := i.writeConv(ctx, uid, cp, false); err != nil {
 			return nil, err
 		}
 	}
@@ -1891,7 +1896,7 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 			layoutChanged = true
 		}
 		oldConv.Conv.Metadata.Existence = u.Existence
-		if err := i.writeConv(ctx, uid, oldConv); err != nil {
+		if err := i.writeConv(ctx, uid, oldConv, false); err != nil {
 			return err
 		}
 	}
@@ -1935,7 +1940,7 @@ func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 		}
 		oldConv.LocalMtime = u.Mtime
 		oldConv.Conv.Metadata.LocalVersion++
-		if err := i.writeConv(ctx, uid, oldConv); err != nil {
+		if err := i.writeConv(ctx, uid, oldConv, false); err != nil {
 			return err
 		}
 	}
