@@ -3,6 +3,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as PushConstants from '../../constants/push'
+import * as RouterConstants from '../../constants/router2'
 import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
@@ -896,6 +897,12 @@ const onSetAudioRecordingPostInfo = async (
   await AudioRecorder.startRecording()
 }
 
+const onPersistRoute = async () => {
+  await Container.timeoutPromise(1000)
+  const path = RouterConstants.getVisiblePath()
+  return ConfigGen.createPersistRoute({path})
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction(ConfigGen.mobileAppState, updateChangedFocus)
@@ -946,6 +953,7 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording)
   yield* Saga.chainAction(Chat2Gen.sendAudioRecording, onSendAudioRecording)
   yield* Saga.chainAction2(Chat2Gen.setAudioRecordingPostInfo, onSetAudioRecordingPostInfo)
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, onPersistRoute)
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

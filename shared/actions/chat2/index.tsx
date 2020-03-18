@@ -2461,15 +2461,6 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
       }),
     ]
   }
-
-  return [
-    ...(Constants.isSplit ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []),
-    RouteTreeGen.createClearModals(),
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
-      replace,
-    }),
-  ]
 }
 
 const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
@@ -3632,7 +3623,7 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   const wasID = p?.params?.conversationIDKey
   const isID = n?.params?.conversationIDKey
 
-  logger.info('maybeChangeChatSelection ', {wasChat, isChat, wasID, isID})
+  logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
 
   // same? should be impossible
   if (wasChat && isChat && wasID === isID) {
