@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	"github.com/keybase/client/go/chat/attachments"
@@ -73,6 +74,8 @@ func TestEmojiSourceBasic(t *testing.T) {
 	uimsg := utils.PresentMessageUnboxed(ctx, tc.Context(), msg, uid, conv.Id)
 	require.True(t, uimsg.IsValid())
 	require.NotNil(t, uimsg.Valid().DecoratedTextBody)
+	checker := regexp.MustCompile(utils.ServiceDecorationPrefix)
+	require.True(t, checker.Match([]byte(*uimsg.Valid().DecoratedTextBody)))
 }
 
 type emojiTestCase struct {
