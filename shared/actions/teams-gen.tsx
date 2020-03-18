@@ -151,7 +151,7 @@ type _DeleteChannelConfirmedPayload = {
 }
 type _DeleteMultiChannelsConfirmedPayload = {
   readonly teamID: Types.TeamID
-  readonly channels: Set<ChatTypes.ConversationIDKey>
+  readonly channels: Array<ChatTypes.ConversationIDKey>
 }
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {

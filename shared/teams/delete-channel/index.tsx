@@ -43,13 +43,12 @@ const DeleteChannel = (props: Props) => {
     deleteMsg = `#${channelnames[0]}`
   } else if (channelnames.length == 2) {
     deleteMsg = `#${channelnames[0]} and #${channelnames[1]}`
-  } else if (channelnames.length == 3) {
-    deleteMsg = `#${channelnames[0]}, #${channelnames[1]} and #${channelnames[2]}`
   } else {
-    const numOtherChans = channelnames.length - 3
-    deleteMsg = `#${channelnames[0]}, #${channelnames[1]}, #${
-      channelnames[2]
-    } and ${numOtherChans} other ${pluralize('channel', numOtherChans)}`
+    const numOtherChans = channelnames.length - 2
+    deleteMsg = `#${channelnames[0]}, #${channelnames[1]} and ${numOtherChans} other ${pluralize(
+      'channel',
+      numOtherChans
+    )}`
   }
 
   const dispatch = Container.useDispatch()
@@ -58,7 +57,7 @@ const DeleteChannel = (props: Props) => {
   const onDelete = () => {
     dispatch(
       TeamsGen.createDeleteMultiChannelsConfirmed({
-        channels: channelIDs,
+        channels: Array.from(channelIDs.values()),
         teamID,
       })
     )

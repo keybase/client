@@ -292,7 +292,7 @@
     },
     "deleteMultiChannelsConfirmed": {
       "teamID": "Types.TeamID",
-      "channels": "Set<ChatTypes.ConversationIDKey>"
+      "channels": "Array<ChatTypes.ConversationIDKey>"
     },
     "checkRequestedAccess": {
       "teamname": "string"
