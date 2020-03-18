@@ -8769,10 +8769,9 @@ memory-fs@^0.4.0, memory-fs@^0.4.1:
     errno "^0.1.3"
     readable-stream "^2.0.1"
 
-menubar@6.0.8:
+"menubar@git://github.com/keybase/menubar#keybase-fixes-off-v6.0.8":
   version "6.0.8"
-  resolved "https://registry.yarnpkg.com/menubar/-/menubar-6.0.8.tgz#deff4b4227c73149f6316c481accb1486e7c9e7f"
-  integrity sha512-S02SLiqec8MAUbV2vsUThh0P9XPKS9mrHVN3c/6T1g+tuHwFX7TRup3xCAjIGCO+Hxs32tWmjqVh4KjBGIXudQ==
+  resolved "git://github.com/keybase/menubar#da695906375ad4799a5b28f4667051dec926fd19"
   dependencies:
     electron-positioner "^4.1.0"
 
