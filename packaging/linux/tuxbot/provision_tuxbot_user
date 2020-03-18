@@ -24,3 +24,4 @@ systemctl --user enable --now keybase.service kbfs.service
 
 # clone for the build
 git clone https://github.com/keybase/client.git "$HOME/client"
+git -C "$HOME/client" checkout surya/vagranttuxbot

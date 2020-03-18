@@ -452,7 +452,6 @@ func main() {
 	infoChannel := flag.String("info-channel", os.Getenv("CHAT_CHANNEL"), "channel name to info to")
 	dockerUsername := flag.String("docker-username", os.Getenv("DOCKERHUB_USERNAME"), "docker hub bot username")
 	dockerPassword := flag.String("docker-password", os.Getenv("DOCKERHUB_PASSWORD"), "docker hub bot password")
-	archiveTeam := flag.String("info-team", os.Getenv("CHAT_TEAM"), "team name to archive to")
 	flag.Parse()
 
 	fmt.Println("Initializing...")
@@ -483,7 +482,7 @@ func main() {
 		dockerUsername: *dockerUsername,
 		dockerPassword: *dockerPassword,
 
-		archiveTeam: *archiveTeam,
+		archiveTeam: *infoTeam,
 	}
 
 	if err := chatbot.Listen(tuxbot); err != nil {
