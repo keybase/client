@@ -210,7 +210,13 @@ const VanillaTabNavigator = createBottomTabNavigator(
             <Kb.Text
               // @ts-ignore expecting a literal color, not a getter
               style={{
-                color: focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack,
+                color: Styles.isDarkMode()
+                  ? focused
+                    ? Styles.globalColors.black
+                    : Styles.globalColors.black_50
+                  : focused
+                  ? Styles.globalColors.white
+                  : Styles.globalColors.blueLighter,
                 marginLeft: Styles.globalMargins.medium,
               }}
               type="BodyBig"
