@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-set -euox pipefail
-
-keybase login -u tuxbot
