@@ -524,6 +524,11 @@ type UIRouter interface {
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
 
+	// WaitForUIType returns true if a UI of the specified type is registered,
+	// or waits until timeout for such UI to register and returns false if this
+	// does not happen.
+	WaitForUIType(uiKind UIKind, timeout time.Duration) bool
+
 	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()
 }
