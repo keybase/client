@@ -36,6 +36,16 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [CryptoGen.resetStore]: () => {
     return initialState
   },
+  [CryptoGen.resetOperation]: (draftState, action) => {
+    const {operation} = action.payload
+
+    if (operationGuard(operation, action)) return
+
+    return {
+      ...draftState,
+      [operation]: initialState[operation],
+    }
+  },
   [CryptoGen.clearInput]: (draftState, action) => {
     const {operation} = action.payload
 

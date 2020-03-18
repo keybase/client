@@ -60,26 +60,33 @@ export const EncryptOutputBanner = () => {
     ? ` Only ${recipients?.length > 1 ? youAnd('your recipients') : youAnd(recipients[0])} can decipher it.`
     : ''
 
-  return (
-    <OutputInfoBanner operation={operation}>
+  const paragraphs: Array<React.ReactElement<typeof Kb.BannerParagraph>> = []
+  paragraphs.push(
+    <Kb.BannerParagraph
+      key="saltpackDisclaimer"
+      bannerColor="grey"
+      content={[
+        `This is your encrypted ${outputType === 'file' ? 'file' : 'message'}, using `,
+        {
+          onClick: () => openURL(Constants.saltpackDocumentation),
+          text: 'Saltpack',
+        },
+        '.',
+        outputType == 'text' ? " It's also called ciphertext." : '',
+      ]}
+    />
+  )
+  if (hasRecipients) {
+    paragraphs.push(
       <Kb.BannerParagraph
-        bannerColor="grey"
-        content={[
-          `This is your encrypted ${outputType === 'file' ? 'file' : 'message'}, using `,
-          {
-            onClick: () => openURL(Constants.saltpackDocumentation),
-            text: 'Saltpack',
-          },
-          '.',
-          outputType == 'text' ? " It's also called ciphertext." : '',
-        ]}
-      />
-      <Kb.BannerParagraph
+        key="whoCanRead"
         bannerColor="grey"
         content={[hasRecipients ? ' Share it however you like.' : null, whoCanRead]}
       />
-    </OutputInfoBanner>
-  )
+    )
+  }
+
+  return <OutputInfoBanner operation={operation}>{paragraphs}</OutputInfoBanner>
 }
 
 const styles = Styles.styleSheetCreate(

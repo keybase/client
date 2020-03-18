@@ -1,5 +1,7 @@
 import * as React from 'react'
+import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/crypto'
+import * as CryptoGen from '../../../actions/crypto-gen'
 import * as Kb from '../../../common-adapters'
 import Recipients from '../../recipients'
 import {Input, OperationBanner, InputActionsBar} from '../../input'
@@ -9,6 +11,13 @@ import {EncryptOptions, EncryptOutputBanner} from './common'
 const operation = Constants.Operations.Encrypt
 
 export const EncryptInput = () => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    return () => {
+      dispatch(CryptoGen.createResetOperation({operation}))
+    }
+  }, [dispatch])
+
   return (
     <>
       <OperationBanner operation={operation} />
