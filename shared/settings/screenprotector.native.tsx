@@ -1,6 +1,6 @@
-import React, {Component} from 'react'
-import {globalStyles, globalMargins} from '../styles'
-import {Box, Text, Checkbox, HeaderHoc} from '../common-adapters'
+import * as React from 'react'
+import * as Styles from '../styles'
+import * as Kb from '../common-adapters'
 import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
 import {isAndroid} from '../constants/platform'
 
@@ -8,9 +8,9 @@ type State = {
   secureFlag: boolean
 }
 
-class Screenprotector extends Component<{}, State> {
+class Screenprotector extends React.Component<{}, State> {
   state: State = {secureFlag: false}
-  mounted = false
+  private mounted = false
 
   componentWillUnmount() {
     this.mounted = false
@@ -33,29 +33,31 @@ class Screenprotector extends Component<{}, State> {
 
   render() {
     if (!isAndroid) {
-      return <Text type="Body">Screenprotector is only supported on Android</Text>
+      return <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
     }
 
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'stretch',
-          flex: 1,
-          justifyContent: 'flex-start',
-          marginLeft: globalMargins.medium,
-          marginRight: globalMargins.medium,
-          marginTop: globalMargins.medium,
-        }}
-      >
-        <Checkbox
+      <Kb.Box style={styles.container}>
+        <Kb.Checkbox
           label="Disable App switcher preview and screenshots"
           onCheck={this._changeSecureFlagOption}
           checked={this.state.secureFlag}
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }
 
-export default HeaderHoc(Screenprotector)
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    flex: 1,
+    justifyContent: 'flex-start',
+    marginLeft: Styles.globalMargins.medium,
+    marginRight: Styles.globalMargins.medium,
+    marginTop: Styles.globalMargins.medium,
+  },
+}))
+
+export default Screenprotector
