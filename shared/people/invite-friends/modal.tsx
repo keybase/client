@@ -100,6 +100,8 @@ const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
   <Kb.MobilePopup>
     <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
       <Kb.Text type="Header">Share a link to Keybase</Kb.Text>
+      <Kb.CopyText text={shareURL} shareSheet={true} />
+      <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={onClose} />
     </Kb.Box2>
   </Kb.MobilePopup>
 )

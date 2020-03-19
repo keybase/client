@@ -50,7 +50,7 @@ const Toast = (props: Props) => {
     return noop
   }, [shouldRender])
   return shouldRender ? (
-    <Kb.FloatingBox>
+    <Kb.FloatingBox dest="keyboard-avoiding-root">
       <Kb.Box pointerEvents="none" style={styles.wrapper}>
         <NativeAnimated.View
           style={Styles.collapseStyles([

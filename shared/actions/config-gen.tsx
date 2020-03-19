@@ -157,7 +157,11 @@ type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
-type _ShowShareActionSheetPayload = {readonly filePath: string; readonly mimeType: string}
+type _ShowShareActionSheetPayload = {
+  readonly filePath?: string
+  readonly message?: string
+  readonly mimeType: string
+}
 type _StartHandshakePayload = void
 type _ToggleRuntimeStatsPayload = void
 type _UpdateCriticalCheckStatusPayload = {
