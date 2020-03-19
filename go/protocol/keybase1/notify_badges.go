@@ -87,7 +87,7 @@ type BadgeState struct {
 	UnverifiedPhones          int                     `codec:"unverifiedPhones" json:"unverifiedPhones"`
 	SmallTeamBadgeCount       int                     `codec:"smallTeamBadgeCount" json:"smallTeamBadgeCount"`
 	BigTeamBadgeCount         int                     `codec:"bigTeamBadgeCount" json:"bigTeamBadgeCount"`
-	NewTeamAccessRequests     int                     `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
+	NewTeamAccessRequestCount int                     `codec:"newTeamAccessRequestCount" json:"newTeamAccessRequestCount"`
 	NewDevices                []DeviceID              `codec:"newDevices" json:"newDevices"`
 	RevokedDevices            []DeviceID              `codec:"revokedDevices" json:"revokedDevices"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
@@ -101,16 +101,16 @@ type BadgeState struct {
 
 func (o BadgeState) DeepCopy() BadgeState {
 	return BadgeState{
-		NewTlfs:               o.NewTlfs,
-		RekeysNeeded:          o.RekeysNeeded,
-		NewFollowers:          o.NewFollowers,
-		InboxVers:             o.InboxVers,
-		HomeTodoItems:         o.HomeTodoItems,
-		UnverifiedEmails:      o.UnverifiedEmails,
-		UnverifiedPhones:      o.UnverifiedPhones,
-		SmallTeamBadgeCount:   o.SmallTeamBadgeCount,
-		BigTeamBadgeCount:     o.BigTeamBadgeCount,
-		NewTeamAccessRequests: o.NewTeamAccessRequests,
+		NewTlfs:                   o.NewTlfs,
+		RekeysNeeded:              o.RekeysNeeded,
+		NewFollowers:              o.NewFollowers,
+		InboxVers:                 o.InboxVers,
+		HomeTodoItems:             o.HomeTodoItems,
+		UnverifiedEmails:          o.UnverifiedEmails,
+		UnverifiedPhones:          o.UnverifiedPhones,
+		SmallTeamBadgeCount:       o.SmallTeamBadgeCount,
+		BigTeamBadgeCount:         o.BigTeamBadgeCount,
+		NewTeamAccessRequestCount: o.NewTeamAccessRequestCount,
 		NewDevices: (func(x []DeviceID) []DeviceID {
 			if x == nil {
 				return nil

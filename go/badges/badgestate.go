@@ -172,7 +172,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.RevokedDevices = []keybase1.DeviceID{}
 	b.state.NewTeams = nil
 	b.state.DeletedTeams = nil
-	b.state.NewTeamAccessRequests = 0
+	b.state.NewTeamAccessRequestCount = 0
 	b.state.HomeTodoItems = 0
 	b.state.TeamsWithResetUsers = nil
 	b.state.ResetState = keybase1.ResetState{}
@@ -194,7 +194,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		}
 		category := categoryObj.String()
 		if strings.HasPrefix(category, "team.request_access:") {
-			b.state.NewTeamAccessRequests++
+			b.state.NewTeamAccessRequestCount++
 			continue
 		}
 		switch category {

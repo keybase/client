@@ -795,7 +795,7 @@ func TestGregorTeamBadges(t *testing.T) {
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, len(bs.NewTeams), "one new team name")
 	require.Equal(t, teamID, bs.NewTeams[0])
-	require.Equal(t, 1, bs.NewTeamAccessRequests, "one team access request")
+	require.Equal(t, 1, bs.NewTeamAccessRequestCount, "one team access request")
 	require.Equal(t, 1, len(bs.TeamsWithResetUsers), "one team member out due to reset")
 	require.Equal(t, "teamname", bs.TeamsWithResetUsers[0].Teamname)
 	require.Equal(t, "alice", bs.TeamsWithResetUsers[0].Username)

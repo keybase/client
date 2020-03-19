@@ -134,7 +134,7 @@
         },
         {
           "type": "int",
-          "name": "newTeamAccessRequests"
+          "name": "newTeamAccessRequestCount"
         },
         {
           "type": {

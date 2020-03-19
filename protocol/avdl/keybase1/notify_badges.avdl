@@ -41,7 +41,7 @@ protocol NotifyBadges {
     int unverifiedPhones;
     int smallTeamBadgeCount;
     int bigTeamBadgeCount;
-    int newTeamAccessRequests;
+    int newTeamAccessRequestCount;
 
     array<DeviceID> newDevices;
     array<DeviceID> revokedDevices;

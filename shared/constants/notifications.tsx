@@ -7,7 +7,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
   const deletedTeams = bs.deletedTeams ?? []
   const newDevices = bs.newDevices ?? []
   const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs ?? []
-  const newTeamAccessRequests = bs.newTeamAccessRequests ?? 0
+  const newTeamAccessRequestCount = bs.newTeamAccessRequestCount ?? 0
   const newTeams = bs.newTeams ?? []
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
@@ -35,7 +35,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
   counts.set(
     Tabs.teamsTab,
-    newTeams.length + newTeamAccessRequests + teamsWithResetUsers.length + deletedTeams.length
+    newTeams.length + newTeamAccessRequestCount + teamsWithResetUsers.length + deletedTeams.length
   )
   counts.set(Tabs.settingsTab, unverifiedEmails + unverifiedPhones)
 
