@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -42,6 +43,7 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	alias, filename string) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
 	var stored chat1.EmojiStorage
+	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
 	storage := s.makeStorage()
 	_, storageConv, err := storage.Get(ctx, uid, convID, s.topicName(), &stored, true)
 	if err != nil {
