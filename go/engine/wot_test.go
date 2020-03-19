@@ -198,6 +198,13 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Len(t, vouches, 1)
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, vouches[0].Status)
 	t.Log("alice sees charlie's pending vouch")
+
+	// alice gets same results using FetchMyWotByUser and FetchUserWotByUser where vouchee=alice
+	vouches, err = libkb.FetchUserWotByVoucher(mctxA, alice.User.GetName(), charlie.User.GetName())
+	require.NoError(t, err)
+	require.Len(t, vouches, 1)
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, vouches[0].Status)
+	t.Log("alice sees charlie's pending vouch")
 }
 
 func TestWebOfTrustAccept(t *testing.T) {
