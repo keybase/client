@@ -170,7 +170,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			return fmt.Errorf("locked by another command; aborting")
 		}
 
-		err = makeCmd(currentUser, "git", "checkout", "-f", "master").Run()
+		err = makeCmd(currentUser, "git", "checkout", "-f", "surya/even-more-vagrant").Run()
 		if err != nil {
 			return err
 		}
@@ -202,7 +202,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				cmd.Env = append(cmd.Env, "KEYBASE_RELEASE=1")
 			}
 			val, ok := os.LookupEnv("KEYBASE_TEST_CODE_SIGNING_KEY")
-			if ok {
+			if ok && val == "1" {
 				cmd.Env = append(cmd.Env, "KEYBASE_TEST_CODE_SIGNING_KEY="+val)
 			}
 			err = cmd.Run()
