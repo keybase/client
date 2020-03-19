@@ -1,10 +1,11 @@
 import * as React from 'react'
-import * as TeamsTypes from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import {useAllChannelMetas} from '../common/channel-hooks'
-import {pluralize} from '../../util/string'
+import * as Constants from '../../../constants/teams'
+import * as TeamsTypes from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as Kb from '../../../common-adapters'
+import * as Container from '../../../util/container'
+import {useAllChannelMetas} from '../../common/channel-hooks'
+import {pluralize} from '../../../util/string'
 
 type Props = Container.RouteProps<{
   teamID: TeamsTypes.TeamID
@@ -56,17 +57,17 @@ const DeleteChannel = (props: Props) => {
 
   const onDelete = () => {
     dispatch(
-      TeamsGen.createDeleteMultiChannelsConfirmed({
-        channels: Array.from(channelIDs.values()),
-        teamID,
-      })
-    )
-    dispatch(
       TeamsGen.createSetChannelSelected({
         channel: '',
         clearAll: true,
         selected: false,
         teamID: teamID,
+      })
+    )
+    dispatch(
+      TeamsGen.createDeleteMultiChannelsConfirmed({
+        channels: Array.from(channelIDs.values()),
+        teamID,
       })
     )
   }
@@ -81,6 +82,7 @@ const DeleteChannel = (props: Props) => {
       onCancel={onClose}
       onConfirm={onDelete}
       prompt={`Delete ${deleteMsg}?`}
+      waitingKey={Constants.deleteChannelWaitingKey(teamID)}
     />
   )
 }
