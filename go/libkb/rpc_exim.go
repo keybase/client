@@ -628,6 +628,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ChatBadConversationError{
 			Msg: msg,
 		}
+	case SCChatTypingDisabledError:
+		return ChatTypingDisabledError{}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -2244,6 +2246,13 @@ func (e ChatBadConversationError) ToStatus() keybase1.Status {
 				Value: e.Msg,
 			},
 		},
+	}
+}
+
+func (e ChatTypingDisabledError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatTypingDisabledError,
+		Name: "SC_CHAT_TYPING_DISABLED_ERROR",
 	}
 }
 

@@ -2199,6 +2199,14 @@ func (e ChatUsersAlreadyInConversationError) Error() string {
 
 //=============================================================================
 
+type ChatTypingDisabledError struct{}
+
+func (e ChatTypingDisabledError) Error() string {
+	return fmt.Sprintf("Typing is globally disabled")
+}
+
+//=============================================================================
+
 type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {

@@ -339,6 +339,7 @@ const (
 	SCChatClientError                           = int(keybase1.StatusCode_SCChatClientError)
 	SCChatUsersAlreadyInConversationError       = int(keybase1.StatusCode_SCChatUsersAlreadyInConversationError)
 	SCChatBadConversationError                  = int(keybase1.StatusCode_SCChatBadConversationError)
+	SCChatTypingDisabledError                   = int(keybase1.StatusCode_SCChatTypingDisabledError)
 	SCAccountReset                              = int(keybase1.StatusCode_SCAccountReset)
 	SCIdentifiesFailed                          = int(keybase1.StatusCode_SCIdentifiesFailed)
 	SCTeamReadError                             = int(keybase1.StatusCode_SCTeamReadError)

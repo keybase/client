@@ -150,6 +150,7 @@ const (
 	StatusCode_SCChatEphemeralRetentionPolicyViolatedError StatusCode = 2519
 	StatusCode_SCChatUsersAlreadyInConversationError       StatusCode = 2520
 	StatusCode_SCChatBadConversationError                  StatusCode = 2521
+	StatusCode_SCChatTypingDisabledError                   StatusCode = 2522
 	StatusCode_SCTeamBadMembership                         StatusCode = 2604
 	StatusCode_SCTeamSelfNotOwner                          StatusCode = 2607
 	StatusCode_SCTeamNotFound                              StatusCode = 2614
@@ -399,6 +400,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatEphemeralRetentionPolicyViolatedError": 2519,
 	"SCChatUsersAlreadyInConversationError":       2520,
 	"SCChatBadConversationError":                  2521,
+	"SCChatTypingDisabledError":                   2522,
 	"SCTeamBadMembership":                         2604,
 	"SCTeamSelfNotOwner":                          2607,
 	"SCTeamNotFound":                              2614,
@@ -646,6 +648,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2519: "SCChatEphemeralRetentionPolicyViolatedError",
 	2520: "SCChatUsersAlreadyInConversationError",
 	2521: "SCChatBadConversationError",
+	2522: "SCChatTypingDisabledError",
 	2604: "SCTeamBadMembership",
 	2607: "SCTeamSelfNotOwner",
 	2614: "SCTeamNotFound",

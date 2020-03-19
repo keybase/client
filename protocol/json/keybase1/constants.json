@@ -145,6 +145,7 @@
         "SCChatEphemeralRetentionPolicyViolatedError_2519",
         "SCChatUsersAlreadyInConversationError_2520",
         "SCChatBadConversationError_2521",
+        "SCChatTypingDisabledError_2522",
         "SCTeamBadMembership_2604",
         "SCTeamSelfNotOwner_2607",
         "SCTeamNotFound_2614",
