@@ -15,15 +15,14 @@ const InviteFriends = () => {
   const onInviteFriends = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{selected: 'inviteFriendsModal'}]}))
 
-  const {popup, popupAnchor, toggleShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
-    <InviteHow attachTo={getAttachmentRef} visible={showingPopup} onHidden={toggleShowingPopup} />
+  const {popup, toggleShowingPopup, showingPopup} = Kb.usePopup(() => (
+    <InviteHow visible={showingPopup} onHidden={toggleShowingPopup} />
   ))
   const inviteButton = (
     <Kb.Button
       small={true}
       label="Invite friends"
       onClick={Styles.isMobile ? toggleShowingPopup : onInviteFriends}
-      ref={Styles.isMobile ? popupAnchor : undefined}
     />
   )
   const inviteCounter = (

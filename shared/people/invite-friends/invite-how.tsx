@@ -2,7 +2,10 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 
-type Props = Pick<React.ComponentProps<typeof Kb.FloatingMenu>, 'attachTo' | 'visible' | 'onHidden'>
+type Props = {
+  visible: boolean
+  onHidden: () => void
+}
 const InviteHow = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

@@ -9,7 +9,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   connectThrashCheck: false,
   foldersInProfileTab: false,
-  inviteFriends: true,
+  inviteFriends: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   tabletSupport: true,
