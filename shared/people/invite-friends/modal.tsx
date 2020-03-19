@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import {usePhoneNumberList} from '../../teams/common'
 
-const InviteFriends = () => {
+const InviteFriendsModal = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
@@ -95,4 +95,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default InviteFriends
+export default InviteFriendsModal
