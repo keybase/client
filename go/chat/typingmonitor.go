@@ -10,7 +10,9 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
 )
 
@@ -188,4 +190,91 @@ func (t *TypingMonitor) waitOnTyper(ctx context.Context, chans *typingControlCha
 			}
 		}
 	}()
+}
+
+type notificationSettingsCache struct {
+	UID      gregor1.UID
+	Settings chat1.GlobalAppNotificationSettings
+}
+
+type TypingUpdater struct {
+	sync.Mutex
+	globals.Contextified
+	utils.DebugLabeler
+
+	cache *notificationSettingsCache
+}
+
+func NewTypingUpdater(g *globals.Context) *TypingUpdater {
+	return &TypingUpdater{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "TypingUpdater", false),
+	}
+}
+
+func (u *TypingUpdater) ClearCache(ctx context.Context, uid gregor1.UID) {
+	defer u.Trace(ctx, func() error { return nil }, "ClearCache")()
+	u.Lock()
+	defer u.Unlock()
+	u.cache = nil
+}
+
+func (u *TypingUpdater) typingEnabled(ctx context.Context, uid gregor1.UID, ri func() chat1.RemoteInterface) bool {
+	u.Lock()
+	defer u.Unlock()
+	if u.cache == nil || !u.cache.UID.Eq(uid) {
+		settings, err := getGlobalAppNotificationSettings(ctx, u.G(), ri)
+		if err != nil {
+			u.Debug(ctx, "typingEnabled: unable to get notification settings: %s", err)
+			return false
+		}
+		u.updateCacheLocked(ctx, uid, settings)
+	}
+	return !u.cache.Settings.Settings[chat1.GlobalAppNotificationSetting_DISABLETYPING]
+}
+
+func (u *TypingUpdater) UpdateCache(ctx context.Context, uid gregor1.UID, settings chat1.GlobalAppNotificationSettings) {
+	defer u.Trace(ctx, func() error { return nil }, "UpdateCache")()
+	u.Lock()
+	defer u.Unlock()
+	u.updateCacheLocked(ctx, uid, settings)
+}
+
+func (u *TypingUpdater) updateCacheLocked(ctx context.Context, uid gregor1.UID, settings chat1.GlobalAppNotificationSettings) {
+	cache := notificationSettingsCache{
+		UID:      uid,
+		Settings: settings,
+	}
+	u.cache = &cache
+}
+
+func (u *TypingUpdater) UpdateTyping(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, typing bool, ri func() chat1.RemoteInterface) error {
+	// Just bail out if we are offline
+	if !u.G().Syncer.IsConnected(ctx) {
+		return nil
+	}
+	// user has typing disabled, bail.
+	if !u.typingEnabled(ctx, uid, ri) {
+		return nil
+	}
+	deviceID := make([]byte, libkb.DeviceIDLen)
+	if err := u.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
+		u.Debug(ctx, "UpdateTyping: failed to get device: %s", err)
+		return nil
+	}
+	err := ri().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
+		Uid:      uid,
+		DeviceID: deviceID,
+		ConvID:   convID,
+		Typing:   typing,
+	})
+
+	switch err.(type) {
+	case nil:
+	case libkb.ChatTypingDisabledError:
+		u.ClearCache(ctx, uid)
+	default:
+		u.Debug(ctx, "UpdateTyping: failed to hit the server: %s", err)
+	}
+	return nil
 }

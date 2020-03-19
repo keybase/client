@@ -45,6 +45,7 @@ type Server struct {
 	uiSource      UISource
 	boxer         *Boxer
 	identNotifier types.IdentifyNotifier
+	typingUpdater *TypingUpdater
 
 	searchMu            sync.Mutex
 	searchInboxMu       sync.Mutex
@@ -71,6 +72,7 @@ func NewServer(g *globals.Context, serverConn types.ServerConnection, uiSource U
 		serverConn:                        serverConn,
 		uiSource:                          uiSource,
 		boxer:                             NewBoxer(g),
+		typingUpdater:                     NewTypingUpdater(g),
 		identNotifier:                     NewCachingIdentifyNotifier(g),
 		fileAttachmentDownloadCacheDir:    g.GetEnv().GetCacheDir(),
 		fileAttachmentDownloadDownloadDir: g.GetEnv().GetDownloadsDir(),
@@ -1497,22 +1499,8 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		h.Debug(ctx, "UpdateTyping: not logged in: %s", err)
 		return nil
 	}
-	// Just bail out if we are offline
-	if !h.G().Syncer.IsConnected(ctx) {
-		return nil
-	}
-	deviceID := make([]byte, libkb.DeviceIDLen)
-	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
-		h.Debug(ctx, "UpdateTyping: failed to get device: %s", err)
-		return nil
-	}
-	if err := h.remoteClient().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
-		Uid:      uid,
-		DeviceID: deviceID,
-		ConvID:   arg.ConversationID,
-		Typing:   arg.Typing,
-	}); err != nil {
-		h.Debug(ctx, "UpdateTyping: failed to hit the server: %s", err.Error())
+	if err := h.typingUpdater.UpdateTyping(ctx, uid, arg.ConversationID, arg.Typing, h.remoteClient); err != nil {
+		h.Debug(ctx, "UpdateTyping: failed: %s", err)
 	}
 	return nil
 }
@@ -1836,10 +1824,16 @@ func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
 	strSettings map[string]bool) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetGlobalAppNotificationSettings")()
-	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return err
 	}
-	return setGlobalAppNotificationSettings(ctx, h.G(), h.remoteClient, strSettings)
+	settings, err := setGlobalAppNotificationSettings(ctx, h.G(), h.remoteClient, strSettings)
+	if err != nil {
+		return err
+	}
+	h.typingUpdater.UpdateCache(ctx, uid, settings)
+	return nil
 }
 
 func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res chat1.GlobalAppNotificationSettings, err error) {

@@ -54,9 +54,8 @@ func getGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 }
 
 func setGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface,
-	strSettings map[string]bool) error {
+	strSettings map[string]bool) (settings chat1.GlobalAppNotificationSettings, err error) {
 
-	var settings chat1.GlobalAppNotificationSettings
 	settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
 	for k, v := range strSettings {
 		key, err := strconv.Atoi(k)
@@ -70,14 +69,14 @@ func setGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 		switch gkey {
 		case chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
 			if err := setPlaintextDesktopDisabled(ctx, g, !v); err != nil {
-				return err
+				return settings, err
 			}
 		default:
 			settings.Settings[gkey] = v
 		}
 	}
 	if len(settings.Settings) == 0 {
-		return nil
+		return settings, nil
 	}
-	return ri().SetGlobalAppNotificationSettings(ctx, settings)
+	return settings, ri().SetGlobalAppNotificationSettings(ctx, settings)
 }
