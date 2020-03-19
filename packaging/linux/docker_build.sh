@@ -82,7 +82,7 @@ fi
 echo "ZZZ $KEYBASE_TEST_CODE_SIGNING_KEY"
 
 echo '=== docker ==='
-sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
+docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$gpg_tempdir:/GPG" \
