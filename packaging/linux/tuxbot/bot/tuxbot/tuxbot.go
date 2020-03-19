@@ -426,7 +426,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(os.Environ())
 
 	keybaseBinaryPath := flag.String("keybase-bin-path", "keybase", "the location of the keybase app")
 	botName := flag.String("bot-name", "tuxbot", "the name of this bot")
