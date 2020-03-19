@@ -7,24 +7,20 @@ import * as TeamConstants from '../../../constants/teams'
 import {InfoPanel, Panel} from '.'
 
 type Props = {
-  loadDelay?: number
-  conversationIDKey: Types.ConversationIDKey
-  onBack?: () => void
-  onCancel?: () => void
-  onSelectTab: (t: Panel) => void
-  selectedTab: Panel | null
-  navigation: any
+  conversationIDKey?: Types.ConversationIDKey
+  navigation?: any
 }
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = Container.useSelector(state => state.chat2.infoPanelSelectedTab)
   const initialTab =
+    // @ts-ignore
     typeof props.navigation !== 'undefined' ? Container.getRouteProps(props, 'tab', null) : storeSelectedTab
 
   // TODO removed in other PR
   const storeID = Container.useSelector(state => state.chat2.selectedConversation)
   // @ts-ignore
-  let conversationIDKey: Types.ConversationIDKey =
+  const conversationIDKey: Types.ConversationIDKey =
     typeof props.navigation !== 'undefined'
       ? Container.getRouteProps(props as any, 'conversationIDKey', Constants.noConversationIDKey)
       : storeID
