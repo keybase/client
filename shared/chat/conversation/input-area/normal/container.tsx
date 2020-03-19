@@ -122,7 +122,7 @@ const getConversationNameForInput = (
     return meta.channelname ? `${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
   }
   if (meta.teamType === 'small') {
-    return meta.teamname ? `${meta.teamname}` : ''
+    return meta.teamname ?? ''
   }
   if (meta.teamType === 'adhoc') {
     const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
