@@ -257,7 +257,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		return err
 	}
 	kbSvc.SetupChatModules(nil)
-	kbSvc.SetInstallReferrerListener(newInstallReferrerListener(installReferrerListener))
+	if installReferrerListener != nil {
+		kbSvc.SetInstallReferrerListener(newInstallReferrerListener(installReferrerListener))
+	}
 	kbSvc.RunBackgroundOperations(uir)
 	kbChatCtx = kbSvc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
