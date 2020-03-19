@@ -23,6 +23,8 @@ cp /S3CMD/.s3cfg ~
 # other than the current user. Cloning repos below will test these credentials.
 cp -r /SSH ~/.ssh
 
+env
+
 # Import the code signing key, kick off the gpg agent, and sign an empty
 # message with it. This makes the password prompt happen now, so that we don't
 # interrupt the build later.
