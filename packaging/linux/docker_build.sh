@@ -51,7 +51,7 @@ mkdir "$work_dir"  # no -p, it's intentionally an error if this exists
 # because the host might have a different GnuPG version than the container, and
 # GnuPG 2.1 broke back-compat. Sigh. As with S3 above, we need to share the key
 # in a directory rather than just a file, for non-Linux support.
-code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
+code_signing_fingerprint="$("$here/fingerprint.sh")"
 echo "Exporting the Keybase code signing key ($code_signing_fingerprint)..."
 gpg_tempdir="$(mktemp -d)"
 gpg_tempfile="$gpg_tempdir/code_signing_key"
@@ -88,6 +88,7 @@ sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e KEYBASE_RELEASE \
   -e KEYBASE_NIGHTLY \
   -e KEYBASE_TEST \
+  -e KEYBASE_TEST_CODE_SIGNING_FINGERPRINT \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

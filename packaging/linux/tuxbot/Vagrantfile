@@ -2,6 +2,10 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/eoan64"
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "24576"
+
+    # speed up boot (adapted from https://bugs.launchpad.net/cloud-images/+bug/1829625)
+    vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+    vb.customize ["modifyvm", :id, "--uartmode1", "file", "/dev/null"]
   end
   config.vm.provision "shell", path: "provision_tuxbot_root", privileged: true
   config.vm.provision "shell", path: "provision_tuxbot_user", privileged: false
@@ -18,5 +22,5 @@ Vagrant.configure("2") do |config|
     destination: "~/tuxbot.env",
     run: "always"
   config.vm.synced_folder ".", "/vagrant"
-  config.vm.provision "shell", path: "provision_tuxbot_env", privileged: false, run: "always"
+  config.vm.provision "shell", path: "provision_tuxbot_env", privileged: true, run: "always"
 end
