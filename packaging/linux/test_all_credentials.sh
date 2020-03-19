@@ -21,7 +21,7 @@ git ls-remote aur:keybase-git > /dev/null
 git ls-remote aur:keybase-bin > /dev/null
 
 echo 'Checking the GPG code signing key...'
-fingerprint="$(cat "$here/code_signing_fingerprint")"
+fingerprint="$("$here/fingerprint.sh")"
 gpg --sign --use-agent --local-user="$fingerprint" <<< "junk" > /dev/null
 
 echo "SUCCESS!"

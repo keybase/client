@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euox pipefail
 
-cat /home/vagrant/env > /etc/environment
+# shellcheck disable=SC1090
+cat /home/vagrant/tuxbot.env > /etc/environment
+
 echo "[Manager]" > /etc/systemd/user.conf
-cat /home/vagrant/env >> /etc/systemd/user.conf
-rm /home/vagrant/env
+echo "DefaultEnvironment=$(xargs < /home/vagrant/tuxbot.env)" >> /etc/systemd/user.conf

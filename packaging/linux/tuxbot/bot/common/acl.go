@@ -5,7 +5,7 @@ import (
 	"github.com/keybase/go-keybase-chat-bot/kbchat/types/chat1"
 )
 
-var self access.Username = "flutebot"
+var self access.Username = "tuxbot"
 
 var tuxbotAdmins = []access.Username{self, "mikem", "modalduality",
 	"cjb", "jzila", "patrick", "songgao", "strib", "joshblum", "mlsteele"}
