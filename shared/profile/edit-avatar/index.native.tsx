@@ -114,6 +114,7 @@ class AvatarUpload extends React.Component<Props> {
                       height: avatar_size(),
                       width: avatar_size(),
                     },
+                    this.props.image?.cancelled && styles.placeHolderContainer,
                   ])
             }
           >
@@ -133,6 +134,7 @@ class AvatarUpload extends React.Component<Props> {
                         height: avatar_size(),
                         width: avatar_size(),
                       },
+                      this.props.image?.cancelled && styles.placeHolderContainer,
                     ])
                   : null
               }
@@ -141,6 +143,15 @@ class AvatarUpload extends React.Component<Props> {
                 <Kb.NativeFastImage resizeMode="cover" source={{uri}} style={this._imageDimensions()} />
               )}
             </Kb.ZoomableBox>
+            {this.props.image?.cancelled && (
+              <Kb.Icon
+                className="icon"
+                color={globalColors.greyDark}
+                fontSize={64}
+                style={styles.icon}
+                type="iconfont-camera"
+              />
+            )}
           </Kb.Box>
           <Kb.ButtonBar direction="column">
             <Kb.WaitingButton
@@ -168,6 +179,18 @@ const styles = styleSheetCreate(
         ...padding(0, globalMargins.medium),
         marginBottom: globalMargins.small,
         marginTop: globalMargins.small,
+      },
+      icon: {
+        left: '50%',
+        marginLeft: -33,
+        marginTop: -28,
+        position: 'absolute',
+        top: '50%',
+      },
+      placeHolderContainer: {
+        borderColor: globalColors.greyDarker,
+        borderStyle: 'dotted',
+        borderWidth: 6,
       },
       standardScreen: {...padding(0)},
       zoomContainer: platformStyles({
