@@ -1,7 +1,7 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/eoan64"
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = "24576"
+    vb.memory = "16384"
 
     # speed up boot (adapted from https://bugs.launchpad.net/cloud-images/+bug/1829625)
     vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
