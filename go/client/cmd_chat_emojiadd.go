@@ -21,7 +21,7 @@ func newCmdChatAddEmoji(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	return cli.Command{
 		Name:         "emoji-add",
 		Usage:        "Add an emoji",
-		ArgumentHelp: "<alias> <filename> <conversation>",
+		ArgumentHelp: "<conversation> <alias> <filename>",
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatAddEmoji{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "emoji-add", c)
@@ -34,9 +34,10 @@ func (c *CmdChatAddEmoji) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 3 {
 		return fmt.Errorf("must specify an alias, filename, and conversation name")
 	}
-	c.alias = ctx.Args()[0]
-	c.filename = ctx.Args()[1]
-	tlfName := ctx.Args()[2]
+
+	tlfName := ctx.Args()[0]
+	c.alias = ctx.Args()[1]
+	c.filename = ctx.Args()[2]
 	c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName)
 	if err != nil {
 		return err
