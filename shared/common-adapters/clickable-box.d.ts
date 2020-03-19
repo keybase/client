@@ -12,8 +12,8 @@ export type Props = {
   underlayColor?: string
   onPressIn?: () => void
   onPressOut?: () => void
-  feedback?: boolean
   // mobile only
+  feedback?: boolean
   activeOpacity?: number
   pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only'
   // desktop only
