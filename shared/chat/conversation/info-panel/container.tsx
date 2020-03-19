@@ -40,7 +40,7 @@ const InfoPanelConnector = (props: Props) => {
     dispatch(Chat2Gen.createShowInfoPanel({show: false}))
     dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
   }
-  const onGoToInbox = () => dispatch(Chat2Gen.createNavigateToInbox())
+  const onGoToInbox = React.useCallback(() => dispatch(Chat2Gen.createNavigateToInbox()), [dispatch])
 
   React.useEffect(() => {
     !prevShouldNavigateOut && shouldNavigateOut && onGoToInbox()
