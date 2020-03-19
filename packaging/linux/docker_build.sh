@@ -88,7 +88,7 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e "KEYBASE_RELEASE" \
   -e "KEYBASE_NIGHTLY" \
   -e "KEYBASE_TEST" \
-  -e "KEYBASE_TEST_CODE_SIGNING_FINGERPRINT" \
+  -e "KEYBASE_TEST_CODE_SIGNING_KEY" \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
