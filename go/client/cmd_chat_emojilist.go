@@ -48,7 +48,8 @@ func (c *CmdChatListEmoji) Run() error {
 			typ, _ := emoji.RemoteSource.Typ()
 			switch typ {
 			case chat1.EmojiRemoteSourceTyp_MESSAGE:
-				source = fmt.Sprintf("messageID: %d", emoji.RemoteSource.Message())
+				source = fmt.Sprintf("convID: %s msgID: %d", emoji.RemoteSource.Message().ConvID,
+					emoji.RemoteSource.Message().MsgID)
 			default:
 				source = "???"
 			}
