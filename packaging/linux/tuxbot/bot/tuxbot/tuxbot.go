@@ -283,7 +283,6 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			// Do the actual build
 			buildCmd := makeCmd(
 				currentUser,
-				"sudo",
 				"./packaging/linux/docker/build.sh",
 				trimmedVersionOutput,
 			)
