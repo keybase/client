@@ -9380,6 +9380,14 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		return nil, err
 	}
 
+	defer func() {
+		if err == nil && newConfig.Mode != oldConfig.Mode {
+			fbo.config.GetPerfLog().CDebugf(
+				ctx, "Set KBFS sync config for %s, new mode=%s, old mode=%s",
+				tlfID, newConfig.Mode, oldConfig.Mode)
+		}
+	}()
+
 	oldPartial := oldConfig.Mode == keybase1.FolderSyncMode_PARTIAL
 	newPartial := newConfig.Mode == keybase1.FolderSyncMode_PARTIAL
 	switch {
