@@ -1090,6 +1090,7 @@ export enum UnfurlType {
   maps = 3,
 }
 export type AddBotConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
+export type AddEmojiRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String}
@@ -1480,6 +1481,7 @@ export type UpdateConversations = {readonly inboxVers: InboxVers; readonly convU
 export type UserBotCommandInput = {readonly name: String; readonly description: String; readonly usage: String; readonly extendedDescription?: UserBotExtendedDescription | null}
 export type UserBotCommandOutput = {readonly name: String; readonly description: String; readonly usage: String; readonly extendedDescription?: UserBotExtendedDescription | null; readonly username: String}
 export type UserBotExtendedDescription = {readonly title: String; readonly desktopBody: String; readonly mobileBody: String}
+export type UserEmojiRes = {readonly emojis: UserEmojis; readonly rateLimit?: RateLimit | null}
 export type UserEmojis = {readonly emojis?: Array<EmojiGroup> | null}
 export type VersionKind = String
 export type WelcomeMessage = {readonly set: Boolean; readonly raw: String}
@@ -1733,6 +1735,8 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.getLastActiveForTeams'
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
+// 'chat.1.local.addEmoji'
+// 'chat.1.local.userEmojis'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
