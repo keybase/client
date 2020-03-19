@@ -37,7 +37,7 @@ const Reply = (props: ReplyProps) => {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Text
-                type="BodySemibold"
+                type="BodySmallBold"
                 style={Styles.collapseStyles([
                   styles.replyUsername,
                   props.isParentHighlighted && styles.replyUsernameHighlighted,

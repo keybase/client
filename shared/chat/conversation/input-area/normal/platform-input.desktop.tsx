@@ -177,9 +177,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (this.props.isEditing) {
       return 'Edit your message'
     } else if (this.props.isExploding) {
-      return this.props.conversationName
-        ? `Exploding message ${this.props.conversationName}`
-        : 'Eploding message'
+      return 'Write an exploding message'
     }
     return this.props.conversationName ? `Message ${this.props.conversationName}` : 'Write a message'
   }
