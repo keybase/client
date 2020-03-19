@@ -38,13 +38,20 @@ const TeamRow = (props: Props) => {
     />
   ))
 
+  const badgeCount = Container.useSelector(s => s.teams.newTeamRequests.get(teamID)?.size ?? 0)
+
   return (
     <>
       <Kb.ListItem2
         type="Small"
         firstItem={firstItem}
         onClick={onViewTeam}
-        icon={<Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />}
+        icon={
+          <Kb.Box2 direction="vertical" style={Styles.globalStyles.positionRelative}>
+            <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+            {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+          </Kb.Box2>
+        }
         height={Styles.isMobile ? 90 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
@@ -111,6 +118,11 @@ const TeamRow = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  badge: {
+    position: 'absolute',
+    right: -5,
+    top: -5,
+  },
   bodyContainer: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
