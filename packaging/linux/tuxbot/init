@@ -2,6 +2,7 @@
 set -euox pipefail
 
 systemctl --user daemon-reload
+systemctl --user import-environment
 
 for varname in SECRETS_TEAM SECRETS_REPO CHAT_TEAM CHAT_CHANNEL GNUPGHOME; do
     if [ -z "${!varname}" ]; then
