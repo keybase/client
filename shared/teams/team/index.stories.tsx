@@ -13,7 +13,7 @@ const getProps = (selectedTab: Types.TabKey) => ({
 })
 
 const storeWithSelection = Container.produce(store, draftState => {
-  draftState.teams.teamSelectedChannels = new Map([[teamID, new Set(['hellos', 'team-beasts'])]])
+  draftState.teams.teamSelectedChannels = new Map([[teamID, new Set(['1', '2'])]])
   draftState.teams.teamSelectedMembers = new Map([[teamID, new Set(['paula'])]])
 })
 

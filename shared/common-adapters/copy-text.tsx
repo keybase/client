@@ -3,7 +3,7 @@ import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
 import Icon from './icon'
 import Button, {Props as ButtonProps} from './button'
-import Text, {LineClampType} from './text'
+import Text, {LineClampType, TextType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
@@ -19,6 +19,7 @@ type Props = {
   onReveal?: () => void
   withReveal?: boolean
   text?: string
+  textType?: TextType
   placeholderText?: string
   loadText?: () => void
 }
@@ -113,7 +114,7 @@ const CopyText = (props: Props) => {
       </Toast>
       <Text
         lineClamp={lineClamp}
-        type="BodyTiny"
+        type={props.textType || 'BodyTiny'}
         selectable={true}
         center={true}
         style={styles.text}

@@ -82,6 +82,27 @@
   letter-spacing: 0.1em;
 }
 
+.invite-friends-little {
+  border-radius: 4px;
+}
+.invite-friends-little:hover {
+  background-color: #4c8eff;
+}
+.darkMode .invite-friends-little:hover {
+  background-color: #1f1f1f;
+}
+.invite-friends-little:hover .invite-icon {
+  color: white;
+}
+.darkMode .invite-friends-little:hover .invite-icon {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+@media all and (min-width: 800px) {
+  .invite-friends-little {
+    display: none !important;
+  }
+}
 @media all and (max-width: 800px) and (min-width: 0px) {
   .tab-container {
     width: 80px;
@@ -103,5 +124,11 @@
     position: absolute;
     top: 8px;
     left: 43px;
+  }
+  .invite-friends-little {
+    display: flex;
+  }
+  .invite-friends-big {
+    display: none !important;
   }
 }

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
-import {Gateway} from 'react-gateway'
+import {Gateway} from '@chardskarth/react-gateway'
 
 type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value

@@ -43,7 +43,16 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(
     const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = props
 
     // filter out native-only calls
-    const {onPress, onLongPress, onPressIn, onPressOut, ...passThroughProps} = otherProps
+    const {
+      onPress,
+      onLongPress,
+      onPressIn,
+      onPressOut,
+      activeOpacity,
+      pointerEvents,
+      feedback,
+      ...passThroughProps
+    } = otherProps
 
     let underlay: React.ReactNode
 
