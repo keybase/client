@@ -1322,6 +1322,7 @@ func (b *Boxer) getEmojis(ctx context.Context, conv types.UnboxConversationInfo,
 		}
 		b.Debug(ctx, "getEmojis: found %d emojis", len(emojis))
 		return emojis, nil
+	default:
 	}
 	return nil, nil
 }
