@@ -59,9 +59,9 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Make sure the Docker image is built.
 image=keybase_packaging_v28
-if [ -z "$(docker images -q "$image")" ] ; then
+if [ -z "$(sudo docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
-  docker build -t "$image" "$clientdir/packaging/linux"
+  sudo docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
 # Run the docker job in interactive mode if we're actually talking to a
@@ -78,7 +78,7 @@ else
 fi
 
 echo '=== docker ==='
-docker run "${interactive_args[@]:+${interactive_args[@]}}" \
+sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$gpg_tempdir:/GPG" \
