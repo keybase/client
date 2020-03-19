@@ -13,7 +13,6 @@ import (
 type CmdChatListEmoji struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
-	alias, filename  string
 }
 
 func newCmdChatListEmoji(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
