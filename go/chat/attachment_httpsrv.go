@@ -494,6 +494,7 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 
 	pair := pairInt.(chat1.ConversationIDMessageIDPair)
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
+	r.Debug(ctx, "serveAttachment: convID: %s msgID: %d", pair.ConvID, pair.MsgID)
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "failed to get asset: %s", err)
