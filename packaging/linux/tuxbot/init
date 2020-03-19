@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
-set -euox pipefail
+set -euo pipefail
 
 systemctl --user daemon-reload
-systemctl --user import-environment
 
 for varname in SECRETS_TEAM SECRETS_REPO CHAT_TEAM CHAT_CHANNEL GNUPGHOME; do
     if [ -z "${!varname}" ]; then
         echo "No $varname found, check environment settings...aborting."
-        exit 1
-    fi
-    if ! systemctl --user show-environment | grep -q "$varname"; then
-        echo "systemd: No $varname found, check environment settings...aborting."
         exit 1
     fi
 done
@@ -18,11 +13,12 @@ done
 echo Enter tuxbot paperkey next
 keybase oneshot -u tuxbot
 
-echo Enter code signing key triplesec password next
 if [ "${KEYBASE_TEST_CODE_SIGNING_KEY:-}" = "1" ]; then
+    echo Enter test code signing key triplesec password next
     opts="-b "
     fn=test_code_signing_key.gpg.3sv4
 else
+    echo Enter code signing key triplesec password next
     opts="-b --compatibility"
     fn=code_signing_key.gpg.3s
 fi
