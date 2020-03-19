@@ -121,6 +121,7 @@ const ServiceDecoration = (props: Props) => {
   try {
     const json = Buffer.from(toByteArray(props.json)).toString()
     parsed = JSON.parse(json)
+    console.warn('PARSED DECORATION', parsed)
   } catch (e) {
     return null
   }

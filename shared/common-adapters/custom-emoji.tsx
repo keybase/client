@@ -23,21 +23,21 @@ const emojiTypes = {
 
 const CustomEmoji = (props: Props) => {
   const {size, src, alias} = props
+  // TODO: make tooltip with alias for desktop
   return (
-    <Kb.WithTooltip
-      tooltip={alias ?? null}
-      children={
-        <Kb.Image
-          src={src}
-          style={Styles.collapseStyles([
-            {
-              height: emojiTypes[size],
-              width: emojiTypes[size],
-            },
-          ])}
-        />
-      }
+    // <Kb.WithTooltip
+    //   tooltip={alias ?? null}
+    // >
+    <Kb.Image
+      src={src}
+      style={Styles.collapseStyles([
+        {
+          height: emojiTypes[size],
+          width: emojiTypes[size],
+        },
+      ])}
     />
+    // </Kb.WithTooltip>
   )
 }
 
