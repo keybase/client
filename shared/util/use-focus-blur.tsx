@@ -5,17 +5,23 @@ import {NavigationEventCallback} from '@react-navigation/core'
 /**
  * useFocusBlur sets up callbacks for when your component is focused or blurred.
  * These happen when you are mounted/unmounted, and when navigation focus and
- * blur events happen. onFocus and onBlur should be memoized, if not they may be
- * called more than you expect.
+ * blur events happen.
  */
 const useFocusBlur = (onFocus?: () => void, onBlur?: () => void) => {
+  const onFocusRef = React.useRef(onFocus)
+  const onBlurRef = React.useRef(onBlur)
+  React.useEffect(() => {
+    onFocusRef.current = onFocus
+    onBlurRef.current = onBlur
+  })
+
   const focused = React.useRef(false)
   const callback: NavigationEventCallback = e => {
     if (e.type === 'didFocus' && !focused.current) {
-      onFocus && onFocus()
+      onFocusRef.current && onFocusRef.current()
       focused.current = true
     } else if (e.type === 'willBlur' && focused.current) {
-      onBlur && onBlur()
+      onBlurRef.current && onBlurRef.current()
       focused.current = false
     }
   }
@@ -27,17 +33,17 @@ const useFocusBlur = (onFocus?: () => void, onBlur?: () => void) => {
 
   React.useEffect(() => {
     if (!focused.current) {
-      onFocus && onFocus()
+      onFocusRef.current && onFocusRef.current()
     }
     focused.current = true
     return () => {
       if (focused.current) {
-        onBlur && onBlur()
+        onBlurRef.current && onBlurRef.current()
       }
       // doesn't really matter, we are being unmounted anyway
       focused.current = false
     }
-  }, [onFocus, onBlur])
+  }, [onFocusRef, onBlurRef])
 }
 
 export default useFocusBlur
