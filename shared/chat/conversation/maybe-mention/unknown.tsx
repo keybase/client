@@ -19,18 +19,15 @@ type PopupProps = {
 const items: MenuItems = []
 
 const UnknownMentionPopup = (props: PopupProps) => {
-  const header = {
-    title: 'header',
-    view: (
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer} gapStart={true}>
-        <Kb.Text type="BodySemibold">User or team?</Kb.Text>
-        <Kb.Text type="BodySmall">
-          {props.text} could be either a user or team. You can find out with a quick request to Keybase.
-        </Kb.Text>
-        <Kb.Button label="Lookup" onClick={props.onResolve} />
-      </Kb.Box2>
-    ),
-  }
+  const header = (
+    <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer} gapStart={true}>
+      <Kb.Text type="BodySemibold">User or team?</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {props.text} could be either a user or team. You can find out with a quick request to Keybase.
+      </Kb.Text>
+      <Kb.Button label="Lookup" onClick={props.onResolve} />
+    </Kb.Box2>
+  )
   return (
     <Kb.FloatingMenu
       attachTo={props.attachTo}

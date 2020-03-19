@@ -119,22 +119,20 @@ const TextPopupMenu = (props: Props) => {
     return arr
   }, [])
 
-  const header = {
-    title: 'header',
-    view: (
-      <MessagePopupHeader
-        author={props.author}
-        botUsername={props.botUsername}
-        deviceName={props.deviceName}
-        deviceRevokedAt={props.deviceRevokedAt}
-        deviceType={props.deviceType}
-        isLast={!items.length}
-        isLocation={!!props.isLocation}
-        timestamp={props.timestamp}
-        yourMessage={props.yourMessage}
-      />
-    ),
-  }
+  const header = (
+    <MessagePopupHeader
+      author={props.author}
+      botUsername={props.botUsername}
+      deviceName={props.deviceName}
+      deviceRevokedAt={props.deviceRevokedAt}
+      deviceType={props.deviceType}
+      isLast={!items.length}
+      isLocation={!!props.isLocation}
+      timestamp={props.timestamp}
+      yourMessage={props.yourMessage}
+    />
+  )
+
   return (
     <Kb.FloatingMenu
       attachTo={props.attachTo}

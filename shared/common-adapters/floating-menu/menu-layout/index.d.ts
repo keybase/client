@@ -18,9 +18,9 @@ export type MenuItem = {
   progressIndicator?: boolean
   style?: Object
   subTitle?: string
-  title: string // Used only as ID if view is provided for header
+  title: string // Used only as ID if view is provided
   unWrapped?: boolean
-  view?: React.ReactNode // Required for header
+  view?: React.ReactNode
 }
 
 type _InnerMenuItem = MenuItem | 'Divider' | null
@@ -29,7 +29,7 @@ export type MenuItems = Array<_InnerMenuItem>
 export type MenuLayoutProps = {
   backgroundColor?: Color
   items: MenuItems
-  header?: MenuItem | null
+  header?: React.ReactElement
   onHidden: () => void
   closeOnClick?: boolean
   style?: Object
