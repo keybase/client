@@ -121,7 +121,6 @@ const ServiceDecoration = (props: Props) => {
   try {
     const json = Buffer.from(toByteArray(props.json)).toString()
     parsed = JSON.parse(json)
-    console.warn('PARSED DECORATION', parsed)
   } catch (e) {
     return null
   }
@@ -235,7 +234,7 @@ const ServiceDecoration = (props: Props) => {
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
     if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
       // TODO: figure out how to build in BigEmoji logic here
-      return <CustomEmoji size="Medium" src={parsed.emoji.source.httpsrv} alias={parsed.emoji.alias} />
+      return <CustomEmoji size="Small" src={parsed.emoji.source.httpsrv} alias={parsed.emoji.alias} />
     }
     // we may want to add more cases here later if we decide to parse "stock" emoji with this
   }
