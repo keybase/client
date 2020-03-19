@@ -3,12 +3,10 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
-import * as Types from '../../constants/types/teams'
 import {ContactProps} from './index.native'
 import {e164ToDisplay} from '../../util/phone-numbers'
 import {NativeModules} from 'react-native'
 import logger from '../../logger'
-import TeamInviteByContact from './team-invite-by-contacts.native'
 
 // for sorting
 const strcmp = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
@@ -74,10 +72,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<ContactPro
   return [mapped, region]
 }
 
-type WithContactsProps = {
-  teamID: Types.TeamID
-}
-const WithContacts = (props: WithContactsProps) => {
+const useContacts = () => {
   const dispatch = Container.useDispatch()
   const [contacts, setContacts] = React.useState([] as Array<ContactProps>)
   const [region, setRegion] = React.useState('')
@@ -113,14 +108,7 @@ const WithContacts = (props: WithContactsProps) => {
     }
   }, [dispatch, permStatus])
 
-  return (
-    <TeamInviteByContact
-      teamID={props.teamID}
-      contacts={contacts}
-      region={region}
-      errorMessage={errorMessage}
-    />
-  )
+  return {contacts, errorMessage, region}
 }
 
-export default WithContacts
+export default useContacts
