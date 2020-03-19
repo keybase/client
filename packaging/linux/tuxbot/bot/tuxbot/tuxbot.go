@@ -240,7 +240,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			return fmt.Errorf("locked by another command; aborting")
 		}
 
-		err = makeCmd(currentUser, "git", "checkout", "-f", "master").Run()
+		err = makeCmd(currentUser, "git", "checkout", "-f", "surya/eveneven-more-vagrant").Run()
 		if err != nil {
 			return err
 		}
@@ -413,7 +413,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		c.Debug("```%s```", ret)
 		return nil
 	case "journal":
-		ret, _ := exec.Command("sudo", "journalctl", "-n", "50").CombinedOutput()
+		ret, _ := exec.Command("sudo", "journalctl", "-n", "100").CombinedOutput()
 		c.Debug("```%s```", ret)
 		return nil
 	default:
