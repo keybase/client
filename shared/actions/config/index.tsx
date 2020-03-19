@@ -653,7 +653,7 @@ function* criticalOutOfDateCheck() {
       }
       yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
     } catch (e) {
-      logger.error("Can't call critical check", e)
+      logger.warn("Can't call critical check", e)
     }
     // We just need this once on mobile. Long timers don't work there.
     if (Platform.isMobile) {

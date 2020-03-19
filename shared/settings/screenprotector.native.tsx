@@ -1,62 +1,53 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
-import {isAndroid} from '../constants/platform'
+import * as Container from '../util/container'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '../constants/platform.native'
 
-type State = {
-  secureFlag: boolean
-}
+const Screenprotector = () => {
+  const [secureFlag, setSecureFlag] = React.useState<undefined | boolean>(undefined)
+  const getIsMounted = Kb.useMounted()
 
-class Screenprotector extends React.Component<{}, State> {
-  state: State = {secureFlag: false}
-  private mounted = false
+  const dispatch = Container.useDispatch()
+  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
 
-  componentWillUnmount() {
-    this.mounted = false
-  }
-
-  componentDidMount() {
-    this.mounted = true
+  React.useEffect(() => {
     getSecureFlagSetting().then(secureFlag => {
-      this.setState({secureFlag})
+      getIsMounted() && setSecureFlag(secureFlag)
     })
-  }
+  }, [])
 
-  _changeSecureFlagOption = (nextValue: boolean) => {
-    setSecureFlagSetting(nextValue).then(success => {
-      if (success && this.mounted) {
-        this.setState({secureFlag: nextValue})
-      }
-    })
-  }
-
-  render() {
-    if (!isAndroid) {
-      return <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
+  const changeSecureFlagOption = async (nextValue: boolean) => {
+    setSecureFlag(nextValue)
+    const success = await setSecureFlagSetting(nextValue)
+    if (success && getIsMounted()) {
+      setSecureFlag(nextValue)
     }
+  }
 
-    return (
-      <Kb.Box style={styles.container}>
+  if (!isAndroid) {
+    return <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
+  }
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.HeaderHocHeader onBack={onBack} title="Screen Protector" />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.Checkbox
           label="Disable App switcher preview and screenshots"
-          onCheck={this._changeSecureFlagOption}
-          checked={this.state.secureFlag}
+          onCheck={changeSecureFlagOption}
+          checked={secureFlag}
+          disabled={secureFlag === undefined}
         />
-      </Kb.Box>
-    )
-  }
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    flex: 1,
-    justifyContent: 'flex-start',
-    marginLeft: Styles.globalMargins.medium,
-    marginRight: Styles.globalMargins.medium,
-    marginTop: Styles.globalMargins.medium,
+    ...Styles.padding(Styles.globalMargins.small),
   },
 }))
 
