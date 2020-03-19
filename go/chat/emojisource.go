@@ -143,6 +143,7 @@ type emojiMatch struct {
 }
 
 func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emojiMatch) {
+	body = utils.ReplaceQuotedSubstrings(body, false)
 	hits := emojiPattern.FindAllStringSubmatchIndex(body, -1)
 	for _, hit := range hits {
 		if len(hit) < 4 {
