@@ -422,7 +422,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 }
 
 func main() {
-	gotenv.Load(fmt.Sprintf("/keybase/team/%s/.kbfs_autogit/%s/keybot.env", os.Getenv("SECRETS_TEAM"), os.Getenv("SECRETS_REPO")))
+	err := gotenv.Load(fmt.Sprintf("/keybase/team/%s/.kbfs_autogit/%s/tuxbot.env", os.Getenv("SECRETS_TEAM"), os.Getenv("SECRETS_REPO")))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(os.Environ())
 
 	keybaseBinaryPath := flag.String("keybase-bin-path", "keybase", "the location of the keybase app")
 	botName := flag.String("bot-name", "tuxbot", "the name of this bot")
