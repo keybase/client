@@ -205,9 +205,9 @@ func fetchWot(mctx MetaContext, vouchee *string, voucher *string) (res []serverW
 }
 
 // fetchUserWotByVoucher gets vouches written for vouchee. If voucher is
-// specified, only get the vouch (of any status) written by voucher for vouchee.
-// If voucheeUser has been previously loaded, pass it in to prevent reloading
-// (there is no harm in reloading).
+// specified, only get the vouch written by voucher for vouchee.
+// If voucheeUser has been previously loaded, pass it in to prevent
+// reloading (there is no harm in reloading).
 func fetchUserWotByVoucher(mctx MetaContext, vouchee string, voucher *string, voucheeUser *User) (res []keybase1.WotVouch, err error) {
 	vouches, err := fetchWot(mctx, &vouchee, voucher)
 	if err != nil {

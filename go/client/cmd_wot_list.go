@@ -89,7 +89,7 @@ func (c *cmdWotList) Run() error {
 		vouchTexts := strings.Join(vouch.VouchTexts, ", ")
 		voucher, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Voucher.Uid)
 		if err != nil {
-			return fmt.Errorf("error looking up usernamefor vouch: %s", err.Error())
+			return fmt.Errorf("error looking up username for vouch: %s", err.Error())
 		}
 		line("Voucher: %s", voucher)
 		line("Attestation: \"%s\"", vouchTexts)

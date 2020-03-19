@@ -5,10 +5,9 @@ package keybase1
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type UsernameVerificationType string
@@ -146,14 +145,8 @@ type WotReactArg struct {
 
 type WotReactCLIArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Voucher   string          `codec:"username" json:"username"`
+	Voucher   string          `codec:"voucher" json:"voucher"`
 	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
-}
-
-type WotListCLIArg struct {
-	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Vouchee   *string `codec:"vouchee,omitempty" json:"vouchee,omitempty"`
-	Voucher   *string `codec:"voucher,omitempty" json:"voucher,omitempty"`
 }
 
 type DismissWotNotificationsArg struct {
@@ -162,13 +155,19 @@ type DismissWotNotificationsArg struct {
 	Vouchee   string `codec:"vouchee" json:"vouchee"`
 }
 
+type WotListCLIArg struct {
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	Vouchee   *string `codec:"vouchee,omitempty" json:"vouchee,omitempty"`
+	Voucher   *string `codec:"voucher,omitempty" json:"voucher,omitempty"`
+}
+
 type WotInterface interface {
 	WotVouch(context.Context, WotVouchArg) error
 	WotVouchCLI(context.Context, WotVouchCLIArg) error
 	WotReact(context.Context, WotReactArg) error
 	WotReactCLI(context.Context, WotReactCLIArg) error
-	WotListCLI(context.Context, WotListCLIArg) ([]WotVouch, error)
 	DismissWotNotifications(context.Context, DismissWotNotificationsArg) error
+	WotListCLI(context.Context, WotListCLIArg) ([]WotVouch, error)
 }
 
 func WotProtocol(i WotInterface) rpc.Protocol {
@@ -235,21 +234,6 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 					return
 				},
 			},
-			"wotListCLI": {
-				MakeArg: func() interface{} {
-					var ret [1]WotListCLIArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]WotListCLIArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]WotListCLIArg)(nil), args)
-						return
-					}
-					ret, err = i.WotListCLI(ctx, typedArgs[0])
-					return
-				},
-			},
 			"dismissWotNotifications": {
 				MakeArg: func() interface{} {
 					var ret [1]DismissWotNotificationsArg
@@ -262,6 +246,21 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 						return
 					}
 					err = i.DismissWotNotifications(ctx, typedArgs[0])
+					return
+				},
+			},
+			"wotListCLI": {
+				MakeArg: func() interface{} {
+					var ret [1]WotListCLIArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]WotListCLIArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]WotListCLIArg)(nil), args)
+						return
+					}
+					ret, err = i.WotListCLI(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -293,12 +292,12 @@ func (c WotClient) WotReactCLI(ctx context.Context, __arg WotReactCLIArg) (err e
 	return
 }
 
-func (c WotClient) WotListCLI(ctx context.Context, __arg WotListCLIArg) (res []WotVouch, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotListCLI", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c WotClient) DismissWotNotifications(ctx context.Context, __arg DismissWotNotificationsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.dismissWotNotifications", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
-func (c WotClient) DismissWotNotifications(ctx context.Context, __arg DismissWotNotificationsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.dismissWotNotifications", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c WotClient) WotListCLI(ctx context.Context, __arg WotListCLIArg) (res []WotVouch, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotListCLI", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
