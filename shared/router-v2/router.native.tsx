@@ -209,10 +209,16 @@ const VanillaTabNavigator = createBottomTabNavigator(
           ) : (
             <Kb.Text
               // @ts-ignore expecting a literal color, not a getter
-              style={{
-                color: focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack,
-                marginLeft: Styles.globalMargins.medium,
-              }}
+              style={Styles.collapseStyles([
+                tabStyles.label,
+                Styles.isDarkMode()
+                  ? focused
+                    ? tabStyles.labelDarkModeFocused
+                    : tabStyles.labelDarkMode
+                  : focused
+                  ? tabStyles.labelLightModeFocused
+                  : tabStyles.labelLightMode,
+              ])}
               type="BodyBig"
             >
               {data[navigation.state.routeName].label}
@@ -272,6 +278,11 @@ const tabStyles = Styles.styleSheetCreate(
       container: {
         justifyContent: 'center',
       },
+      label: {marginLeft: Styles.globalMargins.medium},
+      labelDarkMode: {color: Styles.globalColors.black_50},
+      labelDarkModeFocused: {color: Styles.globalColors.black},
+      labelLightMode: {color: Styles.globalColors.blueLighter},
+      labelLightModeFocused: {color: Styles.globalColors.white},
       tab: Styles.platformStyles({
         common: {
           paddingBottom: 6,
