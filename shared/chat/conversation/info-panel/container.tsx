@@ -20,7 +20,7 @@ const InfoPanelConnector = (props: Props) => {
   // TODO removed in other PR
   const storeID = Container.useSelector(state => state.chat2.selectedConversation)
   // @ts-ignore
-  let conversationIDKey: Types.ConversationIDKey =
+  const conversationIDKey: Types.ConversationIDKey =
     typeof props.navigation !== 'undefined'
       ? Container.getRouteProps(props as any, 'conversationIDKey', Constants.noConversationIDKey)
       : storeID
