@@ -498,16 +498,6 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ChatConvExistsError{
 			ConvID: convID,
 		}
-	case SCChatBadConversationError:
-		var msg string
-		for _, field := range s.Fields {
-			if field.Key == "Msg" {
-				msg = field.Value
-			}
-		}
-		return ChatBadConversationError{
-			Msg: msg,
-		}
 	case SCChatUnknownTLFID:
 		var tlfID chat1.TLFID
 		for _, field := range s.Fields {
@@ -628,6 +618,16 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return ChatUsersAlreadyInConversationError{Uids: uids}
+	case SCChatBadConversationError:
+		var msg string
+		for _, field := range s.Fields {
+			if field.Key == "Msg" {
+				msg = field.Value
+			}
+		}
+		return ChatBadConversationError{
+			Msg: msg,
+		}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -2231,6 +2231,19 @@ func (e ChatUsersAlreadyInConversationError) ToStatus() keybase1.Status {
 		Code:   SCChatUsersAlreadyInConversationError,
 		Name:   "SC_CHAT_USERS_ALREADY_IN_CONVERSATION_ERROR",
 		Fields: fields,
+	}
+}
+
+func (e ChatBadConversationError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatBadConversationError,
+		Name: "SC_CHAT_BAD_CONVERSATION_ERROR",
+		Fields: []keybase1.StringKVPair{
+			{
+				Key:   "Msg",
+				Value: e.Msg,
+			},
+		},
 	}
 }
 
