@@ -66,7 +66,7 @@ func TestWotNotifications(t *testing.T) {
 	bobAccepts := func() {
 		cli := &client.CmdWotAccept{
 			Contextified: libkb.NewContextified(bob.tc.G),
-			Username:     alice.username,
+			Voucher:      alice.username,
 		}
 		err := cli.Run()
 		require.NoError(t, err)

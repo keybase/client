@@ -14,8 +14,9 @@ import (
 
 type cmdWotList struct {
 	libkb.Contextified
-	username *string
-	ownWot   bool
+	vouchee *string
+	voucher *string
+	byMe    bool
 }
 
 func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -29,7 +30,12 @@ func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "list", c)
 		},
-		Flags: []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "by-me",
+				Usage: "Only get the vouch written by me",
+			},
+		},
 	}
 }
 
@@ -37,20 +43,30 @@ func (c *cmdWotList) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 1 {
 		return errors.New("too many arguments")
 	}
-	c.ownWot = true
 	if len(ctx.Args()) == 1 {
 		username := ctx.Args()[0]
-		c.username = &username
-		c.ownWot = false
+		c.vouchee = &username
 	}
+	c.byMe = ctx.Bool("by-me")
 	return nil
 }
 
 func (c *cmdWotList) Run() error {
 	ctx := context.Background()
-	arg := keybase1.WotListCLIArg{
-		Username: c.username,
+	me := c.G().Env.GetUsername().String()
+	if c.vouchee == nil {
+		// if not specified, vouchee is me
+		c.vouchee = &me
 	}
+	if c.byMe {
+		c.voucher = &me
+	}
+
+	arg := keybase1.WotListCLIArg{
+		Vouchee: c.vouchee,
+		Voucher: c.voucher,
+	}
+
 	cli, err := GetWebOfTrustClient(c.G())
 	if err != nil {
 		return err
@@ -63,13 +79,7 @@ func (c *cmdWotList) Run() error {
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
 	}
-	var targetUsername string
-	if c.ownWot {
-		targetUsername = c.G().Env.GetUsername().String()
-	} else {
-		targetUsername = *c.username
-	}
-	line("Web-Of-Trust for %s", targetUsername)
+	line("Web-Of-Trust for %s", *c.vouchee)
 	line("-------------------------------")
 	if len(res) == 0 {
 		line("no attestations to show")
@@ -79,13 +89,17 @@ func (c *cmdWotList) Run() error {
 		vouchTexts := strings.Join(vouch.VouchTexts, ", ")
 		voucher, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Voucher.Uid)
 		if err != nil {
-			return fmt.Errorf("error looking up username for vouch: %s", err.Error())
+			return fmt.Errorf("error looking up usernamefor vouch: %s", err.Error())
 		}
 		line("Voucher: %s", voucher)
 		line("Attestation: \"%s\"", vouchTexts)
 		line("Status: %s", vouch.Status)
-		if c.ownWot && vouch.Status == keybase1.WotStatusType_PROPOSED {
-			line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
+		if vouch.Status == keybase1.WotStatusType_PROPOSED {
+			if c.vouchee != nil && *c.vouchee == me {
+				line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
+			} else if c.voucher != nil && *c.voucher == me {
+				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", voucher) // TODO
+			}
 		}
 		if vouch.Confidence != nil {
 			line("Additional Details: %+v", *vouch.Confidence)

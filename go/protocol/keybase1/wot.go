@@ -5,9 +5,10 @@ package keybase1
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type UsernameVerificationType string
@@ -145,13 +146,14 @@ type WotReactArg struct {
 
 type WotReactCLIArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Username  string          `codec:"username" json:"username"`
+	Voucher   string          `codec:"username" json:"username"`
 	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
 }
 
 type WotListCLIArg struct {
 	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Username  *string `codec:"username,omitempty" json:"username,omitempty"`
+	Vouchee   *string `codec:"vouchee,omitempty" json:"vouchee,omitempty"`
+	Voucher   *string `codec:"voucher,omitempty" json:"voucher,omitempty"`
 }
 
 type DismissWotNotificationsArg struct {

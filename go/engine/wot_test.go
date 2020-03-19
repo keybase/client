@@ -149,6 +149,10 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, vouches)
 	t.Log("bob sees no vouches for Alice")
+	vouches, err = libkb.FetchUserWotByVoucher(mctxB, alice.User.GetName(), bob.User.GetName())
+	require.NoError(t, err)
+	require.Equal(t, 1, len(vouches))
+	t.Log("bob sees pending vouch for Alice")
 
 	tcCharlie := SetupEngineTest(t, "wot")
 	defer tcCharlie.Cleanup()
@@ -188,6 +192,12 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, charlieVouch.Status)
 	require.Equal(t, confidence, *charlieVouch.Confidence)
 	t.Log("alice sees two pending vouches")
+
+	vouches, err = libkb.FetchMyWotByUser(mctxA, charlie.User.GetName())
+	require.NoError(t, err)
+	require.Len(t, vouches, 1)
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, vouches[0].Status)
+	t.Log("alice sees charlie's pending vouch")
 }
 
 func TestWebOfTrustAccept(t *testing.T) {

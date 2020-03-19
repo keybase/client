@@ -181,14 +181,18 @@ type apiWot struct {
 	Vouches []serverWotVouch `json:"webOfTrust"`
 }
 
-func fetchWot(mctx MetaContext, username *string) (res []serverWotVouch, err error) {
+func fetchWot(mctx MetaContext, vouchee *string, voucher *string) (res []serverWotVouch, err error) {
 	defer mctx.Trace("fetchWot", func() error { return err })()
 	apiArg := APIArg{
 		Endpoint:    "wot/get",
 		SessionType: APISessionTypeREQUIRED,
 	}
-	if username != nil {
-		apiArg.Args = HTTPArgs{"username": S{Val: *username}}
+	apiArg.Args = HTTPArgs{}
+	if vouchee != nil {
+		apiArg.Args["vouchee"] = S{Val: *vouchee}
+	}
+	if voucher != nil {
+		apiArg.Args["voucher"] = S{Val: *voucher}
 	}
 	var response apiWot
 	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
@@ -200,50 +204,68 @@ func fetchWot(mctx MetaContext, username *string) (res []serverWotVouch, err err
 	return response.Vouches, nil
 }
 
-func FetchMyWot(mctx MetaContext) (res []keybase1.WotVouch, err error) {
-	defer mctx.Trace("FetchMyWot", func() error { return err })()
-	serverVouches, err := fetchWot(mctx, nil)
+// fetchUserWotByVoucher gets vouches written for vouchee. If voucher is
+// specified, only get the vouch (of any status) written by voucher for vouchee.
+// If voucheeUser has been previously loaded, pass it in to prevent reloading
+// (there is no harm in reloading).
+func fetchUserWotByVoucher(mctx MetaContext, vouchee string, voucher *string, voucheeUser *User) (res []keybase1.WotVouch, err error) {
+	vouches, err := fetchWot(mctx, &vouchee, voucher)
 	if err != nil {
-		mctx.Debug("error fetching pending web-of-trust vouches: %s", err.Error())
+		mctx.Debug("error fetching web-of-trust vouches for %s: %s", vouchee, err.Error())
 		return nil, err
 	}
+	if voucheeUser == nil {
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(vouchee))
+		if err != nil {
+			return nil, fmt.Errorf("error loading vouchee: %s", err.Error())
+		}
+	}
+	for _, serverVouch := range vouches {
+		vouch, err := transformUserVouch(mctx, serverVouch, voucheeUser)
+		if err != nil {
+			mctx.Debug("error validating server-reported web-of-trust vouches for %s: %s", vouchee, err.Error())
+			return nil, err
+		}
+		res = append(res, vouch)
+	}
+	mctx.Debug("found %d web-of-trust vouches for %s", vouchee, len(res))
+	return res, nil
+}
+
+// FetchMyWot gets all vouches (of any status) written for me
+func FetchMyWot(mctx MetaContext) (res []keybase1.WotVouch, err error) {
+	defer mctx.Trace("FetchMyWot", func() error { return err })()
 	me, err := LoadMe(NewLoadUserArgWithMetaContext(mctx))
 	if err != nil {
 		return nil, fmt.Errorf("error loading myself: %s", err.Error())
 	}
-	for _, serverVouch := range serverVouches {
-		vouch, err := transformUserVouch(mctx, serverVouch, me)
-		if err != nil {
-			mctx.Debug("error validating server-reported pending web-of-trust vouches: %s", err.Error())
-			return nil, err
-		}
-		res = append(res, vouch)
-	}
-	mctx.Debug("found %d web-of-trust vouches", len(res))
-	return res, nil
+	myName := me.GetName()
+	return fetchUserWotByVoucher(mctx, myName, nil, me)
 }
 
-func FetchUserWot(mctx MetaContext, username string) (res []keybase1.WotVouch, err error) {
+// FetchMyWotByUser gets vouch (of any status) written for me by the voucher
+func FetchMyWotByUser(mctx MetaContext, voucher string) (res []keybase1.WotVouch, err error) {
+	defer mctx.Trace("FetchMyWotByUser", func() error { return err })()
+	me, err := LoadMe(NewLoadUserArgWithMetaContext(mctx))
+	if err != nil {
+		return nil, fmt.Errorf("error loading myself: %s", err.Error())
+	}
+	myName := me.GetName()
+	return fetchUserWotByVoucher(mctx, myName, &voucher, me)
+}
+
+// FetchUserWot gets all accepted vouches written for vouchee
+func FetchUserWot(mctx MetaContext, vouchee string) (res []keybase1.WotVouch, err error) {
 	defer mctx.Trace("FetchUserWot", func() error { return err })()
-	vouches, err := fetchWot(mctx, &username)
-	if err != nil {
-		mctx.Debug("error fetching web-of-trust vouches for %s: %s", username, err.Error())
-		return nil, err
-	}
-	vouchee, err := LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(username))
-	if err != nil {
-		return res, fmt.Errorf("error loading vouchee: %s", err.Error())
-	}
-	for _, serverVouch := range vouches {
-		vouch, err := transformUserVouch(mctx, serverVouch, vouchee)
-		if err != nil {
-			mctx.Debug("error validating server-reported web-of-trust vouches for %s: %s", username, err.Error())
-			return nil, err
-		}
-		res = append(res, vouch)
-	}
-	mctx.Debug("found %d web-of-trust vouches for %s", username, len(res))
-	return res, nil
+	return fetchUserWotByVoucher(mctx, vouchee, nil, nil)
+}
+
+// FetchUserWotByVoucher gets the vouch written for the vouchee by the voucher.
+// If the voucher is self, it will return a vouch of any status (if it exists); else, it
+// will return an accepted vouch (if it exists)
+func FetchUserWotByVoucher(mctx MetaContext, vouchee string, voucher string) (res []keybase1.WotVouch, err error) {
+	defer mctx.Trace("FetchUserWotByVoucher", func() error { return err })()
+	return fetchUserWotByVoucher(mctx, vouchee, &voucher, nil)
 }
 
 type _wotMsg struct {
