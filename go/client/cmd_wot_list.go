@@ -74,6 +74,8 @@ func (c *cmdWotList) Run() error {
 		dui.Printf(format+"\n", args...)
 	}
 
+	// for displaying appropriate text, explicate vouchee and voucher with
+	// targetVouchee and targetVoucher
 	wotTitle := "Web-Of-Trust"
 	var targetVouchee, targetVoucher *string
 	if c.vouchee != nil {
@@ -109,9 +111,9 @@ func (c *cmdWotList) Run() error {
 		line("Attestation: \"%s\"", vouchTexts)
 		line("Status: %s", vouch.Status)
 		if vouch.Status == keybase1.WotStatusType_PROPOSED {
-			if c.vouchee != nil && *c.vouchee == me {
+			if targetVouchee != nil && *targetVouchee == me {
 				line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
-			} else if c.voucher != nil && *c.voucher == me {
+			} else if targetVoucher != nil && *targetVoucher == me {
 				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", voucher) // TODO
 			}
 		}
