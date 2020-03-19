@@ -52,6 +52,10 @@ func (lm testLogMaker) MakeVLogger(log logger.Logger) *libkb.VDebugLog {
 	return vlog
 }
 
+func (lm testLogMaker) GetPerfLog() logger.Logger {
+	return lm.log
+}
+
 type testClockGetter struct {
 	clock *clocktest.TestClock
 }

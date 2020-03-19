@@ -1120,10 +1120,7 @@ const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.Delete
   return false
 }
 
-const deleteMultiChannelsConfirmed = async (
-  state: TypedState,
-  action: TeamsGen.DeleteMultiChannelsConfirmedPayload
-) => {
+const deleteMultiChannelsConfirmed = async (action: TeamsGen.DeleteMultiChannelsConfirmedPayload) => {
   const {teamID, channels} = action.payload
 
   for (const conversationIDKey of channels) {
@@ -1133,7 +1130,7 @@ const deleteMultiChannelsConfirmed = async (
         confirmed: true,
         convID: ChatTypes.keyToConversationID(conversationIDKey),
       },
-      Constants.teamWaitingKeyByID(teamID, state)
+      Constants.deleteChannelWaitingKey(teamID)
     )
   }
 
@@ -1434,7 +1431,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.updateTopic, updateTopic)
   yield* Saga.chainAction2(TeamsGen.updateChannelName, updateChannelname)
   yield* Saga.chainAction2(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
-  yield* Saga.chainAction2(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
+  yield* Saga.chainAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   yield* Saga.chainGenerator<TeamsGen.InviteToTeamByPhonePayload>(
     TeamsGen.inviteToTeamByPhone,
     inviteToTeamByPhone

@@ -27,7 +27,7 @@ cp -r /SSH ~/.ssh
 # message with it. This makes the password prompt happen now, so that we don't
 # interrupt the build later.
 echo "Loading the Keybase code signing key in the container..."
-code_signing_fingerprint="$(cat /CLIENT/packaging/linux/code_signing_fingerprint)"
+code_signing_fingerprint="$(/CLIENT/packaging/linux/fingerprint.sh)"
 # Specifically use GnuPG v1 for the import, because modern versions need the
 # decryption password here, for some stupid reason, totally duplicative of the
 # password they'll need again below when we load the key into the agent.

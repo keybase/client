@@ -3,6 +3,8 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "24576"
   end
+  config.vm.provision "shell", path: "provision_tuxbot_root", privileged: true
+  config.vm.provision "shell", path: "provision_tuxbot_user", privileged: false
   config.vm.provision "file",
     source: "#{ENV['GOPATH']}/src/github.com/keybase/client/packaging/linux/tuxbot/ssh_config",
     destination: "~/.ssh/config",
@@ -13,9 +15,8 @@ Vagrant.configure("2") do |config|
     run: "always"
   config.vm.provision "file",
     source: "~/tuxbot_vagrant_env",
-    destination: "~/env",
+    destination: "~/tuxbot.env",
     run: "always"
+  config.vm.synced_folder ".", "/vagrant"
   config.vm.provision "shell", path: "provision_tuxbot_env", privileged: true, run: "always"
-  config.vm.provision "shell", path: "provision_tuxbot_root", privileged: true
-  config.vm.provision "shell", path: "provision_tuxbot_user", privileged: false
 end

@@ -45,7 +45,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   // Style is supposed to switch when there's any input or its focused
   const actualValue = value !== undefined ? value : uncontrolledValue
   const populated = !!actualValue && actualValue.length > 0
-  const multiline = !!props.rowsMax && props.rowsMax >= 2 && props.multiline
+  const multiline = props.multiline
   const collapsed = focused || populated || multiline
 
   // We're using fontSize to derive heights

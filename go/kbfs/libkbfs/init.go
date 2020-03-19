@@ -885,6 +885,8 @@ func doInit(
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
+		config.GetPerfLog().CDebugf(
+			ctx, "KBFS could not initialize disk cache: %v", err)
 		notification := &keybase1.FSNotification{
 			StatusCode:       keybase1.FSStatusCode_ERROR,
 			NotificationType: keybase1.FSNotificationType_INITIALIZED,

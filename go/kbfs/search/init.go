@@ -8,6 +8,7 @@ import (
 	"context"
 	"path/filepath"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
@@ -21,6 +22,8 @@ const (
 	mdserverStorageDir = "mdserver"
 
 	currentIndexVersion = "v1"
+
+	indexBlocksInCache = 100
 )
 
 // Params returns a set of default parameters for search-related
@@ -33,6 +36,11 @@ func Params(kbCtx libkbfs.Context, storageRoot string, uid keybase1.UID) (
 
 	params.EnableJournal = false
 	params.DiskCacheMode = libkbfs.DiskCacheModeOff
+
+	// Try to balance not using too much memory vs. the time/CPU it
+	// takes to keep pulling in index blocks from the disk.
+	params.CleanBlockCacheCapacity =
+		uint64(data.MaxBlockSizeBytesDefault) * indexBlocksInCache
 
 	// Make a per-user index for all the TLFs indexed locally by that
 	// user.  This means on one hand that the user can get
