@@ -46,6 +46,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   const name = account.name
   const mobileOnlyEditable = account.mobileOnlyEditable
   const me = state.config.username || ''
+  const externalPartners = prepareExternalPartners(Constants.getExternalPartners(state), accountID, me)
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
   const currency = Constants.getDisplayCurrency(state, accountID)
@@ -60,7 +61,6 @@ const mapStateToProps = (state: Container.TypedState) => {
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID) ?? false
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
-  const externalPartners = Constants.getExternalPartners(state)
   return {
     accountID,
     canSubmitTx,
@@ -115,11 +115,6 @@ export default Container.compose(
     mapDispatchToProps,
     (stateProps, dispatchProps, _: OwnProps) => ({
       ...stateProps,
-      externalPartners: prepareExternalPartners(
-        stateProps.externalPartners,
-        stateProps.accountID,
-        stateProps.user
-      ),
       onBack: () => dispatchProps._onBack(stateProps.accountID),
       onCurrencyChange: (code: Types.CurrencyCode) =>
         dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
