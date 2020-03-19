@@ -19,8 +19,6 @@ if [ "$#" != 2 ] ; then
   exit 1
 fi
 
-echo "MODECOMMIT" "$@"
-
 mode="$1"
 
 here="$(dirname "${BASH_SOURCE[0]}")"
@@ -78,8 +76,6 @@ if [ -t 0 ] ; then
 else
   interactive_args=()
 fi
-
-echo "ZZZ $KEYBASE_TEST_CODE_SIGNING_KEY"
 
 echo '=== docker ==='
 docker run "${interactive_args[@]:+${interactive_args[@]}}" \
