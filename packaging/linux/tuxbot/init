@@ -4,10 +4,14 @@ set -euox pipefail
 systemctl --user daemon-reload
 
 for varname in SECRETS_TEAM SECRETS_REPO CHAT_TEAM CHAT_CHANNEL GNUPGHOME; do
-	if [ -z "${!varname}" ]; then
-		echo "No $varname found, check environment settings...aborting."
-		exit 1
-	fi
+    if [ -z "${!varname}" ]; then
+        echo "No $varname found, check environment settings...aborting."
+        exit 1
+    fi
+    if ! systemctl --user show-environment | grep -q "$varname"; then
+        echo "systemd: No $varname found, check environment settings...aborting."
+        exit 1
+    fi
 done
 
 echo Enter tuxbot paperkey next
