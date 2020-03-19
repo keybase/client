@@ -910,6 +910,14 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
+"@chardskarth/react-gateway@3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@chardskarth/react-gateway/-/react-gateway-3.0.3.tgz#7ee1849ca006e6222fc147efd983bae2d3285635"
+  integrity sha512-zi7Ha5fJ+I8UfV9sWuigtbtbpyzVPPGnoTI0HVHK6ccczha3IifITMjh+vxqhJokhRHDKycTDsqpl8csdsaAXw==
+  dependencies:
+    prop-types "^15.5.0"
+    react-prop-types "^0.4.0"
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.3.tgz#099139eaec7ebf07a27c1786a3ff64f39464d2ef"
@@ -10513,7 +10521,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.3"
 
-prop-types@15, prop-types@15.7.2, prop-types@^15.0.0, prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@15, prop-types@15.7.2, prop-types@^15.0.0, prop-types@^15.5.0, prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -10852,10 +10860,6 @@ react-focus-lock@^1.18.3:
     prop-types "^15.6.2"
     react-clientside-effect "^1.2.0"
 
-"react-gateway@git://github.com/keybase/react-gateway#nojima/keybase-fixes-off-300":
-  version "3.0.0"
-  resolved "git://github.com/keybase/react-gateway#bd6765cc212cc841bcc133cc4fb413c8c96022e1"
-
 react-helmet-async@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/react-helmet-async/-/react-helmet-async-1.0.3.tgz#68a176dd266c2caf63762879c573a866b89a2098"
@@ -11139,6 +11143,13 @@ react-popper@^1.3.3:
     prop-types "^15.6.1"
     typed-styles "^0.0.7"
     warning "^4.0.2"
+
+react-prop-types@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/react-prop-types/-/react-prop-types-0.4.0.tgz#f99b0bfb4006929c9af2051e7c1414a5c75b93d0"
+  integrity sha1-+ZsL+0AGkpya8gUefBQUpcdbk9A=
+  dependencies:
+    warning "^3.0.0"
 
 react-proxy@^1.1.7:
   version "1.1.8"

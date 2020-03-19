@@ -8,7 +8,7 @@ import * as Styles from '../../../styles'
 import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
-import {GatewayDest} from 'react-gateway'
+import {GatewayDest} from '@chardskarth/react-gateway'
 import InvitationToBlock from '../../blocking/invitation-to-block'
 import {useSafeArea} from '../../../common-adapters/safe-area-view.native'
 
@@ -87,7 +87,7 @@ const Conversation = React.memo((props: Props) => {
         {props.threadLoadedOffline && <Offline />}
         {innerComponent}
       </Kb.Box2>
-      <GatewayDest name="convOverlay" component={Kb.Box} />
+      <GatewayDest name="convOverlay" component={Kb.NativeView} />
     </Kb.Box>
   )
 })
