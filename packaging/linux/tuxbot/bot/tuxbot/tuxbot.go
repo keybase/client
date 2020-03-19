@@ -202,7 +202,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				cmd.Env = append(cmd.Env, "KEYBASE_RELEASE=1")
 			}
 			val, ok := os.LookupEnv("KEYBASE_TEST_CODE_SIGNING_KEY")
-			if ok && val == "1" {
+			if ok {
 				cmd.Env = append(cmd.Env, "KEYBASE_TEST_CODE_SIGNING_KEY="+val)
 			}
 			err = cmd.Run()
