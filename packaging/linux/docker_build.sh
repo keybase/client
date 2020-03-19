@@ -80,7 +80,7 @@ else
 fi
 
 echo '=== docker ==='
-docker run "${interactive_args[@]:+${interactive_args[@]}}" \
+sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$gpg_tempdir:/GPG" \

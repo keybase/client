@@ -420,11 +420,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		}
 		return nil
 	case "tuxjournal":
-		ret, _ := exec.Command("journalctl", "--user-unit", "tuxbot", "-n", "50").CombinedOutput()
+		ret, _ := exec.Command("sudo", "journalctl", "--user-unit", "tuxbot", "-n", "50").CombinedOutput()
 		c.Debug("```%s```", ret)
 		return nil
 	case "journal":
-		ret, _ := exec.Command("journalctl", "-n", "50").CombinedOutput()
+		ret, _ := exec.Command("sudo", "journalctl", "-n", "50").CombinedOutput()
 		c.Debug("```%s```", ret)
 		return nil
 	default:
