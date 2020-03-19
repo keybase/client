@@ -914,6 +914,7 @@ export type IconType =
   | 'iconfont-edit'
   | 'iconfont-ellipsis'
   | 'iconfont-emoji'
+  | 'iconfont-envelope'
   | 'iconfont-exclamation'
   | 'iconfont-expand'
   | 'iconfont-file'
@@ -9271,6 +9272,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-emoji': {
     charCode: 0xe91b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-envelope': {
+    charCode: 0xe9b5,
     gridSize: 16,
     isFont: true,
   },
