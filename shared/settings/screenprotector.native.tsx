@@ -16,7 +16,7 @@ const Screenprotector = () => {
     getSecureFlagSetting().then(secureFlag => {
       getIsMounted() && setSecureFlag(secureFlag)
     })
-  }, [])
+  }, [getIsMounted])
 
   const changeSecureFlagOption = async (nextValue: boolean) => {
     setSecureFlag(nextValue)
@@ -37,7 +37,7 @@ const Screenprotector = () => {
         <Kb.Checkbox
           label="Disable App switcher preview and screenshots"
           onCheck={changeSecureFlagOption}
-          checked={secureFlag}
+          checked={!!secureFlag}
           disabled={secureFlag === undefined}
         />
       </Kb.Box2>
