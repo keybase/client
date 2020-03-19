@@ -5,6 +5,9 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 import com.android.installreferrer.api.InstallReferrerClient;
 import com.android.installreferrer.api.InstallReferrerStateListener;
 import com.android.installreferrer.api.ReferrerDetails;
@@ -18,12 +21,14 @@ public class KBInstallReferrerListener implements keybase.NativeInstallReferrerL
   private keybase.StringReceiver callback;
   private Context context;
   private int retries;
+  private Executor executor;
 
   private static final int max_retries = 5;
 
   KBInstallReferrerListener(Context _context) {
     Log.d("KBIR", "KBInstallReferrerListener created");
     context = _context;
+    executor = Executors.newSingleThreadExecutor();
     retries = 0;
   }
 
@@ -40,22 +45,26 @@ public class KBInstallReferrerListener implements keybase.NativeInstallReferrerL
   @Override
   public void onInstallReferrerSetupFinished(int responseCode) {
     Log.e("KBIR", "KBInstallReferrerListener#onInstallReferrerSetupFinished: got code " + responseCode);
-    switch (responseCode) {
-      case InstallReferrerClient.InstallReferrerResponse.OK:
-        // Connection established
-        handleReferrerResponseOK();
-        return;
-      case InstallReferrerClient.InstallReferrerResponse.SERVICE_DISCONNECTED:
-        reconnect();
-        return;
-      case InstallReferrerClient.InstallReferrerResponse.FEATURE_NOT_SUPPORTED:
-      case InstallReferrerClient.InstallReferrerResponse.SERVICE_UNAVAILABLE:
-      case InstallReferrerClient.InstallReferrerResponse.DEVELOPER_ERROR:
-      default:
-        // other issues, can't do much here....
-        callback.callbackWithString("");
-        mReferrerClient.endConnection();
-    }
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        switch (responseCode) {
+          case InstallReferrerClient.InstallReferrerResponse.OK:
+            // Connection established
+            handleReferrerResponseOK();
+            return;
+          case InstallReferrerClient.InstallReferrerResponse.SERVICE_DISCONNECTED:
+            reconnect();
+            return;
+          case InstallReferrerClient.InstallReferrerResponse.FEATURE_NOT_SUPPORTED:
+          case InstallReferrerClient.InstallReferrerResponse.SERVICE_UNAVAILABLE:
+          case InstallReferrerClient.InstallReferrerResponse.DEVELOPER_ERROR:
+          default:
+            // other issues, can't do much here....
+            callback.callbackWithString("");
+        }
+      }
+    });
   }
 
   private void handleReferrerResponseOK() {
@@ -91,6 +100,11 @@ public class KBInstallReferrerListener implements keybase.NativeInstallReferrerL
   @Override
   public void onInstallReferrerServiceDisconnected() {
     Log.e("KBIR", "KBInstallReferrerListener#onInstallReferrerServiceDisconnected: attempting restart...");
-    reconnect();
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        reconnect();
+      }
+    });
   }
 }

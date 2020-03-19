@@ -55,16 +55,13 @@ func (c installReferrerHandler) CallbackWithString(s string) {
 		return
 	}
 
-	// Asynchronous because otherwise the app hangs on Android
-	go func() {
-		m.Debug("Waiting for the GUI to be ready to receive notifications")
-		if !c.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
-			c.M().Debug("Dropping notification of referrer information: GUI did not connect in time")
-			return
-		}
-		m.Debug("Notifying GUI of deferred deep invite link")
-		c.G().NotifyRouter.HandleHandleKeybaseLink(c.M().Ctx(), "keybase://invite/"+string(inviteKey))
-	}()
+	m.Debug("Waiting for the GUI to be ready to receive notifications")
+	if !c.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
+		c.M().Debug("Dropping notification of referrer information: GUI did not connect in time")
+		return
+	}
+	m.Debug("Notifying GUI of deferred deep invite link")
+	c.G().NotifyRouter.HandleHandleKeybaseLink(c.M().Ctx(), "keybase://invite/"+string(inviteKey))
 }
 
 var _ StringReceiver = installReferrerHandler{}
