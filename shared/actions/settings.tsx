@@ -310,7 +310,7 @@ function* refreshNotifications() {
     ({
       description: s.description,
       name: s.name,
-      subscribed: s.subscribed,
+      subscribed: s.name === 'disabletyping' ? !s.subscribed : s.subscribed,
     } || [])
 
   const groups = results.notifications
