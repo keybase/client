@@ -2425,7 +2425,10 @@ const navigateToInbox = (
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  return RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'})
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+    RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'}),
+  ]
 }
 
 // Unchecked version of Chat2Gen.createNavigateToThread() --
@@ -3756,7 +3759,12 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(Chat2Gen.messagesAdd, messagesAdd)
   yield* Saga.chainAction2(
-    [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
+    [
+      Chat2Gen.leaveConversation,
+      TeamsGen.leftTeam,
+      TeamsGen.deleteChannelConfirmed,
+      TeamsGen.deleteMultiChannelsConfirmed,
+    ],
     clearModalsFromConvEvent
   )
   yield* Saga.chainAction(

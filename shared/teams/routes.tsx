@@ -1,10 +1,10 @@
-import {TeamScreenType} from './team/container'
 import TeamMember from './team/member/container'
 import TeamMemberNew from './team/member/index.new'
 import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
+import DeleteChannel from './confirm-modals/delete-channel'
 import TeamEditChannel from './channel'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
@@ -13,24 +13,29 @@ import TeamInviteByEmail from './invite-by-email/container'
 import TeamInviteByContact from './invite-by-contact/container'
 import TeamJoinTeamDialog from './join-team/container'
 import TeamNewTeamDialog from './new-team/container'
-import TeamReallyLeaveTeam from './really-leave-team/container'
-import TeamReallyRemoveMember from './team/really-remove-member'
+import TeamReallyLeaveTeam from './confirm-modals/really-leave-team/container'
+import TeamReallyRemoveMember from './confirm-modals/confirm-kick-out'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
 import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
+import TeamWizardTeamSize from './new-team/wizard/make-big-team'
+import TeamWizardChannels from './new-team/wizard/create-channels'
+import TeamWizardSubteams from './new-team/wizard/create-subteams'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
 import TeamAddToTeamConfirm from './add-members-wizard/confirm'
+import ExternalTeam from './external-team'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
-  team: {getScreen: (): TeamScreenType => require('./team/container').default},
+  team: {getScreen: () => require('./team/container').default},
   teamChannel: {
     getScreen: (): typeof TeamEditChannel => require('./channel').default,
   },
+  teamExternalTeam: {getScreen: (): typeof ExternalTeam => require('./external-team').default},
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
     : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
@@ -64,6 +69,9 @@ export const newModalRoutes = {
   teamAddToChannels: {
     getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
   },
+  teamDeleteChannel: {
+    getScreen: (): typeof DeleteChannel => require('./confirm-modals/delete-channel').default,
+  },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamAvatar: {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
@@ -87,10 +95,11 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default,
   },
   teamReallyLeaveTeam: {
-    getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
+    getScreen: (): typeof TeamReallyLeaveTeam =>
+      require('./confirm-modals/really-leave-team/container').default,
   },
   teamReallyRemoveMember: {
-    getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member').default,
+    getScreen: (): typeof TeamReallyRemoveMember => require('./confirm-modals/confirm-kick-out').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
   teamWizard1TeamPurpose: {
@@ -98,6 +107,15 @@ export const newModalRoutes = {
   },
   teamWizard2TeamInfo: {
     getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
+  },
+  teamWizard4TeamSize: {
+    getScreen: (): typeof TeamWizardTeamSize => require('./new-team/wizard/make-big-team').default,
+  },
+  teamWizard5Channels: {
+    getScreen: (): typeof TeamWizardChannels => require('./new-team/wizard/create-channels').default,
+  },
+  teamWizard6Subteams: {
+    getScreen: (): typeof TeamWizardSubteams => require('./new-team/wizard/create-subteams').default,
   },
   teamsContactsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,

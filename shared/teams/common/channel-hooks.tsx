@@ -64,7 +64,7 @@ export const useChannelMeta = (
       [
         {
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          query: ChatConstants.makeInboxQuery([conversationIDKey]),
+          query: ChatConstants.makeInboxQuery([conversationIDKey], true /* all statuses */),
         },
         waitingKey,
       ],

@@ -4,7 +4,8 @@ import {PeoplePageList} from './index.shared'
 import {Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import ProfileSearch from '../profile/search/bar'
-
+import InviteFriends from './invite-friends/tab-bar-button'
+import flags from '../util/feature-flags'
 export const Header = (props: Props) => (
   <Kb.HeaderHocHeader
     borderless={true}
@@ -20,12 +21,17 @@ export const Header = (props: Props) => (
 )
 
 const People = (props: Props) => (
-  <Kb.ScrollView
-    style={styles.scrollView}
-    refreshControl={<Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />}
-  >
-    <PeoplePageList {...props} />
-  </Kb.ScrollView>
+  <>
+    <Kb.ScrollView
+      style={styles.scrollView}
+      refreshControl={
+        <Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />
+      }
+    >
+      <PeoplePageList {...props} />
+    </Kb.ScrollView>
+    {flags.inviteFriends && <InviteFriends />}
+  </>
 )
 
 const styles = styleSheetCreate(() => ({

@@ -891,8 +891,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				maxValidID = mm.GetMessageID()
 			}
 		} else {
-			_, err := mm.State()
-			s.Debug(ctx, "skipping invalid max msg: state: %v", err)
+			s.Debug(ctx, "skipping invalid max msg: state: %v", mm.DebugString())
 		}
 	}
 	// see if we should override the snippet message with the latest outbox record

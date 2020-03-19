@@ -69,6 +69,9 @@ export const colors = {
   get blueDarkerOrBlack_60() {
     return this.blueDarker
   },
+  get blueDarkerOrBlack_85() {
+    return this.blueDarker
+  },
   blueGrey: '#F2F4F7',
   blueGreyDark: '#E0E8F6',
   blueGreyLight: '#F9F9FA',
@@ -76,6 +79,9 @@ export const colors = {
   blueLighter: '#A8CCFF',
   blueLighter2: '#EBF2FC',
   blueLighter3: '#F7F9FC',
+  get blueLighterOrBlack_50() {
+    return this.blueLighter
+  },
   get blueLighterOrBlueDarker() {
     return this.blueLighter
   },
@@ -272,6 +278,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   get blueDarkerOrBlack_60() {
     return colors.black_60
   },
+  get blueDarkerOrBlack_85() {
+    return 'rgba(0, 0, 0, .85)'
+  },
   blueGrey: '#202020',
   blueGreyDark: 'rgba(24, 45, 110, .5)',
   blueGreyLight: '#222',
@@ -279,6 +288,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueLighter: '#4C8EFF',
   blueLighter2: 'rgba(24, 45, 110, .5)',
   blueLighter3: '#101010',
+  get blueLighterOrBlack_50() {
+    return this.black_50
+  },
   get blueLighterOrBlueDarker() {
     return this.blueDarker
   },

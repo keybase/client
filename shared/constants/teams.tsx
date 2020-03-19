@@ -45,6 +45,7 @@ export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
 export const removeMemberWaitingKey = (teamID: Types.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
+export const deleteChannelWaitingKey = (teamID: Types.TeamID) => `channelDelete:${teamID}`
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
@@ -54,6 +55,7 @@ export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username:
   `loadSubteamMemberships:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
+export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
   fullName: '',
@@ -168,6 +170,16 @@ export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   role: 'writer',
   teamID: Types.noTeamID,
 }
+export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
+  description: '',
+  isBig: false,
+  name: '',
+  open: false,
+  openTeamJoinRole: 'writer',
+  showcase: false,
+  teamNameTaken: false,
+  teamType: 'other',
+}
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
@@ -187,15 +199,7 @@ const emptyState: Types.State = {
   errorInTeamJoin: '',
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
-  newTeamWizard: {
-    description: '',
-    name: '',
-    open: false,
-    openTeamJoinRole: 'writer',
-    showcase: false,
-    teamNameTaken: false,
-    teamType: 'other',
-  },
+  newTeamWizard: newTeamWizardEmptyState,
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -662,7 +666,16 @@ export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
   td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
 export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
+  teamID === Types.newTeamWizardTeamID
+    ? makeTeamMeta({
+        id: teamID,
+        isMember: true,
+        isOpen: state.teams.newTeamWizard.open,
+        memberCount: 0,
+        showcasing: state.teams.newTeamWizard.showcase,
+        teamname: state.teams.newTeamWizard.name,
+      })
+    : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMembership = (
   state: TypedState,
@@ -706,10 +719,11 @@ export const annotatedInvitesToInviteInfo = (
     arr.push({
       email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
       id: invite.invite.id,
-      name:
-        invite.invite.type.c in [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink]
-          ? invite.displayName
-          : '',
+      name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
+        invite.invite.type.c
+      )
+        ? invite.displayName
+        : '',
       phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
       role,
       username,

@@ -721,12 +721,25 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	if err != nil {
 		return res, err
 	}
-	if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status); err != nil {
+	err = h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status)
+	switch err.(type) {
+	case nil:
+		return chat1.SetConversationStatusLocalRes{
+			IdentifyFailures: identBreaks,
+		}, nil
+	case libkb.ChatBadConversationError:
+		// Clear the inbox, we could have a deleted conversation stuck in our
+		// cache that we need to boot.
+		if err := h.G().InboxSource.Clear(ctx, uid); err != nil {
+			h.Debug(ctx, "unable to clear inbox %v", err)
+		}
+		h.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "SetConversationStatusLocal")
+		return chat1.SetConversationStatusLocalRes{
+			IdentifyFailures: identBreaks,
+		}, nil
+	default:
 		return res, err
 	}
-	return chat1.SetConversationStatusLocalRes{
-		IdentifyFailures: identBreaks,
-	}, nil
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
@@ -3431,10 +3444,35 @@ const welcomeMessageName = "__welcome_message"
 // values in sync!
 const welcomeMessageMaxLen = 400
 
+func getWelcomeMessageConv(ctx context.Context, g *globals.Context, uid gregor1.UID, teamID keybase1.TeamID) (res types.RemoteConversation, err error) {
+	onePerTlf := true
+	tlfID := chat1.TLFID(teamID.ToBytes())
+	topicType := chat1.TopicType_CHAT
+	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			MembersTypes:      []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			TlfID:             &tlfID,
+			TopicType:         &topicType,
+			AllowUnseenQuery:  true,
+			OneChatTypePerTLF: &onePerTlf,
+		})
+	if err != nil {
+		return res, err
+	}
+	if len(inbox.ConvsUnverified) == 0 {
+		return res, libkb.NotFoundError{}
+	}
+	return inbox.ConvsUnverified[0], nil
+}
+
 func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessageDisplay, err error) {
+	conv, err := getWelcomeMessageConv(ctx, g, uid, teamID)
+	if err != nil {
+		return message, err
+	}
 	message = chat1.WelcomeMessageDisplay{Set: false}
-	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
-	found, err := s.Get(ctx, uid, teamID, welcomeMessageName, &message)
+	s := NewConvDevConversationBackedStorage(g, chat1.TopicType_DEV, true /* adminOnly */, ri)
+	found, _, err := s.Get(ctx, uid, conv.GetConvID(), welcomeMessageName, &message, false)
 	if !found {
 		return message, nil
 	}
@@ -3456,8 +3494,12 @@ func setWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.
 	if len(message.Raw) > welcomeMessageMaxLen {
 		return fmt.Errorf("welcome message must be at most %d characters; was %d", welcomeMessageMaxLen, len(message.Raw))
 	}
-	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
-	return s.Put(ctx, uid, teamID, welcomeMessageName, message)
+	conv, err := getWelcomeMessageConv(ctx, g, uid, teamID)
+	if err != nil {
+		return err
+	}
+	s := NewConvDevConversationBackedStorage(g, chat1.TopicType_DEV, true /* adminOnly */, ri)
+	return s.Put(ctx, uid, conv.GetConvID(), welcomeMessageName, message)
 }
 
 func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMessageArg) (err error) {

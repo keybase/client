@@ -15,12 +15,14 @@ const examples: Props[] = [
   },
   {background: 'HighRisk' as const, text: 'Connection error. You are offline.'},
   {
+    actionText: 'Review payments',
     background: 'Announcements' as const,
     offerAdvancedSendForm: AdvancedBanner.receiverBanner,
     onAction: Sb.action('onAction'),
     text: '',
   },
   {
+    actionText: 'Review payments',
     background: 'Announcements' as const,
     offerAdvancedSendForm: AdvancedBanner.senderBanner,
     onAction: Sb.action('onAction'),

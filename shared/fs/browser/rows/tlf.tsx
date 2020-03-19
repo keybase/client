@@ -45,25 +45,35 @@ const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
 }
 
 const Tlf = (props: TlfProps) => (
-  <StillCommon
-    path={props.path}
-    onOpen={props.onOpen}
-    inDestinationPicker={props.inDestinationPicker}
-    mixedMode={props.mixedMode}
-    writingToJournal={false}
-  >
+  <>
     {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}
-    <Kb.Box style={rowStyles.itemBox}>
-      {Styles.isMobile ? (
-        <Content {...props} />
-      ) : (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Content {...props} />
-          <Avatars {...props} />
-        </Kb.Box2>
-      )}
-    </Kb.Box>
-  </StillCommon>
+    <StillCommon
+      path={props.path}
+      onOpen={props.onOpen}
+      inDestinationPicker={props.inDestinationPicker}
+      mixedMode={props.mixedMode}
+      writingToJournal={false}
+      body={
+        Styles.isMobile ? (
+          <Kb.Box style={rowStyles.itemBox}>
+            <Content {...props} />
+          </Kb.Box>
+        ) : (
+          undefined
+        )
+      }
+      content={
+        !Styles.isMobile ? (
+          <>
+            <Content {...props} />
+            <Avatars {...props} />
+          </>
+        ) : (
+          undefined
+        )
+      }
+    />
+  </>
 )
 
 const styles = Styles.styleSheetCreate(

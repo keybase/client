@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
-import {Props} from './section-list'
+import {Props, Section, ItemTFromSectionT} from './section-list'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import once from 'lodash/once'
@@ -26,16 +26,16 @@ type State = {
   currentSectionFlatIndex: number
 }
 
-class SectionList extends React.Component<Props, State> {
-  _flat: Array<any> = []
+class SectionList<T extends Section<any, any>> extends React.Component<Props<T>, State> {
+  _flat: Array<FlatListElement<T>> = []
   state = {currentSectionFlatIndex: 0}
   _listRef: React.RefObject<any> = React.createRef()
   _mounted = true
 
-  componentDidUpdate(prevProps: Props, _: State) {
+  componentDidUpdate(prevProps: Props<T>, _: State) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
-      this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
+      this._onEndReached = once(info => this.props.onEndReached && this.props.onEndReached(info))
     }
     if (
       this.props.selectedIndex !== -1 &&
@@ -66,15 +66,17 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, _, renderingSticky) => {
+  _itemRenderer = (index: number, _: number | string, renderingSticky: boolean): React.ReactElement => {
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
+      // @ts-ignore
       return null
     }
-    const section = this._flat[item.flatSectionIndex]
+    const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T>
     if (!section) {
       // data is switching out from under us. let things settle
+      // @ts-ignore
       return null
     }
 
@@ -101,7 +103,7 @@ class SectionList extends React.Component<Props, State> {
           }
           fullWidth={true}
         >
-          {this.props.renderSectionHeader({section: section.section})}
+          {this.props.renderSectionHeader?.({section: item.section})}
         </Kb.Box2>
       )
     } else if (item.type === 'placeholder') {
@@ -129,12 +131,12 @@ class SectionList extends React.Component<Props, State> {
   _checkOnEndReached = throttle(target => {
     const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
     if (diff < 5) {
-      this._onEndReached()
+      this._onEndReached({distanceFromEnd: diff})
     }
   }, 100)
 
   // This matches the way onEndReached works for sectionlist on RN
-  _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
+  _onEndReached = once(info => this.props.onEndReached && this.props.onEndReached(info))
 
   _checkSticky = () => {
     if (this._listRef.current) {
@@ -164,26 +166,24 @@ class SectionList extends React.Component<Props, State> {
     this._checkStickyThrottled()
   }
 
-  _flatten = memoize(sections => {
-    this._flat = (sections || []).reduce((arr, section, sectionIndex) => {
+  _flatten = memoize((sections: ReadonlyArray<T>) => {
+    this._flat = (sections || []).reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
       const flatSectionIndex = arr.length
       arr.push({
         flatSectionIndex,
-        key:
-          (this.props.keyExtractor && this.props.keyExtractor(section, sectionIndex)) ||
-          section.key ||
-          sectionIndex,
+        key: this.props.sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
         section,
         type: 'header',
       })
       if (section.data.length) {
         arr.push(
-          ...section.data.map((item, indexWithinSection) => ({
+          ...section.data.map((item: ItemTFromSectionT<T>, indexWithinSection) => ({
             flatSectionIndex,
             indexWithinSection,
             item,
             key:
-              (this.props.keyExtractor && this.props.keyExtractor(item, indexWithinSection)) ||
+              this.props.keyExtractor?.(item, indexWithinSection) ||
+              // @ts-ignore
               item.key ||
               indexWithinSection,
             type: 'body',
@@ -196,10 +196,6 @@ class SectionList extends React.Component<Props, State> {
         // to get the sticky header back on the screen.
         arr.push({
           flatSectionIndex,
-          key: 1,
-          section: {
-            data: [],
-          },
           type: 'placeholder',
         })
       }
@@ -234,15 +230,13 @@ class SectionList extends React.Component<Props, State> {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {this.props.disableAbsoluteStickyHeader && stickyHeader}
         <Kb.ScrollView
+          contentContainerStyle={this.props.contentContainerStyle}
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
-          {/*
-          // @ts-ignore */}
           <ReactList
-            itemRenderer={this._itemRenderer as any}
-            itemSizeEstimator={this.props.itemSizeEstimator}
+            itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
             length={this._flat.length}
             // @ts-ignore
             retrigger={this._flat}
@@ -255,6 +249,26 @@ class SectionList extends React.Component<Props, State> {
     )
   }
 }
+
+type HeaderFlatListElement<T> = {
+  flatSectionIndex: number
+  key: React.Key
+  section: T
+  type: 'header'
+}
+type FlatListElement<T> =
+  | {
+      flatSectionIndex: number
+      indexWithinSection: number
+      item: ItemTFromSectionT<T>
+      key: React.Key
+      type: 'body'
+    }
+  | HeaderFlatListElement<T>
+  | {
+      flatSectionIndex: number
+      type: 'placeholder'
+    }
 
 const styles = Styles.styleSheetCreate(
   () =>

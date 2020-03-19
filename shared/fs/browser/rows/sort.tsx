@@ -4,7 +4,7 @@ import * as Flow from '../../../util/flow'
 import {memoize} from '../../../util/memoize'
 import logger from '../../../logger'
 
-export type SortableRowItem = RowTypes.StillRowItem | RowTypes.EditingRowItem | RowTypes.TlfRowItem
+export type SortableRowItem = RowTypes.StillRowItem | RowTypes.NewFolderRowItem | RowTypes.TlfRowItem
 
 type PathItemComparer = (a: SortableRowItem, b: SortableRowItem) => number
 
@@ -24,8 +24,8 @@ const getLastModifiedTimeStamp = (a: SortableRowItem) =>
 const getCommonComparer = memoize(
   (meUsername: string) => (a: SortableRowItem, b: SortableRowItem): number => {
     // See if any of them are newly created folders.
-    const aIsNewFolder = a.rowType === RowTypes.RowType.Editing && a.editType === Types.EditType.NewFolder
-    const bIsNewFolder = b.rowType === RowTypes.RowType.Editing && b.editType === Types.EditType.NewFolder
+    const aIsNewFolder = a.rowType === RowTypes.RowType.NewFolder
+    const bIsNewFolder = b.rowType === RowTypes.RowType.NewFolder
     if (aIsNewFolder && !bIsNewFolder) {
       return -1
     }
@@ -87,13 +87,6 @@ const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
   }
 }
 
-const editingRowItemTieBreaker = (a: SortableRowItem, b: SortableRowItem): number => {
-  if (a.rowType !== RowTypes.RowType.Editing || b.rowType !== RowTypes.RowType.Editing) {
-    return 0
-  }
-  return Types.editIDToString(a.editID).localeCompare(Types.editIDToString(b.editID))
-}
-
 const getComparer = (sortSetting: Types.SortSetting, meUsername: string) => (
   a: SortableRowItem,
   b: SortableRowItem
@@ -106,12 +99,7 @@ const getComparer = (sortSetting: Types.SortSetting, meUsername: string) => (
   const multiplier = getOrder(sortSetting) === 'desc' ? -1 : 1
 
   const sortByCompare = getComparerBySortBy(getSortBy(sortSetting))(a, b)
-  if (sortByCompare !== 0) {
-    return sortByCompare * multiplier
-  }
-
-  const tieBroken = editingRowItemTieBreaker(a, b)
-  return tieBroken * multiplier
+  return sortByCompare * multiplier
 }
 
 export const sortRowItems: (

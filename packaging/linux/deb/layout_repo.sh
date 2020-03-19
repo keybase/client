@@ -12,7 +12,7 @@
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "$BASH_SOURCE[0]}")"
 
 build_root="${1:-}"
 if [ -z "$build_root" ] ; then

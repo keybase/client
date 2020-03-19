@@ -24,10 +24,12 @@ export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
+export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const finishAddMembersWizard = 'teams:finishAddMembersWizard'
+export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
 export const getMemberSubteamDetails = 'teams:getMemberSubteamDetails'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
@@ -49,6 +51,7 @@ export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
+export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
@@ -78,7 +81,11 @@ export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnown
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamVersion = 'teams:setTeamVersion'
+export const setTeamWizardAvatar = 'teams:setTeamWizardAvatar'
+export const setTeamWizardChannels = 'teams:setTeamWizardChannels'
 export const setTeamWizardNameDescription = 'teams:setTeamWizardNameDescription'
+export const setTeamWizardSubteams = 'teams:setTeamWizardSubteams'
+export const setTeamWizardTeamSize = 'teams:setTeamWizardTeamSize'
 export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
@@ -88,6 +95,7 @@ export const setWelcomeMessageError = 'teams:setWelcomeMessageError'
 export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const startAddMembersWizard = 'teams:startAddMembersWizard'
+export const startNewTeamWizard = 'teams:startNewTeamWizard'
 export const teamCreated = 'teams:teamCreated'
 export const teamLoaded = 'teams:teamLoaded'
 export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
@@ -148,6 +156,10 @@ type _DeleteChannelConfirmedPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
+type _DeleteMultiChannelsConfirmedPayload = {
+  readonly teamID: Types.TeamID
+  readonly channels: Array<ChatTypes.ConversationIDKey>
+}
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
   readonly teamID: Types.TeamID
@@ -156,6 +168,7 @@ type _EditMembershipPayload = {
 }
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
 type _FinishAddMembersWizardPayload = void
+type _FinishNewTeamWizardPayload = void
 type _GetMemberSubteamDetailsPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -207,6 +220,10 @@ type _SaveChannelMembershipPayload = {
   readonly newChannelState: Types.ChannelMembershipState
 }
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
+type _SetAddMembersWizardIndividualRolePayload = {
+  readonly assertion: string
+  readonly role: Types.TeamRoleType
+}
 type _SetAddMembersWizardRolePayload = {readonly role: Types.TeamRoleType | undefined}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
@@ -277,6 +294,8 @@ type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
+type _SetTeamWizardAvatarPayload = {readonly crop?: RPCTypes.ImageCropRect; readonly filename?: string}
+type _SetTeamWizardChannelsPayload = {readonly channels: Array<string>}
 type _SetTeamWizardNameDescriptionPayload = {
   readonly teamname: string
   readonly description: string
@@ -284,6 +303,8 @@ type _SetTeamWizardNameDescriptionPayload = {
   readonly openTeamJoinRole: Types.TeamRoleType
   readonly showcase: boolean
 }
+type _SetTeamWizardSubteamsPayload = {readonly subteams: Array<string>}
+type _SetTeamWizardTeamSizePayload = {readonly isBig: boolean}
 type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
 type _SetUpdatedChannelNamePayload = {
@@ -308,6 +329,7 @@ type _ShowTeamByNamePayload = {
   readonly addMembers?: boolean
 }
 type _StartAddMembersWizardPayload = {readonly teamID: Types.TeamID}
+type _StartNewTeamWizardPayload = void
 type _TeamCreatedPayload = {
   readonly fromChat: boolean
   readonly teamID: Types.TeamID
@@ -416,6 +438,12 @@ export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSu
   type: setSubteamFilter,
 })
 /**
+ * Set the role for a pending member in the add member wizard.
+ */
+export const createSetAddMembersWizardIndividualRole = (
+  payload: _SetAddMembersWizardIndividualRolePayload
+): SetAddMembersWizardIndividualRolePayload => ({payload, type: setAddMembersWizardIndividualRole})
+/**
  * Set the role for the add members wizard.
  */
 export const createSetAddMembersWizardRole = (
@@ -515,6 +543,9 @@ export const createCreateNewTeamFromConversation = (
 export const createDeleteChannelConfirmed = (
   payload: _DeleteChannelConfirmedPayload
 ): DeleteChannelConfirmedPayload => ({payload, type: deleteChannelConfirmed})
+export const createDeleteMultiChannelsConfirmed = (
+  payload: _DeleteMultiChannelsConfirmedPayload
+): DeleteMultiChannelsConfirmedPayload => ({payload, type: deleteMultiChannelsConfirmed})
 export const createDeleteTeam = (payload: _DeleteTeamPayload): DeleteTeamPayload => ({
   payload,
   type: deleteTeam,
@@ -526,6 +557,9 @@ export const createEditMembership = (payload: _EditMembershipPayload): EditMembe
 export const createEditTeamDescription = (
   payload: _EditTeamDescriptionPayload
 ): EditTeamDescriptionPayload => ({payload, type: editTeamDescription})
+export const createFinishNewTeamWizard = (
+  payload: _FinishNewTeamWizardPayload
+): FinishNewTeamWizardPayload => ({payload, type: finishNewTeamWizard})
 export const createGetMemberSubteamDetails = (
   payload: _GetMemberSubteamDetailsPayload
 ): GetMemberSubteamDetailsPayload => ({payload, type: getMemberSubteamDetails})
@@ -656,9 +690,21 @@ export const createSetTeamVersion = (payload: _SetTeamVersionPayload): SetTeamVe
   payload,
   type: setTeamVersion,
 })
+export const createSetTeamWizardAvatar = (
+  payload: _SetTeamWizardAvatarPayload = Object.freeze({})
+): SetTeamWizardAvatarPayload => ({payload, type: setTeamWizardAvatar})
+export const createSetTeamWizardChannels = (
+  payload: _SetTeamWizardChannelsPayload
+): SetTeamWizardChannelsPayload => ({payload, type: setTeamWizardChannels})
 export const createSetTeamWizardNameDescription = (
   payload: _SetTeamWizardNameDescriptionPayload
 ): SetTeamWizardNameDescriptionPayload => ({payload, type: setTeamWizardNameDescription})
+export const createSetTeamWizardSubteams = (
+  payload: _SetTeamWizardSubteamsPayload
+): SetTeamWizardSubteamsPayload => ({payload, type: setTeamWizardSubteams})
+export const createSetTeamWizardTeamSize = (
+  payload: _SetTeamWizardTeamSizePayload
+): SetTeamWizardTeamSizePayload => ({payload, type: setTeamWizardTeamSize})
 export const createSetTeamWizardTeamType = (
   payload: _SetTeamWizardTeamTypePayload
 ): SetTeamWizardTeamTypePayload => ({payload, type: setTeamWizardTeamType})
@@ -682,6 +728,10 @@ export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErr
 export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
   payload,
   type: showTeamByName,
+})
+export const createStartNewTeamWizard = (payload: _StartNewTeamWizardPayload): StartNewTeamWizardPayload => ({
+  payload,
+  type: startNewTeamWizard,
 })
 export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
   payload,
@@ -763,6 +813,10 @@ export type DeleteChannelConfirmedPayload = {
   readonly payload: _DeleteChannelConfirmedPayload
   readonly type: typeof deleteChannelConfirmed
 }
+export type DeleteMultiChannelsConfirmedPayload = {
+  readonly payload: _DeleteMultiChannelsConfirmedPayload
+  readonly type: typeof deleteMultiChannelsConfirmed
+}
 export type DeleteTeamPayload = {readonly payload: _DeleteTeamPayload; readonly type: typeof deleteTeam}
 export type EditMembershipPayload = {
   readonly payload: _EditMembershipPayload
@@ -775,6 +829,10 @@ export type EditTeamDescriptionPayload = {
 export type FinishAddMembersWizardPayload = {
   readonly payload: _FinishAddMembersWizardPayload
   readonly type: typeof finishAddMembersWizard
+}
+export type FinishNewTeamWizardPayload = {
+  readonly payload: _FinishNewTeamWizardPayload
+  readonly type: typeof finishNewTeamWizard
 }
 export type GetMemberSubteamDetailsPayload = {
   readonly payload: _GetMemberSubteamDetailsPayload
@@ -832,6 +890,10 @@ export type SaveChannelMembershipPayload = {
 export type SaveTeamRetentionPolicyPayload = {
   readonly payload: _SaveTeamRetentionPolicyPayload
   readonly type: typeof saveTeamRetentionPolicy
+}
+export type SetAddMembersWizardIndividualRolePayload = {
+  readonly payload: _SetAddMembersWizardIndividualRolePayload
+  readonly type: typeof setAddMembersWizardIndividualRole
 }
 export type SetAddMembersWizardRolePayload = {
   readonly payload: _SetAddMembersWizardRolePayload
@@ -940,9 +1002,25 @@ export type SetTeamVersionPayload = {
   readonly payload: _SetTeamVersionPayload
   readonly type: typeof setTeamVersion
 }
+export type SetTeamWizardAvatarPayload = {
+  readonly payload: _SetTeamWizardAvatarPayload
+  readonly type: typeof setTeamWizardAvatar
+}
+export type SetTeamWizardChannelsPayload = {
+  readonly payload: _SetTeamWizardChannelsPayload
+  readonly type: typeof setTeamWizardChannels
+}
 export type SetTeamWizardNameDescriptionPayload = {
   readonly payload: _SetTeamWizardNameDescriptionPayload
   readonly type: typeof setTeamWizardNameDescription
+}
+export type SetTeamWizardSubteamsPayload = {
+  readonly payload: _SetTeamWizardSubteamsPayload
+  readonly type: typeof setTeamWizardSubteams
+}
+export type SetTeamWizardTeamSizePayload = {
+  readonly payload: _SetTeamWizardTeamSizePayload
+  readonly type: typeof setTeamWizardTeamSize
 }
 export type SetTeamWizardTeamTypePayload = {
   readonly payload: _SetTeamWizardTeamTypePayload
@@ -979,6 +1057,10 @@ export type ShowTeamByNamePayload = {
 export type StartAddMembersWizardPayload = {
   readonly payload: _StartAddMembersWizardPayload
   readonly type: typeof startAddMembersWizard
+}
+export type StartNewTeamWizardPayload = {
+  readonly payload: _StartNewTeamWizardPayload
+  readonly type: typeof startNewTeamWizard
 }
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
@@ -1027,10 +1109,12 @@ export type Actions =
   | CreateNewTeamFromConversationPayload
   | CreateNewTeamPayload
   | DeleteChannelConfirmedPayload
+  | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
   | FinishAddMembersWizardPayload
+  | FinishNewTeamWizardPayload
   | GetMemberSubteamDetailsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
@@ -1052,6 +1136,7 @@ export type Actions =
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
+  | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
@@ -1081,7 +1166,11 @@ export type Actions =
   | SetTeamSawChatBannerPayload
   | SetTeamSawSubteamsBannerPayload
   | SetTeamVersionPayload
+  | SetTeamWizardAvatarPayload
+  | SetTeamWizardChannelsPayload
   | SetTeamWizardNameDescriptionPayload
+  | SetTeamWizardSubteamsPayload
+  | SetTeamWizardTeamSizePayload
   | SetTeamWizardTeamTypePayload
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
@@ -1091,6 +1180,7 @@ export type Actions =
   | SettingsErrorPayload
   | ShowTeamByNamePayload
   | StartAddMembersWizardPayload
+  | StartNewTeamWizardPayload
   | TeamCreatedPayload
   | TeamLoadedPayload
   | TeamSetMemberSelectedPayload

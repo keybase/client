@@ -110,7 +110,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	}
 
 	rquery = &chat1.GetInboxQuery{}
-	if lquery.Name != nil && lquery.Name.TlfID != nil {
+	if lquery.Name != nil && lquery.Name.TlfID != nil && len(lquery.Name.Name) > 0 {
 		rquery.TlfID = lquery.Name.TlfID
 		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
 		info = types.NameInfo{
@@ -118,6 +118,12 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 			ID:            *lquery.Name.TlfID,
 		}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: using TLFID: %v", *lquery.Name.TlfID)
+	} else if lquery.Name != nil && lquery.Name.TlfID != nil {
+		rquery.TlfID = lquery.Name.TlfID
+		info = types.NameInfo{
+			ID: *lquery.Name.TlfID,
+		}
+		b.Debug(ctx, "GetInboxQueryLocalToRemote: using TLFID (nameless): %v", *lquery.Name.TlfID)
 	} else if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
 		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),
@@ -1005,6 +1011,7 @@ const (
 	nameContainsQueryNone nameContainsQueryRes = iota
 	nameContainsQuerySimilar
 	nameContainsQueryPrefix
+	fullNameContainsQueryExact
 	nameContainsQueryExact
 	nameContainsQueryUnread
 	nameContainsQueryBadged
@@ -1018,13 +1025,15 @@ type convSearchHit struct {
 	hits      []nameContainsQueryRes
 }
 
-func (h convSearchHit) hitScore() (score int) {
-	exacts := 0
+func (h convSearchHit) score() (score int) {
+	exactNames := 0
 	for _, hit := range h.hits {
 		switch hit {
 		case nameContainsQueryExact:
 			score += 20
-			exacts++
+			exactNames++
+		case fullNameContainsQueryExact:
+			score += 50
 		case nameContainsQueryPrefix:
 			score += 10
 		case nameContainsQuerySimilar:
@@ -1035,17 +1044,15 @@ func (h convSearchHit) hitScore() (score int) {
 			score += 200
 		}
 	}
-	if len(h.queryToks) == len(h.convToks) && len(h.hits) == len(h.convToks) && exacts == len(h.hits) {
-		return 1000000
-	} else if len(h.queryToks) == len(h.nameToks) && len(h.hits) == len(h.nameToks) && exacts == len(h.hits) {
-		return 1000000
+	if len(h.queryToks) == len(h.convToks) && exactNames >= len(h.convToks) {
+		score += 1000000
 	}
 	return score
 }
 
 func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
-	hScore := h.hitScore()
-	oScore := o.hitScore()
+	hScore := h.score()
+	oScore := o.score()
 	if hScore < oScore {
 		return true
 	} else if hScore > oScore {
@@ -1121,21 +1128,23 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 	}
 	res.convToks = convToks
 	res.nameToks = s.fullNamesForSearch(ctx, conv, convName, username)
-	convToks = append(convToks, res.nameToks...)
 	for _, queryTok := range queryToks {
-		curHit := nameContainsQueryNone
-		for _, convTok := range convToks {
+		for i, convTok := range append(convToks, res.nameToks...) {
+			curHit := nameContainsQueryNone
 			if nameContainsQueryExact > curHit && convTok == queryTok {
-				curHit = nameContainsQueryExact
-				break
+				if i < len(res.convToks) {
+					curHit = nameContainsQueryExact
+				} else { // full name matches are slightly lower than name matches
+					curHit = fullNameContainsQueryExact
+				}
 			} else if nameContainsQueryPrefix > curHit && strings.HasPrefix(convTok, queryTok) {
 				curHit = nameContainsQueryPrefix
 			} else if nameContainsQuerySimilar > curHit && strings.Contains(convTok, queryTok) {
 				curHit = nameContainsQuerySimilar
 			}
-		}
-		if curHit > nameContainsQueryNone {
-			res.hits = append(res.hits, curHit)
+			if curHit > nameContainsQueryNone {
+				res.hits = append(res.hits, curHit)
+			}
 		}
 	}
 	return res
@@ -1183,7 +1192,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		res[i] = hit.conv
 	}
 	if limit > 0 && limit < len(res) {
-		return res[:limit], nil
+		res = res[:limit]
 	}
 	return res, nil
 }

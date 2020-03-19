@@ -19,8 +19,10 @@ import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as TrackerConstants from '../constants/tracker2'
+import flags from '../util/feature-flags'
 import AccountSwitcher from './account-switcher/container'
 import RuntimeStats from '../app/runtime-stats'
+import InviteFriends from '../people/invite-friends/tab-bar-button'
 import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
@@ -227,6 +229,7 @@ const TabBar = (props: Props) => {
         />
       ))}
       <RuntimeStats />
+      {flags.inviteFriends && <InviteFriends />}
     </Kb.Box2>
   ) : null
 }

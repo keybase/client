@@ -4,7 +4,6 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
 
 export type Props = {
   deleteWaiting: boolean
@@ -18,9 +17,6 @@ const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
     <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
-    <Kb.Text style={styles.headerTeamname} type="BodySemibold">
-      {props.teamname}
-    </Kb.Text>
   </>
 )
 
@@ -97,17 +93,10 @@ const ReallyDeleteTeam = (props: Props) => {
       header={<Header {...props} />}
       onCancel={props.onBack}
       onConfirm={disabled ? undefined : props.onDelete}
-      prompt={`Are you sure you want to delete ${props.teamname}?`}
+      prompt={`Delete ${props.teamname}?`}
       waitingKey={Constants.deleteTeamWaitingKey(props.teamID)}
     />
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      headerTeamname: {color: Styles.globalColors.redDark, textDecorationLine: 'line-through'},
-    } as const)
-)
 
 export default ReallyDeleteTeam

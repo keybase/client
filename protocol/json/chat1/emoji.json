@@ -1,0 +1,137 @@
+{
+  "protocol": "emoji",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "EmojiLoadSourceTyp",
+      "symbols": [
+        "HTTPSRV_0"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "EmojiLoadSource",
+      "switch": {
+        "type": "EmojiLoadSourceTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "HTTPSRV",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "EmojiRemoteSourceTyp",
+      "symbols": [
+        "MESSAGE_0"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "EmojiRemoteSource",
+      "switch": {
+        "type": "EmojiRemoteSourceTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "MESSAGE",
+            "def": false
+          },
+          "body": "MessageID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HarvestedEmoji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "alias"
+        },
+        {
+          "type": "EmojiRemoteSource",
+          "name": "source"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Emoji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "alias"
+        },
+        {
+          "type": "EmojiLoadSource",
+          "name": "source"
+        },
+        {
+          "type": "EmojiRemoteSource",
+          "name": "remoteSource"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiGroup",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Emoji"
+          },
+          "name": "emojis"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserEmojis",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "EmojiGroup"
+          },
+          "name": "emojis"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiStorage",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "EmojiRemoteSource",
+            "keys": "string"
+          },
+          "name": "mapping"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

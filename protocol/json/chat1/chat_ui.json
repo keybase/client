@@ -1292,7 +1292,8 @@
         "MAYBEMENTION_3",
         "LINK_4",
         "MAILTO_5",
-        "KBFSPATH_6"
+        "KBFSPATH_6",
+        "EMOJI_7"
       ]
     },
     {
@@ -1413,6 +1414,13 @@
             "def": false
           },
           "body": "KBFSPath"
+        },
+        {
+          "label": {
+            "name": "EMOJI",
+            "def": false
+          },
+          "body": "Emoji"
         }
       ]
     },

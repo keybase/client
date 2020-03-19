@@ -518,6 +518,7 @@ export type IconType =
   | 'icon-illustration-exploding-messages-240'
   | 'icon-illustration-friends-96'
   | 'icon-illustration-happy-chat-96'
+  | 'icon-illustration-invite-friends-460-96'
   | 'icon-illustration-long-time-96'
   | 'icon-illustration-mars-rover'
   | 'icon-illustration-mars-rover-background'
@@ -826,6 +827,7 @@ export type IconType =
   | 'icon-teams-add-number-list-64'
   | 'icon-teams-add-phone-contacts-64'
   | 'icon-teams-add-search-64'
+  | 'icon-teams-channel-64'
   | 'icon-teams-size-big-64'
   | 'icon-teams-size-small-64'
   | 'icon-teams-type-business-64'
@@ -913,6 +915,7 @@ export type IconType =
   | 'iconfont-edit'
   | 'iconfont-ellipsis'
   | 'iconfont-emoji'
+  | 'iconfont-envelope'
   | 'iconfont-exclamation'
   | 'iconfont-expand'
   | 'iconfont-file'
@@ -5641,6 +5644,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-illustration-happy-chat-96.png')
     },
   },
+  'icon-illustration-invite-friends-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-invite-friends-460-96.png')
+    },
+  },
   'icon-illustration-long-time-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -8693,6 +8704,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-teams-add-search-64.png')
     },
   },
+  'icon-teams-channel-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-teams-channel-64.png')
+    },
+  },
   'icon-teams-size-big-64': {
     extension: 'png',
     imagesDir: 'icons',
@@ -9262,6 +9281,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-emoji': {
     charCode: 0xe91b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-envelope': {
+    charCode: 0xe9b5,
     gridSize: 16,
     isFont: true,
   },

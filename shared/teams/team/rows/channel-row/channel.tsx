@@ -13,20 +13,19 @@ import {pluralize} from '../../../../util/string'
 type ChannelRowProps = {
   channel: ChatTypes.ConversationMeta
   teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
 }
 const ChannelRow = (props: ChannelRowProps) => {
-  const {channel, teamID, conversationIDKey} = props
+  const {channel, teamID} = props
   const isGeneral = channel.channelname === 'general'
 
   const selected = Container.useSelector(
-    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.channelname)
+    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
   )
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel
 
   const numParticipants = Container.useSelector(
-    state => ChatConstants.getParticipantInfo(state, conversationIDKey).all.length
+    state => ChatConstants.getParticipantInfo(state, channel.conversationIDKey).all.length
   )
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
@@ -34,12 +33,16 @@ const ChannelRow = (props: ChannelRowProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSelect = (selected: boolean) => {
-    dispatch(TeamsGen.createSetChannelSelected({channel: channel.channelname, selected, teamID}))
+    dispatch(TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected, teamID}))
+  }
+  const navPropsForAction = {
+    conversationIDKey: channel.conversationIDKey,
+    teamID,
   }
   const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'chatEditChannel'}]}))
   const onNavToChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamChannel'}]}))
   const onNavToSettings = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
@@ -47,7 +50,8 @@ const ChannelRow = (props: ChannelRowProps) => {
       })
     )
 
-  const onDeleteChannel = () => dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
+  const onDeleteChannel = () =>
+    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey: channel.conversationIDKey, teamID}))
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}

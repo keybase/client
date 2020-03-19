@@ -271,6 +271,9 @@ export default Container.makeReducer<
       draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
     })
   },
+  [TeamsGen.startNewTeamWizard]: draftState => {
+    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
+  },
   [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
     draftState.newTeamWizard.teamType = action.payload.teamType
   },
@@ -281,6 +284,19 @@ export default Container.makeReducer<
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
     draftState.newTeamWizard.showcase = action.payload.showcase
   },
+  [TeamsGen.setTeamWizardAvatar]: (draftState, action) => {
+    draftState.newTeamWizard.avatarCrop = action.payload.crop
+    draftState.newTeamWizard.avatarFilename = action.payload.filename
+  },
+  [TeamsGen.setTeamWizardTeamSize]: (draftState, action) => {
+    draftState.newTeamWizard.isBig = action.payload.isBig
+  },
+  [TeamsGen.setTeamWizardChannels]: (draftState, action) => {
+    draftState.newTeamWizard.channels = action.payload.channels
+  },
+  [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
+    draftState.newTeamWizard.subteams = action.payload.subteams
+  },
   [TeamsGen.startAddMembersWizard]: (draftState, action) => {
     const {teamID} = action.payload
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, teamID}
@@ -288,6 +304,19 @@ export default Container.makeReducer<
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
     draftState.addMembersWizard.role = role
+    if (role) {
+      // keep roles stored with indiv members in sync with top level one
+      draftState.addMembersWizard.addingMembers.forEach(member => {
+        member.role = role
+      })
+    }
+  },
+  [TeamsGen.setAddMembersWizardIndividualRole]: (draftState, action) => {
+    const {assertion, role} = action.payload
+    const maybeMember = draftState.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
+    if (maybeMember) {
+      maybeMember.role = role
+    }
   },
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
     draftState.addMembersWizard.justFinished = action.payload.justFinished

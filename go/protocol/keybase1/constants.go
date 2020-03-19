@@ -149,6 +149,7 @@ const (
 	StatusCode_SCChatStalePreviousState                    StatusCode = 2518
 	StatusCode_SCChatEphemeralRetentionPolicyViolatedError StatusCode = 2519
 	StatusCode_SCChatUsersAlreadyInConversationError       StatusCode = 2520
+	StatusCode_SCChatBadConversationError                  StatusCode = 2521
 	StatusCode_SCTeamBadMembership                         StatusCode = 2604
 	StatusCode_SCTeamSelfNotOwner                          StatusCode = 2607
 	StatusCode_SCTeamNotFound                              StatusCode = 2614
@@ -250,6 +251,10 @@ const (
 	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
 	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
 	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
+	StatusCode_SCSimpleFSNameExists                        StatusCode = 5101
+	StatusCode_SCSimpleFSDirNotEmpty                       StatusCode = 5102
+	StatusCode_SCSimpleFSNotExist                          StatusCode = 5103
+	StatusCode_SCSimpleFSNoAccess                          StatusCode = 5104
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -393,6 +398,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatStalePreviousState":    2518,
 	"SCChatEphemeralRetentionPolicyViolatedError": 2519,
 	"SCChatUsersAlreadyInConversationError":       2520,
+	"SCChatBadConversationError":                  2521,
 	"SCTeamBadMembership":                         2604,
 	"SCTeamSelfNotOwner":                          2607,
 	"SCTeamNotFound":                              2614,
@@ -494,6 +500,10 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeambotKeyOldBoxedGeneration":              3801,
 	"SCTeambotKeyBadGeneration":                   3802,
 	"SCAirdropRegisterFailedMisc":                 4207,
+	"SCSimpleFSNameExists":                        5101,
+	"SCSimpleFSDirNotEmpty":                       5102,
+	"SCSimpleFSNotExist":                          5103,
+	"SCSimpleFSNoAccess":                          5104,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -635,6 +645,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2518: "SCChatStalePreviousState",
 	2519: "SCChatEphemeralRetentionPolicyViolatedError",
 	2520: "SCChatUsersAlreadyInConversationError",
+	2521: "SCChatBadConversationError",
 	2604: "SCTeamBadMembership",
 	2607: "SCTeamSelfNotOwner",
 	2614: "SCTeamNotFound",
@@ -736,6 +747,10 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3801: "SCTeambotKeyOldBoxedGeneration",
 	3802: "SCTeambotKeyBadGeneration",
 	4207: "SCAirdropRegisterFailedMisc",
+	5101: "SCSimpleFSNameExists",
+	5102: "SCSimpleFSDirNotEmpty",
+	5103: "SCSimpleFSNotExist",
+	5104: "SCSimpleFSNoAccess",
 }
 
 func (e StatusCode) String() string {

@@ -452,12 +452,14 @@ type StellarSender interface {
 	SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
 }
 
-type TeamConversationBackedStorage interface {
-	Put(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, name string, data interface{}) error
-	Get(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, name string, res interface{}) (bool, error)
+type ConvConversationBackedStorage interface {
+	Put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, data interface{}) error
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res interface{},
+		createConvIfMissing bool) (bool, *chat1.ConversationLocal, error)
+	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest interface{}) (bool, error)
 }
 
-type ConversationBackedStorage interface {
+type UserConversationBackedStorage interface {
 	Put(ctx context.Context, uid gregor1.UID, name string, data interface{}) error
 	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
 }
@@ -607,6 +609,13 @@ type ParticipantSource interface {
 		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
 	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		dataSource InboxSourceDataSourceTyp)
+}
+
+type EmojiSource interface {
+	Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias, filename string) error
+	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error)
+	Decorate(ctx context.Context, body string, convID chat1.ConversationID, emojis []chat1.HarvestedEmoji) string
+	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID) ([]chat1.HarvestedEmoji, error)
 }
 
 type ServerConnection interface {

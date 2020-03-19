@@ -22,6 +22,7 @@ type TeamProps = TeamActionsProps & {
 
 type ChannelActionsProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: Types.TeamID
 }
 type ChannelProps = ChannelActionsProps & {
   selectedTab: ChannelSelectableTab
@@ -34,10 +35,9 @@ type UnselectableProps = {
 
 type Props = TeamProps | ChannelProps | UnselectableProps
 
-const isChannel = (props: Props): props is ChannelProps =>
-  ['channelMembers'].includes((props as ChannelProps).selectedTab)
+const isChannel = (props: Props): props is ChannelProps => ['channelMembers'].includes(props.selectedTab)
 const isTeam = (props: Props): props is TeamProps =>
-  ['teamChannels', 'teamMembers'].includes((props as TeamProps).selectedTab)
+  ['teamChannels', 'teamMembers'].includes(props.selectedTab)
 
 const getTeamSelectedCount = (state: Container.TypedState, props: TeamProps) => {
   const {selectedTab, teamID} = props
@@ -69,13 +69,13 @@ const channelSelectableTabNames: {[k in ChannelSelectableTab]: string} = {
 
 type JointSelectionPopupProps = {
   children: React.ReactNode
-  onUnselect: () => void
+  onCancel: () => void
   selectableTabName: string
   selectedCount: number
 }
 
 const JointSelectionPopup = (props: JointSelectionPopupProps) => {
-  const {onUnselect, selectableTabName, selectedCount, children} = props
+  const {onCancel, selectableTabName, selectedCount, children} = props
   const onSelectableTab = !!selectableTabName
 
   // For boosting the list to scroll not behind the popup on mobile
@@ -97,14 +97,14 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Styles.isMobile && (
-        <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onUnselect}>
+        <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onCancel}>
           Cancel
         </Kb.Text>
       )}
       <Kb.Text type="BodySmall">
         {selectedCount} {pluralize(selectableTabName, selectedCount)} selected.{' '}
         {!Styles.isMobile && (
-          <Kb.Text type="BodySmallPrimaryLink" onClick={onUnselect}>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onCancel}>
             Unselect
           </Kb.Text>
         )}
@@ -129,7 +129,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
   const selectedCount = Container.useSelector(state => getTeamSelectedCount(state, props))
   const dispatch = Container.useDispatch()
 
-  const onUnselect = () => {
+  const onCancel = () => {
     switch (selectedTab) {
       case 'teamChannels':
         dispatch(
@@ -160,7 +160,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
     <JointSelectionPopup
       selectableTabName={selectableTabName}
       selectedCount={selectedCount}
-      onUnselect={onUnselect}
+      onCancel={onCancel}
     >
       <Actions teamID={teamID} />
     </JointSelectionPopup>
@@ -168,11 +168,11 @@ const TeamSelectionPopup = (props: TeamProps) => {
 }
 
 const ChannelSelectionPopup = (props: ChannelProps) => {
-  const {conversationIDKey, selectedTab} = props
+  const {conversationIDKey, selectedTab, teamID} = props
   const selectedCount = Container.useSelector(state => getChannelSelectedCount(state, props))
   const dispatch = Container.useDispatch()
 
-  const onUnselect = () => {
+  const onCancel = () => {
     switch (selectedTab) {
       case 'channelMembers':
         dispatch(
@@ -193,9 +193,9 @@ const ChannelSelectionPopup = (props: ChannelProps) => {
     <JointSelectionPopup
       selectableTabName={selectableTabName}
       selectedCount={selectedCount}
-      onUnselect={onUnselect}
+      onCancel={onCancel}
     >
-      <ChannelMembersActions conversationIDKey={conversationIDKey} />
+      <ChannelMembersActions conversationIDKey={conversationIDKey} teamID={teamID} />
     </JointSelectionPopup>
   )
 }
@@ -228,8 +228,13 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
         path: [{props: {teamID, usernames: [...members]}, selected: 'teamAddToChannels'}],
       })
     )
-  const onEditRoles = () => {}
-  const onRemoveFromTeam = () => {}
+  const onEditRoles = () => console.log('onEditRoles not implemented') // TODO
+  const onRemoveFromTeam = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {members: [...members], teamID}, selected: 'teamReallyRemoveMember'}],
+      })
+    )
 
   return (
     <ActionsWrapper>
@@ -252,9 +257,17 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   )
 }
 
-const TeamChannelsActions = (_: TeamActionsProps) => {
+const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
+  const dispatch = Container.useDispatch()
+
   // Channels tab functions
-  const onDelete = () => {}
+  const onDelete = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {teamID}, selected: 'teamDeleteChannel'}],
+      })
+    )
+
   return (
     <ActionsWrapper>
       <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
@@ -262,7 +275,42 @@ const TeamChannelsActions = (_: TeamActionsProps) => {
   )
 }
 
-const ChannelMembersActions = (_: ChannelActionsProps) => null
+const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
+  const dispatch = Container.useDispatch()
+  const members = Container.useSelector(s => s.teams.channelSelectedMembers.get(conversationIDKey))
+  if (!members) {
+    // we shouldn't be rendered
+    return null
+  }
+
+  // Members tab functions
+  const onAddToChannel = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {teamID, usernames: [...members]}, selected: 'teamAddToChannels'}],
+      })
+    )
+  const onEditRoles = () => console.log('onEditRoles not implemented') // TODO
+  const onRemoveFromChannel = () => console.log('onRemoveFromChannel not implemented') // TODO
+
+  return (
+    <ActionsWrapper>
+      <Kb.Button
+        label="Add to channels"
+        mode="Secondary"
+        onClick={onAddToChannel}
+        fullWidth={Styles.isMobile}
+      />
+      <Kb.Button label="Edit role" mode="Secondary" onClick={onEditRoles} fullWidth={Styles.isMobile} />
+      <Kb.Button
+        label="Remove from channel"
+        type="Danger"
+        onClick={onRemoveFromChannel}
+        fullWidth={Styles.isMobile}
+      />
+    </ActionsWrapper>
+  )
+}
 
 const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamActionsProps>} = {
   teamChannels: TeamChannelsActions,

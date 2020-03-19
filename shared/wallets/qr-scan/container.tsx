@@ -10,8 +10,15 @@ const mapStateToProps = () => ({})
 const mapDispatchToProps = dispatch => ({
   onSubmitCode: (to: string | null) => {
     if (to) {
-      dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'stellarPublicKey'}))
-      dispatch(WalletsGen.createSetBuildingTo({to}))
+      if (to.startsWith('web+stellar:')) {
+        // Switch from the send form to the SEP7 handler.
+        dispatch(WalletsGen.createValidateSEP7Link({fromQR: true, link: to}))
+        dispatch(WalletsGen.createClearBuilding())
+      } else {
+        // Just a plain address.
+        dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'stellarPublicKey'}))
+        dispatch(WalletsGen.createSetBuildingTo({to}))
+      }
     } else {
       logger.warn('QrScan.onSubmitCode: No `to` field for QRScan')
     }

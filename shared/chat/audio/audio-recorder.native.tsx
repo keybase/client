@@ -9,7 +9,7 @@ import {formatAudioRecordDuration} from '../../util/timestamp'
 import {isIOS} from '../../constants/platform'
 import {AmpTracker} from './amptracker'
 import AudioStarter from './audio-starter.native'
-import {Gateway} from 'react-gateway'
+import {Gateway} from '@chardskarth/react-gateway'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey

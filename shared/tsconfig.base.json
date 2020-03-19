@@ -25,7 +25,8 @@
       "react-navigation-tabs": ["override-d.ts/react-navigation-tabs/index.d.ts"],
       "react-redux": ["override-d.ts/react-redux/index.d.ts"],
       "redux": ["override-d.ts/redux/index.d.ts"],
-      "rn-fetch-blob": ["override-d.ts/rn-fetch-blob/index.d.ts"]
+      "rn-fetch-blob": ["override-d.ts/rn-fetch-blob/index.d.ts"],
+      "@chardskarth/react-gateway": ["./node_modules/@types/react-gateway"]
     },
     "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,

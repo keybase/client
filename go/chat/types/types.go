@@ -358,6 +358,7 @@ type SenderPrepareResult struct {
 	AtMentions          []gregor1.UID
 	ChannelMention      chat1.ChannelMention
 	TopicNameState      *chat1.TopicNameState
+	TopicNameStateConvs []chat1.ConversationID
 }
 
 type ParsedStellarPayment struct {
@@ -787,4 +788,22 @@ func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID
 }
 func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
+}
+
+type DummyEmojiSource struct{}
+
+func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias,
+	filename string) error {
+	return nil
+}
+func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error) {
+	return chat1.UserEmojis{}, nil
+}
+func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
+	emojis []chat1.HarvestedEmoji) string {
+	return body
+}
+func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
+	convID chat1.ConversationID) ([]chat1.HarvestedEmoji, error) {
+	return nil, nil
 }

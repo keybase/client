@@ -1253,6 +1253,40 @@ func (e *Identify2WithUID) Result(m libkb.MetaContext) (*keybase1.Identify2ResUP
 	return res, nil
 }
 
+func (e *Identify2WithUID) ResultWotFailingProofs(mctx libkb.MetaContext) (failingProofs []keybase1.WotProof, err error) {
+	for _, row := range e.state.Result().ProofChecks {
+		if row.GetError() != nil {
+			proofType := row.GetLink().GetProofType()
+			key, value := row.GetLink().ToKeyValuePair()
+			switch proofType {
+			case keybase1.ProofType_TWITTER, keybase1.ProofType_GITHUB, keybase1.ProofType_REDDIT,
+				keybase1.ProofType_COINBASE, keybase1.ProofType_HACKERNEWS, keybase1.ProofType_FACEBOOK,
+				keybase1.ProofType_GENERIC_SOCIAL, keybase1.ProofType_ROOTER:
+				failingProofs = append(failingProofs, keybase1.WotProof{
+					ProofType: proofType,
+					Name:      key,
+					Username:  value,
+				})
+			case keybase1.ProofType_GENERIC_WEB_SITE:
+				failingProofs = append(failingProofs, keybase1.WotProof{
+					ProofType: proofType,
+					Protocol:  key,
+					Hostname:  value,
+				})
+			case keybase1.ProofType_DNS:
+				failingProofs = append(failingProofs, keybase1.WotProof{
+					ProofType: proofType,
+					Protocol:  key,
+					Domain:    value,
+				})
+			default:
+				return nil, fmt.Errorf("unexpected proof failure of type: %v", proofType)
+			}
+		}
+	}
+	return failingProofs, nil
+}
+
 func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
 	return e.remotesReceived
 }

@@ -1355,6 +1355,10 @@ export type MessageTypes = {
     inParam: void
     outParam: TeamRoleMapAndVersion
   }
+  'keybase.1.teams.getUntrustedTeamInfo': {
+    inParam: {readonly teamName: TeamName}
+    outParam: UntrustedTeamInfo
+  }
   'keybase.1.teams.getUserSubteamMemberships': {
     inParam: {readonly teamID: TeamID; readonly username: String}
     outParam: Array<AnnotatedSubteamMemberDetails> | null
@@ -2431,6 +2435,7 @@ export enum StatusCode {
   scchatstalepreviousstate = 2518,
   scchatephemeralretentionpolicyviolatederror = 2519,
   scchatusersalreadyinconversationerror = 2520,
+  scchatbadconversationerror = 2521,
   scteambadmembership = 2604,
   scteamselfnotowner = 2607,
   scteamnotfound = 2614,
@@ -2532,6 +2537,10 @@ export enum StatusCode {
   scteambotkeyoldboxedgeneration = 3801,
   scteambotkeybadgeneration = 3802,
   scairdropregisterfailedmisc = 4207,
+  scsimplefsnameexists = 5101,
+  scsimplefsdirnotempty = 5102,
+  scsimplefsnotexist = 5103,
+  scsimplefsnoaccess = 5104,
 }
 
 export enum SubscriptionTopic {
@@ -2983,7 +2992,7 @@ export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
 export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null}
-export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean; readonly saltpack: Boolean}
+export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly chatemoji: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean; readonly saltpack: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs} | {asyncOp: AsyncOps.read; read: ReadArgs} | {asyncOp: AsyncOps.write; write: WriteArgs} | {asyncOp: AsyncOps.copy; copy: CopyArgs} | {asyncOp: AsyncOps.move; move: MoveArgs} | {asyncOp: AsyncOps.remove; remove: RemoveArgs} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
@@ -3766,6 +3775,7 @@ export const teamsGetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.t
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamAndMemberShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamAndMemberShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamAndMemberShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamIDRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamRoleMapRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamRoleMap']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamRoleMap']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamRoleMap', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsGetUntrustedTeamInfoRpcPromise = (params: MessageTypes['keybase.1.teams.getUntrustedTeamInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getUntrustedTeamInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getUntrustedTeamInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetUserSubteamMembershipsRpcPromise = (params: MessageTypes['keybase.1.teams.getUserSubteamMemberships']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getUserSubteamMemberships']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getUserSubteamMemberships', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.teams.setTarsDisabled']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTarsDisabled']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTarsDisabled', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTeamMemberShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.setTeamMemberShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTeamMemberShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTeamMemberShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4179,7 +4189,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'
 // 'keybase.1.streamUi.write'
-// 'keybase.1.teams.getUntrustedTeamInfo'
 // 'keybase.1.teams.teamCreateWithSettings'
 // 'keybase.1.teams.teamImplicitAdmins'
 // 'keybase.1.teams.teamListTeammates'
