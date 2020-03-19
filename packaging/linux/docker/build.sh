@@ -10,7 +10,8 @@ tag="$(echo "$1" | tr "+" "-")"
 rm -r "$client_dir/.docker" || true
 mkdir -p "$client_dir/.docker"
 code_signing_fingerprint="$("$here/../fingerprint.sh")"
-echo "CSF", $code_signing_fingerprint
+echo "CSF", "$code_signing_fingerprint"
+env
 gpg_tempfile="$client_dir/.docker/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
