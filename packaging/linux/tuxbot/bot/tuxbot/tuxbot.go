@@ -253,17 +253,6 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		commit := "HEAD"
 		if len(args) > 0 {
 			commit = args[0]
-
-			gitCmd := makeCmd(currentUser, "git", "--no-pager", "log", "--oneline", fmt.Sprintf("%s...", commit))
-			gitCmd.Stdout = nil
-			gitCmd.Stderr = nil
-			ret, err := gitCmd.CombinedOutput()
-			if err != nil {
-				return err
-			}
-			if bytes.Count(ret, []byte("\n")) > 500 {
-				return fmt.Errorf("%s is more than 500 revisions behind HEAD, refusing to build", commit)
-			}
 		}
 		c.Locked = true
 		go func() {
@@ -424,7 +413,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		c.Debug("```%s```", ret)
 		return nil
 	case "journal":
-		ret, _ := exec.Command("sudo", "journalctl", "-n", "50").CombinedOutput()
+		ret, _ := exec.Command("sudo", "journalctl", "-n", "100").CombinedOutput()
 		c.Debug("```%s```", ret)
 		return nil
 	default:
@@ -433,7 +422,10 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 }
 
 func main() {
-	gotenv.Load(fmt.Sprintf("/keybase/team/%s/.kbfs_autogit/%s/keybot.env", os.Getenv("SECRETS_TEAM"), os.Getenv("SECRETS_REPO")))
+	err := gotenv.Load(fmt.Sprintf("/keybase/team/%s/.kbfs_autogit/%s/tuxbot.env", os.Getenv("SECRETS_TEAM"), os.Getenv("SECRETS_REPO")))
+	if err != nil {
+		panic(err)
+	}
 
 	keybaseBinaryPath := flag.String("keybase-bin-path", "keybase", "the location of the keybase app")
 	botName := flag.String("bot-name", "tuxbot", "the name of this bot")
