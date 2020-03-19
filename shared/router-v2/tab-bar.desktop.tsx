@@ -86,33 +86,29 @@ const Header = () => {
   const onSettings = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
   const onSignOut = () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
 
-  const menuHeader = () => ({
-    onClick: onProfileClick,
-    title: '',
-    view: (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
-          <Kb.ConnectedNameWithIcon
-            username={username}
-            onClick={onClickWrapper}
-            metaTwo={
-              <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
-                {fullname}
-              </Kb.Text>
-            }
-          />
-        </Kb.ClickableBox>
-        <Kb.Button
-          label="View/Edit profile"
-          mode="Secondary"
+  const menuHeader = () => (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
+        <Kb.ConnectedNameWithIcon
+          username={username}
           onClick={onClickWrapper}
-          small={true}
-          style={styles.button}
+          metaTwo={
+            <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+              {fullname}
+            </Kb.Text>
+          }
         />
-        <AccountSwitcher />
-      </Kb.Box2>
-    ),
-  })
+      </Kb.ClickableBox>
+      <Kb.Button
+        label="View/Edit profile"
+        mode="Secondary"
+        onClick={onClickWrapper}
+        small={true}
+        style={styles.button}
+      />
+      <AccountSwitcher />
+    </Kb.Box2>
+  )
 
   const menuItems = (): Kb.MenuItems => [
     {onClick: onAddAccount, title: 'Log in as another user'},

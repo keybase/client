@@ -29,7 +29,7 @@ export type MenuItems = Array<_InnerMenuItem>
 export type MenuLayoutProps = {
   backgroundColor?: Color
   items: MenuItems
-  header?: React.ReactElement
+  header?: React.ReactNode
   onHidden: () => void
   closeOnClick?: boolean
   style?: Object

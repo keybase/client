@@ -18,7 +18,7 @@ export type Props = {
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",
   containerStyle?: StylesCrossPlatform
-  header?: React.ReactElement
+  header?: React.ReactNode
   items: _MenuItems
   listStyle?: Object
   onHidden: () => void

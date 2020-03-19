@@ -77,16 +77,13 @@ const TeamRequestRowNew = (props: Props) => {
 
   const {showingPopup, setShowingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
-      header={{
-        title: 'header',
-        view: (
-          <MenuHeader
-            username={username}
-            fullName={fullName ? fullName : undefined}
-            label={`Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
-          />
-        ),
-      }}
+      header={
+        <MenuHeader
+          username={username}
+          fullName={fullName ? fullName : undefined}
+          label={`Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
+        />
+      }
       items={[
         'Divider',
         {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
