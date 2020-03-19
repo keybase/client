@@ -24,7 +24,7 @@ const makeBigRows = (
 ): Array<Types.ChatInboxRowItemBig | Types.ChatInboxRowItemBigHeader | Types.ChatInboxRowItemTeamBuilder> => {
   return bigTeams.map(t => {
     switch (t.state) {
-      case RPCChatTypes.UIInboxBigTeamRowTyp.channel:
+      case RPCChatTypes.UIInboxBigTeamRowTyp.channel: {
         const conversationIDKey = Types.stringToConversationIDKey(t.channel.convID)
         return {
           channelname: t.channel.channelname,
@@ -35,6 +35,7 @@ const makeBigRows = (
           teamname: t.channel.teamname,
           type: 'big',
         }
+      }
       case RPCChatTypes.UIInboxBigTeamRowTyp.label:
         return {
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
