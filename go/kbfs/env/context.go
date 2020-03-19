@@ -30,6 +30,9 @@ type AppStateUpdater interface {
 	// NextAppStateUpdate returns a channel that app state changes
 	// are sent to.
 	NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState
+	// NextNetworkStateUpdate returns a channel that mobile network
+	// state changes are sent to.
+	NextNetworkStateUpdate(lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState
 }
 
 // EmptyAppStateUpdater is an implementation of AppStateUpdater that
@@ -38,6 +41,13 @@ type EmptyAppStateUpdater struct{}
 
 // NextAppStateUpdate implements AppStateUpdater.
 func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
+	// Receiving on a nil channel blocks forever.
+	return nil
+}
+
+// NextNetworkStateUpdate implements AppStateUpdater.
+func (easu EmptyAppStateUpdater) NextNetworkStateUpdate(
+	lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState {
 	// Receiving on a nil channel blocks forever.
 	return nil
 }
@@ -163,6 +173,12 @@ func (c *KBFSContext) GetPerfLog() logger.Logger {
 // NextAppStateUpdate implements AppStateUpdater.
 func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
 	return c.g.MobileAppState.NextUpdate(lastState)
+}
+
+// NextNetworkStateUpdate implements AppStateUpdater.
+func (c *KBFSContext) NextNetworkStateUpdate(
+	lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState {
+	return c.g.MobileNetState.NextUpdate(lastState)
 }
 
 // CheckService checks if the service is running and returns nil if
