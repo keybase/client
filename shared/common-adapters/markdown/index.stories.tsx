@@ -340,17 +340,6 @@ const load = () => {
     ))
     s = s.add(k, () => <MarkdownWithAst>{randomGenerated[k]}</MarkdownWithAst>)
   })
-
-  s = s.add('emoji test', () => (
-    <Kb.Text type="Body">
-      hello!{' '}
-      <Kb.CustomEmoji
-        size="Medium"
-        src="https://01.keybase.pub/emoji/lucario.png"
-        alias=":lucario:"
-      ></Kb.CustomEmoji>
-    </Kb.Text>
-  ))
 }
 
 export default load
