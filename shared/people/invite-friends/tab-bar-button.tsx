@@ -23,11 +23,12 @@ const InviteFriends = () => {
       </Kb.Text>
     </Kb.Box2>
   )
+  const firstTooltipLine = `${num.toLocaleString()} friends invited in the last 24 hours.`
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.mobileContainer}>
       <Kb.Box style={Styles.globalStyles.flexOne} />
       {inviteButton}
-      {inviteCounter}
+      <Kb.WithTooltip tooltip={firstTooltipLine}>{inviteCounter}</Kb.WithTooltip>
     </Kb.Box2>
   ) : (
     <>
@@ -39,7 +40,7 @@ const InviteFriends = () => {
           tooltip={
             <Kb.Box2 direction="vertical" alignItems="flex-start">
               <Kb.Text type="BodySmall" style={styles.tooltip}>
-                {num.toLocaleString()} friends invited in the last 24 hours.
+                {firstTooltipLine}
               </Kb.Text>
               {percentage > 0 ? (
                 <Kb.Text type="BodySmall" style={styles.tooltip}>
@@ -80,9 +81,9 @@ export default InviteFriends
 const styles = Styles.styleSheetCreate(() => ({
   bigEnvelopeIcon: {
     alignSelf: 'center',
+    borderRadius: 4,
     margin: Styles.globalMargins.small,
     padding: 6,
-    borderRadius: 4,
   },
   container: {
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
