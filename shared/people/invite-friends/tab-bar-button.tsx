@@ -16,7 +16,7 @@ const InviteFriends = () => {
 
   const inviteButton = <Kb.Button small={true} label="Invite friends" onClick={onInviteFriends} />
   const inviteCounter = (
-    <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true} style={styles.inviteCounterBox}>
+    <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
       <Kb.Icon type="iconfont-envelope" sizeType="Small" color={Styles.globalColors.blueDarkerOrBlack_85} />
       <Kb.Text type="BodySmallBold" style={styles.counter}>
         {num.toLocaleString()} {showFire ? <Kb.Emoji emojiName="fire" size={12} /> : null}
@@ -28,7 +28,11 @@ const InviteFriends = () => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.mobileContainer}>
       <Kb.Box style={Styles.globalStyles.flexOne} />
       {inviteButton}
-      <Kb.WithTooltip tooltip={firstTooltipLine}>{inviteCounter}</Kb.WithTooltip>
+      <Kb.Box2 direction="horizontal" style={styles.inviteCounterBox}>
+        <Kb.WithTooltip tooltip={firstTooltipLine} showOnPressMobile={true}>
+          {inviteCounter}
+        </Kb.WithTooltip>
+      </Kb.Box2>
     </Kb.Box2>
   ) : (
     <>
@@ -91,12 +95,10 @@ const styles = Styles.styleSheetCreate(() => ({
   counter: {
     color: Styles.globalColors.blueLighterOrBlack_50,
   },
-  inviteCounterBox: Styles.platformStyles({
-    isMobile: {
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
-  }),
+  inviteCounterBox: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   mobileContainer: {
     backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
     padding: Styles.globalMargins.xsmall,
