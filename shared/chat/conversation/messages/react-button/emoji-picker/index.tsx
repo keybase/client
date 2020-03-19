@@ -98,10 +98,10 @@ class EmojiPicker extends React.Component<Props, State> {
       return
     }
 
-    const {emojiSections} = getData(this.props.topReacjis)
+    const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
+    const {emojiSections} = getData(this.props.topReacjis.slice(0, emojisPerLine * 4))
     // width is different from cached. make new sections & cache for next time
     let sections: Array<Section> = []
-    const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
     sections = emojiSections.map(c => ({
       data: chunk(c.data.emojis, emojisPerLine).map((c: any, idx: number) => ({
         emojis: c,

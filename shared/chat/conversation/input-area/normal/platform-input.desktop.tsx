@@ -355,9 +355,9 @@ const styles = Styles.styleSheetCreate(
       emojiPickerContainer: Styles.platformStyles({
         common: {
           borderRadius: 4,
-          bottom: 34,
+          bottom: 32,
           position: 'absolute',
-          right: -22,
+          right: -64,
         },
         isElectron: {
           ...Styles.desktopStyles.boxShadow,

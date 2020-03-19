@@ -111,7 +111,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           topReacjis={topReacjis}
           filter={filter}
           onChoose={emoji => onAddReaction(`:${emoji.short_name}:`)}
-          width={336}
+          width={320}
         />
       </Kb.Box>
     </Kb.Box>
@@ -135,7 +135,7 @@ const styles = Styles.styleSheetCreate(
         height: 400,
         minHeight: 400,
         overflow: 'hidden',
-        width: 336,
+        width: 320,
       },
       input: {
         borderBottomWidth: 1,
