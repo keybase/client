@@ -19,6 +19,8 @@ if [ "$#" != 2 ] ; then
   exit 1
 fi
 
+echo "MODECOMMIT" "$@"
+
 mode="$1"
 
 here="$(dirname "${BASH_SOURCE[0]}")"
