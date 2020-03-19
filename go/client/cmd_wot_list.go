@@ -16,7 +16,6 @@ type cmdWotList struct {
 	libkb.Contextified
 	vouchee *string
 	voucher *string
-	byMe    bool
 }
 
 func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -32,8 +31,8 @@ func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "by-me",
-				Usage: "Only get the vouch written by me",
+				Name:  "voucher",
+				Usage: "Only get vouches written by me",
 			},
 		},
 	}
@@ -47,21 +46,16 @@ func (c *cmdWotList) ParseArgv(ctx *cli.Context) error {
 		username := ctx.Args()[0]
 		c.vouchee = &username
 	}
-	c.byMe = ctx.Bool("by-me")
+	voucher := ctx.String("by-me")
+	if len(voucher) > 0 {
+		c.voucher = &voucher
+	}
 	return nil
 }
 
 func (c *cmdWotList) Run() error {
 	ctx := context.Background()
 	me := c.G().Env.GetUsername().String()
-	if c.vouchee == nil {
-		// if not specified, vouchee is me
-		c.vouchee = &me
-	}
-	if c.byMe {
-		c.voucher = &me
-	}
-
 	arg := keybase1.WotListCLIArg{
 		Vouchee: c.vouchee,
 		Voucher: c.voucher,
@@ -79,7 +73,12 @@ func (c *cmdWotList) Run() error {
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
 	}
-	line("Web-Of-Trust for %s", *c.vouchee)
+
+	targetusername := me
+	if c.vouchee != nil {
+		targetusername = *c.vouchee
+	}
+	line("Web-Of-Trust for %s", targetusername)
 	line("-------------------------------")
 	if len(res) == 0 {
 		line("no attestations to show")

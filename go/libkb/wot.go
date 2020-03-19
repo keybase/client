@@ -89,6 +89,8 @@ type reactionExpansion struct {
 type serverWotVouch struct {
 	Voucher               keybase1.UID           `json:"voucher"`
 	VoucherEldestSeqno    keybase1.Seqno         `json:"voucher_eldest_seqno"`
+	Vouchee               keybase1.UID           `json:"vouchee"`
+	VoucheeEldestSeqno    keybase1.Seqno         `json:"vouchee_eldest_seqno"`
 	VouchSigID            keybase1.SigID         `json:"vouch_sig"`
 	VouchExpansionJSON    string                 `json:"vouch_expansion"`
 	ReactionSigID         *keybase1.SigID        `json:"reaction_sig,omitempty"`
@@ -96,7 +98,7 @@ type serverWotVouch struct {
 	Status                keybase1.WotStatusType `json:"status"`
 }
 
-func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, vouchee *User) (res keybase1.WotVouch, err error) {
+func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUser *User) (res keybase1.WotVouch, err error) {
 	// load the voucher and fetch the relevant chain link
 	wotVouchLink, voucher, err := getWotVouchChainLink(mctx, serverVouch.Voucher, serverVouch.VouchSigID)
 	if err != nil {
@@ -118,7 +120,15 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, vouchee *U
 		wotObj.Confidence = nil
 	}
 
-	err = assertVouchIsForUser(mctx, wotObj.User, vouchee)
+	if voucheeUser == nil || voucheeUser.GetUID() != serverVouch.Vouchee {
+		// load vouchee
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee))
+		if err != nil {
+			return res, fmt.Errorf("error loading vouchee: %s", err.Error())
+		}
+	}
+
+	err = assertVouchIsForUser(mctx, wotObj.User, voucheeUser)
 	if err != nil {
 		mctx.Debug("web-of-trust vouch user-section doesn't look right: %+v", wotObj.User)
 		return res, fmt.Errorf("error verifying user section of web-of-trust expansion: %s", err.Error())
@@ -129,7 +139,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, vouchee *U
 	var reactionStatus keybase1.WotReactionType
 	var wotReactLink *WotReactChainLink
 	if hasReaction {
-		wotReactLink, err = getWotReactChainLink(mctx, vouchee, *serverVouch.ReactionSigID)
+		wotReactLink, err = getWotReactChainLink(mctx, voucheeUser, *serverVouch.ReactionSigID)
 		if err != nil {
 			return res, fmt.Errorf("error finding the vouch in the vouchee's sigchain: %s", err.Error())
 		}
@@ -204,18 +214,17 @@ func fetchWot(mctx MetaContext, vouchee *string, voucher *string) (res []serverW
 	return response.Vouches, nil
 }
 
-// fetchUserWotByVoucher gets vouches written for vouchee. If voucher is
-// specified, only get the vouch written by voucher for vouchee.
-// If voucheeUser has been previously loaded, pass it in to prevent
-// reloading (there is no harm in reloading).
-func fetchUserWotByVoucher(mctx MetaContext, vouchee string, voucher *string, voucheeUser *User) (res []keybase1.WotVouch, err error) {
-	vouches, err := fetchWot(mctx, &vouchee, voucher)
+// FetchUserWot gets vouches written for vouchee (if specified) by voucher (if
+// specified).
+func FetchUserWot(mctx MetaContext, vouchee *string, voucher *string) (res []keybase1.WotVouch, err error) {
+	vouches, err := fetchWot(mctx, vouchee, voucher)
 	if err != nil {
 		mctx.Debug("error fetching web-of-trust vouches for %s: %s", vouchee, err.Error())
 		return nil, err
 	}
-	if voucheeUser == nil {
-		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(vouchee))
+	var voucheeUser *User
+	if vouchee != nil {
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(*vouchee))
 		if err != nil {
 			return nil, fmt.Errorf("error loading vouchee: %s", err.Error())
 		}
@@ -232,40 +241,10 @@ func fetchUserWotByVoucher(mctx MetaContext, vouchee string, voucher *string, vo
 	return res, nil
 }
 
-// FetchMyWot gets all vouches (of any status) written for me
+// FetchMyWot gets all vouches (of any status) written for me; defined for convenience
 func FetchMyWot(mctx MetaContext) (res []keybase1.WotVouch, err error) {
 	defer mctx.Trace("FetchMyWot", func() error { return err })()
-	me, err := LoadMe(NewLoadUserArgWithMetaContext(mctx))
-	if err != nil {
-		return nil, fmt.Errorf("error loading myself: %s", err.Error())
-	}
-	myName := me.GetName()
-	return fetchUserWotByVoucher(mctx, myName, nil, me)
-}
-
-// FetchMyWotByUser gets vouch (of any status) written for me by the voucher
-func FetchMyWotByUser(mctx MetaContext, voucher string) (res []keybase1.WotVouch, err error) {
-	defer mctx.Trace("FetchMyWotByUser", func() error { return err })()
-	me, err := LoadMe(NewLoadUserArgWithMetaContext(mctx))
-	if err != nil {
-		return nil, fmt.Errorf("error loading myself: %s", err.Error())
-	}
-	myName := me.GetName()
-	return fetchUserWotByVoucher(mctx, myName, &voucher, me)
-}
-
-// FetchUserWot gets all accepted vouches written for vouchee
-func FetchUserWot(mctx MetaContext, vouchee string) (res []keybase1.WotVouch, err error) {
-	defer mctx.Trace("FetchUserWot", func() error { return err })()
-	return fetchUserWotByVoucher(mctx, vouchee, nil, nil)
-}
-
-// FetchUserWotByVoucher gets the vouch written for the vouchee by the voucher.
-// If the voucher is self, it will return a vouch of any status (if it exists); else, it
-// will return an accepted vouch (if it exists)
-func FetchUserWotByVoucher(mctx MetaContext, vouchee string, voucher string) (res []keybase1.WotVouch, err error) {
-	defer mctx.Trace("FetchUserWotByVoucher", func() error { return err })()
-	return fetchUserWotByVoucher(mctx, vouchee, &voucher, nil)
+	return FetchUserWot(mctx, nil, nil)
 }
 
 type _wotMsg struct {

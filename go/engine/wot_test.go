@@ -113,12 +113,15 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(tcAlice.T, err)
 	t.Log("alice and bob follow each other")
 
+	aliceName := alice.User.GetName()
+	bobName := bob.User.GetName()
+
 	var vouches []keybase1.WotVouch
 	vouches, err = libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
 	require.Empty(t, vouches)
 	t.Log("alice has no pending vouches")
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchUserWot(mctxB, &aliceName, nil)
 	require.NoError(t, err)
 	require.Empty(t, vouches)
 	t.Log("bob sees no vouches for Alice")
@@ -145,11 +148,11 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	t.Log("alice sees one pending vouch")
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchUserWot(mctxB, &aliceName, nil)
 	require.NoError(t, err)
 	require.Empty(t, vouches)
 	t.Log("bob sees no vouches for Alice")
-	vouches, err = libkb.FetchUserWotByVoucher(mctxB, alice.User.GetName(), bob.User.GetName())
+	vouches, err = libkb.FetchUserWot(mctxB, &aliceName, &bobName)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
 	t.Log("bob sees pending vouch for Alice")
@@ -165,6 +168,8 @@ func TestWebOfTrustPending(t *testing.T) {
 	err = charlie.LoadUser(tcCharlie)
 	require.NoError(tcCharlie.T, err)
 	t.Log("alice and charlie follow each other")
+
+	charlieName := charlie.User.GetName()
 
 	vouchTexts = []string{"alice is wondibar and doug agrees"}
 	arg = &WotVouchArg{
@@ -193,14 +198,8 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Equal(t, confidence, *charlieVouch.Confidence)
 	t.Log("alice sees two pending vouches")
 
-	vouches, err = libkb.FetchMyWotByUser(mctxA, charlie.User.GetName())
-	require.NoError(t, err)
-	require.Len(t, vouches, 1)
-	require.Equal(t, keybase1.WotStatusType_PROPOSED, vouches[0].Status)
-	t.Log("alice sees charlie's pending vouch")
-
-	// alice gets same results using FetchMyWotByUser and FetchUserWotByUser where vouchee=alice
-	vouches, err = libkb.FetchUserWotByVoucher(mctxA, alice.User.GetName(), charlie.User.GetName())
+	// alice gets just charlie's vouch using FetchUserWot
+	vouches, err = libkb.FetchUserWot(mctxA, &aliceName, &charlieName)
 	require.NoError(t, err)
 	require.Len(t, vouches, 1)
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, vouches[0].Status)
@@ -226,6 +225,8 @@ func TestWebOfTrustAccept(t *testing.T) {
 	err = alice.LoadUser(tcAlice)
 	require.NoError(tcAlice.T, err)
 	t.Log("alice and bob follow each other")
+
+	aliceName := alice.User.GetName()
 
 	vouchTexts := []string{"alice is wondibar and doug agrees"}
 	argV := &WotVouchArg{
@@ -266,7 +267,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.Equal(t, vouchTexts, vouch.VouchTexts)
 	require.EqualValues(t, confidence, *vouch.Confidence)
 
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchUserWot(mctxB, &aliceName, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
 	vouch = vouches[0]
@@ -295,6 +296,8 @@ func TestWebOfTrustReject(t *testing.T) {
 	err = alice.LoadUser(tcAlice)
 	require.NoError(tcAlice.T, err)
 	t.Log("alice and bob follow each other")
+
+	aliceName := alice.User.GetName()
 
 	vouchTexts := []string{"alice is wondibar"}
 	argV := &WotVouchArg{
@@ -337,7 +340,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	t.Log("alice can see it as rejected")
 
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchUserWot(mctxB, &aliceName, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(vouches))
 	t.Log("bob cannot see it")
