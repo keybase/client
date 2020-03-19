@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as SettingsGen from '../../actions/settings-gen'
 import {usePhoneNumberList} from '../../teams/common'
 
 const InviteFriendsModal = () => {
@@ -9,6 +10,13 @@ const InviteFriendsModal = () => {
   const nav = Container.useSafeNavigation()
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
+
+  React.useEffect(() => {
+    // TODO: phone input should do this + remove from uses
+    if (!defaultCountry) {
+      dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+    }
+  }, [defaultCountry, dispatch])
 
   const [emails, setEmails] = React.useState('')
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
