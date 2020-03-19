@@ -30,7 +30,7 @@ func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cl.ChooseCommand(cmd, "list", c)
 		},
 		Flags: []cli.Flag{
-			cli.BoolFlag{
+			cli.StringFlag{
 				Name:  "voucher",
 				Usage: "Only get vouches written by me",
 			},
@@ -46,7 +46,7 @@ func (c *cmdWotList) ParseArgv(ctx *cli.Context) error {
 		username := ctx.Args()[0]
 		c.vouchee = &username
 	}
-	voucher := ctx.String("by-me")
+	voucher := ctx.String("voucher")
 	if len(voucher) > 0 {
 		c.voucher = &voucher
 	}
@@ -74,11 +74,26 @@ func (c *cmdWotList) Run() error {
 		dui.Printf(format+"\n", args...)
 	}
 
-	targetusername := me
+	wotTitle := "Web-Of-Trust"
+	var targetVouchee, targetVoucher *string
 	if c.vouchee != nil {
-		targetusername = *c.vouchee
+		targetVouchee = c.vouchee
+	} else {
+		if c.voucher == nil || (c.voucher != nil && *c.voucher != me) {
+			targetVouchee = &me
+		}
 	}
-	line("Web-Of-Trust for %s", targetusername)
+	if c.voucher != nil {
+		targetVoucher = c.voucher
+	}
+
+	if targetVouchee != nil {
+		wotTitle += fmt.Sprintf(" for %s", *targetVouchee)
+	}
+	if targetVoucher != nil {
+		wotTitle += fmt.Sprintf(" by %s", *targetVoucher)
+	}
+	line(wotTitle)
 	line("-------------------------------")
 	if len(res) == 0 {
 		line("no attestations to show")
