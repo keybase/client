@@ -6,7 +6,7 @@ TUXBOTD="$KBCLID/packaging/linux/tuxbot"
 
 # clone in gopath for bot
 mkdir -p "$HOME/go/src/github.com/keybase"
-git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase/client"
+git clone --depth 1 https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase/client"
 (
     # install deps
     cd "$TUXBOTD/bot"
@@ -15,6 +15,7 @@ git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase
 systemctl --user link "$TUXBOTD/tuxbot.service"
 systemctl --user link "$TUXBOTD/nightly.service"
 systemctl --user link "$TUXBOTD/nightly.timer"
+systemctl --user daemon-reload
 systemctl --user enable "$TUXBOTD/nightly.timer"
 
 keybase config set -b enable_bot_lite_mode true

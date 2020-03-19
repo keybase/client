@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+set -euox pipefail
+
+# shellcheck disable=SC1090
+export $(cat ~/tuxbot.env | xargs)
+systemctl --user import-environment
+systemctl --user daemon-reload
+
+for varname in SECRETS_TEAM SECRETS_REPO CHAT_TEAM CHAT_CHANNEL GNUPGHOME; do
+	if [ -z "${!varname}" ]; then
+		echo "No $varname found, check environment settings...aborting."
+		exit 1
+	fi
+done
 
 echo Enter tuxbot paperkey next
 keybase oneshot -u tuxbot
@@ -9,4 +22,4 @@ triplesec dec --compatibility -b < "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$S
 echo Starting chatbot...
 systemctl --user start tuxbot
 
-echo "Done. Try !help in @$CHAT_TEAM to ensure chatbot is up."
+echo "Done. Try !help in @$CHAT_TEAM#$CHAT_CHANNEL to ensure chatbot is up."
