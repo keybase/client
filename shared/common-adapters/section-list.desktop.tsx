@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import ReactList from 'react-list'
 import {Box2} from './box'
+import DelayedMounting from './delayed-mounting'
 import ScrollView from './scroll-view'
 import {Props, Section, ItemTFromSectionT} from './section-list'
 import debounce from 'lodash/debounce'
@@ -185,7 +186,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
               this.props.keyExtractor?.(item, indexWithinSection) ||
               // @ts-ignore
               item.key ||
-              indexWithinSection,
+              `${sectionIndex}-${indexWithinSection}`,
             type: 'body',
           }))
         )
@@ -235,14 +236,20 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
           onScroll={this._onScroll}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
-          <ReactList
-            itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
-            length={this._flat.length}
-            // @ts-ignore
-            retrigger={this._flat}
-            ref={this._listRef}
-            type="variable"
-          />
+          <DelayedMounting delay={0}>
+            {/* The delayed mounting is needed for the list to render
+              correctly. Otherwise if the first `sections` prop passed into
+                SectionList is non-zero, the offset is wrong causing first
+            item in the first section to be hidden.*/}
+            <ReactList
+              itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
+              length={this._flat.length}
+              // @ts-ignore
+              retrigger={this._flat}
+              ref={this._listRef}
+              type="variable"
+            />
+          </DelayedMounting>
         </Kb.ScrollView>
         {!this.props.disableAbsoluteStickyHeader && stickyHeader}
       </Kb.Box2>
