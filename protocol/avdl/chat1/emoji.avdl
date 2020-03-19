@@ -19,9 +19,15 @@ protocol emoji {
     case MESSAGE: MessageID;
   }
 
+  record HarvestedEmoji {
+    string alias;
+    EmojiRemoteSource source;
+  }
+
   record Emoji {
     string alias;
     EmojiLoadSource source;
+    EmojiRemoteSource remoteSource;
   }
 
   record EmojiGroup {

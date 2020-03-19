@@ -89,7 +89,9 @@ func setupChatTest(t *testing.T, name string) (*kbtest.ChatTestContext, *Boxer) 
 
 	ctc := kbtest.ChatTestContext{
 		TestContext: tc,
-		ChatG:       &globals.ChatContext{},
+		ChatG: &globals.ChatContext{
+			EmojiSource: types.DummyEmojiSource{},
+		},
 	}
 	g := globals.NewContext(ctc.G, ctc.ChatG)
 	g.CtxFactory = NewCtxFactory(g)

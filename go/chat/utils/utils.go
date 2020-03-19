@@ -1762,7 +1762,7 @@ func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
 }
 
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	msg chat1.MessageUnboxedValid) *string {
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
 	if err != nil {
@@ -1785,11 +1785,13 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	default:
 		return nil
 	}
-
 	body = PresentDecoratedTextNoMentions(ctx, body)
 
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+
+	// Emojis
+	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
 
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
@@ -1905,7 +1907,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
-			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, valid),
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, convID, valid),
 			BodySummary:           GetMsgSnippetBody(rawMsg),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,

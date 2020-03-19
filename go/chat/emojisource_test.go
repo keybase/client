@@ -1,10 +1,13 @@
 package chat
 
 import (
+	"context"
+	"regexp"
 	"testing"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
@@ -34,6 +37,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 
+	t.Logf("admin")
 	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "party_parrot", filename))
 	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "mike", filename))
 
@@ -43,7 +47,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "mike", filename))
 	require.NoError(t, tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot", filename))
 
-	res, err := tc.Context().EmojiSource.Get(ctx, uid)
+	res, err := tc.Context().EmojiSource.Get(ctx, uid, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res.Emojis))
 	for _, group := range res.Emojis {
@@ -56,5 +60,84 @@ func TestEmojiSourceBasic(t *testing.T) {
 			require.Equal(t, chat1.EmojiLoadSourceTyp_HTTPSRV, styp)
 			require.NotZero(t, len(emoji.Source.Httpsrv()))
 		}
+	}
+
+	t.Logf("decorate")
+	msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "ITS TIME :party_parrot:!",
+	}))
+	msg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, msgID, true, nil)
+	require.NoError(t, err)
+	require.True(t, msg.IsValid())
+	require.Equal(t, 1, len(msg.Valid().Emojis))
+	require.Equal(t, "party_parrot", msg.Valid().Emojis[0].Alias)
+	uimsg := utils.PresentMessageUnboxed(ctx, tc.Context(), msg, uid, conv.Id)
+	require.True(t, uimsg.IsValid())
+	require.NotNil(t, uimsg.Valid().DecoratedTextBody)
+	checker := regexp.MustCompile(utils.ServiceDecorationPrefix)
+	require.True(t, checker.Match([]byte(*uimsg.Valid().DecoratedTextBody)))
+}
+
+type emojiTestCase struct {
+	body     string
+	expected []emojiMatch
+}
+
+func TestEmojiSourceParse(t *testing.T) {
+	es := &DevConvEmojiSource{}
+	ctx := context.TODO()
+
+	testCases := []emojiTestCase{
+		{
+			body: "x :miked:",
+			expected: []emojiMatch{
+				{
+					name:     "miked",
+					position: []int{2, 9},
+				},
+			},
+		},
+		{
+			body: ":333mm__--M:",
+			expected: []emojiMatch{
+				{
+					name:     "333mm__--M",
+					position: []int{0, 12},
+				},
+			},
+		},
+		{
+			body: ":mike: :lisa:",
+			expected: []emojiMatch{
+				{
+					name:     "mike",
+					position: []int{0, 6},
+				},
+				{
+					name:     "lisa",
+					position: []int{7, 13},
+				},
+			},
+		},
+		{
+			body: ":mike::lisa:",
+			expected: []emojiMatch{
+				{
+					name:     "mike",
+					position: []int{0, 6},
+				},
+				{
+					name:     "lisa",
+					position: []int{6, 12},
+				},
+			},
+		},
+		{
+			body: "::",
+		},
+	}
+	for _, tc := range testCases {
+		res := es.parse(ctx, tc.body)
+		require.Equal(t, tc.expected, res)
 	}
 }

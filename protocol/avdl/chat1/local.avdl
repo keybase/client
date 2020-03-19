@@ -486,6 +486,7 @@ protocol local {
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     map<MessageID, UnfurlResult> unfurls;
+    array<HarvestedEmoji> emojis;
 
     // The message this replied to (if any)
     union { null, MessageUnboxed } replyTo;

@@ -1061,6 +1061,7 @@ export enum UITextDecorationTyp {
   link = 4,
   mailto = 5,
   kbfspath = 6,
+  emoji = 7,
 }
 
 export enum UIWatchPositionPerm {
@@ -1167,7 +1168,7 @@ export type DeviceInfo = {readonly deviceID: Keybase1.DeviceID; readonly deviceD
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
-export type Emoji = {readonly alias: String; readonly source: EmojiLoadSource}
+export type Emoji = {readonly alias: String; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String}
 export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: MessageID}
@@ -1221,6 +1222,7 @@ export type GetUnreadlineRemoteRes = {readonly unreadlineID?: MessageID | null; 
 export type GiphySearchResult = {readonly targetUrl: String; readonly previewUrl: String; readonly previewWidth: Int; readonly previewHeight: Int; readonly previewIsVideo: Boolean}
 export type GiphySearchResults = {readonly results?: Array<GiphySearchResult> | null; readonly galleryUrl: String}
 export type GlobalAppNotificationSettings = {readonly settings: {[key: string]: Bool}}
+export type HarvestedEmoji = {readonly alias: String; readonly source: EmojiRemoteSource}
 export type Hash = Bytes
 export type HeaderPlaintext = {version: HeaderPlaintextVersion.v1; v1: HeaderPlaintextV1} | {version: HeaderPlaintextVersion.v2; v2: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v3; v3: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v4; v4: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v5; v5: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v6; v6: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v7; v7: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v8; v8: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v9; v9: HeaderPlaintextUnsupported} | {version: HeaderPlaintextVersion.v10; v10: HeaderPlaintextUnsupported}
 export type HeaderPlaintextMetaInfo = {readonly crit: Boolean}
@@ -1296,7 +1298,7 @@ export type MessageUnboxed = {state: MessageUnboxedState.valid; valid: MessageUn
 export type MessageUnboxedError = {readonly errType: MessageUnboxedErrorType; readonly errMsg: String; readonly internalErrMsg: String; readonly versionKind: VersionKind; readonly versionNumber: Int; readonly isCritical: Boolean; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: Keybase1.DeviceTypeV2; readonly messageID: MessageID; readonly messageType: MessageType; readonly ctime: Gregor1.Time; readonly isEphemeral: Boolean; readonly explodedBy?: String | null; readonly etime: Gregor1.Time; readonly botUsername: String}
 export type MessageUnboxedJourneycard = {readonly prevID: MessageID; readonly ordinal: Int; readonly cardType: JourneycardType; readonly highlightMsgID: MessageID; readonly openTeam: Boolean}
 export type MessageUnboxedPlaceholder = {readonly messageID: MessageID; readonly hidden: Boolean}
-export type MessageUnboxedValid = {readonly clientHeader: MessageClientHeaderVerified; readonly serverHeader: MessageServerHeader; readonly messageBody: MessageBody; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: Keybase1.DeviceTypeV2; readonly bodyHash: Hash; readonly headerHash: Hash; readonly headerSignature?: SignatureInfo | null; readonly verificationKey?: Bytes | null; readonly senderDeviceRevokedAt?: Gregor1.Time | null; readonly atMentionUsernames?: Array<String> | null; readonly atMentions?: Array<Gregor1.UID> | null; readonly channelMention: ChannelMention; readonly maybeMentions?: Array<MaybeMention> | null; readonly channelNameMentions?: Array<ChannelNameMention> | null; readonly reactions: ReactionMap; readonly unfurls: {[key: string]: UnfurlResult}; readonly replyTo?: MessageUnboxed | null; readonly botUsername: String}
+export type MessageUnboxedValid = {readonly clientHeader: MessageClientHeaderVerified; readonly serverHeader: MessageServerHeader; readonly messageBody: MessageBody; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: Keybase1.DeviceTypeV2; readonly bodyHash: Hash; readonly headerHash: Hash; readonly headerSignature?: SignatureInfo | null; readonly verificationKey?: Bytes | null; readonly senderDeviceRevokedAt?: Gregor1.Time | null; readonly atMentionUsernames?: Array<String> | null; readonly atMentions?: Array<Gregor1.UID> | null; readonly channelMention: ChannelMention; readonly maybeMentions?: Array<MaybeMention> | null; readonly channelNameMentions?: Array<ChannelNameMention> | null; readonly reactions: ReactionMap; readonly unfurls: {[key: string]: UnfurlResult}; readonly emojis?: Array<HarvestedEmoji> | null; readonly replyTo?: MessageUnboxed | null; readonly botUsername: String}
 export type MessageUnfurl = {readonly unfurl: UnfurlResult; readonly messageID: MessageID}
 export type MessagesUpdated = {readonly convID: ConversationID; readonly updates?: Array<UIMessage> | null}
 export type MsgBotInfo = {readonly botUID: Keybase1.UID; readonly botUsername: String}
@@ -1445,7 +1447,7 @@ export type UIPaymentInfo = {readonly accountID?: Stellar1.AccountID | null; rea
 export type UIPinnedMessage = {readonly message: UIMessage; readonly pinnerUsername: String}
 export type UIRequestInfo = {readonly amount: String; readonly amountDescription: String; readonly asset?: Stellar1.Asset | null; readonly currency?: Stellar1.OutsideCurrencyCode | null; readonly worthAtRequestTime: String; readonly status: Stellar1.RequestStatus}
 export type UITeamMention = {readonly inTeam: Boolean; readonly open: Boolean; readonly description?: String | null; readonly numMembers?: Int | null; readonly publicAdmins?: Array<String> | null; readonly convID?: ConvIDStr | null}
-export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment} | {typ: UITextDecorationTyp.atmention; atmention: String} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention} | {typ: UITextDecorationTyp.link; link: UILinkDecoration} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration} | {typ: UITextDecorationTyp.kbfspath; kbfspath: KBFSPath}
+export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment} | {typ: UITextDecorationTyp.atmention; atmention: String} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention} | {typ: UITextDecorationTyp.link; link: UILinkDecoration} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration} | {typ: UITextDecorationTyp.kbfspath; kbfspath: KBFSPath} | {typ: UITextDecorationTyp.emoji; emoji: Emoji}
 export type Unfurl = {unfurlType: UnfurlType.generic; generic: UnfurlGeneric} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutube} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphy} | {unfurlType: UnfurlType.maps}
 export type UnfurlDisplay = {unfurlType: UnfurlType.generic; generic: UnfurlGenericDisplay} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeDisplay} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyDisplay} | {unfurlType: UnfurlType.maps}
 export type UnfurlGeneric = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: Asset | null; readonly image?: Asset | null; readonly publishTime?: Int | null; readonly description?: String | null; readonly mapInfo?: UnfurlGenericMapInfo | null}
