@@ -498,6 +498,16 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ChatConvExistsError{
 			ConvID: convID,
 		}
+	case SCChatBadConversationError:
+		var msg string
+		for _, field := range s.Fields {
+			if field.Key == "Msg" {
+				msg = field.Value
+			}
+		}
+		return ChatBadConversationError{
+			Msg: msg,
+		}
 	case SCChatUnknownTLFID:
 		var tlfID chat1.TLFID
 		for _, field := range s.Fields {
