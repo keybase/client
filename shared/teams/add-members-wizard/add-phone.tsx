@@ -5,34 +5,17 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SettingsGen from '../../actions/settings-gen'
-import {ModalTitle} from '../common'
+import {ModalTitle, usePhoneNumberList} from '../common'
 
 const AddPhone = () => {
-  const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
 
+  const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
-  const setPhoneNumber = (i: number, phoneNumber: string, valid: boolean) => {
-    const pn = phoneNumbers[i]
-    if (pn) {
-      pn.phoneNumber = phoneNumber
-      pn.valid = valid
-      setPhoneNumbers([...phoneNumbers])
-    }
-  }
-
-  const addPhoneNumber = () => {
-    phoneNumbers.push({key: phoneNumbers[phoneNumbers.length - 1].key + 1, phoneNumber: '', valid: false})
-    setPhoneNumbers([...phoneNumbers])
-  }
-  const removePhoneNumber = (i: number) => {
-    phoneNumbers.splice(i, 1)
-    setPhoneNumbers([...phoneNumbers])
-  }
 
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
