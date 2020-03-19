@@ -409,12 +409,18 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		}
 		return nil
 	case "tuxjournal":
-		ret, _ := exec.Command("sudo", "journalctl", "--user-unit", "tuxbot", "-n", "50").CombinedOutput()
-		c.Debug("```%s```", ret)
+		ret, err := exec.Command("journalctl", "--user-unit", "tuxbot", "-n", "100").CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
 		return nil
 	case "journal":
-		ret, _ := exec.Command("sudo", "journalctl", "-n", "100").CombinedOutput()
-		c.Debug("```%s```", ret)
+		ret, err := exec.Command("journalctl", "-n", "100").CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
+		return nil
+	case "cleanup":
+		cleanupCmd := exec.Command("./cleanup")
+		cleanupCmd.Dir = filepath.Join(currentUser.HomeDir)
+		ret, err := cleanupCmd.CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
 		return nil
 	default:
 		return fmt.Errorf("invalid command %s", command)
