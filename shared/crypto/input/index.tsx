@@ -395,7 +395,7 @@ const styles = Styles.styleSheetCreate(
       inputEmpty: Styles.platformStyles({
         isElectron: {
           ...Styles.padding(0),
-          inHeight: 'initial',
+          minHeight: 'initial',
           overflowY: 'hidden',
         },
         isMobile: {

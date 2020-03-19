@@ -5,7 +5,6 @@ import * as Constants from '../../constants/crypto'
 import NavRow from './nav-row'
 
 const SubNav = () => {
-  // return <Kb.Text type="Body"> Hey </Kb.Text>
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
       {Constants.Tabs.map(t => (
