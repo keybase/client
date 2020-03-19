@@ -183,17 +183,6 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		commit := "HEAD"
 		if len(args) > 0 {
 			commit = args[0]
-
-			gitCmd := makeCmd(currentUser, "git", "--no-pager", "log", "--oneline", fmt.Sprintf("%s...", commit))
-			gitCmd.Stdout = nil
-			gitCmd.Stderr = nil
-			ret, err := gitCmd.CombinedOutput()
-			if err != nil {
-				return err
-			}
-			if bytes.Count(ret, []byte("\n")) > 500 {
-				return fmt.Errorf("%s is more than 500 revisions behind HEAD, refusing to build", commit)
-			}
 		}
 
 		c.Locked = true
@@ -211,6 +200,10 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			}
 			if command == "release" {
 				cmd.Env = append(cmd.Env, "KEYBASE_RELEASE=1")
+			}
+			val, ok := os.LookupEnv("KEYBASE_TEST_CODE_SIGNING_KEY")
+			if ok {
+				cmd.Env = append(cmd.Env, "KEYBASE_TEST_CODE_SIGNING_KEY="+val)
 			}
 			err = cmd.Run()
 			if err != nil {
@@ -427,11 +420,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		}
 		return nil
 	case "tuxjournal":
-		ret, _ := exec.Command("journalctl", "--user-unit", "tuxbot", "-n", "50").CombinedOutput()
+		ret, _ := exec.Command("sudo", "journalctl", "--user-unit", "tuxbot", "-n", "50").CombinedOutput()
 		c.Debug("```%s```", ret)
 		return nil
 	case "journal":
-		ret, _ := exec.Command("journalctl", "-n", "50").CombinedOutput()
+		ret, _ := exec.Command("sudo", "journalctl", "-n", "50").CombinedOutput()
 		c.Debug("```%s```", ret)
 		return nil
 	default:

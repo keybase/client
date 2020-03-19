@@ -9,7 +9,7 @@ tag="$(echo "$1" | tr "+" "-")"
 # Clear the directory used for temporary, just in case a previous build failed
 rm -r "$client_dir/.docker" || true
 mkdir -p "$client_dir/.docker"
-code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
+code_signing_fingerprint="$("$here/../fingerprint.sh")"
 gpg_tempfile="$client_dir/.docker/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
