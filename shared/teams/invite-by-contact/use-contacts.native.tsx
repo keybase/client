@@ -77,6 +77,7 @@ const useContacts = () => {
   const [contacts, setContacts] = React.useState([] as Array<ContactProps>)
   const [region, setRegion] = React.useState('')
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
+  const [loading, setLoading] = React.useState(true)
 
   const permStatus = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const savedRegion = Container.useSelector(s => s.settings.contacts.userCountryCode)
@@ -88,14 +89,17 @@ const useContacts = () => {
           setContacts(contacts)
           setRegion(region)
           setErrorMessage(null)
+          setLoading(false)
         },
         err => {
-          logger.warn('Error fetching contaxts:', err)
+          logger.warn('Error fetching contacts:', err)
           setErrorMessage(err.message)
+          setLoading(false)
         }
       )
     } else if (permStatus === 'never_ask_again') {
       setErrorMessage('Keybase does not have permission to access your contacts.')
+      setLoading(false)
     }
   }, [dispatch, setErrorMessage, setContacts, permStatus, savedRegion])
 
@@ -108,7 +112,7 @@ const useContacts = () => {
     }
   }, [dispatch, permStatus])
 
-  return {contacts, errorMessage, region}
+  return {contacts, errorMessage, loading, region}
 }
 
 export default useContacts
