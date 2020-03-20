@@ -182,6 +182,8 @@ type GlobalContext struct {
 	GUIConfig *JSONFile
 
 	avatarLoader AvatarLoaderSource
+
+	TeamMemberCountCache *TeamMemberCountCache
 }
 
 type GlobalTestOptions struct {
@@ -246,6 +248,7 @@ func NewGlobalContext() *GlobalContext {
 		random:             &SecureRandom{},
 		RuntimeStats:       NewDummyRuntimeStats(),
 	}
+	ret.TeamMemberCountCache = newTeamMemberCountCache(ret)
 	return ret
 }
 

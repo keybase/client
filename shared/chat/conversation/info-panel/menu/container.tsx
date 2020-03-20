@@ -98,6 +98,7 @@ export default Container.namedConnect(
         _convPropsTeamID,
         _convPropsTeamType,
         _convPropsTeamname,
+        _participants,
         _teamID: _convPropsTeamID ?? teamID,
         badgeSubscribe: false,
         canAddPeople: false,
@@ -107,7 +108,6 @@ export default Container.namedConnect(
         isSmallTeam: false,
         manageChannelsSubtitle: '',
         manageChannelsTitle: '',
-        _participants,
         teamname: '',
       }
     }
@@ -128,6 +128,7 @@ export default Container.namedConnect(
       _convPropsTeamID,
       _convPropsTeamType,
       _convPropsTeamname,
+      _participants,
       _teamID: _convPropsTeamID ?? teamID,
       badgeSubscribe,
       canAddPeople: yourOperations.manageMembers,
@@ -136,7 +137,6 @@ export default Container.namedConnect(
       isSmallTeam,
       manageChannelsSubtitle,
       manageChannelsTitle,
-      _participants,
       teamname,
     }
   },

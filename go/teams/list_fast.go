@@ -101,7 +101,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 			Implicit:            memberInfo.Implicit,
 			Username:            queryUsername.String(),
 			FullName:            queryFullName,
-			MemberCount:         memberInfo.MemberCount,
+			MemberCount:         g.TeamMemberCountCache.GetWithFallback(memberInfo.TeamID, memberInfo.MemberCount),
 			Status:              keybase1.TeamMemberStatus_ACTIVE,
 			AllowProfilePromote: memberInfo.AllowProfilePromote,
 			IsMemberShowcased:   memberInfo.IsMemberShowcased,
