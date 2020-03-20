@@ -11,7 +11,7 @@ import InvitationsTab from './invites/container'
 import AccountTab from './account/container'
 import NotificationsTab from './notifications/container'
 import PasswordTab from './password/container'
-import ScreenprotectorTab from './screenprotector-container.native'
+import ScreenprotectorTab from './screenprotector.native'
 import DbNukeConfirm from './db-nuke-confirm/container'
 import DeleteConfirm from './delete-confirm/container'
 import InviteSent from './invite-generated/container'
@@ -54,7 +54,7 @@ export const newRoutes = {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
   [Constants.screenprotectorTab]: {
-    getScreen: (): typeof ScreenprotectorTab => require('./screenprotector-container.native').default,
+    getScreen: (): typeof ScreenprotectorTab => require('./screenprotector.native').default,
   },
   [Constants.whatsNewTab]: {
     getScreen: (): typeof WhatsNewTab => require('../whats-new/container.tsx').default,
@@ -68,13 +68,11 @@ export const newRoutes = {
   [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
-  // TODO connect broken
   privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
   removeDevice: {
     getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default,
   },
   settingsRoot: {getScreen: (): typeof SettingsRoot => require('.').default},
-  // TODO connect broken
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }
 export const newModalRoutes = {

@@ -15,7 +15,7 @@ const connectedHeaderHoc = Container.connect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {source: {uri: 'https://keybase.io/_/webview/privacypolicy'}, title: 'Privacy Policy'},
+              props: {title: 'Privacy Policy', url: 'https://keybase.io/_/webview/privacypolicy'},
               selected: 'privacyPolicy',
             },
           ],
@@ -26,7 +26,7 @@ const connectedHeaderHoc = Container.connect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {source: {uri: 'https://keybase.io/_/webview/terms'}, title: 'Terms'},
+              props: {title: 'Terms', url: 'https://keybase.io/_/webview/terms'},
               selected: 'terms',
             },
           ],
