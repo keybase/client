@@ -1716,6 +1716,16 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return res
 }
 
+func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	msg chat1.MessageUnboxedValid, reactions chat1.ReactionMap) (res chat1.ReactionMap) {
+	res.Reactions = make(map[string]map[string]chat1.Reaction, len(reactions.Reactions))
+	for key, value := range reactions.Reactions {
+		key = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
+		res.Reactions[key] = value
+	}
+	return res
+}
+
 func PresentDecoratedUserBio(ctx context.Context, bio string) (res string) {
 	res = EscapeForDecorate(ctx, bio)
 	res = EscapeShrugs(ctx, res)
@@ -1924,7 +1934,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
-			Reactions:             valid.Reactions,
+			Reactions:             PresentDecoratedReactionMap(ctx, g, convID, valid, valid.Reactions),
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			FlipGameID:            presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
