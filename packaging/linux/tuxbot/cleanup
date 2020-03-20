@@ -4,4 +4,4 @@
 sudo rm -r /var/tmp/keybase*
 
 # docker
-sudo docker system prune -a
+sudo docker system prune -af
