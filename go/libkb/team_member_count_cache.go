@@ -23,21 +23,45 @@ func newTeamMemberCountCache(g *GlobalContext) *TeamMemberCountCache {
 		g:        g,
 		notifyCh: make(chan struct{}, 1),
 	}
-	go cache.notifyLoop()
+	cache.startNotifyLoop()
+	g.AddLogoutHook(cache, "TeamMemberCountCache")
 	return cache
 }
 
-func (c *TeamMemberCountCache) notifyLoop() {
+func (c *TeamMemberCountCache) OnLogout(mctx MetaContext) error {
+	mctx.Debug("TeamMemberCountCache OnLogout: clearing cache")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache = make(map[keybase1.TeamID]int)
+	return nil
+}
+
+func (c *TeamMemberCountCache) startNotifyLoop() {
+	ctx, cancel := context.WithCancel(context.Background())
+	c.g.PushShutdownHook(func(mctx MetaContext) error {
+		mctx.Debug("TeamMemberCountCache shutdown")
+		cancel()
+		return nil
+	})
+	go c.notifyLoop(ctx)
+}
+
+func (c *TeamMemberCountCache) notifyLoop(ctx context.Context) {
 	const notifyInterval = 5 * time.Second
 	const notifyTimeout = 10 * time.Second
 	limiter := rate.NewLimiter(rate.Every(notifyInterval), 1)
 	for {
-		// We don't have a timeout on the wait, so just ignore the error.
-		_ = limiter.Wait(context.Background())
-		<-c.notifyCh
-		ctx, cancel := context.WithTimeout(context.Background(), notifyTimeout)
-		c.g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
-		cancel()
+		if err := limiter.Wait(ctx); err != nil {
+			return
+		}
+		select {
+		case <-c.notifyCh:
+			ctx, cancel := context.WithTimeout(context.Background(), notifyTimeout)
+			c.g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
+			cancel()
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 
