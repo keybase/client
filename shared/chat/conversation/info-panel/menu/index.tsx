@@ -54,7 +54,6 @@ type AdhocHeaderProps = {
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
   const {channelHumans} = InfoPanelCommon.useHumans(props.conversationIDKey)
-  console.log({songgao: 'adhoc-hdeader', channelHumans})
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
       <Avatars
@@ -91,8 +90,8 @@ type TeamHeaderProps = {
   onViewTeam: () => void
 }
 const TeamHeader = (props: TeamHeaderProps) => {
+  // TODO: revert this back to memberCount if we can get one without bots cheaply.
   const {teamHumanCount} = InfoPanelCommon.useTeamHumans(props.teamID)
-  console.log({songgao: 'team-header', teamID: props.teamID, teamHumanCount})
   return (
     <Kb.Box2 alignItems="center" direction="horizontal" style={styles.headerContainer}>
       <TeamAvatar

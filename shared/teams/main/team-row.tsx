@@ -7,7 +7,7 @@ import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '../../util/string'
-import {useTeamHumans, Activity} from '../common'
+import {Activity} from '../common'
 
 type Props = {
   firstItem: boolean
@@ -37,7 +37,7 @@ const TeamRow = (props: Props) => {
       visible={showingPopup}
     />
   ))
-  const {teamHumanCount} = useTeamHumans(teamID)
+
   return (
     <>
       <Kb.ListItem2
@@ -68,7 +68,7 @@ const TeamRow = (props: Props) => {
                   )}
                 </Kb.Box2>
                 <Kb.Text type="BodySmall">
-                  {teamHumanCount.toLocaleString()} {pluralize('member', teamHumanCount)}
+                  {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                 </Kb.Text>
                 {Styles.isMobile && activity}
               </Kb.Box2>

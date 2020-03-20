@@ -281,7 +281,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 
 		}
 
-		anMemberInfo.MemberCount = len(memberUIDs)
+		anMemberInfo.MemberCount = len(memberUIDs) - len(members.Bots) - len(members.RestrictedBots)
 		res.Teams = append(res.Teams, *anMemberInfo)
 	}
 

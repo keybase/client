@@ -17,7 +17,7 @@ export type OwnProps = {
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
     const yourOperations = Constants.getCanPerformByID(state, teamID)
-    const {teamname, isOpen} = Constants.getTeamMeta(state, teamID)
+    const {teamname, isOpen, memberCount} = Constants.getTeamMeta(state, teamID)
     return {
       _canRenameTeam: yourOperations.renameTeam,
       _you: state.config.username,
@@ -26,6 +26,7 @@ export default Container.connect(
       canJoinTeam: yourOperations.joinTeam,
       canManageMembers: yourOperations.manageMembers,
       description: Constants.getTeamDetails(state, teamID).description,
+      memberCount,
       openTeam: isOpen,
       role: Constants.getRole(state, teamID),
       teamname,
@@ -62,6 +63,7 @@ export default Container.connect(
     canManageMembers: stateProps.canManageMembers,
     description: stateProps.description,
     loading: false,
+    memberCount: stateProps.memberCount,
     onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
     onChat: () => dispatchProps._onChat(stateProps.teamname),
     onEditDescription: dispatchProps.onEditDescription,
