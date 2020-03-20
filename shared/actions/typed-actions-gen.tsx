@@ -82,8 +82,7 @@ export type TypedActionsMap = {
   'bots:searchFeaturedAndUsers': bots.SearchFeaturedAndUsersPayload
   'bots:setSearchFeaturedAndUsersResults': bots.SetSearchFeaturedAndUsersResultsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
-  'chat2:deselectConversation': chat2.DeselectConversationPayload
-  'chat2:selectConversation': chat2.SelectConversationPayload
+  'chat2:selectedConversation': chat2.SelectedConversationPayload
   'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
@@ -783,6 +782,8 @@ export type TypedActionsMap = {
   'route-tree:switchLoggedIn': routetree.SwitchLoggedInPayload
   'route-tree:switchTab': routetree.SwitchTabPayload
   'route-tree:resetStack': routetree.ResetStackPayload
+  'route-tree:onNavChanged': routetree.OnNavChangedPayload
+  'route-tree:setParams': routetree.SetParamsPayload
   'settings:addPhoneNumber': settings.AddPhoneNumberPayload
   'settings:addedPhoneNumber': settings.AddedPhoneNumberPayload
   'settings:resendVerificationForPhoneNumber': settings.ResendVerificationForPhoneNumberPayload

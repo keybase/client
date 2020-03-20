@@ -13,6 +13,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 const makeRowItemSmall = (conversationIDKey: string = ''): Types.ChatInboxRowItemSmall => ({
   type: 'small',
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
+  selected: false,
   snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   teamname: 'mikem',
   isTeam: false,
@@ -33,6 +34,7 @@ const makeRowItemBigChannel = (
   teamname,
   channelname,
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
+  selected: false,
   snippetDecoration: RPCChatTypes.SnippetDecoration.none,
 })
 const makeRowItemDivider = (showButton: boolean = false): Types.ChatInboxRowItemDivider => ({

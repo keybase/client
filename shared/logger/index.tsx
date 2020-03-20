@@ -87,7 +87,7 @@ class AggregateLoggerImpl implements AggregateLogger {
 const devLoggers = () => ({
   // We already pretty print the actions when we have an actual console.
   action:
-    isMobile && !isRemoteDebuggerAttached
+    isMobile && isRemoteDebuggerAttached
       ? new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action'))
       : new NullLogger(),
   debug: new TeeLogger(
