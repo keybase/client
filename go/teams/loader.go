@@ -53,7 +53,8 @@ func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg
 		team.refreshUIDMapper(ctx, g)
 	}
 
-	team.calculateAndCacheMemberCount(ctx)
+	// OK if it errors; just move on and return the team.
+	_, _ = team.calculateAndCacheMemberCount(ctx)
 
 	return team, nil
 }

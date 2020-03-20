@@ -32,7 +32,8 @@ func (c *TeamMemberCountCache) notifyLoop() {
 	const notifyTimeout = 10 * time.Second
 	limiter := rate.NewLimiter(rate.Every(notifyInterval), 1)
 	for {
-		limiter.Wait(context.Background())
+		// We don't have a timeout on the wait, so just ignore the error.
+		_ = limiter.Wait(context.Background())
 		<-c.notifyCh
 		ctx, cancel := context.WithTimeout(context.Background(), notifyTimeout)
 		c.g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
