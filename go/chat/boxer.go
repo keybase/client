@@ -1320,7 +1320,14 @@ func (b *Boxer) getEmojis(ctx context.Context, conv types.UnboxConversationInfo,
 		if err != nil {
 			return nil, NewTransientUnboxingError(err)
 		}
-		b.Debug(ctx, "getEmojis: found %d emojis", len(emojis))
+		b.Debug(ctx, "getEmojis: found %d emojis (text)", len(emojis))
+		return emojis, nil
+	case chat1.MessageType_REACTION:
+		emojis, err := b.G().EmojiSource.Harvest(ctx, body.Reaction().Body, uid, conv.GetConvID())
+		if err != nil {
+			return nil, NewTransientUnboxingError(err)
+		}
+		b.Debug(ctx, "getEmojis: found %d emojis (reaction)", len(emojis))
 		return emojis, nil
 	default:
 	}
