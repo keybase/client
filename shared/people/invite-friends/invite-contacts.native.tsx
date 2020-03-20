@@ -58,8 +58,9 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
 const InviteContacts = () => {
   const {contacts, errorMessage, loading} = useContacts()
   const [search, setSearch] = React.useState('')
-  const [selectedContacts, setSelectedContacts] = React.useState(new Set<string>())
-  const canContinue = selectedContacts.size > 0
+  const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
+  const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
+  const canContinue = selectedPhones.size + selectedEmails.size > 0
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -82,14 +83,23 @@ const InviteContacts = () => {
     const topText = item.name ?? item.valueFormatted ?? item.value
     const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
     const onCheck = (check: boolean) => {
-      if (check) {
-        selectedContacts.add(item.value)
+      if (item.type === 'phone') {
+        if (check) {
+          selectedPhones.add(item.value)
+        } else {
+          selectedPhones.delete(item.value)
+        }
+        setSelectedPhones(new Set(selectedPhones))
       } else {
-        selectedContacts.delete(item.value)
+        if (check) {
+          selectedEmails.add(item.value)
+        } else {
+          selectedEmails.delete(item.value)
+        }
+        setSelectedEmails(new Set(selectedEmails))
       }
-      setSelectedContacts(new Set(selectedContacts))
     }
-    const checked = selectedContacts.has(item.value)
+    const checked = item.type === 'email' ? selectedEmails.has(item.value) : selectedPhones.has(item.value)
     return (
       <Kb.ListItem2
         type="Small"
@@ -114,24 +124,27 @@ const InviteContacts = () => {
   }
   const keyExtractor = (item: Contact) => item.id
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.ModalHeader
-        leftButton={
-          <Kb.Text type="BodyPrimaryLink" onClick={navUp}>
+    <Kb.Modal
+      noScrollView={true}
+      header={{
+        hideBorder: true,
+        leftButton: (
+          <Kb.Text type="BodyBigLink" onClick={navUp}>
             Cancel
           </Kb.Text>
-        }
-        rightButton={
+        ),
+        rightButton: (
           <Kb.Text
-            type="BodyPrimaryLink"
+            type="BodyBigLink"
             onClick={canContinue ? onSubmit : undefined}
             style={canContinue ? undefined : styles.disabledLink}
           >
             Invite
           </Kb.Text>
-        }
-        title="Invite friends"
-      />
+        ),
+        title: 'Invite friends',
+      }}
+    >
       {!!errorMessage && <Kb.Banner color="red">{errorMessage}</Kb.Banner>}
       {loading ? (
         <Kb.ProgressIndicator type="Huge" />
@@ -151,7 +164,7 @@ const InviteContacts = () => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
       />
-    </Kb.Box2>
+    </Kb.Modal>
   )
 }
 export default InviteContacts
