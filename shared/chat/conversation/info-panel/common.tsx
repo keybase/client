@@ -30,8 +30,11 @@ export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
     dispatch(TeamsGen.createGetMembers({teamID}))
   }, [dispatch, teamID])
   const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID)) || emptyMap
-  const bots = new Set<string>()
-  teamMembers.forEach(({type}, username) => isBot(type) && bots.add(username))
+  const bots = React.useMemo(() => {
+    const ret = new Set<string>()
+    teamMembers.forEach(({type}, username) => isBot(type) && ret.add(username))
+    return ret
+  }, [teamMembers])
   const teamHumanCount = teamMembers.size - bots.size
   return {bots, teamHumanCount}
 }
