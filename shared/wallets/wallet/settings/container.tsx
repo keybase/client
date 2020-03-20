@@ -46,6 +46,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   const name = account.name
   const mobileOnlyEditable = account.mobileOnlyEditable
   const me = state.config.username || ''
+  // External partner URLs include the keybase username even for non-primary accounts.
   const externalPartners = prepareExternalPartners(Constants.getExternalPartners(state), accountID, me)
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
