@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
+import {useTeamHumans} from '../common'
 import Header from './header'
 import Banner from './banner'
 import NoTeamsPlaceholder from './no-teams-placeholder'
@@ -38,13 +39,13 @@ export type Props = OwnProps & {
 type RowProps = {
   firstItem: boolean
   name: string
-  membercount: number
   isNew: boolean
   isOpen: boolean
   newRequests: number
   onOpenFolder: () => void
   onManageChat?: () => void
   resetUserCount: number
+  teamID: Types.TeamID
   onViewTeam: () => void
 }
 
@@ -57,6 +58,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
       type="iconfont-chat"
     />
   )
+  const {teamHumanCount} = useTeamHumans(props.teamID)
   return (
     <Kb.ListItem2
       type="Small"
@@ -80,7 +82,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
             {props.isNew && <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} />}
-            <Kb.Text type="BodySmall">{getMembersText(props.membercount)}</Kb.Text>
+            <Kb.Text type="BodySmall">{getMembersText(teamHumanCount)}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       }
@@ -186,11 +188,11 @@ class Teams extends React.PureComponent<Props, State> {
             isNew={this.props.newTeams.has(team.id)}
             isOpen={team.isOpen}
             newRequests={this.props.newTeamRequests.get(team.id) || 0}
-            membercount={team.memberCount}
             onOpenFolder={() => this.onOpenFolder(team.teamname)}
             onManageChat={team.isMember ? () => this.onManageChat(team.id) : undefined}
             onViewTeam={() => this.onViewTeam(team.id)}
             resetUserCount={resetUserCount}
+            teamID={team.id}
           />
         )
       }
