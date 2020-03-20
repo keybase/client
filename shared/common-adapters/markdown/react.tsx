@@ -3,6 +3,7 @@ import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text, {LineClampType} from '../text'
 import Box from '../box'
+import Markdown from '../markdown'
 import Emoji, {Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
 import ServiceDecoration from './service-decoration'
@@ -147,14 +148,9 @@ const EmojiIfExists = React.memo(
     return exists ? (
       <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
     ) : (
-      <Text
-        type="Body"
-        style={props.style}
-        lineClamp={props.lineClamp}
-        allowFontScaling={props.allowFontScaling}
-      >
+      <Markdown style={props.style} lineClamp={props.lineClamp} allowFontScaling={props.allowFontScaling}>
         {props.emojiName}
-      </Text>
+      </Markdown>
     )
   }
 )

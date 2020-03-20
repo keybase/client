@@ -108,7 +108,7 @@ const TeamMenu = (props: Props) => {
     <Kb.FloatingMenu
       attachTo={attachTo}
       closeOnSelect={true}
-      header={flags.teamsRedesign ? {title: teamname, view: header} : undefined}
+      header={flags.teamsRedesign ? header : undefined}
       items={items}
       onHidden={onHidden}
       visible={visible}

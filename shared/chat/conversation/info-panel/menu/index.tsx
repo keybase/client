@@ -233,27 +233,22 @@ class InfoPanelMenu extends React.Component<Props> {
       items.push({icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
     }
 
-    const header = {
-      title: 'header',
-      view: props.hasHeader ? (
-        isAdhoc && props.convProps ? (
-          <AdhocHeader
-            isMuted={props.convProps.muted}
-            fullname={props.convProps.fullname}
-            conversationIDKey={props.convProps.conversationIDKey}
-          />
-        ) : props.teamname ? (
-          <TeamHeader
-            isMuted={
-              props.convProps === null || props.convProps === undefined ? false : props.convProps.muted
-            }
-            teamname={props.teamname}
-            teamID={props.teamID}
-            onViewTeam={props.onViewTeam}
-          />
-        ) : null
-      ) : null,
-    }
+    const header = props.hasHeader ? (
+      isAdhoc && props.convProps ? (
+        <AdhocHeader
+          isMuted={props.convProps.muted}
+          fullname={props.convProps.fullname}
+          conversationIDKey={props.convProps.conversationIDKey}
+        />
+      ) : props.teamname ? (
+        <TeamHeader
+          isMuted={props.convProps === null || props.convProps === undefined ? false : props.convProps.muted}
+          teamname={props.teamname}
+          teamID={props.teamID}
+          onViewTeam={props.onViewTeam}
+        />
+      ) : null
+    ) : null
 
     return (
       <>

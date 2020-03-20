@@ -101,9 +101,21 @@ func (e EmojiRemoteSourceTyp) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type EmojiMessage struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+}
+
+func (o EmojiMessage) DeepCopy() EmojiMessage {
+	return EmojiMessage{
+		ConvID: o.ConvID.DeepCopy(),
+		MsgID:  o.MsgID.DeepCopy(),
+	}
+}
+
 type EmojiRemoteSource struct {
 	Typ__     EmojiRemoteSourceTyp `codec:"typ" json:"typ"`
-	Message__ *MessageID           `codec:"message,omitempty" json:"message,omitempty"`
+	Message__ *EmojiMessage        `codec:"message,omitempty" json:"message,omitempty"`
 }
 
 func (o *EmojiRemoteSource) Typ() (ret EmojiRemoteSourceTyp, err error) {
@@ -117,7 +129,7 @@ func (o *EmojiRemoteSource) Typ() (ret EmojiRemoteSourceTyp, err error) {
 	return o.Typ__, nil
 }
 
-func (o EmojiRemoteSource) Message() (res MessageID) {
+func (o EmojiRemoteSource) Message() (res EmojiMessage) {
 	if o.Typ__ != EmojiRemoteSourceTyp_MESSAGE {
 		panic("wrong case accessed")
 	}
@@ -127,7 +139,7 @@ func (o EmojiRemoteSource) Message() (res MessageID) {
 	return *o.Message__
 }
 
-func NewEmojiRemoteSourceWithMessage(v MessageID) EmojiRemoteSource {
+func NewEmojiRemoteSourceWithMessage(v EmojiMessage) EmojiRemoteSource {
 	return EmojiRemoteSource{
 		Typ__:     EmojiRemoteSourceTyp_MESSAGE,
 		Message__: &v,
@@ -137,7 +149,7 @@ func NewEmojiRemoteSourceWithMessage(v MessageID) EmojiRemoteSource {
 func (o EmojiRemoteSource) DeepCopy() EmojiRemoteSource {
 	return EmojiRemoteSource{
 		Typ__: o.Typ__.DeepCopy(),
-		Message__: (func(x *MessageID) *MessageID {
+		Message__: (func(x *EmojiMessage) *EmojiMessage {
 			if x == nil {
 				return nil
 			}

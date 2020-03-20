@@ -457,8 +457,8 @@ body {
 }
 
 .selectable {
-    cursor: text;
-    user-select: text;
+  cursor: text;
+  user-select: text;
 }
 
 .clickable {

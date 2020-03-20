@@ -40,7 +40,8 @@ func NewSource(g *globals.Context) *Source {
 }
 
 const (
-	cmdCollapse int = iota
+	cmdAddEmoji int = iota
+	cmdCollapse
 	cmdExpand
 	cmdFlip
 	cmdGiphy
@@ -58,6 +59,7 @@ const (
 
 func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res = make(map[int]types.ConversationCommand)
+	res[cmdAddEmoji] = NewAddEmoji(s.G())
 	res[cmdCollapse] = NewCollapse(s.G())
 	res[cmdExpand] = NewExpand(s.G())
 	res[cmdFlip] = NewFlip(s.G())
@@ -90,6 +92,9 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
+	}
+	if s.isAdmin() {
+		common = append(common, cmds[cmdAddEmoji])
 	}
 	if s.G().IsMobileAppType() || s.G().GetRunMode() == libkb.DevelRunMode {
 		common = append(common, cmds[cmdLocation])

@@ -26,23 +26,21 @@ const useOpenInFilesTab = (path: Types.Path) => {
 
 const KbfsPathPopup = (props: PopupProps) => {
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
-  const header = {
-    title: 'header',
-    view: (
-      <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
-        <PathItemInfo
-          path={props.standardPath}
-          containerStyle={Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
-        />
-        <Kb.Divider />
-        <PathInfo
-          path={props.standardPath}
-          knownPathInfo={props.knownPathInfo}
-          containerStyle={styles.sectionContainer}
-        />
-      </Kb.Box2>
-    ),
-  }
+  const header = (
+    <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
+      <PathItemInfo
+        path={props.standardPath}
+        containerStyle={Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
+      />
+      <Kb.Divider />
+      <PathInfo
+        path={props.standardPath}
+        knownPathInfo={props.knownPathInfo}
+        containerStyle={styles.sectionContainer}
+      />
+    </Kb.Box2>
+  )
+
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}

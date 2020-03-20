@@ -113,6 +113,16 @@ const mocksWithMeta = {
     meta: mockMeta,
     text: 'Hey! I *just* posted a video of my sick jump on #general',
   },
+  'Custom emoji inline': {
+    meta: {
+      message: ChatConstants.makeMessageText({
+        decoratedText: new HiddenString(
+          `$>kb\${"typ":7,"emoji":{"alias":":lucario:","source":{"typ":0,httpsrv:"https://01.keybase.pub/emoji/lucario.png"}}}$<kb$`
+        ),
+      }),
+    },
+    text: `$>kb\${"typ":7,"emoji":{"alias":":lucario:","source":{"typ":0,httpsrv:"https://01.keybase.pub/emoji/lucario.png"}}}$<kb$`,
+  },
   'Inline send': {
     meta: {
       message: ChatConstants.makeMessageText({
@@ -123,6 +133,7 @@ const mocksWithMeta = {
     },
     text: `$>kb\${"typ":0,"payment":{"username":"chrisnojima","paymentText":"+0.001XLM@chrisnojima","result":{"resultTyp":0,"sent":"63f55e57bf53402e54b587cd035f96fb7136d0c98b46d6926e41360000000000"}}}$<kb$`,
   },
+
   'User mention - Following': {
     meta: mockMeta,
     text: 'Hey @following, are you still there?',

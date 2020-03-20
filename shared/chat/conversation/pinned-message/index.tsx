@@ -118,10 +118,7 @@ const UnpinPrompt = (props: UnpinProps) => {
       onHidden={props.onHidden}
       visible={props.visible}
       propagateOutsideClicks={true}
-      header={{
-        title: 'header',
-        view: header,
-      }}
+      header={header}
       position="left center"
       items={['Divider', {icon: 'iconfont-close', onClick: props.onUnpin, title: 'Yes, unpin'}]}
     />

@@ -78,17 +78,17 @@ else
 fi
 
 echo '=== docker ==='
-docker run "${interactive_args[@]:+${interactive_args[@]}}" \
+sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$gpg_tempdir:/GPG" \
   -v "$ssh_temp:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
-  -e "BUCKET_NAME" \
-  -e "KEYBASE_RELEASE" \
-  -e "KEYBASE_NIGHTLY" \
-  -e "KEYBASE_TEST" \
-  -e "KEYBASE_TEST_CODE_SIGNING_KEY" \
+  -e "BUCKET_NAME=${BUCKET_NAME:-}" \
+  -e "KEYBASE_RELEASE=${KEYBASE_RELEASE:-}" \
+  -e "KEYBASE_NIGHTLY=${KEYBASE_NIGHTLY:-}" \
+  -e "KEYBASE_TEST=${KEYBASE_TEST:-}" \
+  -e "KEYBASE_TEST_CODE_SIGNING_KEY=${KEYBASE_TEST_CODE_SIGNING_KEY:-}" \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
