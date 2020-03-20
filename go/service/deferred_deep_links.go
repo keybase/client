@@ -17,7 +17,7 @@ type StringReceiver interface {
 type InstallReferrerListener interface {
 	// StartInstallReferrerListener is used to get referrer information from the
 	// google play store on Android (to implement deferred deep links). This is
-	// asynchrounous (due to the underlying play store api being so): pass it a
+	// asynchronous (due to the underlying play store api being so): pass it a
 	// callback function which will be called with the referrer string once it
 	// is available (or an empty string in case of errors).
 	StartInstallReferrerListener(callback StringReceiver)
