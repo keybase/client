@@ -95,6 +95,10 @@
         },
         {
           "type": "UserVersion",
+          "name": "vouchee"
+        },
+        {
+          "type": "UserVersion",
           "name": "voucher"
         },
         {
@@ -195,7 +199,7 @@
           "type": "int"
         },
         {
-          "name": "username",
+          "name": "voucher",
           "type": "string"
         },
         {
@@ -204,25 +208,6 @@
         }
       ],
       "response": null
-    },
-    "wotListCLI": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "username",
-          "type": [
-            null,
-            "string"
-          ]
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "WotVouch"
-      }
     },
     "dismissWotNotifications": {
       "request": [
@@ -240,6 +225,26 @@
         }
       ],
       "response": null
+    },
+    "wotListCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "vouchee",
+          "type": "string"
+        },
+        {
+          "name": "voucher",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WotVouch"
+      }
     }
   },
   "namespace": "keybase.1"

@@ -88,10 +88,7 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 func (h *WebOfTrustHandler) WotListCLI(ctx context.Context, arg keybase1.WotListCLIArg) (res []keybase1.WotVouch, err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	if arg.Username == nil {
-		return libkb.FetchMyWot(mctx)
-	}
-	return libkb.FetchUserWot(mctx, *arg.Username)
+	return libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Vouchee: arg.Vouchee, Voucher: arg.Voucher})
 }
 
 func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactArg) error {
@@ -111,12 +108,12 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
-	upak, _, err := h.G().GetUPAKLoader().Load(libkb.NewLoadUserArg(h.G()).WithName(arg.Username))
+	upak, _, err := h.G().GetUPAKLoader().Load(libkb.NewLoadUserArg(h.G()).WithName(arg.Voucher))
 	if err != nil {
 		return err
 	}
 	expectedVoucher := upak.Base.ToUserVersion()
-	myVouches, err := libkb.FetchMyWot(mctx)
+	myVouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{}) // get vouches for me
 	if err != nil {
 		return err
 	}
@@ -128,12 +125,12 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 		}
 	}
 	if reactingVouch == nil {
-		return fmt.Errorf("could not find an attestation of you by %s", arg.Username)
+		return fmt.Errorf("could not find an attestation of you by %s", arg.Voucher)
 	}
 
 	switch reactingVouch.Status {
 	case keybase1.WotStatusType_NONE:
-		return fmt.Errorf("something is wrong with this attestation; please ask %s to recreate it", arg.Username)
+		return fmt.Errorf("something is wrong with this attestation; please ask %s to recreate it", arg.Voucher)
 	case keybase1.WotStatusType_REJECTED:
 		return fmt.Errorf("cannot react to an attestation that was previously rejected")
 	case keybase1.WotStatusType_REVOKED:
