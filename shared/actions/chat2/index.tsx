@@ -2536,54 +2536,6 @@ const ensureWidgetMetas = (state: Container.TypedState) => {
   })
 }
 
-// const mobileNavigateOnSelect = (
-// _state: Container.TypedState,
-// action: Chat2Gen.SelectConversationPayload,
-// logger: Saga.SagaLogger
-// ) => {
-// const selectedConversation = Constants.getSelectedConversation()
-// const {conversationIDKey, navKey, reason, skipNav} = action.payload
-// if (skipNav) {
-// logger.info(
-// `mobileNavigateOnSelect: skipNav passed selected: ${selectedConversation} param: ${conversationIDKey}`
-// )
-// return
-// }
-// if (Constants.isValidConversationIDKey(conversationIDKey)) {
-// if (reason === 'focused') {
-// logger.info(
-// `mobileNavigateOnSelect: not navigating, reason focused: selected: ${selectedConversation} param: ${conversationIDKey}`
-// )
-// return false // never nav if this is from a nav
-// }
-// logger.info(
-// `mobileNavigateOnSelect: navigating to param: ${conversationIDKey} selected: ${selectedConversation}`
-// )
-// return navigateToThreadRoute(conversationIDKey, navKey)
-// } else if (
-// conversationIDKey === Constants.pendingWaitingConversationIDKey ||
-// conversationIDKey === Constants.pendingErrorConversationIDKey
-// ) {
-// logger.info(
-// `mobileNavigateOnSelect: navigating to param: selected: ${selectedConversation} param: ${conversationIDKey}`
-// )
-// return navigateToThreadRoute(conversationIDKey, navKey)
-// }
-// logger.info(
-// `mobileNavigateOnSelect: not navigating, default case: selected: ${selectedConversation} param: ${conversationIDKey}`
-// )
-// return false
-// }
-
-// const desktopNavigateOnSelect = (
-// _state: Container.TypedState,
-// action: Chat2Gen.SelectConversationPayload
-// ) => {
-// const {conversationIDKey, reason, navKey} = action.payload
-// if (reason === 'findNewestConversation' || reason === 'clearSelected') return
-// return navigateToThreadRoute(conversationIDKey, navKey)
-// }
-
 // Native share sheet for attachments
 function* mobileMessageAttachmentShare(
   _: Container.TypedState,
@@ -3675,10 +3627,6 @@ const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
 
 function* chat2Saga() {
   // Platform specific actions
-  if (Container.isPhone) {
-    // Push us into the conversation
-    // yield* Saga.chainAction2(Chat2Gen.selectedConversation, mobileNavigateOnSelect)
-  }
   if (Container.isMobile) {
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
       Chat2Gen.messageAttachmentNativeShare,
@@ -3693,8 +3641,6 @@ function* chat2Saga() {
       Chat2Gen.desktopNotification,
       desktopNotify
     )
-    // Switch to the chat tab
-    // yield* Saga.chainAction2(Chat2Gen.selectConversation, desktopNavigateOnSelect)
   }
 
   // Refresh the inbox
