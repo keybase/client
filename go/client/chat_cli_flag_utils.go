@@ -187,8 +187,11 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 		topicType = chat1.TopicType_CHAT
 	case "dev":
 		topicType = chat1.TopicType_DEV
+	case "emoji":
+		topicType = chat1.TopicType_EMOJI
 	default:
-		err = fmt.Errorf("invalid topic-type '%s'. Has to be one of %v", strTopicType, []string{"chat", "dev"})
+		err = fmt.Errorf("invalid topic-type '%s'. Has to be one of %v", strTopicType,
+			[]string{"chat", "dev", "emoji"})
 	}
 	return topicType, err
 }
