@@ -7,6 +7,7 @@ import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = {
   disabledChannels?: Array<Types.ChannelNameID>
+  hideGeneral?: boolean
   onCancel: () => void
   onComplete: (channels: Array<Types.ChannelNameID>) => void
   teamID: Types.TeamID
@@ -23,9 +24,14 @@ const ChannelPopup = (props: Props) => {
     channelname: ci.channelname,
     conversationIDKey: ci.conversationIDKey,
   }))
-  const channelsFiltered = filter
-    ? channels.filter(c => c.channelname.toLowerCase().includes(filterLCase))
-    : channels
+  const channelsFiltered =
+    filter || props.hideGeneral
+      ? channels.filter(
+          c =>
+            c.channelname.toLowerCase().includes(filterLCase) &&
+            (!props.hideGeneral || c.channelname !== 'general')
+        )
+      : channels
 
   const [selected, setSelected] = React.useState<Array<Types.ChannelNameID>>([])
   const onSelect = (channel: Types.ChannelNameID) => {
@@ -55,7 +61,10 @@ const ChannelPopup = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.SearchFilter
-          placeholderText={`Search ${channels.length} ${pluralize('channel', channels.length)}`}
+          placeholderText={`Search ${channelsFiltered.length} ${pluralize(
+            'channel',
+            channelsFiltered.length
+          )}`}
           size="full-width"
           onChange={onChangeFilter}
           style={styles.searchFilter}

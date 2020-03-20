@@ -66,6 +66,7 @@ const DefaultChannels = (props: Props) => {
       <ChannelsWidget
         teamID={teamID}
         channels={defaultChannels}
+        disableGeneral={true}
         onAddChannel={onAdd}
         onRemoveChannel={onRemove}
       />
