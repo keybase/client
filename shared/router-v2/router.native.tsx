@@ -18,7 +18,6 @@ import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
-import debounce from 'lodash/debounce'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
 import {getPersistenceFunctions} from './persist.native'
@@ -372,11 +371,6 @@ class RNApp extends React.PureComponent<Props> {
     nav.dispatch(a)
   }
 
-  // debounce this so we don't persist a route that can crash and then keep them in some crash loop
-  private persistRoute = debounce(() => {
-    this.props.persistRoute(Constants.getVisiblePath())
-  }, 3000)
-
   getNavState = () => {
     const n = this.nav
     return (n && n.state && n.state.nav) || null
@@ -386,8 +380,11 @@ class RNApp extends React.PureComponent<Props> {
     this.nav = n
   }
 
-  private onNavigationStateChange = () => {
-    this.persistRoute()
+  private onNavigationStateChange = (prevNav: any, nav: any, action: any) => {
+    // RN emits this extra action type which we ignore from a redux perspective
+    if (action.type !== 'Navigation/COMPLETE_TRANSITION') {
+      this.props.onNavigationStateChange(prevNav, nav, action)
+    }
   }
 
   // hmr messes up startup, so only set this after its rendered once

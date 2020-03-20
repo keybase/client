@@ -1,12 +1,14 @@
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as PeopleGen from './people-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as ProfileGen from './profile-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
+import * as Tabs from '../constants/tabs'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
@@ -195,6 +197,14 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
   ]
 }
 
+const maybeMarkViewed = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  if (prev[2]?.routeName === Tabs.peopleTab && next[2]?.routeName !== Tabs.peopleTab) {
+    return PeopleGen.createMarkViewed()
+  }
+  return false
+}
+
 function* peopleTeamBuildingSaga() {
   yield* commonTeamBuildingSaga('people')
   yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
@@ -207,6 +217,7 @@ const peopleSaga = function*() {
   yield* Saga.chainAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
   yield* Saga.chainAction2(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   yield* Saga.chainAction2(EngineGen.connected, connected)
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
   yield* peopleTeamBuildingSaga()
 }
 

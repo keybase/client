@@ -15,6 +15,7 @@ type MakeRowOptions = {
   conversationIDKey: Types.ConversationIDKey
   isTeam: boolean
   navKey: string
+  selected?: boolean
   snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   teamname: string
@@ -48,6 +49,7 @@ const makeRow = (options: MakeRowOptions) => {
           key={options.conversationIDKey}
           conversationIDKey={options.conversationIDKey}
           channelname={options.channelname}
+          selected={options.selected ?? false}
           navKey={options.navKey}
         />
       )
@@ -59,6 +61,7 @@ const makeRow = (options: MakeRowOptions) => {
           isTeam={options.isTeam}
           navKey={options.navKey}
           name={options.teamname}
+          selected={options.selected ?? false}
           time={options.time || 0}
           snippet={options.snippet}
           snippetDecoration={options.snippetDecoration}

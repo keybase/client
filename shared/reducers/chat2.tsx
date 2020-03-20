@@ -497,14 +497,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.changeFocus]: (draftState, action) => {
     draftState.focus = action.payload.nextFocus
   },
-  [Chat2Gen.selectConversation]: (draftState, action) => {
+  [Chat2Gen.selectedConversation]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {selectedConversation, threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
+    const {threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
     const {metaMap, messageCenterOrdinals} = draftState
-    // ignore non-changing
-    if (selectedConversation === conversationIDKey) {
-      return
-    }
 
     if (conversationIDKey) {
       const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
@@ -539,15 +535,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     }
     // blank out draft so we don't flash old data when switching convs
-    const meta = metaMap.get(selectedConversation)
+    const meta = metaMap.get(conversationIDKey)
     if (meta) {
       meta.draft = ''
     }
     messageCenterOrdinals.delete(conversationIDKey)
     threadLoadStatus.delete(conversationIDKey)
     containsLatestMessageMap.set(conversationIDKey, true)
-    draftState.previousSelectedConversation = selectedConversation
-    draftState.selectedConversation = conversationIDKey
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
       // error msg.

@@ -67,7 +67,7 @@ export default Container.connect(
           ordinal: message.ordinal,
         })
       )
-      dispatch(Chat2Gen.createNavigateToThread())
+      dispatch(RouteTreeGen.createClearModals())
     },
 
     _onDownload: (message: Types.MessageAttachment) => {
