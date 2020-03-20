@@ -125,17 +125,17 @@ func main2() error {
 		Logf: func(format string, args ...interface{}) {},
 	}
 	if err := hub.Ping(); err != nil {
-		panic(err)
+		return err
 	}
 
 	hubToken, err := getHubToken(*username, *password)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	tags, err := hub.Tags("keybaseio/client")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	var (
@@ -181,7 +181,7 @@ tagLoop:
 	semver.Sort(stableVersions)
 	semver.Sort(nightlyVersions)
 
-	removeTags := func(tags []semver.Version) {
+	removeTags := func(tags []semver.Version) error {
 		for _, tag := range tags {
 			baseTag := tag.String()
 
@@ -200,13 +200,13 @@ tagLoop:
 				}
 
 				if err := deleteTag(hubToken, *imageName, fullTag); err != nil {
-					log.Printf("Failed to remove tag %v - %v", fullTag, err.Error())
-					continue
+					return fmt.Errorf("Failed to remove tag %v - %v", fullTag, err.Error())
 				}
 
 				log.Printf("Tag %v deleted.", fullTag)
 			}
 		}
+		return nil
 	}
 	countRemainingTags := func(tags []semver.Version) {
 		for _, tag := range tags {
@@ -225,7 +225,10 @@ tagLoop:
 
 	// Do the cleanup!
 	if len(stableVersions) > *maxStableCount {
-		removeTags(stableVersions[:len(stableVersions)-*maxStableCount])
+		err := removeTags(stableVersions[:len(stableVersions)-*maxStableCount])
+		if err != nil {
+			return err
+		}
 		countRemainingTags(stableVersions[len(stableVersions)-*maxStableCount:])
 		remainingTagsCount += *maxStableCount * len(variants)
 	} else {
@@ -233,7 +236,10 @@ tagLoop:
 		countRemainingTags(stableVersions)
 	}
 	if len(nightlyVersions) > *maxNightlyCount {
-		removeTags(nightlyVersions[:len(nightlyVersions)-*maxNightlyCount])
+		err := removeTags(nightlyVersions[:len(nightlyVersions)-*maxNightlyCount])
+		if err != nil {
+			return err
+		}
 		countRemainingTags(nightlyVersions[len(nightlyVersions)-*maxNightlyCount:])
 	} else {
 		log.Printf("No need to remove any nightly tags, %v < %v", len(nightlyVersions), *maxNightlyCount)
