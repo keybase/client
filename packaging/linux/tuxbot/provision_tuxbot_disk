@@ -3,7 +3,7 @@ set -euox pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-sudo apt install -yq parted
+apt install -yq parted
 
 swapoff -a
 parted --script /dev/sda rm 2
