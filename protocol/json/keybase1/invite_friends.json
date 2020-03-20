@@ -1,0 +1,55 @@
+{
+  "protocol": "inviteFriends",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "InviteCounts",
+      "fields": [
+        {
+          "type": "int",
+          "name": "inviteCount"
+        },
+        {
+          "type": "float",
+          "name": "percentageChange"
+        },
+        {
+          "type": "boolean",
+          "name": "showFire"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "invitePeople": {
+      "request": [
+        {
+          "name": "emails",
+          "type": {
+            "type": "array",
+            "items": "EmailAddress"
+          }
+        },
+        {
+          "name": "phones",
+          "type": {
+            "type": "array",
+            "items": "RawPhoneNumber"
+          }
+        }
+      ],
+      "response": null
+    },
+    "getInviteCounts": {
+      "request": [],
+      "response": "InviteCounts"
+    }
+  },
+  "namespace": "keybase.1"
+}
