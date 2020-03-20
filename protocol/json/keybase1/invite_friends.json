@@ -24,6 +24,29 @@
           "name": "showFire"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmailInvites",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "commaSeparatedEmailsFromUser"
+        },
+        {
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "EmailAddress"
+            }
+          ],
+          "name": "emailsFromContacts"
+        }
+      ]
     }
   ],
   "messages": {
@@ -31,10 +54,7 @@
       "request": [
         {
           "name": "emails",
-          "type": {
-            "type": "array",
-            "items": "EmailAddress"
-          }
+          "type": "EmailInvites"
         },
         {
           "name": "phones",

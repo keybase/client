@@ -9,7 +9,12 @@ protocol inviteFriends {
     boolean showFire; // Are keybase servers on fire?
   }
 
-  void invitePeople(array<EmailAddress> emails, array<RawPhoneNumber> phones);
+  record EmailInvites {
+    union { null, string } commaSeparatedEmailsFromUser;
+    union { null, array<EmailAddress> } emailsFromContacts;
+  }
+
+  void invitePeople(EmailInvites emails, array<RawPhoneNumber> phones);
   InviteCounts getInviteCounts();
 
 }

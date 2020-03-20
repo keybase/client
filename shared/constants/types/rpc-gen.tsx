@@ -948,7 +948,7 @@ export type MessageTypes = {
     outParam: InviteCounts
   }
   'keybase.1.inviteFriends.invitePeople': {
-    inParam: {readonly emails?: Array<EmailAddress> | null; readonly phones?: Array<RawPhoneNumber> | null}
+    inParam: {readonly emails: EmailInvites; readonly phones?: Array<RawPhoneNumber> | null}
     outParam: void
   }
   'keybase.1.kbfsMount.GetCurrentMountDir': {
@@ -2818,6 +2818,7 @@ export type Email = {readonly email: EmailAddress; readonly isVerified: Boolean;
 export type EmailAddress = String
 export type EmailAddressChangedMsg = {readonly email: EmailAddress}
 export type EmailAddressVerifiedMsg = {readonly email: EmailAddress}
+export type EmailInvites = {readonly commaSeparatedEmailsFromUser?: String | null; readonly emailsFromContacts?: Array<EmailAddress> | null}
 export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UID | null}
 export type EncryptedBytes32 = string | null
 export type EncryptedGitMetadata = {readonly v: Int; readonly e: Bytes; readonly n: BoxNonce; readonly gen: PerTeamKeyGeneration}

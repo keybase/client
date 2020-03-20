@@ -23,8 +23,42 @@ func (o InviteCounts) DeepCopy() InviteCounts {
 	}
 }
 
+type EmailInvites struct {
+	CommaSeparatedEmailsFromUser *string         `codec:"commaSeparatedEmailsFromUser,omitempty" json:"commaSeparatedEmailsFromUser,omitempty"`
+	EmailsFromContacts           *[]EmailAddress `codec:"emailsFromContacts,omitempty" json:"emailsFromContacts,omitempty"`
+}
+
+func (o EmailInvites) DeepCopy() EmailInvites {
+	return EmailInvites{
+		CommaSeparatedEmailsFromUser: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.CommaSeparatedEmailsFromUser),
+		EmailsFromContacts: (func(x *[]EmailAddress) *[]EmailAddress {
+			if x == nil {
+				return nil
+			}
+			tmp := (func(x []EmailAddress) []EmailAddress {
+				if x == nil {
+					return nil
+				}
+				ret := make([]EmailAddress, len(x))
+				for i, v := range x {
+					vCopy := v.DeepCopy()
+					ret[i] = vCopy
+				}
+				return ret
+			})((*x))
+			return &tmp
+		})(o.EmailsFromContacts),
+	}
+}
+
 type InvitePeopleArg struct {
-	Emails []EmailAddress   `codec:"emails" json:"emails"`
+	Emails EmailInvites     `codec:"emails" json:"emails"`
 	Phones []RawPhoneNumber `codec:"phones" json:"phones"`
 }
 
