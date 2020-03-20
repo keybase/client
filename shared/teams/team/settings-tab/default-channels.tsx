@@ -1,11 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../../../constants/types/chat2'
 import * as Types from '../../../constants/types/teams'
-import {useAllChannelMetas, ChannelsWidget} from '../../common'
+import {ChannelsWidget} from '../../common'
 
 type Props = {
   teamID: Types.TeamID
@@ -17,7 +15,8 @@ const DefaultChannels = (props: Props) => {
   const setDefaultChannelsRPC = Container.useRPC(RPCChatGen.localSetDefaultTeamChannelsLocalRpcPromise)
   const [defaultChannels, setDefaultChannels] = React.useState<Array<Types.ChannelNameID>>([])
   const [waiting, setWaiting] = React.useState(false)
-  React.useEffect(() => {
+
+  const reloadDefaultChannels = React.useCallback(() => {
     setWaiting(true)
     getDefaultChannelsRPC(
       [{teamID}],
@@ -28,35 +27,48 @@ const DefaultChannels = (props: Props) => {
         ])
         setWaiting(false)
       },
-      _ => {}
-    )
-  }, [getDefaultChannelsRPC, teamID])
-  const onAdd = (channels: Array<Types.ChannelNameID>) => {
-    setWaiting(true)
-    setDefaultChannelsRPC(
-      [
-        {
-          convs: (defaultChannels || [])
-            .filter(c => c.channelname !== 'general')
-            .concat(channels)
-            .map(c => c.conversationIDKey),
-          teamID,
-        },
-      ],
-      result => {
+      _ => {
+        // TODO what to do with error?
         setWaiting(false)
-        setDefaultChannels([...defaultChannels, ...channels])
-      },
-      error => {
-        console.error(error)
       }
     )
+  }, [teamID, getDefaultChannelsRPC])
+
+  // Initialize
+  React.useEffect(reloadDefaultChannels, [reloadDefaultChannels])
+
+  const onAdd = (channels: Array<Types.ChannelNameID>) => {
+    setWaiting(true)
+    const convs = defaultChannels
+      .concat(channels)
+      .filter(c => c.channelname !== 'general')
+      .map(c => c.conversationIDKey)
+    setDefaultChannelsRPC([{convs, teamID}], reloadDefaultChannels, error => {
+      console.error(error)
+    })
+  }
+
+  const onRemove = (channel: Types.ChannelNameID) => {
+    const toRemoveIdx = defaultChannels.findIndex(c => c.conversationIDKey === channel.conversationIDKey)
+    if (toRemoveIdx >= 0) {
+      const channelsCopy = defaultChannels.slice()
+      channelsCopy.splice(toRemoveIdx, 1)
+      const convs = channelsCopy.filter(c => c.channelname !== 'general').map(c => c.conversationIDKey)
+      setWaiting(true)
+      setDefaultChannelsRPC([{convs, teamID}], reloadDefaultChannels, error => {
+        console.error(error)
+      })
+    }
   }
 
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-      {waiting && <Kb.ProgressIndicator />}
-      <ChannelsWidget teamID={teamID} channels={defaultChannels} onAddChannel={onAdd} />
+      <ChannelsWidget
+        teamID={teamID}
+        channels={defaultChannels}
+        onAddChannel={onAdd}
+        onRemoveChannel={onRemove}
+      />
     </Kb.Box2>
   )
 }
