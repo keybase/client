@@ -89,7 +89,8 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 
 	switch command {
 	case "help":
-		c.Info("`release revision?, nightly revision?, test revision?, tuxjournal, journal, archive revision, build-docker revision?, release-docker tag`")
+		c.Info("`release/nightly/test revision?, [tux]journal, archive revision, build-docker revision?, release-docker tag`")
+		c.Info("`cleanup, restartdocker`")
 		return nil
 	case "archive":
 		if len(args) < 1 {
@@ -420,6 +421,12 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		cleanupCmd := exec.Command("./cleanup")
 		cleanupCmd.Dir = filepath.Join(currentUser.HomeDir)
 		ret, err := cleanupCmd.CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
+		return nil
+	case "restartdocker":
+		cmd := exec.Command("./restartdocker")
+		cmd.Dir = filepath.Join(currentUser.HomeDir)
+		ret, err := cmd.CombinedOutput()
 		c.Debug("RET: ```%s```, ERR: %s", ret, err)
 		return nil
 	default:
