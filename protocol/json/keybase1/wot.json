@@ -8,17 +8,6 @@
   ],
   "types": [
     {
-      "type": "enum",
-      "name": "WotStatusType",
-      "symbols": [
-        "NONE_0",
-        "PROPOSED_1",
-        "ACCEPTED_2",
-        "REJECTED_3",
-        "REVOKED_4"
-      ]
-    },
-    {
       "type": "record",
       "name": "UsernameVerificationType",
       "fields": [],
@@ -234,6 +223,23 @@
         "type": "array",
         "items": "WotVouch"
       }
+    },
+    "dismissWotNotifications": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "voucher",
+          "type": "string"
+        },
+        {
+          "name": "vouchee",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

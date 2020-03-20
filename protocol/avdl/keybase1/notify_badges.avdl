@@ -30,6 +30,12 @@ protocol NotifyBadges {
     boolean active;
   }
 
+  record WotUpdate {
+    string voucher;  // username
+    string vouchee;  // username
+    WotStatusType status;
+  }
+
   record BadgeState {
     @lint("ignore")
     int newTlfs;
@@ -51,6 +57,7 @@ protocol NotifyBadges {
     array<DeletedTeamInfo> deletedTeams;
     array<TeamMemberOutReset> teamsWithResetUsers;
     array<WalletAccountInfo> unreadWalletAccounts;
+    array<WotUpdate> wotUpdates;
     ResetState resetState;
   }
 

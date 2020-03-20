@@ -159,6 +159,15 @@ func (b *BadgeState) ConversationBadge(ctx context.Context, convID chat1.Convers
 	return b.ConversationBadgeStr(ctx, convID.ConvIDStr())
 }
 
+func wotUpdatesWithout(wotIn []keybase1.WotUpdate, voucher, vouchee string) (wotOut []keybase1.WotUpdate) {
+	for _, el := range wotIn {
+		if el.Voucher != voucher && el.Vouchee != vouchee {
+			wotOut = append(wotOut, el)
+		}
+	}
+	return wotOut
+}
+
 // UpdateWithGregor updates the badge state from a gregor state.
 func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) error {
 	b.Lock()
@@ -178,6 +187,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.ResetState = keybase1.ResetState{}
 	b.state.UnverifiedEmails = 0
 	b.state.UnverifiedPhones = 0
+	b.state.WotUpdates = []keybase1.WotUpdate{}
 
 	var hsb *libkb.HomeStateBody
 
@@ -249,6 +259,46 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			b.state.NewDevices = append(b.state.NewDevices, keybase1.DeviceID(newDeviceID))
+		case "wot.new_vouch":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'wot.new_vouch' item: %v", err)
+				continue
+			}
+			voucher, err := jsw.AtKey("voucher").GetString()
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered gregor 'wot.new_vouch' item without 'voucherUid': %v", err)
+				continue
+			}
+			vouchee := b.env.GetUsername().String()
+			wotUpdate := keybase1.WotUpdate{
+				Voucher: voucher,
+				Vouchee: vouchee,
+				Status:  keybase1.WotStatusType_PROPOSED,
+			}
+			b.state.WotUpdates = append(wotUpdatesWithout(b.state.WotUpdates, voucher, vouchee), wotUpdate)
+		case "wot.accepted", "wot.rejected":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered non-json '%s' item: %v", category, err)
+				continue
+			}
+			vouchee, err := jsw.AtKey("vouchee").GetString()
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered gregor '%s' item without 'voucherUid': %v", category, err)
+				continue
+			}
+			status := keybase1.WotStatusType_ACCEPTED
+			if category == "wot.rejected" {
+				status = keybase1.WotStatusType_REJECTED
+			}
+			voucher := b.env.GetUsername().String()
+			wotUpdate := keybase1.WotUpdate{
+				Voucher: voucher,
+				Vouchee: vouchee,
+				Status:  status,
+			}
+			b.state.WotUpdates = append(wotUpdatesWithout(b.state.WotUpdates, voucher, vouchee), wotUpdate)
 		case "device.revoked":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
