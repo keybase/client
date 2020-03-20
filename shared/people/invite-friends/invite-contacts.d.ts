@@ -1,3 +1,2 @@
-import * as React from 'react'
-declare const InviteContacts: React.Component<{}>
+declare const InviteContacts: () => JSX.Element
 export default InviteContacts
