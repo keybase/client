@@ -10,6 +10,7 @@ git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase
 (
     # install deps
     cd "$TUXBOTD/bot"
+    git checkout master
     go mod tidy
 )
 systemctl --user link "$TUXBOTD/tuxbot.service"
