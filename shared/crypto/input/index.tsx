@@ -296,7 +296,12 @@ export const InputActionsBar = (props: RunOperationProps) => {
   }
 
   return Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.inputActionsBarContainer}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      gap={Styles.isTablet ? 'small' : 'tiny'}
+      style={styles.inputActionsBarContainer}
+    >
       {children}
       <Kb.WaitingButton
         mode="Primary"

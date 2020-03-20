@@ -24,11 +24,15 @@ export const EncryptOptions = React.memo(() => {
     dispatch(CryptoGen.createSetEncryptOptions({options: {includeSelf: newIncludeSelf, sign: newSign}}))
   }
 
+  const direction = Styles.isTablet ? 'horizontal' : Styles.isMobile ? 'vertical' : 'horizontal'
+  const gap = Styles.isTablet ? 'medium' : Styles.isMobile ? 'xtiny' : 'medium'
+
   return (
     <Kb.Box2
-      direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+      direction={direction}
       fullWidth={true}
-      gap={Styles.isMobile ? 'xtiny' : 'medium'}
+      centerChildren={Styles.isTablet}
+      gap={gap}
       style={styles.optionsContainer}
     >
       {hideIncludeSelf ? null : (
@@ -100,6 +104,12 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           alignItems: 'flex-start',
+        },
+        isTablet: {
+          ...Styles.globalStyles.fullWidth,
+          alignSelf: 'center',
+          justifyContent: 'space-between',
+          maxWidth: 460,
         },
       }),
     } as const)

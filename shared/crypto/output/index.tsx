@@ -237,7 +237,11 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
           />
         </Kb.ButtonBar>
       ) : (
-        <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+        <Kb.ButtonBar
+          direction="row"
+          align={Styles.isTablet ? 'center' : 'flex-start'}
+          style={styles.buttonBar}
+        >
           {canReplyInChat && signed && signedByUsername && (
             <Kb.Button
               mode="Primary"
@@ -462,6 +466,10 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           ...Styles.padding(Styles.globalMargins.small),
           backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isTablet: {
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       }),
       outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
