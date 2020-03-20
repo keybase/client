@@ -158,9 +158,9 @@ type DismissWotNotificationsArg struct {
 }
 
 type WotListCLIArg struct {
-	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Vouchee   *string `codec:"vouchee,omitempty" json:"vouchee,omitempty"`
-	Voucher   *string `codec:"voucher,omitempty" json:"voucher,omitempty"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Vouchee   string `codec:"vouchee" json:"vouchee"`
+	Voucher   string `codec:"voucher" json:"voucher"`
 }
 
 type WotInterface interface {

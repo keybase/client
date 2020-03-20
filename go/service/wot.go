@@ -113,7 +113,7 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 		return err
 	}
 	expectedVoucher := upak.Base.ToUserVersion()
-	myVouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Vouchee: nil, Voucher: nil}) // get vouches for me
+	myVouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{}) // get vouches for me
 	if err != nil {
 		return err
 	}

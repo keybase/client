@@ -234,17 +234,11 @@
         },
         {
           "name": "vouchee",
-          "type": [
-            null,
-            "string"
-          ]
+          "type": "string"
         },
         {
           "name": "voucher",
-          "type": [
-            null,
-            "string"
-          ]
+          "type": "string"
         }
       ],
       "response": {

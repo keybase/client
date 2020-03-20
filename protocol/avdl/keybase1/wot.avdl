@@ -55,5 +55,5 @@ protocol wot {
   // dismiss notifications for a user vouch
   void dismissWotNotifications(int sessionID, string voucher, string vouchee);
 
-  array<WotVouch> wotListCLI(int sessionID, union {null, string} vouchee, union {null, string} voucher);
+  array<WotVouch> wotListCLI(int sessionID, string vouchee, string voucher);
 }
