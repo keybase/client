@@ -89,6 +89,7 @@ func (e WotReactionType) String() string {
 type WotVouch struct {
 	Status     WotStatusType `codec:"status" json:"status"`
 	VouchProof SigID         `codec:"vouchProof" json:"vouchProof"`
+	Vouchee    UserVersion   `codec:"vouchee" json:"vouchee"`
 	Voucher    UserVersion   `codec:"voucher" json:"voucher"`
 	VouchTexts []string      `codec:"vouchTexts" json:"vouchTexts"`
 	VouchedAt  Time          `codec:"vouchedAt" json:"vouchedAt"`
@@ -99,6 +100,7 @@ func (o WotVouch) DeepCopy() WotVouch {
 	return WotVouch{
 		Status:     o.Status.DeepCopy(),
 		VouchProof: o.VouchProof.DeepCopy(),
+		Vouchee:    o.Vouchee.DeepCopy(),
 		Voucher:    o.Voucher.DeepCopy(),
 		VouchTexts: (func(x []string) []string {
 			if x == nil {

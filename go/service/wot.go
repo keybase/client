@@ -88,7 +88,7 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 func (h *WebOfTrustHandler) WotListCLI(ctx context.Context, arg keybase1.WotListCLIArg) (res []keybase1.WotVouch, err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	return libkb.FetchUserWot(mctx, arg.Vouchee, arg.Voucher)
+	return libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Vouchee: arg.Vouchee, Voucher: arg.Voucher})
 }
 
 func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactArg) error {
@@ -113,7 +113,7 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 		return err
 	}
 	expectedVoucher := upak.Base.ToUserVersion()
-	myVouches, err := libkb.FetchMyWot(mctx)
+	myVouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Vouchee: nil, Voucher: nil}) // get vouches for me
 	if err != nil {
 		return err
 	}

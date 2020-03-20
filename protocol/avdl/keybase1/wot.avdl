@@ -45,6 +45,7 @@ protocol wot {
   record WotVouch {
     WotStatusType status;
     SigID vouchProof; // ID of the voucher's sigchain link where they did the vouching.
+    UserVersion vouchee;
     UserVersion voucher;
     array<string> vouchTexts;
     Time vouchedAt;

@@ -10,7 +10,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type cmdWotAccept struct {
+type CmdWotAccept struct {
 	Voucher string
 	libkb.Contextified
 }
@@ -41,7 +41,7 @@ func (c *CmdWotAccept) ParseArgv(ctx *cli.Context) error {
 
 func (c *CmdWotAccept) Run() error {
 	arg := keybase1.WotReactCLIArg{
-		Voucher:  c.voucher,
+		Voucher:  c.Voucher,
 		Reaction: keybase1.WotReactionType_ACCEPT,
 	}
 

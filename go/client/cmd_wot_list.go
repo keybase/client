@@ -16,6 +16,7 @@ type cmdWotList struct {
 	libkb.Contextified
 	vouchee *string
 	voucher *string
+	byMe    bool
 }
 
 func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -30,8 +31,8 @@ func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cl.ChooseCommand(cmd, "list", c)
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "voucher",
+			cli.BoolFlag{
+				Name:  "by-me",
 				Usage: "Only get vouches written by me",
 			},
 		},
@@ -46,16 +47,22 @@ func (c *cmdWotList) ParseArgv(ctx *cli.Context) error {
 		username := ctx.Args()[0]
 		c.vouchee = &username
 	}
-	voucher := ctx.String("voucher")
-	if len(voucher) > 0 {
-		c.voucher = &voucher
-	}
+	c.byMe = ctx.Bool("by-me")
 	return nil
 }
 
 func (c *cmdWotList) Run() error {
 	ctx := context.Background()
 	me := c.G().Env.GetUsername().String()
+	if c.byMe {
+		c.voucher = &me
+	}
+
+	if c.voucher != nil && c.vouchee != nil {
+		// don't allow specifying both
+		return errors.New("can't specify both a vouchee and --byMe; please remove one")
+	}
+
 	arg := keybase1.WotListCLIArg{
 		Vouchee: c.vouchee,
 		Voucher: c.voucher,
@@ -78,14 +85,11 @@ func (c *cmdWotList) Run() error {
 	// targetVouchee and targetVoucher
 	wotTitle := "Web-Of-Trust"
 	var targetVouchee, targetVoucher *string
-	if c.vouchee != nil {
+	if c.vouchee == nil && c.voucher == nil {
+		targetVouchee = &me
+	} else if c.vouchee != nil {
 		targetVouchee = c.vouchee
-	} else {
-		if c.voucher == nil || (c.voucher != nil && *c.voucher != me) {
-			targetVouchee = &me
-		}
-	}
-	if c.voucher != nil {
+	} else if c.voucher != nil {
 		targetVoucher = c.voucher
 	}
 
@@ -103,10 +107,12 @@ func (c *cmdWotList) Run() error {
 	}
 	for _, vouch := range res {
 		vouchTexts := strings.Join(vouch.VouchTexts, ", ")
+		vouchee, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Vouchee.Uid)
 		voucher, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Voucher.Uid)
 		if err != nil {
 			return fmt.Errorf("error looking up username for vouch: %s", err.Error())
 		}
+		line("Vouchee: %s", vouchee)
 		line("Voucher: %s", voucher)
 		line("Attestation: \"%s\"", vouchTexts)
 		line("Status: %s", vouch.Status)
@@ -114,7 +120,7 @@ func (c *cmdWotList) Run() error {
 			if targetVouchee != nil && *targetVouchee == me {
 				line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
 			} else if targetVoucher != nil && *targetVoucher == me {
-				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", voucher) // TODO
+				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", vouchee) // TODO
 			}
 		}
 		if vouch.Confidence != nil {
