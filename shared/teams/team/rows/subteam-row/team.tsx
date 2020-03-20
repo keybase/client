@@ -42,7 +42,7 @@ const TeamRowOld = Container.connect(
     isOpen: !!stateProps.isOpen,
     membercount: stateProps.members,
     name: stateProps.teamname,
-    newRequests: stateProps._newTeamRequests.get(ownProps.teamID) || 0,
+    newRequests: stateProps._newTeamRequests.get(ownProps.teamID)?.size ?? 0,
     onManageChat: stateProps._isMember ? () => dispatchProps._onManageChat(ownProps.teamID) : undefined,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps.teamname),
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamID),

@@ -32,9 +32,11 @@ export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
       gap="xtiny"
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.topLabel} gap="xtiny">
-        {buildingAdvanced.recipientType === 'keybaseUser' ? (
-          <>
-            <Kb.Avatar username={buildingAdvanced.recipient} size={16} style={styles.avatar} />
+        {buildingAdvanced.recipientType === 'keybaseUser' && (
+          <Kb.Avatar username={buildingAdvanced.recipient} size={16} style={styles.avatar} />
+        )}
+        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.topLabelText}>
+          {buildingAdvanced.recipientType === 'keybaseUser' ? (
             <Kb.ConnectedUsernames
               usernames={buildingAdvanced.recipient}
               type="BodyTinyBold"
@@ -42,19 +44,19 @@ export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
               colorFollowing={true}
               underline={false}
             />
-          </>
-        ) : accountName ? (
-          <Kb.Text type="BodyTinySemiboldItalic" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
-            {accountName}
+          ) : accountName ? (
+            <Kb.Text type="BodyTinySemiboldItalic" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
+              {accountName}
+            </Kb.Text>
+          ) : (
+            <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
+              {Constants.shortenAccountID(buildingAdvanced.recipient)}
+            </Kb.Text>
+          )}
+          <Kb.Text type="BodyTinySemibold" style={styles.noShrink}>
+            will receive:
           </Kb.Text>
-        ) : (
-          <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
-            {Constants.shortenAccountID(buildingAdvanced.recipient)}
-          </Kb.Text>
-        )}
-        <Kb.Text type="BodyTinySemibold" style={styles.noShrink}>
-          will receive:
-        </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <AmountInput
@@ -485,8 +487,12 @@ const styles = Styles.styleSheetCreate(
       senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
       shrink: {flexShrink: 1},
       topLabel: {
+        alignItems: 'center',
         marginBottom: Styles.globalMargins.xtiny,
         maxWidth: '100%',
+      },
+      topLabelText: {
+        alignItems: 'baseline',
       },
     } as const)
 )

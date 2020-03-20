@@ -87,7 +87,7 @@ export default Container.connect(
     _onKick: (teamID: TeamTypes.TeamID, username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {navToChat: true, teamID, username}, selected: 'teamReallyRemoveMember'}],
+          path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
         })
       ),
     _onPinMessage: (message: Types.Message) => {

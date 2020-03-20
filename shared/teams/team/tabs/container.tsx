@@ -42,7 +42,7 @@ export default Container.connect(
     error: stateProps.error,
     isBig: stateProps.isBig,
     loading: stateProps.loading,
-    newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,
+    newRequests: stateProps.newTeamRequests.get(ownProps.teamID)?.size ?? 0,
     numInvites: stateProps.numInvites,
     numRequests: stateProps.numRequests,
     numSubteams: stateProps.numSubteams,

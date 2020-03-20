@@ -216,7 +216,7 @@ var _ Config = (*ConfigLocal)(nil)
 
 // getDefaultCleanBlockCacheCapacity returns the default clean block
 // cache capacity. If we can get total RAM of the system, we cap at
-// the smaller of <1/4 of available memory> and
+// the smaller of <1/8 of available memory> and
 // <MaxBlockSizeBytesDefault * DefaultBlocksInMemCache>; otherwise,
 // fallback to latter.
 func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
@@ -1401,6 +1401,7 @@ func (c *ConfigLocal) cleanSyncBlockCache() {
 			continue
 		}
 
+		c.GetPerfLog().CDebugf(ctx, "Clearing KBFS sync blocks for TLF %s", id)
 		c.cleanSyncBlockCacheForTlfInBackgroundLocked(id, make(chan error, 1))
 	}
 }
@@ -1521,15 +1522,18 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	defer func() {
-		c.MakeLogger("").CDebugf(context.TODO(), "Loaded synced TLFs: %+v", err)
+		ctx := context.TODO()
+		c.MakeLogger("").CDebugf(ctx, "Loaded synced TLFs: %+v", err)
 		if err != nil {
 			// Should already be nil, but make it explicit just in
 			// case, since the cleaning behavior depends on it being
 			// nil if there has been an error.
 			c.syncedTlfs = nil
 			c.GetPerfLog().CDebugf(
-				context.TODO(),
-				"KBFS failed to open synced TLFs database: %v", err)
+				ctx, "KBFS failed to open synced TLFs database: %v", err)
+		} else {
+			c.GetPerfLog().CDebugf(
+				ctx, "KBFS loaded %d synced TLFs", len(c.syncedTlfs))
 		}
 	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
@@ -1625,7 +1629,8 @@ func (c *ConfigLocal) OfflineAvailabilityForID(
 	return keybase1.OfflineAvailability_NONE
 }
 
-func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
+func (c *ConfigLocal) setTlfSyncState(
+	ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -1673,6 +1678,8 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 
 	ch := make(chan error, 1)
 	if config.Mode == keybase1.FolderSyncMode_DISABLED {
+		c.GetPerfLog().CDebugf(
+			ctx, "Clearing KBFS sync blocks for disabled TLF %s", tlfID)
 		c.cleanSyncBlockCacheForTlfInBackgroundLocked(tlfID, ch)
 	} else {
 		ch <- nil
@@ -1705,7 +1712,7 @@ func (c *ConfigLocal) SetTlfSyncState(
 			return nil, err
 		}
 	}
-	return c.setTlfSyncState(tlfID, config)
+	return c.setTlfSyncState(ctx, tlfID, config)
 }
 
 // GetAllSyncedTlfs implements the syncedTlfGetterSetter interface for

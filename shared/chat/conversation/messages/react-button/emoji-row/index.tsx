@@ -1,16 +1,18 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import {Picker} from '../picker'
-import {backgroundImageFn} from '../../../../../common-adapters/emoji'
+import * as Types from '../../../../../constants/types/chat2'
+import {EmojiPickerDesktop} from '../emoji-picker/container'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
   className?: string
+  conversationIDKey: Types.ConversationIDKey
   emojis: Array<string>
   onReact: (arg0: string) => void
   onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
+  ordinal: Types.Ordinal
   style?: Styles.StylesCrossPlatform
   tooltipPosition?: Position
 }
@@ -44,10 +46,6 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   }
   _showPicker = () => this._setShowingPicker(true)
   _hidePicker = () => this._setShowingPicker(false)
-  _onAddReaction = ({colons}: {colons: string}) => {
-    this.props.onReact(colons)
-    this._setShowingPicker(false)
-  }
   _getAttachmentRef = () => this._attachmentRef.current
   render() {
     return (
@@ -83,8 +81,15 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             containerStyle={styles.pickerContainer}
             position="top right"
             onHidden={this._hidePicker}
+            propagateOutsideClicks={false}
           >
-            <Picker backgroundImageFn={backgroundImageFn} onClick={this._onAddReaction} />
+            <EmojiPickerDesktop
+              onPick={{
+                conversationIDKey: this.props.conversationIDKey,
+                ordinal: this.props.ordinal,
+              }}
+              onDidPick={this._hidePicker}
+            />
           </Kb.FloatingBox>
         )}
       </Kb.Box2>

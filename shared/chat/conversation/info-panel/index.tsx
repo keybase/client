@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import flags from '../../../util/feature-flags'
@@ -19,7 +18,7 @@ export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
   channelname?: string
   isPreview: boolean
-  onBack: (() => void) | undefined
+  onCancel?: () => void
   onSelectTab: (p: Panel) => void
   selectedConversationIDKey: Types.ConversationIDKey
   selectedTab: Panel
@@ -28,7 +27,7 @@ type InfoPanelProps = {
   yourRole: MaybeTeamRoleType
 } & HeaderHocProps
 
-class _InfoPanel extends React.PureComponent<InfoPanelProps> {
+export class InfoPanel extends React.PureComponent<InfoPanelProps> {
   private getTabs = (): Array<TabType<Panel>> => {
     var showSettings = !this.props.isPreview
     if (flags.teamsRedesign) {
@@ -152,6 +151,13 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     } else {
       return (
         <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+          {Styles.isMobile && (
+            <Kb.HeaderHocHeader
+              onLeftAction={this.props.onCancel}
+              leftAction="cancel"
+              customCancelText="Done"
+            />
+          )}
           {sectionList}
         </Kb.Box2>
       )
@@ -194,9 +200,3 @@ const styles = Styles.styleSheetCreate(
       }),
     } as const)
 )
-
-function HeaderSometimes<P>(WrappedComponent: React.ComponentType<P>) {
-  return Styles.isMobile && !ChatConstants.isSplit ? Kb.HeaderHoc(WrappedComponent) : WrappedComponent
-}
-
-export const InfoPanel = HeaderSometimes(_InfoPanel)

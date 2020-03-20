@@ -952,6 +952,7 @@ export type TypedActionsMap = {
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
   'teams:setNewTeamInfo': teams.SetNewTeamInfoPayload
+  'teams:setNewTeamRequests': teams.SetNewTeamRequestsPayload
   'teams:setTeamSawChatBanner': teams.SetTeamSawChatBannerPayload
   'teams:setTeamSawSubteamsBanner': teams.SetTeamSawSubteamsBannerPayload
   'teams:updateChannelName': teams.UpdateChannelNamePayload
@@ -959,6 +960,7 @@ export type TypedActionsMap = {
   'teams:updateTopic': teams.UpdateTopicPayload
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
+  'teams:deleteMultiChannelsConfirmed': teams.DeleteMultiChannelsConfirmedPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload
@@ -981,8 +983,15 @@ export type TypedActionsMap = {
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
   'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
+  'teams:startNewTeamWizard': teams.StartNewTeamWizardPayload
   'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
   'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
+  'teams:setTeamWizardAvatar': teams.SetTeamWizardAvatarPayload
+  'teams:setTeamWizardTeamSize': teams.SetTeamWizardTeamSizePayload
+  'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
+  'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
+  'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
+  'teams:teamSeen': teams.TeamSeenPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

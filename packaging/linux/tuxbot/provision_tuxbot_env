@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euox pipefail
+
+# shellcheck disable=SC1090
+cat /home/vagrant/tuxbot.env > /etc/environment

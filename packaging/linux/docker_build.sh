@@ -12,7 +12,7 @@
 # This script mostly concerns itself with updating git repos and organizing
 # GPG/SSH/S3 keys for the docker container.
 
-set -e -u -o pipefail
+set -euox pipefail
 
 if [ "$#" != 2 ] ; then
   echo Usage: docker_build.sh MODE COMMIT
@@ -21,26 +21,25 @@ fi
 
 mode="$1"
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 clientdir="$(git -C "$here" rev-parse --show-toplevel)"
-kbfsdir="$clientdir/../kbfs"
 
 # Run `git fetch` in all the repos we'll share with the container. This
 # prevents an unattended build machine from falling behind over time.
-for repo in "$clientdir" "$kbfsdir" ; do
-  echo "Fetching $repo"
-  git -C "$repo" fetch
-done
+echo "Fetching $clientdir"
+git -C "$clientdir" fetch
 
 # Arrange to share the S3 credentials. We have to do this with a directory
 # instead of sharing the file directly, because the latter only works on Linux.
 s3cmd_temp="$(mktemp -d)"
-cp ~/.s3cfg "$s3cmd_temp"
+cp "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/dot_s3cfg" "$s3cmd_temp/.s3cfg"
 
-# Same with the GitHub token.
-github_token_temp="$(mktemp -d)"
-cp ~/.github_token "$github_token_temp"
+# Copy necessary SSH keys out of KBFS
+ssh_temp="$(mktemp -d)"
+cp "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/aur_id_ed25519" "$ssh_temp"
+cp "$HOME/.ssh/config" "$ssh_temp"
+cp "$HOME/.ssh/known_hosts" "$ssh_temp"
 
 # Prepare a folder that we'll share with the container, as the container's
 # /root directory, where all the build work gets done. Docker recommends that
@@ -52,17 +51,17 @@ mkdir "$work_dir"  # no -p, it's intentionally an error if this exists
 # because the host might have a different GnuPG version than the container, and
 # GnuPG 2.1 broke back-compat. Sigh. As with S3 above, we need to share the key
 # in a directory rather than just a file, for non-Linux support.
-code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
+code_signing_fingerprint="$("$here/fingerprint.sh")"
 echo "Exporting the Keybase code signing key ($code_signing_fingerprint)..."
 gpg_tempdir="$(mktemp -d)"
 gpg_tempfile="$gpg_tempdir/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Make sure the Docker image is built.
-image=keybase_packaging_v25
-if [ -z "$(docker images -q "$image")" ] ; then
+image=keybase_packaging_v29
+if [ -z "$(sudo docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
-  docker build -t "$image" "$clientdir/packaging/linux"
+  sudo docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
 # Run the docker job in interactive mode if we're actually talking to a
@@ -79,19 +78,20 @@ else
 fi
 
 echo '=== docker ==='
-docker run "${interactive_args[@]:+${interactive_args[@]}}" \
+sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
-  -v "$kbfsdir:/KBFS:ro" \
   -v "$gpg_tempdir:/GPG" \
-  -v "$HOME/.ssh:/SSH:ro" \
+  -v "$ssh_temp:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
-  -v "$github_token_temp:/GITHUB_TOKEN:ro" \
-  -e BUCKET_NAME \
-  -e NOWAIT \
-  -e KEYBASE_DRY_RUN \
-  -e KEYBASE_NIGHTLY \
-  -e KEYBASE_TEST \
+  -e "BUCKET_NAME=${BUCKET_NAME:-}" \
+  -e "KEYBASE_RELEASE=${KEYBASE_RELEASE:-}" \
+  -e "KEYBASE_NIGHTLY=${KEYBASE_NIGHTLY:-}" \
+  -e "KEYBASE_TEST=${KEYBASE_TEST:-}" \
+  -e "KEYBASE_TEST_CODE_SIGNING_KEY=${KEYBASE_TEST_CODE_SIGNING_KEY:-}" \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
+
+echo "Deleting old build files"
+sudo find "$(dirname "$work_dir")" -maxdepth 1 -mindepth 1 ! -wholename "$work_dir" -type d -exec rm -rf {} +

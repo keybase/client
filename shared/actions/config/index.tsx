@@ -527,6 +527,12 @@ const routeToInitialScreen = (state: Container.TypedState) => {
             RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
             ProfileGen.createShowUserProfile({username}),
           ]
+        } else {
+          return [
+            RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+            RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
+            DeeplinksGen.createLink({link: state.config.startupLink}),
+          ]
         }
       } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)

@@ -17,6 +17,7 @@ const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
   const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
+  const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const onlyEmails = React.useMemo(
@@ -32,31 +33,33 @@ const AddMembersConfirm = () => {
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
-  const onComplete = () => {
-    setWaiting(true)
-    addMembers(
-      [
-        {
-          emailInviteMessage: emailMessage || undefined,
-          sendChatNotification: true,
-          teamID,
-          users: addingMembers.map(member => ({
-            assertion: member.assertion,
-            role: RPCGen.TeamRole[member.role],
-          })),
-        },
-      ],
-      _ => {
-        // TODO handle users not added?
-        dispatch(TeamsGen.createFinishAddMembersWizard())
-      },
-      err => {
-        setWaiting(false)
-        logger.error(err.message)
-        setError(err.message)
+  const onComplete = fromNewTeamWizard
+    ? () => dispatch(TeamsGen.createFinishNewTeamWizard())
+    : () => {
+        setWaiting(true)
+        addMembers(
+          [
+            {
+              emailInviteMessage: emailMessage || undefined,
+              sendChatNotification: true,
+              teamID,
+              users: addingMembers.map(member => ({
+                assertion: member.assertion,
+                role: RPCGen.TeamRole[member.role],
+              })),
+            },
+          ],
+          _ => {
+            // TODO handle users not added?
+            dispatch(TeamsGen.createFinishAddMembersWizard())
+          },
+          err => {
+            setWaiting(false)
+            logger.error(err.message)
+            setError(err.message)
+          }
+        )
       }
-    )
-  }
 
   return (
     <Kb.Modal

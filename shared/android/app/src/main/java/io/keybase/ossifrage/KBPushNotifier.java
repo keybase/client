@@ -158,7 +158,7 @@ public class KBPushNotifier implements PushNotifier {
         .setContentIntent(pending_intent)
         .setAutoCancel(true);
 
-    int notificationDefaults = NotificationCompat.DEFAULT_LIGHTS;
+    int notificationDefaults = NotificationCompat.DEFAULT_LIGHTS | NotificationCompat.DEFAULT_VIBRATE;
 
     // Set notification sound
     if (chatNotification.getSoundName().equals("default")) {

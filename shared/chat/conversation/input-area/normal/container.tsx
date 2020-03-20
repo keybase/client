@@ -8,6 +8,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Waiting from '../../../../constants/waiting'
 import * as Platform from '../../../../constants/platform'
+import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -118,18 +119,26 @@ const getConversationNameForInput = (
 ): string => {
   const meta = Constants.getMeta(state, conversationIDKey)
   if (meta.teamType === 'big') {
-    return meta.channelname ? `in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
+    return meta.channelname ? `${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
   }
   if (meta.teamType === 'small') {
-    return meta.teamname ? `in ${meta.teamname}` : ''
+    return meta.teamname ?? ''
   }
   if (meta.teamType === 'adhoc') {
     const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
-    if (participantInfo.name.length) {
-      return participantInfo.name.length > 2
-        ? 'in the group'
-        : `to @${participantInfo.name.find(n => n !== state.config.username)}`
+    if (participantInfo.name.length > 2) {
+      return 'group'
+    } else if (participantInfo.name.length === 2) {
+      const other = participantInfo.name.find(n => n !== state.config.username)
+      if (!other) {
+        return ''
+      }
+      const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
+      return otherText.length < 20 ? `${otherText}` : ''
+    } else if (participantInfo.name.length === 1) {
+      return 'yourself'
     }
+    return ''
   }
   return ''
 }

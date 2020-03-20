@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as WaitingGen from '../../actions/waiting-gen'
-import * as Container from '../../util/container'
-import {useTeamsSubscribe} from '../../teams/subscriber'
+import * as Constants from '../../../constants/teams'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as WaitingGen from '../../../actions/waiting-gen'
+import * as Container from '../../../util/container'
+import {useTeamsSubscribe} from '../../subscriber'
 
 export type Props = {
   error: string
@@ -76,6 +76,7 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: 12,
     },
   }),
+  // TODO: fix that this is an oval
   headerIcon: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.red,

@@ -5,7 +5,7 @@ import ChatAddToChannel from './conversation/info-panel/add-to-channel/container
 import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
 import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
-import ChatChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
+import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
 import ChatCreateChannel from './create-channel/container'
 import ChatDeleteHistoryWarning from './delete-history-warning/container'
 import ChatEditChannel from './manage-channels/edit-channel-container'
@@ -63,7 +63,7 @@ export const newModalRoutes = {
   },
   chatChooseEmoji: {
     getScreen: (): typeof ChatChooseEmoji =>
-      require('./conversation/messages/react-button/emoji-picker/container').default,
+      require('./conversation/messages/react-button/emoji-picker/container').Routable,
   },
   chatConfirmNavigateExternal: {
     getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,

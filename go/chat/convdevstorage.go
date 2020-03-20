@@ -35,13 +35,17 @@ func NewConvDevConversationBackedStorage(g *globals.Context, topicType chat1.Top
 }
 
 func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.ConversationLocal) chat1.ConversationMembersType {
-	mt := conv.GetMembersType()
-	switch mt {
-	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		return chat1.ConversationMembersType_IMPTEAMNATIVE
-	default:
-		return mt
-	}
+	return conv.GetMembersType()
+	/*
+		TODO: might need this, not sure
+		mt := conv.GetMembersType()
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+			return chat1.ConversationMembersType_IMPTEAMNATIVE
+		default:
+			return mt
+		}
+	*/
 }
 
 func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,

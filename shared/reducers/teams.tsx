@@ -146,12 +146,6 @@ export default Container.makeReducer<
     draftState.deletedTeams = action.payload.deletedTeams
     draftState.newTeams = action.payload.newTeams
     draftState.teamIDToResetUsers = action.payload.teamIDToResetUsers
-
-    const newTeamRequests = new Map<Types.TeamID, number>()
-    action.payload.newTeamRequests.forEach(teamID => {
-      newTeamRequests.set(teamID, (newTeamRequests.get(teamID) || 0) + 1)
-    })
-    draftState.newTeamRequests = newTeamRequests
   },
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
@@ -271,6 +265,9 @@ export default Container.makeReducer<
       draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
     })
   },
+  [TeamsGen.startNewTeamWizard]: draftState => {
+    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
+  },
   [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
     draftState.newTeamWizard.teamType = action.payload.teamType
   },
@@ -280,6 +277,19 @@ export default Container.makeReducer<
     draftState.newTeamWizard.open = action.payload.openTeam
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
     draftState.newTeamWizard.showcase = action.payload.showcase
+  },
+  [TeamsGen.setTeamWizardAvatar]: (draftState, action) => {
+    draftState.newTeamWizard.avatarCrop = action.payload.crop
+    draftState.newTeamWizard.avatarFilename = action.payload.filename
+  },
+  [TeamsGen.setTeamWizardTeamSize]: (draftState, action) => {
+    draftState.newTeamWizard.isBig = action.payload.isBig
+  },
+  [TeamsGen.setTeamWizardChannels]: (draftState, action) => {
+    draftState.newTeamWizard.channels = action.payload.channels
+  },
+  [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
+    draftState.newTeamWizard.subteams = action.payload.subteams
   },
   [TeamsGen.startAddMembersWizard]: (draftState, action) => {
     const {teamID} = action.payload
@@ -323,6 +333,9 @@ export default Container.makeReducer<
   },
   [TeamsGen.finishAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
+  },
+  [TeamsGen.setNewTeamRequests]: (draftState, action) => {
+    draftState.newTeamRequests = action.payload.newTeamRequests
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

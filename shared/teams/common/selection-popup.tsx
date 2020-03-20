@@ -229,7 +229,12 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
       })
     )
   const onEditRoles = () => console.log('onEditRoles not implemented') // TODO
-  const onRemoveFromTeam = () => console.log('onRemoveFromChannel not implemented') // TODO
+  const onRemoveFromTeam = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {members: [...members], teamID}, selected: 'teamReallyRemoveMember'}],
+      })
+    )
 
   return (
     <ActionsWrapper>
@@ -252,9 +257,17 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   )
 }
 
-const TeamChannelsActions = (_: TeamActionsProps) => {
+const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
+  const dispatch = Container.useDispatch()
+
   // Channels tab functions
-  const onDelete = () => {}
+  const onDelete = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {teamID}, selected: 'teamDeleteChannel'}],
+      })
+    )
+
   return (
     <ActionsWrapper>
       <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />

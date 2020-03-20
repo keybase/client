@@ -45,6 +45,7 @@ export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
 export const removeMemberWaitingKey = (teamID: Types.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
+export const deleteChannelWaitingKey = (teamID: Types.TeamID) => `channelDelete:${teamID}`
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
@@ -169,6 +170,16 @@ export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   role: 'writer',
   teamID: Types.noTeamID,
 }
+export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
+  description: '',
+  isBig: false,
+  name: '',
+  open: false,
+  openTeamJoinRole: 'writer',
+  showcase: false,
+  teamNameTaken: false,
+  teamType: 'other',
+}
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
@@ -188,15 +199,7 @@ const emptyState: Types.State = {
   errorInTeamJoin: '',
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
-  newTeamWizard: {
-    description: '',
-    name: '',
-    open: false,
-    openTeamJoinRole: 'writer',
-    showcase: false,
-    teamNameTaken: false,
-    teamType: 'other',
-  },
+  newTeamWizard: newTeamWizardEmptyState,
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -633,6 +636,8 @@ export const retentionPolicyToServiceRetentionPolicy = (
 export const publicAdminsLimit = 6
 
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
+export const newRequestsGregorPrefix = 'team.request_access:'
+export const newRequestsGregorKey = (teamID: Types.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
 export const isOnTeamsTab = () => {
   const path = getFullRoute()
@@ -663,7 +668,16 @@ export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
   td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
 export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
+  teamID === Types.newTeamWizardTeamID
+    ? makeTeamMeta({
+        id: teamID,
+        isMember: true,
+        isOpen: state.teams.newTeamWizard.open,
+        memberCount: 0,
+        showcasing: state.teams.newTeamWizard.showcase,
+        teamname: state.teams.newTeamWizard.name,
+      })
+    : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMembership = (
   state: TypedState,

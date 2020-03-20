@@ -1120,6 +1120,23 @@ const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.Delete
   return false
 }
 
+const deleteMultiChannelsConfirmed = async (action: TeamsGen.DeleteMultiChannelsConfirmedPayload) => {
+  const {teamID, channels} = action.payload
+
+  for (const conversationIDKey of channels) {
+    await RPCChatTypes.localDeleteConversationLocalRpcPromise(
+      {
+        channelName: '',
+        confirmed: true,
+        convID: ChatTypes.keyToConversationID(conversationIDKey),
+      },
+      Constants.deleteChannelWaitingKey(teamID)
+    )
+  }
+
+  return false
+}
+
 const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaLogger) => {
   const {teamID} = action.payload
   try {
@@ -1145,7 +1162,6 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const actions: Array<TypedActions> = []
   const deletedTeams = badgeState.deletedTeams || []
   const newTeams = new Set<string>(badgeState.newTeams || [])
-  const newTeamRequests = badgeState.newTeamAccessRequests || []
 
   const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
   const teamsWithResetUsersMap = new Map<Types.TeamID, Set<string>>()
@@ -1158,7 +1174,6 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   actions.push(
     TeamsGen.createSetNewTeamInfo({
       deletedTeams,
-      newTeamRequests,
       newTeams,
       teamIDToResetUsers: teamsWithResetUsersMap,
     })
@@ -1169,19 +1184,41 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
 const gregorPushState = (action: GregorGen.PushStatePayload) => {
   const actions: Array<TypedActions> = []
   const items = action.payload.state
-  const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
+  let sawChatBanner = false
+  let sawSubteamsBanner = false
+  let chosenChannels: any
+  const newTeamRequests = new Map<Types.TeamID, Set<string>>()
+  items.forEach(i => {
+    if (i.item.category === 'sawChatBanner') {
+      sawChatBanner = true
+    }
+    if (i.item.category === 'sawSubteamsBanner') {
+      sawSubteamsBanner = true
+    }
+    if (i.item.category === Constants.chosenChannelsGregorKey) {
+      chosenChannels = i
+    }
+    if (i.item.category.startsWith(Constants.newRequestsGregorPrefix)) {
+      const body = i.item.body.toString()
+      if (body) {
+        const request: {id: Types.TeamID; username: string} = JSON.parse(body)
+        const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
+        requests.add(request.username)
+      }
+    }
+  })
+
   if (sawChatBanner) {
     actions.push(TeamsGen.createSetTeamSawChatBanner())
   }
 
-  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawSubteamsBanner) {
     actions.push(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 
-  const chosenChannels = items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
-  const teamsWithChosenChannelsStr =
-    chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
+  actions.push(TeamsGen.createSetNewTeamRequests({newTeamRequests}))
+
+  const teamsWithChosenChannelsStr: string | undefined = chosenChannels?.item.body.toString()
   const teamsWithChosenChannels = teamsWithChosenChannelsStr
     ? new Set<Types.Teamname>(JSON.parse(teamsWithChosenChannelsStr))
     : new Set<Types.Teamname>()
@@ -1204,7 +1241,6 @@ const renameTeam = async (action: TeamsGen.RenameTeamPayload) => {
 const clearNavBadges = async () => {
   try {
     await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.newly_added_to_team'})
-    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.request_access'})
     await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
   } catch (err) {
     logError(err)
@@ -1258,6 +1294,11 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
     teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
   } catch (err) {
     logger.info(`team="${teamname}" cannot be loaded:`, err)
+    if (flags.teamsRedesign) {
+      // navigate to team page for team we're not in
+      logger.info('showing external team page')
+      return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]})
+    }
     return null
   }
 
@@ -1329,6 +1370,8 @@ async function getMemberSubteamDetails(
   })
 }
 
+const startNewTeamWizard = () =>
+  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
 const setTeamWizardTeamType = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
 const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescriptionPayload) =>
@@ -1340,7 +1383,24 @@ const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescript
       },
     ],
   })
-
+const setTeamWizardAvatar = (state: TypedState) => {
+  switch (state.teams.newTeamWizard.teamType) {
+    case 'friends':
+    case 'other':
+      return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
+    case 'project':
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
+    case 'community':
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard4TeamSize'}]})
+  }
+}
+const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
+  action.payload.isBig
+    ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
+    : TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
+const setTeamWizardChannels = () =>
+  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
+const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
 const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: ['teamAddToTeamFromWhere'],
@@ -1348,6 +1408,15 @@ const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
 
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
+
+const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogger) => {
+  const {teamID} = action.payload
+  try {
+    await RPCTypes.gregorDismissCategoryRpcPromise({category: Constants.newRequestsGregorKey(teamID)})
+  } catch (e) {
+    logger.error(e.message)
+  }
+}
 
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
@@ -1390,6 +1459,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.updateTopic, updateTopic)
   yield* Saga.chainAction2(TeamsGen.updateChannelName, updateChannelname)
   yield* Saga.chainAction2(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
+  yield* Saga.chainAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   yield* Saga.chainGenerator<TeamsGen.InviteToTeamByPhonePayload>(
     TeamsGen.inviteToTeamByPhone,
     inviteToTeamByPhone
@@ -1431,8 +1501,14 @@ const teamsSaga = function*() {
 
   yield* Saga.chainAction(TeamsGen.getMemberSubteamDetails, getMemberSubteamDetails)
 
+  // New team wizard
+  yield* Saga.chainAction(TeamsGen.startNewTeamWizard, startNewTeamWizard)
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
   yield* Saga.chainAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)
+  yield* Saga.chainAction2(TeamsGen.setTeamWizardAvatar, setTeamWizardAvatar)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardTeamSize, setTeamWizardTeamSize)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
@@ -1441,6 +1517,8 @@ const teamsSaga = function*() {
     [TeamsGen.cancelAddMembersWizard, TeamsGen.finishAddMembersWizard],
     navAwayFromAddMembersWizard
   )
+
+  yield* Saga.chainAction(TeamsGen.teamSeen, teamSeen)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

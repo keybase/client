@@ -3,7 +3,7 @@ import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
 import Icon from './icon'
 import Button, {Props as ButtonProps} from './button'
-import Text, {LineClampType} from './text'
+import Text, {LineClampType, TextType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
@@ -19,7 +19,9 @@ type Props = {
   onReveal?: () => void
   withReveal?: boolean
   text?: string
+  textType?: TextType
   placeholderText?: string
+  shareSheet?: boolean // (mobile only) show share sheet instead of copying
   loadText?: () => void
 }
 
@@ -28,6 +30,7 @@ const CopyText = (props: Props) => {
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
   const [requestedCopy, setRequestedCopy] = React.useState(false)
+  const shareSheet = props.shareSheet && Styles.isMobile
   const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
   React.useEffect(() => {
     showingToast && setShowingToastFalseLater()
@@ -57,15 +60,19 @@ const CopyText = (props: Props) => {
       }
       setRequestedCopy(true)
     } else {
-      setShowingToast(true)
-      textRef.current && textRef.current.highlightText()
-      dispatch(ConfigGen.createCopyToClipboard({text}))
+      if (shareSheet) {
+        dispatch(ConfigGen.createShowShareActionSheet({message: text, mimeType: 'text/plain'}))
+      } else {
+        setShowingToast(true)
+        textRef.current && textRef.current.highlightText()
+        dispatch(ConfigGen.createCopyToClipboard({text}))
+      }
       onCopy && onCopy()
       if (hideOnCopy) {
         setRevealed(false)
       }
     }
-  }, [text, loadText, setRequestedCopy, setShowingToast, dispatch, onCopy, hideOnCopy])
+  }, [text, loadText, shareSheet, dispatch, onCopy, hideOnCopy])
 
   React.useEffect(() => {
     if (requestedCopy && loadText) {
@@ -113,7 +120,7 @@ const CopyText = (props: Props) => {
       </Toast>
       <Text
         lineClamp={lineClamp}
-        type="BodyTiny"
+        type={props.textType || 'BodyTiny'}
         selectable={true}
         center={true}
         style={styles.text}
@@ -135,7 +142,11 @@ const CopyText = (props: Props) => {
         onClick={copy}
         labelContainerStyle={styles.buttonLabelContainer}
       >
-        <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
+        <Icon
+          type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
+          color={Styles.globalColors.white}
+          sizeType="Small"
+        />
       </Button>
     </Box2>
   )

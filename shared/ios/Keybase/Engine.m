@@ -166,6 +166,19 @@ RCT_EXPORT_METHOD(start) {
   self.guiConfig = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&err];
 }
 
+// from react-native-localize
+- (bool)uses24HourClockForLocale:(NSLocale * _Nonnull)locale {
+  NSDateFormatter* formatter = [NSDateFormatter new];
+
+  [formatter setLocale:locale];
+  [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+  [formatter setDateStyle:NSDateFormatterNoStyle];
+  [formatter setTimeStyle:NSDateFormatterShortStyle];
+
+  NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
+  return [[formatter stringFromDate:date] containsString:@"20"];
+}
+
 - (NSDictionary *)constantsToExport {
   [self setupServerConfig];
   [self setupGuiConfig];
@@ -177,7 +190,8 @@ RCT_EXPORT_METHOD(start) {
 
   NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-
+  NSLocale *currentLocale = [NSLocale currentLocale];
+  
   return @{ @"eventName": eventName,
             @"metaEventName": metaEventName,
             @"metaEventEngineReset": metaEventEngineReset,
@@ -186,6 +200,7 @@ RCT_EXPORT_METHOD(start) {
             @"usingSimulator": simulatorVal,
             @"serverConfig": self.serverConfig ? self.serverConfig : @"",
             @"guiConfig": self.guiConfig ? self.guiConfig : @"",
+            @"uses24HourClock": @([self uses24HourClockForLocale:currentLocale]),
             @"version": KeybaseVersion()};
 }
 

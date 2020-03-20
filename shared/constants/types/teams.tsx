@@ -8,6 +8,7 @@ export type TeamID = string
 export const stringToTeamID = (s: string): TeamID => s
 export const teamIDToString = (t: TeamID): string => t
 export const noTeamID = 'NOTEAMID'
+export const newTeamWizardTeamID = 'NewTeamWizardTeam'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
@@ -133,6 +134,11 @@ export type NewTeamWizardState = {
   open: boolean
   openTeamJoinRole: TeamRoleType
   showcase: boolean
+  avatarFilename?: string
+  avatarCrop?: RPCTypes.ImageCropRect
+  isBig: boolean
+  channels?: string[]
+  subteams?: string[]
 }
 
 export type AddingMember = {assertion: string; role: TeamRoleType}
@@ -188,7 +194,7 @@ export type State = {
   readonly teamProfileAddList: Array<TeamProfileAddList>
   readonly teamRoleMap: TeamRoleMap
   readonly newTeams: Set<TeamID>
-  readonly newTeamRequests: Map<TeamID, number>
+  readonly newTeamRequests: Map<TeamID, Set<string>>
   readonly teamBuilding: TeamBuildingSubState
   readonly newTeamWizard: NewTeamWizardState
 }

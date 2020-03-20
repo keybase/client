@@ -1,7 +1,7 @@
 import {FeatureFlags} from './feature-flags'
 import {featureFlagsOverride} from '../local-debug.native'
 
-let features = featureFlagsOverride && featureFlagsOverride.split(',')
+const features = featureFlagsOverride && featureFlagsOverride.split(',')
 
 const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
@@ -9,6 +9,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   connectThrashCheck: false,
   foldersInProfileTab: false,
+  inviteFriends: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   tabletSupport: true,

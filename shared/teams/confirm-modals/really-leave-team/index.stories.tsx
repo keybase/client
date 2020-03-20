@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Sb from '../../stories/storybook'
+import * as Sb from '../../../stories/storybook'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
 
@@ -17,7 +17,7 @@ const reallyLeaveProps = {
 }
 
 const load = () => {
-  Sb.storiesOf('Teams/Roles', module)
+  Sb.storiesOf('Teams/Confirm modals', module)
     .add('Really Leave', () => <ReallyLeaveTeam {...reallyLeaveProps} />)
     .add('Really Leave (open team)', () => <ReallyLeaveTeam {...reallyLeaveProps} open={true} />)
     .add('Error leaving', () => <ReallyLeaveTeam {...reallyLeaveProps} error="No no can't do it sorry." />)

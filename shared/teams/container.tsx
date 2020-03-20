@@ -28,11 +28,11 @@ const useHeaderActions = (): HeaderActionProps => {
   const nav = Container.useSafeNavigation()
   return {
     onCreateTeam: () => {
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [flags.teamsRedesign ? 'teamWizard1TeamPurpose' : 'teamNewTeamDialog'],
-        })
-      )
+      if (flags.teamsRedesign) {
+        dispatch(TeamsGen.createStartNewTeamWizard())
+      } else {
+        dispatch(nav.safeNavigateAppendPayload({path: ['teamNewTeamDialog']}))
+      }
     },
     onJoinTeam: () => {
       dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
@@ -42,10 +42,10 @@ const useHeaderActions = (): HeaderActionProps => {
 
 const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
-  newRequests: Map<Types.TeamID, number>
+  newRequests: Map<Types.TeamID, Set<string>>
 ): Array<Types.TeamMeta> =>
   [...teams.values()].sort((a, b) => {
-    const sizeDiff = (newRequests.get(b.id) || 0) - (newRequests.get(a.id) || 0)
+    const sizeDiff = (newRequests.get(b.id)?.size ?? 0) - (newRequests.get(a.id)?.size ?? 0)
     if (sizeDiff != 0) return sizeDiff
     return a.teamname.localeCompare(b.teamname)
   })

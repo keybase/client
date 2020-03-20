@@ -1549,6 +1549,13 @@
           "name": "unfurls"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "HarvestedEmoji"
+          },
+          "name": "emojis"
+        },
+        {
           "type": [
             null,
             "MessageUnboxed"
@@ -3902,6 +3909,36 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AddEmojiRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserEmojiRes",
+      "fields": [
+        {
+          "type": "UserEmojis",
+          "name": "emojis"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -5793,6 +5830,27 @@
         }
       ],
       "response": "gregor1.Time"
+    },
+    "addEmoji": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "alias",
+          "type": "string"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        }
+      ],
+      "response": "AddEmojiRes"
+    },
+    "userEmojis": {
+      "request": [],
+      "response": "UserEmojiRes"
     }
   },
   "namespace": "chat.1"

@@ -51,6 +51,8 @@ const (
 	methodAddResetConvMember  = "addresetconvmember"
 	methodGetDeviceInfo       = "getdeviceinfo"
 	methodListMembers         = "listmembers"
+	methodEmojiAdd            = "emojiadd"
+	methodEmojiList           = "emojilist"
 )
 
 // ChatAPIHandler can handle all of the chat json api methods.
@@ -85,6 +87,8 @@ type ChatAPIHandler interface {
 	AddResetConvMemberV1(context.Context, Call, io.Writer) error
 	GetDeviceInfoV1(context.Context, Call, io.Writer) error
 	ListMembersV1(context.Context, Call, io.Writer) error
+	EmojiAddV1(context.Context, Call, io.Writer) error
+	EmojiListV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -1082,6 +1086,41 @@ func (a *ChatAPI) ListMembersV1(ctx context.Context, c Call, w io.Writer) error 
 
 	return a.encodeReply(c, a.svcHandler.ListMembersV1(ctx, opts), w)
 }
+
+type emojiAddOptionsV1 struct {
+	Channel         ChatChannel
+	ConversationID  chat1.ConvIDStr `json:"conversation_id"`
+	Alias, Filename string
+}
+
+func (r emojiAddOptionsV1) Check() error {
+	if len(r.Alias) == 0 {
+		return errors.New("must specify an alias")
+	}
+	if len(r.Filename) == 0 {
+		return errors.New("must specify a filename")
+	}
+	return checkChannelConv(methodEmojiAdd, r.Channel, r.ConversationID)
+}
+
+func (a *ChatAPI) EmojiAddV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodEmojiAdd, err: errors.New("empty options")}
+	}
+	var opts emojiAddOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.EmojiAddV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) EmojiListV1(ctx context.Context, c Call, w io.Writer) error {
+	return a.encodeReply(c, a.svcHandler.EmojiListV1(ctx), w)
+}
+
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 	return encodeReply(call, reply, w, a.indent)
 }

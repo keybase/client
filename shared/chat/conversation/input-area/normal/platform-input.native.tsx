@@ -146,12 +146,8 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   private getHintText = () => {
-    if (this.props.isExploding && isLargeScreen) {
-      return this.props.conversationName
-        ? `Exploding message ${this.props.conversationName}`
-        : 'Exploding message'
-    } else if (this.props.isExploding && !isLargeScreen) {
-      return this.props.conversationName ? `Exploding ${this.props.conversationName}` : 'Exploding'
+    if (this.props.isExploding) {
+      return isLargeScreen ? `Write an exploding message` : 'Exploding message'
     } else if (this.props.isEditing) {
       return 'Edit your message'
     } else if (this.props.cannotWrite) {

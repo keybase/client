@@ -3,8 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {Picker} from 'emoji-mart'
-import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
@@ -14,6 +12,7 @@ import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 import {BotCommandUpdateStatus} from './shared'
 import {indefiniteArticle} from '../../../../util/string'
+import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
 
 type State = {
   emojiPickerOpen: boolean
@@ -139,11 +138,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     }
   }
 
-  _pickerOnClick = (emoji: any) => {
-    this._insertEmoji(emoji.colons)
-    this._emojiPickerToggle()
-  }
-
   _pickFile = () => {
     const fileList = this._filePickerFiles()
     const paths: Array<string> = fileList.length
@@ -177,9 +171,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (this.props.isEditing) {
       return 'Edit your message'
     } else if (this.props.isExploding) {
-      return this.props.conversationName
-        ? `Exploding message ${this.props.conversationName}`
-        : 'Eploding message'
+      return 'Write an exploding message'
     }
     return this.props.conversationName ? `Message ${this.props.conversationName}` : 'Write a message'
   }
@@ -277,7 +269,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               />
             )}
             {this.state.emojiPickerOpen && (
-              <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
+              <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._insertEmoji} />
             )}
             {!this.props.cannotWrite && this.props.showWalletsIcon && (
               <WalletsIcon
@@ -329,13 +321,7 @@ const EmojiPicker = ({
     <Kb.Box style={styles.emojiPickerContainerWrapper} onClick={emojiPickerToggle} />
     <Kb.Box style={styles.emojiPickerRelative}>
       <Kb.Box style={styles.emojiPickerContainer}>
-        <Picker
-          autoFocus={true}
-          onClick={onClick}
-          emoji="ghost"
-          title="emojibase"
-          backgroundImageFn={backgroundImageFn}
-        />
+        <EmojiPickerDesktop onPick={onClick} onDidPick={emojiPickerToggle} />
       </Kb.Box>
     </Kb.Box>
   </Kb.Box>
@@ -371,9 +357,9 @@ const styles = Styles.styleSheetCreate(
       emojiPickerContainer: Styles.platformStyles({
         common: {
           borderRadius: 4,
-          bottom: 34,
+          bottom: 32,
           position: 'absolute',
-          right: -22,
+          right: -64,
         },
         isElectron: {
           ...Styles.desktopStyles.boxShadow,

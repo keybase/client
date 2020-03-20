@@ -6,6 +6,7 @@ package badges
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/gregor"
@@ -118,16 +119,6 @@ type unverifiedCountBody struct {
 	UnverifiedCount int `json:"unverified_count"`
 }
 
-type homeTodoMap map[keybase1.HomeScreenTodoType]int
-type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
-
-type homeStateBody struct {
-	Version              int           `json:"version"`
-	BadgeCountMap        homeItemMap   `json:"badge_count_map"`
-	LastViewedTime       keybase1.Time `json:"last_viewed_time"`
-	AnnouncementsVersion int           `json:"announcements_version"`
-}
-
 // countKnownBadges looks at the map sent down by gregor and considers only those
 // types that are known to the client. The rest, it assumes it cannot display,
 // and doesn't count those badges toward the badge count. Note that the shape
@@ -138,7 +129,7 @@ type homeStateBody struct {
 // Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
 // and 1 badges in ANNOUNCEMENTs.
 //
-func countKnownBadges(m homeItemMap) int {
+func countKnownBadges(m libkb.HomeItemMap) int {
 	var ret int
 	for itemType, todoMap := range m {
 		if _, found := keybase1.HomeScreenItemTypeRevMap[itemType]; !found {
@@ -153,22 +144,6 @@ func countKnownBadges(m homeItemMap) int {
 		}
 	}
 	return ret
-}
-
-func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
-	if a == nil {
-		return true
-	}
-	if a.Version < b.Version {
-		return true
-	}
-	if a.Version == b.Version && a.LastViewedTime < b.LastViewedTime {
-		return true
-	}
-	if a.AnnouncementsVersion < b.AnnouncementsVersion {
-		return true
-	}
-	return false
 }
 
 func (b *BadgeState) ConversationBadgeStr(ctx context.Context, convIDStr chat1.ConvIDStr) int {
@@ -197,14 +172,14 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.RevokedDevices = []keybase1.DeviceID{}
 	b.state.NewTeams = nil
 	b.state.DeletedTeams = nil
-	b.state.NewTeamAccessRequests = nil
+	b.state.NewTeamAccessRequestCount = 0
 	b.state.HomeTodoItems = 0
 	b.state.TeamsWithResetUsers = nil
 	b.state.ResetState = keybase1.ResetState{}
 	b.state.UnverifiedEmails = 0
 	b.state.UnverifiedPhones = 0
 
-	var hsb *homeStateBody
+	var hsb *libkb.HomeStateBody
 
 	teamsWithResets := make(map[string]bool)
 
@@ -218,9 +193,13 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			continue
 		}
 		category := categoryObj.String()
+		if strings.HasPrefix(category, "team.request_access:") {
+			b.state.NewTeamAccessRequestCount++
+			continue
+		}
 		switch category {
 		case "home.state":
-			var tmp homeStateBody
+			var tmp libkb.HomeStateBody
 			byt := item.Body().Bytes()
 			dec := json.NewDecoder(bytes.NewReader(byt))
 			if err := dec.Decode(&tmp); err != nil {
@@ -228,12 +207,12 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			sentUp := false
-			if homeStateLessThan(hsb, tmp) {
+			if hsb.LessThan(tmp) {
 				hsb = &tmp
 				b.state.HomeTodoItems = countKnownBadges(hsb.BadgeCountMap)
 				sentUp = true
 			}
-			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
+			b.log.CDebugf(ctx, "incoming home.state (sentUp=%v): %+v", sentUp, tmp)
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
@@ -334,18 +313,6 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 					DeletedBy: x.OpBy.Username,
 					Id:        msgID,
 				})
-			}
-		case "team.request_access":
-			var body []newTeamBody
-			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.log.CDebugf(ctx, "BadgeState unmarshal error for team.request_access item: %v", err)
-				continue
-			}
-			for _, x := range body {
-				if x.TeamName == "" {
-					continue
-				}
-				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamID)
 			}
 		case "team.member_out_from_reset":
 			var body keybase1.TeamMemberOutFromReset

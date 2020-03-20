@@ -721,12 +721,25 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	if err != nil {
 		return res, err
 	}
-	if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status); err != nil {
+	err = h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status)
+	switch err.(type) {
+	case nil:
+		return chat1.SetConversationStatusLocalRes{
+			IdentifyFailures: identBreaks,
+		}, nil
+	case libkb.ChatBadConversationError:
+		// Clear the inbox, we could have a deleted conversation stuck in our
+		// cache that we need to boot.
+		if err := h.G().InboxSource.Clear(ctx, uid); err != nil {
+			h.Debug(ctx, "unable to clear inbox %v", err)
+		}
+		h.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "SetConversationStatusLocal")
+		return chat1.SetConversationStatusLocalRes{
+			IdentifyFailures: identBreaks,
+		}, nil
+	default:
 		return res, err
 	}
-	return chat1.SetConversationStatusLocalRes{
-		IdentifyFailures: identBreaks,
-	}, nil
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
@@ -3639,4 +3652,30 @@ func (h *Server) GetLastActiveAtLocal(ctx context.Context, arg chat1.GetLastActi
 		return 0, err
 	}
 	return h.G().TeamChannelSource.GetLastActiveAt(ctx, arg.TeamID, arg.Uid, h.remoteClient())
+}
+
+func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1.AddEmojiRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "AddEmoji")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	if err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) UserEmojis(ctx context.Context) (res chat1.UserEmojiRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "UserEmojis")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, nil)
+	return res, err
 }

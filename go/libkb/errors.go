@@ -2135,6 +2135,19 @@ func (e ChatAlreadyDeletedError) IsImmediateFail() (chat1.OutboxErrorType, bool)
 
 //=============================================================================
 
+type ChatBadConversationError struct {
+	Msg string
+}
+
+func (e ChatBadConversationError) Error() string {
+	return e.Msg
+}
+
+func (e ChatBadConversationError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
+//=============================================================================
 type ChatTLFFinalizedError struct {
 	TlfID chat1.TLFID
 }

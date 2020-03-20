@@ -39,6 +39,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "EmojiMessage",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "EmojiRemoteSource",
       "switch": {
@@ -51,7 +65,21 @@
             "name": "MESSAGE",
             "def": false
           },
-          "body": "MessageID"
+          "body": "EmojiMessage"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HarvestedEmoji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "alias"
+        },
+        {
+          "type": "EmojiRemoteSource",
+          "name": "source"
         }
       ]
     },
@@ -66,6 +94,10 @@
         {
           "type": "EmojiLoadSource",
           "name": "source"
+        },
+        {
+          "type": "EmojiRemoteSource",
+          "name": "remoteSource"
         }
       ]
     },

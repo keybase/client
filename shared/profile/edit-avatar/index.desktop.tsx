@@ -305,13 +305,13 @@ class EditAvatar extends React.Component<Props, State> {
           onClose={this.props.onClose}
           header={{
             leftButton: this.props.wizard ? (
-              <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />
+              <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />
             ) : null,
             rightButton: this.props.wizard ? (
               <Kb.Button
                 label="Skip"
                 mode="Secondary"
-                onClick={() => undefined}
+                onClick={this.props.onSkip}
                 style={styles.skipButton}
                 type="Default"
               />

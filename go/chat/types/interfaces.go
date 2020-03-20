@@ -613,8 +613,9 @@ type ParticipantSource interface {
 
 type EmojiSource interface {
 	Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias, filename string) error
-	Get(ctx context.Context, uid gregor1.UID) (chat1.UserEmojis, error)
-	Decorate(ctx context.Context, body string) string
+	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error)
+	Decorate(ctx context.Context, body string, convID chat1.ConversationID, emojis []chat1.HarvestedEmoji) string
+	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID) ([]chat1.HarvestedEmoji, error)
 }
 
 type ServerConnection interface {

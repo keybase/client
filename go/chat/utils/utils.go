@@ -1716,6 +1716,19 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return res
 }
 
+func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	msg chat1.MessageUnboxedValid, reactions chat1.ReactionMap) (res chat1.ReactionMap) {
+	if len(msg.Emojis) == 0 {
+		return reactions
+	}
+	res.Reactions = make(map[string]map[string]chat1.Reaction, len(reactions.Reactions))
+	for key, value := range reactions.Reactions {
+		key = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
+		res.Reactions[key] = value
+	}
+	return res
+}
+
 func PresentDecoratedUserBio(ctx context.Context, bio string) (res string) {
 	res = EscapeForDecorate(ctx, bio)
 	res = EscapeShrugs(ctx, res)
@@ -1762,7 +1775,7 @@ func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
 }
 
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	msg chat1.MessageUnboxedValid) *string {
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
 	if err != nil {
@@ -1785,11 +1798,13 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	default:
 		return nil
 	}
-
 	body = PresentDecoratedTextNoMentions(ctx, body)
 
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+
+	// Emojis
+	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
 
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
@@ -1905,7 +1920,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
-			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, valid),
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, convID, valid),
 			BodySummary:           GetMsgSnippetBody(rawMsg),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
@@ -1922,7 +1937,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
-			Reactions:             valid.Reactions,
+			Reactions:             PresentDecoratedReactionMap(ctx, g, convID, valid, valid.Reactions),
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			FlipGameID:            presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),

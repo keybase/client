@@ -1,10 +1,10 @@
 #! /usr/bin/env bash
 
-set -e -u -o pipefail
+set -euox pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 this_repo="$(git -C "$here" rev-parse --show-toplevel ||
-  echo -n $GOPATH/src/github.com/keybase/client)"
+  echo -n "$GOPATH/src/github.com/keybase/client")"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
