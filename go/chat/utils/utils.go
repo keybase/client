@@ -1718,6 +1718,9 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
 	msg chat1.MessageUnboxedValid, reactions chat1.ReactionMap) (res chat1.ReactionMap) {
+	if len(msg.Emojis) == 0 {
+		return reactions
+	}
 	res.Reactions = make(map[string]map[string]chat1.Reaction, len(reactions.Reactions))
 	for key, value := range reactions.Reactions {
 		key = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
