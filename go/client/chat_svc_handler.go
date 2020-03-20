@@ -684,7 +684,7 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, cha
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
 	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
-		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+		return c.errReply(err)
 	}
 	messages := []chat1.MessageID{opts.MessageID}
 	arg := sendArgV1{
