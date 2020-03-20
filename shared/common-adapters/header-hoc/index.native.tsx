@@ -142,7 +142,7 @@ export const LeftAction = ({
               : Styles.globalColors.black_50)
           }
           style={styles.action}
-          onClick={onLeftAction}
+          onClick={onLeftAction ?? undefined}
         />
       )
     )}
