@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCGen from '../constants/types/rpc-gen'
+import {pluralize} from '../util/string'
 
 type Props = Container.RouteProps<{teamname: string}>
 
@@ -34,16 +35,52 @@ const ExternalTeam = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
-      <Kb.Text type="Header">{teamname}</Kb.Text>
       {waiting ? (
         <Kb.ProgressIndicator />
       ) : teamInfo ? (
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
-          <Kb.Text type="BodySmall">{teamInfo?.description}</Kb.Text>
+          <Header info={teamInfo} />
         </Kb.Box2>
       ) : (
         <Kb.Text type="BodySmallError">There is no public information available for this team.</Kb.Text>
       )}
+    </Kb.Box2>
+  )
+}
+
+type HeaderProps = {
+  info: RPCGen.UntrustedTeamInfo
+}
+const Header = ({info}: HeaderProps) => {
+  const teamname = info.name.parts?.join('.')
+  const metaInfo = (
+    <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'xxtiny'}>
+      <Kb.Text type="Body">{info.description}</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
+      </Kb.Text>
+      {/* Activity */}
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Button type="Success" label="Join team" small={true} />
+        <Kb.Button mode="Secondary" label="Share" small={true} />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+  const openMeta = <Kb.Meta title="OPEN" backgroundColor={Styles.globalColors.green} />
+  return (
+    <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
+        <Kb.Avatar size={96} teamname={teamname} />
+        <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
+          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+            <Kb.Text type="Header">{teamname}</Kb.Text>
+            {!Styles.isMobile && openMeta}
+          </Kb.Box2>
+          {Styles.isMobile && openMeta}
+          {!Styles.isMobile && metaInfo}
+        </Kb.Box2>
+      </Kb.Box2>
+      {Styles.isMobile && metaInfo}
     </Kb.Box2>
   )
 }
