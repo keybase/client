@@ -2451,16 +2451,33 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
       RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
     ]
   } else {
-    // looking at the pending / waiting screen
-    const replace =
-      visibleRouteName === Constants.threadRouteName && !Constants.isValidConversationIDKey(visibleConvo)
-    return [
-      RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
-        replace,
-      }),
-    ]
+    // immediately switch stack to an inbox | thread stack
+    if (reason === 'push') {
+      return [
+        RouteTreeGen.createClearModals(),
+        RouteTreeGen.createResetStack({
+          actions: [
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
+            }),
+          ],
+          index: 1,
+          tab: Tabs.chatTab,
+        }),
+        RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+      ]
+    } else {
+      // looking at the pending / waiting screen
+      const replace =
+        visibleRouteName === Constants.threadRouteName && !Constants.isValidConversationIDKey(visibleConvo)
+      return [
+        RouteTreeGen.createClearModals(),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
+          replace,
+        }),
+      ]
+    }
   }
 }
 

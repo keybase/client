@@ -132,9 +132,6 @@ function* handleLoudMessage(notification: Types.PushNotification) {
 
   const {conversationIDKey, unboxPayload, membersType} = notification
 
-  // immediately show the thread on top of the inbox w/o a nav
-  yield Saga.put(RouteTreeGen.createClearModals())
-  yield Saga.put(Chat2Gen.createNavigateToInbox())
   logger.warn('push selecting ', conversationIDKey)
   yield Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, pushBody: unboxPayload, reason: 'push'}))
   if (unboxPayload && membersType && !isIOS) {
