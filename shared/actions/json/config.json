@@ -162,7 +162,8 @@
       "phase": "'initialStartupAsEarlyAsPossible' | 'connectedToDaemonForFirstTime' | 'reloggedIn' | 'startupOrReloginButNotInARush'"
     },
     "showShareActionSheet": {
-      "filePath": "string",
+      "filePath?": "string",
+      "message?": "string",
       "mimeType": "string"
     },
     "androidShare": {

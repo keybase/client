@@ -155,8 +155,8 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
 }
 
 const onShareAction = async (action: ConfigGen.ShowShareActionSheetPayload) => {
-  const {filePath, mimeType} = action.payload
-  await showShareActionSheet({filePath, mimeType})
+  const {filePath, message, mimeType} = action.payload
+  await showShareActionSheet({filePath, message, mimeType})
 }
 
 export const showShareActionSheet = async (options: {
