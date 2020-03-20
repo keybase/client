@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Container from '../../util/container'
@@ -18,11 +17,7 @@ type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rek
 type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 let Conversation = (p: SwitchProps) => {
-  const _storeConvoIDKey = Container.useSelector(state => Constants.getSelectedConversation(state))
-  const conversationIDKey = Container.isPhone
-    ? Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
-    : _storeConvoIDKey
-
+  const conversationIDKey = Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 
   let type: ConvoType
@@ -45,45 +40,6 @@ let Conversation = (p: SwitchProps) => {
   const dispatch = Container.useDispatch()
 
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-
-  // @ts-ignore
-  const lastIsFocused = React.useRef<boolean>(p.isFocused)
-  // temporary until nav 5
-  // TODO the relationship between this view and the store is too fragile. redo
-  if (Container.isMobile) {
-    // @ts-ignore
-    const {isFocused} = p
-    // eslint-disable-next-line
-    React.useEffect(() => {
-      // only do something if the focused changed
-      if (lastIsFocused.current === isFocused) {
-        return
-      }
-
-      lastIsFocused.current = isFocused
-      if (isFocused) {
-        if (_storeConvoIDKey !== conversationIDKey && Constants.isValidConversationIDKey(conversationIDKey)) {
-          dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'}))
-        }
-      } else {
-        if (!Constants.isSplit && _storeConvoIDKey === conversationIDKey) {
-          dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey: conversationIDKey}))
-        }
-      }
-      // eslint-disable-next-line
-    }, [isFocused, dispatch, _storeConvoIDKey, conversationIDKey])
-
-    // handle unmount only
-    // eslint-disable-next-line
-    React.useEffect(() => {
-      return () => {
-        if (!Constants.isSplit && _storeConvoIDKey === conversationIDKey) {
-          dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey: conversationIDKey}))
-        }
-      }
-      // eslint-disable-next-line
-    }, [])
-  }
 
   switch (type) {
     case 'error':

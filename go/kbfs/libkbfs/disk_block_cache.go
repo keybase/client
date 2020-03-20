@@ -318,6 +318,10 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 	defer func() {
 		if err != nil {
 			log.Error("Error initializing disk cache: %+v", err)
+			config.GetPerfLog().CDebugf(
+				context.TODO(),
+				"KBFS couldn't initialize disk cache of type %s: %v",
+				cacheType, err)
 		}
 	}()
 	versionPath, err := ldbutils.GetVersionedPathForDb(

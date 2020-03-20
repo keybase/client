@@ -9,20 +9,17 @@ export const WalletSwitcher = (props: Props) => {
     props.hideMenu()
     props.onWhatIsStellar()
   }
-  const header: Kb.MenuItem = {
-    onClick: props.onWhatIsStellar,
-    title: 'What is Stellar?',
-    view: (
-      <Kb.ClickableBox onClick={onWhatIsStellar}>
-        <Kb.Box2 centerChildren={true} direction="horizontal" style={styles.infoTextRowContainer}>
-          <Kb.Icon type="iconfont-info" />
-          <Kb.Text style={styles.infoText} type="BodySemibold">
-            What is Stellar?
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.ClickableBox>
-    ),
-  }
+  const header = (
+    <Kb.ClickableBox onClick={onWhatIsStellar}>
+      <Kb.Box2 centerChildren={true} direction="horizontal" style={styles.infoTextRowContainer}>
+        <Kb.Icon type="iconfont-info" />
+        <Kb.Text style={styles.infoText} type="BodySemibold">
+          What is Stellar?
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+
   let items: Kb.MenuItems = []
   items.push(
     {

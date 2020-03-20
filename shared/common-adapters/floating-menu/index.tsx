@@ -7,7 +7,7 @@
 import * as React from 'react'
 import Overlay from '../overlay'
 import {Position} from '../relative-popup-hoc.types'
-import MenuLayout, {MenuItem, MenuItems as _MenuItems} from './menu-layout'
+import MenuLayout, {MenuItems as _MenuItems} from './menu-layout'
 import {Color, StylesCrossPlatform} from '../../styles'
 
 export type MenuItems = _MenuItems
@@ -18,7 +18,7 @@ export type Props = {
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",
   containerStyle?: StylesCrossPlatform
-  header?: MenuItem
+  header?: React.ReactNode
   items: _MenuItems
   listStyle?: Object
   onHidden: () => void

@@ -93,6 +93,24 @@
     },
     {
       "type": "record",
+      "name": "WotUpdate",
+      "fields": [
+        {
+          "type": "string",
+          "name": "voucher"
+        },
+        {
+          "type": "string",
+          "name": "vouchee"
+        },
+        {
+          "type": "WotStatusType",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BadgeState",
       "fields": [
         {
@@ -131,6 +149,10 @@
         {
           "type": "int",
           "name": "bigTeamBadgeCount"
+        },
+        {
+          "type": "int",
+          "name": "newTeamAccessRequestCount"
         },
         {
           "type": {
@@ -177,13 +199,6 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamID"
-          },
-          "name": "newTeamAccessRequests"
-        },
-        {
-          "type": {
-            "type": "array",
             "items": "TeamMemberOutReset"
           },
           "name": "teamsWithResetUsers"
@@ -194,6 +209,13 @@
             "items": "WalletAccountInfo"
           },
           "name": "unreadWalletAccounts"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "WotUpdate"
+          },
+          "name": "wotUpdates"
         },
         {
           "type": "ResetState",

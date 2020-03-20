@@ -5,6 +5,8 @@ import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import {usePhoneNumberList} from '../../teams/common'
 
+const shareURL = 'https://keybase.io/download'
+
 const InviteFriendsModal = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -26,6 +28,10 @@ const InviteFriendsModal = () => {
     (!emails && phoneNumbers.every(pn => !pn.phoneNumber)) ||
     phoneNumbers.some(pn => pn.phoneNumber && !pn.valid)
 
+  const {popup, setShowingPopup} = Kb.usePopup(() => (
+    <ShareLinkPopup onClose={() => setShowingPopup(false)} />
+  ))
+
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
@@ -40,15 +46,15 @@ const InviteFriendsModal = () => {
                 <Kb.Text type="BodySmall" center={true}>
                   or share a link:
                 </Kb.Text>
-                <Kb.CopyText textType="BodySemibold" text="https://keybase.io/download" />
+                <Kb.CopyText textType="BodySemibold" text={shareURL} />
               </Kb.Box2>
             )}
           </Kb.Box2>
         ),
       }}
     >
-      <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
-        <Kb.Icon type="icon-illustration-invite-friends-460-96" style={{width: '100%'}} />
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+        <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.illustration} />
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.content}>
           <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'tiny'} fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">By email address (separate with commas)</Kb.Text>
@@ -76,11 +82,12 @@ const InviteFriendsModal = () => {
             </Kb.Box2>
           </Kb.Box2>
           {Styles.isMobile && (
-            <Kb.ClickableBox style={styles.shareALink}>
+            <Kb.ClickableBox style={styles.shareALink} onClick={() => setShowingPopup(true)}>
               <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" alignSelf="flex-start">
                 <Kb.Icon type="iconfont-link" color={Styles.globalColors.blueDark} />
                 <Kb.Text type="BodyPrimaryLink">or share a link</Kb.Text>
               </Kb.Box2>
+              {popup}
             </Kb.ClickableBox>
           )}
         </Kb.Box2>
@@ -89,6 +96,16 @@ const InviteFriendsModal = () => {
   )
 }
 
+const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
+  <Kb.MobilePopup>
+    <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
+      <Kb.Text type="Header">Share a link to Keybase</Kb.Text>
+      <Kb.CopyText text={shareURL} shareSheet={true} />
+      <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={onClose} />
+    </Kb.Box2>
+  </Kb.MobilePopup>
+)
+
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.blueGrey,
@@ -96,6 +113,12 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
+  },
+  illustration: {
+    width: '100%',
+  },
+  linkPopupContainer: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
   },
   shareALink: {
     ...Styles.padding(10, 0),

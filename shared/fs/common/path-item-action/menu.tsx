@@ -216,10 +216,7 @@ export default (props: Props) => {
       visible={props.floatingMenuProps.visible}
       onHidden={userInitiatedHide}
       position="left center"
-      header={{
-        title: 'unused',
-        view: <Header path={props.path} />,
-      }}
+      header={<Header path={props.path} />}
       items={makeMenuItems(props, props.floatingMenuProps.hide)}
     />
   )

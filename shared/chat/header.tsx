@@ -10,7 +10,9 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
 
-type OwnProps = {}
+type OwnProps = {
+  navigation: any
+}
 
 type Props = {
   canEditDesc: boolean
@@ -271,8 +273,12 @@ const styles = Styles.styleSheetCreate(
 )
 
 const Connected = Container.connect(
-  state => {
-    const _conversationIDKey = Constants.getSelectedConversation(state)
+  (state, ownProps: OwnProps) => {
+    // temp until nav 5 when this all goes away
+    const _conversationIDKey =
+      (Container.isTablet
+        ? ownProps.navigation.state.params?.conversationIDKey
+        : ownProps.navigation.state.routes[0]?.params?.conversationIDKey) ?? Constants.noConversationIDKey
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)

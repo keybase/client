@@ -1,5 +1,8 @@
 {
-  "prelude": ["import * as Tabs from '../constants/tabs'"],
+  "prelude": [
+      "import * as Tabs from '../constants/tabs'", 
+      "import * as Types from '../constants/types/route-tree'", 
+  ],
   "actions": {
     "navigateAppend": {
       "fromKey?": "string",
@@ -27,6 +30,16 @@
       "tab": ["Tabs.AppTab", "'loggedOut'"],
       "actions": "Array<any>",
       "index": "number"
+    },
+    "onNavChanged": {
+        "prev": "Array<Types.NavState>",
+        "next": "Array<Types.NavState>",
+        "navAction": "any"
+    },
+    "setParams": {
+        "_description": "deprecated soon",
+        "params": "Object",
+        "key": "string"
     }
   }
 }

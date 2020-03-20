@@ -183,17 +183,6 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		commit := "HEAD"
 		if len(args) > 0 {
 			commit = args[0]
-
-			gitCmd := makeCmd(currentUser, "git", "--no-pager", "log", "--oneline", fmt.Sprintf("%s...", commit))
-			gitCmd.Stdout = nil
-			gitCmd.Stderr = nil
-			ret, err := gitCmd.CombinedOutput()
-			if err != nil {
-				return err
-			}
-			if bytes.Count(ret, []byte("\n")) > 500 {
-				return fmt.Errorf("%s is more than 500 revisions behind HEAD, refusing to build", commit)
-			}
 		}
 
 		c.Locked = true
@@ -211,6 +200,10 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			}
 			if command == "release" {
 				cmd.Env = append(cmd.Env, "KEYBASE_RELEASE=1")
+			}
+			val, ok := os.LookupEnv("KEYBASE_TEST_CODE_SIGNING_KEY")
+			if ok {
+				cmd.Env = append(cmd.Env, "KEYBASE_TEST_CODE_SIGNING_KEY="+val)
 			}
 			err = cmd.Run()
 			if err != nil {
@@ -260,17 +253,6 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		commit := "HEAD"
 		if len(args) > 0 {
 			commit = args[0]
-
-			gitCmd := makeCmd(currentUser, "git", "--no-pager", "log", "--oneline", fmt.Sprintf("%s...", commit))
-			gitCmd.Stdout = nil
-			gitCmd.Stderr = nil
-			ret, err := gitCmd.CombinedOutput()
-			if err != nil {
-				return err
-			}
-			if bytes.Count(ret, []byte("\n")) > 500 {
-				return fmt.Errorf("%s is more than 500 revisions behind HEAD, refusing to build", commit)
-			}
 		}
 		c.Locked = true
 		go func() {
@@ -427,12 +409,18 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		}
 		return nil
 	case "tuxjournal":
-		ret, _ := exec.Command("journalctl", "--user-unit", "tuxbot", "-n", "50").CombinedOutput()
-		c.Debug("```%s```", ret)
+		ret, err := exec.Command("journalctl", "--user-unit", "tuxbot", "-n", "100").CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
 		return nil
 	case "journal":
-		ret, _ := exec.Command("journalctl", "-n", "50").CombinedOutput()
-		c.Debug("```%s```", ret)
+		ret, err := exec.Command("journalctl", "-n", "100").CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
+		return nil
+	case "cleanup":
+		cleanupCmd := exec.Command("./cleanup")
+		cleanupCmd.Dir = filepath.Join(currentUser.HomeDir)
+		ret, err := cleanupCmd.CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
 		return nil
 	default:
 		return fmt.Errorf("invalid command %s", command)
@@ -440,7 +428,10 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 }
 
 func main() {
-	gotenv.Load(fmt.Sprintf("/keybase/team/%s/.kbfs_autogit/%s/keybot.env", os.Getenv("SECRETS_TEAM"), os.Getenv("SECRETS_REPO")))
+	err := gotenv.Load(fmt.Sprintf("/keybase/team/%s/.kbfs_autogit/%s/tuxbot.env", os.Getenv("SECRETS_TEAM"), os.Getenv("SECRETS_REPO")))
+	if err != nil {
+		panic(err)
+	}
 
 	keybaseBinaryPath := flag.String("keybase-bin-path", "keybase", "the location of the keybase app")
 	botName := flag.String("bot-name", "tuxbot", "the name of this bot")

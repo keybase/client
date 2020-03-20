@@ -90,6 +90,10 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.GetDeviceInfoV1(ctx, c, w)
 	case methodListMembers:
 		return d.handler.ListMembersV1(ctx, c, w)
+	case methodEmojiAdd:
+		return d.handler.EmojiAddV1(ctx, c, w)
+	case methodEmojiList:
+		return d.handler.EmojiListV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

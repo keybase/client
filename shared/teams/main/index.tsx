@@ -26,7 +26,7 @@ export type OwnProps = {
   onViewTeam: (teamID: Types.TeamID) => void
   sawChatBanner: boolean
   teamresetusers: Map<Types.TeamID, Set<string>>
-  newTeamRequests: Map<Types.TeamID, number>
+  newTeamRequests: Map<Types.TeamID, Set<string>>
   teams: Array<Types.TeamMeta>
 }
 
@@ -185,7 +185,7 @@ class Teams extends React.PureComponent<Props, State> {
             name={team.teamname}
             isNew={this.props.newTeams.has(team.id)}
             isOpen={team.isOpen}
-            newRequests={this.props.newTeamRequests.get(team.id) || 0}
+            newRequests={this.props.newTeamRequests.get(team.id)?.size ?? 0}
             membercount={team.memberCount}
             onOpenFolder={() => this.onOpenFolder(team.teamname)}
             onManageChat={team.isMember ? () => this.onManageChat(team.id) : undefined}

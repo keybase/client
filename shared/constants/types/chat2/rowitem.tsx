@@ -6,6 +6,7 @@ export type ChatInboxRowItemSmall = {
   teamname: string
   isTeam: boolean
   conversationIDKey: ConversationIDKey
+  selected: boolean
   time: number
   snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
@@ -34,6 +35,7 @@ export type ChatInboxRowItemBig = {
   type: 'big'
   isTeam?: boolean
   conversationIDKey: ConversationIDKey
+  selected: boolean
   teamname: string
   channelname: string
   snippet?: string

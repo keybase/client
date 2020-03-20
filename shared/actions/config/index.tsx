@@ -458,21 +458,12 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       state.config.startupConversation &&
       state.config.startupConversation !== ChatConstants.noConversationIDKey
     ) {
-      const actions = [
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {props: {conversationIDKey: state.config.startupConversation}, selected: 'chatConversation'},
-          ],
-        }),
-      ]
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
-        ChatGen.createSelectConversation({
+        ChatGen.createNavigateToThread({
           conversationIDKey: state.config.startupConversation,
           pushBody: state.config.startupPushPayload,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
-          skipNav: true,
         }),
       ]
     }
@@ -535,6 +526,12 @@ const routeToInitialScreen = (state: Container.TypedState) => {
             RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
             RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
             ProfileGen.createShowUserProfile({username}),
+          ]
+        } else {
+          return [
+            RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+            RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
+            DeeplinksGen.createLink({link: state.config.startupLink}),
           ]
         }
       } catch {
@@ -615,6 +612,7 @@ const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
 
 const newNavigation = (
   action:
+    | RouteTreeGen.SetParamsPayload
     | RouteTreeGen.NavigateAppendPayload
     | RouteTreeGen.NavigateUpPayload
     | RouteTreeGen.SwitchLoggedInPayload
@@ -821,6 +819,7 @@ function* configSaga() {
 
   yield* Saga.chainAction(
     [
+      RouteTreeGen.setParams,
       RouteTreeGen.navigateAppend,
       RouteTreeGen.navigateUp,
       RouteTreeGen.switchLoggedIn,

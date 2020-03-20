@@ -136,6 +136,7 @@ func (t *basicSupersedesTransform) transformReaction(msg chat1.MessageUnboxed, s
 	reactionMap.Reactions[reactionText] = reactions
 
 	mvalid := msg.Valid()
+	mvalid.Emojis = append(mvalid.Emojis, superMsg.Valid().Emojis...)
 	mvalid.Reactions = reactionMap
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg

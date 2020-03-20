@@ -30,6 +30,12 @@ protocol NotifyBadges {
     boolean active;
   }
 
+  record WotUpdate {
+    string voucher;  // username
+    string vouchee;  // username
+    WotStatusType status;
+  }
+
   record BadgeState {
     @lint("ignore")
     int newTlfs;
@@ -41,6 +47,7 @@ protocol NotifyBadges {
     int unverifiedPhones;
     int smallTeamBadgeCount;
     int bigTeamBadgeCount;
+    int newTeamAccessRequestCount;
 
     array<DeviceID> newDevices;
     array<DeviceID> revokedDevices;
@@ -48,9 +55,9 @@ protocol NotifyBadges {
     array<string> newGitRepoGlobalUniqueIDs;
     array<TeamID> newTeams;
     array<DeletedTeamInfo> deletedTeams;
-    array<TeamID> newTeamAccessRequests;
     array<TeamMemberOutReset> teamsWithResetUsers;
     array<WalletAccountInfo> unreadWalletAccounts;
+    array<WotUpdate> wotUpdates;
     ResetState resetState;
   }
 

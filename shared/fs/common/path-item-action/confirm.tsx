@@ -41,10 +41,7 @@ export default (props: Props) => (
     visible={props.floatingMenuProps.visible}
     onHidden={props.floatingMenuProps.hide}
     position="bottom right"
-    header={{
-      title: 'unused',
-      view: <ConfirmHeader {...props} />,
-    }}
+    header={<ConfirmHeader {...props} />}
     items={
       props.confirm
         ? [

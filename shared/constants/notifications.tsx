@@ -4,14 +4,14 @@ import * as Container from '../util/container'
 
 export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
-  const deletedTeams = bs.deletedTeams || []
-  const newDevices = bs.newDevices || []
-  const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs || []
-  const newTeamAccessRequests = bs.newTeamAccessRequests || []
-  const newTeams = bs.newTeams || []
-  const revokedDevices = bs.revokedDevices || []
-  const teamsWithResetUsers = bs.teamsWithResetUsers || []
-  const unreadWalletAccounts = bs.unreadWalletAccounts || []
+  const deletedTeams = bs.deletedTeams ?? []
+  const newDevices = bs.newDevices ?? []
+  const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs ?? []
+  const newTeamAccessRequestCount = bs.newTeamAccessRequestCount ?? 0
+  const newTeams = bs.newTeams ?? []
+  const revokedDevices = bs.revokedDevices ?? []
+  const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
+  const unreadWalletAccounts = bs.unreadWalletAccounts ?? []
 
   if (state.notifications.badgeVersion >= inboxVers) {
     return undefined
@@ -35,7 +35,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
   counts.set(
     Tabs.teamsTab,
-    newTeams.length + newTeamAccessRequests.length + teamsWithResetUsers.length + deletedTeams.length
+    newTeams.length + newTeamAccessRequestCount + teamsWithResetUsers.length + deletedTeams.length
   )
   counts.set(Tabs.settingsTab, unverifiedEmails + unverifiedPhones)
 
