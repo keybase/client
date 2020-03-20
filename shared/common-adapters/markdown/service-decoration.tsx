@@ -14,6 +14,7 @@ import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
+import CustomEmoji from '../custom-emoji'
 import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
 
@@ -230,6 +231,12 @@ const ServiceDecoration = (props: Props) => {
         standardPath={parsed.kbfspath.standardPath}
       />
     )
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
+    if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
+      // TODO: figure out how to build in BigEmoji logic here
+      return <CustomEmoji size="Small" src={parsed.emoji.source.httpsrv} alias={parsed.emoji.alias} />
+    }
+    // we may want to add more cases here later if we decide to parse "stock" emoji with this
   }
   return null
 }
