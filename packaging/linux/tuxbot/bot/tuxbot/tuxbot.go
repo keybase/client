@@ -99,7 +99,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		revision := args[0]
 		c.Info("Generating release artifacts for %s", revision)
 
-		err = makeCmd(currentUser, "git", "checkout", "-f", "surya/vagrant-diskize").Run()
+		err = makeCmd(currentUser, "git", "checkout", "-f", "master").Run()
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			return fmt.Errorf("locked by another command; aborting")
 		}
 
-		err = makeCmd(currentUser, "git", "checkout", "-f", "surya/vagrant-diskize").Run()
+		err = makeCmd(currentUser, "git", "checkout", "-f", "master").Run()
 		if err != nil {
 			return err
 		}
@@ -240,7 +240,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			return fmt.Errorf("locked by another command; aborting")
 		}
 
-		err = makeCmd(currentUser, "git", "checkout", "-f", "surya/vagrant-diskize").Run()
+		err = makeCmd(currentUser, "git", "checkout", "-f", "master").Run()
 		if err != nil {
 			return err
 		}
