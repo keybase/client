@@ -6262,15 +6262,17 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-"framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#nojima/HOTPOT-msgpack-js-impl":
-  version "1.1.18"
-  resolved "git://github.com/keybase/node-framed-msgpack-rpc#875159e0a8092c9f673bc68a796a843e093400a0"
+framed-msgpack-rpc@1.1.21:
+  version "1.1.20"
+  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.20.tgz#e969440767bba1c317be90481311425299f2123a"
+  integrity sha512-C9GChlQSJ1VNwPC8jZhDVYO8KI3niCiGfMDim6fgy9mYJ5pouHOnU7nobY771pV/kQEdjebMUbXOf2Q7muClsg==
   dependencies:
-    "@msgpack/msgpack" "1.9.3"
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
     path-parse "^1.0.6"
+    purepack ">=1"
+    zlib "^1.0.5"
 
 fresh@0.5.2:
   version "0.5.2"
@@ -10586,6 +10588,11 @@ punycode@^2.1.0, punycode@^2.1.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
+purepack@>=1:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/purepack/-/purepack-1.0.6.tgz#d8336e739ee8644fc6697ad38d3aa50a03aa7d37"
+  integrity sha512-L/e3qq/3m/TrYtINo2aBB98oz6w8VHGyFy+arSKwPMZDUNNw2OaQxYnZO6UIZZw2OnRl2qkxGmuSOEfsuHXJdA==
+
 q@^1.1.2:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
@@ -14210,3 +14217,8 @@ yeast@0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/yeast/-/yeast-0.1.2.tgz#008e06d8094320c372dbc2f8ed76a0ca6c8ac419"
   integrity sha1-AI4G2AlDIMNy28L47XagymyKxBk=
+
+zlib@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/zlib/-/zlib-1.0.5.tgz#6e7c972fc371c645a6afb03ab14769def114fcc0"
+  integrity sha1-bnyXL8NxxkWmr7A6sUdp3vEU/MA=
