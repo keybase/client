@@ -193,15 +193,12 @@ const PaymentPopup = (props: Props) => {
     visible,
     ...headerProps
   } = props
-  const header = {
-    title: 'header',
-    view: (
-      <>
-        <Header {...headerProps} />
-        {!!items.length && <Kb.Divider />}
-      </>
-    ),
-  }
+  const header = (
+    <>
+      <Header {...headerProps} />
+      {!!items.length && <Kb.Divider />}
+    </>
+  )
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}

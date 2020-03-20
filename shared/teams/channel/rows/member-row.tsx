@@ -139,21 +139,18 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const menuHeader = {
-    title: 'header',
-    view: (
-      <MenuHeader
-        username={username}
-        fullName={fullname}
-        label={
-          <Kb.Box2 direction="horizontal">
-            <Kb.Text type="BodySmall">{crown}</Kb.Text>
-            <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-          </Kb.Box2>
-        }
-      />
-    ),
-  }
+  const menuHeader = (
+    <MenuHeader
+      username={username}
+      fullName={fullname}
+      label={
+        <Kb.Box2 direction="horizontal">
+          <Kb.Text type="BodySmall">{crown}</Kb.Text>
+          <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+        </Kb.Box2>
+      }
+    />
+  )
 
   const menuItems: Kb.MenuItems = [
     'Divider',

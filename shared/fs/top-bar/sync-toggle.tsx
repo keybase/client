@@ -81,10 +81,7 @@ const SyncToggle = (props: Props) =>
           position="bottom left"
           closeOnSelect={false}
           containerStyle={styles.floating}
-          header={{
-            title: '-_-',
-            view: <Confirm {...props} />,
-          }}
+          header={<Confirm {...props} />}
           items={
             Styles.isMobile
               ? ([

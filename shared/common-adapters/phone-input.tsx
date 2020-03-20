@@ -217,23 +217,20 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
         <Kb.FloatingMenu
           closeOnSelect={true}
           containerStyle={styles.countryLayout}
-          header={{
-            title: 'Search',
-            view: (
-              <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
-                <Kb.SearchFilter
-                  size="full-width"
-                  icon="iconfont-search"
-                  placeholderCentered={true}
-                  mobileCancelButton={true}
-                  onChange={this.onChangeFilter}
-                  placeholderText="Search"
-                  focusOnMount={true}
-                  onEnterKeyDown={this.onSelectFirst}
-                />
-              </Kb.Box2>
-            ),
-          }}
+          header={
+            <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
+              <Kb.SearchFilter
+                size="full-width"
+                icon="iconfont-search"
+                placeholderCentered={true}
+                mobileCancelButton={true}
+                onChange={this.onChangeFilter}
+                placeholderText="Search"
+                focusOnMount={true}
+                onEnterKeyDown={this.onSelectFirst}
+              />
+            </Kb.Box2>
+          }
           items={this.desktopItems}
           listStyle={styles.countryList}
           onHidden={this.props.onHidden}

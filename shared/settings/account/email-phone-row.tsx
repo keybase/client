@@ -116,15 +116,12 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
 
-  const header = {
-    title: 'emailPhoneHeader',
-    view: (
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
-        <Kb.Text type="BodySmallSemibold">{props.address}</Kb.Text>
-        {props.primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
-      </Kb.Box2>
-    ),
-  }
+  const header = (
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
+      <Kb.Text type="BodySmallSemibold">{props.address}</Kb.Text>
+      {props.primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
+    </Kb.Box2>
+  )
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
