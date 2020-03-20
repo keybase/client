@@ -11,7 +11,7 @@ import (
 
 type InviteCounts struct {
 	InviteCount      int     `codec:"inviteCount" json:"inviteCount"`
-	PercentageChange float32 `codec:"percentageChange" json:"percentageChange"`
+	PercentageChange float64 `codec:"percentageChange" json:"percentageChange"`
 	ShowFire         bool    `codec:"showFire" json:"showFire"`
 }
 

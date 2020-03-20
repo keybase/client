@@ -16,7 +16,7 @@
           "name": "inviteCount"
         },
         {
-          "type": "float",
+          "type": "double",
           "name": "percentageChange"
         },
         {
