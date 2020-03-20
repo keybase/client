@@ -482,6 +482,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifySaltpackSaltpackOperationProgress': enginegen.Keybase1NotifySaltpackSaltpackOperationProgressPayload
   'engine-gen:keybase1NotifySaltpackSaltpackOperationDone': enginegen.Keybase1NotifySaltpackSaltpackOperationDonePayload
   'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate': enginegen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+  'engine-gen:keybase1NotifyServiceHandleKeybaseLink': enginegen.Keybase1NotifyServiceHandleKeybaseLinkPayload
   'engine-gen:keybase1NotifyServiceShutdown': enginegen.Keybase1NotifyServiceShutdownPayload
   'engine-gen:keybase1NotifySessionLoggedOut': enginegen.Keybase1NotifySessionLoggedOutPayload
   'engine-gen:keybase1NotifySessionLoggedIn': enginegen.Keybase1NotifySessionLoggedInPayload

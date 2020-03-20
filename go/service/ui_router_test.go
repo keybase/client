@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -60,6 +62,10 @@ func (f fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
 
 func (f fakeUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
 	return nil
+}
+
+func (f fakeUIRouter) WaitForUIType(uiKind libkb.UIKind, timeout time.Duration) bool {
+	return false
 }
 
 func (f fakeUIRouter) Shutdown() {}
