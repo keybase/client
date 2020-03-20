@@ -5,7 +5,7 @@ import * as SettingsConstants from '../../constants/settings'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
 import useContacts from './use-contacts.native'
-import {ContactProps, ContactRowProps, InviteByContact} from './index.native'
+import {Contact, ContactRowProps, InviteByContact} from './index.native'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -69,7 +69,7 @@ const TeamInviteByContact = (props: Props) => {
   )
 
   const onInviteContact = React.useCallback(
-    (contact: ContactProps) => {
+    (contact: Contact) => {
       dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
       if (contact.type === 'email') {
         dispatch(

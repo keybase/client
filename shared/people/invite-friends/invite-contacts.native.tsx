@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import {Section as _Section} from '../../common-adapters/section-list'
 import useContacts from '../../teams/invite-by-contact/use-contacts.native'
-import {ContactProps as Contact} from '../../teams/invite-by-contact/index.native'
+import {Contact} from '../../teams/invite-by-contact/index.native'
 import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
@@ -24,9 +24,10 @@ const categorize = (contact: Contact): string => {
   }
 }
 const filterAndSectionContacts = memoize((contacts: Contact[], search: string): Section[] => {
+  const searchL = search.toLowerCase()
   const sectionMap: Map<string, Contact[]> = new Map()
   contacts
-    .filter(contact => contact.name.toLowerCase().includes(search) || contact.value.includes(search))
+    .filter(contact => contact.name.toLowerCase().includes(searchL) || contact.value.includes(search))
     .forEach(contact => {
       const category = categorize(contact)
       const section = mapGetEnsureValue(sectionMap, category, [])
@@ -99,6 +100,7 @@ const InviteContacts = () => {
             {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
           </Kb.Box2>
         }
+        onClick={() => onCheck(!checked)}
         action={<Kb.CheckCircle checked={checked} onCheck={onCheck} style={styles.checkCircle} />}
         icon={
           item.pictureUri ? (
@@ -110,7 +112,7 @@ const InviteContacts = () => {
       />
     )
   }
-  const keyExtractor = (item: Contact) => item.value
+  const keyExtractor = (item: Contact) => item.id
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.ModalHeader
