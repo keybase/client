@@ -2448,6 +2448,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
       RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createSetParams({key: 'chatRoot', params: {conversationIDKey}}),
+      RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
     ]
   } else {
     // looking at the pending / waiting screen
