@@ -268,8 +268,9 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 		return res, err
 	}
 	return chat1.HarvestedEmoji{
-		Alias:  emoji.Alias,
-		Source: newSource,
+		Alias:       emoji.Alias,
+		Source:      newSource,
+		IsCrossTeam: true,
 	}, nil
 }
 
@@ -321,6 +322,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 			})
 		} else if emoji, ok := crossTeamMap[match.name]; ok {
 			// then known cross teams
+			emoji.IsCrossTeam = true
 			res = append(res, emoji)
 		} else if source, ok := aliasMap[match.name]; ok {
 			// then any aliases we know about from the last Get call
