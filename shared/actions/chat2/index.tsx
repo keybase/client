@@ -2452,7 +2452,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     ]
   } else {
     // immediately switch stack to an inbox | thread stack
-    if (reason === 'push') {
+    if (reason === 'push' || reason === 'savedLastState') {
       return [
         RouteTreeGen.createClearModals(),
         RouteTreeGen.createResetStack({
