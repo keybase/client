@@ -248,6 +248,7 @@ export type TypedActionsMap = {
   'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
   'chat2:addToMessageMap': chat2.AddToMessageMapPayload
+  'chat2:setEmojiSkinTone': chat2.SetEmojiSkinTonePayload
   'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
   'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
   'config:startHandshake': config.StartHandshakePayload

@@ -7,6 +7,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
+import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker from '.'
 
 type Props = {
@@ -56,6 +57,7 @@ const WrapperMobile = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
+  const emojiSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
@@ -82,8 +84,9 @@ const WrapperMobile = (props: Props) => {
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
-        onChoose={emoji => onAddReaction(`:${emoji.short_name}:`)}
+        onChoose={emoji => onAddReaction(emoji)}
         width={width}
+        skinTone={emojiSkinTone}
       />
     </Kb.Box2>
   )
@@ -91,6 +94,7 @@ const WrapperMobile = (props: Props) => {
 
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
+  const emojiSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
   return (
     <Kb.Box
       direction="vertical"
@@ -98,20 +102,29 @@ export const EmojiPickerDesktop = (props: Props) => {
       onClick={e => e.stopPropagation()}
       gap="tiny"
     >
-      <Kb.SearchFilter
-        focusOnMount={true}
-        size="full-width"
-        icon="iconfont-search"
-        placeholderText="Search"
-        onChange={str => setFilter(str)}
-        style={styles.searchFilter}
-      />
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        fullWidth={true}
+        alignItems="center"
+        style={styles.topContainer}
+      >
+        <Kb.SearchFilter
+          focusOnMount={true}
+          size="full-width"
+          icon="iconfont-search"
+          placeholderText="Search"
+          onChange={str => setFilter(str)}
+        />
+        <SkinTonePicker />
+      </Kb.Box2>
       <Kb.Box style={styles.emojiContainer}>
         <EmojiPicker
           topReacjis={topReacjis}
           filter={filter}
-          onChoose={emoji => onAddReaction(`:${emoji.short_name}:`)}
-          width={320}
+          onChoose={emoji => onAddReaction(emoji)}
+          width={336}
+          skinTone={emojiSkinTone}
         />
       </Kb.Box>
     </Kb.Box>
@@ -127,7 +140,7 @@ const styles = Styles.styleSheetCreate(
       containerDesktop: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,
-        padding: Styles.globalMargins.tiny,
+        //padding: Styles.globalMargins.tiny,
       },
       emojiContainer: {
         flex: 1,
@@ -135,7 +148,7 @@ const styles = Styles.styleSheetCreate(
         height: 400,
         minHeight: 400,
         overflow: 'hidden',
-        width: 320,
+        width: 336,
       },
       input: {
         borderBottomWidth: 1,
@@ -144,8 +157,8 @@ const styles = Styles.styleSheetCreate(
         borderWidth: 0,
         padding: Styles.globalMargins.small,
       },
-      searchFilter: {
-        flex: 0,
+      topContainer: {
+        padding: Styles.globalMargins.tiny,
       },
     } as const)
 )

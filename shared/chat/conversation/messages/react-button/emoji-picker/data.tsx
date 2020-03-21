@@ -2,12 +2,14 @@ import {emojiIndex} from 'emoji-mart'
 // @ts-ignore
 import emojidata from 'emoji-datasource'
 import groupBy from 'lodash/groupBy'
+import * as Types from '../../../../../constants/types/chat2'
 
 export type EmojiData = {
   category: string
   name: string | null
   short_name: string
   unified: string
+  skin_variations?: {[K in Types.EmojiSkinToneNonDefault]: Object}
 }
 
 const categorized = groupBy(emojidata, 'category')
@@ -48,4 +50,8 @@ const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
   {}
 )
 
+export const skinTones = new Map(
+  categorized['Skin Tones'].map(skinTone => [skinTone.unified, skinTone]) ?? []
+)
+console.log({songgao: 'emoji data', categorized, skinTones})
 export {categories, categoryOrder, emojiIndex, emojiNameMap}

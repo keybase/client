@@ -11,7 +11,7 @@
     "toggleSmallTeamsExpanded": {},
     // Selected a conversation (used by nav only)
     "selectedConversation": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
@@ -911,6 +911,9 @@
     },
     "addToMessageMap": {
       "message": "Types.Message"
+    },
+    "setEmojiSkinTone": {
+      "skinTone": "Types.EmojiSkinTone"
     },
     "refreshMutualTeamsInConv": {
       "_description": "Refresh loaded mutual teams for a conversation",

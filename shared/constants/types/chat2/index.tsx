@@ -177,6 +177,10 @@ export type ParticipantInfo = {
   contactName: Map<string, string> // member username -> contact name
 }
 
+// Corresponds to skinTones in emoji-datasource.
+export type EmojiSkinToneNonDefault = '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'
+export type EmojiSkinTone = 'default' | EmojiSkinToneNonDefault
+
 export type State = {
   readonly accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -254,6 +258,7 @@ export type State = {
   readonly unreadMap: ConversationCountMap // how many unread messages there are,
   readonly unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
   readonly userReacjis: UserReacjis
+  readonly emojiSkinTone: EmojiSkinTone
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>

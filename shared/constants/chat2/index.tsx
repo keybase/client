@@ -53,6 +53,7 @@ export const makeState = (): Types.State => ({
   dismissedInviteBannersMap: new Map(),
   draftMap: new Map(),
   editingMap: new Map(),
+  emojiSkinTone: 'default',
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
   featuredBotsLoaded: false,

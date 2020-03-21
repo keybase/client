@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Types from '../../../../../constants/types/chat2'
 import * as Data from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
@@ -12,7 +13,8 @@ const _getData = memoize(() => {
   const categories: typeof Data.categories = require('./data').categories
   const emojiIndex: typeof Data.emojiIndex = require('./data').emojiIndex
   const emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
-  return {categories, emojiIndex, emojiNameMap}
+  const emojiSkinTones: typeof Data.skinTones = require('./data').skinTones
+  return {categories, emojiIndex, emojiNameMap, emojiSkinTones}
 })
 
 type EmojiCategory = {category: string; emojis: Array<Data.EmojiData>}
@@ -54,8 +56,8 @@ const getData = memoize((topReacjis: Array<string>) => {
   }
 })
 
-const singleEmojiWidth = isMobile ? 32 : 24
-const emojiPadding = 4
+const singleEmojiWidth = isMobile ? 32 : 26
+const emojiPadding = isMobile ? 4 : 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
 
@@ -77,7 +79,8 @@ type Section = _Section<Item, {title?: string}>
 type Props = {
   topReacjis: Array<string>
   filter?: string
-  onChoose: (emoji: Data.EmojiData) => void
+  onChoose: (emojiStr: string) => void
+  skinTone: Types.EmojiSkinTone
   width: number
 }
 
@@ -144,10 +147,15 @@ class EmojiPicker extends React.Component<Props, State> {
       return (
         <Box2
           direction="horizontal"
-          style={Styles.collapseStyles([styles.alignItemsCenter, styles.flexWrap, !!width && {width}])}
+          style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap, !!width && {width}])}
         >
           {results.map(e => (
-            <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />
+            <EmojiRender
+              key={e.short_name}
+              emoji={e}
+              onChoose={this.props.onChoose}
+              skinTone={this.props.skinTone}
+            />
           ))}
         </Box2>
       )
@@ -161,7 +169,7 @@ class EmojiPicker extends React.Component<Props, State> {
         sections={this.state.sections}
         stickySectionHeadersEnabled={Styles.isMobile}
         renderItem={({item, index}: {item: Item; index: number}) => (
-          <EmojiRow key={index} item={item} onChoose={this.props.onChoose} />
+          <EmojiRow key={index} item={item} onChoose={this.props.onChoose} skinTone={this.props.skinTone} />
         )}
         renderSectionHeader={HeaderRow}
       />
@@ -174,26 +182,37 @@ const EmojiRow = (props: {
     emojis: Array<Data.EmojiData>
     key: string
   }
-  onChoose: (emojiData: Data.EmojiData) => void
+  onChoose: (emojiStr: string) => void
+  skinTone: Types.EmojiSkinTone
 }) => (
-  <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
+  <Box2 key={props.item.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
     {props.item.emojis.map(e => (
-      <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />
+      <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} skinTone={props.skinTone} />
     ))}
   </Box2>
 )
 
+const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone: Types.EmojiSkinTone) =>
+  skinTone !== 'default' && emoji.skin_variations?.[skinTone]
+    ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
+    : `:${emoji.short_name}:`
+
 const EmojiRender = ({
   emoji,
   onChoose,
+  skinTone,
 }: {
   emoji: Data.EmojiData
-  onChoose: (emojiData: Data.EmojiData) => void
-}) => (
-  <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
-    <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
-  </ClickableBox>
-)
+  onChoose: (emojiStr: string) => void
+  skinTone: Types.EmojiSkinTone
+}) => {
+  const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
+  return (
+    <ClickableBox onClick={() => onChoose(emojiStr)} style={styles.emoji} key={emoji.short_name}>
+      <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={emojiStr} />
+    </ClickableBox>
+  )
+}
 
 const HeaderRow = ({section}: {section: Section}) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
@@ -204,12 +223,13 @@ const HeaderRow = ({section}: {section: Section}) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {
-        alignItems: 'center',
-      },
       emoji: {
         padding: emojiPadding,
         width: emojiWidthWithPadding,
+      },
+      emojiRowContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
       },
       flexWrap: {
         flexWrap: 'wrap',

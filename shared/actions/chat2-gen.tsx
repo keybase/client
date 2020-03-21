@@ -134,6 +134,7 @@ export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
+export const setEmojiSkinTone = 'chat2:setEmojiSkinTone'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setGeneralConvFromTeamID = 'chat2:setGeneralConvFromTeamID'
 export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
@@ -670,6 +671,7 @@ type _SetConversationOfflinePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly offline: boolean
 }
+type _SetEmojiSkinTonePayload = {readonly skinTone: Types.EmojiSkinTone}
 type _SetExplodingModeLockPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly unset?: boolean
@@ -1647,6 +1649,10 @@ export const createSetAudioRecordingPostInfo = (
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+export const createSetEmojiSkinTone = (payload: _SetEmojiSkinTonePayload): SetEmojiSkinTonePayload => ({
+  payload,
+  type: setEmojiSkinTone,
+})
 export const createSetInboxNumSmallRows = (
   payload: _SetInboxNumSmallRowsPayload
 ): SetInboxNumSmallRowsPayload => ({payload, type: setInboxNumSmallRows})
@@ -2126,6 +2132,10 @@ export type SetConversationOfflinePayload = {
   readonly payload: _SetConversationOfflinePayload
   readonly type: typeof setConversationOffline
 }
+export type SetEmojiSkinTonePayload = {
+  readonly payload: _SetEmojiSkinTonePayload
+  readonly type: typeof setEmojiSkinTone
+}
 export type SetExplodingModeLockPayload = {
   readonly payload: _SetExplodingModeLockPayload
   readonly type: typeof setExplodingModeLock
@@ -2422,6 +2432,7 @@ export type Actions =
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
+  | SetEmojiSkinTonePayload
   | SetExplodingModeLockPayload
   | SetGeneralConvFromTeamIDPayload
   | SetInboxNumSmallRowsPayload
