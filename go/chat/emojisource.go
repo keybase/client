@@ -53,6 +53,9 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string, topicNameSuffix *string, versionOverride *chat1.EmojiMessageVersion) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
+	if strings.Contains(alias, "#") {
+		return res, errors.New("invalid character in emoji alias")
+	}
 	var stored chat1.EmojiStorage
 	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
 	storage := s.makeStorage()
