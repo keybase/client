@@ -193,5 +193,8 @@
 .icon-gen-iconfont-unlock::before {content: "\e9b1";}
 .icon-gen-iconfont-bot::before {content: "\e9b2";}
 .icon-gen-iconfont-warning::before {content: "\e9b3";}
+.icon-gen-iconfont-campfire-out::before {content: "\e9b4";}
 .icon-gen-iconfont-envelope::before {content: "\e9b5";}
+.icon-gen-iconfont-person-raisedarms::before {content: "\e9b6";}
+.icon-gen-iconfont-typing::before {content: "\e9b7";}
 

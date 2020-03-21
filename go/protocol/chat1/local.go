@@ -6768,8 +6768,13 @@ type RefreshParticipantsArg struct {
 }
 
 type GetLastActiveAtLocalArg struct {
-	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
-	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+	TeamID   keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Username string          `codec:"username" json:"username"`
+}
+
+type GetLastActiveAtMultiLocalArg struct {
+	TeamIDs  []keybase1.TeamID `codec:"teamIDs" json:"teamIDs"`
+	Username string            `codec:"username" json:"username"`
 }
 
 type LocalInterface interface {
@@ -6883,6 +6888,7 @@ type LocalInterface interface {
 	GetRecentJoinsLocal(context.Context, ConversationID) (int, error)
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
+	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8484,6 +8490,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getLastActiveAtMultiLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveAtMultiLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveAtMultiLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveAtMultiLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveAtMultiLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -9068,5 +9089,10 @@ func (c LocalClient) RefreshParticipants(ctx context.Context, convID Conversatio
 
 func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActiveAtLocalArg) (res gregor1.Time, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetLastActiveAtMultiLocal(ctx context.Context, __arg GetLastActiveAtMultiLocalArg) (res map[keybase1.TeamID]gregor1.Time, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtMultiLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

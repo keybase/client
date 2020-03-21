@@ -888,6 +888,7 @@ export type IconType =
   | 'iconfont-calculator'
   | 'iconfont-camera'
   | 'iconfont-camera-off'
+  | 'iconfont-campfire-out'
   | 'iconfont-caret-down'
   | 'iconfont-caret-right'
   | 'iconfont-chat'
@@ -992,6 +993,7 @@ export type IconType =
   | 'iconfont-pause'
   | 'iconfont-people'
   | 'iconfont-person'
+  | 'iconfont-person-raisedarms'
   | 'iconfont-phone-contact'
   | 'iconfont-photo-library'
   | 'iconfont-pin'
@@ -1036,6 +1038,7 @@ export type IconType =
   | 'iconfont-timer'
   | 'iconfont-trash'
   | 'iconfont-tweet'
+  | 'iconfont-typing'
   | 'iconfont-unhide'
   | 'iconfont-unlock'
   | 'iconfont-upload'
@@ -9149,6 +9152,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-campfire-out': {
+    charCode: 0xe9b4,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-caret-down': {
     charCode: 0xe90c,
     gridSize: 8,
@@ -9669,6 +9677,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-person-raisedarms': {
+    charCode: 0xe9b6,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-phone-contact': {
     charCode: 0xe97b,
     gridSize: 16,
@@ -9886,6 +9899,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-tweet': {
     charCode: 0xe965,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-typing': {
+    charCode: 0xe9b7,
     gridSize: 16,
     isFont: true,
   },
