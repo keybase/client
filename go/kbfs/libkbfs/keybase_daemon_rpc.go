@@ -455,6 +455,10 @@ func (s *notifyServiceHandler) HTTPSrvInfoUpdate(_ context.Context, info keybase
 	return nil
 }
 
+func (s *notifyServiceHandler) HandleKeybaseLink(_ context.Context, _ string) error {
+	return nil
+}
+
 // newNotifyServiceHandler makes a new NotifyServiceHandler
 func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifyServiceInterface {
 	s := &notifyServiceHandler{config: config, log: log}

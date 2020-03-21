@@ -239,10 +239,8 @@ export type State = {
   readonly paymentStatusMap: Map<Wallet.PaymentID, _Message.ChatPaymentInfo>
   readonly pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   readonly prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
-  readonly previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   readonly quote?: QuoteInfo // last quoted message,
   readonly replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
-  readonly selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
   readonly smallTeamsExpanded: boolean // if we're showing all small teams,
   readonly staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/teams'
 import * as Kb from '../../../../../common-adapters'
+import * as Container from '../../../../../util/container'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
 import flags from '../../../../../util/feature-flags'
@@ -15,7 +16,7 @@ export type RowProps = {
   onChat: () => void
   onIgnoreRequest: () => void
   onOpenProfile: (u: string) => void
-  teamname: string
+  teamID: Types.TeamID
   username: string
 }
 
@@ -73,20 +74,19 @@ const TeamRequestRowOld = (props: Props) => {
 }
 
 const TeamRequestRowNew = (props: Props) => {
-  const {ctime, fullName, username, onAccept, onOpenProfile} = props
+  const {ctime, fullName, username, onAccept, onOpenProfile, teamID} = props
+
+  const isNew = Container.useSelector(s => s.teams.newTeamRequests.get(teamID)?.has(username) ?? false)
 
   const {showingPopup, setShowingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
-      header={{
-        title: 'header',
-        view: (
-          <MenuHeader
-            username={username}
-            fullName={fullName ? fullName : undefined}
-            label={`Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
-          />
-        ),
-      }}
+      header={
+        <MenuHeader
+          username={username}
+          fullName={fullName ? fullName : undefined}
+          label={`Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
+        />
+      }
       items={[
         'Divider',
         {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
@@ -117,11 +117,13 @@ const TeamRequestRowNew = (props: Props) => {
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
             <Kb.Box2 direction="horizontal">
-              <Kb.Meta
-                title="please decide"
-                style={styleCharm}
-                backgroundColor={Styles.globalColors.orange}
-              />
+              {isNew && (
+                <Kb.Meta
+                  title="please decide"
+                  style={styleCharm}
+                  backgroundColor={Styles.globalColors.orange}
+                />
+              )}
               {Styles.isMobile ? (
                 isLargeScreen && (
                   <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>

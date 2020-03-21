@@ -97,7 +97,7 @@ export default connect(
       onChat: dispatchProps.onChat,
       onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
       onOpenProfile: dispatchProps.onOpenProfile,
-      teamname: stateProps.teamname,
+      teamID: ownProps.teamID,
       username: ownProps.username,
     }
   }

@@ -51,17 +51,17 @@ mkdir "$work_dir"  # no -p, it's intentionally an error if this exists
 # because the host might have a different GnuPG version than the container, and
 # GnuPG 2.1 broke back-compat. Sigh. As with S3 above, we need to share the key
 # in a directory rather than just a file, for non-Linux support.
-code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
+code_signing_fingerprint="$("$here/fingerprint.sh")"
 echo "Exporting the Keybase code signing key ($code_signing_fingerprint)..."
 gpg_tempdir="$(mktemp -d)"
 gpg_tempfile="$gpg_tempdir/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Make sure the Docker image is built.
-image=keybase_packaging_v28
-if [ -z "$(docker images -q "$image")" ] ; then
+image=keybase_packaging_v29
+if [ -z "$(sudo docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
-  docker build -t "$image" "$clientdir/packaging/linux"
+  sudo docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
 # Run the docker job in interactive mode if we're actually talking to a
@@ -78,16 +78,17 @@ else
 fi
 
 echo '=== docker ==='
-docker run "${interactive_args[@]:+${interactive_args[@]}}" \
+sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$gpg_tempdir:/GPG" \
   -v "$ssh_temp:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
-  -e BUCKET_NAME \
-  -e KEYBASE_RELEASE \
-  -e KEYBASE_NIGHTLY \
-  -e KEYBASE_TEST \
+  -e "BUCKET_NAME=${BUCKET_NAME:-}" \
+  -e "KEYBASE_RELEASE=${KEYBASE_RELEASE:-}" \
+  -e "KEYBASE_NIGHTLY=${KEYBASE_NIGHTLY:-}" \
+  -e "KEYBASE_TEST=${KEYBASE_TEST:-}" \
+  -e "KEYBASE_TEST_CODE_SIGNING_KEY=${KEYBASE_TEST_CODE_SIGNING_KEY:-}" \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

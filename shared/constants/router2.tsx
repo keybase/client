@@ -17,9 +17,8 @@ export const _setNavigator = (navigator: Navigator) => {
 export const _getNavigator = () => {
   return _navigator
 }
-// Private API only used by config sagas
 
-const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavState> => {
+export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavState> => {
   if (!s) return arr
   // @ts-ignore TODO this next line seems incorrect
   if (!s.routes) return s
@@ -29,6 +28,7 @@ const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavState> =>
   return [...arr, route]
 }
 
+// Private API only used by config sagas
 const findModalRoute = (s: NavState) => {
   if (!s) return []
   const loggedInOut = s.routes && s.routes[s.index]

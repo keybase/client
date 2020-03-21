@@ -75,7 +75,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
     ),
   _onDeleteMessageHistory: (message: Types.Message) => {
-    dispatch(Chat2Gen.createNavigateToThread())
+    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey: message.conversationIDKey, reason: 'misc'}))
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],

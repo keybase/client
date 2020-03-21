@@ -174,7 +174,7 @@ export default Container.connect(
       yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
     const canCreateChannels = yourOperations.createChannel
 
-    const selectedChatID = state.chat2.selectedConversation
+    const selectedChatID = ChatConstants.getSelectedConversation()
 
     return {
       _teamID: teamID,

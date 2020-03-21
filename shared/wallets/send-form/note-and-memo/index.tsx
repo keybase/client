@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {backgroundImageFn} from '../../../common-adapters/emoji'
-import {Picker} from 'emoji-mart'
+import {EmojiPickerDesktop} from '../../../chat/conversation/messages/react-button/emoji-picker/container'
 
 type SecretNoteProps = {
   secretNote: string // Initial value only
@@ -115,13 +114,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
                 position="bottom right"
                 onHidden={() => this.setState({emojiPickerOpen: false})}
               >
-                <Picker
-                  autoFocus={true}
-                  emoji="star-struck"
-                  title="reacjibase"
-                  onClick={this._emojiPickerOnClick}
-                  backgroundImageFn={backgroundImageFn}
-                />
+                <EmojiPickerDesktop onPick={this._insertEmoji} onDidPick={this._emojiPickerToggle} />
               </Kb.Overlay>
             )}
           </Kb.Box2>

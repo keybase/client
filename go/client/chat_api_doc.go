@@ -132,4 +132,10 @@ List members of a conversation from a topic name:
 
 List members of a conversation from a conversation id:
    {"method": "listmembers", "params": {"options": {"conversation_id": "..."}}}
+
+Add an emoji:
+    {"method": "emojiadd", "params": {"options": {"channel": {"name": "mikem"}, "alias": "mask-parrot2", "filename": "/Users/mike/Downloads/mask-parrot.gif"}}}
+
+List emojis available to send:
+    {"method": "emojilist"}'
 `

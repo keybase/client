@@ -45,6 +45,8 @@ type handlerTracker struct {
 	unpinV1             int
 	getDeviceInfoV1     int
 	listMembersV1       int
+	emojiAddV1          int
+	emojiListV1         int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -195,6 +197,16 @@ func (h *handlerTracker) ListMembersV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) EmojiAddV1(context.Context, Call, io.Writer) error {
+	h.emojiAddV1++
+	return nil
+}
+
+func (h *handlerTracker) EmojiListV1(context.Context, Call, io.Writer) error {
+	h.emojiListV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -321,6 +333,14 @@ func (c *chatEcho) GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Repl
 }
 
 func (c *chatEcho) ListMembersV1(context.Context, listMembersOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiAddV1(context.Context, emojiAddOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiListV1(context.Context) Reply {
 	return Reply{Result: echoOK}
 }
 

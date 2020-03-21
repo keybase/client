@@ -17,13 +17,13 @@ client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 
 echo "================================="
 echo "================================="
-if [ -v KEYBASE_TEST ]; then
+if [ -n "$KEYBASE_TEST" ]; then
     default_bucket_name="tests.keybase.io"
     echo "= This build+push is a TEST. ="
-elif [ -v KEYBASE_NIGHTLY ]; then
+elif [ -n "$KEYBASE_NIGHTLY" ]; then
     default_bucket_name="tests.keybase.io"
     echo "= This build+push is a NIGHTLY. ="
-elif [ -v KEYBASE_RELEASE ]; then
+elif [ -n "$KEYBASE_RELEASE" ]; then
     default_bucket_name="prerelease.keybase.io"
     echo "= This build+push is a RELEASE. ="
 else
@@ -119,7 +119,7 @@ copy_bins() {
     another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
     another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
 }
-if [ -v KEYBASE_RELEASE ]; then
+if [ -n "$KEYBASE_RELEASE" ]; then
     copy_bins "$BUCKET_NAME"
 fi
 
@@ -141,12 +141,12 @@ GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
   echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
 NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
-if [ -v KEYBASE_NIGHTLY ] ; then
+if [ -n "$KEYBASE_NIGHTLY" ] ; then
     copy_bins "$NIGHTLY_DIR"
     copy_metadata "$NIGHTLY_DIR"
 fi
 
-if [ -v KEYBASE_RELEASE ] ; then
+if [ -n "$KEYBASE_RELEASE" ] ; then
     echo "Updating AUR packages"
     "$here/arch/update_aur_packages.sh" "$build_dir"
 fi

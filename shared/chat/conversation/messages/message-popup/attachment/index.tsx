@@ -103,21 +103,19 @@ const AttachmentPopupMenu = (props: Props) => {
     return arr
   }, [])
 
-  const header = {
-    title: 'header',
-    view: (
-      <MessagePopupHeader
-        author={props.author}
-        deviceName={props.deviceName}
-        deviceRevokedAt={props.deviceRevokedAt}
-        deviceType={props.deviceType}
-        isLast={!items.length}
-        isLocation={false}
-        timestamp={props.timestamp}
-        yourMessage={props.yourMessage}
-      />
-    ),
-  }
+  const header = (
+    <MessagePopupHeader
+      author={props.author}
+      deviceName={props.deviceName}
+      deviceRevokedAt={props.deviceRevokedAt}
+      deviceType={props.deviceType}
+      isLast={!items.length}
+      isLocation={false}
+      timestamp={props.timestamp}
+      yourMessage={props.yourMessage}
+    />
+  )
+
   return (
     <FloatingMenu
       attachTo={props.attachTo}

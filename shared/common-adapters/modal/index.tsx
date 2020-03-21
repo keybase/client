@@ -22,6 +22,8 @@ type HeaderProps = {
   icon?: React.ReactNode // above center
   leftButton?: React.ReactNode
   rightButton?: React.ReactNode
+  subTitle?: React.ReactNode // center; be sure to lineClamp any long / dynamic strings
+  subTitleAbove?: boolean
   title?: React.ReactNode // center; be sure to lineClamp any long / dynamic strings
   style?: Styles.StylesCrossPlatform
 }
@@ -118,6 +120,18 @@ const Header = (props: HeaderProps) => {
   const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
 
+  let subTitle
+  if (props.subTitle) {
+    subTitle =
+      typeof props.subTitle === 'string' ? (
+        <Kb.Text type="BodyTiny" lineClamp={1} center={true}>
+          {props.subTitle}
+        </Kb.Text>
+      ) : (
+        props.subTitle
+      )
+  }
+
   const showTitle = measured || !Styles.isMobile
   const useMeasuredStyles = measured && Styles.isMobile
   return (
@@ -152,6 +166,7 @@ const Header = (props: HeaderProps) => {
         </Kb.Box2>
         {showTitle && (
           <Kb.Box style={useMeasuredStyles ? styles.measured : undefined}>
+            {!!subTitle && props.subTitleAbove && subTitle}
             {typeof props.title === 'string' ? (
               <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
                 {props.title}
@@ -159,6 +174,7 @@ const Header = (props: HeaderProps) => {
             ) : (
               props.title
             )}
+            {!!subTitle && !props.subTitleAbove && subTitle}
           </Kb.Box>
         )}
         <Kb.Box2

@@ -4,7 +4,7 @@ import {Color, StylesCrossPlatform} from '../styles'
 export type Props = {
   badgeNumber?: number
   hideBackLabel?: boolean
-  onClick?: () => void // if undefined will give you a navigte up
+  onClick?: () => void // if undefined will give you a navigate up
   disabled?: boolean
   onPress?: void
   iconColor?: Color

@@ -113,12 +113,15 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(tcAlice.T, err)
 	t.Log("alice and bob follow each other")
 
+	aliceName := alice.User.GetName()
+	bobName := bob.User.GetName()
+
 	var vouches []keybase1.WotVouch
-	vouches, err = libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Empty(t, vouches)
 	t.Log("alice has no pending vouches")
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
 	require.NoError(t, err)
 	require.Empty(t, vouches)
 	t.Log("bob sees no vouches for Alice")
@@ -135,7 +138,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("bob vouches for alice without confidence")
 
-	vouches, err = libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Len(t, vouches, 1)
 	bobVouch := vouches[0]
@@ -145,10 +148,14 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	t.Log("alice sees one pending vouch")
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
 	require.NoError(t, err)
 	require.Empty(t, vouches)
 	t.Log("bob sees no vouches for Alice")
+	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName, Voucher: bobName})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(vouches))
+	t.Log("bob sees pending vouch for Alice")
 
 	tcCharlie := SetupEngineTest(t, "wot")
 	defer tcCharlie.Cleanup()
@@ -161,6 +168,8 @@ func TestWebOfTrustPending(t *testing.T) {
 	err = charlie.LoadUser(tcCharlie)
 	require.NoError(tcCharlie.T, err)
 	t.Log("alice and charlie follow each other")
+
+	charlieName := charlie.User.GetName()
 
 	vouchTexts = []string{"alice is wondibar and doug agrees"}
 	arg = &WotVouchArg{
@@ -180,7 +189,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	_, err = mctxA.G().LocalDb.Nuke()
 	require.NoError(t, err)
 
-	vouches, err = libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Len(t, vouches, 2)
 	require.EqualValues(t, bobVouch, vouches[0])
@@ -188,6 +197,13 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, charlieVouch.Status)
 	require.Equal(t, confidence, *charlieVouch.Confidence)
 	t.Log("alice sees two pending vouches")
+
+	// alice gets just charlie's vouch using FetchWotVouches
+	vouches, err = libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{Vouchee: aliceName, Voucher: charlieName})
+	require.NoError(t, err)
+	require.Len(t, vouches, 1)
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, vouches[0].Status)
+	t.Log("alice sees charlie's pending vouch")
 }
 
 func TestWebOfTrustAccept(t *testing.T) {
@@ -210,6 +226,8 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.NoError(tcAlice.T, err)
 	t.Log("alice and bob follow each other")
 
+	aliceName := alice.User.GetName()
+
 	vouchTexts := []string{"alice is wondibar and doug agrees"}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
@@ -221,7 +239,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("bob vouches for alice with confidence")
 
-	vouches, err := libkb.FetchMyWot(mctxA)
+	vouches, err := libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Len(t, vouches, 1)
 	bobVouch := vouches[0]
@@ -240,7 +258,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("alice accepts")
 
-	vouches, err = libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
 	vouch := vouches[0]
@@ -249,7 +267,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.Equal(t, vouchTexts, vouch.VouchTexts)
 	require.EqualValues(t, confidence, *vouch.Confidence)
 
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
 	vouch = vouches[0]
@@ -279,6 +297,8 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.NoError(tcAlice.T, err)
 	t.Log("alice and bob follow each other")
 
+	aliceName := alice.User.GetName()
+
 	vouchTexts := []string{"alice is wondibar"}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
@@ -290,7 +310,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("bob vouches for alice")
 
-	vouches, err := libkb.FetchMyWot(mctxA)
+	vouches, err := libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Len(t, vouches, 1)
 	bobVouch := vouches[0]
@@ -309,7 +329,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("alice rejects it")
 
-	vouches, err = libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
 	vouch := vouches[0]
@@ -320,7 +340,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	t.Log("alice can see it as rejected")
 
-	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
 	require.NoError(t, err)
 	require.Equal(t, 0, len(vouches))
 	t.Log("bob cannot see it")
@@ -360,7 +380,7 @@ func TestWebOfTrustSigBug(t *testing.T) {
 	require.NoError(t, err)
 
 	// alice rejects
-	vouches, err := libkb.FetchMyWot(mctxA)
+	vouches, err := libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	require.Len(t, vouches, 1)
 	bobVouch := vouches[0]
@@ -382,7 +402,7 @@ func TestWebOfTrustSigBug(t *testing.T) {
 	require.NoError(t, err)
 
 	// this attestation is correctly recognized as proposed
-	vouches, err = libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchWotVouches(mctxA, libkb.FetchWotVouchesArg{})
 	require.NoError(t, err)
 	bobVouch = vouches[0]
 	require.Equal(t, bobVouch.Status, keybase1.WotStatusType_PROPOSED)

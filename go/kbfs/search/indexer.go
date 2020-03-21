@@ -30,19 +30,23 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"github.com/shirou/gopsutil/mem"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 const (
-	textFileType      = "kbfsTextFile"
-	htmlFileType      = "kbfsHTMLFile"
-	kvstoreNamePrefix = "kbfs"
-	bleveIndexType    = "upside_down"
-	fsIndexStorageDir = "kbfs_index"
-	docDbDir          = "docdb"
-	nameDocIDPrefix   = "name_"
-	maxIndexBatchSize = 100 * 1024 * 1024 // 100 MB
+	textFileType          = "kbfsTextFile"
+	htmlFileType          = "kbfsHTMLFile"
+	kvstoreNamePrefix     = "kbfs"
+	bleveIndexType        = "upside_down"
+	fsIndexStorageDir     = "kbfs_index"
+	docDbDir              = "docdb"
+	nameDocIDPrefix       = "name_"
+	defaultIndexBatchSize = 10 * 1024 * 1024 // 10 MB
+	indexBatchSizeFactor  = 500
+	minIndexBatchSize     = 1 * 1024 * 1024   // 1 MB
+	maxIndexBatchSize     = 100 * 1024 * 1024 // 100 MB
 )
 
 const (
@@ -97,6 +101,7 @@ type Indexer struct {
 	cancelCtx      context.CancelFunc
 	fs             billy.Filesystem
 	currBatch      *bleve.Batch
+	currBatchSize  uint64
 	batchFns       []func() error
 }
 
@@ -502,6 +507,29 @@ func (i *Indexer) refreshBatchLocked(ctx context.Context) error {
 		return err
 	}
 	i.currBatch = i.index.NewBatch()
+
+	// Try to scale the batch size appropriately, given the current
+	// available memory on the system.
+	i.currBatchSize = defaultIndexBatchSize
+	vmstat, err := mem.VirtualMemory()
+	if err == nil {
+		// Allow large batches only if there is plenty of available
+		// memory.  Bleve allocates a lot of memory per batch (I think
+		// maybe 100x+ the batch size), so we need lots of spare
+		// overhead.
+		allowable := vmstat.Available / indexBatchSizeFactor
+		if allowable > maxIndexBatchSize {
+			allowable = maxIndexBatchSize
+		} else if allowable < minIndexBatchSize {
+			allowable = minIndexBatchSize
+		}
+
+		i.log.CDebugf(
+			ctx, "Setting the indexing batch size to %d "+
+				"(available mem = %d)", allowable, vmstat.Available)
+		i.currBatchSize = allowable
+	}
+
 	return nil
 }
 
@@ -516,7 +544,7 @@ func (i *Indexer) currBatchLocked(ctx context.Context) (*bleve.Batch, error) {
 		return nil, errors.New("No current batch")
 	}
 
-	if i.currBatch.TotalDocsSize() > maxIndexBatchSize {
+	if i.currBatch.TotalDocsSize() > i.currBatchSize {
 		err := i.refreshBatchLocked(ctx)
 		if err != nil {
 			return nil, err

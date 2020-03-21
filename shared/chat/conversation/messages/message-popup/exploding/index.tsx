@@ -164,14 +164,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
 }
 
 const ExplodingPopupMenu = (props: Props) => {
-  const header = {
-    style: {
-      paddingBottom: 0,
-      paddingTop: 24,
-    },
-    title: 'header',
-    view: <ExplodingPopupHeader {...props} />,
-  }
+  const header = <ExplodingPopupHeader {...props} />
 
   return (
     <Kb.FloatingMenu

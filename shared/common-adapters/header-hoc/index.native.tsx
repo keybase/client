@@ -129,20 +129,22 @@ export const LeftAction = ({
         {leftActionText || customCancelText || 'Cancel'}
       </Text>
     ) : (
-      <BackButton
-        badgeNumber={badgeNumber}
-        hideBackLabel={hideBackLabel}
-        iconColor={
-          customIconColor ||
-          (disabled
-            ? Styles.globalColors.black_10
-            : theme === 'dark'
-            ? Styles.globalColors.white
-            : Styles.globalColors.black_50)
-        }
-        style={styles.action}
-        onClick={onLeftAction}
-      />
+      (onLeftAction || leftAction === 'back') && (
+        <BackButton
+          badgeNumber={badgeNumber}
+          hideBackLabel={hideBackLabel}
+          iconColor={
+            customIconColor ||
+            (disabled
+              ? Styles.globalColors.black_10
+              : theme === 'dark'
+              ? Styles.globalColors.white
+              : Styles.globalColors.black_50)
+          }
+          style={styles.action}
+          onClick={onLeftAction ?? undefined}
+        />
+      )
     )}
   </Box>
 )

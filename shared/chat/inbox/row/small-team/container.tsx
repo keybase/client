@@ -12,6 +12,7 @@ type OwnProps = {
   isTeam: boolean
   navKey: string
   name: string
+  selected: boolean
   snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   time: number
@@ -40,19 +41,19 @@ export default Container.namedConnect(
       hasBadge: Constants.getHasBadge(state, _conversationIDKey),
       hasUnread: Constants.getHasUnread(state, _conversationIDKey),
       isMuted: Constants.isMuted(state, _conversationIDKey),
-      isSelected: !Container.isPhone && Constants.getSelectedConversation(state) === _conversationIDKey,
+      isSelected: ownProps.selected,
       isTypingSnippet,
       snippet,
       snippetDecoration,
       youAreReset,
     }
   },
-  (dispatch: Container.TypedDispatch, {conversationIDKey, navKey}: OwnProps) => ({
+  (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
     onHideConversation: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onMuteConversation: (isMuted: boolean) =>
       dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted})),
     onSelectConversation: () =>
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxSmall'})),
+      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const isSelected = stateProps.isSelected
