@@ -1,5 +1,4 @@
 import * as Kb from '../common-adapters'
-import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import * as React from 'react'
@@ -22,7 +21,6 @@ import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
-import debounce from 'lodash/debounce'
 
 /**
  * How this works:
@@ -265,16 +263,8 @@ const createElectronApp = Component => {
       })
     }
 
-    // debounce this so we don't persist a route that can crash and then keep them in some crash loop
-    private persistRoute = debounce(() => {
-      this.props.persistRoute(Constants.getVisiblePath())
-    }, 1000)
-    _onNavigationStateChange(_prevNav: any, _nav: any, _action: any) {
-      // maybe plumb this through later but for now just persist
-      // if (typeof this.props.onNavigationStateChange === 'function') {
-      // this.props.onNavigationStateChange(prevNav, nav, action)
-      // }
-      this.persistRoute()
+    _onNavigationStateChange(prevNav: any, nav: any, action: any) {
+      this.props.onNavigationStateChange(prevNav, nav, action)
     }
 
     dispatch = (action: any) => {

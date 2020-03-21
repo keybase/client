@@ -37,6 +37,10 @@ func (i *id3FakeUIRouter) GetIdentify3UI(MetaContext) (keybase1.Identify3UiInter
 	return &i.ui, nil
 }
 
+func (i *id3FakeUIRouter) WaitForUIType(uiKind UIKind, timeout time.Duration) bool {
+	return false
+}
+
 type id3FakeUI struct {
 	timeOuts []keybase1.Identify3GUIID
 }

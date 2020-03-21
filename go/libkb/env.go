@@ -199,6 +199,8 @@ func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
 }
 
+func (n NullConfiguration) GetAndroidInstallReferrerChecked() bool { return false }
+
 type TestParameters struct {
 	ConfigFilename   string
 	Home             string
@@ -2076,6 +2078,10 @@ func GetPlatformString() string {
 func IsMobilePlatform() bool {
 	s := GetPlatformString()
 	return (s == "ios" || s == "android" || s == "ipad")
+}
+
+func IsAndroid() bool {
+	return GetPlatformString() == "android"
 }
 
 func (e *Env) AllowPTrace() bool {

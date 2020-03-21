@@ -251,6 +251,7 @@ dependencies {
     implementation "com.evernote:android-job:1.2.6"
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation project(':keybaselib')
+    implementation 'com.android.installreferrer:installreferrer:1.0'
 
     addUnimodulesDependencies([modulesPaths: ['../../node_modules']])
 }

@@ -70,7 +70,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
     } else {
       dispatch(RouteTreeGen.createClearModals())
       dispatch(
-        Chat2Gen.createSelectConversation({
+        Chat2Gen.createNavigateToThread({
           conversationIDKey,
           reason: isFromShareExtension ? 'extension' : 'files',
         })
@@ -122,8 +122,7 @@ const DesktopSendAttachmentToChat = (props: Props) => {
       })
     )
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'files'}))
-    dispatch(Chat2Gen.createNavigateToThread())
+    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
   }
   return (
     <DesktopSendAttachmentToChatRender

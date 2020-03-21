@@ -66,7 +66,7 @@ func TestWotNotifications(t *testing.T) {
 	bobAccepts := func() {
 		cli := &client.CmdWotAccept{
 			Contextified: libkb.NewContextified(bob.tc.G),
-			Username:     alice.username,
+			Voucher:      alice.username,
 		}
 		err := cli.Run()
 		require.NoError(t, err)
@@ -91,7 +91,7 @@ func TestWotNotifications(t *testing.T) {
 	// bob rejects - alice gets a notification
 	cliR := &client.CmdWotReject{
 		Contextified: libkb.NewContextified(bob.tc.G),
-		Username:     alice.username,
+		Voucher:      alice.username,
 	}
 	err = cliR.Run()
 	require.NoError(t, err)

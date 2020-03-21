@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	identify3 "github.com/keybase/client/go/identify3"
 	libkb "github.com/keybase/client/go/libkb"
@@ -157,6 +158,28 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 		Contextified: libkb.NewContextified(u.G()),
 	}
 	return ret, nil
+}
+
+// WaitForClientType returns true if a ui of the specified type is registered,
+// or waits until timeout for such ui to register and returns false if this does
+// not happen.
+func (u *UIRouter) WaitForUIType(uiKind libkb.UIKind, timeout time.Duration) bool {
+	if x, _ := u.getUI(uiKind); x != nil {
+		return true
+	}
+	ticker := time.NewTicker(time.Second)
+	deadline := time.After(timeout)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			if x, _ := u.getUI(uiKind); x != nil {
+				return true
+			}
+		case <-deadline:
+			return false
+		}
+	}
 }
 
 func (u *UIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {

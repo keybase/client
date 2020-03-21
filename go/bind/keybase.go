@@ -58,6 +58,36 @@ type NativeVideoHelper interface {
 	Duration(filename string) int
 }
 
+// NativeInstallReferrerListener is implemented in Java on Android.
+type NativeInstallReferrerListener interface {
+	// StartInstallReferrerListener is used to get referrer information from the
+	// google play store on Android (to implement deferred deep links). This is
+	// asynchronous (due to the underlying play store api being so): pass it a
+	// callback function which will be called with the referrer string once it
+	// is available (or an empty string in case of errors).
+	StartInstallReferrerListener(callback StringReceiver)
+}
+
+type StringReceiver interface {
+	CallbackWithString(s string)
+}
+
+// InstallReferrerListener is a wrapper around NativeInstallReferrerListener to
+// work around gomobile/gobind limitations while preventing import cycles.
+type InstallReferrerListener struct {
+	n NativeInstallReferrerListener
+}
+
+func (i InstallReferrerListener) StartInstallReferrerListener(callback service.StringReceiver) {
+	i.n.StartInstallReferrerListener(callback)
+}
+
+var _ service.InstallReferrerListener = InstallReferrerListener{}
+
+func newInstallReferrerListener(n NativeInstallReferrerListener) service.InstallReferrerListener {
+	return InstallReferrerListener{n: n}
+}
+
 type videoHelper struct {
 	nvh NativeVideoHelper
 }
@@ -121,9 +151,9 @@ func setInited() {
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
-	mobileOsVersion string, isIPad bool) {
+	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -132,7 +162,7 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 // Init runs the Keybase services
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
-	mobileOsVersion string, isIPad bool) (err error) {
+	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener) (err error) {
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
@@ -227,6 +257,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		return err
 	}
 	kbSvc.SetupChatModules(nil)
+	if installReferrerListener != nil {
+		kbSvc.SetInstallReferrerListener(newInstallReferrerListener(installReferrerListener))
+	}
 	kbSvc.RunBackgroundOperations(uir)
 	kbChatCtx = kbSvc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)

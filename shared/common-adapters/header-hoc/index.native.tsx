@@ -124,12 +124,12 @@ export const LeftAction = ({
   customIconColor,
 }: LeftActionProps): React.ReactElement => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
-    {onLeftAction &&
-      (leftAction === 'cancel' ? (
-        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
-          {leftActionText || customCancelText || 'Cancel'}
-        </Text>
-      ) : (
+    {onLeftAction && leftAction === 'cancel' ? (
+      <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+        {leftActionText || customCancelText || 'Cancel'}
+      </Text>
+    ) : (
+      (onLeftAction || leftAction === 'back') && (
         <BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
@@ -142,9 +142,10 @@ export const LeftAction = ({
               : Styles.globalColors.black_50)
           }
           style={styles.action}
-          onClick={onLeftAction}
+          onClick={onLeftAction ?? undefined}
         />
-      ))}
+      )
+    )}
   </Box>
 )
 
