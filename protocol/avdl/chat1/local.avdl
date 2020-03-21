@@ -61,6 +61,7 @@ protocol local {
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
     union { null, LiveLocation } liveLocation;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageConversationMetadata {
@@ -222,6 +223,8 @@ protocol local {
      string body; // emoji reaction :+1:
      @mpackkey("t") @jsonkey("t")
      union { null, gregor1.UID } targetUID;
+     @mpackkey("e") @jsonkey("e")
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageSendPayment {

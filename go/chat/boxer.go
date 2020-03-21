@@ -1316,14 +1316,18 @@ func (b *Boxer) getEmojis(ctx context.Context, conv types.UnboxConversationInfo,
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
-		emojis, err := b.G().EmojiSource.Harvest(ctx, body.Text().Body, uid, conv.GetConvID())
+		text := body.Text()
+		emojis, err := b.G().EmojiSource.Harvest(ctx, text.Body, uid, conv.GetConvID(), text.Emojis,
+			types.EmojiSourceHarvestModeInbound)
 		if err != nil {
 			return nil, NewTransientUnboxingError(err)
 		}
 		b.Debug(ctx, "getEmojis: found %d emojis (text)", len(emojis))
 		return emojis, nil
 	case chat1.MessageType_REACTION:
-		emojis, err := b.G().EmojiSource.Harvest(ctx, body.Reaction().Body, uid, conv.GetConvID())
+		reaction := body.Reaction()
+		emojis, err := b.G().EmojiSource.Harvest(ctx, reaction.Body, uid, conv.GetConvID(), reaction.Emojis,
+			types.EmojiSourceHarvestModeInbound)
 		if err != nil {
 			return nil, NewTransientUnboxingError(err)
 		}

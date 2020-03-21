@@ -381,6 +381,13 @@ type ParticipantResult struct {
 	Err  error
 }
 
+type EmojiSourceHarvestMode int
+
+const (
+	EmojiSourceHarvestModeOutbound EmojiSourceHarvestMode = iota
+	EmojiSourceHarvestModeInbound
+)
+
 type DummyAttachmentFetcher struct{}
 
 var _ AttachmentFetcher = (*DummyAttachmentFetcher)(nil)

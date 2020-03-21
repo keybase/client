@@ -197,13 +197,14 @@ func (o LiveLocation) DeepCopy() LiveLocation {
 }
 
 type MessageText struct {
-	Body         string             `codec:"body" json:"body"`
-	Payments     []TextPayment      `codec:"payments" json:"payments"`
-	ReplyTo      *MessageID         `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
-	ReplyToUID   *gregor1.UID       `codec:"replyToUID,omitempty" json:"replyToUID,omitempty"`
-	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
-	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
-	LiveLocation *LiveLocation      `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
+	Body         string                    `codec:"body" json:"body"`
+	Payments     []TextPayment             `codec:"payments" json:"payments"`
+	ReplyTo      *MessageID                `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	ReplyToUID   *gregor1.UID              `codec:"replyToUID,omitempty" json:"replyToUID,omitempty"`
+	UserMentions []KnownUserMention        `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention        `codec:"teamMentions" json:"teamMentions"`
+	LiveLocation *LiveLocation             `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
+	Emojis       map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -263,6 +264,18 @@ func (o MessageText) DeepCopy() MessageText {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.LiveLocation),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -1080,9 +1093,10 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 }
 
 type MessageReaction struct {
-	MessageID MessageID    `codec:"m" json:"m"`
-	Body      string       `codec:"b" json:"b"`
-	TargetUID *gregor1.UID `codec:"t,omitempty" json:"t,omitempty"`
+	MessageID MessageID                 `codec:"m" json:"m"`
+	Body      string                    `codec:"b" json:"b"`
+	TargetUID *gregor1.UID              `codec:"t,omitempty" json:"t,omitempty"`
+	Emojis    map[string]HarvestedEmoji `codec:"e" json:"e"`
 }
 
 func (o MessageReaction) DeepCopy() MessageReaction {
@@ -1096,6 +1110,18 @@ func (o MessageReaction) DeepCopy() MessageReaction {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TargetUID),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 

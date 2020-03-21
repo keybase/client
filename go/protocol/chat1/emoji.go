@@ -9,6 +9,12 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+type EmojiMessageVersion uint
+
+func (o EmojiMessageVersion) DeepCopy() EmojiMessageVersion {
+	return o
+}
+
 type EmojiLoadSourceTyp int
 
 const (
@@ -102,14 +108,16 @@ func (e EmojiRemoteSourceTyp) String() string {
 }
 
 type EmojiMessage struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Version EmojiMessageVersion `codec:"version" json:"version"`
+	ConvID  ConversationID      `codec:"convID" json:"convID"`
+	MsgID   MessageID           `codec:"msgID" json:"msgID"`
 }
 
 func (o EmojiMessage) DeepCopy() EmojiMessage {
 	return EmojiMessage{
-		ConvID: o.ConvID.DeepCopy(),
-		MsgID:  o.MsgID.DeepCopy(),
+		Version: o.Version.DeepCopy(),
+		ConvID:  o.ConvID.DeepCopy(),
+		MsgID:   o.MsgID.DeepCopy(),
 	}
 }
 

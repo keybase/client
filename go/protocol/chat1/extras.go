@@ -3085,3 +3085,11 @@ func (s SnippetDecoration) ToEmoji() string {
 		return ""
 	}
 }
+
+func (r EmojiRemoteSource) IsMessage() bool {
+	typ, err := r.Typ()
+	if err != nil {
+		return false
+	}
+	return typ == EmojiRemoteSourceTyp_MESSAGE
+}
