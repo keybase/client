@@ -29,8 +29,8 @@ type MetaPlusMembership = {
 
 const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
   const subteamsAll = [...Constants.getTeamDetails(state, teamID).subteams.values()]
-  let subteamsNotIn: Array<Types.TeamMeta> = []
-  let subteamsIn: Array<MetaPlusMembership> = []
+  const subteamsNotIn: Array<Types.TeamMeta> = []
+  const subteamsIn: Array<MetaPlusMembership> = []
   subteamsAll.unshift(teamID)
   for (const subteamID of subteamsAll) {
     const meta = Constants.getTeamMeta(state, subteamID)
@@ -162,6 +162,7 @@ type SubteamNotInRowProps = {
 }
 const SubteamNotInRow = (props: SubteamNotInRowProps) => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
   const onAdd = (role: Types.TeamRoleType) =>
     dispatch(
       TeamsGen.createAddToTeam({
@@ -170,6 +171,15 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
         users: [{assertion: props.username, role}],
       })
     )
+  const openTeam = React.useCallback(
+    () =>
+      dispatch(
+        nav.safeNavigateAppendPayload({
+          path: [{props: {teamID: props.subteam.id}, selected: 'team'}],
+        })
+      ),
+    [props.subteam.id, dispatch, nav]
+  )
 
   const disabledRoles = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, props.subteam.id, props.username)
@@ -184,7 +194,11 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      style={Styles.collapseStyles([styles.row, styles.rowCollapsedFixedHeight])}
+      style={Styles.collapseStyles([
+        styles.row,
+        styles.rowCollapsedFixedHeight,
+        props.idx === 0 && styles.rowFirst,
+      ])}
     >
       {/* Placed here so that it doesn't generate any gaps */}
       <TeamDetailsSubscriber teamID={props.subteam.id} />
@@ -214,7 +228,9 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
                 alignItems="flex-start"
                 style={Styles.collapseStyles([styles.membershipTeamText, styles.contentCollapsedFixedHeight])}
               >
-                <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
+                <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+                  {props.subteam.teamname}
+                </Kb.Text>
                 <Kb.Text type="BodySmall">
                   {memberCount.toLocaleString()} {pluralize('member', memberCount)}
                 </Kb.Text>
@@ -241,7 +257,6 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-  //return <Kb.ListItem2 icon={icon} body={body} action={action} firstItem={props.idx === 0} type="Large" />
 }
 
 type SubteamInRowProps = SubteamNotInRowProps & {
@@ -261,13 +276,23 @@ const SubteamInRow = (props: SubteamInRowProps) => {
         path: [
           {
             props: {teamID: props.subteam.id, username: props.username},
-            selected: 'teamsAddMemberToChannels',
+            selected: 'teamAddToChannels',
           },
         ],
       })
     )
   const onKickOut = () =>
     dispatch(TeamsGen.createRemoveMember({teamID: props.subteam.id, username: props.username}))
+
+  const openTeam = React.useCallback(
+    () =>
+      dispatch(
+        nav.safeNavigateAppendPayload({
+          path: [{props: {teamID: props.subteam.id}, selected: 'team'}],
+        })
+      ),
+    [props.subteam.id, dispatch, nav]
+  )
 
   const {expanded, setExpanded} = props
 
@@ -283,6 +308,9 @@ const SubteamInRow = (props: SubteamInRowProps) => {
   const changingRole = Container.useAnyWaiting(
     Constants.editMembershipWaitingKey(props.subteam.id, props.username)
   )
+  const loadingActivity = Container.useAnyWaiting(
+    Constants.loadSubteamActivityWaitingKey(props.subteam.id, props.username)
+  )
 
   const channelsJoined = Array.from(channels)
     .map(([_, {channelname}]) => channelname)
@@ -291,120 +319,137 @@ const SubteamInRow = (props: SubteamInRowProps) => {
   const height = expanded ? (Styles.isMobile ? 208 : 140) : undefined
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.row, !expanded && styles.rowCollapsedFixedHeight])}
-    >
-      {/* Placed here so that it doesn't generate any gaps */}
-      <TeamDetailsSubscriber teamID={props.subteam.id} />
+    <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          styles.row,
+          !expanded && styles.rowCollapsedFixedHeight,
+          props.idx === 0 && styles.rowFirst,
+        ])}
+      >
+        {/* Placed here so that it doesn't generate any gaps */}
+        <TeamDetailsSubscriber teamID={props.subteam.id} />
 
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
-        <Kb.Box2
-          direction="horizontal"
-          style={Styles.collapseStyles([styles.expandIcon, expanded && styles.expandIconExpanded])}
-        >
-          <Kb.Icon
-            type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-            sizeType="Tiny"
-            onClick={() => setExpanded(!expanded)}
-          />
-        </Kb.Box2>
-
-        <Kb.Box2
-          direction="horizontal"
-          style={Styles.collapseStyles([
-            Styles.globalStyles.flexGrow,
-            !expanded && styles.contentCollapsedFixedHeight,
-          ])}
-        >
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
           <Kb.Box2
-            direction="vertical"
-            fullWidth={true}
-            alignItems="flex-start"
-            gap="tiny"
-            style={!expanded && styles.contentCollapsedFixedHeight}
+            direction="horizontal"
+            style={Styles.collapseStyles([styles.expandIcon, expanded && styles.expandIconExpanded])}
+          >
+            <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
+          </Kb.Box2>
+
+          <Kb.Box2
+            direction="horizontal"
+            style={Styles.collapseStyles([
+              Styles.globalStyles.flexGrow,
+              !expanded && styles.contentCollapsedFixedHeight,
+            ])}
           >
             <Kb.Box2
-              direction="horizontal"
-              alignSelf="flex-start"
-              alignItems="center"
+              direction="vertical"
+              fullWidth={true}
+              alignItems="flex-start"
               gap="tiny"
-              style={styles.contentCollapsedFixedHeight}
+              style={!expanded && styles.contentCollapsedFixedHeight}
             >
-              <Kb.Avatar teamname={props.subteam.teamname} size={32} />
               <Kb.Box2
-                direction="vertical"
-                alignItems="flex-start"
-                style={Styles.collapseStyles([
-                  styles.membershipTeamText,
-                  !expanded && styles.contentCollapsedFixedHeight,
-                ])}
+                direction="horizontal"
+                alignSelf="flex-start"
+                alignItems="center"
+                gap="tiny"
+                style={styles.contentCollapsedFixedHeight}
               >
-                <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
-                {!!props.membership.joinTime && (
-                  <Kb.Text type="BodySmall">
-                    Joined {formatTimeForTeamMember(props.membership.joinTime)}
+                <Kb.Avatar teamname={props.subteam.teamname} size={32} />
+                <Kb.Box2
+                  direction="vertical"
+                  alignItems="flex-start"
+                  style={Styles.collapseStyles([
+                    styles.membershipTeamText,
+                    !expanded && styles.contentCollapsedFixedHeight,
+                  ])}
+                >
+                  <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+                    {props.subteam.teamname}
                   </Kb.Text>
-                )}
+                  {!!props.membership.joinTime && (
+                    <Kb.Text type="BodySmall">
+                      Joined {formatTimeForTeamMember(props.membership.joinTime)}
+                    </Kb.Text>
+                  )}
+                </Kb.Box2>
               </Kb.Box2>
+              {expanded && (
+                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                  <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
+                  <Kb.Text type="BodySmall">
+                    {loadingActivity
+                      ? 'Loading activity...'
+                      : props.lastActivity
+                      ? `Active ${formatTimeRelativeToNow(props.lastActivity)}`
+                      : 'No activity'}
+                  </Kb.Text>
+                </Kb.Box2>
+              )}
+              {expanded && (
+                <Kb.Box2
+                  direction="horizontal"
+                  gap="tiny"
+                  alignSelf="flex-start"
+                  style={{justifyContent: 'center'}}
+                >
+                  <Kb.Icon type="iconfont-hash" sizeType="Small" color={Styles.globalColors.black_20} />
+                  <Kb.Text type="BodySmall">
+                    {channels.size > 0 ? `Member of #${channelsJoined}` : 'Loading channels...'}
+                  </Kb.Text>
+                </Kb.Box2>
+              )}
+              {expanded && (
+                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+                  <Kb.Button
+                    mode="Secondary"
+                    onClick={onAddToChannels}
+                    label="Add to channels"
+                    small={true}
+                  />
+                  <Kb.Button
+                    mode="Secondary"
+                    icon="iconfont-block"
+                    type="Danger"
+                    onClick={onKickOut}
+                    label="Kick out"
+                    small={true}
+                  />
+                </Kb.Box2>
+              )}
             </Kb.Box2>
-            {expanded && (
-              <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
-                <Kb.Text type="BodySmall">
-                  {props.lastActivity
-                    ? `Active ${formatTimeRelativeToNow(props.lastActivity)}`
-                    : 'No activity'}
-                </Kb.Text>
-              </Kb.Box2>
-            )}
-            {expanded && (
-              <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-                <Kb.Icon type="iconfont-hash" sizeType="Small" color={Styles.globalColors.black_20} />
-                <Kb.Text type="BodySmall">Member of #{channelsJoined}</Kb.Text>
-              </Kb.Box2>
-            )}
-            {expanded && (
-              <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-                <Kb.Button mode="Secondary" onClick={onAddToChannels} label="Add to channels" small={true} />
-                <Kb.Button
-                  mode="Secondary"
-                  icon="iconfont-block"
-                  type="Danger"
-                  onClick={onKickOut}
-                  label="Kick out"
-                  small={true}
-                  style={{paddingLeft: 8, paddingRight: 8}}
-                />
-              </Kb.Box2>
-            )}
+          </Kb.Box2>
+
+          <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
+            <FloatingRolePicker
+              selectedRole={role}
+              onSelectRole={setRole}
+              onConfirm={onChangeRole}
+              onCancel={() => setOpen(false)}
+              position="bottom left"
+              open={open}
+              disabledRoles={disabledRoles}
+            >
+              <RoleButton
+                containerStyle={Styles.collapseStyles([
+                  styles.roleButton,
+                  expanded && styles.roleButtonExpanded,
+                ])}
+                loading={changingRole}
+                onClick={() => setOpen(true)}
+                selectedRole={props.membership.type}
+              />
+            </FloatingRolePicker>
           </Kb.Box2>
         </Kb.Box2>
-
-        <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
-          <FloatingRolePicker
-            selectedRole={role}
-            onSelectRole={setRole}
-            onConfirm={onChangeRole}
-            onCancel={() => setOpen(false)}
-            position="bottom left"
-            open={open}
-            disabledRoles={disabledRoles}
-          >
-            <RoleButton
-              containerStyle={Styles.collapseStyles([
-                styles.roleButton,
-                expanded && styles.roleButtonExpanded,
-              ])}
-              loading={changingRole}
-              onClick={() => setOpen(true)}
-              selectedRole={props.membership.type}
-            />
-          </FloatingRolePicker>
-        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </Kb.ClickableBox>
   )
 }
 
@@ -585,15 +630,21 @@ const styles = Styles.styleSheetCreate(() => ({
     marginTop: Styles.globalMargins.xxtiny,
   },
   row: {
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-    borderBottomStyle: 'solid',
-    borderBottomWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    borderTopStyle: 'solid',
+    borderTopWidth: 1,
     paddingBottom: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
   rowCollapsedFixedHeight: {
     height: 49,
+  },
+  rowFirst: {
+    borderTopWidth: 0,
+  },
+  teamNameLink: {
+    color: Styles.globalColors.black,
   },
 }))
 

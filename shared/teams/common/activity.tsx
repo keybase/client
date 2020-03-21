@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/teams'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-fire',
-  recently: 'iconfont-team-leave',
+  recently: 'iconfont-typing',
 }
 const activityToLabel = {
   active: 'Active',
