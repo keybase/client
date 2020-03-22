@@ -598,6 +598,7 @@ func (s *BlockingSender) handleCrossTeamEmojis(ctx context.Context, uid gregor1.
 	if len(ct) == 0 {
 		return msg, nil
 	}
+	s.Debug(ctx, "handleCrossTeamEmojis: found %d cross team emojis", len(ct))
 	switch typ {
 	case chat1.MessageType_TEXT:
 		newBody := msg.MessageBody.Text().DeepCopy()

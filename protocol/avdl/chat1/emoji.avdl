@@ -35,6 +35,7 @@ protocol emoji {
 
   record Emoji {
     string alias;
+    boolean isCrossTeam;
     EmojiLoadSource source;
     EmojiRemoteSource remoteSource;
   }
