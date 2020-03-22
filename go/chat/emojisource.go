@@ -119,10 +119,12 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 		sourceTLFID = new(chat1.TLFID)
 		*sourceTLFID = conv.Conv.Metadata.IdTriple.Tlfid
 	}
+	readTopicName := s.topicName(nil)
 	ibox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
 			TopicType:    &topicType,
 			MemberStatus: chat1.AllConversationMemberStatuses(),
+			TopicName:    &readTopicName,
 		})
 	if err != nil {
 		return res, aliasLookup, err
@@ -248,8 +250,9 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 		if s.versionMatch(existing, emoji.Source) {
 			s.Debug(ctx, "syncCrossTeam: hit version, returning")
 			return chat1.HarvestedEmoji{
-				Alias:  emoji.Alias,
-				Source: existing,
+				Alias:       emoji.Alias,
+				Source:      existing,
+				IsCrossTeam: true,
 			}, nil
 		}
 	}
@@ -291,12 +294,10 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	if err != nil {
 		return res, err
 	}
-	if len(emojis.Emojis) == 0 {
+	if len(emojis.Emojis) == 0 && len(crossTeams) == 0 {
 		return nil, nil
 	}
-	group := emojis.Emojis[0] // only consider the first hit
-
-	groupMap := make(map[string]chat1.Emoji, len(group.Emojis))
+	groupMap := make(map[string]chat1.Emoji)
 	for _, group := range emojis.Emojis {
 		for _, emoji := range group.Emojis {
 			groupMap[emoji.Alias] = emoji
@@ -370,6 +371,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
 	for _, emoji := range emojis {
+		s.Debug(ctx, "Decorate: alias: %s source: %+v", emoji.Alias, emoji.Source)
 		emojiMap[emoji.Alias] = emoji.Source
 	}
 	offset := 0
