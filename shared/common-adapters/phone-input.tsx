@@ -622,6 +622,11 @@ const styles = Styles.styleSheetCreate(
       containerBig: {
         width: '100%',
       },
+      containerLoading: {
+        alignItems: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+      },
       containerSmall: {
         backgroundColor: Styles.globalColors.white,
         borderColor: Styles.globalColors.black_10,
@@ -630,11 +635,6 @@ const styles = Styles.styleSheetCreate(
         borderWidth: 1,
         height: 38,
         width: '100%',
-      },
-      containerLoading: {
-        alignItems: 'center',
-        display: 'flex',
-        justifyContent: 'center',
       },
       countryLayout: {
         maxHeight: 200,
