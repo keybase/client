@@ -32,10 +32,10 @@ type testBlockRetrievalConfig struct {
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock                       Clock
-	reporter                    Reporter
-	subsciptionManager          SubscriptionManager
-	subsciptionManagerPublisher SubscriptionManagerPublisher
+	clock                        Clock
+	reporter                     Reporter
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
@@ -83,11 +83,11 @@ func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
 }
 
 func (c testBlockRetrievalConfig) SubscriptionManager() SubscriptionManager {
-	return c.subsciptionManager
+	return c.subscriptionManager
 }
 
 func (c testBlockRetrievalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
-	return c.subsciptionManagerPublisher
+	return c.subscriptionManagerPublisher
 }
 
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
