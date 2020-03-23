@@ -155,7 +155,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
         this.props.minWriterRole
       } to post.`
     }
-    return this.props.conversationName ? `Message ${this.props.conversationName}` : 'Write a message'
+    return this.props.inputHintText || 'Write a message'
   }
 
   private getMenu = () => {

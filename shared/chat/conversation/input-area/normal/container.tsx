@@ -113,34 +113,36 @@ const getChannelSuggestions = (
   return _channelSuggestions
 }
 
-const getConversationNameForInput = (
+const getInputHintText = (
   state: Container.TypedState,
   conversationIDKey: Types.ConversationIDKey
-): string => {
+): string | undefined => {
   const meta = Constants.getMeta(state, conversationIDKey)
   if (meta.teamType === 'big') {
-    return meta.channelname ? `${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}` : ''
+    return meta.channelname
+      ? `Write in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}`
+      : undefined
   }
   if (meta.teamType === 'small') {
-    return meta.teamname ?? ''
+    return meta.teamname ? `Write in @${meta.teamname}` : undefined
   }
   if (meta.teamType === 'adhoc') {
     const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
     if (participantInfo.name.length > 2) {
-      return 'group'
+      return 'Message group'
     } else if (participantInfo.name.length === 2) {
       const other = participantInfo.name.find(n => n !== state.config.username)
       if (!other) {
-        return ''
+        return undefined
       }
       const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
-      return otherText.length < 20 ? `${otherText}` : ''
+      return otherText.length < 20 ? `Message ${otherText}` : undefined
     } else if (participantInfo.name.length === 1) {
-      return 'yourself'
+      return 'Message yourself'
     }
-    return ''
+    return undefined
   }
-  return ''
+  return undefined
 }
 
 export default Container.namedConnect(
@@ -151,7 +153,7 @@ export default Container.namedConnect(
     const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
-    const conversationName = getConversationNameForInput(state, conversationIDKey)
+    const inputHintText = getInputHintText(state, conversationIDKey)
 
     const _you = state.config.username
 
@@ -180,7 +182,7 @@ export default Container.namedConnect(
       _you,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
-      conversationName,
+      inputHintText,
       editText: editInfo ? editInfo.text : '',
       explodingModeSeconds,
       infoPanelShowing: state.chat2.infoPanelShowing,
@@ -295,7 +297,7 @@ export default Container.namedConnect(
       cannotWrite: stateProps.cannotWrite,
       clearInboxFilter: dispatchProps.clearInboxFilter,
       conversationIDKey: stateProps.conversationIDKey,
-      conversationName: stateProps.conversationName,
+      inputHintText: stateProps.inputHintText,
       editText: stateProps.editText,
       explodingModeSeconds: stateProps.explodingModeSeconds,
       focusInputCounter: ownProps.focusInputCounter,
