@@ -950,6 +950,26 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetResetConvsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1710,10 +1730,7 @@
     },
     "getResetConvs": {
       "request": [],
-      "response": {
-        "type": "array",
-        "items": "ConversationID"
-      }
+      "response": "GetResetConvsRes"
     }
   },
   "namespace": "chat.1",

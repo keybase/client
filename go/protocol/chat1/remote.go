@@ -1363,6 +1363,34 @@ func (o GetLastActiveAtRes) DeepCopy() GetLastActiveAtRes {
 	}
 }
 
+type GetResetConvsRes struct {
+	ConvIDs   []ConversationID `codec:"convIDs" json:"convIDs"`
+	RateLimit *RateLimit       `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetResetConvsRes) DeepCopy() GetResetConvsRes {
+	return GetResetConvsRes{
+		ConvIDs: (func(x []ConversationID) []ConversationID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ConvIDs),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -1674,7 +1702,7 @@ type RemoteInterface interface {
 	GetRecentJoins(context.Context, ConversationID) (GetRecentJoinsRes, error)
 	RefreshParticipantsRemote(context.Context, RefreshParticipantsRemoteArg) (RefreshParticipantsRemoteRes, error)
 	GetLastActiveAt(context.Context, GetLastActiveAtArg) (GetLastActiveAtRes, error)
-	GetResetConvs(context.Context) ([]ConversationID, error)
+	GetResetConvs(context.Context) (GetResetConvsRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -2680,7 +2708,7 @@ func (c RemoteClient) GetLastActiveAt(ctx context.Context, __arg GetLastActiveAt
 	return
 }
 
-func (c RemoteClient) GetResetConvs(ctx context.Context) (res []ConversationID, err error) {
+func (c RemoteClient) GetResetConvs(ctx context.Context) (res GetResetConvsRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getResetConvs", []interface{}{GetResetConvsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
