@@ -39,6 +39,7 @@ const BigTeamChannel = (props: Props) => {
       outboxIcon = (
         <Kb.Icon
           style={styles.icon}
+          sizeType="Small"
           type={'iconfont-hourglass'}
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
         />
