@@ -2124,6 +2124,11 @@ type SubscriptionManagerPublisher interface {
 	PublishChange(topic keybase1.SubscriptionTopic)
 }
 
+type kbContextGetter interface {
+	// KbContext returns the Keybase Context.
+	KbContext() Context
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -2315,8 +2320,8 @@ type Config interface {
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 	// KbEnv returns the *libkb.Env.
 	KbEnv() *libkb.Env
-	// KbContext returns the Keybase Context.
-	KbContext() Context
+
+	kbContextGetter
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

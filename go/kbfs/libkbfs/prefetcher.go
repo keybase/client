@@ -13,6 +13,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -114,10 +115,11 @@ type cancelTlfPrefetch struct {
 }
 
 type blockPrefetcher struct {
-	ctx    context.Context
-	config prefetcherConfig
-	log    logger.Logger
-	vlog   *libkb.VDebugLog
+	ctx             context.Context
+	config          prefetcherConfig
+	log             logger.Logger
+	vlog            *libkb.VDebugLog
+	appStateUpdater env.AppStateUpdater
 
 	makeNewBackOff func() backoff.BackOff
 
@@ -172,11 +174,13 @@ func defaultBackOffForPrefetcher() backoff.BackOff {
 
 func newBlockPrefetcher(retriever BlockRetriever,
 	config prefetcherConfig, testSyncCh <-chan struct{},
-	testDoneCh chan<- struct{}) *blockPrefetcher {
+	testDoneCh chan<- struct{},
+	appStateUpdater env.AppStateUpdater) *blockPrefetcher {
 	closedCh := make(chan struct{})
 	close(closedCh)
 	p := &blockPrefetcher{
 		config:                config,
+		appStateUpdater:       appStateUpdater,
 		makeNewBackOff:        defaultBackOffForPrefetcher,
 		retriever:             retriever,
 		prefetchRequestCh:     NewInfiniteChannelWrapper(),
@@ -186,7 +190,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		prefetchStatusCh:      NewInfiniteChannelWrapper(),
 		inFlightFetches:       NewInfiniteChannelWrapper(),
 		shutdownCh:            make(chan struct{}),
-		almostDoneCh:          make(chan struct{}, 1),
+		almostDoneCh:          make(chan struct{}),
 		doneCh:                make(chan struct{}),
 		prefetches:            make(map[kbfsblock.ID]*prefetch),
 		queuedPrefetchHandles: make(map[data.BlockPointer]queuedPrefetch),
@@ -601,7 +605,7 @@ top:
 		ch := chInterface.(<-chan error)
 		<-ch
 	}
-	p.almostDoneCh <- struct{}{}
+	close(p.almostDoneCh)
 }
 
 // calculatePriority returns either a base priority for an unsynced TLF or a
@@ -1349,6 +1353,7 @@ func (p *blockPrefetcher) run(
 	isShuttingDown := false
 	var shuttingDownCh <-chan interface{}
 	first := true
+	netState := keybase1.MobileNetworkState_NONE
 	for {
 		if !first && testDoneCh != nil && !isShuttingDown {
 			testDoneCh <- struct{}{}
@@ -1377,6 +1382,19 @@ func (p *blockPrefetcher) run(
 			p.log.Debug("shutting down, clearing in flight fetches")
 			ch := chInterface.(<-chan error)
 			<-ch
+		case netState := <-p.appStateUpdater.NextNetworkStateUpdate(&netState):
+			// Pause the prefetcher on cell connections.
+		pauseLoop:
+			for netState == keybase1.MobileNetworkState_CELLULAR {
+				p.log.CDebugf(
+					context.TODO(), "Pausing prefetcher on cell network")
+				select {
+				case netState = <-p.appStateUpdater.NextNetworkStateUpdate(
+					&netState):
+				case <-p.almostDoneCh:
+					break pauseLoop
+				}
+			}
 		case ptrInt := <-p.prefetchCancelCh.Out():
 			ptr := ptrInt.(data.BlockPointer)
 			pre, ok := p.prefetches[ptr.ID]
