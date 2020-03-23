@@ -1,0 +1,14 @@
+@namespace("keybase.1")
+
+protocol NotifyInviteFriends {
+  import idl "common.avdl";
+
+  record InviteCounts {
+    int inviteCount; // Number of invites in the last 24 hours
+    double percentageChange; // vs the previous 24 hours
+    boolean showFire; // Are keybase servers on fire?
+  }
+
+  void updateInviteCounts(InviteCounts counts) oneway;
+
+}

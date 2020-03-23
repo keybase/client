@@ -9,20 +9,6 @@ import (
 	"time"
 )
 
-type InviteCounts struct {
-	InviteCount      int     `codec:"inviteCount" json:"inviteCount"`
-	PercentageChange float64 `codec:"percentageChange" json:"percentageChange"`
-	ShowFire         bool    `codec:"showFire" json:"showFire"`
-}
-
-func (o InviteCounts) DeepCopy() InviteCounts {
-	return InviteCounts{
-		InviteCount:      o.InviteCount,
-		PercentageChange: o.PercentageChange,
-		ShowFire:         o.ShowFire,
-	}
-}
-
 type EmailInvites struct {
 	CommaSeparatedEmailsFromUser *string         `codec:"commaSeparatedEmailsFromUser,omitempty" json:"commaSeparatedEmailsFromUser,omitempty"`
 	EmailsFromContacts           *[]EmailAddress `codec:"emailsFromContacts,omitempty" json:"emailsFromContacts,omitempty"`
@@ -62,12 +48,8 @@ type InvitePeopleArg struct {
 	Phones []RawPhoneNumber `codec:"phones" json:"phones"`
 }
 
-type GetInviteCountsArg struct {
-}
-
 type InviteFriendsInterface interface {
 	InvitePeople(context.Context, InvitePeopleArg) error
-	GetInviteCounts(context.Context) (InviteCounts, error)
 }
 
 func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
@@ -89,16 +71,6 @@ func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getInviteCounts": {
-				MakeArg: func() interface{} {
-					var ret [1]GetInviteCountsArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetInviteCounts(ctx)
-					return
-				},
-			},
 		},
 	}
 }
@@ -109,10 +81,5 @@ type InviteFriendsClient struct {
 
 func (c InviteFriendsClient) InvitePeople(ctx context.Context, __arg InvitePeopleArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.invitePeople", []interface{}{__arg}, nil, 0*time.Millisecond)
-	return
-}
-
-func (c InviteFriendsClient) GetInviteCounts(ctx context.Context) (res InviteCounts, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.getInviteCounts", []interface{}{GetInviteCountsArg{}}, &res, 0*time.Millisecond)
 	return
 }

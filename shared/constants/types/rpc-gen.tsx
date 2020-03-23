@@ -123,6 +123,10 @@ export type MessageTypes = {
     inParam: {readonly bots?: Array<FeaturedBot> | null; readonly limit: Int; readonly offset: Int}
     outParam: void
   }
+  'keybase.1.NotifyInviteFriends.updateInviteCounts': {
+    inParam: {readonly counts: InviteCounts}
+    outParam: void
+  }
   'keybase.1.NotifyKeyfamily.keyfamilyChanged': {
     inParam: {readonly uid: UID}
     outParam: void
@@ -946,10 +950,6 @@ export type MessageTypes = {
   'keybase.1.install.uninstallKBFS': {
     inParam: void
     outParam: UninstallResult
-  }
-  'keybase.1.inviteFriends.getInviteCounts': {
-    inParam: void
-    outParam: InviteCounts
   }
   'keybase.1.inviteFriends.invitePeople': {
     inParam: {readonly emails: EmailInvites; readonly phones?: Array<RawPhoneNumber> | null}
@@ -3396,6 +3396,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFS.FSSubscriptionNotifyPath'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFS.FSSubscriptionNotify'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyInviteFriends.updateInviteCounts'?: (params: MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3530,6 +3531,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSubscriptionNotifyPath'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotifyPath']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSubscriptionNotify'?: (params: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyInviteFriends.updateInviteCounts'?: (params: MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']) => void}) => IncomingReturn
@@ -3738,7 +3740,6 @@ export const installFuseStatusRpcPromise = (params: MessageTypes['keybase.1.inst
 export const installInstallFuseRpcPromise = (params: MessageTypes['keybase.1.install.installFuse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.installFuse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installFuse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installInstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.installKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.installKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installUninstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.uninstallKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.uninstallKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.uninstallKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const inviteFriendsGetInviteCountsRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.getInviteCounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.getInviteCounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.getInviteCounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const inviteFriendsInvitePeopleRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.invitePeople']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.invitePeople']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.invitePeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetCurrentMountDir', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetKBFSPathInfoRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetKBFSPathInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4074,6 +4075,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.NotifyFS.FSSubscriptionNotify'
 // 'keybase.1.NotifyFSRequest.FSEditListRequest'
 // 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'
+// 'keybase.1.NotifyInviteFriends.updateInviteCounts'
 // 'keybase.1.NotifyKeyfamily.keyfamilyChanged'
 // 'keybase.1.NotifyPaperKey.paperKeyCached'
 // 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'

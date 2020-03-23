@@ -1,0 +1,42 @@
+{
+  "protocol": "NotifyInviteFriends",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "InviteCounts",
+      "fields": [
+        {
+          "type": "int",
+          "name": "inviteCount"
+        },
+        {
+          "type": "double",
+          "name": "percentageChange"
+        },
+        {
+          "type": "boolean",
+          "name": "showFire"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "updateInviteCounts": {
+      "request": [
+        {
+          "name": "counts",
+          "type": "InviteCounts"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

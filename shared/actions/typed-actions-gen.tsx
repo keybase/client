@@ -473,6 +473,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyFSFSOnlineStatusChanged': enginegen.Keybase1NotifyFSFSOnlineStatusChangedPayload
   'engine-gen:keybase1NotifyFSFSSubscriptionNotifyPath': enginegen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload
   'engine-gen:keybase1NotifyFSFSSubscriptionNotify': enginegen.Keybase1NotifyFSFSSubscriptionNotifyPayload
+  'engine-gen:keybase1NotifyInviteFriendsUpdateInviteCounts': enginegen.Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
   'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged': enginegen.Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   'engine-gen:keybase1NotifyPaperKeyPaperKeyCached': enginegen.Keybase1NotifyPaperKeyPaperKeyCachedPayload
   'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile': enginegen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
