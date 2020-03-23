@@ -405,7 +405,7 @@
         {
           "type": [
             null,
-            "ReactionMap"
+            "UIReactionMap"
           ],
           "name": "reactions",
           "jsonkey": "reactions"

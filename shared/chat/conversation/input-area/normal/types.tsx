@@ -8,11 +8,11 @@ type CommonProps = {
   cannotWrite: boolean | null
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
-  conversationName: string
   editText: string
   explodingModeSeconds: number
   focusInputCounter: number
   getUnsentText: () => string
+  inputHintText?: string
   isEditExploded: boolean
   isEditing: boolean
   isExploding: boolean

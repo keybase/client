@@ -36,11 +36,11 @@ const descColor = Styles.globalColors.black_50
 const descStyleMobile = {
   color: descColor,
   fontSize: 13,
-  lineHeight: 16,
+  lineHeight: 17,
 }
 const descStyleDesktop = {
   fontSize: 13,
-  lineHeight: '16px',
+  lineHeight: '17px',
   wordBreak: 'break-all',
 } as const // approximates BodySmall since markdown does not support text type
 const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
@@ -117,6 +117,7 @@ const Header = (p: Props) => {
       <Kb.Box2
         direction="horizontal"
         style={styles.right}
+        fullHeight={!renderDescription}
         gap="small"
         alignItems="flex-end"
         alignSelf="flex-end"

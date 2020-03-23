@@ -221,6 +221,20 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     return this._flat.length - 1
   }
 
+  private getItemSizeGetter = () => {
+    const {desktopItemHeight, desktopHeaderHeight} = this.props
+    return desktopHeaderHeight && desktopItemHeight
+      ? (index: number): number => {
+          const item = this._flat[index]
+          if (!item) {
+            // data is switching out from under us. let things settle
+            return 0
+          }
+          return item.type === 'header' ? desktopHeaderHeight : desktopItemHeight
+        }
+      : undefined
+  }
+
   render() {
     this._flatten(this.props.sections)
     const stickyHeader =
@@ -243,6 +257,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
             item in the first section to be hidden.*/}
             <ReactList
               itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
+              itemSizeGetter={this.getItemSizeGetter()}
               length={this._flat.length}
               // @ts-ignore
               retrigger={this._flat}

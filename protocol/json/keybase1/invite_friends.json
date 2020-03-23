@@ -64,7 +64,7 @@
           }
         }
       ],
-      "response": null
+      "response": "int"
     },
     "getInviteCounts": {
       "request": [],

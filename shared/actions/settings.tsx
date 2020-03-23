@@ -75,9 +75,8 @@ const toggleNotifications = async (state: Container.TypedState) => {
       // Special case this since it will go to chat settings endpoint
       group.settings.forEach(
         setting =>
-          (chatGlobalArg[
-            `${ChatTypes.GlobalAppNotificationSetting[setting.name as any]}`
-          ] = !!setting.subscribed)
+          (chatGlobalArg[`${ChatTypes.GlobalAppNotificationSetting[setting.name as any]}`] =
+            setting.name === 'disabletyping' ? !setting.subscribed : !!setting.subscribed)
       )
     } else {
       group.settings.forEach(setting =>

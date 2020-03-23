@@ -28,7 +28,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	t.Logf("Created team %s", teamname)
 
-	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+	_, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:      teamname,
 		NeedAdmin: true,
 	})
@@ -38,7 +38,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 	_, err = CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER, maxUses, nil /* etime */)
 	require.NoError(t, err)
 
-	teamObj, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:      teamname,
 		NeedAdmin: true,
 	})

@@ -11,7 +11,7 @@
     "toggleSmallTeamsExpanded": {},
     // Selected a conversation (used by nav only)
     "selectedConversation": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"

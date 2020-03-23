@@ -24,6 +24,7 @@ export type OwnProps = {
 export type WrapperProps = {
   active: boolean
   count: number
+  decorated: string
   emoji: string
   onAddReaction: (emoji: string) => void
   onClick: () => void
@@ -41,6 +42,7 @@ class Wrapper extends React.Component<WrapperProps> {
         count={props.count}
         getAttachmentRef={props.getAttachmentRef}
         emoji={props.emoji}
+        decorated={props.decorated}
         onClick={props.onClick}
         onLongPress={props.onLongPress}
         onMouseLeave={props.onMouseLeave}
@@ -65,6 +67,7 @@ class Wrapper extends React.Component<WrapperProps> {
 const noEmoji = {
   active: false,
   count: 0,
+  decorated: '',
   emoji: '',
 }
 
@@ -78,10 +81,11 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   if (!reaction) {
     return noEmoji
   }
-  const active = [...reaction].some(r => r.username === me)
+  const active = [...reaction.users].some(r => r.username === me)
   return {
     active,
-    count: reaction.size,
+    count: reaction.users.size,
+    decorated: reaction.decorated,
     emoji: ownProps.emoji || '',
   }
 }
@@ -111,6 +115,7 @@ const mergeProps = (
   className: ownProps.className,
   conversationIDKey: ownProps.conversationIDKey,
   count: stateProps.count,
+  decorated: stateProps.decorated,
   emoji: stateProps.emoji,
   getAttachmentRef: ownProps.getAttachmentRef,
   onAddReaction: dispatchProps.onAddReaction,

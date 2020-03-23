@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
+import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
 
@@ -13,7 +14,7 @@ export type ConvProps = {
   teamID: TeamTypes.TeamID
   ignored: boolean
   muted: boolean
-  participants: Array<string>
+  conversationIDKey: ChatTypes.ConversationIDKey
 }
 
 export type Props = {
@@ -28,8 +29,8 @@ export type Props = {
   isSmallTeam: boolean
   manageChannelsSubtitle: string
   manageChannelsTitle: string
-  memberCount: number
   teamname?: string
+  teamID: TeamTypes.TeamID
   visible: boolean
   onAddPeople: () => void
   onBlockConv: () => void
@@ -43,50 +44,54 @@ export type Props = {
   onUnhideConv: () => void
   onManageChannels: () => void
   onViewTeam: () => void
-  participantsCount: number
 }
 
 type AdhocHeaderProps = {
   fullname: string
   isMuted: boolean
-  participants: Array<string>
+  conversationIDKey: ChatTypes.ConversationIDKey
 }
 
-const AdhocHeader = (props: AdhocHeaderProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
-    <Avatars
-      backgroundColor={Styles.globalColors.white}
-      isHovered={false}
-      isLocked={false}
-      isMuted={props.isMuted}
-      isSelected={false}
-      participants={props.participants}
-      singleSize={Styles.isMobile ? 48 : 32}
-    />
-    <Kb.Box2 alignItems="flex-start" direction="vertical">
-      <Kb.ConnectedUsernames
-        colorFollowing={true}
-        commaColor={Styles.globalColors.black_50}
-        inline={false}
-        skipSelf={props.participants.length > 1}
-        containerStyle={styles.maybeLongText}
-        type="BodyBold"
-        underline={false}
-        usernames={props.participants}
-        onUsernameClicked="profile"
+const AdhocHeader = (props: AdhocHeaderProps) => {
+  const {channelHumans} = InfoPanelCommon.useHumans(props.conversationIDKey)
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+      <Avatars
+        backgroundColor={Styles.globalColors.white}
+        isHovered={false}
+        isLocked={false}
+        isMuted={props.isMuted}
+        isSelected={false}
+        participants={channelHumans}
+        singleSize={Styles.isMobile ? 48 : 32}
       />
-      {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
+      <Kb.Box2 alignItems="flex-start" direction="vertical">
+        <Kb.ConnectedUsernames
+          colorFollowing={true}
+          commaColor={Styles.globalColors.black_50}
+          inline={false}
+          skipSelf={channelHumans.length > 1}
+          containerStyle={styles.maybeLongText}
+          type="BodyBold"
+          underline={false}
+          usernames={channelHumans}
+          onUsernameClicked="profile"
+        />
+        {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 type TeamHeaderProps = {
   isMuted: boolean
-  memberCount: number
   teamname: string
+  teamID: TeamTypes.TeamID
   onViewTeam: () => void
 }
 const TeamHeader = (props: TeamHeaderProps) => {
+  // TODO: revert this back to memberCount if we can get one without bots cheaply.
+  const {teamHumanCount} = InfoPanelCommon.useTeamHumans(props.teamID)
   return (
     <Kb.Box2 alignItems="center" direction="horizontal" style={styles.headerContainer}>
       <TeamAvatar
@@ -105,7 +110,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
           color={Styles.globalColors.black_50}
           icon="iconfont-people"
           iconColor={Styles.globalColors.black_20}
-          title={props.memberCount}
+          title={teamHumanCount}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -233,13 +238,13 @@ class InfoPanelMenu extends React.Component<Props> {
         <AdhocHeader
           isMuted={props.convProps.muted}
           fullname={props.convProps.fullname}
-          participants={props.convProps.participants}
+          conversationIDKey={props.convProps.conversationIDKey}
         />
       ) : props.teamname ? (
         <TeamHeader
           isMuted={props.convProps === null || props.convProps === undefined ? false : props.convProps.muted}
           teamname={props.teamname}
-          memberCount={props.memberCount}
+          teamID={props.teamID}
           onViewTeam={props.onViewTeam}
         />
       ) : null

@@ -4,8 +4,8 @@ import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-
-import {ContactProps, ContactRowProps, InviteByContact} from './index.native'
+import useContacts from './use-contacts.native'
+import {Contact, ContactRowProps, InviteByContact} from './index.native'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -39,17 +39,15 @@ const mapExistingInvitesToValues = (
   return ret
 }
 
-type TeamInviteByContactProps = {
-  teamID: string
-  contacts: Array<ContactProps>
-  region: string
-  errorMessage: string | null
+type Props = {
+  teamID: Types.TeamID
 }
 
-const TeamInviteByContact = (props: TeamInviteByContactProps) => {
-  const {teamID, contacts, region, errorMessage} = props
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const {invites} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+const TeamInviteByContact = (props: Props) => {
+  const {teamID} = props
+  const {contacts, region, errorMessage} = useContacts()
+  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const invites = Container.useSelector(state => Constants.getTeamDetails(state, teamID).invites)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -71,7 +69,7 @@ const TeamInviteByContact = (props: TeamInviteByContactProps) => {
   )
 
   const onInviteContact = React.useCallback(
-    (contact: ContactProps) => {
+    (contact: Contact) => {
       dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
       if (contact.type === 'email') {
         dispatch(

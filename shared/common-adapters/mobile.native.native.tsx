@@ -49,6 +49,9 @@ module.exports = {
   get ButtonBar() {
     return Index.ButtonBar
   },
+  get CheckCircle() {
+    return Index.CheckCircle
+  },
   get Checkbox() {
     return Index.Checkbox
   },

@@ -1,0 +1,24 @@
+diff --git a/RCTTextShadowView.m b/RCTTextShadowView.m
+index a1243e3..16734a4 100644
+--- a/RCTTextShadowView.m
++++ b/RCTTextShadowView.m
+@@ -177,6 +177,11 @@
+
+ - (NSAttributedString *)attributedTextWithMeasuredAttachmentsThatFitSize:(CGSize)size
+ {
++  static UIImage *placeholderImage;
++  static dispatch_once_t onceToken;
++  dispatch_once(&onceToken, ^{
++    placeholderImage = [UIImage new];
++  });
+   NSMutableAttributedString *attributedText =
+     [[NSMutableAttributedString alloc] initWithAttributedString:[self attributedTextWithBaseTextAttributes:nil]];
+
+@@ -195,6 +200,7 @@
+                                                    maximumSize:size];
+       NSTextAttachment *attachment = [NSTextAttachment new];
+       attachment.bounds = (CGRect){CGPointZero, fittingSize};
++      attachment.image = placeholderImage;
+       [attributedText addAttribute:NSAttachmentAttributeName value:attachment range:range];
+     }
+   ];
