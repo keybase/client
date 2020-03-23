@@ -46,11 +46,13 @@ const ExternalTeam = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
+    <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
       {waiting ? (
         <Kb.ProgressIndicator />
       ) : (
-        <Kb.Text type="BodySmallError">There is no public information available for this team.</Kb.Text>
+        <Kb.Text type="Body" style={styles.error}>
+          This team does not exist or it has no public information available.
+        </Kb.Text>
       )}
     </Kb.Box2>
   )
@@ -268,6 +270,7 @@ const styles = Styles.styleSheetCreate(() => ({
   crownIcon: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.xtiny},
   }),
+  error: {color: Styles.globalColors.redDark},
   headerContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
   },
