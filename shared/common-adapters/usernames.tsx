@@ -102,7 +102,7 @@ const UsernameText = (
           // line height is unset to prevent some text clipping issues
           // in children with larger text styles on Android (HOTPOT-2112)
           // see also https://github.com/keybase/client/pull/22331#discussion_r374224355
-          <Text type="Body" style={{lineHeight: undefined}} key={u.username}>
+          <Text className="noLineHeight" type="Body" style={{lineHeight: undefined}} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle} underlineNever={true}>
                 {'and '}

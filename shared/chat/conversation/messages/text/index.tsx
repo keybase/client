@@ -36,6 +36,7 @@ const Reply = (props: ReplyProps) => {
         <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+              <Kb.Avatar username={props.username} size={16} />
               <Kb.Text
                 type="BodySmallBold"
                 style={Styles.collapseStyles([

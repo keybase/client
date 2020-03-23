@@ -1443,13 +1443,6 @@ const onToggleThreadSearch = (state: Container.TypedState, action: Chat2Gen.Togg
   return visible ? false : RPCChatTypes.localCancelActiveSearchRpcPromise()
 }
 
-const hideThreadSearch = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
-  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
-  return visible
-    ? Chat2Gen.createToggleThreadSearch({conversationIDKey: action.payload.conversationIDKey})
-    : false
-}
-
 function* threadSearch(
   state: Container.TypedState,
   action: Chat2Gen.ThreadSearchPayload,
@@ -2110,13 +2103,6 @@ const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
   })
 }
 
-const cancelAudioFromDeselect = (action: Chat2Gen.SelectedConversationPayload) =>
-  action.payload.conversationIDKey === Constants.noConversationIDKey &&
-  Chat2Gen.createStopAudioRecording({
-    conversationIDKey: Constants.getSelectedConversation(),
-    stopType: Types.AudioStopType.CANCEL,
-  })
-
 const sendAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.SendAudioRecordingPayload,
@@ -2452,7 +2438,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     ]
   } else {
     // immediately switch stack to an inbox | thread stack
-    if (reason === 'push') {
+    if (reason === 'push' || reason === 'savedLastState') {
       return [
         RouteTreeGen.createClearModals(),
         RouteTreeGen.createResetStack({
@@ -2499,14 +2485,14 @@ const ensureSelectedTeamLoaded = (
     : false
 }
 
-const ensureSelectedMeta = (state: Container.TypedState) => {
-  const selectedConversation = Constants.getSelectedConversation()
+const ensureSelectedMeta = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
+  const {conversationIDKey} = action.payload
   const {metaMap} = state.chat2
-  const meta = metaMap.get(selectedConversation)
-  const participantInfo = Constants.getParticipantInfo(state, selectedConversation)
+  const meta = metaMap.get(conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   return !meta || participantInfo.all.length === 0
     ? Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys: [selectedConversation],
+        conversationIDKeys: [conversationIDKey],
         force: true,
         noWaiting: true,
         reason: 'ensureSelectedMeta',
@@ -3850,8 +3836,6 @@ function* chat2Saga() {
 
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
   yield* Saga.chainAction2(Chat2Gen.toggleThreadSearch, onToggleThreadSearch)
-  yield* Saga.chainAction2(Chat2Gen.selectedConversation, hideThreadSearch)
-  yield* Saga.chainAction(Chat2Gen.selectedConversation, cancelAudioFromDeselect)
 
   yield* Saga.chainAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 

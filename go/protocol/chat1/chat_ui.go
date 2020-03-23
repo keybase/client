@@ -891,6 +891,50 @@ func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
 	}
 }
 
+type UIReactionDesc struct {
+	Decorated string              `codec:"decorated" json:"decorated"`
+	Users     map[string]Reaction `codec:"users" json:"users"`
+}
+
+func (o UIReactionDesc) DeepCopy() UIReactionDesc {
+	return UIReactionDesc{
+		Decorated: o.Decorated,
+		Users: (func(x map[string]Reaction) map[string]Reaction {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]Reaction, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Users),
+	}
+}
+
+type UIReactionMap struct {
+	Reactions map[string]UIReactionDesc `codec:"reactions" json:"reactions"`
+}
+
+func (o UIReactionMap) DeepCopy() UIReactionMap {
+	return UIReactionMap{
+		Reactions: (func(x map[string]UIReactionDesc) map[string]UIReactionDesc {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]UIReactionDesc, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Reactions),
+	}
+}
+
 type UIMessageValid struct {
 	MessageID             MessageID              `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
@@ -913,7 +957,7 @@ type UIMessageValid struct {
 	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
 	Etime                 gregor1.Time           `codec:"etime" json:"etime"`
-	Reactions             ReactionMap            `codec:"reactions" json:"reactions"`
+	Reactions             UIReactionMap          `codec:"reactions" json:"reactions"`
 	HasPairwiseMacs       bool                   `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
 	PaymentInfos          []UIPaymentInfo        `codec:"paymentInfos" json:"paymentInfos"`
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`

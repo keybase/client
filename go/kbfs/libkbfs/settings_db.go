@@ -161,7 +161,7 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 		db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
 	switch errors.Cause(err) {
 	case leveldb.ErrNotFound:
-		db.logger.CDebugf(ctx,
+		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"notificationThreshold not set; using default value")
 	case nil:
 		notificationThreshold, err =

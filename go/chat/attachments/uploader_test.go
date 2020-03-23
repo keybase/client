@@ -178,6 +178,22 @@ func TestAttachmentUploader(t *testing.T) {
 	}
 	deliverCheck(true)
 
+	// block until the upload is marked as done
+	for count := 0; count <= 5; count++ {
+		uploader.Lock()
+		upload, ok := uploader.uploads[outboxID.String()]
+		uploader.Unlock()
+		if !ok && upload == nil {
+			break
+		}
+		time.Sleep(time.Millisecond * 200)
+		if count == 5 {
+			require.Fail(t, "upload not marked as done")
+		}
+		t.Logf("upload not done, checking again")
+	}
+	t.Logf("upload done")
+
 	// Retry after fixing store
 	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
 		return chat1.Asset{}, nil
