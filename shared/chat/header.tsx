@@ -117,6 +117,7 @@ const Header = (p: Props) => {
       <Kb.Box2
         direction="horizontal"
         style={styles.right}
+        fullHeight={!renderDescription}
         gap="small"
         alignItems="flex-end"
         alignSelf="flex-end"
