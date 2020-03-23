@@ -85,7 +85,7 @@ class AccountSettings extends React.Component<SettingsProps> {
   render() {
     const props = this.props
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {Styles.isMobile && <Kb.NavigationEvents onWillBlur={this.clearKey} />}
         <Kb.HeaderHocHeader
           customComponent={<AccountPageHeader accountName={props.name} title="Settings" />}
@@ -320,6 +320,9 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       alignSelfFlexStart: {alignSelf: 'flex-start'},
+      container: Styles.platformStyles({
+        isTablet: {maxWidth: Styles.dimensionWidth - 240},
+      }),
       copyTextContainer: {
         alignSelf: 'flex-start',
         maxWidth: '100%',
