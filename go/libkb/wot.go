@@ -25,6 +25,12 @@ func getWotVouchChainLink(mctx MetaContext, uid keybase1.UID, sigID keybase1.Sig
 	if w != nil {
 		return nil, nil, fmt.Errorf("Could not get typed chain link: %v", w.Warning())
 	}
+	if vwrlink, ok := tlink.(*WotVouchWithRevokeChainLink); ok {
+		return &WotVouchChainLink{
+			GenericChainLink: vwrlink.GenericChainLink,
+			ExpansionID:      vwrlink.ExpansionID,
+		}, user, nil
+	}
 	vlink, ok := tlink.(*WotVouchChainLink)
 	if !ok {
 		return nil, nil, fmt.Errorf("Link is not a WotVouchChainLink: %v", tlink)
@@ -122,7 +128,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 
 	if voucheeUser == nil || voucheeUser.GetUID() != serverVouch.Vouchee {
 		// load vouchee
-		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee))
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee).WithStubMode(StubModeUnstubbed))
 		if err != nil {
 			return res, fmt.Errorf("error loading vouchee: %s", err.Error())
 		}
@@ -164,7 +170,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 	case wotVouchLink.revoked:
 		status = keybase1.WotStatusType_REVOKED
 	case wotReactLink != nil && wotReactLink.revoked:
-		status = keybase1.WotStatusType_REVOKED
+		status = keybase1.WotStatusType_PROPOSED
 	case !hasReaction:
 		status = keybase1.WotStatusType_PROPOSED
 	case reactionStatus == keybase1.WotReactionType_ACCEPT:

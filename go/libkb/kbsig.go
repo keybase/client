@@ -698,10 +698,15 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	return ret, nil
 }
 
-func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte) (*ProofMetadataRes, error) {
+func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte, merkleRoot *MerkleRoot, sigIDsToRevoke []keybase1.SigID) (*ProofMetadataRes, error) {
+	linkType := LinkTypeWotVouch
+	if len(sigIDsToRevoke) > 0 {
+		linkType = LinkTypeWotVouchWithRevoke
+	}
 	md := ProofMetadata{
 		Me:                  u,
-		LinkType:            LinkTypeWotVouch,
+		LinkType:            linkType,
+		MerkleRoot:          merkleRoot,
 		SigningKey:          signingKey,
 		SigVersion:          sigVersion,
 		IgnoreIfUnsupported: true,
@@ -714,6 +719,21 @@ func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion Si
 	body := ret.J.AtKey("body")
 	if err := body.SetKey("wot_vouch", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
 		return nil, err
+	}
+
+	if len(sigIDsToRevoke) > 1 {
+		return nil, fmt.Errorf("cannot revoke more than one previous attestation at a time")
+	}
+	if len(sigIDsToRevoke) > 0 {
+		revokeSection := jsonw.NewDictionary()
+		err := revokeSection.SetKey("sig_id", jsonw.NewString(sigIDsToRevoke[0].String()))
+		if err != nil {
+			return nil, err
+		}
+		err = body.SetKey("revoke", revokeSection)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return ret, nil

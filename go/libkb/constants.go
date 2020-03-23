@@ -401,18 +401,19 @@ type LinkType string
 type DelegationType LinkType
 
 const (
-	LinkTypeAuthentication    LinkType = "auth"
-	LinkTypeCryptocurrency    LinkType = "cryptocurrency"
-	LinkTypeRevoke            LinkType = "revoke"
-	LinkTypeTrack             LinkType = "track"
-	LinkTypeUntrack           LinkType = "untrack"
-	LinkTypeUpdatePassphrase  LinkType = "update_passphrase_hash"
-	LinkTypeUpdateSettings    LinkType = "update_settings"
-	LinkTypeWebServiceBinding LinkType = "web_service_binding"
-	LinkTypePerUserKey        LinkType = "per_user_key"
-	LinkTypeWalletStellar     LinkType = "wallet.stellar"
-	LinkTypeWotVouch          LinkType = "wot.vouch"
-	LinkTypeWotReact          LinkType = "wot.react"
+	LinkTypeAuthentication     LinkType = "auth"
+	LinkTypeCryptocurrency     LinkType = "cryptocurrency"
+	LinkTypeRevoke             LinkType = "revoke"
+	LinkTypeTrack              LinkType = "track"
+	LinkTypeUntrack            LinkType = "untrack"
+	LinkTypeUpdatePassphrase   LinkType = "update_passphrase_hash"
+	LinkTypeUpdateSettings     LinkType = "update_settings"
+	LinkTypeWebServiceBinding  LinkType = "web_service_binding"
+	LinkTypePerUserKey         LinkType = "per_user_key"
+	LinkTypeWalletStellar      LinkType = "wallet.stellar"
+	LinkTypeWotVouch           LinkType = "wot.vouch"
+	LinkTypeWotReact           LinkType = "wot.react"
+	LinkTypeWotVouchWithRevoke LinkType = "wot.vouch_with_revoke"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
