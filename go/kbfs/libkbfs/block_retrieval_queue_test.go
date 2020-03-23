@@ -12,6 +12,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
@@ -106,7 +107,8 @@ func makeKMD() libkey.KeyMetadata {
 
 func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
 	q := newBlockRetrievalQueue(
-		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil),
+		env.EmptyAppStateUpdater{})
 	<-q.TogglePrefetcher(false, nil, nil)
 	return q
 }

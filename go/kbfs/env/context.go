@@ -172,12 +172,18 @@ func (c *KBFSContext) GetPerfLog() logger.Logger {
 
 // NextAppStateUpdate implements AppStateUpdater.
 func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
+	if c.g.MobileAppState == nil {
+		return nil
+	}
 	return c.g.MobileAppState.NextUpdate(lastState)
 }
 
 // NextNetworkStateUpdate implements AppStateUpdater.
 func (c *KBFSContext) NextNetworkStateUpdate(
 	lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState {
+	if c.g.MobileNetState == nil {
+		return nil
+	}
 	return c.g.MobileNetState.NextUpdate(lastState)
 }
 

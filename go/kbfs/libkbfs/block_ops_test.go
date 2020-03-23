@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -132,6 +133,7 @@ func (config testBlockOpsConfig) Reporter() Reporter {
 func (config testBlockOpsConfig) GetSettingsDB() *SettingsDB {
 	return nil
 }
+
 func (config testBlockOpsConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
 	return config.subsciptionManagerPublisher
 }
@@ -165,7 +167,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -207,7 +209,7 @@ func TestBlockOpsReadyFailKeyGet(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -235,7 +237,7 @@ func TestBlockOpsReadyFailServerHalfGet(t *testing.T) {
 	config.cp = badServerHalfMaker{config.cryptoPure()}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -264,7 +266,7 @@ func TestBlockOpsReadyFailEncryption(t *testing.T) {
 	config.cp = badBlockEncryptor{config.cryptoPure()}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -290,7 +292,7 @@ func TestBlockOpsReadyFailEncode(t *testing.T) {
 	config.testCodecGetter.codec = badEncoder{config.codec}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -317,7 +319,7 @@ func TestBlockOpsReadyTooSmallEncode(t *testing.T) {
 	config.codec = tooSmallEncoder{config.codec}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -335,7 +337,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -373,7 +375,7 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -418,7 +420,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	config.bserver = badGetBlockServer{config.bserver}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -450,7 +452,7 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -520,7 +522,7 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	config.codec = &badDecoder
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -566,7 +568,7 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	config.cp = badBlockDecryptor{config.cryptoPure()}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
@@ -602,7 +604,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	config.bserver = bserver
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	// Expect one call to delete several blocks.
@@ -640,7 +642,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	config.bserver = bserver
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	b1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
@@ -676,7 +678,7 @@ func TestBlockOpsArchiveSuccess(t *testing.T) {
 	config.bserver = bserver
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	// Expect one call to archive several blocks.
@@ -711,7 +713,7 @@ func TestBlockOpsArchiveFail(t *testing.T) {
 	config.bserver = bserver
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	defer testBlockOpsShutdown(ctx, t, bops)
 
 	b1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}

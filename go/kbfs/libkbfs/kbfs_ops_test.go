@@ -146,7 +146,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		testInitModeGetter{InitDefault}, clock, NewReporterSimple(clock, 1),
 		mockPublisher,
 	}
-	brq := newBlockRetrievalQueue(0, 0, 0, brc)
+	brq := newBlockRetrievalQueue(0, 0, 0, brc, env.EmptyAppStateUpdater{})
 	config.mockBops.EXPECT().BlockRetriever().AnyTimes().Return(brq)
 	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(brq.prefetcher)
 
