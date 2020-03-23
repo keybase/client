@@ -9,6 +9,24 @@
   "types": [
     {
       "type": "record",
+      "name": "InviteCounts",
+      "fields": [
+        {
+          "type": "int",
+          "name": "inviteCount"
+        },
+        {
+          "type": "double",
+          "name": "percentageChange"
+        },
+        {
+          "type": "boolean",
+          "name": "showFire"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "EmailInvites",
       "fields": [
         {
@@ -47,6 +65,10 @@
         }
       ],
       "response": null
+    },
+    "getInviteCounts": {
+      "request": [],
+      "response": "InviteCounts"
     }
   },
   "namespace": "keybase.1"

@@ -2,30 +2,11 @@
   "protocol": "NotifyInviteFriends",
   "imports": [
     {
-      "path": "common.avdl",
+      "path": "invite_friends.avdl",
       "type": "idl"
     }
   ],
-  "types": [
-    {
-      "type": "record",
-      "name": "InviteCounts",
-      "fields": [
-        {
-          "type": "int",
-          "name": "inviteCount"
-        },
-        {
-          "type": "double",
-          "name": "percentageChange"
-        },
-        {
-          "type": "boolean",
-          "name": "showFire"
-        }
-      ]
-    }
-  ],
+  "types": [],
   "messages": {
     "updateInviteCounts": {
       "request": [

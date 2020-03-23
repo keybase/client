@@ -9,20 +9,6 @@ import (
 	"time"
 )
 
-type InviteCounts struct {
-	InviteCount      int     `codec:"inviteCount" json:"inviteCount"`
-	PercentageChange float64 `codec:"percentageChange" json:"percentageChange"`
-	ShowFire         bool    `codec:"showFire" json:"showFire"`
-}
-
-func (o InviteCounts) DeepCopy() InviteCounts {
-	return InviteCounts{
-		InviteCount:      o.InviteCount,
-		PercentageChange: o.PercentageChange,
-		ShowFire:         o.ShowFire,
-	}
-}
-
 type UpdateInviteCountsArg struct {
 	Counts InviteCounts `codec:"counts" json:"counts"`
 }

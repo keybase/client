@@ -3968,6 +3968,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.implicitTeamMigration.startMigration'
 // 'keybase.1.implicitTeamMigration.finalizeMigration'
 // 'keybase.1.install.installCommandLinePrivileged'
+// 'keybase.1.inviteFriends.getInviteCounts'
 // 'keybase.1.kbfs.FSEvent'
 // 'keybase.1.kbfs.FSPathUpdate'
 // 'keybase.1.kbfs.FSEditList'
