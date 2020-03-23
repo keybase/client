@@ -6264,15 +6264,16 @@ fragment-cache@^0.2.1:
 
 "framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#master":
   version "1.1.21"
-  resolved "git://github.com/keybase/node-framed-msgpack-rpc#fb3f6ad47b34a290416003a67a741b73448317d8"
+  resolved "git://github.com/keybase/node-framed-msgpack-rpc#01e6ed0277203894529025f2a3383a66cb8dc5c4"
   dependencies:
-    "@msgpack/msgpack" "1.9.3"
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
+    pako "^1.0.11"
     path-parse "^1.0.6"
+  optionalDependencies:
+    "@msgpack/msgpack" "1.9.3"
     purepack ">=1"
-    zlib "^1.0.5"
 
 fresh@0.5.2:
   version "0.5.2"
@@ -9962,6 +9963,11 @@ pako@^1.0.0, pako@~1.0.5:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.10.tgz#4328badb5086a426aa90f541977d4955da5c9732"
   integrity sha512-0DTvPVU3ed8+HNXOu5Bs+o//Mbdj9VNQMUOe9oKCwh8l0GNwpTDMKCWbRjgtD291AWnkAgkqA/LOnQS8AmS1tw==
+
+pako@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.11.tgz#6c9599d340d54dfd3946380252a35705a6b992bf"
+  integrity sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==
 
 parallel-transform@^1.1.0:
   version "1.2.0"
@@ -14212,8 +14218,3 @@ yeast@0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/yeast/-/yeast-0.1.2.tgz#008e06d8094320c372dbc2f8ed76a0ca6c8ac419"
   integrity sha1-AI4G2AlDIMNy28L47XagymyKxBk=
-
-zlib@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/zlib/-/zlib-1.0.5.tgz#6e7c972fc371c645a6afb03ab14769def114fcc0"
-  integrity sha1-bnyXL8NxxkWmr7A6sUdp3vEU/MA=
