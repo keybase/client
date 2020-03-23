@@ -565,16 +565,6 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
-func (u *userPlusDevice) waitForNoMetadataUpdatesGregor() {
-	for i := 0; i < 10; i++ {
-		select {
-		case <-u.notifications.metadataUpdateCh:
-			require.Fail(u.tc.T, fmt.Sprintf("got an unexpected metadata update"))
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
-		}
-	}
-}
-
 func (u *userPlusDevice) waitForMetadataUpdateGregor(reason string) {
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {

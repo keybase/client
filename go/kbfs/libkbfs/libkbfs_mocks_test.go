@@ -25,30 +25,30 @@ import (
 	time "time"
 )
 
-// MockBlockOps is a mock of BlockOps interface
+// MockBlockOps is a mock of BlockOps interface.
 type MockBlockOps struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlockOpsMockRecorder
 }
 
-// MockBlockOpsMockRecorder is the mock recorder for MockBlockOps
+// MockBlockOpsMockRecorder is the mock recorder for MockBlockOps.
 type MockBlockOpsMockRecorder struct {
 	mock *MockBlockOps
 }
 
-// NewMockBlockOps creates a new mock instance
+// NewMockBlockOps creates a new mock instance.
 func NewMockBlockOps(ctrl *gomock.Controller) *MockBlockOps {
 	mock := &MockBlockOps{ctrl: ctrl}
 	mock.recorder = &MockBlockOpsMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlockOps) EXPECT() *MockBlockOpsMockRecorder {
 	return m.recorder
 }
 
-// Archive mocks base method
+// Archive mocks base method.
 func (m *MockBlockOps) Archive(arg0 context.Context, arg1 tlf.ID, arg2 []data.BlockPointer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Archive", arg0, arg1, arg2)
@@ -56,13 +56,13 @@ func (m *MockBlockOps) Archive(arg0 context.Context, arg1 tlf.ID, arg2 []data.Bl
 	return ret0
 }
 
-// Archive indicates an expected call of Archive
+// Archive indicates an expected call of Archive.
 func (mr *MockBlockOpsMockRecorder) Archive(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Archive", reflect.TypeOf((*MockBlockOps)(nil).Archive), arg0, arg1, arg2)
 }
 
-// BlockRetriever mocks base method
+// BlockRetriever mocks base method.
 func (m *MockBlockOps) BlockRetriever() BlockRetriever {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockRetriever")
@@ -70,13 +70,13 @@ func (m *MockBlockOps) BlockRetriever() BlockRetriever {
 	return ret0
 }
 
-// BlockRetriever indicates an expected call of BlockRetriever
+// BlockRetriever indicates an expected call of BlockRetriever.
 func (mr *MockBlockOpsMockRecorder) BlockRetriever() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRetriever", reflect.TypeOf((*MockBlockOps)(nil).BlockRetriever))
 }
 
-// Delete mocks base method
+// Delete mocks base method.
 func (m *MockBlockOps) Delete(arg0 context.Context, arg1 tlf.ID, arg2 []data.BlockPointer) (map[kbfsblock.ID]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
@@ -85,13 +85,13 @@ func (m *MockBlockOps) Delete(arg0 context.Context, arg1 tlf.ID, arg2 []data.Blo
 	return ret0, ret1
 }
 
-// Delete indicates an expected call of Delete
+// Delete indicates an expected call of Delete.
 func (mr *MockBlockOpsMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBlockOps)(nil).Delete), arg0, arg1, arg2)
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockBlockOps) Get(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer, arg3 data.Block, arg4 data.BlockCacheLifetime) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3, arg4)
@@ -99,13 +99,13 @@ func (m *MockBlockOps) Get(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 d
 	return ret0
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockBlockOpsMockRecorder) Get(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockOps)(nil).Get), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetEncodedSizes mocks base method
+// GetEncodedSizes mocks base method.
 func (m *MockBlockOps) GetEncodedSizes(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 []data.BlockPointer) ([]uint32, []keybase1.BlockStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEncodedSizes", arg0, arg1, arg2)
@@ -115,13 +115,13 @@ func (m *MockBlockOps) GetEncodedSizes(arg0 context.Context, arg1 libkey.KeyMeta
 	return ret0, ret1, ret2
 }
 
-// GetEncodedSizes indicates an expected call of GetEncodedSizes
+// GetEncodedSizes indicates an expected call of GetEncodedSizes.
 func (mr *MockBlockOpsMockRecorder) GetEncodedSizes(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSizes", reflect.TypeOf((*MockBlockOps)(nil).GetEncodedSizes), arg0, arg1, arg2)
 }
 
-// GetLiveCount mocks base method
+// GetLiveCount mocks base method.
 func (m *MockBlockOps) GetLiveCount(arg0 context.Context, arg1 tlf.ID, arg2 []data.BlockPointer) (map[kbfsblock.ID]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLiveCount", arg0, arg1, arg2)
@@ -130,13 +130,13 @@ func (m *MockBlockOps) GetLiveCount(arg0 context.Context, arg1 tlf.ID, arg2 []da
 	return ret0, ret1
 }
 
-// GetLiveCount indicates an expected call of GetLiveCount
+// GetLiveCount indicates an expected call of GetLiveCount.
 func (mr *MockBlockOpsMockRecorder) GetLiveCount(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLiveCount", reflect.TypeOf((*MockBlockOps)(nil).GetLiveCount), arg0, arg1, arg2)
 }
 
-// Prefetcher mocks base method
+// Prefetcher mocks base method.
 func (m *MockBlockOps) Prefetcher() Prefetcher {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Prefetcher")
@@ -144,13 +144,13 @@ func (m *MockBlockOps) Prefetcher() Prefetcher {
 	return ret0
 }
 
-// Prefetcher indicates an expected call of Prefetcher
+// Prefetcher indicates an expected call of Prefetcher.
 func (mr *MockBlockOpsMockRecorder) Prefetcher() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prefetcher", reflect.TypeOf((*MockBlockOps)(nil).Prefetcher))
 }
 
-// Ready mocks base method
+// Ready mocks base method.
 func (m *MockBlockOps) Ready(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.Block) (kbfsblock.ID, int, data.ReadyBlockData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Ready", arg0, arg1, arg2)
@@ -161,13 +161,13 @@ func (m *MockBlockOps) Ready(arg0 context.Context, arg1 libkey.KeyMetadata, arg2
 	return ret0, ret1, ret2, ret3
 }
 
-// Ready indicates an expected call of Ready
+// Ready indicates an expected call of Ready.
 func (mr *MockBlockOpsMockRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ready", reflect.TypeOf((*MockBlockOps)(nil).Ready), arg0, arg1, arg2)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockBlockOps) Shutdown(arg0 context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Shutdown", arg0)
@@ -175,13 +175,13 @@ func (m *MockBlockOps) Shutdown(arg0 context.Context) error {
 	return ret0
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockBlockOpsMockRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockOps)(nil).Shutdown), arg0)
 }
 
-// TogglePrefetcher mocks base method
+// TogglePrefetcher mocks base method.
 func (m *MockBlockOps) TogglePrefetcher(arg0 bool) <-chan struct{} {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TogglePrefetcher", arg0)
@@ -189,36 +189,36 @@ func (m *MockBlockOps) TogglePrefetcher(arg0 bool) <-chan struct{} {
 	return ret0
 }
 
-// TogglePrefetcher indicates an expected call of TogglePrefetcher
+// TogglePrefetcher indicates an expected call of TogglePrefetcher.
 func (mr *MockBlockOpsMockRecorder) TogglePrefetcher(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockOps)(nil).TogglePrefetcher), arg0)
 }
 
-// MockBlockServer is a mock of BlockServer interface
+// MockBlockServer is a mock of BlockServer interface.
 type MockBlockServer struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlockServerMockRecorder
 }
 
-// MockBlockServerMockRecorder is the mock recorder for MockBlockServer
+// MockBlockServerMockRecorder is the mock recorder for MockBlockServer.
 type MockBlockServerMockRecorder struct {
 	mock *MockBlockServer
 }
 
-// NewMockBlockServer creates a new mock instance
+// NewMockBlockServer creates a new mock instance.
 func NewMockBlockServer(ctrl *gomock.Controller) *MockBlockServer {
 	mock := &MockBlockServer{ctrl: ctrl}
 	mock.recorder = &MockBlockServerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlockServer) EXPECT() *MockBlockServerMockRecorder {
 	return m.recorder
 }
 
-// AddBlockReference mocks base method
+// AddBlockReference mocks base method.
 func (m *MockBlockServer) AddBlockReference(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID, arg3 kbfsblock.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddBlockReference", arg0, arg1, arg2, arg3)
@@ -226,13 +226,13 @@ func (m *MockBlockServer) AddBlockReference(arg0 context.Context, arg1 tlf.ID, a
 	return ret0
 }
 
-// AddBlockReference indicates an expected call of AddBlockReference
+// AddBlockReference indicates an expected call of AddBlockReference.
 func (mr *MockBlockServerMockRecorder) AddBlockReference(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddBlockReference", reflect.TypeOf((*MockBlockServer)(nil).AddBlockReference), arg0, arg1, arg2, arg3)
 }
 
-// ArchiveBlockReferences mocks base method
+// ArchiveBlockReferences mocks base method.
 func (m *MockBlockServer) ArchiveBlockReferences(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ContextMap) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ArchiveBlockReferences", arg0, arg1, arg2)
@@ -240,25 +240,25 @@ func (m *MockBlockServer) ArchiveBlockReferences(arg0 context.Context, arg1 tlf.
 	return ret0
 }
 
-// ArchiveBlockReferences indicates an expected call of ArchiveBlockReferences
+// ArchiveBlockReferences indicates an expected call of ArchiveBlockReferences.
 func (mr *MockBlockServerMockRecorder) ArchiveBlockReferences(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveBlockReferences", reflect.TypeOf((*MockBlockServer)(nil).ArchiveBlockReferences), arg0, arg1, arg2)
 }
 
-// FastForwardBackoff mocks base method
+// FastForwardBackoff mocks base method.
 func (m *MockBlockServer) FastForwardBackoff() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "FastForwardBackoff")
 }
 
-// FastForwardBackoff indicates an expected call of FastForwardBackoff
+// FastForwardBackoff indicates an expected call of FastForwardBackoff.
 func (mr *MockBlockServerMockRecorder) FastForwardBackoff() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FastForwardBackoff", reflect.TypeOf((*MockBlockServer)(nil).FastForwardBackoff))
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockBlockServer) Get(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID, arg3 kbfsblock.Context, arg4 DiskBlockCacheType) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3, arg4)
@@ -268,13 +268,13 @@ func (m *MockBlockServer) Get(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.
 	return ret0, ret1, ret2
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockBlockServerMockRecorder) Get(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockServer)(nil).Get), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetEncodedSizes mocks base method
+// GetEncodedSizes mocks base method.
 func (m *MockBlockServer) GetEncodedSizes(arg0 context.Context, arg1 tlf.ID, arg2 []kbfsblock.ID, arg3 []kbfsblock.Context) ([]uint32, []keybase1.BlockStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEncodedSizes", arg0, arg1, arg2, arg3)
@@ -284,13 +284,13 @@ func (m *MockBlockServer) GetEncodedSizes(arg0 context.Context, arg1 tlf.ID, arg
 	return ret0, ret1, ret2
 }
 
-// GetEncodedSizes indicates an expected call of GetEncodedSizes
+// GetEncodedSizes indicates an expected call of GetEncodedSizes.
 func (mr *MockBlockServerMockRecorder) GetEncodedSizes(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSizes", reflect.TypeOf((*MockBlockServer)(nil).GetEncodedSizes), arg0, arg1, arg2, arg3)
 }
 
-// GetLiveBlockReferences mocks base method
+// GetLiveBlockReferences mocks base method.
 func (m *MockBlockServer) GetLiveBlockReferences(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ContextMap) (map[kbfsblock.ID]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLiveBlockReferences", arg0, arg1, arg2)
@@ -299,13 +299,13 @@ func (m *MockBlockServer) GetLiveBlockReferences(arg0 context.Context, arg1 tlf.
 	return ret0, ret1
 }
 
-// GetLiveBlockReferences indicates an expected call of GetLiveBlockReferences
+// GetLiveBlockReferences indicates an expected call of GetLiveBlockReferences.
 func (mr *MockBlockServerMockRecorder) GetLiveBlockReferences(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLiveBlockReferences", reflect.TypeOf((*MockBlockServer)(nil).GetLiveBlockReferences), arg0, arg1, arg2)
 }
 
-// GetTeamQuotaInfo mocks base method
+// GetTeamQuotaInfo mocks base method.
 func (m *MockBlockServer) GetTeamQuotaInfo(arg0 context.Context, arg1 keybase1.TeamID) (*kbfsblock.QuotaInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamQuotaInfo", arg0, arg1)
@@ -314,13 +314,13 @@ func (m *MockBlockServer) GetTeamQuotaInfo(arg0 context.Context, arg1 keybase1.T
 	return ret0, ret1
 }
 
-// GetTeamQuotaInfo indicates an expected call of GetTeamQuotaInfo
+// GetTeamQuotaInfo indicates an expected call of GetTeamQuotaInfo.
 func (mr *MockBlockServerMockRecorder) GetTeamQuotaInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamQuotaInfo", reflect.TypeOf((*MockBlockServer)(nil).GetTeamQuotaInfo), arg0, arg1)
 }
 
-// GetUserQuotaInfo mocks base method
+// GetUserQuotaInfo mocks base method.
 func (m *MockBlockServer) GetUserQuotaInfo(arg0 context.Context) (*kbfsblock.QuotaInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserQuotaInfo", arg0)
@@ -329,13 +329,13 @@ func (m *MockBlockServer) GetUserQuotaInfo(arg0 context.Context) (*kbfsblock.Quo
 	return ret0, ret1
 }
 
-// GetUserQuotaInfo indicates an expected call of GetUserQuotaInfo
+// GetUserQuotaInfo indicates an expected call of GetUserQuotaInfo.
 func (mr *MockBlockServerMockRecorder) GetUserQuotaInfo(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserQuotaInfo", reflect.TypeOf((*MockBlockServer)(nil).GetUserQuotaInfo), arg0)
 }
 
-// IsUnflushed mocks base method
+// IsUnflushed mocks base method.
 func (m *MockBlockServer) IsUnflushed(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsUnflushed", arg0, arg1, arg2)
@@ -344,13 +344,13 @@ func (m *MockBlockServer) IsUnflushed(arg0 context.Context, arg1 tlf.ID, arg2 kb
 	return ret0, ret1
 }
 
-// IsUnflushed indicates an expected call of IsUnflushed
+// IsUnflushed indicates an expected call of IsUnflushed.
 func (mr *MockBlockServerMockRecorder) IsUnflushed(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUnflushed", reflect.TypeOf((*MockBlockServer)(nil).IsUnflushed), arg0, arg1, arg2)
 }
 
-// Put mocks base method
+// Put mocks base method.
 func (m *MockBlockServer) Put(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID, arg3 kbfsblock.Context, arg4 []byte, arg5 kbfscrypto.BlockCryptKeyServerHalf, arg6 DiskBlockCacheType) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
@@ -358,13 +358,13 @@ func (m *MockBlockServer) Put(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.
 	return ret0
 }
 
-// Put indicates an expected call of Put
+// Put indicates an expected call of Put.
 func (mr *MockBlockServerMockRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBlockServer)(nil).Put), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-// PutAgain mocks base method
+// PutAgain mocks base method.
 func (m *MockBlockServer) PutAgain(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ID, arg3 kbfsblock.Context, arg4 []byte, arg5 kbfscrypto.BlockCryptKeyServerHalf, arg6 DiskBlockCacheType) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutAgain", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
@@ -372,25 +372,25 @@ func (m *MockBlockServer) PutAgain(arg0 context.Context, arg1 tlf.ID, arg2 kbfsb
 	return ret0
 }
 
-// PutAgain indicates an expected call of PutAgain
+// PutAgain indicates an expected call of PutAgain.
 func (mr *MockBlockServerMockRecorder) PutAgain(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutAgain", reflect.TypeOf((*MockBlockServer)(nil).PutAgain), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-// RefreshAuthToken mocks base method
+// RefreshAuthToken mocks base method.
 func (m *MockBlockServer) RefreshAuthToken(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RefreshAuthToken", arg0)
 }
 
-// RefreshAuthToken indicates an expected call of RefreshAuthToken
+// RefreshAuthToken indicates an expected call of RefreshAuthToken.
 func (mr *MockBlockServerMockRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAuthToken", reflect.TypeOf((*MockBlockServer)(nil).RefreshAuthToken), arg0)
 }
 
-// RemoveBlockReferences mocks base method
+// RemoveBlockReferences mocks base method.
 func (m *MockBlockServer) RemoveBlockReferences(arg0 context.Context, arg1 tlf.ID, arg2 kbfsblock.ContextMap) (map[kbfsblock.ID]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveBlockReferences", arg0, arg1, arg2)
@@ -399,60 +399,60 @@ func (m *MockBlockServer) RemoveBlockReferences(arg0 context.Context, arg1 tlf.I
 	return ret0, ret1
 }
 
-// RemoveBlockReferences indicates an expected call of RemoveBlockReferences
+// RemoveBlockReferences indicates an expected call of RemoveBlockReferences.
 func (mr *MockBlockServerMockRecorder) RemoveBlockReferences(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveBlockReferences", reflect.TypeOf((*MockBlockServer)(nil).RemoveBlockReferences), arg0, arg1, arg2)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockBlockServer) Shutdown(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Shutdown", arg0)
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockBlockServerMockRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockServer)(nil).Shutdown), arg0)
 }
 
-// MockChat is a mock of Chat interface
+// MockChat is a mock of Chat interface.
 type MockChat struct {
 	ctrl     *gomock.Controller
 	recorder *MockChatMockRecorder
 }
 
-// MockChatMockRecorder is the mock recorder for MockChat
+// MockChatMockRecorder is the mock recorder for MockChat.
 type MockChatMockRecorder struct {
 	mock *MockChat
 }
 
-// NewMockChat creates a new mock instance
+// NewMockChat creates a new mock instance.
 func NewMockChat(ctrl *gomock.Controller) *MockChat {
 	mock := &MockChat{ctrl: ctrl}
 	mock.recorder = &MockChatMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockChat) EXPECT() *MockChatMockRecorder {
 	return m.recorder
 }
 
-// ClearCache mocks base method
+// ClearCache mocks base method.
 func (m *MockChat) ClearCache() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ClearCache")
 }
 
-// ClearCache indicates an expected call of ClearCache
+// ClearCache indicates an expected call of ClearCache.
 func (mr *MockChatMockRecorder) ClearCache() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCache", reflect.TypeOf((*MockChat)(nil).ClearCache))
 }
 
-// GetChannels mocks base method
+// GetChannels mocks base method.
 func (m *MockChat) GetChannels(arg0 context.Context, arg1 tlf.CanonicalName, arg2 tlf.Type, arg3 chat1.TopicType) ([]chat1.ConversationID, []string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannels", arg0, arg1, arg2, arg3)
@@ -462,13 +462,13 @@ func (m *MockChat) GetChannels(arg0 context.Context, arg1 tlf.CanonicalName, arg
 	return ret0, ret1, ret2
 }
 
-// GetChannels indicates an expected call of GetChannels
+// GetChannels indicates an expected call of GetChannels.
 func (mr *MockChatMockRecorder) GetChannels(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannels", reflect.TypeOf((*MockChat)(nil).GetChannels), arg0, arg1, arg2, arg3)
 }
 
-// GetConversationID mocks base method
+// GetConversationID mocks base method.
 func (m *MockChat) GetConversationID(arg0 context.Context, arg1 tlf.CanonicalName, arg2 tlf.Type, arg3 string, arg4 chat1.TopicType) (chat1.ConversationID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConversationID", arg0, arg1, arg2, arg3, arg4)
@@ -477,13 +477,13 @@ func (m *MockChat) GetConversationID(arg0 context.Context, arg1 tlf.CanonicalNam
 	return ret0, ret1
 }
 
-// GetConversationID indicates an expected call of GetConversationID
+// GetConversationID indicates an expected call of GetConversationID.
 func (mr *MockChatMockRecorder) GetConversationID(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConversationID", reflect.TypeOf((*MockChat)(nil).GetConversationID), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetGroupedInbox mocks base method
+// GetGroupedInbox mocks base method.
 func (m *MockChat) GetGroupedInbox(arg0 context.Context, arg1 chat1.TopicType, arg2 int) ([]*tlfhandle.Handle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGroupedInbox", arg0, arg1, arg2)
@@ -492,13 +492,13 @@ func (m *MockChat) GetGroupedInbox(arg0 context.Context, arg1 chat1.TopicType, a
 	return ret0, ret1
 }
 
-// GetGroupedInbox indicates an expected call of GetGroupedInbox
+// GetGroupedInbox indicates an expected call of GetGroupedInbox.
 func (mr *MockChatMockRecorder) GetGroupedInbox(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupedInbox", reflect.TypeOf((*MockChat)(nil).GetGroupedInbox), arg0, arg1, arg2)
 }
 
-// ReadChannel mocks base method
+// ReadChannel mocks base method.
 func (m *MockChat) ReadChannel(arg0 context.Context, arg1 chat1.ConversationID, arg2 []byte) ([]string, []byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadChannel", arg0, arg1, arg2)
@@ -508,25 +508,25 @@ func (m *MockChat) ReadChannel(arg0 context.Context, arg1 chat1.ConversationID, 
 	return ret0, ret1, ret2
 }
 
-// ReadChannel indicates an expected call of ReadChannel
+// ReadChannel indicates an expected call of ReadChannel.
 func (mr *MockChatMockRecorder) ReadChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadChannel", reflect.TypeOf((*MockChat)(nil).ReadChannel), arg0, arg1, arg2)
 }
 
-// RegisterForMessages mocks base method
+// RegisterForMessages mocks base method.
 func (m *MockChat) RegisterForMessages(arg0 chat1.ConversationID, arg1 ChatChannelNewMessageCB) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RegisterForMessages", arg0, arg1)
 }
 
-// RegisterForMessages indicates an expected call of RegisterForMessages
+// RegisterForMessages indicates an expected call of RegisterForMessages.
 func (mr *MockChatMockRecorder) RegisterForMessages(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForMessages", reflect.TypeOf((*MockChat)(nil).RegisterForMessages), arg0, arg1)
 }
 
-// SendTextMessage mocks base method
+// SendTextMessage mocks base method.
 func (m *MockChat) SendTextMessage(arg0 context.Context, arg1 tlf.CanonicalName, arg2 tlf.Type, arg3 chat1.ConversationID, arg4 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendTextMessage", arg0, arg1, arg2, arg3, arg4)
@@ -534,36 +534,36 @@ func (m *MockChat) SendTextMessage(arg0 context.Context, arg1 tlf.CanonicalName,
 	return ret0
 }
 
-// SendTextMessage indicates an expected call of SendTextMessage
+// SendTextMessage indicates an expected call of SendTextMessage.
 func (mr *MockChatMockRecorder) SendTextMessage(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTextMessage", reflect.TypeOf((*MockChat)(nil).SendTextMessage), arg0, arg1, arg2, arg3, arg4)
 }
 
-// MockClock is a mock of Clock interface
+// MockClock is a mock of Clock interface.
 type MockClock struct {
 	ctrl     *gomock.Controller
 	recorder *MockClockMockRecorder
 }
 
-// MockClockMockRecorder is the mock recorder for MockClock
+// MockClockMockRecorder is the mock recorder for MockClock.
 type MockClockMockRecorder struct {
 	mock *MockClock
 }
 
-// NewMockClock creates a new mock instance
+// NewMockClock creates a new mock instance.
 func NewMockClock(ctrl *gomock.Controller) *MockClock {
 	mock := &MockClock{ctrl: ctrl}
 	mock.recorder = &MockClockMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClock) EXPECT() *MockClockMockRecorder {
 	return m.recorder
 }
 
-// Now mocks base method
+// Now mocks base method.
 func (m *MockClock) Now() time.Time {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Now")
@@ -571,36 +571,36 @@ func (m *MockClock) Now() time.Time {
 	return ret0
 }
 
-// Now indicates an expected call of Now
+// Now indicates an expected call of Now.
 func (mr *MockClockMockRecorder) Now() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Now", reflect.TypeOf((*MockClock)(nil).Now))
 }
 
-// MockCrypto is a mock of Crypto interface
+// MockCrypto is a mock of Crypto interface.
 type MockCrypto struct {
 	ctrl     *gomock.Controller
 	recorder *MockCryptoMockRecorder
 }
 
-// MockCryptoMockRecorder is the mock recorder for MockCrypto
+// MockCryptoMockRecorder is the mock recorder for MockCrypto.
 type MockCryptoMockRecorder struct {
 	mock *MockCrypto
 }
 
-// NewMockCrypto creates a new mock instance
+// NewMockCrypto creates a new mock instance.
 func NewMockCrypto(ctrl *gomock.Controller) *MockCrypto {
 	mock := &MockCrypto{ctrl: ctrl}
 	mock.recorder = &MockCryptoMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockCrypto) EXPECT() *MockCryptoMockRecorder {
 	return m.recorder
 }
 
-// DecryptBlock mocks base method
+// DecryptBlock mocks base method.
 func (m *MockCrypto) DecryptBlock(arg0 kbfscrypto.EncryptedBlock, arg1 kbfscrypto.TLFCryptKey, arg2 kbfscrypto.BlockCryptKeyServerHalf, arg3 data.Block) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptBlock", arg0, arg1, arg2, arg3)
@@ -608,13 +608,13 @@ func (m *MockCrypto) DecryptBlock(arg0 kbfscrypto.EncryptedBlock, arg1 kbfscrypt
 	return ret0
 }
 
-// DecryptBlock indicates an expected call of DecryptBlock
+// DecryptBlock indicates an expected call of DecryptBlock.
 func (mr *MockCryptoMockRecorder) DecryptBlock(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptBlock", reflect.TypeOf((*MockCrypto)(nil).DecryptBlock), arg0, arg1, arg2, arg3)
 }
 
-// DecryptPrivateMetadata mocks base method
+// DecryptPrivateMetadata mocks base method.
 func (m *MockCrypto) DecryptPrivateMetadata(arg0 kbfscrypto.EncryptedPrivateMetadata, arg1 kbfscrypto.TLFCryptKey) (PrivateMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptPrivateMetadata", arg0, arg1)
@@ -623,13 +623,13 @@ func (m *MockCrypto) DecryptPrivateMetadata(arg0 kbfscrypto.EncryptedPrivateMeta
 	return ret0, ret1
 }
 
-// DecryptPrivateMetadata indicates an expected call of DecryptPrivateMetadata
+// DecryptPrivateMetadata indicates an expected call of DecryptPrivateMetadata.
 func (mr *MockCryptoMockRecorder) DecryptPrivateMetadata(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptPrivateMetadata", reflect.TypeOf((*MockCrypto)(nil).DecryptPrivateMetadata), arg0, arg1)
 }
 
-// DecryptTLFCryptKeyClientHalf mocks base method
+// DecryptTLFCryptKeyClientHalf mocks base method.
 func (m *MockCrypto) DecryptTLFCryptKeyClientHalf(arg0 context.Context, arg1 kbfscrypto.TLFEphemeralPublicKey, arg2 kbfscrypto.EncryptedTLFCryptKeyClientHalf) (kbfscrypto.TLFCryptKeyClientHalf, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
@@ -638,13 +638,13 @@ func (m *MockCrypto) DecryptTLFCryptKeyClientHalf(arg0 context.Context, arg1 kbf
 	return ret0, ret1
 }
 
-// DecryptTLFCryptKeyClientHalf indicates an expected call of DecryptTLFCryptKeyClientHalf
+// DecryptTLFCryptKeyClientHalf indicates an expected call of DecryptTLFCryptKeyClientHalf.
 func (mr *MockCryptoMockRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptTLFCryptKeyClientHalf", reflect.TypeOf((*MockCrypto)(nil).DecryptTLFCryptKeyClientHalf), arg0, arg1, arg2)
 }
 
-// DecryptTLFCryptKeyClientHalfAny mocks base method
+// DecryptTLFCryptKeyClientHalfAny mocks base method.
 func (m *MockCrypto) DecryptTLFCryptKeyClientHalfAny(arg0 context.Context, arg1 []EncryptedTLFCryptKeyClientAndEphemeral, arg2 bool) (kbfscrypto.TLFCryptKeyClientHalf, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptTLFCryptKeyClientHalfAny", arg0, arg1, arg2)
@@ -654,13 +654,13 @@ func (m *MockCrypto) DecryptTLFCryptKeyClientHalfAny(arg0 context.Context, arg1 
 	return ret0, ret1, ret2
 }
 
-// DecryptTLFCryptKeyClientHalfAny indicates an expected call of DecryptTLFCryptKeyClientHalfAny
+// DecryptTLFCryptKeyClientHalfAny indicates an expected call of DecryptTLFCryptKeyClientHalfAny.
 func (mr *MockCryptoMockRecorder) DecryptTLFCryptKeyClientHalfAny(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptTLFCryptKeyClientHalfAny", reflect.TypeOf((*MockCrypto)(nil).DecryptTLFCryptKeyClientHalfAny), arg0, arg1, arg2)
 }
 
-// DecryptTeamMerkleLeaf mocks base method
+// DecryptTeamMerkleLeaf mocks base method.
 func (m *MockCrypto) DecryptTeamMerkleLeaf(arg0 context.Context, arg1 keybase1.TeamID, arg2 kbfscrypto.TLFEphemeralPublicKey, arg3 kbfscrypto.EncryptedMerkleLeaf, arg4 keybase1.PerTeamKeyGeneration) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptTeamMerkleLeaf", arg0, arg1, arg2, arg3, arg4)
@@ -669,13 +669,13 @@ func (m *MockCrypto) DecryptTeamMerkleLeaf(arg0 context.Context, arg1 keybase1.T
 	return ret0, ret1
 }
 
-// DecryptTeamMerkleLeaf indicates an expected call of DecryptTeamMerkleLeaf
+// DecryptTeamMerkleLeaf indicates an expected call of DecryptTeamMerkleLeaf.
 func (mr *MockCryptoMockRecorder) DecryptTeamMerkleLeaf(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptTeamMerkleLeaf", reflect.TypeOf((*MockCrypto)(nil).DecryptTeamMerkleLeaf), arg0, arg1, arg2, arg3, arg4)
 }
 
-// EncryptBlock mocks base method
+// EncryptBlock mocks base method.
 func (m *MockCrypto) EncryptBlock(arg0 data.Block, arg1 kbfscrypto.TLFCryptKey, arg2 kbfscrypto.BlockCryptKeyServerHalf) (int, kbfscrypto.EncryptedBlock, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EncryptBlock", arg0, arg1, arg2)
@@ -685,13 +685,13 @@ func (m *MockCrypto) EncryptBlock(arg0 data.Block, arg1 kbfscrypto.TLFCryptKey, 
 	return ret0, ret1, ret2
 }
 
-// EncryptBlock indicates an expected call of EncryptBlock
+// EncryptBlock indicates an expected call of EncryptBlock.
 func (mr *MockCryptoMockRecorder) EncryptBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptBlock", reflect.TypeOf((*MockCrypto)(nil).EncryptBlock), arg0, arg1, arg2)
 }
 
-// EncryptPrivateMetadata mocks base method
+// EncryptPrivateMetadata mocks base method.
 func (m *MockCrypto) EncryptPrivateMetadata(arg0 PrivateMetadata, arg1 kbfscrypto.TLFCryptKey) (kbfscrypto.EncryptedPrivateMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EncryptPrivateMetadata", arg0, arg1)
@@ -700,13 +700,13 @@ func (m *MockCrypto) EncryptPrivateMetadata(arg0 PrivateMetadata, arg1 kbfscrypt
 	return ret0, ret1
 }
 
-// EncryptPrivateMetadata indicates an expected call of EncryptPrivateMetadata
+// EncryptPrivateMetadata indicates an expected call of EncryptPrivateMetadata.
 func (mr *MockCryptoMockRecorder) EncryptPrivateMetadata(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptPrivateMetadata", reflect.TypeOf((*MockCrypto)(nil).EncryptPrivateMetadata), arg0, arg1)
 }
 
-// MakeBlockRefNonce mocks base method
+// MakeBlockRefNonce mocks base method.
 func (m *MockCrypto) MakeBlockRefNonce() (kbfsblock.RefNonce, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeBlockRefNonce")
@@ -715,13 +715,13 @@ func (m *MockCrypto) MakeBlockRefNonce() (kbfsblock.RefNonce, error) {
 	return ret0, ret1
 }
 
-// MakeBlockRefNonce indicates an expected call of MakeBlockRefNonce
+// MakeBlockRefNonce indicates an expected call of MakeBlockRefNonce.
 func (mr *MockCryptoMockRecorder) MakeBlockRefNonce() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeBlockRefNonce", reflect.TypeOf((*MockCrypto)(nil).MakeBlockRefNonce))
 }
 
-// MakeRandomBlockCryptKeyServerHalf mocks base method
+// MakeRandomBlockCryptKeyServerHalf mocks base method.
 func (m *MockCrypto) MakeRandomBlockCryptKeyServerHalf() (kbfscrypto.BlockCryptKeyServerHalf, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeRandomBlockCryptKeyServerHalf")
@@ -730,13 +730,13 @@ func (m *MockCrypto) MakeRandomBlockCryptKeyServerHalf() (kbfscrypto.BlockCryptK
 	return ret0, ret1
 }
 
-// MakeRandomBlockCryptKeyServerHalf indicates an expected call of MakeRandomBlockCryptKeyServerHalf
+// MakeRandomBlockCryptKeyServerHalf indicates an expected call of MakeRandomBlockCryptKeyServerHalf.
 func (mr *MockCryptoMockRecorder) MakeRandomBlockCryptKeyServerHalf() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRandomBlockCryptKeyServerHalf", reflect.TypeOf((*MockCrypto)(nil).MakeRandomBlockCryptKeyServerHalf))
 }
 
-// MakeRandomBranchID mocks base method
+// MakeRandomBranchID mocks base method.
 func (m *MockCrypto) MakeRandomBranchID() (kbfsmd.BranchID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeRandomBranchID")
@@ -745,13 +745,13 @@ func (m *MockCrypto) MakeRandomBranchID() (kbfsmd.BranchID, error) {
 	return ret0, ret1
 }
 
-// MakeRandomBranchID indicates an expected call of MakeRandomBranchID
+// MakeRandomBranchID indicates an expected call of MakeRandomBranchID.
 func (mr *MockCryptoMockRecorder) MakeRandomBranchID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRandomBranchID", reflect.TypeOf((*MockCrypto)(nil).MakeRandomBranchID))
 }
 
-// MakeRandomTLFEphemeralKeys mocks base method
+// MakeRandomTLFEphemeralKeys mocks base method.
 func (m *MockCrypto) MakeRandomTLFEphemeralKeys() (kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.TLFEphemeralPrivateKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeRandomTLFEphemeralKeys")
@@ -761,13 +761,13 @@ func (m *MockCrypto) MakeRandomTLFEphemeralKeys() (kbfscrypto.TLFEphemeralPublic
 	return ret0, ret1, ret2
 }
 
-// MakeRandomTLFEphemeralKeys indicates an expected call of MakeRandomTLFEphemeralKeys
+// MakeRandomTLFEphemeralKeys indicates an expected call of MakeRandomTLFEphemeralKeys.
 func (mr *MockCryptoMockRecorder) MakeRandomTLFEphemeralKeys() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRandomTLFEphemeralKeys", reflect.TypeOf((*MockCrypto)(nil).MakeRandomTLFEphemeralKeys))
 }
 
-// MakeRandomTLFKeys mocks base method
+// MakeRandomTLFKeys mocks base method.
 func (m *MockCrypto) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey, kbfscrypto.TLFPrivateKey, kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeRandomTLFKeys")
@@ -778,13 +778,13 @@ func (m *MockCrypto) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey, kbfscrypto.TL
 	return ret0, ret1, ret2, ret3
 }
 
-// MakeRandomTLFKeys indicates an expected call of MakeRandomTLFKeys
+// MakeRandomTLFKeys indicates an expected call of MakeRandomTLFKeys.
 func (mr *MockCryptoMockRecorder) MakeRandomTLFKeys() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRandomTLFKeys", reflect.TypeOf((*MockCrypto)(nil).MakeRandomTLFKeys))
 }
 
-// MakeRandomTlfID mocks base method
+// MakeRandomTlfID mocks base method.
 func (m *MockCrypto) MakeRandomTlfID(arg0 tlf.Type) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeRandomTlfID", arg0)
@@ -793,13 +793,13 @@ func (m *MockCrypto) MakeRandomTlfID(arg0 tlf.Type) (tlf.ID, error) {
 	return ret0, ret1
 }
 
-// MakeRandomTlfID indicates an expected call of MakeRandomTlfID
+// MakeRandomTlfID indicates an expected call of MakeRandomTlfID.
 func (mr *MockCryptoMockRecorder) MakeRandomTlfID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRandomTlfID", reflect.TypeOf((*MockCrypto)(nil).MakeRandomTlfID), arg0)
 }
 
-// MakeTemporaryBlockID mocks base method
+// MakeTemporaryBlockID mocks base method.
 func (m *MockCrypto) MakeTemporaryBlockID() (kbfsblock.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeTemporaryBlockID")
@@ -808,25 +808,25 @@ func (m *MockCrypto) MakeTemporaryBlockID() (kbfsblock.ID, error) {
 	return ret0, ret1
 }
 
-// MakeTemporaryBlockID indicates an expected call of MakeTemporaryBlockID
+// MakeTemporaryBlockID indicates an expected call of MakeTemporaryBlockID.
 func (mr *MockCryptoMockRecorder) MakeTemporaryBlockID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeTemporaryBlockID", reflect.TypeOf((*MockCrypto)(nil).MakeTemporaryBlockID))
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockCrypto) Shutdown() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Shutdown")
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockCryptoMockRecorder) Shutdown() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockCrypto)(nil).Shutdown))
 }
 
-// Sign mocks base method
+// Sign mocks base method.
 func (m *MockCrypto) Sign(arg0 context.Context, arg1 []byte) (kbfscrypto.SignatureInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", arg0, arg1)
@@ -835,13 +835,13 @@ func (m *MockCrypto) Sign(arg0 context.Context, arg1 []byte) (kbfscrypto.Signatu
 	return ret0, ret1
 }
 
-// Sign indicates an expected call of Sign
+// Sign indicates an expected call of Sign.
 func (mr *MockCryptoMockRecorder) Sign(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockCrypto)(nil).Sign), arg0, arg1)
 }
 
-// SignForKBFS mocks base method
+// SignForKBFS mocks base method.
 func (m *MockCrypto) SignForKBFS(arg0 context.Context, arg1 []byte) (kbfscrypto.SignatureInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignForKBFS", arg0, arg1)
@@ -850,13 +850,13 @@ func (m *MockCrypto) SignForKBFS(arg0 context.Context, arg1 []byte) (kbfscrypto.
 	return ret0, ret1
 }
 
-// SignForKBFS indicates an expected call of SignForKBFS
+// SignForKBFS indicates an expected call of SignForKBFS.
 func (mr *MockCryptoMockRecorder) SignForKBFS(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignForKBFS", reflect.TypeOf((*MockCrypto)(nil).SignForKBFS), arg0, arg1)
 }
 
-// SignToString mocks base method
+// SignToString mocks base method.
 func (m *MockCrypto) SignToString(arg0 context.Context, arg1 []byte) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignToString", arg0, arg1)
@@ -865,36 +865,36 @@ func (m *MockCrypto) SignToString(arg0 context.Context, arg1 []byte) (string, er
 	return ret0, ret1
 }
 
-// SignToString indicates an expected call of SignToString
+// SignToString indicates an expected call of SignToString.
 func (mr *MockCryptoMockRecorder) SignToString(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignToString", reflect.TypeOf((*MockCrypto)(nil).SignToString), arg0, arg1)
 }
 
-// MockKBFSOps is a mock of KBFSOps interface
+// MockKBFSOps is a mock of KBFSOps interface.
 type MockKBFSOps struct {
 	ctrl     *gomock.Controller
 	recorder *MockKBFSOpsMockRecorder
 }
 
-// MockKBFSOpsMockRecorder is the mock recorder for MockKBFSOps
+// MockKBFSOpsMockRecorder is the mock recorder for MockKBFSOps.
 type MockKBFSOpsMockRecorder struct {
 	mock *MockKBFSOps
 }
 
-// NewMockKBFSOps creates a new mock instance
+// NewMockKBFSOps creates a new mock instance.
 func NewMockKBFSOps(ctrl *gomock.Controller) *MockKBFSOps {
 	mock := &MockKBFSOps{ctrl: ctrl}
 	mock.recorder = &MockKBFSOpsMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockKBFSOps) EXPECT() *MockKBFSOpsMockRecorder {
 	return m.recorder
 }
 
-// AddFavorite mocks base method
+// AddFavorite mocks base method.
 func (m *MockKBFSOps) AddFavorite(arg0 context.Context, arg1 favorites.Folder, arg2 favorites.Data) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddFavorite", arg0, arg1, arg2)
@@ -902,25 +902,25 @@ func (m *MockKBFSOps) AddFavorite(arg0 context.Context, arg1 favorites.Folder, a
 	return ret0
 }
 
-// AddFavorite indicates an expected call of AddFavorite
+// AddFavorite indicates an expected call of AddFavorite.
 func (mr *MockKBFSOpsMockRecorder) AddFavorite(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), arg0, arg1, arg2)
 }
 
-// AddRootNodeWrapper mocks base method
+// AddRootNodeWrapper mocks base method.
 func (m *MockKBFSOps) AddRootNodeWrapper(arg0 func(Node) Node) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AddRootNodeWrapper", arg0)
 }
 
-// AddRootNodeWrapper indicates an expected call of AddRootNodeWrapper
+// AddRootNodeWrapper indicates an expected call of AddRootNodeWrapper.
 func (mr *MockKBFSOpsMockRecorder) AddRootNodeWrapper(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootNodeWrapper", reflect.TypeOf((*MockKBFSOps)(nil).AddRootNodeWrapper), arg0)
 }
 
-// CheckMigrationPerms mocks base method
+// CheckMigrationPerms mocks base method.
 func (m *MockKBFSOps) CheckMigrationPerms(arg0 context.Context, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckMigrationPerms", arg0, arg1)
@@ -928,25 +928,25 @@ func (m *MockKBFSOps) CheckMigrationPerms(arg0 context.Context, arg1 tlf.ID) err
 	return ret0
 }
 
-// CheckMigrationPerms indicates an expected call of CheckMigrationPerms
+// CheckMigrationPerms indicates an expected call of CheckMigrationPerms.
 func (mr *MockKBFSOpsMockRecorder) CheckMigrationPerms(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckMigrationPerms", reflect.TypeOf((*MockKBFSOps)(nil).CheckMigrationPerms), arg0, arg1)
 }
 
-// ClearCachedFavorites mocks base method
+// ClearCachedFavorites mocks base method.
 func (m *MockKBFSOps) ClearCachedFavorites(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ClearCachedFavorites", arg0)
 }
 
-// ClearCachedFavorites indicates an expected call of ClearCachedFavorites
+// ClearCachedFavorites indicates an expected call of ClearCachedFavorites.
 func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).ClearCachedFavorites), arg0)
 }
 
-// ClearConflictView mocks base method
+// ClearConflictView mocks base method.
 func (m *MockKBFSOps) ClearConflictView(arg0 context.Context, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClearConflictView", arg0, arg1)
@@ -954,25 +954,25 @@ func (m *MockKBFSOps) ClearConflictView(arg0 context.Context, arg1 tlf.ID) error
 	return ret0
 }
 
-// ClearConflictView indicates an expected call of ClearConflictView
+// ClearConflictView indicates an expected call of ClearConflictView.
 func (mr *MockKBFSOpsMockRecorder) ClearConflictView(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearConflictView", reflect.TypeOf((*MockKBFSOps)(nil).ClearConflictView), arg0, arg1)
 }
 
-// ClearPrivateFolderMD mocks base method
+// ClearPrivateFolderMD mocks base method.
 func (m *MockKBFSOps) ClearPrivateFolderMD(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ClearPrivateFolderMD", arg0)
 }
 
-// ClearPrivateFolderMD indicates an expected call of ClearPrivateFolderMD
+// ClearPrivateFolderMD indicates an expected call of ClearPrivateFolderMD.
 func (mr *MockKBFSOpsMockRecorder) ClearPrivateFolderMD(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearPrivateFolderMD", reflect.TypeOf((*MockKBFSOps)(nil).ClearPrivateFolderMD), arg0)
 }
 
-// CreateDir mocks base method
+// CreateDir mocks base method.
 func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 data.PathPartString) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateDir", arg0, arg1, arg2)
@@ -982,13 +982,13 @@ func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 data.PathP
 	return ret0, ret1, ret2
 }
 
-// CreateDir indicates an expected call of CreateDir
+// CreateDir indicates an expected call of CreateDir.
 func (mr *MockKBFSOpsMockRecorder) CreateDir(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDir", reflect.TypeOf((*MockKBFSOps)(nil).CreateDir), arg0, arg1, arg2)
 }
 
-// CreateFile mocks base method
+// CreateFile mocks base method.
 func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 bool, arg4 Excl) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFile", arg0, arg1, arg2, arg3, arg4)
@@ -998,13 +998,13 @@ func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 data.Path
 	return ret0, ret1, ret2
 }
 
-// CreateFile indicates an expected call of CreateFile
+// CreateFile indicates an expected call of CreateFile.
 func (mr *MockKBFSOpsMockRecorder) CreateFile(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFile", reflect.TypeOf((*MockKBFSOps)(nil).CreateFile), arg0, arg1, arg2, arg3, arg4)
 }
 
-// CreateLink mocks base method
+// CreateLink mocks base method.
 func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 data.PathPartString) (data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLink", arg0, arg1, arg2, arg3)
@@ -1013,13 +1013,13 @@ func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 dat
 	return ret0, ret1
 }
 
-// CreateLink indicates an expected call of CreateLink
+// CreateLink indicates an expected call of CreateLink.
 func (mr *MockKBFSOpsMockRecorder) CreateLink(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLink", reflect.TypeOf((*MockKBFSOps)(nil).CreateLink), arg0, arg1, arg2, arg3)
 }
 
-// DeleteFavorite mocks base method
+// DeleteFavorite mocks base method.
 func (m *MockKBFSOps) DeleteFavorite(arg0 context.Context, arg1 favorites.Folder) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteFavorite", arg0, arg1)
@@ -1027,13 +1027,13 @@ func (m *MockKBFSOps) DeleteFavorite(arg0 context.Context, arg1 favorites.Folder
 	return ret0
 }
 
-// DeleteFavorite indicates an expected call of DeleteFavorite
+// DeleteFavorite indicates an expected call of DeleteFavorite.
 func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), arg0, arg1)
 }
 
-// FinishResolvingConflict mocks base method
+// FinishResolvingConflict mocks base method.
 func (m *MockKBFSOps) FinishResolvingConflict(arg0 context.Context, arg1 data.FolderBranch) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FinishResolvingConflict", arg0, arg1)
@@ -1041,13 +1041,13 @@ func (m *MockKBFSOps) FinishResolvingConflict(arg0 context.Context, arg1 data.Fo
 	return ret0
 }
 
-// FinishResolvingConflict indicates an expected call of FinishResolvingConflict
+// FinishResolvingConflict indicates an expected call of FinishResolvingConflict.
 func (mr *MockKBFSOpsMockRecorder) FinishResolvingConflict(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishResolvingConflict", reflect.TypeOf((*MockKBFSOps)(nil).FinishResolvingConflict), arg0, arg1)
 }
 
-// FolderConflictStatus mocks base method
+// FolderConflictStatus mocks base method.
 func (m *MockKBFSOps) FolderConflictStatus(arg0 context.Context, arg1 data.FolderBranch) (keybase1.FolderConflictType, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FolderConflictStatus", arg0, arg1)
@@ -1056,13 +1056,13 @@ func (m *MockKBFSOps) FolderConflictStatus(arg0 context.Context, arg1 data.Folde
 	return ret0, ret1
 }
 
-// FolderConflictStatus indicates an expected call of FolderConflictStatus
+// FolderConflictStatus indicates an expected call of FolderConflictStatus.
 func (mr *MockKBFSOpsMockRecorder) FolderConflictStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FolderConflictStatus", reflect.TypeOf((*MockKBFSOps)(nil).FolderConflictStatus), arg0, arg1)
 }
 
-// FolderStatus mocks base method
+// FolderStatus mocks base method.
 func (m *MockKBFSOps) FolderStatus(arg0 context.Context, arg1 data.FolderBranch) (FolderBranchStatus, <-chan StatusUpdate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FolderStatus", arg0, arg1)
@@ -1072,25 +1072,25 @@ func (m *MockKBFSOps) FolderStatus(arg0 context.Context, arg1 data.FolderBranch)
 	return ret0, ret1, ret2
 }
 
-// FolderStatus indicates an expected call of FolderStatus
+// FolderStatus indicates an expected call of FolderStatus.
 func (mr *MockKBFSOpsMockRecorder) FolderStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FolderStatus", reflect.TypeOf((*MockKBFSOps)(nil).FolderStatus), arg0, arg1)
 }
 
-// ForceFastForward mocks base method
+// ForceFastForward mocks base method.
 func (m *MockKBFSOps) ForceFastForward(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ForceFastForward", arg0)
 }
 
-// ForceFastForward indicates an expected call of ForceFastForward
+// ForceFastForward indicates an expected call of ForceFastForward.
 func (mr *MockKBFSOpsMockRecorder) ForceFastForward(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceFastForward", reflect.TypeOf((*MockKBFSOps)(nil).ForceFastForward), arg0)
 }
 
-// ForceStuckConflictForTesting mocks base method
+// ForceStuckConflictForTesting mocks base method.
 func (m *MockKBFSOps) ForceStuckConflictForTesting(arg0 context.Context, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ForceStuckConflictForTesting", arg0, arg1)
@@ -1098,13 +1098,13 @@ func (m *MockKBFSOps) ForceStuckConflictForTesting(arg0 context.Context, arg1 tl
 	return ret0
 }
 
-// ForceStuckConflictForTesting indicates an expected call of ForceStuckConflictForTesting
+// ForceStuckConflictForTesting indicates an expected call of ForceStuckConflictForTesting.
 func (mr *MockKBFSOpsMockRecorder) ForceStuckConflictForTesting(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceStuckConflictForTesting", reflect.TypeOf((*MockKBFSOps)(nil).ForceStuckConflictForTesting), arg0, arg1)
 }
 
-// GetAllSyncedTlfMDs mocks base method
+// GetAllSyncedTlfMDs mocks base method.
 func (m *MockKBFSOps) GetAllSyncedTlfMDs(arg0 context.Context) map[tlf.ID]SyncedTlfMD {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllSyncedTlfMDs", arg0)
@@ -1112,13 +1112,13 @@ func (m *MockKBFSOps) GetAllSyncedTlfMDs(arg0 context.Context) map[tlf.ID]Synced
 	return ret0
 }
 
-// GetAllSyncedTlfMDs indicates an expected call of GetAllSyncedTlfMDs
+// GetAllSyncedTlfMDs indicates an expected call of GetAllSyncedTlfMDs.
 func (mr *MockKBFSOpsMockRecorder) GetAllSyncedTlfMDs(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllSyncedTlfMDs", reflect.TypeOf((*MockKBFSOps)(nil).GetAllSyncedTlfMDs), arg0)
 }
 
-// GetBadge mocks base method
+// GetBadge mocks base method.
 func (m *MockKBFSOps) GetBadge(arg0 context.Context) (keybase1.FilesTabBadge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBadge", arg0)
@@ -1127,13 +1127,13 @@ func (m *MockKBFSOps) GetBadge(arg0 context.Context) (keybase1.FilesTabBadge, er
 	return ret0, ret1
 }
 
-// GetBadge indicates an expected call of GetBadge
+// GetBadge indicates an expected call of GetBadge.
 func (mr *MockKBFSOpsMockRecorder) GetBadge(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBadge", reflect.TypeOf((*MockKBFSOps)(nil).GetBadge), arg0)
 }
 
-// GetDirChildren mocks base method
+// GetDirChildren mocks base method.
 func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[data.PathPartString]data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDirChildren", arg0, arg1)
@@ -1142,13 +1142,13 @@ func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[data.
 	return ret0, ret1
 }
 
-// GetDirChildren indicates an expected call of GetDirChildren
+// GetDirChildren indicates an expected call of GetDirChildren.
 func (mr *MockKBFSOpsMockRecorder) GetDirChildren(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDirChildren", reflect.TypeOf((*MockKBFSOps)(nil).GetDirChildren), arg0, arg1)
 }
 
-// GetEditHistory mocks base method
+// GetEditHistory mocks base method.
 func (m *MockKBFSOps) GetEditHistory(arg0 context.Context, arg1 data.FolderBranch) (keybase1.FSFolderEditHistory, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEditHistory", arg0, arg1)
@@ -1157,13 +1157,13 @@ func (m *MockKBFSOps) GetEditHistory(arg0 context.Context, arg1 data.FolderBranc
 	return ret0, ret1
 }
 
-// GetEditHistory indicates an expected call of GetEditHistory
+// GetEditHistory indicates an expected call of GetEditHistory.
 func (mr *MockKBFSOpsMockRecorder) GetEditHistory(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEditHistory", reflect.TypeOf((*MockKBFSOps)(nil).GetEditHistory), arg0, arg1)
 }
 
-// GetFavorites mocks base method
+// GetFavorites mocks base method.
 func (m *MockKBFSOps) GetFavorites(arg0 context.Context) ([]favorites.Folder, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFavorites", arg0)
@@ -1172,13 +1172,13 @@ func (m *MockKBFSOps) GetFavorites(arg0 context.Context) ([]favorites.Folder, er
 	return ret0, ret1
 }
 
-// GetFavorites indicates an expected call of GetFavorites
+// GetFavorites indicates an expected call of GetFavorites.
 func (mr *MockKBFSOpsMockRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockKBFSOps)(nil).GetFavorites), arg0)
 }
 
-// GetFavoritesAll mocks base method
+// GetFavoritesAll mocks base method.
 func (m *MockKBFSOps) GetFavoritesAll(arg0 context.Context) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFavoritesAll", arg0)
@@ -1187,13 +1187,13 @@ func (m *MockKBFSOps) GetFavoritesAll(arg0 context.Context) (keybase1.FavoritesR
 	return ret0, ret1
 }
 
-// GetFavoritesAll indicates an expected call of GetFavoritesAll
+// GetFavoritesAll indicates an expected call of GetFavoritesAll.
 func (mr *MockKBFSOpsMockRecorder) GetFavoritesAll(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesAll", reflect.TypeOf((*MockKBFSOps)(nil).GetFavoritesAll), arg0)
 }
 
-// GetFolderWithFavFlags mocks base method
+// GetFolderWithFavFlags mocks base method.
 func (m *MockKBFSOps) GetFolderWithFavFlags(arg0 context.Context, arg1 *tlfhandle.Handle) (keybase1.FolderWithFavFlags, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFolderWithFavFlags", arg0, arg1)
@@ -1202,13 +1202,13 @@ func (m *MockKBFSOps) GetFolderWithFavFlags(arg0 context.Context, arg1 *tlfhandl
 	return ret0, ret1
 }
 
-// GetFolderWithFavFlags indicates an expected call of GetFolderWithFavFlags
+// GetFolderWithFavFlags indicates an expected call of GetFolderWithFavFlags.
 func (mr *MockKBFSOpsMockRecorder) GetFolderWithFavFlags(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFolderWithFavFlags", reflect.TypeOf((*MockKBFSOps)(nil).GetFolderWithFavFlags), arg0, arg1)
 }
 
-// GetNodeMetadata mocks base method
+// GetNodeMetadata mocks base method.
 func (m *MockKBFSOps) GetNodeMetadata(arg0 context.Context, arg1 Node) (NodeMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNodeMetadata", arg0, arg1)
@@ -1217,13 +1217,13 @@ func (m *MockKBFSOps) GetNodeMetadata(arg0 context.Context, arg1 Node) (NodeMeta
 	return ret0, ret1
 }
 
-// GetNodeMetadata indicates an expected call of GetNodeMetadata
+// GetNodeMetadata indicates an expected call of GetNodeMetadata.
 func (mr *MockKBFSOpsMockRecorder) GetNodeMetadata(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodeMetadata", reflect.TypeOf((*MockKBFSOps)(nil).GetNodeMetadata), arg0, arg1)
 }
 
-// GetOrCreateRootNode mocks base method
+// GetOrCreateRootNode mocks base method.
 func (m *MockKBFSOps) GetOrCreateRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 data.BranchName) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrCreateRootNode", arg0, arg1, arg2)
@@ -1233,13 +1233,13 @@ func (m *MockKBFSOps) GetOrCreateRootNode(arg0 context.Context, arg1 *tlfhandle.
 	return ret0, ret1, ret2
 }
 
-// GetOrCreateRootNode indicates an expected call of GetOrCreateRootNode
+// GetOrCreateRootNode indicates an expected call of GetOrCreateRootNode.
 func (mr *MockKBFSOpsMockRecorder) GetOrCreateRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreateRootNode", reflect.TypeOf((*MockKBFSOps)(nil).GetOrCreateRootNode), arg0, arg1, arg2)
 }
 
-// GetRootNode mocks base method
+// GetRootNode mocks base method.
 func (m *MockKBFSOps) GetRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 data.BranchName) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRootNode", arg0, arg1, arg2)
@@ -1249,13 +1249,13 @@ func (m *MockKBFSOps) GetRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, 
 	return ret0, ret1, ret2
 }
 
-// GetRootNode indicates an expected call of GetRootNode
+// GetRootNode indicates an expected call of GetRootNode.
 func (mr *MockKBFSOpsMockRecorder) GetRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootNode", reflect.TypeOf((*MockKBFSOps)(nil).GetRootNode), arg0, arg1, arg2)
 }
 
-// GetRootNodeMetadata mocks base method
+// GetRootNodeMetadata mocks base method.
 func (m *MockKBFSOps) GetRootNodeMetadata(arg0 context.Context, arg1 data.FolderBranch) (NodeMetadata, *tlfhandle.Handle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRootNodeMetadata", arg0, arg1)
@@ -1265,13 +1265,13 @@ func (m *MockKBFSOps) GetRootNodeMetadata(arg0 context.Context, arg1 data.Folder
 	return ret0, ret1, ret2
 }
 
-// GetRootNodeMetadata indicates an expected call of GetRootNodeMetadata
+// GetRootNodeMetadata indicates an expected call of GetRootNodeMetadata.
 func (mr *MockKBFSOpsMockRecorder) GetRootNodeMetadata(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootNodeMetadata", reflect.TypeOf((*MockKBFSOps)(nil).GetRootNodeMetadata), arg0, arg1)
 }
 
-// GetSyncConfig mocks base method
+// GetSyncConfig mocks base method.
 func (m *MockKBFSOps) GetSyncConfig(arg0 context.Context, arg1 tlf.ID) (keybase1.FolderSyncConfig, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSyncConfig", arg0, arg1)
@@ -1280,13 +1280,13 @@ func (m *MockKBFSOps) GetSyncConfig(arg0 context.Context, arg1 tlf.ID) (keybase1
 	return ret0, ret1
 }
 
-// GetSyncConfig indicates an expected call of GetSyncConfig
+// GetSyncConfig indicates an expected call of GetSyncConfig.
 func (mr *MockKBFSOpsMockRecorder) GetSyncConfig(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSyncConfig", reflect.TypeOf((*MockKBFSOps)(nil).GetSyncConfig), arg0, arg1)
 }
 
-// GetTLFCryptKeys mocks base method
+// GetTLFCryptKeys mocks base method.
 func (m *MockKBFSOps) GetTLFCryptKeys(arg0 context.Context, arg1 *tlfhandle.Handle) ([]kbfscrypto.TLFCryptKey, tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeys", arg0, arg1)
@@ -1296,13 +1296,13 @@ func (m *MockKBFSOps) GetTLFCryptKeys(arg0 context.Context, arg1 *tlfhandle.Hand
 	return ret0, ret1, ret2
 }
 
-// GetTLFCryptKeys indicates an expected call of GetTLFCryptKeys
+// GetTLFCryptKeys indicates an expected call of GetTLFCryptKeys.
 func (mr *MockKBFSOpsMockRecorder) GetTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFCryptKeys", reflect.TypeOf((*MockKBFSOps)(nil).GetTLFCryptKeys), arg0, arg1)
 }
 
-// GetTLFHandle mocks base method
+// GetTLFHandle mocks base method.
 func (m *MockKBFSOps) GetTLFHandle(arg0 context.Context, arg1 Node) (*tlfhandle.Handle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFHandle", arg0, arg1)
@@ -1311,13 +1311,13 @@ func (m *MockKBFSOps) GetTLFHandle(arg0 context.Context, arg1 Node) (*tlfhandle.
 	return ret0, ret1
 }
 
-// GetTLFHandle indicates an expected call of GetTLFHandle
+// GetTLFHandle indicates an expected call of GetTLFHandle.
 func (mr *MockKBFSOpsMockRecorder) GetTLFHandle(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFHandle", reflect.TypeOf((*MockKBFSOps)(nil).GetTLFHandle), arg0, arg1)
 }
 
-// GetTLFID mocks base method
+// GetTLFID mocks base method.
 func (m *MockKBFSOps) GetTLFID(arg0 context.Context, arg1 *tlfhandle.Handle) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFID", arg0, arg1)
@@ -1326,13 +1326,13 @@ func (m *MockKBFSOps) GetTLFID(arg0 context.Context, arg1 *tlfhandle.Handle) (tl
 	return ret0, ret1
 }
 
-// GetTLFID indicates an expected call of GetTLFID
+// GetTLFID indicates an expected call of GetTLFID.
 func (mr *MockKBFSOpsMockRecorder) GetTLFID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFID", reflect.TypeOf((*MockKBFSOps)(nil).GetTLFID), arg0, arg1)
 }
 
-// GetUpdateHistory mocks base method
+// GetUpdateHistory mocks base method.
 func (m *MockKBFSOps) GetUpdateHistory(arg0 context.Context, arg1 data.FolderBranch, arg2, arg3 kbfsmd.Revision) (TLFUpdateHistory, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUpdateHistory", arg0, arg1, arg2, arg3)
@@ -1341,13 +1341,13 @@ func (m *MockKBFSOps) GetUpdateHistory(arg0 context.Context, arg1 data.FolderBra
 	return ret0, ret1
 }
 
-// GetUpdateHistory indicates an expected call of GetUpdateHistory
+// GetUpdateHistory indicates an expected call of GetUpdateHistory.
 func (mr *MockKBFSOpsMockRecorder) GetUpdateHistory(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdateHistory", reflect.TypeOf((*MockKBFSOps)(nil).GetUpdateHistory), arg0, arg1, arg2, arg3)
 }
 
-// InvalidateNodeAndChildren mocks base method
+// InvalidateNodeAndChildren mocks base method.
 func (m *MockKBFSOps) InvalidateNodeAndChildren(arg0 context.Context, arg1 Node) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InvalidateNodeAndChildren", arg0, arg1)
@@ -1355,13 +1355,13 @@ func (m *MockKBFSOps) InvalidateNodeAndChildren(arg0 context.Context, arg1 Node)
 	return ret0
 }
 
-// InvalidateNodeAndChildren indicates an expected call of InvalidateNodeAndChildren
+// InvalidateNodeAndChildren indicates an expected call of InvalidateNodeAndChildren.
 func (mr *MockKBFSOpsMockRecorder) InvalidateNodeAndChildren(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvalidateNodeAndChildren", reflect.TypeOf((*MockKBFSOps)(nil).InvalidateNodeAndChildren), arg0, arg1)
 }
 
-// KickoffAllOutstandingRekeys mocks base method
+// KickoffAllOutstandingRekeys mocks base method.
 func (m *MockKBFSOps) KickoffAllOutstandingRekeys() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "KickoffAllOutstandingRekeys")
@@ -1369,13 +1369,13 @@ func (m *MockKBFSOps) KickoffAllOutstandingRekeys() error {
 	return ret0
 }
 
-// KickoffAllOutstandingRekeys indicates an expected call of KickoffAllOutstandingRekeys
+// KickoffAllOutstandingRekeys indicates an expected call of KickoffAllOutstandingRekeys.
 func (mr *MockKBFSOpsMockRecorder) KickoffAllOutstandingRekeys() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KickoffAllOutstandingRekeys", reflect.TypeOf((*MockKBFSOps)(nil).KickoffAllOutstandingRekeys))
 }
 
-// Lookup mocks base method
+// Lookup mocks base method.
 func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 data.PathPartString) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lookup", arg0, arg1, arg2)
@@ -1385,13 +1385,13 @@ func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 data.PathPart
 	return ret0, ret1, ret2
 }
 
-// Lookup indicates an expected call of Lookup
+// Lookup indicates an expected call of Lookup.
 func (mr *MockKBFSOpsMockRecorder) Lookup(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lookup", reflect.TypeOf((*MockKBFSOps)(nil).Lookup), arg0, arg1, arg2)
 }
 
-// MigrateToImplicitTeam mocks base method
+// MigrateToImplicitTeam mocks base method.
 func (m *MockKBFSOps) MigrateToImplicitTeam(arg0 context.Context, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MigrateToImplicitTeam", arg0, arg1)
@@ -1399,49 +1399,49 @@ func (m *MockKBFSOps) MigrateToImplicitTeam(arg0 context.Context, arg1 tlf.ID) e
 	return ret0
 }
 
-// MigrateToImplicitTeam indicates an expected call of MigrateToImplicitTeam
+// MigrateToImplicitTeam indicates an expected call of MigrateToImplicitTeam.
 func (mr *MockKBFSOpsMockRecorder) MigrateToImplicitTeam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateToImplicitTeam", reflect.TypeOf((*MockKBFSOps)(nil).MigrateToImplicitTeam), arg0, arg1)
 }
 
-// NewNotificationChannel mocks base method
+// NewNotificationChannel mocks base method.
 func (m *MockKBFSOps) NewNotificationChannel(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 chat1.ConversationID, arg3 string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "NewNotificationChannel", arg0, arg1, arg2, arg3)
 }
 
-// NewNotificationChannel indicates an expected call of NewNotificationChannel
+// NewNotificationChannel indicates an expected call of NewNotificationChannel.
 func (mr *MockKBFSOpsMockRecorder) NewNotificationChannel(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewNotificationChannel", reflect.TypeOf((*MockKBFSOps)(nil).NewNotificationChannel), arg0, arg1, arg2, arg3)
 }
 
-// PushConnectionStatusChange mocks base method
+// PushConnectionStatusChange mocks base method.
 func (m *MockKBFSOps) PushConnectionStatusChange(arg0 string, arg1 error) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushConnectionStatusChange", arg0, arg1)
 }
 
-// PushConnectionStatusChange indicates an expected call of PushConnectionStatusChange
+// PushConnectionStatusChange indicates an expected call of PushConnectionStatusChange.
 func (mr *MockKBFSOpsMockRecorder) PushConnectionStatusChange(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushConnectionStatusChange", reflect.TypeOf((*MockKBFSOps)(nil).PushConnectionStatusChange), arg0, arg1)
 }
 
-// PushStatusChange mocks base method
+// PushStatusChange mocks base method.
 func (m *MockKBFSOps) PushStatusChange() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushStatusChange")
 }
 
-// PushStatusChange indicates an expected call of PushStatusChange
+// PushStatusChange indicates an expected call of PushStatusChange.
 func (mr *MockKBFSOpsMockRecorder) PushStatusChange() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushStatusChange", reflect.TypeOf((*MockKBFSOps)(nil).PushStatusChange))
 }
 
-// Read mocks base method
+// Read mocks base method.
 func (m *MockKBFSOps) Read(arg0 context.Context, arg1 Node, arg2 []byte, arg3 int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Read", arg0, arg1, arg2, arg3)
@@ -1450,37 +1450,37 @@ func (m *MockKBFSOps) Read(arg0 context.Context, arg1 Node, arg2 []byte, arg3 in
 	return ret0, ret1
 }
 
-// Read indicates an expected call of Read
+// Read indicates an expected call of Read.
 func (mr *MockKBFSOpsMockRecorder) Read(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockKBFSOps)(nil).Read), arg0, arg1, arg2, arg3)
 }
 
-// RefreshCachedFavorites mocks base method
+// RefreshCachedFavorites mocks base method.
 func (m *MockKBFSOps) RefreshCachedFavorites(arg0 context.Context, arg1 FavoritesRefreshMode) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RefreshCachedFavorites", arg0, arg1)
 }
 
-// RefreshCachedFavorites indicates an expected call of RefreshCachedFavorites
+// RefreshCachedFavorites indicates an expected call of RefreshCachedFavorites.
 func (mr *MockKBFSOpsMockRecorder) RefreshCachedFavorites(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).RefreshCachedFavorites), arg0, arg1)
 }
 
-// RefreshEditHistory mocks base method
+// RefreshEditHistory mocks base method.
 func (m *MockKBFSOps) RefreshEditHistory(arg0 favorites.Folder) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RefreshEditHistory", arg0)
 }
 
-// RefreshEditHistory indicates an expected call of RefreshEditHistory
+// RefreshEditHistory indicates an expected call of RefreshEditHistory.
 func (mr *MockKBFSOpsMockRecorder) RefreshEditHistory(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshEditHistory", reflect.TypeOf((*MockKBFSOps)(nil).RefreshEditHistory), arg0)
 }
 
-// RemoveDir mocks base method
+// RemoveDir mocks base method.
 func (m *MockKBFSOps) RemoveDir(arg0 context.Context, arg1 Node, arg2 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDir", arg0, arg1, arg2)
@@ -1488,13 +1488,13 @@ func (m *MockKBFSOps) RemoveDir(arg0 context.Context, arg1 Node, arg2 data.PathP
 	return ret0
 }
 
-// RemoveDir indicates an expected call of RemoveDir
+// RemoveDir indicates an expected call of RemoveDir.
 func (mr *MockKBFSOpsMockRecorder) RemoveDir(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDir", reflect.TypeOf((*MockKBFSOps)(nil).RemoveDir), arg0, arg1, arg2)
 }
 
-// RemoveEntry mocks base method
+// RemoveEntry mocks base method.
 func (m *MockKBFSOps) RemoveEntry(arg0 context.Context, arg1 Node, arg2 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveEntry", arg0, arg1, arg2)
@@ -1502,13 +1502,13 @@ func (m *MockKBFSOps) RemoveEntry(arg0 context.Context, arg1 Node, arg2 data.Pat
 	return ret0
 }
 
-// RemoveEntry indicates an expected call of RemoveEntry
+// RemoveEntry indicates an expected call of RemoveEntry.
 func (mr *MockKBFSOpsMockRecorder) RemoveEntry(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveEntry", reflect.TypeOf((*MockKBFSOps)(nil).RemoveEntry), arg0, arg1, arg2)
 }
 
-// Rename mocks base method
+// Rename mocks base method.
 func (m *MockKBFSOps) Rename(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 Node, arg4 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Rename", arg0, arg1, arg2, arg3, arg4)
@@ -1516,25 +1516,25 @@ func (m *MockKBFSOps) Rename(arg0 context.Context, arg1 Node, arg2 data.PathPart
 	return ret0
 }
 
-// Rename indicates an expected call of Rename
+// Rename indicates an expected call of Rename.
 func (mr *MockKBFSOpsMockRecorder) Rename(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rename", reflect.TypeOf((*MockKBFSOps)(nil).Rename), arg0, arg1, arg2, arg3, arg4)
 }
 
-// RequestRekey mocks base method
+// RequestRekey mocks base method.
 func (m *MockKBFSOps) RequestRekey(arg0 context.Context, arg1 tlf.ID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RequestRekey", arg0, arg1)
 }
 
-// RequestRekey indicates an expected call of RequestRekey
+// RequestRekey indicates an expected call of RequestRekey.
 func (mr *MockKBFSOpsMockRecorder) RequestRekey(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestRekey", reflect.TypeOf((*MockKBFSOps)(nil).RequestRekey), arg0, arg1)
 }
 
-// Reset mocks base method
+// Reset mocks base method.
 func (m *MockKBFSOps) Reset(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 *tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Reset", arg0, arg1, arg2)
@@ -1542,13 +1542,13 @@ func (m *MockKBFSOps) Reset(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 *
 	return ret0
 }
 
-// Reset indicates an expected call of Reset
+// Reset indicates an expected call of Reset.
 func (mr *MockKBFSOpsMockRecorder) Reset(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*MockKBFSOps)(nil).Reset), arg0, arg1, arg2)
 }
 
-// SetEx mocks base method
+// SetEx mocks base method.
 func (m *MockKBFSOps) SetEx(arg0 context.Context, arg1 Node, arg2 bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetEx", arg0, arg1, arg2)
@@ -1556,25 +1556,25 @@ func (m *MockKBFSOps) SetEx(arg0 context.Context, arg1 Node, arg2 bool) error {
 	return ret0
 }
 
-// SetEx indicates an expected call of SetEx
+// SetEx indicates an expected call of SetEx.
 func (mr *MockKBFSOpsMockRecorder) SetEx(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetEx", reflect.TypeOf((*MockKBFSOps)(nil).SetEx), arg0, arg1, arg2)
 }
 
-// SetFavoritesHomeTLFInfo mocks base method
+// SetFavoritesHomeTLFInfo mocks base method.
 func (m *MockKBFSOps) SetFavoritesHomeTLFInfo(arg0 context.Context, arg1 homeTLFInfo) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetFavoritesHomeTLFInfo", arg0, arg1)
 }
 
-// SetFavoritesHomeTLFInfo indicates an expected call of SetFavoritesHomeTLFInfo
+// SetFavoritesHomeTLFInfo indicates an expected call of SetFavoritesHomeTLFInfo.
 func (mr *MockKBFSOpsMockRecorder) SetFavoritesHomeTLFInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetFavoritesHomeTLFInfo", reflect.TypeOf((*MockKBFSOps)(nil).SetFavoritesHomeTLFInfo), arg0, arg1)
 }
 
-// SetMtime mocks base method
+// SetMtime mocks base method.
 func (m *MockKBFSOps) SetMtime(arg0 context.Context, arg1 Node, arg2 *time.Time) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetMtime", arg0, arg1, arg2)
@@ -1582,13 +1582,13 @@ func (m *MockKBFSOps) SetMtime(arg0 context.Context, arg1 Node, arg2 *time.Time)
 	return ret0
 }
 
-// SetMtime indicates an expected call of SetMtime
+// SetMtime indicates an expected call of SetMtime.
 func (mr *MockKBFSOpsMockRecorder) SetMtime(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMtime", reflect.TypeOf((*MockKBFSOps)(nil).SetMtime), arg0, arg1, arg2)
 }
 
-// SetSyncConfig mocks base method
+// SetSyncConfig mocks base method.
 func (m *MockKBFSOps) SetSyncConfig(arg0 context.Context, arg1 tlf.ID, arg2 keybase1.FolderSyncConfig) (<-chan error, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetSyncConfig", arg0, arg1, arg2)
@@ -1597,13 +1597,13 @@ func (m *MockKBFSOps) SetSyncConfig(arg0 context.Context, arg1 tlf.ID, arg2 keyb
 	return ret0, ret1
 }
 
-// SetSyncConfig indicates an expected call of SetSyncConfig
+// SetSyncConfig indicates an expected call of SetSyncConfig.
 func (mr *MockKBFSOpsMockRecorder) SetSyncConfig(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSyncConfig", reflect.TypeOf((*MockKBFSOps)(nil).SetSyncConfig), arg0, arg1, arg2)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockKBFSOps) Shutdown(arg0 context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Shutdown", arg0)
@@ -1611,13 +1611,13 @@ func (m *MockKBFSOps) Shutdown(arg0 context.Context) error {
 	return ret0
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockKBFSOpsMockRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockKBFSOps)(nil).Shutdown), arg0)
 }
 
-// Stat mocks base method
+// Stat mocks base method.
 func (m *MockKBFSOps) Stat(arg0 context.Context, arg1 Node) (data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stat", arg0, arg1)
@@ -1626,13 +1626,13 @@ func (m *MockKBFSOps) Stat(arg0 context.Context, arg1 Node) (data.EntryInfo, err
 	return ret0, ret1
 }
 
-// Stat indicates an expected call of Stat
+// Stat indicates an expected call of Stat.
 func (mr *MockKBFSOpsMockRecorder) Stat(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stat", reflect.TypeOf((*MockKBFSOps)(nil).Stat), arg0, arg1)
 }
 
-// Status mocks base method
+// Status mocks base method.
 func (m *MockKBFSOps) Status(arg0 context.Context) (KBFSStatus, <-chan StatusUpdate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Status", arg0)
@@ -1642,13 +1642,13 @@ func (m *MockKBFSOps) Status(arg0 context.Context) (KBFSStatus, <-chan StatusUpd
 	return ret0, ret1, ret2
 }
 
-// Status indicates an expected call of Status
+// Status indicates an expected call of Status.
 func (mr *MockKBFSOpsMockRecorder) Status(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockKBFSOps)(nil).Status), arg0)
 }
 
-// StatusOfServices mocks base method
+// StatusOfServices mocks base method.
 func (m *MockKBFSOps) StatusOfServices() (map[string]error, chan StatusUpdate) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StatusOfServices")
@@ -1657,13 +1657,13 @@ func (m *MockKBFSOps) StatusOfServices() (map[string]error, chan StatusUpdate) {
 	return ret0, ret1
 }
 
-// StatusOfServices indicates an expected call of StatusOfServices
+// StatusOfServices indicates an expected call of StatusOfServices.
 func (mr *MockKBFSOpsMockRecorder) StatusOfServices() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusOfServices", reflect.TypeOf((*MockKBFSOps)(nil).StatusOfServices))
 }
 
-// SyncAll mocks base method
+// SyncAll mocks base method.
 func (m *MockKBFSOps) SyncAll(arg0 context.Context, arg1 data.FolderBranch) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyncAll", arg0, arg1)
@@ -1671,13 +1671,13 @@ func (m *MockKBFSOps) SyncAll(arg0 context.Context, arg1 data.FolderBranch) erro
 	return ret0
 }
 
-// SyncAll indicates an expected call of SyncAll
+// SyncAll indicates an expected call of SyncAll.
 func (mr *MockKBFSOpsMockRecorder) SyncAll(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncAll", reflect.TypeOf((*MockKBFSOps)(nil).SyncAll), arg0, arg1)
 }
 
-// SyncFromServer mocks base method
+// SyncFromServer mocks base method.
 func (m *MockKBFSOps) SyncFromServer(arg0 context.Context, arg1 data.FolderBranch, arg2 *keybase1.LockID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyncFromServer", arg0, arg1, arg2)
@@ -1685,37 +1685,37 @@ func (m *MockKBFSOps) SyncFromServer(arg0 context.Context, arg1 data.FolderBranc
 	return ret0
 }
 
-// SyncFromServer indicates an expected call of SyncFromServer
+// SyncFromServer indicates an expected call of SyncFromServer.
 func (mr *MockKBFSOpsMockRecorder) SyncFromServer(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncFromServer", reflect.TypeOf((*MockKBFSOps)(nil).SyncFromServer), arg0, arg1, arg2)
 }
 
-// TeamAbandoned mocks base method
+// TeamAbandoned mocks base method.
 func (m *MockKBFSOps) TeamAbandoned(arg0 context.Context, arg1 keybase1.TeamID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "TeamAbandoned", arg0, arg1)
 }
 
-// TeamAbandoned indicates an expected call of TeamAbandoned
+// TeamAbandoned indicates an expected call of TeamAbandoned.
 func (mr *MockKBFSOpsMockRecorder) TeamAbandoned(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeamAbandoned", reflect.TypeOf((*MockKBFSOps)(nil).TeamAbandoned), arg0, arg1)
 }
 
-// TeamNameChanged mocks base method
+// TeamNameChanged mocks base method.
 func (m *MockKBFSOps) TeamNameChanged(arg0 context.Context, arg1 keybase1.TeamID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "TeamNameChanged", arg0, arg1)
 }
 
-// TeamNameChanged indicates an expected call of TeamNameChanged
+// TeamNameChanged indicates an expected call of TeamNameChanged.
 func (mr *MockKBFSOpsMockRecorder) TeamNameChanged(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeamNameChanged", reflect.TypeOf((*MockKBFSOps)(nil).TeamNameChanged), arg0, arg1)
 }
 
-// Truncate mocks base method
+// Truncate mocks base method.
 func (m *MockKBFSOps) Truncate(arg0 context.Context, arg1 Node, arg2 uint64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Truncate", arg0, arg1, arg2)
@@ -1723,13 +1723,13 @@ func (m *MockKBFSOps) Truncate(arg0 context.Context, arg1 Node, arg2 uint64) err
 	return ret0
 }
 
-// Truncate indicates an expected call of Truncate
+// Truncate indicates an expected call of Truncate.
 func (mr *MockKBFSOpsMockRecorder) Truncate(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Truncate", reflect.TypeOf((*MockKBFSOps)(nil).Truncate), arg0, arg1, arg2)
 }
 
-// UnstageForTesting mocks base method
+// UnstageForTesting mocks base method.
 func (m *MockKBFSOps) UnstageForTesting(arg0 context.Context, arg1 data.FolderBranch) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnstageForTesting", arg0, arg1)
@@ -1737,13 +1737,13 @@ func (m *MockKBFSOps) UnstageForTesting(arg0 context.Context, arg1 data.FolderBr
 	return ret0
 }
 
-// UnstageForTesting indicates an expected call of UnstageForTesting
+// UnstageForTesting indicates an expected call of UnstageForTesting.
 func (mr *MockKBFSOpsMockRecorder) UnstageForTesting(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnstageForTesting", reflect.TypeOf((*MockKBFSOps)(nil).UnstageForTesting), arg0, arg1)
 }
 
-// Write mocks base method
+// Write mocks base method.
 func (m *MockKBFSOps) Write(arg0 context.Context, arg1 Node, arg2 []byte, arg3 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Write", arg0, arg1, arg2, arg3)
@@ -1751,36 +1751,36 @@ func (m *MockKBFSOps) Write(arg0 context.Context, arg1 Node, arg2 []byte, arg3 i
 	return ret0
 }
 
-// Write indicates an expected call of Write
+// Write indicates an expected call of Write.
 func (mr *MockKBFSOpsMockRecorder) Write(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockKBFSOps)(nil).Write), arg0, arg1, arg2, arg3)
 }
 
-// MockKBPKI is a mock of KBPKI interface
+// MockKBPKI is a mock of KBPKI interface.
 type MockKBPKI struct {
 	ctrl     *gomock.Controller
 	recorder *MockKBPKIMockRecorder
 }
 
-// MockKBPKIMockRecorder is the mock recorder for MockKBPKI
+// MockKBPKIMockRecorder is the mock recorder for MockKBPKI.
 type MockKBPKIMockRecorder struct {
 	mock *MockKBPKI
 }
 
-// NewMockKBPKI creates a new mock instance
+// NewMockKBPKI creates a new mock instance.
 func NewMockKBPKI(ctrl *gomock.Controller) *MockKBPKI {
 	mock := &MockKBPKI{ctrl: ctrl}
 	mock.recorder = &MockKBPKIMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockKBPKI) EXPECT() *MockKBPKIMockRecorder {
 	return m.recorder
 }
 
-// CreateTeamTLF mocks base method
+// CreateTeamTLF mocks base method.
 func (m *MockKBPKI) CreateTeamTLF(arg0 context.Context, arg1 keybase1.TeamID, arg2 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTeamTLF", arg0, arg1, arg2)
@@ -1788,13 +1788,13 @@ func (m *MockKBPKI) CreateTeamTLF(arg0 context.Context, arg1 keybase1.TeamID, ar
 	return ret0
 }
 
-// CreateTeamTLF indicates an expected call of CreateTeamTLF
+// CreateTeamTLF indicates an expected call of CreateTeamTLF.
 func (mr *MockKBPKIMockRecorder) CreateTeamTLF(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeamTLF", reflect.TypeOf((*MockKBPKI)(nil).CreateTeamTLF), arg0, arg1, arg2)
 }
 
-// FavoriteAdd mocks base method
+// FavoriteAdd mocks base method.
 func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
@@ -1802,13 +1802,13 @@ func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle
 	return ret0
 }
 
-// FavoriteAdd indicates an expected call of FavoriteAdd
+// FavoriteAdd indicates an expected call of FavoriteAdd.
 func (mr *MockKBPKIMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteAdd", reflect.TypeOf((*MockKBPKI)(nil).FavoriteAdd), arg0, arg1)
 }
 
-// FavoriteDelete mocks base method
+// FavoriteDelete mocks base method.
 func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
@@ -1816,13 +1816,13 @@ func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHan
 	return ret0
 }
 
-// FavoriteDelete indicates an expected call of FavoriteDelete
+// FavoriteDelete indicates an expected call of FavoriteDelete.
 func (mr *MockKBPKIMockRecorder) FavoriteDelete(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteDelete", reflect.TypeOf((*MockKBPKI)(nil).FavoriteDelete), arg0, arg1)
 }
 
-// FavoriteList mocks base method
+// FavoriteList mocks base method.
 func (m *MockKBPKI) FavoriteList(arg0 context.Context) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", arg0)
@@ -1831,13 +1831,13 @@ func (m *MockKBPKI) FavoriteList(arg0 context.Context) (keybase1.FavoritesResult
 	return ret0, ret1
 }
 
-// FavoriteList indicates an expected call of FavoriteList
+// FavoriteList indicates an expected call of FavoriteList.
 func (mr *MockKBPKIMockRecorder) FavoriteList(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteList", reflect.TypeOf((*MockKBPKI)(nil).FavoriteList), arg0)
 }
 
-// GetCryptPublicKeys mocks base method
+// GetCryptPublicKeys mocks base method.
 func (m *MockKBPKI) GetCryptPublicKeys(arg0 context.Context, arg1 keybase1.UID, arg2 keybase1.OfflineAvailability) ([]kbfscrypto.CryptPublicKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCryptPublicKeys", arg0, arg1, arg2)
@@ -1846,13 +1846,13 @@ func (m *MockKBPKI) GetCryptPublicKeys(arg0 context.Context, arg1 keybase1.UID, 
 	return ret0, ret1
 }
 
-// GetCryptPublicKeys indicates an expected call of GetCryptPublicKeys
+// GetCryptPublicKeys indicates an expected call of GetCryptPublicKeys.
 func (mr *MockKBPKIMockRecorder) GetCryptPublicKeys(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCryptPublicKeys", reflect.TypeOf((*MockKBPKI)(nil).GetCryptPublicKeys), arg0, arg1, arg2)
 }
 
-// GetCurrentMerkleRoot mocks base method
+// GetCurrentMerkleRoot mocks base method.
 func (m *MockKBPKI) GetCurrentMerkleRoot(arg0 context.Context) (keybase1.MerkleRootV2, time.Time, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentMerkleRoot", arg0)
@@ -1862,13 +1862,13 @@ func (m *MockKBPKI) GetCurrentMerkleRoot(arg0 context.Context) (keybase1.MerkleR
 	return ret0, ret1, ret2
 }
 
-// GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot
+// GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot.
 func (mr *MockKBPKIMockRecorder) GetCurrentMerkleRoot(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentMerkleRoot", reflect.TypeOf((*MockKBPKI)(nil).GetCurrentMerkleRoot), arg0)
 }
 
-// GetCurrentSession mocks base method
+// GetCurrentSession mocks base method.
 func (m *MockKBPKI) GetCurrentSession(arg0 context.Context) (idutil.SessionInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentSession", arg0)
@@ -1877,13 +1877,13 @@ func (m *MockKBPKI) GetCurrentSession(arg0 context.Context) (idutil.SessionInfo,
 	return ret0, ret1
 }
 
-// GetCurrentSession indicates an expected call of GetCurrentSession
+// GetCurrentSession indicates an expected call of GetCurrentSession.
 func (mr *MockKBPKIMockRecorder) GetCurrentSession(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentSession", reflect.TypeOf((*MockKBPKI)(nil).GetCurrentSession), arg0)
 }
 
-// GetNormalizedUsername mocks base method
+// GetNormalizedUsername mocks base method.
 func (m *MockKBPKI) GetNormalizedUsername(arg0 context.Context, arg1 keybase1.UserOrTeamID, arg2 keybase1.OfflineAvailability) (kbun.NormalizedUsername, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNormalizedUsername", arg0, arg1, arg2)
@@ -1892,13 +1892,13 @@ func (m *MockKBPKI) GetNormalizedUsername(arg0 context.Context, arg1 keybase1.Us
 	return ret0, ret1
 }
 
-// GetNormalizedUsername indicates an expected call of GetNormalizedUsername
+// GetNormalizedUsername indicates an expected call of GetNormalizedUsername.
 func (mr *MockKBPKIMockRecorder) GetNormalizedUsername(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNormalizedUsername", reflect.TypeOf((*MockKBPKI)(nil).GetNormalizedUsername), arg0, arg1, arg2)
 }
 
-// GetTeamRootID mocks base method
+// GetTeamRootID mocks base method.
 func (m *MockKBPKI) GetTeamRootID(arg0 context.Context, arg1 keybase1.TeamID, arg2 keybase1.OfflineAvailability) (keybase1.TeamID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamRootID", arg0, arg1, arg2)
@@ -1907,13 +1907,13 @@ func (m *MockKBPKI) GetTeamRootID(arg0 context.Context, arg1 keybase1.TeamID, ar
 	return ret0, ret1
 }
 
-// GetTeamRootID indicates an expected call of GetTeamRootID
+// GetTeamRootID indicates an expected call of GetTeamRootID.
 func (mr *MockKBPKIMockRecorder) GetTeamRootID(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamRootID", reflect.TypeOf((*MockKBPKI)(nil).GetTeamRootID), arg0, arg1, arg2)
 }
 
-// GetTeamTLFCryptKeys mocks base method
+// GetTeamTLFCryptKeys mocks base method.
 func (m *MockKBPKI) GetTeamTLFCryptKeys(arg0 context.Context, arg1 keybase1.TeamID, arg2 kbfsmd.KeyGen, arg3 keybase1.OfflineAvailability) (map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamTLFCryptKeys", arg0, arg1, arg2, arg3)
@@ -1923,13 +1923,13 @@ func (m *MockKBPKI) GetTeamTLFCryptKeys(arg0 context.Context, arg1 keybase1.Team
 	return ret0, ret1, ret2
 }
 
-// GetTeamTLFCryptKeys indicates an expected call of GetTeamTLFCryptKeys
+// GetTeamTLFCryptKeys indicates an expected call of GetTeamTLFCryptKeys.
 func (mr *MockKBPKIMockRecorder) GetTeamTLFCryptKeys(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamTLFCryptKeys", reflect.TypeOf((*MockKBPKI)(nil).GetTeamTLFCryptKeys), arg0, arg1, arg2, arg3)
 }
 
-// HasVerifyingKey mocks base method
+// HasVerifyingKey mocks base method.
 func (m *MockKBPKI) HasVerifyingKey(arg0 context.Context, arg1 keybase1.UID, arg2 kbfscrypto.VerifyingKey, arg3 time.Time, arg4 keybase1.OfflineAvailability) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HasVerifyingKey", arg0, arg1, arg2, arg3, arg4)
@@ -1937,13 +1937,13 @@ func (m *MockKBPKI) HasVerifyingKey(arg0 context.Context, arg1 keybase1.UID, arg
 	return ret0
 }
 
-// HasVerifyingKey indicates an expected call of HasVerifyingKey
+// HasVerifyingKey indicates an expected call of HasVerifyingKey.
 func (mr *MockKBPKIMockRecorder) HasVerifyingKey(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasVerifyingKey", reflect.TypeOf((*MockKBPKI)(nil).HasVerifyingKey), arg0, arg1, arg2, arg3, arg4)
 }
 
-// Identify mocks base method
+// Identify mocks base method.
 func (m *MockKBPKI) Identify(arg0 context.Context, arg1, arg2 string, arg3 keybase1.OfflineAvailability) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Identify", arg0, arg1, arg2, arg3)
@@ -1953,13 +1953,13 @@ func (m *MockKBPKI) Identify(arg0 context.Context, arg1, arg2 string, arg3 keyba
 	return ret0, ret1, ret2
 }
 
-// Identify indicates an expected call of Identify
+// Identify indicates an expected call of Identify.
 func (mr *MockKBPKIMockRecorder) Identify(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*MockKBPKI)(nil).Identify), arg0, arg1, arg2, arg3)
 }
 
-// IdentifyImplicitTeam mocks base method
+// IdentifyImplicitTeam mocks base method.
 func (m *MockKBPKI) IdentifyImplicitTeam(arg0 context.Context, arg1, arg2 string, arg3 tlf.Type, arg4 string, arg5 keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IdentifyImplicitTeam", arg0, arg1, arg2, arg3, arg4, arg5)
@@ -1968,25 +1968,25 @@ func (m *MockKBPKI) IdentifyImplicitTeam(arg0 context.Context, arg1, arg2 string
 	return ret0, ret1
 }
 
-// IdentifyImplicitTeam indicates an expected call of IdentifyImplicitTeam
+// IdentifyImplicitTeam indicates an expected call of IdentifyImplicitTeam.
 func (mr *MockKBPKIMockRecorder) IdentifyImplicitTeam(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdentifyImplicitTeam", reflect.TypeOf((*MockKBPKI)(nil).IdentifyImplicitTeam), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-// InvalidateTeamCacheForID mocks base method
+// InvalidateTeamCacheForID mocks base method.
 func (m *MockKBPKI) InvalidateTeamCacheForID(arg0 keybase1.TeamID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "InvalidateTeamCacheForID", arg0)
 }
 
-// InvalidateTeamCacheForID indicates an expected call of InvalidateTeamCacheForID
+// InvalidateTeamCacheForID indicates an expected call of InvalidateTeamCacheForID.
 func (mr *MockKBPKIMockRecorder) InvalidateTeamCacheForID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvalidateTeamCacheForID", reflect.TypeOf((*MockKBPKI)(nil).InvalidateTeamCacheForID), arg0)
 }
 
-// IsTeamReader mocks base method
+// IsTeamReader mocks base method.
 func (m *MockKBPKI) IsTeamReader(arg0 context.Context, arg1 keybase1.TeamID, arg2 keybase1.UID, arg3 keybase1.OfflineAvailability) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsTeamReader", arg0, arg1, arg2, arg3)
@@ -1995,13 +1995,13 @@ func (m *MockKBPKI) IsTeamReader(arg0 context.Context, arg1 keybase1.TeamID, arg
 	return ret0, ret1
 }
 
-// IsTeamReader indicates an expected call of IsTeamReader
+// IsTeamReader indicates an expected call of IsTeamReader.
 func (mr *MockKBPKIMockRecorder) IsTeamReader(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamReader", reflect.TypeOf((*MockKBPKI)(nil).IsTeamReader), arg0, arg1, arg2, arg3)
 }
 
-// IsTeamWriter mocks base method
+// IsTeamWriter mocks base method.
 func (m *MockKBPKI) IsTeamWriter(arg0 context.Context, arg1 keybase1.TeamID, arg2 keybase1.UID, arg3 kbfscrypto.VerifyingKey, arg4 keybase1.OfflineAvailability) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsTeamWriter", arg0, arg1, arg2, arg3, arg4)
@@ -2010,13 +2010,13 @@ func (m *MockKBPKI) IsTeamWriter(arg0 context.Context, arg1 keybase1.TeamID, arg
 	return ret0, ret1
 }
 
-// IsTeamWriter indicates an expected call of IsTeamWriter
+// IsTeamWriter indicates an expected call of IsTeamWriter.
 func (mr *MockKBPKIMockRecorder) IsTeamWriter(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).IsTeamWriter), arg0, arg1, arg2, arg3, arg4)
 }
 
-// NoLongerTeamWriter mocks base method
+// NoLongerTeamWriter mocks base method.
 func (m *MockKBPKI) NoLongerTeamWriter(arg0 context.Context, arg1 keybase1.TeamID, arg2 tlf.Type, arg3 keybase1.UID, arg4 kbfscrypto.VerifyingKey, arg5 keybase1.OfflineAvailability) (keybase1.MerkleRootV2, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NoLongerTeamWriter", arg0, arg1, arg2, arg3, arg4, arg5)
@@ -2025,13 +2025,13 @@ func (m *MockKBPKI) NoLongerTeamWriter(arg0 context.Context, arg1 keybase1.TeamI
 	return ret0, ret1
 }
 
-// NoLongerTeamWriter indicates an expected call of NoLongerTeamWriter
+// NoLongerTeamWriter indicates an expected call of NoLongerTeamWriter.
 func (mr *MockKBPKIMockRecorder) NoLongerTeamWriter(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoLongerTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).NoLongerTeamWriter), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-// NormalizeSocialAssertion mocks base method
+// NormalizeSocialAssertion mocks base method.
 func (m *MockKBPKI) NormalizeSocialAssertion(arg0 context.Context, arg1 string) (keybase1.SocialAssertion, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", arg0, arg1)
@@ -2040,13 +2040,13 @@ func (m *MockKBPKI) NormalizeSocialAssertion(arg0 context.Context, arg1 string) 
 	return ret0, ret1
 }
 
-// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
+// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion.
 func (mr *MockKBPKIMockRecorder) NormalizeSocialAssertion(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*MockKBPKI)(nil).NormalizeSocialAssertion), arg0, arg1)
 }
 
-// Notify mocks base method
+// Notify mocks base method.
 func (m *MockKBPKI) Notify(arg0 context.Context, arg1 *keybase1.FSNotification) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Notify", arg0, arg1)
@@ -2054,13 +2054,13 @@ func (m *MockKBPKI) Notify(arg0 context.Context, arg1 *keybase1.FSNotification) 
 	return ret0
 }
 
-// Notify indicates an expected call of Notify
+// Notify indicates an expected call of Notify.
 func (mr *MockKBPKIMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockKBPKI)(nil).Notify), arg0, arg1)
 }
 
-// NotifyPathUpdated mocks base method
+// NotifyPathUpdated mocks base method.
 func (m *MockKBPKI) NotifyPathUpdated(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NotifyPathUpdated", arg0, arg1)
@@ -2068,13 +2068,13 @@ func (m *MockKBPKI) NotifyPathUpdated(arg0 context.Context, arg1 string) error {
 	return ret0
 }
 
-// NotifyPathUpdated indicates an expected call of NotifyPathUpdated
+// NotifyPathUpdated indicates an expected call of NotifyPathUpdated.
 func (mr *MockKBPKIMockRecorder) NotifyPathUpdated(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyPathUpdated", reflect.TypeOf((*MockKBPKI)(nil).NotifyPathUpdated), arg0, arg1)
 }
 
-// PutGitMetadata mocks base method
+// PutGitMetadata mocks base method.
 func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
@@ -2082,13 +2082,13 @@ func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHan
 	return ret0
 }
 
-// PutGitMetadata indicates an expected call of PutGitMetadata
+// PutGitMetadata indicates an expected call of PutGitMetadata.
 func (mr *MockKBPKIMockRecorder) PutGitMetadata(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockKBPKI)(nil).PutGitMetadata), arg0, arg1, arg2, arg3)
 }
 
-// Resolve mocks base method
+// Resolve mocks base method.
 func (m *MockKBPKI) Resolve(arg0 context.Context, arg1 string, arg2 keybase1.OfflineAvailability) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Resolve", arg0, arg1, arg2)
@@ -2098,13 +2098,13 @@ func (m *MockKBPKI) Resolve(arg0 context.Context, arg1 string, arg2 keybase1.Off
 	return ret0, ret1, ret2
 }
 
-// Resolve indicates an expected call of Resolve
+// Resolve indicates an expected call of Resolve.
 func (mr *MockKBPKIMockRecorder) Resolve(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockKBPKI)(nil).Resolve), arg0, arg1, arg2)
 }
 
-// ResolveImplicitTeam mocks base method
+// ResolveImplicitTeam mocks base method.
 func (m *MockKBPKI) ResolveImplicitTeam(arg0 context.Context, arg1, arg2 string, arg3 tlf.Type, arg4 keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveImplicitTeam", arg0, arg1, arg2, arg3, arg4)
@@ -2113,13 +2113,13 @@ func (m *MockKBPKI) ResolveImplicitTeam(arg0 context.Context, arg1, arg2 string,
 	return ret0, ret1
 }
 
-// ResolveImplicitTeam indicates an expected call of ResolveImplicitTeam
+// ResolveImplicitTeam indicates an expected call of ResolveImplicitTeam.
 func (mr *MockKBPKIMockRecorder) ResolveImplicitTeam(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveImplicitTeam", reflect.TypeOf((*MockKBPKI)(nil).ResolveImplicitTeam), arg0, arg1, arg2, arg3, arg4)
 }
 
-// ResolveImplicitTeamByID mocks base method
+// ResolveImplicitTeamByID mocks base method.
 func (m *MockKBPKI) ResolveImplicitTeamByID(arg0 context.Context, arg1 keybase1.TeamID, arg2 tlf.Type, arg3 keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveImplicitTeamByID", arg0, arg1, arg2, arg3)
@@ -2128,13 +2128,13 @@ func (m *MockKBPKI) ResolveImplicitTeamByID(arg0 context.Context, arg1 keybase1.
 	return ret0, ret1
 }
 
-// ResolveImplicitTeamByID indicates an expected call of ResolveImplicitTeamByID
+// ResolveImplicitTeamByID indicates an expected call of ResolveImplicitTeamByID.
 func (mr *MockKBPKIMockRecorder) ResolveImplicitTeamByID(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveImplicitTeamByID", reflect.TypeOf((*MockKBPKI)(nil).ResolveImplicitTeamByID), arg0, arg1, arg2, arg3)
 }
 
-// ResolveTeamTLFID mocks base method
+// ResolveTeamTLFID mocks base method.
 func (m *MockKBPKI) ResolveTeamTLFID(arg0 context.Context, arg1 keybase1.TeamID, arg2 keybase1.OfflineAvailability) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveTeamTLFID", arg0, arg1, arg2)
@@ -2143,13 +2143,13 @@ func (m *MockKBPKI) ResolveTeamTLFID(arg0 context.Context, arg1 keybase1.TeamID,
 	return ret0, ret1
 }
 
-// ResolveTeamTLFID indicates an expected call of ResolveTeamTLFID
+// ResolveTeamTLFID indicates an expected call of ResolveTeamTLFID.
 func (mr *MockKBPKIMockRecorder) ResolveTeamTLFID(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveTeamTLFID", reflect.TypeOf((*MockKBPKI)(nil).ResolveTeamTLFID), arg0, arg1, arg2)
 }
 
-// VerifyMerkleRoot mocks base method
+// VerifyMerkleRoot mocks base method.
 func (m *MockKBPKI) VerifyMerkleRoot(arg0 context.Context, arg1 keybase1.MerkleRootV2, arg2 keybase1.KBFSRoot) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMerkleRoot", arg0, arg1, arg2)
@@ -2157,48 +2157,48 @@ func (m *MockKBPKI) VerifyMerkleRoot(arg0 context.Context, arg1 keybase1.MerkleR
 	return ret0
 }
 
-// VerifyMerkleRoot indicates an expected call of VerifyMerkleRoot
+// VerifyMerkleRoot indicates an expected call of VerifyMerkleRoot.
 func (mr *MockKBPKIMockRecorder) VerifyMerkleRoot(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMerkleRoot", reflect.TypeOf((*MockKBPKI)(nil).VerifyMerkleRoot), arg0, arg1, arg2)
 }
 
-// MockKeybaseService is a mock of KeybaseService interface
+// MockKeybaseService is a mock of KeybaseService interface.
 type MockKeybaseService struct {
 	ctrl     *gomock.Controller
 	recorder *MockKeybaseServiceMockRecorder
 }
 
-// MockKeybaseServiceMockRecorder is the mock recorder for MockKeybaseService
+// MockKeybaseServiceMockRecorder is the mock recorder for MockKeybaseService.
 type MockKeybaseServiceMockRecorder struct {
 	mock *MockKeybaseService
 }
 
-// NewMockKeybaseService creates a new mock instance
+// NewMockKeybaseService creates a new mock instance.
 func NewMockKeybaseService(ctrl *gomock.Controller) *MockKeybaseService {
 	mock := &MockKeybaseService{ctrl: ctrl}
 	mock.recorder = &MockKeybaseServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockKeybaseService) EXPECT() *MockKeybaseServiceMockRecorder {
 	return m.recorder
 }
 
-// ClearCaches mocks base method
+// ClearCaches mocks base method.
 func (m *MockKeybaseService) ClearCaches(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ClearCaches", arg0)
 }
 
-// ClearCaches indicates an expected call of ClearCaches
+// ClearCaches indicates an expected call of ClearCaches.
 func (mr *MockKeybaseServiceMockRecorder) ClearCaches(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCaches", reflect.TypeOf((*MockKeybaseService)(nil).ClearCaches), arg0)
 }
 
-// CreateTeamTLF mocks base method
+// CreateTeamTLF mocks base method.
 func (m *MockKeybaseService) CreateTeamTLF(arg0 context.Context, arg1 keybase1.TeamID, arg2 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTeamTLF", arg0, arg1, arg2)
@@ -2206,13 +2206,13 @@ func (m *MockKeybaseService) CreateTeamTLF(arg0 context.Context, arg1 keybase1.T
 	return ret0
 }
 
-// CreateTeamTLF indicates an expected call of CreateTeamTLF
+// CreateTeamTLF indicates an expected call of CreateTeamTLF.
 func (mr *MockKeybaseServiceMockRecorder) CreateTeamTLF(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeamTLF", reflect.TypeOf((*MockKeybaseService)(nil).CreateTeamTLF), arg0, arg1, arg2)
 }
 
-// CurrentSession mocks base method
+// CurrentSession mocks base method.
 func (m *MockKeybaseService) CurrentSession(arg0 context.Context, arg1 int) (idutil.SessionInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentSession", arg0, arg1)
@@ -2221,13 +2221,13 @@ func (m *MockKeybaseService) CurrentSession(arg0 context.Context, arg1 int) (idu
 	return ret0, ret1
 }
 
-// CurrentSession indicates an expected call of CurrentSession
+// CurrentSession indicates an expected call of CurrentSession.
 func (mr *MockKeybaseServiceMockRecorder) CurrentSession(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CurrentSession", reflect.TypeOf((*MockKeybaseService)(nil).CurrentSession), arg0, arg1)
 }
 
-// DecryptFavorites mocks base method
+// DecryptFavorites mocks base method.
 func (m *MockKeybaseService) DecryptFavorites(arg0 context.Context, arg1 []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptFavorites", arg0, arg1)
@@ -2236,13 +2236,13 @@ func (m *MockKeybaseService) DecryptFavorites(arg0 context.Context, arg1 []byte)
 	return ret0, ret1
 }
 
-// DecryptFavorites indicates an expected call of DecryptFavorites
+// DecryptFavorites indicates an expected call of DecryptFavorites.
 func (mr *MockKeybaseServiceMockRecorder) DecryptFavorites(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptFavorites", reflect.TypeOf((*MockKeybaseService)(nil).DecryptFavorites), arg0, arg1)
 }
 
-// EncryptFavorites mocks base method
+// EncryptFavorites mocks base method.
 func (m *MockKeybaseService) EncryptFavorites(arg0 context.Context, arg1 []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EncryptFavorites", arg0, arg1)
@@ -2251,13 +2251,13 @@ func (m *MockKeybaseService) EncryptFavorites(arg0 context.Context, arg1 []byte)
 	return ret0, ret1
 }
 
-// EncryptFavorites indicates an expected call of EncryptFavorites
+// EncryptFavorites indicates an expected call of EncryptFavorites.
 func (mr *MockKeybaseServiceMockRecorder) EncryptFavorites(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptFavorites", reflect.TypeOf((*MockKeybaseService)(nil).EncryptFavorites), arg0, arg1)
 }
 
-// EstablishMountDir mocks base method
+// EstablishMountDir mocks base method.
 func (m *MockKeybaseService) EstablishMountDir(arg0 context.Context) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstablishMountDir", arg0)
@@ -2266,13 +2266,13 @@ func (m *MockKeybaseService) EstablishMountDir(arg0 context.Context) (string, er
 	return ret0, ret1
 }
 
-// EstablishMountDir indicates an expected call of EstablishMountDir
+// EstablishMountDir indicates an expected call of EstablishMountDir.
 func (mr *MockKeybaseServiceMockRecorder) EstablishMountDir(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstablishMountDir", reflect.TypeOf((*MockKeybaseService)(nil).EstablishMountDir), arg0)
 }
 
-// FavoriteAdd mocks base method
+// FavoriteAdd mocks base method.
 func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
@@ -2280,13 +2280,13 @@ func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.Fol
 	return ret0
 }
 
-// FavoriteAdd indicates an expected call of FavoriteAdd
+// FavoriteAdd indicates an expected call of FavoriteAdd.
 func (mr *MockKeybaseServiceMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteAdd", reflect.TypeOf((*MockKeybaseService)(nil).FavoriteAdd), arg0, arg1)
 }
 
-// FavoriteDelete mocks base method
+// FavoriteDelete mocks base method.
 func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
@@ -2294,13 +2294,13 @@ func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.
 	return ret0
 }
 
-// FavoriteDelete indicates an expected call of FavoriteDelete
+// FavoriteDelete indicates an expected call of FavoriteDelete.
 func (mr *MockKeybaseServiceMockRecorder) FavoriteDelete(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteDelete", reflect.TypeOf((*MockKeybaseService)(nil).FavoriteDelete), arg0, arg1)
 }
 
-// FavoriteList mocks base method
+// FavoriteList mocks base method.
 func (m *MockKeybaseService) FavoriteList(arg0 context.Context, arg1 int) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", arg0, arg1)
@@ -2309,25 +2309,25 @@ func (m *MockKeybaseService) FavoriteList(arg0 context.Context, arg1 int) (keyba
 	return ret0, ret1
 }
 
-// FavoriteList indicates an expected call of FavoriteList
+// FavoriteList indicates an expected call of FavoriteList.
 func (mr *MockKeybaseServiceMockRecorder) FavoriteList(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteList", reflect.TypeOf((*MockKeybaseService)(nil).FavoriteList), arg0, arg1)
 }
 
-// FlushUserFromLocalCache mocks base method
+// FlushUserFromLocalCache mocks base method.
 func (m *MockKeybaseService) FlushUserFromLocalCache(arg0 context.Context, arg1 keybase1.UID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "FlushUserFromLocalCache", arg0, arg1)
 }
 
-// FlushUserFromLocalCache indicates an expected call of FlushUserFromLocalCache
+// FlushUserFromLocalCache indicates an expected call of FlushUserFromLocalCache.
 func (mr *MockKeybaseServiceMockRecorder) FlushUserFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlushUserFromLocalCache", reflect.TypeOf((*MockKeybaseService)(nil).FlushUserFromLocalCache), arg0, arg1)
 }
 
-// GetCurrentMerkleRoot mocks base method
+// GetCurrentMerkleRoot mocks base method.
 func (m *MockKeybaseService) GetCurrentMerkleRoot(arg0 context.Context) (keybase1.MerkleRootV2, time.Time, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentMerkleRoot", arg0)
@@ -2337,13 +2337,13 @@ func (m *MockKeybaseService) GetCurrentMerkleRoot(arg0 context.Context) (keybase
 	return ret0, ret1, ret2
 }
 
-// GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot
+// GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot.
 func (mr *MockKeybaseServiceMockRecorder) GetCurrentMerkleRoot(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentMerkleRoot", reflect.TypeOf((*MockKeybaseService)(nil).GetCurrentMerkleRoot), arg0)
 }
 
-// GetTeamSettings mocks base method
+// GetTeamSettings mocks base method.
 func (m *MockKeybaseService) GetTeamSettings(arg0 context.Context, arg1 keybase1.TeamID, arg2 keybase1.OfflineAvailability) (keybase1.KBFSTeamSettings, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamSettings", arg0, arg1, arg2)
@@ -2352,13 +2352,13 @@ func (m *MockKeybaseService) GetTeamSettings(arg0 context.Context, arg1 keybase1
 	return ret0, ret1
 }
 
-// GetTeamSettings indicates an expected call of GetTeamSettings
+// GetTeamSettings indicates an expected call of GetTeamSettings.
 func (mr *MockKeybaseServiceMockRecorder) GetTeamSettings(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamSettings", reflect.TypeOf((*MockKeybaseService)(nil).GetTeamSettings), arg0, arg1, arg2)
 }
 
-// Identify mocks base method
+// Identify mocks base method.
 func (m *MockKeybaseService) Identify(arg0 context.Context, arg1, arg2 string, arg3 keybase1.OfflineAvailability) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Identify", arg0, arg1, arg2, arg3)
@@ -2368,13 +2368,13 @@ func (m *MockKeybaseService) Identify(arg0 context.Context, arg1, arg2 string, a
 	return ret0, ret1, ret2
 }
 
-// Identify indicates an expected call of Identify
+// Identify indicates an expected call of Identify.
 func (mr *MockKeybaseServiceMockRecorder) Identify(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*MockKeybaseService)(nil).Identify), arg0, arg1, arg2, arg3)
 }
 
-// LoadTeamPlusKeys mocks base method
+// LoadTeamPlusKeys mocks base method.
 func (m *MockKeybaseService) LoadTeamPlusKeys(arg0 context.Context, arg1 keybase1.TeamID, arg2 tlf.Type, arg3 kbfsmd.KeyGen, arg4 keybase1.UserVersion, arg5 kbfscrypto.VerifyingKey, arg6 keybase1.TeamRole, arg7 keybase1.OfflineAvailability) (idutil.TeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
@@ -2383,13 +2383,13 @@ func (m *MockKeybaseService) LoadTeamPlusKeys(arg0 context.Context, arg1 keybase
 	return ret0, ret1
 }
 
-// LoadTeamPlusKeys indicates an expected call of LoadTeamPlusKeys
+// LoadTeamPlusKeys indicates an expected call of LoadTeamPlusKeys.
 func (mr *MockKeybaseServiceMockRecorder) LoadTeamPlusKeys(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTeamPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadTeamPlusKeys), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 }
 
-// LoadUserPlusKeys mocks base method
+// LoadUserPlusKeys mocks base method.
 func (m *MockKeybaseService) LoadUserPlusKeys(arg0 context.Context, arg1 keybase1.UID, arg2 keybase1.KID, arg3 keybase1.OfflineAvailability) (idutil.UserInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadUserPlusKeys", arg0, arg1, arg2, arg3)
@@ -2398,13 +2398,13 @@ func (m *MockKeybaseService) LoadUserPlusKeys(arg0 context.Context, arg1 keybase
 	return ret0, ret1
 }
 
-// LoadUserPlusKeys indicates an expected call of LoadUserPlusKeys
+// LoadUserPlusKeys indicates an expected call of LoadUserPlusKeys.
 func (mr *MockKeybaseServiceMockRecorder) LoadUserPlusKeys(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadUserPlusKeys), arg0, arg1, arg2, arg3)
 }
 
-// NormalizeSocialAssertion mocks base method
+// NormalizeSocialAssertion mocks base method.
 func (m *MockKeybaseService) NormalizeSocialAssertion(arg0 context.Context, arg1 string) (keybase1.SocialAssertion, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", arg0, arg1)
@@ -2413,13 +2413,13 @@ func (m *MockKeybaseService) NormalizeSocialAssertion(arg0 context.Context, arg1
 	return ret0, ret1
 }
 
-// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
+// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion.
 func (mr *MockKeybaseServiceMockRecorder) NormalizeSocialAssertion(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*MockKeybaseService)(nil).NormalizeSocialAssertion), arg0, arg1)
 }
 
-// Notify mocks base method
+// Notify mocks base method.
 func (m *MockKeybaseService) Notify(arg0 context.Context, arg1 *keybase1.FSNotification) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Notify", arg0, arg1)
@@ -2427,13 +2427,13 @@ func (m *MockKeybaseService) Notify(arg0 context.Context, arg1 *keybase1.FSNotif
 	return ret0
 }
 
-// Notify indicates an expected call of Notify
+// Notify indicates an expected call of Notify.
 func (mr *MockKeybaseServiceMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockKeybaseService)(nil).Notify), arg0, arg1)
 }
 
-// NotifyFavoritesChanged mocks base method
+// NotifyFavoritesChanged mocks base method.
 func (m *MockKeybaseService) NotifyFavoritesChanged(arg0 context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NotifyFavoritesChanged", arg0)
@@ -2441,13 +2441,13 @@ func (m *MockKeybaseService) NotifyFavoritesChanged(arg0 context.Context) error 
 	return ret0
 }
 
-// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged
+// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged.
 func (mr *MockKeybaseServiceMockRecorder) NotifyFavoritesChanged(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyFavoritesChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyFavoritesChanged), arg0)
 }
 
-// NotifyOnlineStatusChanged mocks base method
+// NotifyOnlineStatusChanged mocks base method.
 func (m *MockKeybaseService) NotifyOnlineStatusChanged(arg0 context.Context, arg1 bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NotifyOnlineStatusChanged", arg0, arg1)
@@ -2455,13 +2455,13 @@ func (m *MockKeybaseService) NotifyOnlineStatusChanged(arg0 context.Context, arg
 	return ret0
 }
 
-// NotifyOnlineStatusChanged indicates an expected call of NotifyOnlineStatusChanged
+// NotifyOnlineStatusChanged indicates an expected call of NotifyOnlineStatusChanged.
 func (mr *MockKeybaseServiceMockRecorder) NotifyOnlineStatusChanged(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOnlineStatusChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOnlineStatusChanged), arg0, arg1)
 }
 
-// NotifyOverallSyncStatus mocks base method
+// NotifyOverallSyncStatus mocks base method.
 func (m *MockKeybaseService) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
@@ -2469,13 +2469,13 @@ func (m *MockKeybaseService) NotifyOverallSyncStatus(arg0 context.Context, arg1 
 	return ret0
 }
 
-// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus.
 func (mr *MockKeybaseServiceMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOverallSyncStatus), arg0, arg1)
 }
 
-// NotifyPathUpdated mocks base method
+// NotifyPathUpdated mocks base method.
 func (m *MockKeybaseService) NotifyPathUpdated(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NotifyPathUpdated", arg0, arg1)
@@ -2483,13 +2483,13 @@ func (m *MockKeybaseService) NotifyPathUpdated(arg0 context.Context, arg1 string
 	return ret0
 }
 
-// NotifyPathUpdated indicates an expected call of NotifyPathUpdated
+// NotifyPathUpdated indicates an expected call of NotifyPathUpdated.
 func (mr *MockKeybaseServiceMockRecorder) NotifyPathUpdated(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyPathUpdated", reflect.TypeOf((*MockKeybaseService)(nil).NotifyPathUpdated), arg0, arg1)
 }
 
-// NotifySyncStatus mocks base method
+// NotifySyncStatus mocks base method.
 func (m *MockKeybaseService) NotifySyncStatus(arg0 context.Context, arg1 *keybase1.FSPathSyncStatus) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NotifySyncStatus", arg0, arg1)
@@ -2497,37 +2497,37 @@ func (m *MockKeybaseService) NotifySyncStatus(arg0 context.Context, arg1 *keybas
 	return ret0
 }
 
-// NotifySyncStatus indicates an expected call of NotifySyncStatus
+// NotifySyncStatus indicates an expected call of NotifySyncStatus.
 func (mr *MockKeybaseServiceMockRecorder) NotifySyncStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifySyncStatus", reflect.TypeOf((*MockKeybaseService)(nil).NotifySyncStatus), arg0, arg1)
 }
 
-// OnNonPathChange mocks base method
+// OnNonPathChange mocks base method.
 func (m *MockKeybaseService) OnNonPathChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1)
 }
 
-// OnNonPathChange indicates an expected call of OnNonPathChange
+// OnNonPathChange indicates an expected call of OnNonPathChange.
 func (mr *MockKeybaseServiceMockRecorder) OnNonPathChange(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockKeybaseService)(nil).OnNonPathChange), arg0, arg1)
 }
 
-// OnPathChange mocks base method
+// OnPathChange mocks base method.
 func (m *MockKeybaseService) OnPathChange(arg0 SubscriptionID, arg1 string, arg2 keybase1.PathSubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2)
 }
 
-// OnPathChange indicates an expected call of OnPathChange
+// OnPathChange indicates an expected call of OnPathChange.
 func (mr *MockKeybaseServiceMockRecorder) OnPathChange(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnPathChange", reflect.TypeOf((*MockKeybaseService)(nil).OnPathChange), arg0, arg1, arg2)
 }
 
-// PutGitMetadata mocks base method
+// PutGitMetadata mocks base method.
 func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
@@ -2535,13 +2535,13 @@ func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.
 	return ret0
 }
 
-// PutGitMetadata indicates an expected call of PutGitMetadata
+// PutGitMetadata indicates an expected call of PutGitMetadata.
 func (mr *MockKeybaseServiceMockRecorder) PutGitMetadata(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockKeybaseService)(nil).PutGitMetadata), arg0, arg1, arg2, arg3)
 }
 
-// Resolve mocks base method
+// Resolve mocks base method.
 func (m *MockKeybaseService) Resolve(arg0 context.Context, arg1 string, arg2 keybase1.OfflineAvailability) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Resolve", arg0, arg1, arg2)
@@ -2551,13 +2551,13 @@ func (m *MockKeybaseService) Resolve(arg0 context.Context, arg1 string, arg2 key
 	return ret0, ret1, ret2
 }
 
-// Resolve indicates an expected call of Resolve
+// Resolve indicates an expected call of Resolve.
 func (mr *MockKeybaseServiceMockRecorder) Resolve(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockKeybaseService)(nil).Resolve), arg0, arg1, arg2)
 }
 
-// ResolveIdentifyImplicitTeam mocks base method
+// ResolveIdentifyImplicitTeam mocks base method.
 func (m *MockKeybaseService) ResolveIdentifyImplicitTeam(arg0 context.Context, arg1, arg2 string, arg3 tlf.Type, arg4 bool, arg5 string, arg6 keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveIdentifyImplicitTeam", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
@@ -2566,13 +2566,13 @@ func (m *MockKeybaseService) ResolveIdentifyImplicitTeam(arg0 context.Context, a
 	return ret0, ret1
 }
 
-// ResolveIdentifyImplicitTeam indicates an expected call of ResolveIdentifyImplicitTeam
+// ResolveIdentifyImplicitTeam indicates an expected call of ResolveIdentifyImplicitTeam.
 func (mr *MockKeybaseServiceMockRecorder) ResolveIdentifyImplicitTeam(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveIdentifyImplicitTeam", reflect.TypeOf((*MockKeybaseService)(nil).ResolveIdentifyImplicitTeam), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-// ResolveImplicitTeamByID mocks base method
+// ResolveImplicitTeamByID mocks base method.
 func (m *MockKeybaseService) ResolveImplicitTeamByID(arg0 context.Context, arg1 keybase1.TeamID) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveImplicitTeamByID", arg0, arg1)
@@ -2581,25 +2581,25 @@ func (m *MockKeybaseService) ResolveImplicitTeamByID(arg0 context.Context, arg1 
 	return ret0, ret1
 }
 
-// ResolveImplicitTeamByID indicates an expected call of ResolveImplicitTeamByID
+// ResolveImplicitTeamByID indicates an expected call of ResolveImplicitTeamByID.
 func (mr *MockKeybaseServiceMockRecorder) ResolveImplicitTeamByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveImplicitTeamByID", reflect.TypeOf((*MockKeybaseService)(nil).ResolveImplicitTeamByID), arg0, arg1)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockKeybaseService) Shutdown() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Shutdown")
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockKeybaseServiceMockRecorder) Shutdown() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockKeybaseService)(nil).Shutdown))
 }
 
-// VerifyMerkleRoot mocks base method
+// VerifyMerkleRoot mocks base method.
 func (m *MockKeybaseService) VerifyMerkleRoot(arg0 context.Context, arg1 keybase1.MerkleRootV2, arg2 keybase1.KBFSRoot) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMerkleRoot", arg0, arg1, arg2)
@@ -2607,36 +2607,36 @@ func (m *MockKeybaseService) VerifyMerkleRoot(arg0 context.Context, arg1 keybase
 	return ret0
 }
 
-// VerifyMerkleRoot indicates an expected call of VerifyMerkleRoot
+// VerifyMerkleRoot indicates an expected call of VerifyMerkleRoot.
 func (mr *MockKeybaseServiceMockRecorder) VerifyMerkleRoot(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMerkleRoot", reflect.TypeOf((*MockKeybaseService)(nil).VerifyMerkleRoot), arg0, arg1, arg2)
 }
 
-// MockKeyCache is a mock of KeyCache interface
+// MockKeyCache is a mock of KeyCache interface.
 type MockKeyCache struct {
 	ctrl     *gomock.Controller
 	recorder *MockKeyCacheMockRecorder
 }
 
-// MockKeyCacheMockRecorder is the mock recorder for MockKeyCache
+// MockKeyCacheMockRecorder is the mock recorder for MockKeyCache.
 type MockKeyCacheMockRecorder struct {
 	mock *MockKeyCache
 }
 
-// NewMockKeyCache creates a new mock instance
+// NewMockKeyCache creates a new mock instance.
 func NewMockKeyCache(ctrl *gomock.Controller) *MockKeyCache {
 	mock := &MockKeyCache{ctrl: ctrl}
 	mock.recorder = &MockKeyCacheMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockKeyCache) EXPECT() *MockKeyCacheMockRecorder {
 	return m.recorder
 }
 
-// GetTLFCryptKey mocks base method
+// GetTLFCryptKey mocks base method.
 func (m *MockKeyCache) GetTLFCryptKey(arg0 tlf.ID, arg1 kbfsmd.KeyGen) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKey", arg0, arg1)
@@ -2645,13 +2645,13 @@ func (m *MockKeyCache) GetTLFCryptKey(arg0 tlf.ID, arg1 kbfsmd.KeyGen) (kbfscryp
 	return ret0, ret1
 }
 
-// GetTLFCryptKey indicates an expected call of GetTLFCryptKey
+// GetTLFCryptKey indicates an expected call of GetTLFCryptKey.
 func (mr *MockKeyCacheMockRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFCryptKey", reflect.TypeOf((*MockKeyCache)(nil).GetTLFCryptKey), arg0, arg1)
 }
 
-// PutTLFCryptKey mocks base method
+// PutTLFCryptKey mocks base method.
 func (m *MockKeyCache) PutTLFCryptKey(arg0 tlf.ID, arg1 kbfsmd.KeyGen, arg2 kbfscrypto.TLFCryptKey) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutTLFCryptKey", arg0, arg1, arg2)
@@ -2659,36 +2659,36 @@ func (m *MockKeyCache) PutTLFCryptKey(arg0 tlf.ID, arg1 kbfsmd.KeyGen, arg2 kbfs
 	return ret0
 }
 
-// PutTLFCryptKey indicates an expected call of PutTLFCryptKey
+// PutTLFCryptKey indicates an expected call of PutTLFCryptKey.
 func (mr *MockKeyCacheMockRecorder) PutTLFCryptKey(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutTLFCryptKey", reflect.TypeOf((*MockKeyCache)(nil).PutTLFCryptKey), arg0, arg1, arg2)
 }
 
-// MockKeyManager is a mock of KeyManager interface
+// MockKeyManager is a mock of KeyManager interface.
 type MockKeyManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockKeyManagerMockRecorder
 }
 
-// MockKeyManagerMockRecorder is the mock recorder for MockKeyManager
+// MockKeyManagerMockRecorder is the mock recorder for MockKeyManager.
 type MockKeyManagerMockRecorder struct {
 	mock *MockKeyManager
 }
 
-// NewMockKeyManager creates a new mock instance
+// NewMockKeyManager creates a new mock instance.
 func NewMockKeyManager(ctrl *gomock.Controller) *MockKeyManager {
 	mock := &MockKeyManager{ctrl: ctrl}
 	mock.recorder = &MockKeyManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockKeyManager) EXPECT() *MockKeyManagerMockRecorder {
 	return m.recorder
 }
 
-// GetFirstTLFCryptKey mocks base method
+// GetFirstTLFCryptKey mocks base method.
 func (m *MockKeyManager) GetFirstTLFCryptKey(arg0 context.Context, arg1 libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFirstTLFCryptKey", arg0, arg1)
@@ -2697,13 +2697,13 @@ func (m *MockKeyManager) GetFirstTLFCryptKey(arg0 context.Context, arg1 libkey.K
 	return ret0, ret1
 }
 
-// GetFirstTLFCryptKey indicates an expected call of GetFirstTLFCryptKey
+// GetFirstTLFCryptKey indicates an expected call of GetFirstTLFCryptKey.
 func (mr *MockKeyManagerMockRecorder) GetFirstTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFirstTLFCryptKey", reflect.TypeOf((*MockKeyManager)(nil).GetFirstTLFCryptKey), arg0, arg1)
 }
 
-// GetTLFCryptKeyForBlockDecryption mocks base method
+// GetTLFCryptKeyForBlockDecryption mocks base method.
 func (m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForBlockDecryption", arg0, arg1, arg2)
@@ -2712,13 +2712,13 @@ func (m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(arg0 context.Context, 
 	return ret0, ret1
 }
 
-// GetTLFCryptKeyForBlockDecryption indicates an expected call of GetTLFCryptKeyForBlockDecryption
+// GetTLFCryptKeyForBlockDecryption indicates an expected call of GetTLFCryptKeyForBlockDecryption.
 func (mr *MockKeyManagerMockRecorder) GetTLFCryptKeyForBlockDecryption(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFCryptKeyForBlockDecryption", reflect.TypeOf((*MockKeyManager)(nil).GetTLFCryptKeyForBlockDecryption), arg0, arg1, arg2)
 }
 
-// GetTLFCryptKeyForEncryption mocks base method
+// GetTLFCryptKeyForEncryption mocks base method.
 func (m *MockKeyManager) GetTLFCryptKeyForEncryption(arg0 context.Context, arg1 libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForEncryption", arg0, arg1)
@@ -2727,13 +2727,13 @@ func (m *MockKeyManager) GetTLFCryptKeyForEncryption(arg0 context.Context, arg1 
 	return ret0, ret1
 }
 
-// GetTLFCryptKeyForEncryption indicates an expected call of GetTLFCryptKeyForEncryption
+// GetTLFCryptKeyForEncryption indicates an expected call of GetTLFCryptKeyForEncryption.
 func (mr *MockKeyManagerMockRecorder) GetTLFCryptKeyForEncryption(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFCryptKeyForEncryption", reflect.TypeOf((*MockKeyManager)(nil).GetTLFCryptKeyForEncryption), arg0, arg1)
 }
 
-// GetTLFCryptKeyForMDDecryption mocks base method
+// GetTLFCryptKeyForMDDecryption mocks base method.
 func (m *MockKeyManager) GetTLFCryptKeyForMDDecryption(arg0 context.Context, arg1, arg2 libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForMDDecryption", arg0, arg1, arg2)
@@ -2742,13 +2742,13 @@ func (m *MockKeyManager) GetTLFCryptKeyForMDDecryption(arg0 context.Context, arg
 	return ret0, ret1
 }
 
-// GetTLFCryptKeyForMDDecryption indicates an expected call of GetTLFCryptKeyForMDDecryption
+// GetTLFCryptKeyForMDDecryption indicates an expected call of GetTLFCryptKeyForMDDecryption.
 func (mr *MockKeyManagerMockRecorder) GetTLFCryptKeyForMDDecryption(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFCryptKeyForMDDecryption", reflect.TypeOf((*MockKeyManager)(nil).GetTLFCryptKeyForMDDecryption), arg0, arg1, arg2)
 }
 
-// GetTLFCryptKeyOfAllGenerations mocks base method
+// GetTLFCryptKeyOfAllGenerations mocks base method.
 func (m *MockKeyManager) GetTLFCryptKeyOfAllGenerations(arg0 context.Context, arg1 libkey.KeyMetadata) ([]kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyOfAllGenerations", arg0, arg1)
@@ -2757,13 +2757,13 @@ func (m *MockKeyManager) GetTLFCryptKeyOfAllGenerations(arg0 context.Context, ar
 	return ret0, ret1
 }
 
-// GetTLFCryptKeyOfAllGenerations indicates an expected call of GetTLFCryptKeyOfAllGenerations
+// GetTLFCryptKeyOfAllGenerations indicates an expected call of GetTLFCryptKeyOfAllGenerations.
 func (mr *MockKeyManagerMockRecorder) GetTLFCryptKeyOfAllGenerations(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFCryptKeyOfAllGenerations", reflect.TypeOf((*MockKeyManager)(nil).GetTLFCryptKeyOfAllGenerations), arg0, arg1)
 }
 
-// Rekey mocks base method
+// Rekey mocks base method.
 func (m *MockKeyManager) Rekey(arg0 context.Context, arg1 *RootMetadata, arg2 bool) (bool, *kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Rekey", arg0, arg1, arg2)
@@ -2773,60 +2773,60 @@ func (m *MockKeyManager) Rekey(arg0 context.Context, arg1 *RootMetadata, arg2 bo
 	return ret0, ret1, ret2
 }
 
-// Rekey indicates an expected call of Rekey
+// Rekey indicates an expected call of Rekey.
 func (mr *MockKeyManagerMockRecorder) Rekey(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rekey", reflect.TypeOf((*MockKeyManager)(nil).Rekey), arg0, arg1, arg2)
 }
 
-// MockMDCache is a mock of MDCache interface
+// MockMDCache is a mock of MDCache interface.
 type MockMDCache struct {
 	ctrl     *gomock.Controller
 	recorder *MockMDCacheMockRecorder
 }
 
-// MockMDCacheMockRecorder is the mock recorder for MockMDCache
+// MockMDCacheMockRecorder is the mock recorder for MockMDCache.
 type MockMDCacheMockRecorder struct {
 	mock *MockMDCache
 }
 
-// NewMockMDCache creates a new mock instance
+// NewMockMDCache creates a new mock instance.
 func NewMockMDCache(ctrl *gomock.Controller) *MockMDCache {
 	mock := &MockMDCache{ctrl: ctrl}
 	mock.recorder = &MockMDCacheMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMDCache) EXPECT() *MockMDCacheMockRecorder {
 	return m.recorder
 }
 
-// ChangeHandleForID mocks base method
+// ChangeHandleForID mocks base method.
 func (m *MockMDCache) ChangeHandleForID(arg0, arg1 *tlfhandle.Handle) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ChangeHandleForID", arg0, arg1)
 }
 
-// ChangeHandleForID indicates an expected call of ChangeHandleForID
+// ChangeHandleForID indicates an expected call of ChangeHandleForID.
 func (mr *MockMDCacheMockRecorder) ChangeHandleForID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeHandleForID", reflect.TypeOf((*MockMDCache)(nil).ChangeHandleForID), arg0, arg1)
 }
 
-// Delete mocks base method
+// Delete mocks base method.
 func (m *MockMDCache) Delete(arg0 tlf.ID, arg1 kbfsmd.Revision, arg2 kbfsmd.BranchID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
 }
 
-// Delete indicates an expected call of Delete
+// Delete indicates an expected call of Delete.
 func (mr *MockMDCacheMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMDCache)(nil).Delete), arg0, arg1, arg2)
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockMDCache) Get(arg0 tlf.ID, arg1 kbfsmd.Revision, arg2 kbfsmd.BranchID) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2)
@@ -2835,13 +2835,13 @@ func (m *MockMDCache) Get(arg0 tlf.ID, arg1 kbfsmd.Revision, arg2 kbfsmd.BranchI
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockMDCacheMockRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockMDCache)(nil).Get), arg0, arg1, arg2)
 }
 
-// GetIDForHandle mocks base method
+// GetIDForHandle mocks base method.
 func (m *MockMDCache) GetIDForHandle(arg0 *tlfhandle.Handle) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIDForHandle", arg0)
@@ -2850,13 +2850,13 @@ func (m *MockMDCache) GetIDForHandle(arg0 *tlfhandle.Handle) (tlf.ID, error) {
 	return ret0, ret1
 }
 
-// GetIDForHandle indicates an expected call of GetIDForHandle
+// GetIDForHandle indicates an expected call of GetIDForHandle.
 func (mr *MockMDCacheMockRecorder) GetIDForHandle(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MockMDCache)(nil).GetIDForHandle), arg0)
 }
 
-// GetNextMD mocks base method
+// GetNextMD mocks base method.
 func (m *MockMDCache) GetNextMD(arg0 tlf.ID, arg1 keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNextMD", arg0, arg1)
@@ -2867,25 +2867,25 @@ func (m *MockMDCache) GetNextMD(arg0 tlf.ID, arg1 keybase1.Seqno) (*kbfsmd.Merkl
 	return ret0, ret1, ret2, ret3
 }
 
-// GetNextMD indicates an expected call of GetNextMD
+// GetNextMD indicates an expected call of GetNextMD.
 func (mr *MockMDCacheMockRecorder) GetNextMD(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNextMD", reflect.TypeOf((*MockMDCache)(nil).GetNextMD), arg0, arg1)
 }
 
-// MarkPutToServer mocks base method
+// MarkPutToServer mocks base method.
 func (m *MockMDCache) MarkPutToServer(arg0 tlf.ID, arg1 kbfsmd.Revision, arg2 kbfsmd.BranchID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "MarkPutToServer", arg0, arg1, arg2)
 }
 
-// MarkPutToServer indicates an expected call of MarkPutToServer
+// MarkPutToServer indicates an expected call of MarkPutToServer.
 func (mr *MockMDCacheMockRecorder) MarkPutToServer(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkPutToServer", reflect.TypeOf((*MockMDCache)(nil).MarkPutToServer), arg0, arg1, arg2)
 }
 
-// Put mocks base method
+// Put mocks base method.
 func (m *MockMDCache) Put(arg0 ImmutableRootMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0)
@@ -2893,13 +2893,13 @@ func (m *MockMDCache) Put(arg0 ImmutableRootMetadata) error {
 	return ret0
 }
 
-// Put indicates an expected call of Put
+// Put indicates an expected call of Put.
 func (mr *MockMDCacheMockRecorder) Put(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDCache)(nil).Put), arg0)
 }
 
-// PutIDForHandle mocks base method
+// PutIDForHandle mocks base method.
 func (m *MockMDCache) PutIDForHandle(arg0 *tlfhandle.Handle, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutIDForHandle", arg0, arg1)
@@ -2907,13 +2907,13 @@ func (m *MockMDCache) PutIDForHandle(arg0 *tlfhandle.Handle, arg1 tlf.ID) error 
 	return ret0
 }
 
-// PutIDForHandle indicates an expected call of PutIDForHandle
+// PutIDForHandle indicates an expected call of PutIDForHandle.
 func (mr *MockMDCacheMockRecorder) PutIDForHandle(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutIDForHandle", reflect.TypeOf((*MockMDCache)(nil).PutIDForHandle), arg0, arg1)
 }
 
-// PutNextMD mocks base method
+// PutNextMD mocks base method.
 func (m *MockMDCache) PutNextMD(arg0 tlf.ID, arg1 keybase1.Seqno, arg2 *kbfsmd.MerkleRoot, arg3 [][]byte, arg4 keybase1.Seqno) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutNextMD", arg0, arg1, arg2, arg3, arg4)
@@ -2921,13 +2921,13 @@ func (m *MockMDCache) PutNextMD(arg0 tlf.ID, arg1 keybase1.Seqno, arg2 *kbfsmd.M
 	return ret0
 }
 
-// PutNextMD indicates an expected call of PutNextMD
+// PutNextMD indicates an expected call of PutNextMD.
 func (mr *MockMDCacheMockRecorder) PutNextMD(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutNextMD", reflect.TypeOf((*MockMDCache)(nil).PutNextMD), arg0, arg1, arg2, arg3, arg4)
 }
 
-// Replace mocks base method
+// Replace mocks base method.
 func (m *MockMDCache) Replace(arg0 ImmutableRootMetadata, arg1 kbfsmd.BranchID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Replace", arg0, arg1)
@@ -2935,36 +2935,36 @@ func (m *MockMDCache) Replace(arg0 ImmutableRootMetadata, arg1 kbfsmd.BranchID) 
 	return ret0
 }
 
-// Replace indicates an expected call of Replace
+// Replace indicates an expected call of Replace.
 func (mr *MockMDCacheMockRecorder) Replace(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Replace", reflect.TypeOf((*MockMDCache)(nil).Replace), arg0, arg1)
 }
 
-// MockMDOps is a mock of MDOps interface
+// MockMDOps is a mock of MDOps interface.
 type MockMDOps struct {
 	ctrl     *gomock.Controller
 	recorder *MockMDOpsMockRecorder
 }
 
-// MockMDOpsMockRecorder is the mock recorder for MockMDOps
+// MockMDOpsMockRecorder is the mock recorder for MockMDOps.
 type MockMDOpsMockRecorder struct {
 	mock *MockMDOps
 }
 
-// NewMockMDOps creates a new mock instance
+// NewMockMDOps creates a new mock instance.
 func NewMockMDOps(ctrl *gomock.Controller) *MockMDOps {
 	mock := &MockMDOps{ctrl: ctrl}
 	mock.recorder = &MockMDOpsMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMDOps) EXPECT() *MockMDOpsMockRecorder {
 	return m.recorder
 }
 
-// GetForTLF mocks base method
+// GetForTLF mocks base method.
 func (m *MockMDOps) GetForTLF(arg0 context.Context, arg1 tlf.ID, arg2 *keybase1.LockID) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForTLF", arg0, arg1, arg2)
@@ -2973,13 +2973,13 @@ func (m *MockMDOps) GetForTLF(arg0 context.Context, arg1 tlf.ID, arg2 *keybase1.
 	return ret0, ret1
 }
 
-// GetForTLF indicates an expected call of GetForTLF
+// GetForTLF indicates an expected call of GetForTLF.
 func (mr *MockMDOpsMockRecorder) GetForTLF(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDOps)(nil).GetForTLF), arg0, arg1, arg2)
 }
 
-// GetForTLFByTime mocks base method
+// GetForTLFByTime mocks base method.
 func (m *MockMDOps) GetForTLFByTime(arg0 context.Context, arg1 tlf.ID, arg2 time.Time) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForTLFByTime", arg0, arg1, arg2)
@@ -2988,13 +2988,13 @@ func (m *MockMDOps) GetForTLFByTime(arg0 context.Context, arg1 tlf.ID, arg2 time
 	return ret0, ret1
 }
 
-// GetForTLFByTime indicates an expected call of GetForTLFByTime
+// GetForTLFByTime indicates an expected call of GetForTLFByTime.
 func (mr *MockMDOpsMockRecorder) GetForTLFByTime(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLFByTime", reflect.TypeOf((*MockMDOps)(nil).GetForTLFByTime), arg0, arg1, arg2)
 }
 
-// GetIDForHandle mocks base method
+// GetIDForHandle mocks base method.
 func (m *MockMDOps) GetIDForHandle(arg0 context.Context, arg1 *tlfhandle.Handle) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIDForHandle", arg0, arg1)
@@ -3003,13 +3003,13 @@ func (m *MockMDOps) GetIDForHandle(arg0 context.Context, arg1 *tlfhandle.Handle)
 	return ret0, ret1
 }
 
-// GetIDForHandle indicates an expected call of GetIDForHandle
+// GetIDForHandle indicates an expected call of GetIDForHandle.
 func (mr *MockMDOpsMockRecorder) GetIDForHandle(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MockMDOps)(nil).GetIDForHandle), arg0, arg1)
 }
 
-// GetLatestHandleForTLF mocks base method
+// GetLatestHandleForTLF mocks base method.
 func (m *MockMDOps) GetLatestHandleForTLF(arg0 context.Context, arg1 tlf.ID) (tlf.Handle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLatestHandleForTLF", arg0, arg1)
@@ -3018,13 +3018,13 @@ func (m *MockMDOps) GetLatestHandleForTLF(arg0 context.Context, arg1 tlf.ID) (tl
 	return ret0, ret1
 }
 
-// GetLatestHandleForTLF indicates an expected call of GetLatestHandleForTLF
+// GetLatestHandleForTLF indicates an expected call of GetLatestHandleForTLF.
 func (mr *MockMDOpsMockRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestHandleForTLF", reflect.TypeOf((*MockMDOps)(nil).GetLatestHandleForTLF), arg0, arg1)
 }
 
-// GetRange mocks base method
+// GetRange mocks base method.
 func (m *MockMDOps) GetRange(arg0 context.Context, arg1 tlf.ID, arg2, arg3 kbfsmd.Revision, arg4 *keybase1.LockID) ([]ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRange", arg0, arg1, arg2, arg3, arg4)
@@ -3033,13 +3033,13 @@ func (m *MockMDOps) GetRange(arg0 context.Context, arg1 tlf.ID, arg2, arg3 kbfsm
 	return ret0, ret1
 }
 
-// GetRange indicates an expected call of GetRange
+// GetRange indicates an expected call of GetRange.
 func (mr *MockMDOpsMockRecorder) GetRange(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockMDOps)(nil).GetRange), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetUnmergedForTLF mocks base method
+// GetUnmergedForTLF mocks base method.
 func (m *MockMDOps) GetUnmergedForTLF(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUnmergedForTLF", arg0, arg1, arg2)
@@ -3048,13 +3048,13 @@ func (m *MockMDOps) GetUnmergedForTLF(arg0 context.Context, arg1 tlf.ID, arg2 kb
 	return ret0, ret1
 }
 
-// GetUnmergedForTLF indicates an expected call of GetUnmergedForTLF
+// GetUnmergedForTLF indicates an expected call of GetUnmergedForTLF.
 func (mr *MockMDOpsMockRecorder) GetUnmergedForTLF(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUnmergedForTLF", reflect.TypeOf((*MockMDOps)(nil).GetUnmergedForTLF), arg0, arg1, arg2)
 }
 
-// GetUnmergedRange mocks base method
+// GetUnmergedRange mocks base method.
 func (m *MockMDOps) GetUnmergedRange(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID, arg3, arg4 kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUnmergedRange", arg0, arg1, arg2, arg3, arg4)
@@ -3063,13 +3063,13 @@ func (m *MockMDOps) GetUnmergedRange(arg0 context.Context, arg1 tlf.ID, arg2 kbf
 	return ret0, ret1
 }
 
-// GetUnmergedRange indicates an expected call of GetUnmergedRange
+// GetUnmergedRange indicates an expected call of GetUnmergedRange.
 func (mr *MockMDOpsMockRecorder) GetUnmergedRange(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUnmergedRange", reflect.TypeOf((*MockMDOps)(nil).GetUnmergedRange), arg0, arg1, arg2, arg3, arg4)
 }
 
-// PruneBranch mocks base method
+// PruneBranch mocks base method.
 func (m *MockMDOps) PruneBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PruneBranch", arg0, arg1, arg2)
@@ -3077,13 +3077,13 @@ func (m *MockMDOps) PruneBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.B
 	return ret0
 }
 
-// PruneBranch indicates an expected call of PruneBranch
+// PruneBranch indicates an expected call of PruneBranch.
 func (mr *MockMDOpsMockRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PruneBranch", reflect.TypeOf((*MockMDOps)(nil).PruneBranch), arg0, arg1, arg2)
 }
 
-// Put mocks base method
+// Put mocks base method.
 func (m *MockMDOps) Put(arg0 context.Context, arg1 *RootMetadata, arg2 kbfscrypto.VerifyingKey, arg3 *keybase1.LockContext, arg4 keybase1.MDPriority, arg5 data.BlockPutState) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
@@ -3092,13 +3092,13 @@ func (m *MockMDOps) Put(arg0 context.Context, arg1 *RootMetadata, arg2 kbfscrypt
 	return ret0, ret1
 }
 
-// Put indicates an expected call of Put
+// Put indicates an expected call of Put.
 func (mr *MockMDOpsMockRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDOps)(nil).Put), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-// PutUnmerged mocks base method
+// PutUnmerged mocks base method.
 func (m *MockMDOps) PutUnmerged(arg0 context.Context, arg1 *RootMetadata, arg2 kbfscrypto.VerifyingKey, arg3 data.BlockPutState) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutUnmerged", arg0, arg1, arg2, arg3)
@@ -3107,13 +3107,13 @@ func (m *MockMDOps) PutUnmerged(arg0 context.Context, arg1 *RootMetadata, arg2 k
 	return ret0, ret1
 }
 
-// PutUnmerged indicates an expected call of PutUnmerged
+// PutUnmerged indicates an expected call of PutUnmerged.
 func (mr *MockMDOpsMockRecorder) PutUnmerged(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutUnmerged", reflect.TypeOf((*MockMDOps)(nil).PutUnmerged), arg0, arg1, arg2, arg3)
 }
 
-// ResolveBranch mocks base method
+// ResolveBranch mocks base method.
 func (m *MockMDOps) ResolveBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID, arg3 []kbfsblock.ID, arg4 *RootMetadata, arg5 kbfscrypto.VerifyingKey, arg6 data.BlockPutState) (ImmutableRootMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveBranch", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
@@ -3122,13 +3122,13 @@ func (m *MockMDOps) ResolveBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd
 	return ret0, ret1
 }
 
-// ResolveBranch indicates an expected call of ResolveBranch
+// ResolveBranch indicates an expected call of ResolveBranch.
 func (mr *MockMDOpsMockRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveBranch", reflect.TypeOf((*MockMDOps)(nil).ResolveBranch), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-// ValidateLatestHandleNotFinal mocks base method
+// ValidateLatestHandleNotFinal mocks base method.
 func (m *MockMDOps) ValidateLatestHandleNotFinal(arg0 context.Context, arg1 *tlfhandle.Handle) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ValidateLatestHandleNotFinal", arg0, arg1)
@@ -3137,48 +3137,48 @@ func (m *MockMDOps) ValidateLatestHandleNotFinal(arg0 context.Context, arg1 *tlf
 	return ret0, ret1
 }
 
-// ValidateLatestHandleNotFinal indicates an expected call of ValidateLatestHandleNotFinal
+// ValidateLatestHandleNotFinal indicates an expected call of ValidateLatestHandleNotFinal.
 func (mr *MockMDOpsMockRecorder) ValidateLatestHandleNotFinal(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateLatestHandleNotFinal", reflect.TypeOf((*MockMDOps)(nil).ValidateLatestHandleNotFinal), arg0, arg1)
 }
 
-// MockMDServer is a mock of MDServer interface
+// MockMDServer is a mock of MDServer interface.
 type MockMDServer struct {
 	ctrl     *gomock.Controller
 	recorder *MockMDServerMockRecorder
 }
 
-// MockMDServerMockRecorder is the mock recorder for MockMDServer
+// MockMDServerMockRecorder is the mock recorder for MockMDServer.
 type MockMDServerMockRecorder struct {
 	mock *MockMDServer
 }
 
-// NewMockMDServer creates a new mock instance
+// NewMockMDServer creates a new mock instance.
 func NewMockMDServer(ctrl *gomock.Controller) *MockMDServer {
 	mock := &MockMDServer{ctrl: ctrl}
 	mock.recorder = &MockMDServerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMDServer) EXPECT() *MockMDServerMockRecorder {
 	return m.recorder
 }
 
-// CancelRegistration mocks base method
+// CancelRegistration mocks base method.
 func (m *MockMDServer) CancelRegistration(arg0 context.Context, arg1 tlf.ID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "CancelRegistration", arg0, arg1)
 }
 
-// CancelRegistration indicates an expected call of CancelRegistration
+// CancelRegistration indicates an expected call of CancelRegistration.
 func (mr *MockMDServerMockRecorder) CancelRegistration(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRegistration", reflect.TypeOf((*MockMDServer)(nil).CancelRegistration), arg0, arg1)
 }
 
-// CheckForRekeys mocks base method
+// CheckForRekeys mocks base method.
 func (m *MockMDServer) CheckForRekeys(arg0 context.Context) <-chan error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckForRekeys", arg0)
@@ -3186,49 +3186,49 @@ func (m *MockMDServer) CheckForRekeys(arg0 context.Context) <-chan error {
 	return ret0
 }
 
-// CheckForRekeys indicates an expected call of CheckForRekeys
+// CheckForRekeys indicates an expected call of CheckForRekeys.
 func (mr *MockMDServerMockRecorder) CheckForRekeys(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckForRekeys", reflect.TypeOf((*MockMDServer)(nil).CheckForRekeys), arg0)
 }
 
-// CheckReachability mocks base method
+// CheckReachability mocks base method.
 func (m *MockMDServer) CheckReachability(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "CheckReachability", arg0)
 }
 
-// CheckReachability indicates an expected call of CheckReachability
+// CheckReachability indicates an expected call of CheckReachability.
 func (mr *MockMDServerMockRecorder) CheckReachability(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckReachability", reflect.TypeOf((*MockMDServer)(nil).CheckReachability), arg0)
 }
 
-// DisableRekeyUpdatesForTesting mocks base method
+// DisableRekeyUpdatesForTesting mocks base method.
 func (m *MockMDServer) DisableRekeyUpdatesForTesting() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "DisableRekeyUpdatesForTesting")
 }
 
-// DisableRekeyUpdatesForTesting indicates an expected call of DisableRekeyUpdatesForTesting
+// DisableRekeyUpdatesForTesting indicates an expected call of DisableRekeyUpdatesForTesting.
 func (mr *MockMDServerMockRecorder) DisableRekeyUpdatesForTesting() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableRekeyUpdatesForTesting", reflect.TypeOf((*MockMDServer)(nil).DisableRekeyUpdatesForTesting))
 }
 
-// FastForwardBackoff mocks base method
+// FastForwardBackoff mocks base method.
 func (m *MockMDServer) FastForwardBackoff() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "FastForwardBackoff")
 }
 
-// FastForwardBackoff indicates an expected call of FastForwardBackoff
+// FastForwardBackoff indicates an expected call of FastForwardBackoff.
 func (mr *MockMDServerMockRecorder) FastForwardBackoff() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FastForwardBackoff", reflect.TypeOf((*MockMDServer)(nil).FastForwardBackoff))
 }
 
-// FindNextMD mocks base method
+// FindNextMD mocks base method.
 func (m *MockMDServer) FindNextMD(arg0 context.Context, arg1 tlf.ID, arg2 keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindNextMD", arg0, arg1, arg2)
@@ -3239,13 +3239,13 @@ func (m *MockMDServer) FindNextMD(arg0 context.Context, arg1 tlf.ID, arg2 keybas
 	return ret0, ret1, ret2, ret3
 }
 
-// FindNextMD indicates an expected call of FindNextMD
+// FindNextMD indicates an expected call of FindNextMD.
 func (mr *MockMDServerMockRecorder) FindNextMD(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindNextMD", reflect.TypeOf((*MockMDServer)(nil).FindNextMD), arg0, arg1, arg2)
 }
 
-// GetForHandle mocks base method
+// GetForHandle mocks base method.
 func (m *MockMDServer) GetForHandle(arg0 context.Context, arg1 tlf.Handle, arg2 kbfsmd.MergeStatus, arg3 *keybase1.LockID) (tlf.ID, *RootMetadataSigned, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForHandle", arg0, arg1, arg2, arg3)
@@ -3255,13 +3255,13 @@ func (m *MockMDServer) GetForHandle(arg0 context.Context, arg1 tlf.Handle, arg2 
 	return ret0, ret1, ret2
 }
 
-// GetForHandle indicates an expected call of GetForHandle
+// GetForHandle indicates an expected call of GetForHandle.
 func (mr *MockMDServerMockRecorder) GetForHandle(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockMDServer)(nil).GetForHandle), arg0, arg1, arg2, arg3)
 }
 
-// GetForTLF mocks base method
+// GetForTLF mocks base method.
 func (m *MockMDServer) GetForTLF(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID, arg3 kbfsmd.MergeStatus, arg4 *keybase1.LockID) (*RootMetadataSigned, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForTLF", arg0, arg1, arg2, arg3, arg4)
@@ -3270,13 +3270,13 @@ func (m *MockMDServer) GetForTLF(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.
 	return ret0, ret1
 }
 
-// GetForTLF indicates an expected call of GetForTLF
+// GetForTLF indicates an expected call of GetForTLF.
 func (mr *MockMDServerMockRecorder) GetForTLF(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDServer)(nil).GetForTLF), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetForTLFByTime mocks base method
+// GetForTLFByTime mocks base method.
 func (m *MockMDServer) GetForTLFByTime(arg0 context.Context, arg1 tlf.ID, arg2 time.Time) (*RootMetadataSigned, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForTLFByTime", arg0, arg1, arg2)
@@ -3285,13 +3285,13 @@ func (m *MockMDServer) GetForTLFByTime(arg0 context.Context, arg1 tlf.ID, arg2 t
 	return ret0, ret1
 }
 
-// GetForTLFByTime indicates an expected call of GetForTLFByTime
+// GetForTLFByTime indicates an expected call of GetForTLFByTime.
 func (mr *MockMDServerMockRecorder) GetForTLFByTime(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLFByTime", reflect.TypeOf((*MockMDServer)(nil).GetForTLFByTime), arg0, arg1, arg2)
 }
 
-// GetKeyBundles mocks base method
+// GetKeyBundles mocks base method.
 func (m *MockMDServer) GetKeyBundles(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.TLFWriterKeyBundleID, arg3 kbfsmd.TLFReaderKeyBundleID) (*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKeyBundles", arg0, arg1, arg2, arg3)
@@ -3301,13 +3301,13 @@ func (m *MockMDServer) GetKeyBundles(arg0 context.Context, arg1 tlf.ID, arg2 kbf
 	return ret0, ret1, ret2
 }
 
-// GetKeyBundles indicates an expected call of GetKeyBundles
+// GetKeyBundles indicates an expected call of GetKeyBundles.
 func (mr *MockMDServerMockRecorder) GetKeyBundles(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeyBundles", reflect.TypeOf((*MockMDServer)(nil).GetKeyBundles), arg0, arg1, arg2, arg3)
 }
 
-// GetLatestHandleForTLF mocks base method
+// GetLatestHandleForTLF mocks base method.
 func (m *MockMDServer) GetLatestHandleForTLF(arg0 context.Context, arg1 tlf.ID) (tlf.Handle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLatestHandleForTLF", arg0, arg1)
@@ -3316,13 +3316,13 @@ func (m *MockMDServer) GetLatestHandleForTLF(arg0 context.Context, arg1 tlf.ID) 
 	return ret0, ret1
 }
 
-// GetLatestHandleForTLF indicates an expected call of GetLatestHandleForTLF
+// GetLatestHandleForTLF indicates an expected call of GetLatestHandleForTLF.
 func (mr *MockMDServerMockRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestHandleForTLF", reflect.TypeOf((*MockMDServer)(nil).GetLatestHandleForTLF), arg0, arg1)
 }
 
-// GetMerkleRootLatest mocks base method
+// GetMerkleRootLatest mocks base method.
 func (m *MockMDServer) GetMerkleRootLatest(arg0 context.Context, arg1 keybase1.MerkleTreeID) (*kbfsmd.MerkleRoot, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMerkleRootLatest", arg0, arg1)
@@ -3331,13 +3331,13 @@ func (m *MockMDServer) GetMerkleRootLatest(arg0 context.Context, arg1 keybase1.M
 	return ret0, ret1
 }
 
-// GetMerkleRootLatest indicates an expected call of GetMerkleRootLatest
+// GetMerkleRootLatest indicates an expected call of GetMerkleRootLatest.
 func (mr *MockMDServerMockRecorder) GetMerkleRootLatest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMerkleRootLatest", reflect.TypeOf((*MockMDServer)(nil).GetMerkleRootLatest), arg0, arg1)
 }
 
-// GetRange mocks base method
+// GetRange mocks base method.
 func (m *MockMDServer) GetRange(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID, arg3 kbfsmd.MergeStatus, arg4, arg5 kbfsmd.Revision, arg6 *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRange", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
@@ -3346,13 +3346,13 @@ func (m *MockMDServer) GetRange(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.B
 	return ret0, ret1
 }
 
-// GetRange indicates an expected call of GetRange
+// GetRange indicates an expected call of GetRange.
 func (mr *MockMDServerMockRecorder) GetRange(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockMDServer)(nil).GetRange), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-// IsConnected mocks base method
+// IsConnected mocks base method.
 func (m *MockMDServer) IsConnected() bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsConnected")
@@ -3360,13 +3360,13 @@ func (m *MockMDServer) IsConnected() bool {
 	return ret0
 }
 
-// IsConnected indicates an expected call of IsConnected
+// IsConnected indicates an expected call of IsConnected.
 func (mr *MockMDServerMockRecorder) IsConnected() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsConnected", reflect.TypeOf((*MockMDServer)(nil).IsConnected))
 }
 
-// Lock mocks base method
+// Lock mocks base method.
 func (m *MockMDServer) Lock(arg0 context.Context, arg1 tlf.ID, arg2 keybase1.LockID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lock", arg0, arg1, arg2)
@@ -3374,13 +3374,13 @@ func (m *MockMDServer) Lock(arg0 context.Context, arg1 tlf.ID, arg2 keybase1.Loc
 	return ret0
 }
 
-// Lock indicates an expected call of Lock
+// Lock indicates an expected call of Lock.
 func (mr *MockMDServerMockRecorder) Lock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lock", reflect.TypeOf((*MockMDServer)(nil).Lock), arg0, arg1, arg2)
 }
 
-// OffsetFromServerTime mocks base method
+// OffsetFromServerTime mocks base method.
 func (m *MockMDServer) OffsetFromServerTime() (time.Duration, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OffsetFromServerTime")
@@ -3389,13 +3389,13 @@ func (m *MockMDServer) OffsetFromServerTime() (time.Duration, bool) {
 	return ret0, ret1
 }
 
-// OffsetFromServerTime indicates an expected call of OffsetFromServerTime
+// OffsetFromServerTime indicates an expected call of OffsetFromServerTime.
 func (mr *MockMDServerMockRecorder) OffsetFromServerTime() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OffsetFromServerTime", reflect.TypeOf((*MockMDServer)(nil).OffsetFromServerTime))
 }
 
-// PruneBranch mocks base method
+// PruneBranch mocks base method.
 func (m *MockMDServer) PruneBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.BranchID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PruneBranch", arg0, arg1, arg2)
@@ -3403,13 +3403,13 @@ func (m *MockMDServer) PruneBranch(arg0 context.Context, arg1 tlf.ID, arg2 kbfsm
 	return ret0
 }
 
-// PruneBranch indicates an expected call of PruneBranch
+// PruneBranch indicates an expected call of PruneBranch.
 func (mr *MockMDServerMockRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PruneBranch", reflect.TypeOf((*MockMDServer)(nil).PruneBranch), arg0, arg1, arg2)
 }
 
-// Put mocks base method
+// Put mocks base method.
 func (m *MockMDServer) Put(arg0 context.Context, arg1 *RootMetadataSigned, arg2 kbfsmd.ExtraMetadata, arg3 *keybase1.LockContext, arg4 keybase1.MDPriority) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4)
@@ -3417,25 +3417,25 @@ func (m *MockMDServer) Put(arg0 context.Context, arg1 *RootMetadataSigned, arg2 
 	return ret0
 }
 
-// Put indicates an expected call of Put
+// Put indicates an expected call of Put.
 func (mr *MockMDServerMockRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDServer)(nil).Put), arg0, arg1, arg2, arg3, arg4)
 }
 
-// RefreshAuthToken mocks base method
+// RefreshAuthToken mocks base method.
 func (m *MockMDServer) RefreshAuthToken(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RefreshAuthToken", arg0)
 }
 
-// RefreshAuthToken indicates an expected call of RefreshAuthToken
+// RefreshAuthToken indicates an expected call of RefreshAuthToken.
 func (mr *MockMDServerMockRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAuthToken", reflect.TypeOf((*MockMDServer)(nil).RefreshAuthToken), arg0)
 }
 
-// RegisterForUpdate mocks base method
+// RegisterForUpdate mocks base method.
 func (m *MockMDServer) RegisterForUpdate(arg0 context.Context, arg1 tlf.ID, arg2 kbfsmd.Revision) (<-chan error, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterForUpdate", arg0, arg1, arg2)
@@ -3444,13 +3444,13 @@ func (m *MockMDServer) RegisterForUpdate(arg0 context.Context, arg1 tlf.ID, arg2
 	return ret0, ret1
 }
 
-// RegisterForUpdate indicates an expected call of RegisterForUpdate
+// RegisterForUpdate indicates an expected call of RegisterForUpdate.
 func (mr *MockMDServerMockRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForUpdate", reflect.TypeOf((*MockMDServer)(nil).RegisterForUpdate), arg0, arg1, arg2)
 }
 
-// ReleaseLock mocks base method
+// ReleaseLock mocks base method.
 func (m *MockMDServer) ReleaseLock(arg0 context.Context, arg1 tlf.ID, arg2 keybase1.LockID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReleaseLock", arg0, arg1, arg2)
@@ -3458,25 +3458,25 @@ func (m *MockMDServer) ReleaseLock(arg0 context.Context, arg1 tlf.ID, arg2 keyba
 	return ret0
 }
 
-// ReleaseLock indicates an expected call of ReleaseLock
+// ReleaseLock indicates an expected call of ReleaseLock.
 func (mr *MockMDServerMockRecorder) ReleaseLock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseLock", reflect.TypeOf((*MockMDServer)(nil).ReleaseLock), arg0, arg1, arg2)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockMDServer) Shutdown() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Shutdown")
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockMDServerMockRecorder) Shutdown() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockMDServer)(nil).Shutdown))
 }
 
-// StartImplicitTeamMigration mocks base method
+// StartImplicitTeamMigration mocks base method.
 func (m *MockMDServer) StartImplicitTeamMigration(arg0 context.Context, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StartImplicitTeamMigration", arg0, arg1)
@@ -3484,13 +3484,13 @@ func (m *MockMDServer) StartImplicitTeamMigration(arg0 context.Context, arg1 tlf
 	return ret0
 }
 
-// StartImplicitTeamMigration indicates an expected call of StartImplicitTeamMigration
+// StartImplicitTeamMigration indicates an expected call of StartImplicitTeamMigration.
 func (mr *MockMDServerMockRecorder) StartImplicitTeamMigration(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartImplicitTeamMigration", reflect.TypeOf((*MockMDServer)(nil).StartImplicitTeamMigration), arg0, arg1)
 }
 
-// TruncateLock mocks base method
+// TruncateLock mocks base method.
 func (m *MockMDServer) TruncateLock(arg0 context.Context, arg1 tlf.ID) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TruncateLock", arg0, arg1)
@@ -3499,13 +3499,13 @@ func (m *MockMDServer) TruncateLock(arg0 context.Context, arg1 tlf.ID) (bool, er
 	return ret0, ret1
 }
 
-// TruncateLock indicates an expected call of TruncateLock
+// TruncateLock indicates an expected call of TruncateLock.
 func (mr *MockMDServerMockRecorder) TruncateLock(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TruncateLock", reflect.TypeOf((*MockMDServer)(nil).TruncateLock), arg0, arg1)
 }
 
-// TruncateUnlock mocks base method
+// TruncateUnlock mocks base method.
 func (m *MockMDServer) TruncateUnlock(arg0 context.Context, arg1 tlf.ID) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TruncateUnlock", arg0, arg1)
@@ -3514,36 +3514,36 @@ func (m *MockMDServer) TruncateUnlock(arg0 context.Context, arg1 tlf.ID) (bool, 
 	return ret0, ret1
 }
 
-// TruncateUnlock indicates an expected call of TruncateUnlock
+// TruncateUnlock indicates an expected call of TruncateUnlock.
 func (mr *MockMDServerMockRecorder) TruncateUnlock(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TruncateUnlock", reflect.TypeOf((*MockMDServer)(nil).TruncateUnlock), arg0, arg1)
 }
 
-// MockNode is a mock of Node interface
+// MockNode is a mock of Node interface.
 type MockNode struct {
 	ctrl     *gomock.Controller
 	recorder *MockNodeMockRecorder
 }
 
-// MockNodeMockRecorder is the mock recorder for MockNode
+// MockNodeMockRecorder is the mock recorder for MockNode.
 type MockNodeMockRecorder struct {
 	mock *MockNode
 }
 
-// NewMockNode creates a new mock instance
+// NewMockNode creates a new mock instance.
 func NewMockNode(ctrl *gomock.Controller) *MockNode {
 	mock := &MockNode{ctrl: ctrl}
 	mock.recorder = &MockNodeMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 	return m.recorder
 }
 
-// ChildName mocks base method
+// ChildName mocks base method.
 func (m *MockNode) ChildName(arg0 string) data.PathPartString {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChildName", arg0)
@@ -3551,13 +3551,13 @@ func (m *MockNode) ChildName(arg0 string) data.PathPartString {
 	return ret0
 }
 
-// ChildName indicates an expected call of ChildName
+// ChildName indicates an expected call of ChildName.
 func (mr *MockNodeMockRecorder) ChildName(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChildName", reflect.TypeOf((*MockNode)(nil).ChildName), arg0)
 }
 
-// EntryType mocks base method
+// EntryType mocks base method.
 func (m *MockNode) EntryType() data.EntryType {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EntryType")
@@ -3565,25 +3565,25 @@ func (m *MockNode) EntryType() data.EntryType {
 	return ret0
 }
 
-// EntryType indicates an expected call of EntryType
+// EntryType indicates an expected call of EntryType.
 func (mr *MockNodeMockRecorder) EntryType() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EntryType", reflect.TypeOf((*MockNode)(nil).EntryType))
 }
 
-// FillCacheDuration mocks base method
+// FillCacheDuration mocks base method.
 func (m *MockNode) FillCacheDuration(arg0 *time.Duration) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "FillCacheDuration", arg0)
 }
 
-// FillCacheDuration indicates an expected call of FillCacheDuration
+// FillCacheDuration indicates an expected call of FillCacheDuration.
 func (mr *MockNodeMockRecorder) FillCacheDuration(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FillCacheDuration", reflect.TypeOf((*MockNode)(nil).FillCacheDuration), arg0)
 }
 
-// GetBasename mocks base method
+// GetBasename mocks base method.
 func (m *MockNode) GetBasename() data.PathPartString {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBasename")
@@ -3591,13 +3591,13 @@ func (m *MockNode) GetBasename() data.PathPartString {
 	return ret0
 }
 
-// GetBasename indicates an expected call of GetBasename
+// GetBasename indicates an expected call of GetBasename.
 func (mr *MockNodeMockRecorder) GetBasename() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBasename", reflect.TypeOf((*MockNode)(nil).GetBasename))
 }
 
-// GetBlockID mocks base method
+// GetBlockID mocks base method.
 func (m *MockNode) GetBlockID() kbfsblock.ID {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlockID")
@@ -3605,13 +3605,13 @@ func (m *MockNode) GetBlockID() kbfsblock.ID {
 	return ret0
 }
 
-// GetBlockID indicates an expected call of GetBlockID
+// GetBlockID indicates an expected call of GetBlockID.
 func (mr *MockNodeMockRecorder) GetBlockID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockID", reflect.TypeOf((*MockNode)(nil).GetBlockID))
 }
 
-// GetFS mocks base method
+// GetFS mocks base method.
 func (m *MockNode) GetFS(arg0 context.Context) go_billy_v4.Filesystem {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFS", arg0)
@@ -3619,13 +3619,13 @@ func (m *MockNode) GetFS(arg0 context.Context) go_billy_v4.Filesystem {
 	return ret0
 }
 
-// GetFS indicates an expected call of GetFS
+// GetFS indicates an expected call of GetFS.
 func (mr *MockNodeMockRecorder) GetFS(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFS", reflect.TypeOf((*MockNode)(nil).GetFS), arg0)
 }
 
-// GetFile mocks base method
+// GetFile mocks base method.
 func (m *MockNode) GetFile(arg0 context.Context) go_billy_v4.File {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFile", arg0)
@@ -3633,13 +3633,13 @@ func (m *MockNode) GetFile(arg0 context.Context) go_billy_v4.File {
 	return ret0
 }
 
-// GetFile indicates an expected call of GetFile
+// GetFile indicates an expected call of GetFile.
 func (mr *MockNodeMockRecorder) GetFile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockNode)(nil).GetFile), arg0)
 }
 
-// GetFolderBranch mocks base method
+// GetFolderBranch mocks base method.
 func (m *MockNode) GetFolderBranch() data.FolderBranch {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFolderBranch")
@@ -3647,13 +3647,13 @@ func (m *MockNode) GetFolderBranch() data.FolderBranch {
 	return ret0
 }
 
-// GetFolderBranch indicates an expected call of GetFolderBranch
+// GetFolderBranch indicates an expected call of GetFolderBranch.
 func (mr *MockNodeMockRecorder) GetFolderBranch() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFolderBranch", reflect.TypeOf((*MockNode)(nil).GetFolderBranch))
 }
 
-// GetID mocks base method
+// GetID mocks base method.
 func (m *MockNode) GetID() NodeID {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetID")
@@ -3661,13 +3661,13 @@ func (m *MockNode) GetID() NodeID {
 	return ret0
 }
 
-// GetID indicates an expected call of GetID
+// GetID indicates an expected call of GetID.
 func (mr *MockNodeMockRecorder) GetID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockNode)(nil).GetID))
 }
 
-// GetPathPlaintextSansTlf mocks base method
+// GetPathPlaintextSansTlf mocks base method.
 func (m *MockNode) GetPathPlaintextSansTlf() (string, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPathPlaintextSansTlf")
@@ -3676,13 +3676,13 @@ func (m *MockNode) GetPathPlaintextSansTlf() (string, bool) {
 	return ret0, ret1
 }
 
-// GetPathPlaintextSansTlf indicates an expected call of GetPathPlaintextSansTlf
+// GetPathPlaintextSansTlf indicates an expected call of GetPathPlaintextSansTlf.
 func (mr *MockNodeMockRecorder) GetPathPlaintextSansTlf() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPathPlaintextSansTlf", reflect.TypeOf((*MockNode)(nil).GetPathPlaintextSansTlf))
 }
 
-// Obfuscator mocks base method
+// Obfuscator mocks base method.
 func (m *MockNode) Obfuscator() data.Obfuscator {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Obfuscator")
@@ -3690,13 +3690,13 @@ func (m *MockNode) Obfuscator() data.Obfuscator {
 	return ret0
 }
 
-// Obfuscator indicates an expected call of Obfuscator
+// Obfuscator indicates an expected call of Obfuscator.
 func (mr *MockNodeMockRecorder) Obfuscator() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Obfuscator", reflect.TypeOf((*MockNode)(nil).Obfuscator))
 }
 
-// Readonly mocks base method
+// Readonly mocks base method.
 func (m *MockNode) Readonly(arg0 context.Context) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Readonly", arg0)
@@ -3704,13 +3704,13 @@ func (m *MockNode) Readonly(arg0 context.Context) bool {
 	return ret0
 }
 
-// Readonly indicates an expected call of Readonly
+// Readonly indicates an expected call of Readonly.
 func (mr *MockNodeMockRecorder) Readonly(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Readonly", reflect.TypeOf((*MockNode)(nil).Readonly), arg0)
 }
 
-// RemoveDir mocks base method
+// RemoveDir mocks base method.
 func (m *MockNode) RemoveDir(arg0 context.Context, arg1 data.PathPartString) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDir", arg0, arg1)
@@ -3719,13 +3719,13 @@ func (m *MockNode) RemoveDir(arg0 context.Context, arg1 data.PathPartString) (bo
 	return ret0, ret1
 }
 
-// RemoveDir indicates an expected call of RemoveDir
+// RemoveDir indicates an expected call of RemoveDir.
 func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDir", reflect.TypeOf((*MockNode)(nil).RemoveDir), arg0, arg1)
 }
 
-// ShouldCreateMissedLookup mocks base method
+// ShouldCreateMissedLookup mocks base method.
 func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString, data.BlockPointer) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
@@ -3738,13 +3738,13 @@ func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.Path
 	return ret0, ret1, ret2, ret3, ret4, ret5
 }
 
-// ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup
+// ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup.
 func (mr *MockNodeMockRecorder) ShouldCreateMissedLookup(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldCreateMissedLookup", reflect.TypeOf((*MockNode)(nil).ShouldCreateMissedLookup), arg0, arg1)
 }
 
-// ShouldRetryOnDirRead mocks base method
+// ShouldRetryOnDirRead mocks base method.
 func (m *MockNode) ShouldRetryOnDirRead(arg0 context.Context) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldRetryOnDirRead", arg0)
@@ -3752,13 +3752,13 @@ func (m *MockNode) ShouldRetryOnDirRead(arg0 context.Context) bool {
 	return ret0
 }
 
-// ShouldRetryOnDirRead indicates an expected call of ShouldRetryOnDirRead
+// ShouldRetryOnDirRead indicates an expected call of ShouldRetryOnDirRead.
 func (mr *MockNodeMockRecorder) ShouldRetryOnDirRead(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldRetryOnDirRead", reflect.TypeOf((*MockNode)(nil).ShouldRetryOnDirRead), arg0)
 }
 
-// Unwrap mocks base method
+// Unwrap mocks base method.
 func (m *MockNode) Unwrap() Node {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unwrap")
@@ -3766,13 +3766,13 @@ func (m *MockNode) Unwrap() Node {
 	return ret0
 }
 
-// Unwrap indicates an expected call of Unwrap
+// Unwrap indicates an expected call of Unwrap.
 func (mr *MockNodeMockRecorder) Unwrap() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unwrap", reflect.TypeOf((*MockNode)(nil).Unwrap))
 }
 
-// WrapChild mocks base method
+// WrapChild mocks base method.
 func (m *MockNode) WrapChild(arg0 Node) Node {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WrapChild", arg0)
@@ -3780,48 +3780,48 @@ func (m *MockNode) WrapChild(arg0 Node) Node {
 	return ret0
 }
 
-// WrapChild indicates an expected call of WrapChild
+// WrapChild indicates an expected call of WrapChild.
 func (mr *MockNodeMockRecorder) WrapChild(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WrapChild", reflect.TypeOf((*MockNode)(nil).WrapChild), arg0)
 }
 
-// MockNodeCache is a mock of NodeCache interface
+// MockNodeCache is a mock of NodeCache interface.
 type MockNodeCache struct {
 	ctrl     *gomock.Controller
 	recorder *MockNodeCacheMockRecorder
 }
 
-// MockNodeCacheMockRecorder is the mock recorder for MockNodeCache
+// MockNodeCacheMockRecorder is the mock recorder for MockNodeCache.
 type MockNodeCacheMockRecorder struct {
 	mock *MockNodeCache
 }
 
-// NewMockNodeCache creates a new mock instance
+// NewMockNodeCache creates a new mock instance.
 func NewMockNodeCache(ctrl *gomock.Controller) *MockNodeCache {
 	mock := &MockNodeCache{ctrl: ctrl}
 	mock.recorder = &MockNodeCacheMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNodeCache) EXPECT() *MockNodeCacheMockRecorder {
 	return m.recorder
 }
 
-// AddRootWrapper mocks base method
+// AddRootWrapper mocks base method.
 func (m *MockNodeCache) AddRootWrapper(arg0 func(Node) Node) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AddRootWrapper", arg0)
 }
 
-// AddRootWrapper indicates an expected call of AddRootWrapper
+// AddRootWrapper indicates an expected call of AddRootWrapper.
 func (mr *MockNodeCacheMockRecorder) AddRootWrapper(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootWrapper", reflect.TypeOf((*MockNodeCache)(nil).AddRootWrapper), arg0)
 }
 
-// AllNodeChildren mocks base method
+// AllNodeChildren mocks base method.
 func (m *MockNodeCache) AllNodeChildren(arg0 Node) []Node {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AllNodeChildren", arg0)
@@ -3829,13 +3829,13 @@ func (m *MockNodeCache) AllNodeChildren(arg0 Node) []Node {
 	return ret0
 }
 
-// AllNodeChildren indicates an expected call of AllNodeChildren
+// AllNodeChildren indicates an expected call of AllNodeChildren.
 func (mr *MockNodeCacheMockRecorder) AllNodeChildren(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllNodeChildren", reflect.TypeOf((*MockNodeCache)(nil).AllNodeChildren), arg0)
 }
 
-// AllNodes mocks base method
+// AllNodes mocks base method.
 func (m *MockNodeCache) AllNodes() []Node {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AllNodes")
@@ -3843,13 +3843,13 @@ func (m *MockNodeCache) AllNodes() []Node {
 	return ret0
 }
 
-// AllNodes indicates an expected call of AllNodes
+// AllNodes indicates an expected call of AllNodes.
 func (mr *MockNodeCacheMockRecorder) AllNodes() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllNodes", reflect.TypeOf((*MockNodeCache)(nil).AllNodes))
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockNodeCache) Get(arg0 data.BlockRef) Node {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
@@ -3857,13 +3857,13 @@ func (m *MockNodeCache) Get(arg0 data.BlockRef) Node {
 	return ret0
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockNodeCacheMockRecorder) Get(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockNodeCache)(nil).Get), arg0)
 }
 
-// GetOrCreate mocks base method
+// GetOrCreate mocks base method.
 func (m *MockNodeCache) GetOrCreate(arg0 data.BlockPointer, arg1 data.PathPartString, arg2 Node, arg3 data.EntryType) (Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrCreate", arg0, arg1, arg2, arg3)
@@ -3872,13 +3872,13 @@ func (m *MockNodeCache) GetOrCreate(arg0 data.BlockPointer, arg1 data.PathPartSt
 	return ret0, ret1
 }
 
-// GetOrCreate indicates an expected call of GetOrCreate
+// GetOrCreate indicates an expected call of GetOrCreate.
 func (mr *MockNodeCacheMockRecorder) GetOrCreate(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreate", reflect.TypeOf((*MockNodeCache)(nil).GetOrCreate), arg0, arg1, arg2, arg3)
 }
 
-// IsUnlinked mocks base method
+// IsUnlinked mocks base method.
 func (m *MockNodeCache) IsUnlinked(arg0 Node) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsUnlinked", arg0)
@@ -3886,13 +3886,13 @@ func (m *MockNodeCache) IsUnlinked(arg0 Node) bool {
 	return ret0
 }
 
-// IsUnlinked indicates an expected call of IsUnlinked
+// IsUnlinked indicates an expected call of IsUnlinked.
 func (mr *MockNodeCacheMockRecorder) IsUnlinked(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUnlinked", reflect.TypeOf((*MockNodeCache)(nil).IsUnlinked), arg0)
 }
 
-// Move mocks base method
+// Move mocks base method.
 func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 data.PathPartString) (func(), error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move", arg0, arg1, arg2)
@@ -3901,13 +3901,13 @@ func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 data.PathPartSt
 	return ret0, ret1
 }
 
-// Move indicates an expected call of Move
+// Move indicates an expected call of Move.
 func (mr *MockNodeCacheMockRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockNodeCache)(nil).Move), arg0, arg1, arg2)
 }
 
-// ObfuscatorMaker mocks base method
+// ObfuscatorMaker mocks base method.
 func (m *MockNodeCache) ObfuscatorMaker() func() data.Obfuscator {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ObfuscatorMaker")
@@ -3915,13 +3915,13 @@ func (m *MockNodeCache) ObfuscatorMaker() func() data.Obfuscator {
 	return ret0
 }
 
-// ObfuscatorMaker indicates an expected call of ObfuscatorMaker
+// ObfuscatorMaker indicates an expected call of ObfuscatorMaker.
 func (mr *MockNodeCacheMockRecorder) ObfuscatorMaker() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ObfuscatorMaker", reflect.TypeOf((*MockNodeCache)(nil).ObfuscatorMaker))
 }
 
-// PathFromNode mocks base method
+// PathFromNode mocks base method.
 func (m *MockNodeCache) PathFromNode(arg0 Node) data.Path {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PathFromNode", arg0)
@@ -3929,25 +3929,25 @@ func (m *MockNodeCache) PathFromNode(arg0 Node) data.Path {
 	return ret0
 }
 
-// PathFromNode indicates an expected call of PathFromNode
+// PathFromNode indicates an expected call of PathFromNode.
 func (mr *MockNodeCacheMockRecorder) PathFromNode(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PathFromNode", reflect.TypeOf((*MockNodeCache)(nil).PathFromNode), arg0)
 }
 
-// SetObfuscatorMaker mocks base method
+// SetObfuscatorMaker mocks base method.
 func (m *MockNodeCache) SetObfuscatorMaker(arg0 func() data.Obfuscator) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetObfuscatorMaker", arg0)
 }
 
-// SetObfuscatorMaker indicates an expected call of SetObfuscatorMaker
+// SetObfuscatorMaker indicates an expected call of SetObfuscatorMaker.
 func (mr *MockNodeCacheMockRecorder) SetObfuscatorMaker(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetObfuscatorMaker", reflect.TypeOf((*MockNodeCache)(nil).SetObfuscatorMaker), arg0)
 }
 
-// Unlink mocks base method
+// Unlink mocks base method.
 func (m *MockNodeCache) Unlink(arg0 data.BlockRef, arg1 data.Path, arg2 data.DirEntry) func() {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unlink", arg0, arg1, arg2)
@@ -3955,13 +3955,13 @@ func (m *MockNodeCache) Unlink(arg0 data.BlockRef, arg1 data.Path, arg2 data.Dir
 	return ret0
 }
 
-// Unlink indicates an expected call of Unlink
+// Unlink indicates an expected call of Unlink.
 func (mr *MockNodeCacheMockRecorder) Unlink(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unlink", reflect.TypeOf((*MockNodeCache)(nil).Unlink), arg0, arg1, arg2)
 }
 
-// UnlinkedDirEntry mocks base method
+// UnlinkedDirEntry mocks base method.
 func (m *MockNodeCache) UnlinkedDirEntry(arg0 Node) data.DirEntry {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnlinkedDirEntry", arg0)
@@ -3969,13 +3969,13 @@ func (m *MockNodeCache) UnlinkedDirEntry(arg0 Node) data.DirEntry {
 	return ret0
 }
 
-// UnlinkedDirEntry indicates an expected call of UnlinkedDirEntry
+// UnlinkedDirEntry indicates an expected call of UnlinkedDirEntry.
 func (mr *MockNodeCacheMockRecorder) UnlinkedDirEntry(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlinkedDirEntry", reflect.TypeOf((*MockNodeCache)(nil).UnlinkedDirEntry), arg0)
 }
 
-// UpdatePointer mocks base method
+// UpdatePointer mocks base method.
 func (m *MockNodeCache) UpdatePointer(arg0 data.BlockRef, arg1 data.BlockPointer) NodeID {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePointer", arg0, arg1)
@@ -3983,48 +3983,48 @@ func (m *MockNodeCache) UpdatePointer(arg0 data.BlockRef, arg1 data.BlockPointer
 	return ret0
 }
 
-// UpdatePointer indicates an expected call of UpdatePointer
+// UpdatePointer indicates an expected call of UpdatePointer.
 func (mr *MockNodeCacheMockRecorder) UpdatePointer(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePointer", reflect.TypeOf((*MockNodeCache)(nil).UpdatePointer), arg0, arg1)
 }
 
-// UpdateUnlinkedDirEntry mocks base method
+// UpdateUnlinkedDirEntry mocks base method.
 func (m *MockNodeCache) UpdateUnlinkedDirEntry(arg0 Node, arg1 data.DirEntry) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UpdateUnlinkedDirEntry", arg0, arg1)
 }
 
-// UpdateUnlinkedDirEntry indicates an expected call of UpdateUnlinkedDirEntry
+// UpdateUnlinkedDirEntry indicates an expected call of UpdateUnlinkedDirEntry.
 func (mr *MockNodeCacheMockRecorder) UpdateUnlinkedDirEntry(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnlinkedDirEntry", reflect.TypeOf((*MockNodeCache)(nil).UpdateUnlinkedDirEntry), arg0, arg1)
 }
 
-// MockNodeID is a mock of NodeID interface
+// MockNodeID is a mock of NodeID interface.
 type MockNodeID struct {
 	ctrl     *gomock.Controller
 	recorder *MockNodeIDMockRecorder
 }
 
-// MockNodeIDMockRecorder is the mock recorder for MockNodeID
+// MockNodeIDMockRecorder is the mock recorder for MockNodeID.
 type MockNodeIDMockRecorder struct {
 	mock *MockNodeID
 }
 
-// NewMockNodeID creates a new mock instance
+// NewMockNodeID creates a new mock instance.
 func NewMockNodeID(ctrl *gomock.Controller) *MockNodeID {
 	mock := &MockNodeID{ctrl: ctrl}
 	mock.recorder = &MockNodeIDMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNodeID) EXPECT() *MockNodeIDMockRecorder {
 	return m.recorder
 }
 
-// ParentID mocks base method
+// ParentID mocks base method.
 func (m *MockNodeID) ParentID() NodeID {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ParentID")
@@ -4032,36 +4032,36 @@ func (m *MockNodeID) ParentID() NodeID {
 	return ret0
 }
 
-// ParentID indicates an expected call of ParentID
+// ParentID indicates an expected call of ParentID.
 func (mr *MockNodeIDMockRecorder) ParentID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParentID", reflect.TypeOf((*MockNodeID)(nil).ParentID))
 }
 
-// MockNotifier is a mock of Notifier interface
+// MockNotifier is a mock of Notifier interface.
 type MockNotifier struct {
 	ctrl     *gomock.Controller
 	recorder *MockNotifierMockRecorder
 }
 
-// MockNotifierMockRecorder is the mock recorder for MockNotifier
+// MockNotifierMockRecorder is the mock recorder for MockNotifier.
 type MockNotifierMockRecorder struct {
 	mock *MockNotifier
 }
 
-// NewMockNotifier creates a new mock instance
+// NewMockNotifier creates a new mock instance.
 func NewMockNotifier(ctrl *gomock.Controller) *MockNotifier {
 	mock := &MockNotifier{ctrl: ctrl}
 	mock.recorder = &MockNotifierMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 	return m.recorder
 }
 
-// RegisterForChanges mocks base method
+// RegisterForChanges mocks base method.
 func (m *MockNotifier) RegisterForChanges(arg0 []data.FolderBranch, arg1 Observer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterForChanges", arg0, arg1)
@@ -4069,13 +4069,13 @@ func (m *MockNotifier) RegisterForChanges(arg0 []data.FolderBranch, arg1 Observe
 	return ret0
 }
 
-// RegisterForChanges indicates an expected call of RegisterForChanges
+// RegisterForChanges indicates an expected call of RegisterForChanges.
 func (mr *MockNotifierMockRecorder) RegisterForChanges(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForChanges", reflect.TypeOf((*MockNotifier)(nil).RegisterForChanges), arg0, arg1)
 }
 
-// RegisterForSyncedTlfs mocks base method
+// RegisterForSyncedTlfs mocks base method.
 func (m *MockNotifier) RegisterForSyncedTlfs(arg0 SyncedTlfObserver) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterForSyncedTlfs", arg0)
@@ -4083,13 +4083,13 @@ func (m *MockNotifier) RegisterForSyncedTlfs(arg0 SyncedTlfObserver) error {
 	return ret0
 }
 
-// RegisterForSyncedTlfs indicates an expected call of RegisterForSyncedTlfs
+// RegisterForSyncedTlfs indicates an expected call of RegisterForSyncedTlfs.
 func (mr *MockNotifierMockRecorder) RegisterForSyncedTlfs(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForSyncedTlfs", reflect.TypeOf((*MockNotifier)(nil).RegisterForSyncedTlfs), arg0)
 }
 
-// UnregisterFromChanges mocks base method
+// UnregisterFromChanges mocks base method.
 func (m *MockNotifier) UnregisterFromChanges(arg0 []data.FolderBranch, arg1 Observer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnregisterFromChanges", arg0, arg1)
@@ -4097,13 +4097,13 @@ func (m *MockNotifier) UnregisterFromChanges(arg0 []data.FolderBranch, arg1 Obse
 	return ret0
 }
 
-// UnregisterFromChanges indicates an expected call of UnregisterFromChanges
+// UnregisterFromChanges indicates an expected call of UnregisterFromChanges.
 func (mr *MockNotifierMockRecorder) UnregisterFromChanges(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnregisterFromChanges", reflect.TypeOf((*MockNotifier)(nil).UnregisterFromChanges), arg0, arg1)
 }
 
-// UnregisterFromSyncedTlfs mocks base method
+// UnregisterFromSyncedTlfs mocks base method.
 func (m *MockNotifier) UnregisterFromSyncedTlfs(arg0 SyncedTlfObserver) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnregisterFromSyncedTlfs", arg0)
@@ -4111,48 +4111,48 @@ func (m *MockNotifier) UnregisterFromSyncedTlfs(arg0 SyncedTlfObserver) error {
 	return ret0
 }
 
-// UnregisterFromSyncedTlfs indicates an expected call of UnregisterFromSyncedTlfs
+// UnregisterFromSyncedTlfs indicates an expected call of UnregisterFromSyncedTlfs.
 func (mr *MockNotifierMockRecorder) UnregisterFromSyncedTlfs(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnregisterFromSyncedTlfs", reflect.TypeOf((*MockNotifier)(nil).UnregisterFromSyncedTlfs), arg0)
 }
 
-// MockRekeyQueue is a mock of RekeyQueue interface
+// MockRekeyQueue is a mock of RekeyQueue interface.
 type MockRekeyQueue struct {
 	ctrl     *gomock.Controller
 	recorder *MockRekeyQueueMockRecorder
 }
 
-// MockRekeyQueueMockRecorder is the mock recorder for MockRekeyQueue
+// MockRekeyQueueMockRecorder is the mock recorder for MockRekeyQueue.
 type MockRekeyQueueMockRecorder struct {
 	mock *MockRekeyQueue
 }
 
-// NewMockRekeyQueue creates a new mock instance
+// NewMockRekeyQueue creates a new mock instance.
 func NewMockRekeyQueue(ctrl *gomock.Controller) *MockRekeyQueue {
 	mock := &MockRekeyQueue{ctrl: ctrl}
 	mock.recorder = &MockRekeyQueueMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRekeyQueue) EXPECT() *MockRekeyQueueMockRecorder {
 	return m.recorder
 }
 
-// Enqueue mocks base method
+// Enqueue mocks base method.
 func (m *MockRekeyQueue) Enqueue(arg0 tlf.ID) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Enqueue", arg0)
 }
 
-// Enqueue indicates an expected call of Enqueue
+// Enqueue indicates an expected call of Enqueue.
 func (mr *MockRekeyQueueMockRecorder) Enqueue(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Enqueue", reflect.TypeOf((*MockRekeyQueue)(nil).Enqueue), arg0)
 }
 
-// IsRekeyPending mocks base method
+// IsRekeyPending mocks base method.
 func (m *MockRekeyQueue) IsRekeyPending(arg0 tlf.ID) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsRekeyPending", arg0)
@@ -4160,48 +4160,48 @@ func (m *MockRekeyQueue) IsRekeyPending(arg0 tlf.ID) bool {
 	return ret0
 }
 
-// IsRekeyPending indicates an expected call of IsRekeyPending
+// IsRekeyPending indicates an expected call of IsRekeyPending.
 func (mr *MockRekeyQueueMockRecorder) IsRekeyPending(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsRekeyPending", reflect.TypeOf((*MockRekeyQueue)(nil).IsRekeyPending), arg0)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockRekeyQueue) Shutdown() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Shutdown")
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockRekeyQueueMockRecorder) Shutdown() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockRekeyQueue)(nil).Shutdown))
 }
 
-// MockReporter is a mock of Reporter interface
+// MockReporter is a mock of Reporter interface.
 type MockReporter struct {
 	ctrl     *gomock.Controller
 	recorder *MockReporterMockRecorder
 }
 
-// MockReporterMockRecorder is the mock recorder for MockReporter
+// MockReporterMockRecorder is the mock recorder for MockReporter.
 type MockReporterMockRecorder struct {
 	mock *MockReporter
 }
 
-// NewMockReporter creates a new mock instance
+// NewMockReporter creates a new mock instance.
 func NewMockReporter(ctrl *gomock.Controller) *MockReporter {
 	mock := &MockReporter{ctrl: ctrl}
 	mock.recorder = &MockReporterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockReporter) EXPECT() *MockReporterMockRecorder {
 	return m.recorder
 }
 
-// AllKnownErrors mocks base method
+// AllKnownErrors mocks base method.
 func (m *MockReporter) AllKnownErrors() []ReportedError {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AllKnownErrors")
@@ -4209,185 +4209,185 @@ func (m *MockReporter) AllKnownErrors() []ReportedError {
 	return ret0
 }
 
-// AllKnownErrors indicates an expected call of AllKnownErrors
+// AllKnownErrors indicates an expected call of AllKnownErrors.
 func (mr *MockReporterMockRecorder) AllKnownErrors() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllKnownErrors", reflect.TypeOf((*MockReporter)(nil).AllKnownErrors))
 }
 
-// Notify mocks base method
+// Notify mocks base method.
 func (m *MockReporter) Notify(arg0 context.Context, arg1 *keybase1.FSNotification) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Notify", arg0, arg1)
 }
 
-// Notify indicates an expected call of Notify
+// Notify indicates an expected call of Notify.
 func (mr *MockReporterMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockReporter)(nil).Notify), arg0, arg1)
 }
 
-// NotifyFavoritesChanged mocks base method
+// NotifyFavoritesChanged mocks base method.
 func (m *MockReporter) NotifyFavoritesChanged(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "NotifyFavoritesChanged", arg0)
 }
 
-// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged
+// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged.
 func (mr *MockReporterMockRecorder) NotifyFavoritesChanged(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyFavoritesChanged", reflect.TypeOf((*MockReporter)(nil).NotifyFavoritesChanged), arg0)
 }
 
-// NotifyOverallSyncStatus mocks base method
+// NotifyOverallSyncStatus mocks base method.
 func (m *MockReporter) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
 }
 
-// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus.
 func (mr *MockReporterMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockReporter)(nil).NotifyOverallSyncStatus), arg0, arg1)
 }
 
-// NotifyPathUpdated mocks base method
+// NotifyPathUpdated mocks base method.
 func (m *MockReporter) NotifyPathUpdated(arg0 context.Context, arg1 string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "NotifyPathUpdated", arg0, arg1)
 }
 
-// NotifyPathUpdated indicates an expected call of NotifyPathUpdated
+// NotifyPathUpdated indicates an expected call of NotifyPathUpdated.
 func (mr *MockReporterMockRecorder) NotifyPathUpdated(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyPathUpdated", reflect.TypeOf((*MockReporter)(nil).NotifyPathUpdated), arg0, arg1)
 }
 
-// NotifySyncStatus mocks base method
+// NotifySyncStatus mocks base method.
 func (m *MockReporter) NotifySyncStatus(arg0 context.Context, arg1 *keybase1.FSPathSyncStatus) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "NotifySyncStatus", arg0, arg1)
 }
 
-// NotifySyncStatus indicates an expected call of NotifySyncStatus
+// NotifySyncStatus indicates an expected call of NotifySyncStatus.
 func (mr *MockReporterMockRecorder) NotifySyncStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifySyncStatus", reflect.TypeOf((*MockReporter)(nil).NotifySyncStatus), arg0, arg1)
 }
 
-// OnlineStatusChanged mocks base method
+// OnlineStatusChanged mocks base method.
 func (m *MockReporter) OnlineStatusChanged(arg0 context.Context, arg1 bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnlineStatusChanged", arg0, arg1)
 }
 
-// OnlineStatusChanged indicates an expected call of OnlineStatusChanged
+// OnlineStatusChanged indicates an expected call of OnlineStatusChanged.
 func (mr *MockReporterMockRecorder) OnlineStatusChanged(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnlineStatusChanged", reflect.TypeOf((*MockReporter)(nil).OnlineStatusChanged), arg0, arg1)
 }
 
-// ReportErr mocks base method
+// ReportErr mocks base method.
 func (m *MockReporter) ReportErr(arg0 context.Context, arg1 tlf.CanonicalName, arg2 tlf.Type, arg3 ErrorModeType, arg4 error) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ReportErr", arg0, arg1, arg2, arg3, arg4)
 }
 
-// ReportErr indicates an expected call of ReportErr
+// ReportErr indicates an expected call of ReportErr.
 func (mr *MockReporterMockRecorder) ReportErr(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReportErr", reflect.TypeOf((*MockReporter)(nil).ReportErr), arg0, arg1, arg2, arg3, arg4)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockReporter) Shutdown() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Shutdown")
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockReporterMockRecorder) Shutdown() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockReporter)(nil).Shutdown))
 }
 
-// MockSubscriptionNotifier is a mock of SubscriptionNotifier interface
+// MockSubscriptionNotifier is a mock of SubscriptionNotifier interface.
 type MockSubscriptionNotifier struct {
 	ctrl     *gomock.Controller
 	recorder *MockSubscriptionNotifierMockRecorder
 }
 
-// MockSubscriptionNotifierMockRecorder is the mock recorder for MockSubscriptionNotifier
+// MockSubscriptionNotifierMockRecorder is the mock recorder for MockSubscriptionNotifier.
 type MockSubscriptionNotifierMockRecorder struct {
 	mock *MockSubscriptionNotifier
 }
 
-// NewMockSubscriptionNotifier creates a new mock instance
+// NewMockSubscriptionNotifier creates a new mock instance.
 func NewMockSubscriptionNotifier(ctrl *gomock.Controller) *MockSubscriptionNotifier {
 	mock := &MockSubscriptionNotifier{ctrl: ctrl}
 	mock.recorder = &MockSubscriptionNotifierMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSubscriptionNotifier) EXPECT() *MockSubscriptionNotifierMockRecorder {
 	return m.recorder
 }
 
-// OnNonPathChange mocks base method
+// OnNonPathChange mocks base method.
 func (m *MockSubscriptionNotifier) OnNonPathChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1)
 }
 
-// OnNonPathChange indicates an expected call of OnNonPathChange
+// OnNonPathChange indicates an expected call of OnNonPathChange.
 func (mr *MockSubscriptionNotifierMockRecorder) OnNonPathChange(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnNonPathChange), arg0, arg1)
 }
 
-// OnPathChange mocks base method
+// OnPathChange mocks base method.
 func (m *MockSubscriptionNotifier) OnPathChange(arg0 SubscriptionID, arg1 string, arg2 keybase1.PathSubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2)
 }
 
-// OnPathChange indicates an expected call of OnPathChange
+// OnPathChange indicates an expected call of OnPathChange.
 func (mr *MockSubscriptionNotifierMockRecorder) OnPathChange(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnPathChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnPathChange), arg0, arg1, arg2)
 }
 
-// MockSubscriptionManagerPublisher is a mock of SubscriptionManagerPublisher interface
+// MockSubscriptionManagerPublisher is a mock of SubscriptionManagerPublisher interface.
 type MockSubscriptionManagerPublisher struct {
 	ctrl     *gomock.Controller
 	recorder *MockSubscriptionManagerPublisherMockRecorder
 }
 
-// MockSubscriptionManagerPublisherMockRecorder is the mock recorder for MockSubscriptionManagerPublisher
+// MockSubscriptionManagerPublisherMockRecorder is the mock recorder for MockSubscriptionManagerPublisher.
 type MockSubscriptionManagerPublisherMockRecorder struct {
 	mock *MockSubscriptionManagerPublisher
 }
 
-// NewMockSubscriptionManagerPublisher creates a new mock instance
+// NewMockSubscriptionManagerPublisher creates a new mock instance.
 func NewMockSubscriptionManagerPublisher(ctrl *gomock.Controller) *MockSubscriptionManagerPublisher {
 	mock := &MockSubscriptionManagerPublisher{ctrl: ctrl}
 	mock.recorder = &MockSubscriptionManagerPublisherMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSubscriptionManagerPublisher) EXPECT() *MockSubscriptionManagerPublisherMockRecorder {
 	return m.recorder
 }
 
-// PublishChange mocks base method
+// PublishChange mocks base method.
 func (m *MockSubscriptionManagerPublisher) PublishChange(arg0 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PublishChange", arg0)
 }
 
-// PublishChange indicates an expected call of PublishChange
+// PublishChange indicates an expected call of PublishChange.
 func (mr *MockSubscriptionManagerPublisherMockRecorder) PublishChange(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishChange", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).PublishChange), arg0)
