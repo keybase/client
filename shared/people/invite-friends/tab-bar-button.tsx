@@ -5,10 +5,7 @@ import * as Container from '../../util/container'
 import InviteHow from './invite-how'
 
 const InviteFriends = () => {
-  // TODO: useRPC to get this data
-  const num = 1640
-  const percentage = 154
-  const showFire = true
+  const inviteCounts = Container.useSelector(state => state.people.inviteCounts)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -25,24 +22,36 @@ const InviteFriends = () => {
       onClick={Styles.isMobile ? toggleShowingPopup : onInviteFriends}
     />
   )
-  const inviteCounter = (
-    <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-      <Kb.Icon type="iconfont-envelope" sizeType="Small" color={Styles.globalColors.blueDarkerOrBlack_85} />
-      <Kb.Text type="BodySmallBold" style={styles.counter}>
-        {num.toLocaleString()} {showFire ? <Kb.Emoji emojiName="fire" size={12} /> : null}
-      </Kb.Text>
-    </Kb.Box2>
-  )
-  const firstTooltipLine = `${num.toLocaleString()} friends invited in the last 24 hours.`
+
+  let inviteCounter: React.ReactNode = null
+  let firstTooltipLine = ''
+  if (inviteCounts) {
+    inviteCounter = (
+      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+        <Kb.Icon type="iconfont-envelope" sizeType="Small" color={Styles.globalColors.blueDarkerOrBlack_85} />
+        <Kb.Text type="BodySmallBold" style={styles.counter}>
+          {inviteCounts.inviteCount.toLocaleString()}{' '}
+          {inviteCounts.showFire ? <Kb.Emoji emojiName="fire" size={12} /> : null}
+        </Kb.Text>
+      </Kb.Box2>
+    )
+    firstTooltipLine = `${inviteCounts.inviteCount.toLocaleString()} friends invited in the last 24 hours.`
+  }
+
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.mobileContainer}>
       <Kb.Box style={Styles.globalStyles.flexOne} />
       {inviteButton}
-      <Kb.Box2 direction="horizontal" style={styles.inviteCounterBox}>
-        <Kb.WithTooltip tooltip={firstTooltipLine} showOnPressMobile={true}>
-          {inviteCounter}
-        </Kb.WithTooltip>
-      </Kb.Box2>
+      {inviteCounter ? (
+        <Kb.Box2 direction="horizontal" style={styles.inviteCounterBox}>
+          <Kb.WithTooltip tooltip={firstTooltipLine} showOnPressMobile={true}>
+            {inviteCounter}
+          </Kb.WithTooltip>
+        </Kb.Box2>
+      ) : (
+        // Needed to center button even if inviteCounts isn't loaded yet
+        <Kb.Box style={Styles.globalStyles.flexOne} />
+      )}
       {popup}
     </Kb.Box2>
   ) : (
@@ -51,27 +60,29 @@ const InviteFriends = () => {
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="xsmall" style={styles.container} className="invite-friends-big">
         {inviteButton}
-        <Kb.WithTooltip
-          tooltip={
-            <Kb.Box2 direction="vertical" alignItems="flex-start">
-              <Kb.Text type="BodySmall" style={styles.tooltip}>
-                {firstTooltipLine}
-              </Kb.Text>
-              {percentage > 0 ? (
+        {!!inviteCounts && (
+          <Kb.WithTooltip
+            tooltip={
+              <Kb.Box2 direction="vertical" alignItems="flex-start">
                 <Kb.Text type="BodySmall" style={styles.tooltip}>
-                  That's {percentage}% more than yesterday.
+                  {firstTooltipLine}
                 </Kb.Text>
-              ) : null}
-              {showFire ? (
-                <Kb.Text type="BodySmall" style={styles.tooltip}>
-                  Keybase servers are on fire! <Kb.Emoji emojiName="fire" size={12} />
-                </Kb.Text>
-              ) : null}
-            </Kb.Box2>
-          }
-        >
-          {inviteCounter}
-        </Kb.WithTooltip>
+                {inviteCounts.percentageChange > 0 ? (
+                  <Kb.Text type="BodySmall" style={styles.tooltip}>
+                    That's {inviteCounts.percentageChange}% more than yesterday.
+                  </Kb.Text>
+                ) : null}
+                {inviteCounts.showFire ? (
+                  <Kb.Text type="BodySmall" style={styles.tooltip}>
+                    Keybase servers are on fire! <Kb.Emoji emojiName="fire" size={12} />
+                  </Kb.Text>
+                ) : null}
+              </Kb.Box2>
+            }
+          >
+            {inviteCounter}
+          </Kb.WithTooltip>
+        )}
       </Kb.Box2>
       <Kb.ClickableBox
         style={styles.bigEnvelopeIcon}
