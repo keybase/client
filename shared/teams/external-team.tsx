@@ -2,9 +2,11 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import * as Constants from '../constants/teams'
 import * as RPCGen from '../constants/types/rpc-gen'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
+import capitalize from 'lodash/capitalize'
 
 type Props = Container.RouteProps<{teamname: string}>
 
@@ -81,12 +83,34 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
     {
       data: members.length ? members : ['empty'],
       key: 'membersSection',
-      renderItem: ({item}) =>
-        item === 'empty' ? (
+      renderItem: ({item, index}) => {
+        const roleString = Constants.teamRoleByEnum[item.role]
+        return item === 'empty' ? (
           <Kb.Text type="HeaderBig">Ain't no public members! At all!</Kb.Text>
         ) : (
-          <Kb.Text type="HeaderBig">{item.username}</Kb.Text>
-        ),
+          <Kb.ListItem2
+            firstItem={index === 0}
+            type="Large"
+            icon={<Kb.Avatar size={32} username={item.username} />}
+            body={
+              <Kb.Box2 direction="vertical" alignItems="flex-start">
+                <Kb.ConnectedUsernames type="BodySemibold" usernames={item.username} colorFollowing={true} />
+                <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
+                  {!!item.fullName && <Kb.Text type="BodySmall">{item.fullName.trim()} • </Kb.Text>}
+                  {[RPCGen.TeamRole.admin, RPCGen.TeamRole.owner].includes(item.role) && (
+                    <Kb.Icon
+                      type={`iconfont-crown-${roleString}` as Kb.IconType}
+                      sizeType="Small"
+                      style={styles.crownIcon}
+                    />
+                  )}
+                  <Kb.Text type="BodySmall">{capitalize(roleString)}</Kb.Text>
+                </Kb.Box2>
+              </Kb.Box2>
+            }
+          />
+        )
+      },
     },
   ]
   const renderSectionHeader = ({section}) => {
@@ -158,6 +182,10 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       paddingTop: Styles.globalMargins.tiny,
     },
+  }),
+  crownIcon: Styles.platformStyles({
+    common: {marginRight: Styles.globalMargins.xtiny},
+    isElectron: {marginLeft: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xxtiny},
   }),
   headerContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
