@@ -341,6 +341,9 @@ func (a *anchorInteractor) postSep24(mctx libkb.MetaContext, u *url.URL, data ur
 		mctx.Debug("POST failed: %s", err)
 		return stellar1.AssetActionResultLocal{}, err
 	}
+
+	mctx.Debug("QWER postSep24 response body: %s", string(body))
+
 	switch code {
 	case http.StatusOK:
 		var resp okSep24Response
