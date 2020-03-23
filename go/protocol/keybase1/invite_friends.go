@@ -66,7 +66,7 @@ type GetInviteCountsArg struct {
 }
 
 type InviteFriendsInterface interface {
-	InvitePeople(context.Context, InvitePeopleArg) error
+	InvitePeople(context.Context, InvitePeopleArg) (int, error)
 	GetInviteCounts(context.Context) (InviteCounts, error)
 }
 
@@ -85,7 +85,7 @@ func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]InvitePeopleArg)(nil), args)
 						return
 					}
-					err = i.InvitePeople(ctx, typedArgs[0])
+					ret, err = i.InvitePeople(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -107,8 +107,8 @@ type InviteFriendsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c InviteFriendsClient) InvitePeople(ctx context.Context, __arg InvitePeopleArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.invitePeople", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c InviteFriendsClient) InvitePeople(ctx context.Context, __arg InvitePeopleArg) (res int, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.invitePeople", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

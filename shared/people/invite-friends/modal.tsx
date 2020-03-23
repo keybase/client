@@ -4,8 +4,10 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import {usePhoneNumberList} from '../../teams/common'
+import * as RPCGen from '../../constants/types/rpc-gen'
 
 const shareURL = 'https://keybase.io/download'
+const waitingKey = 'invitePeople'
 
 const InviteFriendsModal = () => {
   const dispatch = Container.useDispatch()
@@ -28,10 +30,32 @@ const InviteFriendsModal = () => {
     (!emails && phoneNumbers.every(pn => !pn.phoneNumber)) ||
     phoneNumbers.some(pn => pn.phoneNumber && !pn.valid)
 
+  const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
+  const [error, setError] = React.useState('')
+  const [successCount, setSuccessCount] = React.useState<number | null>(null)
+  const onSubmit = () =>
+    submit(
+      [
+        {
+          emails: {commaSeparatedEmailsFromUser: emails},
+          phones: phoneNumbers.filter(p => !!p.phoneNumber).map(p => p.phoneNumber),
+        },
+        waitingKey,
+      ],
+      r => {
+        setSuccessCount(r)
+        setError('')
+        setEmails('')
+        phoneNumbers.filter(p => !!p.phoneNumber).forEach(p => removePhoneNumber(p.key))
+      },
+      err => {
+        setSuccessCount(null)
+        setError(err.message)
+      }
+    )
   const {popup, setShowingPopup} = Kb.usePopup(() => (
     <ShareLinkPopup onClose={() => setShowingPopup(false)} />
   ))
-
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
@@ -40,7 +64,13 @@ const InviteFriendsModal = () => {
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="medium" fullWidth={true}>
-            <Kb.Button fullWidth={true} label="Send invite" disabled={disabled} />
+            <Kb.WaitingButton
+              fullWidth={true}
+              label="Send invite"
+              disabled={disabled}
+              waitingKey={waitingKey}
+              onClick={onSubmit}
+            />
             {!Styles.isMobile && (
               <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
                 <Kb.Text type="BodySmall" center={true}>
@@ -52,6 +82,23 @@ const InviteFriendsModal = () => {
           </Kb.Box2>
         ),
       }}
+      banners={[
+        ...(error
+          ? [
+              <Kb.Banner color="red" key="error">
+                {error}
+              </Kb.Banner>,
+            ]
+          : []),
+        ...(successCount === null
+          ? []
+          : [
+              <Kb.Banner
+                color="green"
+                key="success"
+              >{`Success! You invited ${successCount} friends to Keybase.`}</Kb.Banner>,
+            ]),
+      ]}
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.illustration} />

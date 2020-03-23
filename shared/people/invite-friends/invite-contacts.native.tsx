@@ -7,6 +7,7 @@ import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import {mapGetEnsureValue} from '../../util/map'
+import * as RPCGen from '../../constants/types/rpc-gen'
 
 type Section = _Section<Contact, {title: string}>
 
@@ -57,8 +58,12 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
   return sections
 })
 
+const waitingKey = 'inviteContacts'
+
 const InviteContacts = () => {
-  const {contacts, errorMessage, loading} = useContacts()
+  const contactInfo = useContacts()
+  const {contacts, loading} = contactInfo
+  const contactsErrorMessage = contactInfo.errorMessage
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -67,8 +72,29 @@ const InviteContacts = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const navUp = () => dispatch(nav.safeNavigateUpPayload())
-  const onSubmit = () => {} // TODO
+  const waiting = Container.useAnyWaiting(waitingKey)
 
+  const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
+  const [rpcErrorMessage, setError] = React.useState('')
+  const onSubmit = () => {
+    setError('')
+    submit(
+      [
+        {
+          emails: {emailsFromContacts: [...selectedEmails]},
+          phones: [...selectedPhones],
+        },
+        waitingKey,
+      ],
+      () => {
+        // TODO(Y2K-1643): positive feedback
+        navUp()
+      },
+      err => {
+        setError(err.message)
+      }
+    )
+  }
   const placeholderText = loading ? '' : `Search ${contacts.length.toLocaleString()} contacts`
 
   const sections = [
@@ -135,7 +161,9 @@ const InviteContacts = () => {
             Cancel
           </Kb.Text>
         ),
-        rightButton: (
+        rightButton: waiting ? (
+          <Kb.ProgressIndicator type="Small" />
+        ) : (
           <Kb.Text
             type="BodyBigLink"
             onClick={canContinue ? onSubmit : undefined}
@@ -147,7 +175,9 @@ const InviteContacts = () => {
         title: 'Invite friends',
       }}
     >
-      {!!errorMessage && <Kb.Banner color="red">{errorMessage}</Kb.Banner>}
+      {(!!contactsErrorMessage || !!rpcErrorMessage) && (
+        <Kb.Banner color="red">{contactsErrorMessage ?? rpcErrorMessage}</Kb.Banner>
+      )}
       {loading ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
