@@ -1353,6 +1353,7 @@ func (p *blockPrefetcher) run(
 	isShuttingDown := false
 	var shuttingDownCh <-chan interface{}
 	first := true
+	appState := keybase1.MobileAppState_FOREGROUND
 	netState := keybase1.MobileNetworkState_NONE
 	for {
 		if !first && testDoneCh != nil && !isShuttingDown {
@@ -1382,9 +1383,22 @@ func (p *blockPrefetcher) run(
 			p.log.Debug("shutting down, clearing in flight fetches")
 			ch := chInterface.(<-chan error)
 			<-ch
-		case netState := <-p.appStateUpdater.NextNetworkStateUpdate(&netState):
+		case appState = <-p.appStateUpdater.NextAppStateUpdate(&appState):
 			// Pause the prefetcher on cell connections.
 		pauseLoop:
+			for appState != keybase1.MobileAppState_FOREGROUND {
+				p.log.CDebugf(
+					context.TODO(), "Pausing prefetcher while backgrounded")
+				select {
+				case appState = <-p.appStateUpdater.NextAppStateUpdate(
+					&appState):
+				case <-p.almostDoneCh:
+					break pauseLoop
+				}
+			}
+		case netState = <-p.appStateUpdater.NextNetworkStateUpdate(&netState):
+			// Pause the prefetcher on cell connections.
+		pauseLoop2:
 			for netState == keybase1.MobileNetworkState_CELLULAR {
 				p.log.CDebugf(
 					context.TODO(), "Pausing prefetcher on cell network")
@@ -1392,7 +1406,7 @@ func (p *blockPrefetcher) run(
 				case netState = <-p.appStateUpdater.NextNetworkStateUpdate(
 					&netState):
 				case <-p.almostDoneCh:
-					break pauseLoop
+					break pauseLoop2
 				}
 			}
 		case ptrInt := <-p.prefetchCancelCh.Out():
