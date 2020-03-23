@@ -72,6 +72,7 @@ const InviteFriendsModal = () => {
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               {phoneNumbers.map((pn, i) => (
                 <Kb.PhoneInput
+                  small={true}
                   key={pn.key}
                   defaultCountry={defaultCountry}
                   onChangeNumber={(phoneNumber, valid) => setPhoneNumber(i, phoneNumber, valid)}

@@ -501,7 +501,10 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
       return (
         <Kb.Box2
           direction={this.isSmall() ? 'horizontal' : 'vertical'}
-          style={Styles.collapseStyles([styles.container, styles.containerLoading])}
+          style={Styles.collapseStyles([
+            this.isSmall() ? styles.containerSmall : styles.containerBig,
+            styles.containerLoading,
+          ])}
         >
           <Kb.ProgressIndicator type="Small" />
         </Kb.Box2>
@@ -512,7 +515,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
       <Kb.Box2
         direction={this.isSmall() ? 'horizontal' : 'vertical'}
         style={Styles.collapseStyles([
-          styles.container,
+          this.isSmall() ? styles.containerSmall : styles.containerBig,
           this.isSmall() && this.state.focused && styles.highlight,
         ])}
       >
@@ -525,7 +528,10 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
               : Styles.collapseStyles([styles.countrySelectorRowBig, styles.fakeInputBig])
           }
         >
-          <Kb.ClickableBox onClick={this.toggleShowingMenu} style={styles.fullWidthDesktopOnly}>
+          <Kb.ClickableBox
+            onClick={this.toggleShowingMenu}
+            style={this.isSmall() ? styles.fullWidthDesktopOnly : styles.fullWidth}
+          >
             <Kb.Box2
               direction="horizontal"
               style={styles.countrySelectorContainer}
@@ -613,7 +619,10 @@ const styles = Styles.styleSheetCreate(
       clearIcon: {
         marginRight: Styles.globalMargins.tiny,
       },
-      container: {
+      containerBig: {
+        width: '100%',
+      },
+      containerSmall: {
         backgroundColor: Styles.globalColors.white,
         borderColor: Styles.globalColors.black_10,
         borderRadius: Styles.borderRadius,
