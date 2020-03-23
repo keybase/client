@@ -953,14 +953,28 @@
     },
     {
       "type": "record",
+      "name": "ResetConversationMember",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetResetConvsRes",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ResetConversationMember"
           },
-          "name": "convIDs"
+          "name": "resetConvs"
         },
         {
           "type": [
@@ -1728,7 +1742,7 @@
       ],
       "response": "GetLastActiveAtRes"
     },
-    "getResetConvs": {
+    "getResetConversations": {
       "request": [],
       "response": "GetResetConvsRes"
     }

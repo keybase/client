@@ -423,9 +423,14 @@ protocol remote {
   }
   GetLastActiveAtRes getLastActiveAt(keybase1.TeamID teamID, gregor1.UID uid);
 
+  record ResetConversationMember {
+    ConversationID convID;
+    gregor1.UID uid;
+  }
+
   record GetResetConvsRes {
-    array<ConversationID> convIDs;
+    array<ResetConversationMember> resetConvs;
     union { null, RateLimit } rateLimit;
   }
-  GetResetConvsRes getResetConvs();
+  GetResetConvsRes getResetConversations();
 }
