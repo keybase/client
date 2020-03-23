@@ -1621,6 +1621,9 @@ type GetLastActiveAtArg struct {
 	Uid    gregor1.UID     `codec:"uid" json:"uid"`
 }
 
+type GetResetConvsArg struct {
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1671,6 +1674,7 @@ type RemoteInterface interface {
 	GetRecentJoins(context.Context, ConversationID) (GetRecentJoinsRes, error)
 	RefreshParticipantsRemote(context.Context, RefreshParticipantsRemoteArg) (RefreshParticipantsRemoteRes, error)
 	GetLastActiveAt(context.Context, GetLastActiveAtArg) (GetLastActiveAtRes, error)
+	GetResetConvs(context.Context) ([]ConversationID, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -2397,6 +2401,16 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getResetConvs": {
+				MakeArg: func() interface{} {
+					var ret [1]GetResetConvsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetResetConvs(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2663,5 +2677,10 @@ func (c RemoteClient) RefreshParticipantsRemote(ctx context.Context, __arg Refre
 
 func (c RemoteClient) GetLastActiveAt(ctx context.Context, __arg GetLastActiveAtArg) (res GetLastActiveAtRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getLastActiveAt", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) GetResetConvs(ctx context.Context) (res []ConversationID, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getResetConvs", []interface{}{GetResetConvsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

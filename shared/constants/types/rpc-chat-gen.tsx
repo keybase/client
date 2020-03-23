@@ -1814,3 +1814,4 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.getRecentJoins'
 // 'chat.1.remote.refreshParticipantsRemote'
 // 'chat.1.remote.getLastActiveAt'
+// 'chat.1.remote.getResetConvs'

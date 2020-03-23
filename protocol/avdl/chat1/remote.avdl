@@ -422,4 +422,5 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   GetLastActiveAtRes getLastActiveAt(keybase1.TeamID teamID, gregor1.UID uid);
+  array<ConversationID> getResetConvs();
 }

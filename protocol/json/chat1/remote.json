@@ -1707,6 +1707,13 @@
         }
       ],
       "response": "GetLastActiveAtRes"
+    },
+    "getResetConvs": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "ConversationID"
+      }
     }
   },
   "namespace": "chat.1",
