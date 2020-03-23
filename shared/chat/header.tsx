@@ -169,6 +169,7 @@ const Header = (p: Props) => {
                     inline={true}
                     commaColor={Styles.globalColors.black_50}
                     type="BodySmallBold"
+                    typeOverride={true}
                     usernames={withoutSelf[0]}
                     onUsernameClicked="profile"
                   />
