@@ -27,7 +27,9 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
   const searchL = search.toLowerCase()
   const sectionMap: Map<string, Contact[]> = new Map()
   contacts
-    .filter(contact => contact.name.toLowerCase().includes(searchL) || contact.value.includes(search))
+    .filter(
+      contact => contact.name.toLowerCase().includes(searchL) || contact.value.toLowerCase().includes(searchL)
+    )
     .forEach(contact => {
       const category = categorize(contact)
       const section = mapGetEnsureValue(sectionMap, category, [])
