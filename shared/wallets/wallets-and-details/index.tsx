@@ -14,7 +14,7 @@ const WalletsAndDetails = (props: Props) => (
       <Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
         <WalletList style={{height: '100%'}} />
       </Box2>
-      <Box2 direction="vertical" style={{flex: 1}}>
+      <Box2 direction="vertical" fullHeight={true} style={Styles.globalStyles.flexOne}>
         {props.children}
       </Box2>
     </Box2>
