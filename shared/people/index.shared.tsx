@@ -5,7 +5,6 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as PeopleGen from '../actions/people-gen'
 import * as SignupGen from '../actions/signup-gen'
-import * as TeamsGen from '../actions/teams-gen'
 import {noEmail} from '../constants/signup'
 import Todo from './todo/container'
 import FollowNotification from './follow-notification'
@@ -107,20 +106,14 @@ const ResentEmailVerificationBanner = () => {
   )
 }
 
-export const PeoplePageList = (props: Props) => {
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    dispatch(TeamsGen.createShowTeamByName({teamname: 'keybasefriends'}))
-  }, [dispatch])
-  return (
-    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
-      <EmailVerificationBanner />
-      <ResentEmailVerificationBanner />
-      {props.newItems
-        .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
-        .map(item => itemToComponent(item, props))}
-      <FollowSuggestions suggestions={props.followSuggestions} />
-      {props.oldItems.map(item => itemToComponent(item, props))}
-    </Kb.Box>
-  )
-}
+export const PeoplePageList = (props: Props) => (
+  <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
+    <EmailVerificationBanner />
+    <ResentEmailVerificationBanner />
+    {props.newItems
+      .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
+      .map(item => itemToComponent(item, props))}
+    <FollowSuggestions suggestions={props.followSuggestions} />
+    {props.oldItems.map(item => itemToComponent(item, props))}
+  </Kb.Box>
+)
