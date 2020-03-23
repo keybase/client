@@ -182,6 +182,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.ContactsProtocol(NewContactsHandler(xp, g, contactsProv)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
+		keybase1.InviteFriendsProtocol(NewInviteFriendsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
 		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, contactsProv)),

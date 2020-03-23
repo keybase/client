@@ -60,7 +60,7 @@
           "name": "phones",
           "type": {
             "type": "array",
-            "items": "RawPhoneNumber"
+            "items": "PhoneNumber"
           }
         }
       ],
