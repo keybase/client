@@ -93,8 +93,8 @@ type ContactProps = {
 }
 
 export type Props = ContactProps & {
-  avatarCrop: AvatarCrop
-  avatarFilepath: string
+  avatarCrop?: AvatarCrop
+  avatarFilepath?: string
   error?: string
   fetchUserRecs: () => void
   filterServices?: Array<ServiceIdWithContact>
