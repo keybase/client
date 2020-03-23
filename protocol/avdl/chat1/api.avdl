@@ -159,7 +159,7 @@ protocol api {
     @optional(true)
     gregor1.Time eTime;
     @jsonkey("reactions")
-    union { null, ReactionMap } reactions;
+    union { null, UIReactionMap } reactions;
     @jsonkey("has_pairwise_macs")
     @optional(true)
     boolean hasPairwiseMacs;

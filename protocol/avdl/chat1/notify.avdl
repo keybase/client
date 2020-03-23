@@ -90,7 +90,7 @@ protocol NotifyChat {
   }
 
   record ReactionUpdate {
-    ReactionMap reactions;
+    UIReactionMap reactions;
     MessageID targetMsgID;
   }
 
