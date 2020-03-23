@@ -53,11 +53,26 @@ const useReacji = ({onPick, onDidPick}: Props) => {
   }
 }
 
+let lastSetSkinTone: Types.EmojiSkinTone = 'default'
+// This can only be used in one place at a time for now since when it's changed
+// it doesn't cause other hook instances to update.
+const useSkinTone = () => {
+  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
+  const setSkinTone = React.useCallback(
+    (skinTone: Types.EmojiSkinTone) => {
+      lastSetSkinTone = skinTone
+      _setSkinTone(skinTone)
+    },
+    [_setSkinTone]
+  )
+  return {currentSkinTone, setSkinTone}
+}
+
 const WrapperMobile = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
-  const emojiSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
+  const {currentSkinTone, setSkinTone} = useSkinTone()
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
@@ -80,10 +95,10 @@ const WrapperMobile = (props: Props) => {
         filter={filter}
         onChoose={emoji => onAddReaction(emoji)}
         width={width}
-        skinTone={emojiSkinTone}
+        skinTone={currentSkinTone}
       />
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.footerContainer}>
-        <SkinTonePicker />
+        <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -91,7 +106,7 @@ const WrapperMobile = (props: Props) => {
 
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
-  const emojiSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
+  const {currentSkinTone, setSkinTone} = useSkinTone()
   return (
     <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
       <Kb.Box2
@@ -108,7 +123,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           placeholderText="Search"
           onChange={str => setFilter(str)}
         />
-        <SkinTonePicker />
+        <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
       <Kb.Box style={styles.emojiContainer}>
         <EmojiPicker
@@ -116,7 +131,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           filter={filter}
           onChoose={emoji => onAddReaction(emoji)}
           width={336}
-          skinTone={emojiSkinTone}
+          skinTone={currentSkinTone}
         />
       </Kb.Box>
       {/* TODO

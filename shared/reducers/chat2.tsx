@@ -1564,9 +1564,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
-  [Chat2Gen.setEmojiSkinTone]: (draftState, action) => {
-    draftState.emojiSkinTone = action.payload.skinTone
-  },
   ...audioActions,
   ...botActions,
   ...giphyActions,

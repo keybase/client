@@ -2,8 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Container from '../../../../../util/container'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 
 const skinTones: Array<Types.EmojiSkinTone> = ['default', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
 const skinToneToDotColor = (skinTone: Types.EmojiSkinTone): string => {
@@ -38,21 +36,23 @@ const circle = (skinTone: Types.EmojiSkinTone, isExpanded: boolean, outerCircle:
   )
 }
 
-const SkinTonePicker = () => {
-  const currentSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
-  const dispatch = Container.useDispatch()
-  const setSkinTone = (skinTone: Types.EmojiSkinTone) => dispatch(Chat2Gen.createSetEmojiSkinTone({skinTone}))
+type Props = {
+  currentSkinTone: Types.EmojiSkinTone
+  setSkinTone: (skinTone: Types.EmojiSkinTone) => void
+}
+
+const SkinTonePicker = (props: Props) => {
   const [expanded, setExpanded] = React.useState(false)
   const optionSkinTones = skinTones.map(skinTone => (
     <Kb.ClickableBox
       key={skinTone}
       style={styles.dotContainerExpanded}
       onClick={() => {
-        setSkinTone(skinTone)
+        props.setSkinTone(skinTone)
         setExpanded(false)
       }}
     >
-      {circle(skinTone, true, Styles.isMobile && skinTone === currentSkinTone)}
+      {circle(skinTone, true, Styles.isMobile && skinTone === props.currentSkinTone)}
     </Kb.ClickableBox>
   ))
   return Styles.isMobile ? (
@@ -68,7 +68,7 @@ const SkinTonePicker = () => {
     ) : (
       <Kb.ClickableBox onClick={() => setExpanded(true)}>
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
-          {circle(currentSkinTone, false, false)}
+          {circle(props.currentSkinTone, false, false)}
           <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>
@@ -82,7 +82,7 @@ const SkinTonePicker = () => {
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
           <Kb.ClickableBox style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
-            {circle(currentSkinTone, false, false)}
+            {circle(props.currentSkinTone, false, false)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}

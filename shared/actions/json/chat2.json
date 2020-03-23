@@ -912,9 +912,6 @@
     "addToMessageMap": {
       "message": "Types.Message"
     },
-    "setEmojiSkinTone": {
-      "skinTone": "Types.EmojiSkinTone"
-    },
     "refreshMutualTeamsInConv": {
       "_description": "Refresh loaded mutual teams for a conversation",
       "conversationIDKey": "Types.ConversationIDKey"
