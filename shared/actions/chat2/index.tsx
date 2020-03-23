@@ -1443,13 +1443,6 @@ const onToggleThreadSearch = (state: Container.TypedState, action: Chat2Gen.Togg
   return visible ? false : RPCChatTypes.localCancelActiveSearchRpcPromise()
 }
 
-const hideThreadSearch = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
-  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
-  return visible
-    ? Chat2Gen.createToggleThreadSearch({conversationIDKey: action.payload.conversationIDKey})
-    : false
-}
-
 function* threadSearch(
   state: Container.TypedState,
   action: Chat2Gen.ThreadSearchPayload,
@@ -3850,7 +3843,6 @@ function* chat2Saga() {
 
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
   yield* Saga.chainAction2(Chat2Gen.toggleThreadSearch, onToggleThreadSearch)
-  yield* Saga.chainAction2(Chat2Gen.selectedConversation, hideThreadSearch)
   yield* Saga.chainAction(Chat2Gen.selectedConversation, cancelAudioFromDeselect)
 
   yield* Saga.chainAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)

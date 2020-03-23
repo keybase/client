@@ -1553,6 +1553,20 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.setGeneralConvFromTeamID]: (draftState, action) => {
     draftState.teamIDToGeneralConvID.set(action.payload.teamID, action.payload.conversationIDKey)
   },
+  [Chat2Gen.navigateToThread]: (draftState, action) => {
+    const {conversationIDKey} = action.payload
+    const toHide = [...draftState.threadSearchInfoMap.entries()].reduce<Array<Types.ConversationIDKey>>(
+      (arr, [id, val]) => {
+        if (id !== conversationIDKey && val.visible) {
+          arr.push(id)
+        }
+        return arr
+      },
+      []
+    )
+
+    toHide.forEach(id => (draftState.threadSearchInfoMap.get(id)!.visible = false))
+  },
   [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
     const roles =
       draftState.botTeamRoleInConvMap.get(action.payload.conversationIDKey) ||
