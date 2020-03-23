@@ -15,6 +15,8 @@ const CreateSubteams = () => {
 
   const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
   const initialSubteams = Container.useSelector(s => s.teams.newTeamWizard.subteams) ?? ['', '', '']
+  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
+  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
 
   const [subteams, setSubteams] = React.useState<Array<string>>([...initialSubteams])
   const setSubteam = (i: number, value: string) => {
@@ -45,7 +47,14 @@ const CreateSubteams = () => {
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Create subteams" />,
+        title: (
+          <ModalTitle
+            teamname={teamname}
+            title="Create subteams"
+            avatarFilepath={avatarFilepath}
+            avatarCrop={avatarCrop}
+          />
+        ),
       }}
       footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}

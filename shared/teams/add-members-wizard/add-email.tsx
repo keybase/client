@@ -23,6 +23,8 @@ const AddEmail = (props: Props) => {
 
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
+  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
+  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
 
   // TODO Y2K-1556 useRPC to get assertions to pass to this action
   const onContinue = () => dispatch(TeamsGen.createAddMembersWizardPushMembers({members: []}))
@@ -32,7 +34,14 @@ const AddEmail = (props: Props) => {
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Email list" />,
+        title: (
+          <ModalTitle
+            teamname={teamname}
+            title="Email list"
+            avatarFilepath={avatarFilepath}
+            avatarCrop={avatarCrop}
+          />
+        ),
       }}
       allowOverflow={true}
       footer={{

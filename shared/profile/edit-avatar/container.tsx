@@ -5,6 +5,7 @@ import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import * as Container from '../../util/container'
+import * as Types from '../../constants/types/teams'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import * as ImagePicker from 'expo-image-picker'
@@ -45,7 +46,7 @@ export default Container.connect(
     ) => dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname})),
     onSaveUserAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
       dispatch(ProfileGen.createUploadAvatar({crop, filename})),
-    onSaveWizardAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
+    onSaveWizardAvatar: (filename: string, crop?: Types.AvatarCrop) =>
       dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename})),
     onSkip: () => {
       dispatch(TeamsGen.createSetTeamWizardAvatar({}))
@@ -68,17 +69,32 @@ export default Container.connect(
       image: stateProps.image,
       onBack: dispatchProps.onBack,
       onClose: dispatchProps.onClose,
-      onSave: (filename: string, crop?: RPCTypes.ImageCropRect) =>
-        wizard
-          ? dispatchProps.onSaveWizardAvatar(filename, crop)
-          : stateProps.teamname
-          ? dispatchProps.onSaveTeamAvatar(
-              filename,
-              stateProps.teamname,
-              stateProps.sendChatNotification,
-              crop
-            )
-          : dispatchProps.onSaveUserAvatar(filename, crop),
+      onSave: (
+        filename: string,
+        crop?: RPCTypes.ImageCropRect,
+        scaledWidth?: number,
+        offsetLeft?: number,
+        offsetTop?: number
+      ) => {
+        if (
+          wizard &&
+          !!crop &&
+          scaledWidth != undefined &&
+          offsetLeft != undefined &&
+          offsetTop != undefined
+        ) {
+          dispatchProps.onSaveWizardAvatar(filename, {crop, offsetLeft, offsetTop, scaledWidth})
+        } else {
+          stateProps.teamname
+            ? dispatchProps.onSaveTeamAvatar(
+                filename,
+                stateProps.teamname,
+                stateProps.sendChatNotification,
+                crop
+              )
+            : dispatchProps.onSaveUserAvatar(filename, crop)
+        }
+      },
       onSkip: dispatchProps.onSkip,
       sendChatNotification: stateProps.sendChatNotification,
       submitting: stateProps.submitting,

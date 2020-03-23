@@ -3,6 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
 
+type Props = {title: string; teamname: string; avatarFilepath?: string; avatarCrop?: Types.AvatarCrop}
+
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-fire',
   recently: 'iconfont-team-leave',
@@ -32,8 +34,8 @@ const Activity = ({level}: {level: Types.ActivityLevel}) =>
     </Kb.Box2>
   )
 
-export const ModalTitle = ({title, teamname}: {title: string; teamname: string}) =>
-  Styles.isMobile ? (
+export const ModalTitle = ({title, teamname, avatarFilepath, avatarCrop}: Props) => {
+  return Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
         {teamname}
@@ -47,6 +49,8 @@ export const ModalTitle = ({title, teamname}: {title: string; teamname: string})
         teamname={teamname == 'New team' ? '' : teamname}
         style={styles.avatar}
         isTeam={true}
+        imageOverrideUrl={avatarFilepath}
+        crop={avatarCrop}
       />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>
@@ -56,6 +60,7 @@ export const ModalTitle = ({title, teamname}: {title: string; teamname: string})
       </Kb.Box2>
     </Kb.Box2>
   )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   activityActive: {

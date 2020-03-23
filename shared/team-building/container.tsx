@@ -169,7 +169,12 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     numContactsImported: state.settings.contacts.importedCount,
   }
 
+  const avatarFilepath = state.teams.newTeamWizard.avatarFilename
+  const avatarCrop = state.teams.newTeamWizard.avatarCrop
+
   return {
+    avatarCrop,
+    avatarFilepath,
     ...contactProps,
     disabledRoles,
     error: teamBuildingState.error,
@@ -592,6 +597,8 @@ const mergeProps = (
   const title = ownProps.namespace === 'teams' ? `Add to ${stateProps.teamname}` : ownProps.title
 
   return {
+    avatarCrop: stateProps.avatarCrop,
+    avatarFilepath: stateProps.avatarFilepath,
     ...contactProps,
     error: stateProps.error,
     fetchUserRecs: dispatchProps.fetchUserRecs,

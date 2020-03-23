@@ -32,7 +32,7 @@ type State = {
 
 const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 4
-const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
+export const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
 class EditAvatar extends React.Component<Props, State> {
@@ -295,6 +295,17 @@ class EditAvatar extends React.Component<Props, State> {
       y0: Math.round(y * ratio),
       y1: Math.round((y + AVATAR_SIZE) * ratio),
     }
+
+    if (flags.teamsRedesign && this.props.wizard) {
+      return this.props.onSave(
+        this.state.imageSource,
+        crop,
+        this.state.scaledImageWidth,
+        this.state.offsetLeft,
+        this.state.offsetTop
+      )
+    }
+
     this.props.onSave(this.state.imageSource, crop)
   }
 

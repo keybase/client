@@ -15,13 +15,23 @@ const MakeBigTeam = () => {
   const onSubmit = (isBig: boolean) => dispatch(TeamsGen.createSetTeamWizardTeamSize({isBig}))
 
   const teamname = Container.useSelector(state => state.teams.newTeamWizard.name)
+  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
+  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
+
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Make it a big team?" />,
+        title: (
+          <ModalTitle
+            teamname={teamname}
+            title="Make it a big team?"
+            avatarFilepath={avatarFilepath}
+            avatarCrop={avatarCrop}
+          />
+        ),
       }}
       allowOverflow={true}
     >

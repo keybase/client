@@ -294,7 +294,7 @@ type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
-type _SetTeamWizardAvatarPayload = {readonly crop?: RPCTypes.ImageCropRect; readonly filename?: string}
+type _SetTeamWizardAvatarPayload = {readonly crop?: Types.AvatarCrop; readonly filename?: string}
 type _SetTeamWizardChannelsPayload = {readonly channels: Array<string>}
 type _SetTeamWizardNameDescriptionPayload = {
   readonly teamname: string

@@ -8,7 +8,7 @@ import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
 import Flags from '../util/feature-flags'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
-import {TeamRoleType} from '../constants/types/teams'
+import {TeamRoleType, AvatarCrop} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
@@ -93,6 +93,8 @@ type ContactProps = {
 }
 
 export type Props = ContactProps & {
+  avatarCrop: AvatarCrop
+  avatarFilepath: string
   error?: string
   fetchUserRecs: () => void
   filterServices?: Array<ServiceIdWithContact>
@@ -625,7 +627,14 @@ class TeamBuilding extends React.PureComponent<Props> {
             ) : (
               undefined
             ),
-            title: <TeamsModalTitle teamname={this.props.teamname ?? ''} title="Search people" />,
+            title: (
+              <TeamsModalTitle
+                teamname={this.props.teamname ?? ''}
+                title="Search people"
+                avatarFilepath={this.props.avatarFilepath}
+                avatarCrop={this.props.avatarCrop}
+              />
+            ),
           }
         }
         return Styles.isMobile

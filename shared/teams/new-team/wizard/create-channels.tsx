@@ -19,6 +19,8 @@ const CreateChannel = () => {
     'random',
     '',
   ]
+  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
+  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
   const setChannel = (i: number) => (value: string) => {
@@ -49,7 +51,14 @@ const CreateChannel = () => {
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Create channels" />,
+        title: (
+          <ModalTitle
+            teamname={teamname}
+            title="Create channels"
+            avatarFilepath={avatarFilepath}
+            avatarCrop={avatarCrop}
+          />
+        ),
       }}
       footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}

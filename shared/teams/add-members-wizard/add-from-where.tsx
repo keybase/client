@@ -15,6 +15,8 @@ const AddFromWhere = () => {
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const newTeam: boolean = teamID === Types.newTeamWizardTeamID
+  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
+  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
 
   const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
@@ -52,6 +54,8 @@ const AddFromWhere = () => {
           <ModalTitle
             title={Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
             teamname={teamname}
+            avatarFilepath={avatarFilepath}
+            avatarCrop={avatarCrop}
           />
         ),
       }}

@@ -8,7 +8,13 @@ export type Props = {
   image?: ImagePickerResult
   onBack: () => void
   onClose: () => void
-  onSave: (filename: string, crop?: RPCTypes.ImageCropRect) => void
+  onSave: (
+    filename: string,
+    crop?: RPCTypes.ImageCropRect,
+    scaledWidth?: number,
+    offsetLeft?: number,
+    offsetTop?: number
+  ) => void
   onSkip: () => void
   sendChatNotification?: boolean
   submitting: boolean
