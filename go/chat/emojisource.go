@@ -243,7 +243,6 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 	}
 	lhash := lmsg.Valid().MessageBody.Attachment().Object.PtHash
 	rhash := rmsg.Valid().MessageBody.Attachment().Object.PtHash
-	s.Debug(ctx, "versionMatch: lhash: %x rhash: %x", lhash, rhash)
 	return lhash != nil && rhash != nil && lhash.Eq(rhash)
 }
 
