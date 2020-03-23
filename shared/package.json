@@ -220,6 +220,7 @@
     "metro-react-native-babel-preset": "0.56.0",
     "minimist": "1.2.5",
     "msgpack": "git://github.com/keybase/nullModule",
+    "purepack": "git://github.com/keybase/nullModule",
     "net": "git://github.com/keybase/nullModule",
     "null-loader": "0.1.1",
     "prettier": "1.19.1",
