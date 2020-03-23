@@ -136,13 +136,21 @@ const Header = ({info}: ExternalTeamProps) => {
       })
     )
 
-  const shareURL = `keybase://team-page/${teamname}`
+  const shareURLApp = `keybase://team-page/${teamname}`
+  const shareURLWeb = `https://keybase.io/team/${teamname}`
 
   const {popupAnchor, setShowingPopup, popup} = Kb.usePopup(getAttachmentRef => {
     const content = (
       <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
-        <Kb.Text type="Header">Share a link</Kb.Text>
-        <Kb.CopyText text={shareURL} shareSheet={true} />
+        <Kb.Text type="Header">Share a link to this team</Kb.Text>
+        <Kb.Box2 direction="vertical" gap="tiny" alignSelf="stretch" alignItems="stretch">
+          <Kb.Text type="Body">In the Keybase app:</Kb.Text>
+          <Kb.CopyText text={shareURLApp} shareSheet={true} />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" gap="tiny" alignSelf="stretch" alignItems="stretch">
+          <Kb.Text type="Body">On the web:</Kb.Text>
+          <Kb.CopyText text={shareURLWeb} shareSheet={true} />
+        </Kb.Box2>
         {Styles.isMobile && (
           <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={() => setShowingPopup(false)} />
         )}
