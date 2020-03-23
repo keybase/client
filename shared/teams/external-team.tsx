@@ -116,7 +116,15 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
 }
 
 const Header = ({info}: ExternalTeamProps) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
   const teamname = info.name.parts?.join('.')
+  const onJoin = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [{props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'}],
+      })
+    )
   const metaInfo = (
     <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'small' : 'tiny'}>
       <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'xxtiny'}>
@@ -127,7 +135,7 @@ const Header = ({info}: ExternalTeamProps) => {
         {/* TODO add activity */}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Button type="Success" label="Join team" small={true} />
+        <Kb.Button onClick={onJoin} type="Success" label="Join team" small={true} />
         <Kb.Button mode="Secondary" label="Share" small={true} />
       </Kb.Box2>
     </Kb.Box2>
