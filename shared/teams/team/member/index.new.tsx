@@ -191,22 +191,16 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
   const memberCount = props.subteam.memberCount ?? -1
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        styles.row,
-        styles.rowCollapsedFixedHeight,
-        props.idx === 0 && styles.rowFirst,
-      ])}
-    >
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowCollapsedFixedHeight}>
+      {props.idx !== 0 && <Kb.Divider />}
+
       {/* Placed here so that it doesn't generate any gaps */}
       <TeamDetailsSubscriber teamID={props.subteam.id} />
 
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
         <Kb.Box2
           direction="horizontal"
-          style={Styles.collapseStyles([Styles.globalStyles.flexGrow, styles.contentCollapsedFixedHeight])}
+          style={Styles.collapseStyles([Styles.globalStyles.flexOne, styles.contentCollapsedFixedHeight])}
         >
           <Kb.Box2
             direction="vertical"
@@ -318,21 +312,34 @@ const SubteamInRow = (props: SubteamInRowProps) => {
 
   const height = expanded ? (Styles.isMobile ? 208 : 140) : undefined
 
+  const rolePicker = (
+    <FloatingRolePicker
+      selectedRole={role}
+      onSelectRole={setRole}
+      onConfirm={onChangeRole}
+      onCancel={() => setOpen(false)}
+      position="bottom left"
+      open={open}
+      disabledRoles={disabledRoles}
+    >
+      <RoleButton
+        containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
+        loading={changingRole}
+        onClick={() => setOpen(true)}
+        selectedRole={props.membership.type}
+      />
+    </FloatingRolePicker>
+  )
+
   return (
     <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          styles.row,
-          !expanded && styles.rowCollapsedFixedHeight,
-          props.idx === 0 && styles.rowFirst,
-        ])}
-      >
+      <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
+        {props.idx !== 0 && <Kb.Divider />}
+
         {/* Placed here so that it doesn't generate any gaps */}
         <TeamDetailsSubscriber teamID={props.subteam.id} />
 
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
           <Kb.Box2
             direction="horizontal"
             style={Styles.collapseStyles([styles.expandIcon, expanded && styles.expandIconExpanded])}
@@ -380,6 +387,11 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   )}
                 </Kb.Box2>
               </Kb.Box2>
+              {expanded && Styles.isMobile && (
+                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                  {rolePicker}
+                </Kb.Box2>
+              )}
               {expanded && (
                 <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
                   <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
@@ -426,27 +438,11 @@ const SubteamInRow = (props: SubteamInRowProps) => {
             </Kb.Box2>
           </Kb.Box2>
 
-          <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
-            <FloatingRolePicker
-              selectedRole={role}
-              onSelectRole={setRole}
-              onConfirm={onChangeRole}
-              onCancel={() => setOpen(false)}
-              position="bottom left"
-              open={open}
-              disabledRoles={disabledRoles}
-            >
-              <RoleButton
-                containerStyle={Styles.collapseStyles([
-                  styles.roleButton,
-                  expanded && styles.roleButtonExpanded,
-                ])}
-                loading={changingRole}
-                onClick={() => setOpen(true)}
-                selectedRole={props.membership.type}
-              />
-            </FloatingRolePicker>
-          </Kb.Box2>
+          {!Styles.isMobile && (
+            <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
+              {rolePicker}
+            </Kb.Box2>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -572,9 +568,14 @@ const BlockDropdown = (props: {username: string}) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  contentCollapsedFixedHeight: {
-    height: 32,
-  },
+  contentCollapsedFixedHeight: Styles.platformStyles({
+    isElectron: {
+      height: 32,
+    },
+    isMobile: {
+      height: 48,
+    },
+  }),
   expandIcon: {
     alignItems: 'center',
     alignSelf: 'flex-start',
@@ -617,9 +618,14 @@ const styles = Styles.styleSheetCreate(() => ({
   inviteButton: {
     minWidth: 56,
   },
-  inviteTeamInfo: {
-    paddingLeft: Styles.globalMargins.small,
-  },
+  inviteTeamInfo: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.small,
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
   membershipTeamText: {
     justifyContent: 'center',
   },
@@ -629,20 +635,28 @@ const styles = Styles.styleSheetCreate(() => ({
   roleButtonExpanded: {
     marginTop: Styles.globalMargins.xxtiny,
   },
-  row: {
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
-    borderTopStyle: 'solid',
-    borderTopWidth: 1,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  rowCollapsedFixedHeight: {
-    height: 49,
-  },
-  rowFirst: {
-    borderTopWidth: 0,
-  },
+  row: Styles.platformStyles({
+    isElectron: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      flex: 1,
+      height: '100%',
+      paddingBottom: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
+  rowCollapsedFixedHeight: Styles.platformStyles({
+    isElectron: {
+      height: 49,
+    },
+    isMobile: {
+      height: 65,
+    },
+  }),
   teamNameLink: {
     color: Styles.globalColors.black,
   },

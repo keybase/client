@@ -20,11 +20,10 @@ const RoleButton = (props: Props) => {
   return (
     <InlineDropdown
       containerStyle={props.containerStyle}
-      type="BodySmallSemibold"
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
           <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" />
-          {capitalize(props.selectedRole)}
+          <Kb.Text type="BodySmallSemibold">{capitalize(props.selectedRole)}</Kb.Text>
         </Kb.Box2>
       }
       onPress={props.onClick}

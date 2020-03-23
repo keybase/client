@@ -119,7 +119,7 @@ type InlineDropdownProps = {
   containerStyle?: Styles.StylesCrossPlatform
   label: React.ReactNode
   onPress: () => void
-  type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+  type?: 'Body' | 'BodySmall' | 'BodySmallSemibold'
   style?: Styles.StylesCrossPlatform
   loading?: boolean
 }
@@ -127,7 +127,7 @@ type InlineDropdownProps = {
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
     <Box2 direction="horizontal" style={styles.inlineSelected}>
-      <Text type={props.type}>{props.label}</Text>
+      {props.type ? <Text type={props.type}>{props.label}</Text> : props.label}
     </Box2>
   )
   return (
