@@ -145,6 +145,12 @@ type settingsDBGetter interface {
 	GetSettingsDB() *SettingsDB
 }
 
+type subscriptionManagerGetter interface {
+	// SubscriptionManager returns a subscription manager that can be used to
+	// subscribe to events.
+	SubscriptionManager() SubscriptionManager
+}
+
 type subscriptionManagerPublisherGetter interface {
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
@@ -2312,9 +2318,8 @@ type Config interface {
 	// "mobile", "vlog1", "vlog2", etc.
 	VLogLevel() string
 
-	// SubscriptionManager returns a subscription manager that can be used to
-	// subscribe to events.
-	SubscriptionManager() SubscriptionManager
+	subscriptionManagerGetter
+
 	// SubscriptionManagerPublisher retursn a publisher that can be used to
 	// publish events to the subscription manager.
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher

@@ -34,6 +34,7 @@ type testBlockRetrievalConfig struct {
 	initModeGetter
 	clock                       Clock
 	reporter                    Reporter
+	subsciptionManager          SubscriptionManager
 	subsciptionManagerPublisher SubscriptionManagerPublisher
 }
 
@@ -52,6 +53,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 		testInitModeGetter{InitDefault},
 		clock,
 		NewReporterSimple(clock, 1),
+		nil,
 		mockPublisher,
 	}
 }
@@ -78,6 +80,10 @@ func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 
 func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
 	return nil
+}
+
+func (c testBlockRetrievalConfig) SubscriptionManager() SubscriptionManager {
+	return c.subsciptionManager
 }
 
 func (c testBlockRetrievalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {

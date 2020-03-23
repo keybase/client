@@ -39,6 +39,7 @@ type prefetcherConfig interface {
 	clockGetter
 	reporterGetter
 	settingsDBGetter
+	subscriptionManagerGetter
 	subscriptionManagerPublisherGetter
 }
 
@@ -1303,6 +1304,75 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 	}
 }
 
+func (p *blockPrefetcher) handleAppStateChange(
+	appState *keybase1.MobileAppState) {
+	// Pause the prefetcher on cell connections.
+	for *appState != keybase1.MobileAppState_FOREGROUND {
+		p.log.CDebugf(
+			context.TODO(), "Pausing prefetcher while backgrounded")
+		select {
+		case *appState = <-p.appStateUpdater.NextAppStateUpdate(
+			appState):
+		case req := <-p.prefetchStatusCh.Out():
+			p.handleStatusRequest(req.(*prefetchStatusRequest))
+			continue
+		case <-p.almostDoneCh:
+			return
+		}
+	}
+}
+
+type prefetcherSubscriber struct {
+	ch chan<- struct{}
+}
+
+func (ps prefetcherSubscriber) OnPathChange(
+	_ SubscriptionID, _ string, _ keybase1.PathSubscriptionTopic) {
+}
+
+func (ps prefetcherSubscriber) OnNonPathChange(
+	_ SubscriptionID, _ keybase1.SubscriptionTopic) {
+	ps.ch <- struct{}{}
+}
+
+func (p *blockPrefetcher) handleNetStateChange(
+	netState *keybase1.MobileNetworkState, subCh <-chan struct{}) {
+	for *netState != keybase1.MobileNetworkState_CELLULAR {
+		return
+	}
+
+	for *netState == keybase1.MobileNetworkState_CELLULAR {
+		// Default to not syncing while on a cell network.
+		syncOnCellular := false
+		db := p.config.GetSettingsDB()
+		if db != nil {
+			s, err := db.Settings(context.TODO())
+			if err == nil {
+				syncOnCellular = s.SyncOnCellular
+			}
+		}
+
+		if syncOnCellular {
+			// Can ignore this network change.
+			break
+		}
+
+		p.log.CDebugf(
+			context.TODO(), "Pausing prefetcher on cell network")
+		select {
+		case *netState = <-p.appStateUpdater.NextNetworkStateUpdate(
+			netState):
+		case <-subCh:
+			p.log.CDebugf(context.TODO(), "Settings changed")
+		case req := <-p.prefetchStatusCh.Out():
+			p.handleStatusRequest(req.(*prefetchStatusRequest))
+			continue
+		case <-p.almostDoneCh:
+			return
+		}
+	}
+}
+
 // run prefetches blocks.
 // E.g. a synced prefetch:
 // a -> {b -> {c, d}, e -> {f, g}}:
@@ -1355,6 +1425,27 @@ func (p *blockPrefetcher) run(
 	first := true
 	appState := keybase1.MobileAppState_FOREGROUND
 	netState := keybase1.MobileNetworkState_NONE
+
+	// Subscribe to settings updates while waiting for the network to
+	// change.
+	subMan := p.config.SubscriptionManager()
+	var subCh chan struct{}
+	if subMan != nil {
+		subCh = make(chan struct{}, 10)
+
+		const prefetcherSubKey = "prefetcherSettings"
+		sub := subMan.Subscriber(prefetcherSubscriber{subCh})
+		err := sub.SubscribeNonPath(
+			context.TODO(), prefetcherSubKey,
+			keybase1.SubscriptionTopic_SETTINGS, nil)
+		if err != nil {
+			p.log.CDebugf(
+				context.TODO(), "Error subscribing to settings: %+v", err)
+		} else {
+			defer sub.Unsubscribe(context.TODO(), prefetcherSubKey)
+		}
+	}
+
 	for {
 		if !first && testDoneCh != nil && !isShuttingDown {
 			testDoneCh <- struct{}{}
@@ -1384,37 +1475,12 @@ func (p *blockPrefetcher) run(
 			ch := chInterface.(<-chan error)
 			<-ch
 		case appState = <-p.appStateUpdater.NextAppStateUpdate(&appState):
-			// Pause the prefetcher on cell connections.
-		pauseLoop:
-			for appState != keybase1.MobileAppState_FOREGROUND {
-				p.log.CDebugf(
-					context.TODO(), "Pausing prefetcher while backgrounded")
-				select {
-				case appState = <-p.appStateUpdater.NextAppStateUpdate(
-					&appState):
-				case req := <-p.prefetchStatusCh.Out():
-					p.handleStatusRequest(req.(*prefetchStatusRequest))
-					continue
-				case <-p.almostDoneCh:
-					break pauseLoop
-				}
-			}
+			p.handleAppStateChange(&appState)
 		case netState = <-p.appStateUpdater.NextNetworkStateUpdate(&netState):
-			// Pause the prefetcher on cell connections.
-		pauseLoop2:
-			for netState == keybase1.MobileNetworkState_CELLULAR {
-				p.log.CDebugf(
-					context.TODO(), "Pausing prefetcher on cell network")
-				select {
-				case netState = <-p.appStateUpdater.NextNetworkStateUpdate(
-					&netState):
-				case req := <-p.prefetchStatusCh.Out():
-					p.handleStatusRequest(req.(*prefetchStatusRequest))
-					continue
-				case <-p.almostDoneCh:
-					break pauseLoop2
-				}
-			}
+			p.handleNetStateChange(&netState, subCh)
+		case <-subCh:
+			// Settings have changed, so recheck the network state.
+			netState = keybase1.MobileNetworkState_NONE
 		case ptrInt := <-p.prefetchCancelCh.Out():
 			ptr := ptrInt.(data.BlockPointer)
 			pre, ok := p.prefetches[ptr.ID]
