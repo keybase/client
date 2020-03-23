@@ -29,7 +29,6 @@ const shimNewRoute = (Original: any) => {
         usesNav2Header = true
       } else if (
         !navigationOptions.header &&
-        navigationOptions.header !== undefined &&
         !navigationOptions.headerRight &&
         !navigationOptions.headerLeft &&
         !navigationOptions.title &&

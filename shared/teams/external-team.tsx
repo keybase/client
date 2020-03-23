@@ -60,6 +60,7 @@ ExternalTeam.navigationOptions = {
   headerBottomStyle: {height: undefined},
   headerHideBorder: true,
   headerStyle: {borderBottomWidth: 0},
+  title: ' ', // hack: trick router shim so it doesn't add a safe area around us
 }
 
 type ExternalTeamProps = {
@@ -86,7 +87,16 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
       key: 'membersSection',
       renderItem: ({item, index}) => {
         return item === 'empty' ? (
-          <Kb.Text type="HeaderBig">Ain't no public members! At all!</Kb.Text>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            gap="large"
+            gapStart={true}
+            gapEnd={true}
+            centerChildren={true}
+          >
+            <Kb.Text type="BodySmall">This team has no public members.</Kb.Text>
+          </Kb.Box2>
         ) : (
           <Member member={item} firstItem={index === 0} />
         )
@@ -125,18 +135,53 @@ const Header = ({info}: ExternalTeamProps) => {
         path: [{props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'}],
       })
     )
+
+  const shareURL = `keybase://team-page/${teamname}`
+
+  const {popupAnchor, setShowingPopup, popup} = Kb.usePopup(getAttachmentRef => {
+    const content = (
+      <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
+        <Kb.Text type="Header">Share a link</Kb.Text>
+        <Kb.CopyText text={shareURL} shareSheet={true} />
+        {Styles.isMobile && (
+          <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={() => setShowingPopup(false)} />
+        )}
+      </Kb.Box2>
+    )
+    if (Styles.isMobile) {
+      return <Kb.MobilePopup>{content}</Kb.MobilePopup>
+    }
+    return (
+      <Kb.Overlay
+        position="bottom left"
+        style={styles.overlay}
+        attachTo={getAttachmentRef}
+        onHidden={() => setShowingPopup(false)}
+      >
+        {content}
+      </Kb.Overlay>
+    )
+  })
+
   const metaInfo = (
-    <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'small' : 'tiny'}>
-      <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'xxtiny'}>
-        <Kb.Text type="Body">{info.description}</Kb.Text>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Styles.isMobile ? 'small' : 'tiny'}>
+      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Styles.isMobile ? 'xtiny' : 'xxtiny'}>
+        {!!info.description && <Kb.Text type="Body">{info.description}</Kb.Text>}
         <Kb.Text type="BodySmall">
           {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
         </Kb.Text>
         {/* TODO add activity */}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" fullWidth={true}>
         <Kb.Button onClick={onJoin} type="Success" label="Join team" small={true} />
-        <Kb.Button mode="Secondary" label="Share" small={true} />
+        <Kb.Button
+          mode="Secondary"
+          label="Share"
+          small={true}
+          ref={popupAnchor}
+          onClick={() => setShowingPopup(true)}
+        />
+        {popup}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -218,6 +263,9 @@ const styles = Styles.styleSheetCreate(() => ({
   headerContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
   },
+  linkPopupContainer: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
+  },
   memberBody: {
     flex: 1,
     paddingRight: Styles.globalMargins.tiny,
@@ -226,6 +274,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
   },
+  overlay: {backgroundColor: Styles.globalColors.white, marginTop: Styles.globalMargins.tiny},
   tabs: {
     backgroundColor: Styles.globalColors.white,
     width: '100%',
