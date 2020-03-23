@@ -51,7 +51,7 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 }
 
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string, topicNameSuffix *string, versionOverride *chat1.EmojiMessageVersion) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, topicNameSuffix *string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
 	if strings.Contains(alias, "#") {
 		return res, errors.New("invalid character in emoji alias")
@@ -77,14 +77,9 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	if msgID == nil {
 		return res, errors.New("no messageID from attachment")
 	}
-	version := chat1.EmojiMessageVersion(*msgID)
-	if versionOverride != nil {
-		version = *versionOverride
-	}
 	res = chat1.NewEmojiRemoteSourceWithMessage(chat1.EmojiMessage{
-		ConvID:  storageConv.GetConvID(),
-		MsgID:   *msgID,
-		Version: version,
+		ConvID: storageConv.GetConvID(),
+		MsgID:  *msgID,
 	})
 	stored.Mapping[alias] = res
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
@@ -221,11 +216,35 @@ func (s *DevConvEmojiSource) stripAlias(alias string) string {
 	return strings.Split(alias, "#")[0]
 }
 
-func (s *DevConvEmojiSource) versionMatch(l chat1.EmojiRemoteSource, r chat1.EmojiRemoteSource) bool {
+func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, l chat1.EmojiRemoteSource,
+	r chat1.EmojiRemoteSource) bool {
 	if !l.IsMessage() || !r.IsMessage() {
 		return false
 	}
-	return l.Message().Version == r.Message().Version
+	reason := chat1.GetThreadReason_EMOJISOURCE
+	lmsg, err := GetMessage(ctx, s.G(), uid, l.Message().ConvID, l.Message().MsgID, false, &reason)
+	if err != nil {
+		s.Debug(ctx, "versionMatch: failed to get lmsg: %s", err)
+		return false
+	}
+	rmsg, err := GetMessage(ctx, s.G(), uid, r.Message().ConvID, r.Message().MsgID, false, &reason)
+	if err != nil {
+		s.Debug(ctx, "versionMatch: failed to get rmsg: %s", err)
+		return false
+	}
+	if !lmsg.IsValid() || !rmsg.IsValid() {
+		s.Debug(ctx, "versionMatch: one message not valid: lmsg: %+v rmsg: %+v", lmsg, rmsg)
+		return false
+	}
+	if !lmsg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) ||
+		!rmsg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
+		s.Debug(ctx, "versionMatch: one message not attachment: lmsg: %+v rmsg: %+v", lmsg, rmsg)
+		return false
+	}
+	lhash := lmsg.Valid().MessageBody.Attachment().Object.PtHash
+	rhash := rmsg.Valid().MessageBody.Attachment().Object.PtHash
+	s.Debug(ctx, "versionMatch: lhash: %x rhash: %x", lhash, rhash)
+	return lhash != nil && rhash != nil && lhash.Eq(rhash)
 }
 
 func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID, emoji chat1.HarvestedEmoji,
@@ -247,7 +266,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	stripped := s.stripAlias(emoji.Alias)
 	if existing, ok := stored.Mapping[stripped]; ok {
 		s.Debug(ctx, "syncCrossTeam: hit mapping")
-		if s.versionMatch(existing, emoji.Source) {
+		if s.versionMatch(ctx, uid, existing, emoji.Source) {
 			s.Debug(ctx, "syncCrossTeam: hit version, returning")
 			return chat1.HarvestedEmoji{
 				Alias:       emoji.Alias,
@@ -269,8 +288,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	}
 
 	// add the source to the target storage area
-	version := emoji.Source.Message().Version
-	newSource, err := s.Add(ctx, uid, convID, stripped, sink.Name(), &suffix, &version)
+	newSource, err := s.Add(ctx, uid, convID, stripped, sink.Name(), &suffix)
 	if err != nil {
 		return res, err
 	}

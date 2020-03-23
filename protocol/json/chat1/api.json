@@ -214,13 +214,6 @@
         {
           "type": [
             null,
-            "EmojiMessageVersion"
-          ],
-          "name": "version"
-        },
-        {
-          "type": [
-            null,
             "ConvIDStr"
           ],
           "name": "convID"

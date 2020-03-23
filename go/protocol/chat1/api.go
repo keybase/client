@@ -141,24 +141,16 @@ func (o MsgFlipContent) DeepCopy() MsgFlipContent {
 }
 
 type EmojiContent struct {
-	Alias       string               `codec:"alias" json:"alias"`
-	IsCrossTeam bool                 `codec:"isCrossTeam" json:"isCrossTeam"`
-	Version     *EmojiMessageVersion `codec:"version,omitempty" json:"version,omitempty"`
-	ConvID      *ConvIDStr           `codec:"convID,omitempty" json:"convID,omitempty"`
-	MessageID   *MessageID           `codec:"messageID,omitempty" json:"messageID,omitempty"`
+	Alias       string     `codec:"alias" json:"alias"`
+	IsCrossTeam bool       `codec:"isCrossTeam" json:"isCrossTeam"`
+	ConvID      *ConvIDStr `codec:"convID,omitempty" json:"convID,omitempty"`
+	MessageID   *MessageID `codec:"messageID,omitempty" json:"messageID,omitempty"`
 }
 
 func (o EmojiContent) DeepCopy() EmojiContent {
 	return EmojiContent{
 		Alias:       o.Alias,
 		IsCrossTeam: o.IsCrossTeam,
-		Version: (func(x *EmojiMessageVersion) *EmojiMessageVersion {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Version),
 		ConvID: (func(x *ConvIDStr) *ConvIDStr {
 			if x == nil {
 				return nil

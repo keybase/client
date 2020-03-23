@@ -763,6 +763,7 @@ export enum GetThreadReason {
   kbfsfileactivity = 8,
   coinflip = 9,
   botcommands = 10,
+  emojisource = 11,
 }
 
 export enum GlobalAppNotificationSetting {
@@ -1096,7 +1097,7 @@ export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String}
 export type AdvertiseCommandsParam = {readonly typ: BotCommandsAdvertisementTyp; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName?: String | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
-export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
+export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly ptHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
 export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo} | {assetType: AssetMetadataType.none}
 export type AssetMetadataImage = {readonly width: Int; readonly height: Int; readonly audioAmps?: Array<Double> | null}
 export type AssetMetadataVideo = {readonly width: Int; readonly height: Int; readonly durationMs: Int; readonly isAudio: Boolean}
@@ -1170,11 +1171,10 @@ export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit>
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
 export type Emoji = {readonly alias: String; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource}
-export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly version?: EmojiMessageVersion | null; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
+export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String}
-export type EmojiMessage = {readonly version: EmojiMessageVersion; readonly convID: ConversationID; readonly msgID: MessageID}
-export type EmojiMessageVersion = Uint
+export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID}
 export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage}
 export type EmojiStorage = {readonly mapping: {[key: string]: EmojiRemoteSource}}
 export type EmptyRes = {readonly rateLimits?: Array<RateLimitRes> | null}

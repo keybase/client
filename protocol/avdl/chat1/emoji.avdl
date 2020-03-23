@@ -3,8 +3,6 @@
 protocol emoji {
   import idl "common.avdl";
 
-  @typedef("uint") @lint("ignore") record EmojiMessageVersion {}
-
   enum EmojiLoadSourceTyp {
     HTTPSRV_0
   }
@@ -18,7 +16,6 @@ protocol emoji {
   }
 
   record EmojiMessage {
-    EmojiMessageVersion version;
     ConversationID convID;
     MessageID msgID;
   }

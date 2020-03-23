@@ -8,13 +8,6 @@
   ],
   "types": [
     {
-      "type": "record",
-      "name": "EmojiMessageVersion",
-      "fields": [],
-      "typedef": "uint",
-      "lint": "ignore"
-    },
-    {
       "type": "enum",
       "name": "EmojiLoadSourceTyp",
       "symbols": [
@@ -49,10 +42,6 @@
       "type": "record",
       "name": "EmojiMessage",
       "fields": [
-        {
-          "type": "EmojiMessageVersion",
-          "name": "version"
-        },
         {
           "type": "ConversationID",
           "name": "convID"

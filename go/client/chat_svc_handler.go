@@ -1501,21 +1501,17 @@ func (*chatServiceHandler) displayTextBody(text *chat1.MessageText) (res *chat1.
 	for _, emoji := range text.Emojis {
 		var convIDStr *chat1.ConvIDStr
 		var msgID *chat1.MessageID
-		var version *chat1.EmojiMessageVersion
 		if emoji.Source.IsMessage() {
 			convIDStr = new(chat1.ConvIDStr)
 			msgID = new(chat1.MessageID)
-			version = new(chat1.EmojiMessageVersion)
 			*convIDStr = emoji.Source.Message().ConvID.ConvIDStr()
 			*msgID = emoji.Source.Message().MsgID
-			*version = emoji.Source.Message().Version
 		}
 		res.Emojis = append(res.Emojis, chat1.EmojiContent{
 			Alias:       emoji.Alias,
 			IsCrossTeam: emoji.IsCrossTeam,
 			ConvID:      convIDStr,
 			MessageID:   msgID,
-			Version:     version,
 		})
 	}
 	return res
