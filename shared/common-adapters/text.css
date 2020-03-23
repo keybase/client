@@ -596,3 +596,7 @@
   text-overflow: ellipsis;
   word-break: break-word;
 }
+
+.noLineHeight {
+  line-height: unset !important;
+}
