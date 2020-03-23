@@ -7,6 +7,7 @@ import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import {mapGetEnsureValue} from '../../util/map'
+import * as RPCGen from '../../constants/types/rpc-gen'
 
 type Section = _Section<Contact, {title: string}>
 
@@ -57,6 +58,8 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
   return sections
 })
 
+const waitingKey = 'inviteContacts'
+
 const InviteContacts = () => {
   const {contacts, errorMessage, loading} = useContacts()
   const [search, setSearch] = React.useState('')
@@ -67,8 +70,29 @@ const InviteContacts = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const navUp = () => dispatch(nav.safeNavigateUpPayload())
-  const onSubmit = () => {} // TODO
+  const waiting = Container.useAnyWaiting(waitingKey)
 
+  const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
+  const [error, setError] = React.useState('')
+  const onSubmit = () => {
+    setError('')
+    submit(
+      [
+        {
+          emails: {emailsFromContacts: [...selectedEmails]},
+          phones: [...selectedPhones],
+        },
+        waitingKey,
+      ],
+      () => {
+        // TODO: positive feedback?
+        navUp()
+      },
+      err => {
+        setError(err.message)
+      }
+    )
+  }
   const placeholderText = loading ? '' : `Search ${contacts.length.toLocaleString()} contacts`
 
   const sections = [
@@ -135,7 +159,9 @@ const InviteContacts = () => {
             Cancel
           </Kb.Text>
         ),
-        rightButton: (
+        rightButton: waiting ? (
+          <Kb.ProgressIndicator type="Small" />
+        ) : (
           <Kb.Text
             type="BodyBigLink"
             onClick={canContinue ? onSubmit : undefined}
@@ -147,7 +173,7 @@ const InviteContacts = () => {
         title: 'Invite friends',
       }}
     >
-      {!!errorMessage && <Kb.Banner color="red">{errorMessage}</Kb.Banner>}
+      {(!!errorMessage || !!error) && <Kb.Banner color="red">{errorMessage ?? error}</Kb.Banner>}
       {loading ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
