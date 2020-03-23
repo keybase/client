@@ -1392,6 +1392,9 @@ func (p *blockPrefetcher) run(
 				select {
 				case appState = <-p.appStateUpdater.NextAppStateUpdate(
 					&appState):
+				case req := <-p.prefetchStatusCh.Out():
+					p.handleStatusRequest(req.(*prefetchStatusRequest))
+					continue
 				case <-p.almostDoneCh:
 					break pauseLoop
 				}
@@ -1405,6 +1408,9 @@ func (p *blockPrefetcher) run(
 				select {
 				case netState = <-p.appStateUpdater.NextNetworkStateUpdate(
 					&netState):
+				case req := <-p.prefetchStatusCh.Out():
+					p.handleStatusRequest(req.(*prefetchStatusRequest))
+					continue
 				case <-p.almostDoneCh:
 					break pauseLoop2
 				}
