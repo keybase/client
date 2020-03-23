@@ -2042,7 +2042,7 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	require.NoError(tt.users[1].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("change member showcase")
 
-	tt.users[1].waitForNoMetadataUpdatesGregor()
+	tt.users[1].waitForMetadataUpdateGregor("change member count from TeamMemberCountCache")
 }
 
 func TestTeamLoadParentAfterRotateRace(t *testing.T) {
