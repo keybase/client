@@ -78,6 +78,7 @@ const styles = Styles.styleSheetCreate(
       keyboard: {
         backgroundColor: Styles.globalColors.fastBlank,
         flexGrow: 1,
+        flexShrink: 1,
         maxHeight: '100%',
         position: 'relative',
       },
