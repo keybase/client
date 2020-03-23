@@ -107,6 +107,9 @@ func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keyb
 	}
 	var res apiRes
 	err = mctx.G().API.GetDecode(mctx, apiArg, &res)
+	if err != nil {
+		return counts, err
+	}
 	return keybase1.InviteCounts{
 		InviteCount:      res.numInvitesInLastDay,
 		PercentageChange: res.percentageChange,
