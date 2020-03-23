@@ -570,7 +570,10 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, con
 }
 
 func (s *BlockingSender) handleCrossTeamEmojis(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
+	convID chat1.ConversationID, msg chat1.MessagePlaintext, topicType chat1.TopicType) (chat1.MessagePlaintext, error) {
+	if topicType != chat1.TopicType_CHAT {
+		return msg, nil
+	}
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		s.Debug(ctx, "handleCrossTeamEmojis: failed to get body type: %s", err)
@@ -837,7 +840,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 
 		// Handle cross team emoji
-		if msg, err = s.handleCrossTeamEmojis(ctx, uid, convID, msg); err != nil {
+		if msg, err = s.handleCrossTeamEmojis(ctx, uid, convID, msg, conv.Info.Triple.TopicType); err != nil {
 			s.Debug(ctx, "Prepare: error processing cross team emoji: %s", err)
 			return res, err
 		}

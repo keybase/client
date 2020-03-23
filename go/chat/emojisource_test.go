@@ -94,7 +94,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 func TestEmojiSourceCrossTeam(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestEmojiSourceCrossTeam", 2)
+	ctc := makeChatTestContext(t, "TestEmojiSourceCrossTeam", 3)
 	defer ctc.cleanup()
 
 	users := ctc.users()
@@ -105,11 +105,11 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	ctx := ctc.as(t, users[0]).startCtx
 	ctx1 := ctc.as(t, users[1]).startCtx
 	ri := ctc.as(t, users[0]).ri
+	store := attachments.NewStoreTesting(tc.Context(), nil)
+	fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
 		manager.NewSrv(tc.Context().ExternalG()),
-		types.DummyAttachmentFetcher{},
-		func() chat1.RemoteInterface { return ri })
-	store := attachments.NewStoreTesting(tc.Context(), nil)
+		fetcher, func() chat1.RemoteInterface { return ri })
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
@@ -119,7 +119,10 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 		chat1.ConversationMembersType_TEAM)
 	sharedConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM, users[1])
+	sharedConv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM, users[2])
 
+	t.Logf("basic")
 	_, err := tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename, nil)
 	require.NoError(t, err)
 
@@ -127,6 +130,14 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 		Body: "ITS TIME :party_parrot:!",
 	}))
 	checkEmoji(t, ctx1, tc1, uid1, sharedConv, msgID, "party_parrot")
+
+	t.Logf("collision")
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename, nil)
+	require.NoError(t, err)
+	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "ITS TIME :party_parrot#2:!",
+	}))
+	checkEmoji(t, ctx1, tc1, uid1, sharedConv, msgID, "party_parrot#2")
 }
 
 type emojiTestCase struct {

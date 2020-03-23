@@ -272,19 +272,25 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 				Source:      existing,
 				IsCrossTeam: true,
 			}, nil
+		} else {
+			s.Debug(ctx, "syncCrossTeam: missed on version")
 		}
+	} else {
+		s.Debug(ctx, "syncCrossTeam: missed mapping")
 	}
 
 	// download from the original source
-	sink, err := ioutil.TempFile("", "emoji")
+	sink, err := ioutil.TempFile(os.TempDir(), "emoji")
 	if err != nil {
 		return res, err
 	}
 	defer os.Remove(sink.Name())
 	if err := attachments.Download(ctx, s.G(), uid, emoji.Source.Message().ConvID,
 		emoji.Source.Message().MsgID, sink, false, nil, s.ri); err != nil {
+		s.Debug(ctx, "syncCrossTeam: failed to download: %s", err)
 		return res, err
 	}
+	s.Debug(ctx, "syncCrossTeam: sink: %s", sink.Name())
 
 	// add the source to the target storage area
 	newSource, err := s.Add(ctx, uid, convID, stripped, sink.Name(), &suffix)
@@ -307,6 +313,9 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	}
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
+	for _, match := range matches {
+		s.Debug(ctx, "Harvest: match: %s", match.name)
+	}
 	emojis, _, err := s.getNoSet(ctx, uid, &convID)
 	if err != nil {
 		return res, err
