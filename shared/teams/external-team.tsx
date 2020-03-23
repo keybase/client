@@ -4,6 +4,7 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as Constants from '../constants/teams'
 import * as RPCGen from '../constants/types/rpc-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
 import capitalize from 'lodash/capitalize'
@@ -84,31 +85,10 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
       data: members.length ? members : ['empty'],
       key: 'membersSection',
       renderItem: ({item, index}) => {
-        const roleString = Constants.teamRoleByEnum[item.role]
         return item === 'empty' ? (
           <Kb.Text type="HeaderBig">Ain't no public members! At all!</Kb.Text>
         ) : (
-          <Kb.ListItem2
-            firstItem={index === 0}
-            type="Large"
-            icon={<Kb.Avatar size={32} username={item.username} />}
-            body={
-              <Kb.Box2 direction="vertical" alignItems="flex-start">
-                <Kb.ConnectedUsernames type="BodySemibold" usernames={item.username} colorFollowing={true} />
-                <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
-                  {!!item.fullName && <Kb.Text type="BodySmall">{item.fullName.trim()} • </Kb.Text>}
-                  {[RPCGen.TeamRole.admin, RPCGen.TeamRole.owner].includes(item.role) && (
-                    <Kb.Icon
-                      type={`iconfont-crown-${roleString}` as Kb.IconType}
-                      sizeType="Small"
-                      style={styles.crownIcon}
-                    />
-                  )}
-                  <Kb.Text type="BodySmall">{capitalize(roleString)}</Kb.Text>
-                </Kb.Box2>
-              </Kb.Box2>
-            }
-          />
+          <Member member={item} firstItem={index === 0} />
         )
       },
     },
@@ -171,6 +151,47 @@ const Header = ({info}: ExternalTeamProps) => {
   )
 }
 
+const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: boolean}) => {
+  const dispatch = Container.useDispatch()
+  const onChat = () =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [member.username], reason: 'teamMember'}))
+  const roleString = Constants.teamRoleByEnum[member.role]
+  return (
+    <Kb.ListItem2
+      firstItem={firstItem}
+      type="Large"
+      icon={<Kb.Avatar size={32} username={member.username} />}
+      body={
+        <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
+          <Kb.ConnectedUsernames type="BodySemibold" usernames={member.username} colorFollowing={true} />
+          <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
+            {!!member.fullName && (
+              <Kb.Text type="BodySmall" style={{flexShrink: 1}} lineClamp={1}>
+                {member.fullName.trim()}
+              </Kb.Text>
+            )}
+            {!!member.fullName && (
+              <Kb.Text type="BodySmall" style={styles.middot}>
+                •
+              </Kb.Text>
+            )}
+            {[RPCGen.TeamRole.admin, RPCGen.TeamRole.owner].includes(member.role) && (
+              <Kb.Icon
+                type={`iconfont-crown-${roleString}` as Kb.IconType}
+                sizeType="Small"
+                style={styles.crownIcon}
+              />
+            )}
+            <Kb.Text type="BodySmall">{capitalize(roleString)}</Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
+      }
+      action={<Kb.Button type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
+      onlyShowActionOnHover="fade"
+    />
+  )
+}
+
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.small,
@@ -185,10 +206,17 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   crownIcon: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.xtiny},
-    isElectron: {marginLeft: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xxtiny},
   }),
   headerContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
+  },
+  memberBody: {
+    flex: 1,
+    paddingRight: Styles.globalMargins.tiny,
+  },
+  middot: {
+    marginLeft: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.xtiny,
   },
   tabs: {
     backgroundColor: Styles.globalColors.white,
