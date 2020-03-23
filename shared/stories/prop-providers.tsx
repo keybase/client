@@ -11,6 +11,8 @@ import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import * as FsConstants from '../constants/fs'
+import * as ChatConstants from '../constants/chat2'
+import * as TeamTypes from '../constants/types/teams'
 import * as Tracker2Constants from '../constants/tracker2'
 import rootReducer, {TypedState} from '../reducers'
 
@@ -70,10 +72,10 @@ export const TeamDropdownMenu = () => ({
     canAddPeople: true,
 
     convProps: {
+      conversationIDKey: ChatConstants.noConversationIDKey,
       fullname: '',
       ignored: false,
       muted: false,
-      participants: [],
       teamID: '',
       teamType: ownProps.isSmallTeam ? 'small' : 'big',
       teamname: '',
@@ -84,7 +86,6 @@ export const TeamDropdownMenu = () => ({
     isSmallTeam: ownProps.isSmallTeam,
     manageChannelsSubtitle: ownProps.isSmallTeam ? 'Turns this into a big team' : '',
     manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
-    memberCount: 100,
     onAddPeople: action('onAddPeople'),
     onBlockConv: action('onBlockConv'),
     onHidden: ownProps.onHidden,
@@ -97,7 +98,7 @@ export const TeamDropdownMenu = () => ({
     onMuteConv: action('onMuteConv'),
     onUnhideConv: action('onUnhideConv'),
     onViewTeam: action('onViewTeam'),
-    participantsCount: 42,
+    teamID: TeamTypes.noTeamID,
     teamname: '',
     visible: ownProps.visible,
   }),

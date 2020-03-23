@@ -8,6 +8,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
+import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 
 type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey} & Kb.OverlayParentProps
@@ -26,10 +27,7 @@ const _TeamHeader = (props: SmallProps) => {
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
   const onJoinChannel = () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
-  const participantCount = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey)?.all?.length ?? 0
-  )
-  const teamMeta = Container.useSelector(state => TeamConstants.getTeamMeta(state, teamID))
+  const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(conversationIDKey)
   let title = teamname
   if (channelname && !isSmallTeam) {
     title += '#' + channelname
@@ -62,7 +60,7 @@ const _TeamHeader = (props: SmallProps) => {
               icon="iconfont-people"
               iconColor={Styles.globalColors.black_20}
               style={styles.meta}
-              title={participantCount}
+              title={channelHumans.length}
             />
           </>
         ) : (
@@ -81,7 +79,7 @@ const _TeamHeader = (props: SmallProps) => {
                 color={Styles.globalColors.black_50}
                 icon="iconfont-people"
                 iconColor={Styles.globalColors.black_20}
-                title={participantCount}
+                title={channelHumans.length}
               />
             </Kb.Box2>
             <Kb.Box2
@@ -99,7 +97,7 @@ const _TeamHeader = (props: SmallProps) => {
                 color={Styles.globalColors.black_50}
                 icon="iconfont-people"
                 iconColor={Styles.globalColors.black_20}
-                title={teamMeta?.memberCount ?? 0}
+                title={teamHumanCount}
               />
             </Kb.Box2>
           </Kb.Box2>

@@ -250,38 +250,11 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 			}
 		}
 
-		members, err := team.Members()
+		anMemberInfo.MemberCount, err = team.calculateAndCacheMemberCount(ctx)
 		if err != nil {
-			m.Debug("| Failed to get Members() for team %q: %v", team.ID, err)
 			continue
 		}
 
-		memberUIDs := make(map[keybase1.UID]bool)
-		for _, uv := range members.AllUserVersions() {
-			memberUIDs[uv.Uid] = true
-		}
-
-		invites := team.chain().inner.ActiveInvites
-		for invID, invite := range invites {
-			category, err := invite.Type.C()
-			if err != nil {
-				m.Debug("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
-				continue
-			}
-
-			if category == keybase1.TeamInviteCategory_KEYBASE {
-				uv, err := invite.KeybaseUserVersion()
-				if err != nil {
-					m.Debug("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
-					continue
-				}
-
-				memberUIDs[uv.Uid] = true
-			}
-
-		}
-
-		anMemberInfo.MemberCount = len(memberUIDs)
 		res.Teams = append(res.Teams, *anMemberInfo)
 	}
 

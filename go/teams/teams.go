@@ -103,6 +103,43 @@ func (t *Team) CanSkipKeyRotation() bool {
 	return true
 }
 
+func (t *Team) calculateAndCacheMemberCount(ctx context.Context) (int, error) {
+	m := libkb.NewMetaContext(ctx, t.G())
+	members, err := t.Members()
+	if err != nil {
+		m.Debug("| Failed to get Members() for team %q: %v", t.ID, err)
+		return 0, err
+	}
+
+	memberUIDs := make(map[keybase1.UID]bool)
+	for _, uv := range members.AllUserVersions() {
+		memberUIDs[uv.Uid] = true
+	}
+
+	invites := t.chain().inner.ActiveInvites
+	for invID, invite := range invites {
+		category, err := invite.Type.C()
+		if err != nil {
+			m.Debug("| Failed parsing invite %q in team %q: %v", invID, t.ID, err)
+			return 0, err
+		}
+
+		if category == keybase1.TeamInviteCategory_KEYBASE {
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				m.Debug("| Failed parsing invite %q in team %q: %v", invID, t.ID, err)
+				return 0, err
+			}
+
+			memberUIDs[uv.Uid] = true
+		}
+
+	}
+	count := len(memberUIDs) - len(members.Bots) - len(members.RestrictedBots)
+	t.G().TeamMemberCountCache.Set(t.ID, count)
+	return count, nil
+}
+
 func (t *Team) chain() *TeamSigChainState {
 	return &TeamSigChainState{inner: t.Data.Chain, hidden: t.Hidden}
 }
