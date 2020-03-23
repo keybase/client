@@ -6262,11 +6262,11 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-framed-msgpack-rpc@1.1.21:
-  version "1.1.20"
-  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.20.tgz#e969440767bba1c317be90481311425299f2123a"
-  integrity sha512-C9GChlQSJ1VNwPC8jZhDVYO8KI3niCiGfMDim6fgy9mYJ5pouHOnU7nobY771pV/kQEdjebMUbXOf2Q7muClsg==
+"framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#master":
+  version "1.1.21"
+  resolved "git://github.com/keybase/node-framed-msgpack-rpc#fb3f6ad47b34a290416003a67a741b73448317d8"
   dependencies:
+    "@msgpack/msgpack" "1.9.3"
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
