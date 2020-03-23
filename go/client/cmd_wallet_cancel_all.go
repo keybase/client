@@ -81,7 +81,7 @@ func (c *cmdWalletCancelAll) Cancel() (err error) {
 	dui := c.G().UI.GetDumbOutputUI()
 	c.done()
 	dui.Printf("\nCancel command was aborted! Now waiting for all workers to finish their current transaction...\n")
-	err = c.group.Wait()
+	_ = c.group.Wait()
 	return nil
 }
 
