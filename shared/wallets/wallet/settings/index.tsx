@@ -92,20 +92,15 @@ class AccountSettings extends React.Component<SettingsProps> {
           onBack={props.onBack}
           headerStyle={styles.header}
         />
-        <Kb.ScrollView
-          key="a vertical scrolling area"
-          style={styles.scrollView}
-          contentContainerStyle={{flexGrow: 1}}
-        >
+        <Kb.ScrollView style={styles.scrollView} contentContainerStyle={{flexGrow: 1}}>
           <Kb.Box2
-            key="inside is this vertical box2"
             direction="vertical"
             style={styles.settingsPage}
-            // fullWidth={true}
+            fullWidth={true}
             gap="tiny"
             fullHeight={!Styles.isMobile}
           >
-            {/* <Kb.ClickableBox onClick={props.onEditName} style={styles.noShrink}>
+            <Kb.ClickableBox onClick={props.onEditName} style={styles.noShrink}>
               <Kb.Box2 direction="vertical" gap="xtiny" style={styles.section} fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
                 <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -119,13 +114,13 @@ class AccountSettings extends React.Component<SettingsProps> {
                 </Kb.Box2>
               </Kb.Box2>
             </Kb.ClickableBox>
-            <Divider /> */}
-            {/* <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true} gap="tiny">
+            <Divider />
+            <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true} gap="tiny">
               <Kb.Text type="BodySmallSemibold">Stellar address</Kb.Text>
               <Kb.CopyText text={props.accountID} containerStyle={styles.copyTextContainer} />
             </Kb.Box2>
-            <Divider /> */}
-            {/* <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
+            <Divider />
+            <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Text type="BodySmallSemibold">Secret key</Kb.Text>
               {!props.thisDeviceIsLockedOut ? (
                 <>
@@ -152,8 +147,8 @@ class AccountSettings extends React.Component<SettingsProps> {
                 </Kb.Text>
               )}
             </Kb.Box2>
-            <Divider /> */}
-            {/* <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
+            <Divider />
+            <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
               <Kb.Text type="BodySmallSemibold" style={styles.identity}>
                 Identity
               </Kb.Text>
@@ -192,8 +187,8 @@ class AccountSettings extends React.Component<SettingsProps> {
                 </Kb.Box2>
               </Kb.Box2>
             </Kb.Box2>
-            <Divider /> */}
-            {/* <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
+            <Divider />
+            <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
               <DisplayCurrencyDropdown
                 currencies={props.currencies}
@@ -208,8 +203,8 @@ class AccountSettings extends React.Component<SettingsProps> {
                 <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
-            <Divider /> */}
-            {/* <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
+            <Divider />
+            <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Box>
                 <Kb.Checkbox
                   checked={props.mobileOnlyMode}
@@ -241,9 +236,9 @@ class AccountSettings extends React.Component<SettingsProps> {
                 </Kb.Text>
               )}
             </Kb.Box2>
-            <Divider /> */}
+            <Divider />
             {!!props.showExternalPartners && props.externalPartners.length > 0 && (
-              <Kb.Box2 key="other box that holds a section" direction="vertical" fullWidth={true}>
+              <Kb.Box>
                 <Kb.Box2
                   direction="vertical"
                   style={styles.section}
@@ -275,12 +270,12 @@ class AccountSettings extends React.Component<SettingsProps> {
                   ))}
                 </Kb.Box2>
                 <Divider />
-              </Kb.Box2>
+              </Kb.Box>
             )}
 
-            {/* <WalletSettingTrustline accountID={props.accountID} /> */}
+            <WalletSettingTrustline accountID={props.accountID} />
 
-            {/* <Kb.Box2
+            <Kb.Box2
               direction="vertical"
               noShrink={true}
               gap="small"
@@ -313,7 +308,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                   </Kb.Text>
                 )}
               </Kb.Box2>
-            </Kb.Box2> */}
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
