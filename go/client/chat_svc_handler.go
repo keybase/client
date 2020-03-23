@@ -456,6 +456,19 @@ func (c *chatServiceHandler) AddResetConvMemberV1(ctx context.Context, opts addR
 	return Reply{Result: chat1.EmptyRes{}}
 }
 
+func (c *chatServiceHandler) reactionMapToUI(reactions chat1.ReactionMap) (res chat1.UIReactionMap) {
+	res.Reactions = make(map[string]chat1.UIReactionDesc)
+	for emoji, users := range reactions.Reactions {
+		res.Reactions[emoji] = chat1.UIReactionDesc{
+			Users: make(map[string]chat1.Reaction),
+		}
+		for username, reaction := range users {
+			res.Reactions[emoji].Users[username] = reaction
+		}
+	}
+	return res
+}
+
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
 	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []chat1.Message, err error) {
 	for _, m := range messages {
@@ -541,7 +554,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			}
 		}
 		if mv.Reactions.Reactions != nil {
-			msg.Reactions = &mv.Reactions
+			uireact := c.reactionMapToUI(mv.Reactions)
+			msg.Reactions = &uireact
 		}
 
 		ret = append(ret, chat1.Message{

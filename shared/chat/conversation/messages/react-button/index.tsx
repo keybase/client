@@ -10,6 +10,7 @@ export type Props = {
   className?: string
   conversationIDKey: Types.ConversationIDKey
   count: number
+  decorated: string
   emoji: string
   onClick: () => void
   onLongPress?: () => void
@@ -73,7 +74,11 @@ const ReactButton = (props: Props) => (
   >
     <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <EmojiIfExists size={Styles.isMobile ? 16 : 18} lineClamp={1} emojiName={props.emoji} />
+        <EmojiIfExists
+          size={Styles.isMobile ? 16 : 18}
+          lineClamp={1}
+          emojiName={props.decorated.length ? props.decorated : props.emoji}
+        />
       </Box2>
       <Text
         type="BodyTinyBold"

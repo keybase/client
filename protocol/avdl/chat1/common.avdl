@@ -359,7 +359,7 @@
   }
 
   record ReactionMap {
-    // { reactionText (:+1:) -> { username -> Reaction } }
+    // { reactionText (:+1:) -> { username -> Reaction }
     map<string, map<string, Reaction>> reactions;
   }
 

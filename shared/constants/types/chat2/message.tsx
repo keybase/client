@@ -18,7 +18,11 @@ export type Reaction = {
   timestamp: number
   username: string
 }
-export type Reactions = Map<string, Set<Reaction>>
+export type ReactionDesc = {
+  decorated: string
+  users: Set<Reaction>
+}
+export type Reactions = Map<string, ReactionDesc>
 
 export type UnfurlMap = Map<string, RPCChatTypes.UIMessageUnfurlInfo>
 

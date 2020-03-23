@@ -177,6 +177,9 @@ export type ParticipantInfo = {
   contactName: Map<string, string> // member username -> contact name
 }
 
+// Corresponds to skinTones in emoji-datasource.
+export type EmojiSkinTone = '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'
+
 export type State = {
   readonly accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -315,6 +318,7 @@ export type PathAndOutboxID = _Message.PathAndOutboxID
 export type PreviewSpec = _Message.PreviewSpec
 export type Reaction = _Message.Reaction
 export type Reactions = _Message.Reactions
+export type ReactionDesc = _Message.ReactionDesc
 
 // common passthroughs
 export type ConversationIDKey = Common.ConversationIDKey

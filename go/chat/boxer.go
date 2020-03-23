@@ -1270,6 +1270,11 @@ func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, erro
 // failure could cause an entire thread not to load, and loading the names of revoked devices may not work this way.
 // This deserves to be reconsidered.
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType keybase1.DeviceTypeV2) {
+	if uid1.IsNil() {
+		b.Debug(ctx, "unable to fetch sender and device information: nil UID")
+		return "", "", ""
+	}
+
 	if b.testingGetSenderInfoLocal != nil {
 		b.assertInTest()
 		return b.testingGetSenderInfoLocal(ctx, uid1, deviceID1)

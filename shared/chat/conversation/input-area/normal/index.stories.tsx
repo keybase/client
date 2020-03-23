@@ -88,7 +88,6 @@ const InputContainer = (props: Props) => {
     cannotWrite: props.cannotWrite || false,
     clearInboxFilter: Sb.action('clearInboxFilter'),
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
-    conversationName: '',
     editText: '',
     explodingModeSeconds: props.explodingModeSeconds,
     focusInputCounter: 0,

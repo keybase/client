@@ -1717,14 +1717,19 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	msg chat1.MessageUnboxedValid, reactions chat1.ReactionMap) (res chat1.ReactionMap) {
-	if len(msg.Emojis) == 0 {
-		return reactions
-	}
-	res.Reactions = make(map[string]map[string]chat1.Reaction, len(reactions.Reactions))
+	msg chat1.MessageUnboxedValid, reactions chat1.ReactionMap) (res chat1.UIReactionMap) {
+	shouldDecorate := len(msg.Emojis) > 0
+	res.Reactions = make(map[string]chat1.UIReactionDesc, len(reactions.Reactions))
 	for key, value := range reactions.Reactions {
-		key = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
-		res.Reactions[key] = value
+		var desc chat1.UIReactionDesc
+		if shouldDecorate {
+			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
+		}
+		desc.Users = make(map[string]chat1.Reaction)
+		for username, reaction := range value {
+			desc.Users[username] = reaction
+		}
+		res.Reactions[key] = desc
 	}
 	return res
 }
