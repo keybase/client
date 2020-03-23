@@ -1,0 +1,23 @@
+{
+  "protocol": "NotifyInviteFriends",
+  "imports": [
+    {
+      "path": "invite_friends.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "updateInviteCounts": {
+      "request": [
+        {
+          "name": "counts",
+          "type": "InviteCounts"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

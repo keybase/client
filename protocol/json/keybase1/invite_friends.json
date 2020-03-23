@@ -21,6 +21,10 @@
         },
         {
           "type": "boolean",
+          "name": "showNumInvites"
+        },
+        {
+          "type": "boolean",
           "name": "showFire"
         }
       ]

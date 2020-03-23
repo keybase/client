@@ -12,6 +12,7 @@ import (
 type InviteCounts struct {
 	InviteCount      int     `codec:"inviteCount" json:"inviteCount"`
 	PercentageChange float64 `codec:"percentageChange" json:"percentageChange"`
+	ShowNumInvites   bool    `codec:"showNumInvites" json:"showNumInvites"`
 	ShowFire         bool    `codec:"showFire" json:"showFire"`
 }
 
@@ -19,6 +20,7 @@ func (o InviteCounts) DeepCopy() InviteCounts {
 	return InviteCounts{
 		InviteCount:      o.InviteCount,
 		PercentageChange: o.PercentageChange,
+		ShowNumInvites:   o.ShowNumInvites,
 		ShowFire:         o.ShowFire,
 	}
 }

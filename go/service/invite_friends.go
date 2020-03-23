@@ -26,13 +26,13 @@ func NewInviteFriendsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *Invite
 
 var _ keybase1.InviteFriendsInterface = (*InviteFriendsHandler)(nil)
 
-func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.InvitePeopleArg) (err error) {
+func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.InvitePeopleArg) (succeeded int, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("InviteFriendsHandler#InvitePeople", func() error { return err })()
 
 	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
-		return err
+		return 0, err
 	}
 
 	allOK := true
@@ -68,9 +68,9 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 
 	if len(assertions) == 0 {
 		if allOK {
-			return nil
+			return 0, nil
 		}
-		return fmt.Errorf("failed to parse any email or phone number")
+		return 0, fmt.Errorf("failed to parse any email or phone number")
 	}
 
 	type apiRes struct {
@@ -86,9 +86,9 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 	var res apiRes
 	err = mctx.G().API.PostDecode(mctx, apiArg, &res)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return len(assertions), nil
 }
 
 func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keybase1.InviteCounts, err error) {
@@ -98,6 +98,7 @@ func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keyb
 	type apiRes struct {
 		numInvitesInLastDay int
 		percentageChange    float64
+		showNumInvites      bool
 		showFire            bool
 		libkb.AppStatusEmbed
 	}
@@ -113,6 +114,7 @@ func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keyb
 	return keybase1.InviteCounts{
 		InviteCount:      res.numInvitesInLastDay,
 		PercentageChange: res.percentageChange,
+		ShowNumInvites:   res.showNumInvites,
 		ShowFire:         res.showFire,
 	}, nil
 }
