@@ -33,19 +33,29 @@ const ExternalTeam = (props: Props) => {
     )
   }, [getTeamInfo, teamname])
 
+  if (teamInfo) {
+    return (
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true}>
+        <ExternalTeamInfo info={teamInfo} />
+      </Kb.Box2>
+    )
+  }
+
   return (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
       {waiting ? (
         <Kb.ProgressIndicator />
-      ) : teamInfo ? (
-        <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true}>
-          <ExternalTeamInfo info={teamInfo} />
-        </Kb.Box2>
       ) : (
         <Kb.Text type="BodySmallError">There is no public information available for this team.</Kb.Text>
       )}
     </Kb.Box2>
   )
+}
+ExternalTeam.navigationOptions = {
+  header: undefined,
+  headerBottomStyle: {height: undefined},
+  headerHideBorder: true,
+  headerStyle: {borderBottomWidth: 0},
 }
 
 type ExternalTeamProps = {
@@ -60,7 +70,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
       renderItem: () => <Header info={info} />,
     },
   ]
-  return <Kb.SectionList sections={sections} />
+  return <Kb.SectionList sections={sections} contentContainerStyle={styles.contentContainer} />
 }
 
 const Header = ({info}: ExternalTeamProps) => {
@@ -102,6 +112,9 @@ const Header = ({info}: ExternalTeamProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.small,
+  },
+  contentContainer: {
+    ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
   },
 }))
 
