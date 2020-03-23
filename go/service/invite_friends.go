@@ -57,7 +57,7 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 		assertions = append(assertions, parsedEmails...)
 	}
 	for _, phone := range arg.Phones {
-		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "phone", string(phone), false)
+		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "phone", phone.String(), false)
 		if parseErr != nil {
 			allOK = false
 			mctx.Debug("failed to parse phone number %q; skipping: %s", phone, parseErr)
