@@ -4,6 +4,7 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCGen from '../constants/types/rpc-gen'
 import {pluralize} from '../util/string'
+import {memoize} from '../util/memoize'
 
 type Props = Container.RouteProps<{teamname: string}>
 
@@ -62,15 +63,52 @@ type ExternalTeamProps = {
   info: RPCGen.UntrustedTeamInfo
 }
 
+const orderMembers = memoize((members?: Array<RPCGen.TeamMemberRole>) =>
+  (members || []).sort((memberA, memberB) =>
+    memberB.role === memberA.role
+      ? memberA.username.localeCompare(memberB.username)
+      : memberB.role - memberA.role
+  )
+)
 const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
+  const members = orderMembers(info.publicMembers ?? undefined)
   const sections = [
     {
       data: ['header'],
       key: 'headerSection',
       renderItem: () => <Header info={info} />,
     },
+    {
+      data: members.length ? members : ['empty'],
+      key: 'membersSection',
+      renderItem: ({item}) =>
+        item === 'empty' ? (
+          <Kb.Text type="HeaderBig">Ain't no public members! At all!</Kb.Text>
+        ) : (
+          <Kb.Text type="HeaderBig">{item.username}</Kb.Text>
+        ),
+    },
   ]
-  return <Kb.SectionList sections={sections} contentContainerStyle={styles.contentContainer} />
+  const renderSectionHeader = ({section}) => {
+    if (section.key === 'membersSection') {
+      return (
+        <Kb.Tabs
+          tabs={[{title: 'Public members'}]}
+          selectedTab="Public members"
+          style={styles.tabs}
+          onSelect={() => {}}
+        />
+      )
+    }
+    return null
+  }
+  return (
+    <Kb.SectionList
+      sections={sections}
+      contentContainerStyle={styles.contentContainer}
+      renderSectionHeader={renderSectionHeader}
+    />
+  )
 }
 
 const Header = ({info}: ExternalTeamProps) => {
@@ -92,7 +130,7 @@ const Header = ({info}: ExternalTeamProps) => {
   )
   const openMeta = <Kb.Meta title="OPEN" backgroundColor={Styles.globalColors.green} />
   return (
-    <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
         <Kb.Avatar size={96} teamname={teamname} />
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
@@ -113,8 +151,20 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.small,
   },
-  contentContainer: {
-    ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
+  contentContainer: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
+  headerContainer: {
+    ...Styles.padding(0, Styles.globalMargins.small),
+  },
+  tabs: {
+    backgroundColor: Styles.globalColors.white,
+    width: '100%',
   },
 }))
 
