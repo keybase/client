@@ -107,6 +107,10 @@ export type Props<SectionT extends Section<any, any>> = {
    * The frequency of the events can be contolled using the scrollEventThrottle prop.
    */
   onScroll?: (event: ReactNative.NativeSyntheticEvent<ReactNative.NativeScrollEvent>) => void
+
+  // optional and desktop only.
+  desktopItemHeight?: number
+  desktopHeaderHeight?: number
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}
