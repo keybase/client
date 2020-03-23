@@ -53,5 +53,4 @@ const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
 export const skinTones = new Map(
   categorized['Skin Tones'].map(skinTone => [skinTone.unified, skinTone]) ?? []
 )
-console.log({songgao: 'emoji data', categorized, skinTones})
 export {categories, categoryOrder, emojiIndex, emojiNameMap}
