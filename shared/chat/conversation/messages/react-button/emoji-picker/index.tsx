@@ -1,6 +1,7 @@
 import * as React from 'react'
+import * as Types from '../../../../../constants/types/chat2'
 import * as Data from './data'
-import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {isMobile, isAndroid} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
@@ -12,7 +13,8 @@ const _getData = memoize(() => {
   const categories: typeof Data.categories = require('./data').categories
   const emojiIndex: typeof Data.emojiIndex = require('./data').emojiIndex
   const emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
-  return {categories, emojiIndex, emojiNameMap}
+  const emojiSkinTones: typeof Data.skinTones = require('./data').skinTones
+  return {categories, emojiIndex, emojiNameMap, emojiSkinTones}
 })
 
 type EmojiCategory = {category: string; emojis: Array<Data.EmojiData>}
@@ -23,7 +25,7 @@ const getData = memoize((topReacjis: Array<string>) => {
       ? [
           {
             category: 'Frequently Used',
-            emojis: topReacjis.map(shortName => emojiNameMap[shortName.replace(/:/g, '')]),
+            emojis: topReacjis.map(shortName => emojiNameMap[shortName.replace(/:/g, '')]).slice(0, 3),
           },
           ...categories,
         ]
@@ -54,8 +56,8 @@ const getData = memoize((topReacjis: Array<string>) => {
   }
 })
 
-const singleEmojiWidth = isMobile ? 32 : 24
-const emojiPadding = 4
+const singleEmojiWidth = isMobile ? 32 : 26
+const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
 
@@ -77,7 +79,8 @@ type Section = _Section<Item, {title?: string}>
 type Props = {
   topReacjis: Array<string>
   filter?: string
-  onChoose: (emoji: Data.EmojiData) => void
+  onChoose: (emojiStr: string) => void
+  skinTone?: Types.EmojiSkinTone
   width: number
 }
 
@@ -88,7 +91,8 @@ type State = {
 class EmojiPicker extends React.Component<Props, State> {
   state = {sections: cachedSections}
 
-  _chunkData = () => {
+  private getEmojisPerLine = () => this.props.width && Math.floor(this.props.width / emojiWidthWithPadding)
+  private chunkData = () => {
     if (!this.props.width) {
       // Nothing to do if we don't have a width
       return
@@ -98,7 +102,7 @@ class EmojiPicker extends React.Component<Props, State> {
       return
     }
 
-    const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
+    const emojisPerLine = this.getEmojisPerLine()
     const {emojiSections} = getData(this.props.topReacjis.slice(0, emojisPerLine * 4))
     // width is different from cached. make new sections & cache for next time
     let sections: Array<Section> = []
@@ -116,21 +120,22 @@ class EmojiPicker extends React.Component<Props, State> {
 
   componentDidMount() {
     if (this.props.width) {
-      this._chunkData()
+      this.chunkData()
     }
   }
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.width !== prevProps.width || this.props.topReacjis !== prevProps.topReacjis) {
-      this._chunkData()
+      this.chunkData()
     }
   }
 
   render() {
+    const emojisPerLine = this.getEmojisPerLine()
     const {getFilterResults} = getData(this.props.topReacjis)
     // For filtered results, we have <= `maxEmojiSearchResults` emojis
-    // to render. Render them directly rather than going through _chunkData
-    // pipeline for fast list of results. Go through _chunkData only
+    // to render. Render them directly rather than going through chunkData
+    // pipeline for fast list of results. Go through chunkData only
     // when the width changes to do that processing as infrequently as possible
     if (this.props.filter) {
       const results = getFilterResults(this.props.filter)
@@ -138,30 +143,44 @@ class EmojiPicker extends React.Component<Props, State> {
       // (on iPhone 5S)
       // so I'm not adding a ScrollView here. If we increase that later check
       // if this can sometimes overflow the screen here & add a ScrollView
-      const width = this.props.width
-        ? Math.floor(this.props.width / emojiWidthWithPadding) * emojiWidthWithPadding
-        : null
       return (
-        <Box2
-          direction="horizontal"
-          style={Styles.collapseStyles([styles.alignItemsCenter, styles.flexWrap, !!width && {width}])}
-        >
-          {results.map(e => (
-            <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />
-          ))}
-        </Box2>
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
+          >
+            {results.map(e => (
+              <EmojiRender
+                key={e.short_name}
+                emoji={e}
+                onChoose={this.props.onChoose}
+                skinTone={this.props.skinTone}
+              />
+            ))}
+            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
+              makeEmojiPlaceholder(index)
+            )}
+          </Kb.Box2>
+        </Kb.Box2>
       )
     }
     // !this.state.sections means we haven't cached any sections yet
     // i.e. we haven't rendered before. let sections be calculated first
     return this.state.sections ? (
-      <SectionList
+      <Kb.SectionList
         keyboardShouldPersistTaps="handled"
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={Styles.isMobile}
         renderItem={({item, index}: {item: Item; index: number}) => (
-          <EmojiRow key={index} item={item} onChoose={this.props.onChoose} />
+          <EmojiRow
+            key={index}
+            item={item}
+            onChoose={this.props.onChoose}
+            skinTone={this.props.skinTone}
+            emojisPerLine={emojisPerLine}
+          />
         )}
         renderSectionHeader={HeaderRow}
       />
@@ -174,42 +193,68 @@ const EmojiRow = (props: {
     emojis: Array<Data.EmojiData>
     key: string
   }
-  onChoose: (emojiData: Data.EmojiData) => void
-}) => (
-  <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
-    {props.item.emojis.map(e => (
-      <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />
-    ))}
-  </Box2>
-)
+  onChoose: (emojiStr: string) => void
+  skinTone?: Types.EmojiSkinTone
+  emojisPerLine: number
+}) =>
+  // This is possible when we have the cached sections, and we just got mounted
+  // and haven't received width yet.
+  props.item.emojis.length > props.emojisPerLine ? null : (
+    <Kb.Box2 key={props.item.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
+      {props.item.emojis.map(e => (
+        <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} skinTone={props.skinTone} />
+      ))}
+      {[...Array(props.emojisPerLine - props.item.emojis.length)].map((_, index) =>
+        makeEmojiPlaceholder(index)
+      )}
+    </Kb.Box2>
+  )
+
+const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) =>
+  skinTone && emoji.skin_variations?.[skinTone]
+    ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
+    : `:${emoji.short_name}:`
 
 const EmojiRender = ({
   emoji,
   onChoose,
+  skinTone,
 }: {
   emoji: Data.EmojiData
-  onChoose: (emojiData: Data.EmojiData) => void
-}) => (
-  <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
-    <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
-  </ClickableBox>
+  onChoose: (emojiStr: string) => void
+  skinTone?: Types.EmojiSkinTone
+}) => {
+  const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
+  return (
+    <Kb.ClickableBox onClick={() => onChoose(emojiStr)} style={styles.emoji} key={emoji.short_name}>
+      <Kb.Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={emojiStr} />
+    </Kb.ClickableBox>
+  )
+}
+
+const makeEmojiPlaceholder = (index: number) => (
+  <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
 const HeaderRow = ({section}: {section: Section}) => (
-  <Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
-    <Text type="BodySmallSemibold">{section.title}</Text>
-  </Box2>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
+    <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {
-        alignItems: 'center',
-      },
       emoji: {
         padding: emojiPadding,
         width: emojiWidthWithPadding,
+      },
+      emojiPlaceholder: {
+        width: emojiWidthWithPadding,
+      },
+      emojiRowContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
       },
       flexWrap: {
         flexWrap: 'wrap',
