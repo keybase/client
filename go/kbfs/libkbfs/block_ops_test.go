@@ -91,10 +91,10 @@ type testBlockOpsConfig struct {
 	diskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock                       Clock
-	reporter                    Reporter
-	subsciptionManager          SubscriptionManager
-	subsciptionManagerPublisher SubscriptionManagerPublisher
+	clock                        Clock
+	reporter                     Reporter
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -136,11 +136,11 @@ func (config testBlockOpsConfig) GetSettingsDB() *SettingsDB {
 }
 
 func (config testBlockOpsConfig) SubscriptionManager() SubscriptionManager {
-	return config.subsciptionManager
+	return config.subscriptionManager
 }
 
 func (config testBlockOpsConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
-	return config.subsciptionManagerPublisher
+	return config.subscriptionManagerPublisher
 }
 
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
