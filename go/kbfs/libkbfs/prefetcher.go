@@ -1332,7 +1332,10 @@ func (ps prefetcherSubscriber) OnPathChange(
 
 func (ps prefetcherSubscriber) OnNonPathChange(
 	_ SubscriptionID, _ keybase1.SubscriptionTopic) {
-	ps.ch <- struct{}{}
+	select {
+	case ps.ch <- struct{}{}:
+	default:
+	}
 }
 
 func (p *blockPrefetcher) handleNetStateChange(
@@ -1431,7 +1434,7 @@ func (p *blockPrefetcher) run(
 	subMan := p.config.SubscriptionManager()
 	var subCh chan struct{}
 	if subMan != nil {
-		subCh = make(chan struct{}, 10)
+		subCh = make(chan struct{}, 1)
 
 		const prefetcherSubKey = "prefetcherSettings"
 		sub := subMan.Subscriber(prefetcherSubscriber{subCh})
