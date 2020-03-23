@@ -41,9 +41,14 @@ type Props = {
   setSkinTone: (skinTone: Types.EmojiSkinTone) => void
 }
 
+const reorderedSkinTones = (props: Props): Array<Types.EmojiSkinTone> =>
+  Styles.isMobile
+    ? skinTones
+    : [props.currentSkinTone, ...skinTones.filter(st => st !== props.currentSkinTone)]
+
 const SkinTonePicker = (props: Props) => {
   const [expanded, setExpanded] = React.useState(false)
-  const optionSkinTones = skinTones.map(skinTone => (
+  const optionSkinTones = reorderedSkinTones(props).map(skinTone => (
     <Kb.ClickableBox
       key={skinTone}
       style={styles.dotContainerExpanded}
