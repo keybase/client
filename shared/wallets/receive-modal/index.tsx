@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {WalletPopup} from '../common'
 import QRCodeGen from 'qrcode-generator'
 
 type AddressesProps = {
@@ -16,33 +15,33 @@ type Props = {
   onRequest: () => void
 } & AddressesProps
 
-const ReceiveModal = (props: Props) => {
-  const header = (
-    <>
-      <Kb.Text center={true} type="BodySmallSemibold">
-        {props.accountName}
-      </Kb.Text>
-      <Kb.Text center={true} type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
-        Receive
-      </Kb.Text>
-    </>
-  )
-
-  return (
-    <WalletPopup
-      accountName={props.accountName}
-      headerTitle="Receive"
-      backButtonType="close"
-      onExit={props.onClose}
-      containerStyle={styles.container}
-    >
-      <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.sidePaddings}>
-        <Kb.Icon
-          type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-          style={styles.icon}
-        />
-        {!Styles.isMobile && header}
-        {props.isDefaultAccount && (
+const ReceiveModal = (props: Props) => (
+  <Kb.Modal
+    allowOverflow={true}
+    footer={{
+      content: (
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.Button fullWidth={true} label="Close" onClick={props.onClose} type="Dim" />
+        </Kb.ButtonBar>
+      ),
+    }}
+    header={{
+      icon: !Styles.isMobile && <Kb.Icon type="icon-wallet-receive-48" style={styles.icon} />,
+      leftButton: Styles.isMobile && (
+        <Kb.Text type="BodyBigLink" onClick={props.onClose}>
+          Close
+        </Kb.Text>
+      ),
+      style: styles.header,
+      subTitle: props.accountName,
+      subTitleAbove: true,
+      title: 'Receive',
+    }}
+    onClose={props.onClose}
+  >
+    {props.isDefaultAccount && (
+      <>
+        <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.Button
             type="Wallet"
             label="Request from a Keybase user"
@@ -57,31 +56,20 @@ const ReceiveModal = (props: Props) => {
               style={styles.requestIcon}
             />
           </Kb.Button>
-        )}
-      </Kb.Box2>
-      {props.isDefaultAccount && (
-        <Kb.Divider
-          style={{
-            marginBottom: 14,
-            marginTop: 10,
-            width: '100%',
-          }}
-        />
-      )}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.sidePaddings}>
-        <Kb.Text center={true} type="Body" style={styles.instructionText}>
-          People outside Keybase can send to:
-        </Kb.Text>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-          <Addresses federatedAddress={props.federatedAddress} stellarAddress={props.stellarAddress} />
-          {!Styles.isMobile && (
-            <Kb.Button label="Close" onClick={props.onClose} type="Dim" style={styles.closeButton} />
-          )}
         </Kb.Box2>
+        <Kb.Divider />
+      </>
+    )}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Text center={true} type="Body" style={styles.instructionText}>
+        People outside Keybase can send to:
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+        <Addresses federatedAddress={props.federatedAddress} stellarAddress={props.stellarAddress} />
       </Kb.Box2>
-    </WalletPopup>
-  )
-}
+    </Kb.Box2>
+  </Kb.Modal>
+)
 
 const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
@@ -118,42 +106,19 @@ const QrImage = ({address}) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      closeButton: {
-        alignSelf: 'center',
+      buttonBar: {
+        minHeight: 'auto',
       },
-      container: Styles.platformStyles({
-        common: {
-          paddingLeft: 0,
-          paddingRight: 0,
-        },
-        isElectron: {
-          paddingBottom: 0,
-          paddingTop: 0,
-        },
-        isMobile: {
-          paddingBottom: Styles.globalMargins.xlarge,
-          paddingTop: Styles.globalMargins.medium,
-        },
-      }),
+      container: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+      },
       header: Styles.platformStyles({
-        isMobile: {
-          ...Styles.globalStyles.fillAbsolute,
-          flex: 1,
-        },
+        isElectron: {paddingTop: 20},
       }),
-      headerText: Styles.platformStyles({
-        isElectron: {
-          marginBottom: Styles.globalMargins.small,
-        },
-      }),
-      icon: Styles.platformStyles({
-        isElectron: {
-          marginBottom: Styles.globalMargins.xtiny,
-        },
-        isMobile: {
-          marginBottom: Styles.globalMargins.medium,
-        },
-      }),
+      icon: {
+        position: 'absolute',
+        top: -24,
+      },
       instructionText: {
         marginBottom: Styles.globalMargins.small,
       },

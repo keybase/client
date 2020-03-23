@@ -446,6 +446,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 			brq.Prefetcher().CancelPrefetch(ptr)
 		}
 		return ch
+	case <-ctx.Done():
+		ch <- ctx.Err()
+		return ch
 	default:
 	}
 	if block == nil {

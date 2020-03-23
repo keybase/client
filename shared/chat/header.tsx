@@ -10,7 +10,9 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
 
-type OwnProps = {}
+type OwnProps = {
+  navigation: any
+}
 
 type Props = {
   canEditDesc: boolean
@@ -34,11 +36,11 @@ const descColor = Styles.globalColors.black_50
 const descStyleMobile = {
   color: descColor,
   fontSize: 13,
-  lineHeight: 16,
+  lineHeight: 17,
 }
 const descStyleDesktop = {
   fontSize: 13,
-  lineHeight: '16px',
+  lineHeight: '17px',
   wordBreak: 'break-all',
 } as const // approximates BodySmall since markdown does not support text type
 const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
@@ -271,8 +273,12 @@ const styles = Styles.styleSheetCreate(
 )
 
 const Connected = Container.connect(
-  state => {
-    const _conversationIDKey = Constants.getSelectedConversation(state)
+  (state, ownProps: OwnProps) => {
+    // temp until nav 5 when this all goes away
+    const _conversationIDKey =
+      (Container.isTablet
+        ? ownProps.navigation.state.params?.conversationIDKey
+        : ownProps.navigation.state.routes[0]?.params?.conversationIDKey) ?? Constants.noConversationIDKey
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)

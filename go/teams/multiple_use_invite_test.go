@@ -28,47 +28,31 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	t.Logf("Created team %s", teamname)
 
+	_, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamname,
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	maxUses := keybase1.TeamInviteMaxUses(10)
+	_, err = CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER, maxUses, nil /* etime */)
+	require.NoError(t, err)
+
 	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:      teamname,
 		NeedAdmin: true,
 	})
 	require.NoError(t, err)
 
-	makeAndPostSeitanInviteLink := func(ctx context.Context, team *Team, role keybase1.TeamRole) SCTeamInvite {
-		ikey, err := GenerateIKey()
-		require.NoError(t, err)
-		sikey, err := ikey.GenerateSIKey()
-		require.NoError(t, err)
-		inviteID, err := sikey.GenerateTeamInviteID()
-		require.NoError(t, err)
-		label := keybase1.NewSeitanKeyLabelDefault(keybase1.SeitanKeyLabelType(0))
-		_, encoded, err := ikey.GeneratePackedEncryptedKey(ctx, team, label)
-		require.NoError(t, err)
-
-		maxUses := keybase1.TeamInviteMaxUses(10)
-		invite := SCTeamInvite{
-			Type:    "seitan_invite_token",
-			Name:    keybase1.TeamInviteName(encoded),
-			ID:      inviteID,
-			MaxUses: &maxUses,
-		}
-		err = team.postInvite(ctx, invite, role)
-		require.NoError(t, err)
-		return invite
+	var inviteID keybase1.TeamInviteID
+	for inviteID = range teamObj.chain().inner.ActiveInvites {
+		break // get first invite id
 	}
-
-	scInvite := makeAndPostSeitanInviteLink(context.TODO(), teamObj, keybase1.TeamRole_READER)
-
-	teamObj, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:      teamname,
-		NeedAdmin: true,
-	})
-	require.NoError(t, err)
 
 	changeReq := keybase1.TeamChangeReq{}
 	err = changeReq.AddUVWithRole(user2.GetUserVersion(), keybase1.TeamRole_READER, nil /* botSettings */)
 	require.NoError(t, err)
-	changeReq.UseInviteID(keybase1.TeamInviteID(scInvite.ID), user2.GetUserVersion().PercentForm())
+	changeReq.UseInviteID(inviteID, user2.GetUserVersion().PercentForm())
 	err = teamObj.ChangeMembershipWithOptions(context.TODO(), changeReq, ChangeMembershipOptions{})
 	require.NoError(t, err)
 
@@ -83,7 +67,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 	inner := teamObj.chain().inner
 	require.Len(t, inner.ActiveInvites, 0)
 	require.Len(t, inner.UsedInvites, 1)
-	require.Len(t, inner.UsedInvites[keybase1.TeamInviteID(scInvite.ID)], 1)
+	require.Len(t, inner.UsedInvites[inviteID], 1)
 
 	// User 1 makes User 2 admin
 
@@ -100,7 +84,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	inner = teamObj.chain().inner
 	require.Len(t, inner.ActiveInvites, 1)
-	_, ok := inner.ActiveInvites[keybase1.TeamInviteID(scInvite.ID)]
+	_, ok := inner.ActiveInvites[inviteID]
 	require.True(t, ok, "invite found loaded by user 2")
-	require.Len(t, inner.UsedInvites[keybase1.TeamInviteID(scInvite.ID)], 1)
+	require.Len(t, inner.UsedInvites[inviteID], 1)
 }

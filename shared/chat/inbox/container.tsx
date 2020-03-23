@@ -15,22 +15,27 @@ import {withNavigationFocus} from '@react-navigation/core'
 
 type OwnProps = {
   navKey: string
+  conversationIDKey?: Types.ConversationIDKey
 }
 
 const makeBigRows = (
-  bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
+  bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>,
+  selectedConversationIDKey: Types.ConversationIDKey
 ): Array<Types.ChatInboxRowItemBig | Types.ChatInboxRowItemBigHeader | Types.ChatInboxRowItemTeamBuilder> => {
   return bigTeams.map(t => {
     switch (t.state) {
-      case RPCChatTypes.UIInboxBigTeamRowTyp.channel:
+      case RPCChatTypes.UIInboxBigTeamRowTyp.channel: {
+        const conversationIDKey = Types.stringToConversationIDKey(t.channel.convID)
         return {
           channelname: t.channel.channelname,
-          conversationIDKey: Types.stringToConversationIDKey(t.channel.convID),
+          conversationIDKey,
           isMuted: t.channel.isMuted,
+          selected: conversationIDKey === selectedConversationIDKey,
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           teamname: t.channel.teamname,
           type: 'big',
         }
+      }
       case RPCChatTypes.UIInboxBigTeamRowTyp.label:
         return {
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
@@ -45,12 +50,15 @@ const makeBigRows = (
 }
 
 const makeSmallRows = (
-  smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>
+  smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>,
+  selectedConversationIDKey: Types.ConversationIDKey
 ): Array<Types.ChatInboxRowItemSmall | Types.ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
+    const conversationIDKey = Types.stringToConversationIDKey(t.convID)
     return {
-      conversationIDKey: Types.stringToConversationIDKey(t.convID),
+      conversationIDKey,
       isTeam: t.isTeam,
+      selected: conversationIDKey === selectedConversationIDKey,
       snippet: t.snippet || undefined,
       snippetDecoration: t.snippetDecoration,
       teamname: t.name,
@@ -111,12 +119,13 @@ InboxWrapper.navigationOptions = {
 }
 
 const Connected = Container.namedConnect(
-  state => {
+  (state, ownProps: OwnProps) => {
     const {inboxLayout, inboxHasLoaded} = state.chat2
     let {inboxNumSmallRows} = state.chat2
     if (inboxNumSmallRows === undefined) {
       inboxNumSmallRows = 5
     }
+    const {conversationIDKey} = ownProps
     const neverLoaded = !inboxHasLoaded
     const allowShowFloatingButton = inboxLayout
       ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
@@ -125,7 +134,7 @@ const Connected = Container.namedConnect(
       _badgeMap: state.chat2.badgeMap,
       _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
       _inboxLayout: inboxLayout,
-      _selectedConversationIDKey: state.chat2.selectedConversation,
+      _selectedConversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
       allowShowFloatingButton,
       inboxNumSmallRows,
       isLoading: isPhone ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
@@ -157,8 +166,8 @@ const Connected = Container.namedConnect(
     if (!showAllSmallRows) {
       smallTeams = smallTeams.slice(0, stateProps.inboxNumSmallRows)
     }
-    let smallRows = makeSmallRows(smallTeams)
-    let bigRows = makeBigRows(bigTeams)
+    let smallRows = makeSmallRows(smallTeams, stateProps._selectedConversationIDKey)
+    let bigRows = makeBigRows(bigTeams, stateProps._selectedConversationIDKey)
     const teamBuilder: Types.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
     const hasAllSmallTeamConvs =

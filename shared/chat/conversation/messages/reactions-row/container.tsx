@@ -13,7 +13,10 @@ const getOrderedReactions = (reactions: Types.Reactions | null) => {
     [...reactions.entries()].map(([key, value]) => {
       return [
         key,
-        [...value].reduce((minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp), Infinity),
+        [...value.users].reduce(
+          (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
+          Infinity
+        ),
       ]
     })
   )

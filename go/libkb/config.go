@@ -996,3 +996,13 @@ func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 func (f *JSONConfigFile) GetRuntimeStatsEnabled() (bool, bool) {
 	return f.GetBoolAtPath("runtime_stats_enabled")
 }
+
+func (f *JSONConfigFile) GetAndroidInstallReferrerChecked() bool {
+	val, isSet := f.GetBoolAtPath("android_install_referrer_checked")
+	// default to false when value is not set
+	return isSet && val
+}
+
+func (f *JSONConfigFile) SetAndroidInstallReferrerChecked(b bool) error {
+	return f.SetBoolAtPath("android_install_referrer_checked", b)
+}

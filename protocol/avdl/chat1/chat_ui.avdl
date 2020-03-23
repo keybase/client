@@ -241,6 +241,15 @@ protocol chatUi {
     boolean isCollapsed;
   }
 
+  record UIReactionDesc {
+    string decorated;
+    map<string, Reaction> users;
+  }
+  
+  record UIReactionMap {
+    map<string, UIReactionDesc> reactions;
+  }
+
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
@@ -263,8 +272,8 @@ protocol chatUi {
     boolean isEphemeralExpired;
     union { null, string} explodedBy;
     gregor1.Time etime;
-    // reactionText -> [Reaction(username, reactionMsgID)...]
-    ReactionMap reactions;
+    // reactionText -> {decorated, [Reaction(username, reactionMsgID)...]}
+    UIReactionMap reactions;
     boolean hasPairwiseMacs;
     array<UIPaymentInfo> paymentInfos;
     union { null, UIRequestInfo } requestInfo;

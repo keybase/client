@@ -20,7 +20,7 @@ export default Container.connect(
   },
   dispatch => ({
     onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpFromReset'})),
+      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'jumpFromReset'})),
     startConversation: (participants: Array<string>) =>
       dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'})),
   }),

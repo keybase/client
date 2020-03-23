@@ -1,31 +1,37 @@
 // Switches between the route-tree router and the new router, will go away
 import * as React from 'react'
+import * as RouterConstants from '../constants/router2'
 import Router from './router'
-import {connect} from '../util/container'
+import * as Container from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
-import * as Constants from '../constants/config'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as ConfigConstants from '../constants/config'
 
-type OwnProps = {}
+const RouterSwitcheroo = React.memo(() => {
+  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const dispatch = Container.useDispatch()
+  const onNavigationStateChange = React.useCallback(
+    (prev: any, next: any, action: any) => {
+      const pStack = RouterConstants.findVisibleRoute([], prev)
+      const nStack = RouterConstants.findVisibleRoute([], next)
+      dispatch(
+        RouteTreeGen.createOnNavChanged({
+          navAction: action,
+          next: nStack,
+          prev: pStack,
+        })
+      )
+    },
+    [dispatch]
+  )
+  const updateNavigator = React.useCallback(
+    navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
+    [dispatch]
+  )
 
-type Props = {
-  updateNavigator: (nav: unknown) => void
-  persistRoute: (path: Array<any>) => void
-  isDarkMode: boolean
-}
+  return (
+    <Router ref={updateNavigator} onNavigationStateChange={onNavigationStateChange} isDarkMode={isDarkMode} />
+  )
+})
 
-const RouterSwitcheroo = React.memo((props: Props) => (
-  <Router
-    ref={r => props.updateNavigator(r)}
-    persistRoute={props.persistRoute}
-    isDarkMode={props.isDarkMode}
-  />
-))
-
-export default connect(
-  state => ({isDarkMode: Constants.isDarkMode(state.config)}),
-  dispatch => ({
-    persistRoute: (path: Array<any>) => dispatch(ConfigGen.createPersistRoute({path})),
-    updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(RouterSwitcheroo)
+export default RouterSwitcheroo

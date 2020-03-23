@@ -270,7 +270,7 @@ type MsgSummary struct {
 	IsEphemeral         bool                     `codec:"isEphemeral,omitempty" json:"is_ephemeral,omitempty"`
 	IsEphemeralExpired  bool                     `codec:"isEphemeralExpired,omitempty" json:"is_ephemeral_expired,omitempty"`
 	ETime               gregor1.Time             `codec:"eTime,omitempty" json:"e_time,omitempty"`
-	Reactions           *ReactionMap             `codec:"reactions,omitempty" json:"reactions,omitempty"`
+	Reactions           *UIReactionMap           `codec:"reactions,omitempty" json:"reactions,omitempty"`
 	HasPairwiseMacs     bool                     `codec:"hasPairwiseMacs,omitempty" json:"has_pairwise_macs,omitempty"`
 	AtMentionUsernames  []string                 `codec:"atMentionUsernames,omitempty" json:"at_mention_usernames,omitempty"`
 	ChannelMention      string                   `codec:"channelMention,omitempty" json:"channel_mention,omitempty"`
@@ -305,7 +305,7 @@ func (o MsgSummary) DeepCopy() MsgSummary {
 		IsEphemeral:        o.IsEphemeral,
 		IsEphemeralExpired: o.IsEphemeralExpired,
 		ETime:              o.ETime.DeepCopy(),
-		Reactions: (func(x *ReactionMap) *ReactionMap {
+		Reactions: (func(x *UIReactionMap) *UIReactionMap {
 			if x == nil {
 				return nil
 			}

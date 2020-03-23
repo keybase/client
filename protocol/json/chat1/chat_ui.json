@@ -897,6 +897,38 @@
     },
     {
       "type": "record",
+      "name": "UIReactionDesc",
+      "fields": [
+        {
+          "type": "string",
+          "name": "decorated"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Reaction",
+            "keys": "string"
+          },
+          "name": "users"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIReactionMap",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "UIReactionDesc",
+            "keys": "string"
+          },
+          "name": "reactions"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -1005,7 +1037,7 @@
           "name": "etime"
         },
         {
-          "type": "ReactionMap",
+          "type": "UIReactionMap",
           "name": "reactions"
         },
         {

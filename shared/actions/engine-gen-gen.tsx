@@ -163,6 +163,7 @@ export const keybase1NotifySaltpackSaltpackOperationProgress =
 export const keybase1NotifySaltpackSaltpackOperationStart =
   'engine-gen:keybase1NotifySaltpackSaltpackOperationStart'
 export const keybase1NotifyServiceHTTPSrvInfoUpdate = 'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate'
+export const keybase1NotifyServiceHandleKeybaseLink = 'engine-gen:keybase1NotifyServiceHandleKeybaseLink'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -1371,6 +1372,17 @@ type _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
     ) => void
   }
 }
+type _Keybase1NotifyServiceHandleKeybaseLinkPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.handleKeybaseLink']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyService.handleKeybaseLink']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyServiceShutdownPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {
     sessionID: number
@@ -2462,6 +2474,9 @@ export const createKeybase1NotifySaltpackSaltpackOperationStart = (
 export const createKeybase1NotifyServiceHTTPSrvInfoUpdate = (
   payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
 ): Keybase1NotifyServiceHTTPSrvInfoUpdatePayload => ({payload, type: keybase1NotifyServiceHTTPSrvInfoUpdate})
+export const createKeybase1NotifyServiceHandleKeybaseLink = (
+  payload: _Keybase1NotifyServiceHandleKeybaseLinkPayload
+): Keybase1NotifyServiceHandleKeybaseLinkPayload => ({payload, type: keybase1NotifyServiceHandleKeybaseLink})
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
 ): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
@@ -3255,6 +3270,10 @@ export type Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
   readonly payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   readonly type: typeof keybase1NotifyServiceHTTPSrvInfoUpdate
 }
+export type Keybase1NotifyServiceHandleKeybaseLinkPayload = {
+  readonly payload: _Keybase1NotifyServiceHandleKeybaseLinkPayload
+  readonly type: typeof keybase1NotifyServiceHandleKeybaseLink
+}
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
   readonly type: typeof keybase1NotifyServiceShutdown
@@ -3675,6 +3694,7 @@ export type Actions =
   | Keybase1NotifySaltpackSaltpackOperationProgressPayload
   | Keybase1NotifySaltpackSaltpackOperationStartPayload
   | Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+  | Keybase1NotifyServiceHandleKeybaseLinkPayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload

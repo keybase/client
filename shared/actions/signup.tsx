@@ -1,4 +1,5 @@
 import logger from '../logger'
+import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
 import * as ConfigConstants from '../constants/config'
 import * as SignupGen from './signup-gen'
@@ -216,6 +217,22 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
   }
 }
 
+const maybeClearJustSignedUpEmail = (
+  state: Container.TypedState,
+  action: RouteTreeGen.OnNavChangedPayload
+) => {
+  const {prev, next} = action.payload
+  // Clear "just signed up email" when you leave the people tab after signup
+  if (
+    state.signup.justSignedUpEmail &&
+    prev[2]?.routeName === Tabs.peopleTab &&
+    next[2]?.routeName !== Tabs.peopleTab
+  ) {
+    return SignupGen.createClearJustSignedUpEmail()
+  }
+  return false
+}
+
 const signupSaga = function*() {
   // validation actions
   yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
@@ -231,6 +248,8 @@ const signupSaga = function*() {
   yield* Saga.chainAction2(SignupGen.checkedInviteCode, showUserOnNoErrors)
   yield* Saga.chainAction2(SignupGen.signedup, showErrorOrCleanupAfterSignup)
   yield* Saga.chainAction2(SignupGen.signedup, setEmailVisibilityAfterSignup)
+
+  yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearJustSignedUpEmail)
 
   // actually make the signup call
   yield* Saga.chainGenerator(SignupGen.checkedDevicename, reallySignupOnNoErrors)
