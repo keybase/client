@@ -53,13 +53,13 @@ const useReacji = ({onPick, onDidPick}: Props) => {
   }
 }
 
-let lastSetSkinTone: Types.EmojiSkinTone = 'default'
+let lastSetSkinTone: undefined | Types.EmojiSkinTone = undefined
 // This can only be used in one place at a time for now since when it's changed
 // it doesn't cause other hook instances to update.
 const useSkinTone = () => {
   const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
   const setSkinTone = React.useCallback(
-    (skinTone: Types.EmojiSkinTone) => {
+    (skinTone: undefined | Types.EmojiSkinTone) => {
       lastSetSkinTone = skinTone
       _setSkinTone(skinTone)
     },
@@ -86,14 +86,14 @@ const WrapperMobile = (props: Props) => {
           size="small"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={str => setFilter(str)}
+          onChange={setFilter}
           style={styles.searchFilter}
         />
       </Kb.Box2>
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
-        onChoose={emoji => onAddReaction(emoji)}
+        onChoose={onAddReaction}
         width={width}
         skinTone={currentSkinTone}
       />
@@ -121,7 +121,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           size="full-width"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={str => setFilter(str)}
+          onChange={setFilter}
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
@@ -129,7 +129,7 @@ export const EmojiPickerDesktop = (props: Props) => {
         <EmojiPicker
           topReacjis={topReacjis}
           filter={filter}
-          onChoose={emoji => onAddReaction(emoji)}
+          onChoose={onAddReaction}
           width={336}
           skinTone={currentSkinTone}
         />

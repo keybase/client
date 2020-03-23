@@ -3,10 +3,17 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as Types from '../../../../../constants/types/chat2'
 
-const skinTones: Array<Types.EmojiSkinTone> = ['default', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
-const skinToneToDotColor = (skinTone: Types.EmojiSkinTone): string => {
+const skinTones: Array<undefined | Types.EmojiSkinTone> = [
+  undefined,
+  '1F3FB',
+  '1F3FC',
+  '1F3FD',
+  '1F3FE',
+  '1F3FF',
+]
+const skinToneToDotColor = (skinTone: undefined | Types.EmojiSkinTone): string => {
   switch (skinTone) {
-    case 'default':
+    case undefined:
       return '#ffc93a'
     case '1F3FB':
       return '#fadcbc'
@@ -21,7 +28,7 @@ const skinToneToDotColor = (skinTone: Types.EmojiSkinTone): string => {
   }
 }
 
-const circle = (skinTone: Types.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
+const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
     <Kb.Box style={{position: 'relative'}}>
       {outerCircle && <Kb.Box style={styles.circleOuter} />}
@@ -37,20 +44,20 @@ const circle = (skinTone: Types.EmojiSkinTone, isExpanded: boolean, outerCircle:
 }
 
 type Props = {
-  currentSkinTone: Types.EmojiSkinTone
-  setSkinTone: (skinTone: Types.EmojiSkinTone) => void
+  currentSkinTone?: Types.EmojiSkinTone
+  setSkinTone: (skinTone: undefined | Types.EmojiSkinTone) => void
 }
 
-const reorderedSkinTones = (props: Props): Array<Types.EmojiSkinTone> =>
+const reorderedSkinTones = (props: Props): Array<undefined | Types.EmojiSkinTone> =>
   Styles.isMobile
     ? skinTones
     : [props.currentSkinTone, ...skinTones.filter(st => st !== props.currentSkinTone)]
 
 const SkinTonePicker = (props: Props) => {
   const [expanded, setExpanded] = React.useState(false)
-  const optionSkinTones = reorderedSkinTones(props).map(skinTone => (
+  const optionSkinTones = reorderedSkinTones(props).map((skinTone, index) => (
     <Kb.ClickableBox
-      key={skinTone}
+      key={index.toString()}
       style={styles.dotContainerExpanded}
       onClick={() => {
         props.setSkinTone(skinTone)

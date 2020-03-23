@@ -80,7 +80,7 @@ type Props = {
   topReacjis: Array<string>
   filter?: string
   onChoose: (emojiStr: string) => void
-  skinTone: Types.EmojiSkinTone
+  skinTone?: Types.EmojiSkinTone
   width: number
 }
 
@@ -194,7 +194,7 @@ const EmojiRow = (props: {
     key: string
   }
   onChoose: (emojiStr: string) => void
-  skinTone: Types.EmojiSkinTone
+  skinTone?: Types.EmojiSkinTone
   emojisPerLine: number
 }) =>
   // This is possible when we have the cached sections, and we just got mounted
@@ -210,8 +210,8 @@ const EmojiRow = (props: {
     </Kb.Box2>
   )
 
-const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone: Types.EmojiSkinTone) =>
-  skinTone !== 'default' && emoji.skin_variations?.[skinTone]
+const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) =>
+  skinTone && emoji.skin_variations?.[skinTone]
     ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
     : `:${emoji.short_name}:`
 
@@ -222,7 +222,7 @@ const EmojiRender = ({
 }: {
   emoji: Data.EmojiData
   onChoose: (emojiStr: string) => void
-  skinTone: Types.EmojiSkinTone
+  skinTone?: Types.EmojiSkinTone
 }) => {
   const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
   return (

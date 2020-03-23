@@ -9,7 +9,7 @@ export type EmojiData = {
   name: string | null
   short_name: string
   unified: string
-  skin_variations?: {[K in Types.EmojiSkinToneNonDefault]: Object}
+  skin_variations?: {[K in Types.EmojiSkinTone]: Object}
 }
 
 const categorized = groupBy(emojidata, 'category')
