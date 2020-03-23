@@ -61,26 +61,20 @@ const WrapperMobile = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
-    <Kb.Box2
-      direction="vertical"
-      onLayout={onLayout}
-      style={styles.alignItemsCenter}
-      fullWidth={true}
-      fullHeight={true}
-    >
-      <Kb.NewInput
-        autoFocus={true}
-        containerStyle={styles.input}
-        decoration={
-          <Kb.Text type="BodySemiboldLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        }
-        placeholder="Search"
-        icon="iconfont-search"
-        onChangeText={filter => setFilter(filter)}
-        textType="BodySemibold"
-      />
+    <Kb.Box2 direction="vertical" onLayout={onLayout} fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.ClickableBox onClick={onCancel} style={styles.cancelContainerMobile}>
+          <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
+        </Kb.ClickableBox>
+        <Kb.SearchFilter
+          focusOnMount={true}
+          size="small"
+          icon="iconfont-search"
+          placeholderText="Search"
+          onChange={str => setFilter(str)}
+          style={styles.searchFilter}
+        />
+      </Kb.Box2>
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
@@ -88,6 +82,9 @@ const WrapperMobile = (props: Props) => {
         width={width}
         skinTone={emojiSkinTone}
       />
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.footerContainer}>
+        <SkinTonePicker />
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -96,18 +93,13 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const emojiSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
   return (
-    <Kb.Box
-      direction="vertical"
-      style={styles.containerDesktop}
-      onClick={e => e.stopPropagation()}
-      gap="tiny"
-    >
+    <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
         fullWidth={true}
         alignItems="center"
-        style={styles.topContainer}
+        style={styles.topContainerDesktop}
       >
         <Kb.SearchFilter
           focusOnMount={true}
@@ -127,6 +119,14 @@ export const EmojiPickerDesktop = (props: Props) => {
           skinTone={emojiSkinTone}
         />
       </Kb.Box>
+      {/* TODO
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        style={styles.footerContainer}
+      ></Kb.Box2>
+      */}
     </Kb.Box>
   )
 }
@@ -134,22 +134,36 @@ export const EmojiPickerDesktop = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {
-        alignItems: 'center',
+      cancelContainerMobile: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
       },
       containerDesktop: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,
-        //padding: Styles.globalMargins.tiny,
       },
       emojiContainer: {
         flex: 1,
         flexGrow: 1,
-        height: 400,
-        minHeight: 400,
+        height: 443,
+        minHeight: 443,
         overflow: 'hidden',
         width: 336,
       },
+      footerContainer: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isElectron: {
+          height: Styles.globalMargins.xlarge + Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          height: Styles.globalMargins.mediumLarge + Styles.globalMargins.small,
+        },
+      }),
       input: {
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
@@ -157,7 +171,13 @@ const styles = Styles.styleSheetCreate(
         borderWidth: 0,
         padding: Styles.globalMargins.small,
       },
-      topContainer: {
+      searchFilter: Styles.platformStyles({
+        isMobile: {
+          flexGrow: 1,
+          flexShrink: 1,
+        },
+      }),
+      topContainerDesktop: {
         padding: Styles.globalMargins.tiny,
       },
     } as const)

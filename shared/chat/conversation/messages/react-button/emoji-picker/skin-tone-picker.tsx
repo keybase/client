@@ -23,36 +23,66 @@ const skinToneToDotColor = (skinTone: Types.EmojiSkinTone): string => {
   }
 }
 
-const circle = (skinTone: Types.EmojiSkinTone) => (
-  <Kb.Box style={Styles.collapseStyles([styles.inner, {backgroundColor: skinToneToDotColor(skinTone)}])} />
-)
+const circle = (skinTone: Types.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
+  return (
+    <Kb.Box style={{position: 'relative'}}>
+      {outerCircle && <Kb.Box style={styles.circleOuter} />}
+      <Kb.Box
+        style={Styles.collapseStyles([
+          !isExpanded && styles.circleCollapsed,
+          isExpanded && styles.circleExpanded,
+          {backgroundColor: skinToneToDotColor(skinTone)},
+        ])}
+      ></Kb.Box>
+    </Kb.Box>
+  )
+}
 
 const SkinTonePicker = () => {
-  const emojiSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
+  const currentSkinTone = Container.useSelector(state => state.chat2.emojiSkinTone)
   const dispatch = Container.useDispatch()
   const setSkinTone = (skinTone: Types.EmojiSkinTone) => dispatch(Chat2Gen.createSetEmojiSkinTone({skinTone}))
   const [expanded, setExpanded] = React.useState(false)
-  return (
+  const optionSkinTones = skinTones.map(skinTone => (
+    <Kb.ClickableBox
+      key={skinTone}
+      style={styles.dotContainerExpanded}
+      onClick={() => {
+        setSkinTone(skinTone)
+        setExpanded(false)
+      }}
+    >
+      {circle(skinTone, true, Styles.isMobile && skinTone === currentSkinTone)}
+    </Kb.ClickableBox>
+  ))
+  return Styles.isMobile ? (
+    expanded ? (
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        style={styles.optionSkinTonesContainerMobile}
+      >
+        {optionSkinTones}
+      </Kb.Box2>
+    ) : (
+      <Kb.ClickableBox onClick={() => setExpanded(true)}>
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
+          {circle(currentSkinTone, false, false)}
+          <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
+        </Kb.Box2>
+      </Kb.ClickableBox>
+    )
+  ) : (
     <Kb.Box style={styles.relative}>
       {expanded ? (
-        <Kb.Box style={styles.popupContainer}>
-          {skinTones.map(skinTone => (
-            <Kb.ClickableBox
-              key={skinTone}
-              style={styles.popupDotContainer}
-              onClick={() => {
-                setSkinTone(skinTone)
-                setExpanded(false)
-              }}
-            >
-              {circle(skinTone)}
-            </Kb.ClickableBox>
-          ))}
-        </Kb.Box>
+        <Kb.Box2 direction="vertical" style={styles.popupContainer}>
+          {optionSkinTones}
+        </Kb.Box2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
-          <Kb.ClickableBox style={styles.dotContainer} onClick={() => setExpanded(true)}>
-            {circle(emojiSkinTone)}
+          <Kb.ClickableBox style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
+            {circle(currentSkinTone, false, false)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
@@ -65,21 +95,49 @@ export default SkinTonePicker
 
 const styles = Styles.styleSheetCreate(() => ({
   absolute: {position: 'absolute'},
-  dotContainer: {
-    flexShrink: 0,
+  circleCollapsed: {
+    borderRadius: Styles.globalMargins.small / 2,
+    height: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
+  circleExpanded: Styles.platformStyles({
+    isElectron: {
+      borderRadius: Styles.globalMargins.small / 2,
+      height: Styles.globalMargins.small,
+      width: Styles.globalMargins.small,
+    },
+    isMobile: {
+      borderRadius: (Styles.globalMargins.small + Styles.globalMargins.xtiny) / 2,
+      height: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+      width: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+    },
+  }),
+  circleOuter: {
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.black_10,
+    borderRadius: (Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny) / 2,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    height: Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny,
+    left: -5,
+    position: 'absolute',
+    top: -5,
+    width: Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny,
+  },
+  dotContainerDesktop: {
     padding: Styles.globalMargins.tiny,
+  },
+  dotContainerExpanded: {
+    padding: Styles.globalMargins.xxtiny,
   },
   dotPlaceholder: {
     height: Styles.globalMargins.small * 2,
     width: Styles.globalMargins.small * 2,
   },
-  inner: {
-    borderRadius: Styles.globalMargins.small / 2,
-    height: Styles.globalMargins.small,
-    width: Styles.globalMargins.small,
+  optionSkinTonesContainerMobile: {
+    justifyContent: 'space-between',
   },
   popupContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
     borderRadius: Styles.globalMargins.small,
@@ -90,9 +148,6 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.xxtiny,
     position: 'absolute',
     zIndex: 1,
-  },
-  popupDotContainer: {
-    padding: Styles.globalMargins.xxtiny,
   },
   relative: {position: 'relative'},
 }))
