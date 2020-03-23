@@ -28,7 +28,7 @@ type cmdWalletCancelAll struct {
 }
 
 type stats struct {
-	successCount    int //cancel transaction succeeded and logged in outfile
+	successCount    int // cancel transaction succeeded and logged in outfile
 	skipCount       int // transaction failed for a known benign reason, logged in outfile
 	failCount       int // transaction failed for unexpected reason
 	writeErrorCount int // cancel transaction succeeded, but failed to write to outfile
@@ -80,7 +80,7 @@ func (c *cmdWalletCancelAll) ParseArgv(ctx *cli.Context) (err error) {
 func (c *cmdWalletCancelAll) Cancel() (err error) {
 	dui := c.G().UI.GetDumbOutputUI()
 	c.done()
-	dui.Printf("Cancel command was aborted! Now waiting for all workers to finish their current transaction...\n")
+	dui.Printf("\nCancel command was aborted! Now waiting for all workers to finish their current transaction...\n")
 	err = c.group.Wait()
 	return nil
 }
@@ -120,9 +120,7 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 		for _, txID := range in {
 			select {
 			case <-c.gctx.Done():
-				{
-					break
-				}
+				break
 			default:
 				ingestChannel <- txID
 			}
