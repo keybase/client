@@ -315,6 +315,7 @@ export type PathAndOutboxID = _Message.PathAndOutboxID
 export type PreviewSpec = _Message.PreviewSpec
 export type Reaction = _Message.Reaction
 export type Reactions = _Message.Reactions
+export type ReactionDesc = _Message.ReactionDesc
 
 // common passthroughs
 export type ConversationIDKey = Common.ConversationIDKey

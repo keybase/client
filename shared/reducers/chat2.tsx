@@ -1054,16 +1054,19 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const m = messageMap.get(conversationIDKey)?.get(targetOrdinal)
     if (m && Constants.isMessageWithReactions(m)) {
       const reactions = m.reactions
-      const rs = reactions.get(emoji) || new Set()
+      const rs = {
+        decorated: reactions.get(emoji)?.decorated ?? '',
+        users: reactions.get(emoji)?.users ?? new Set(),
+      }
       reactions.set(emoji, rs)
-      const existing = [...rs].find(r => r.username === username)
+      const existing = [...rs.users].find(r => r.username === username)
       if (existing) {
         // found an existing reaction. remove it from our list
-        rs.delete(existing)
+        rs.users.delete(existing)
       }
       // no existing reaction. add this one to the map
-      rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
-      if (rs.size === 0) {
+      rs.users.add(Constants.makeReaction({timestamp: Date.now(), username}))
+      if (rs.users.size === 0) {
         reactions.delete(emoji)
       }
     }
