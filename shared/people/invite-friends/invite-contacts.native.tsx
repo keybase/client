@@ -61,7 +61,9 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
 const waitingKey = 'inviteContacts'
 
 const InviteContacts = () => {
-  const {contacts, errorMessage, loading} = useContacts()
+  const contactInfo = useContacts()
+  const {contacts, loading} = contactInfo
+  const contactsErrorMessage = contactInfo.errorMessage
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -73,7 +75,7 @@ const InviteContacts = () => {
   const waiting = Container.useAnyWaiting(waitingKey)
 
   const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
-  const [error, setError] = React.useState('')
+  const [rpcErrorMessage, setError] = React.useState('')
   const onSubmit = () => {
     setError('')
     submit(
@@ -85,7 +87,7 @@ const InviteContacts = () => {
         waitingKey,
       ],
       () => {
-        // TODO: positive feedback?
+        // TODO(Y2K-1643): positive feedback
         navUp()
       },
       err => {
@@ -173,7 +175,9 @@ const InviteContacts = () => {
         title: 'Invite friends',
       }}
     >
-      {(!!errorMessage || !!error) && <Kb.Banner color="red">{errorMessage ?? error}</Kb.Banner>}
+      {(!!contactsErrorMessage || !!rpcErrorMessage) && (
+        <Kb.Banner color="red">{contactsErrorMessage ?? rpcErrorMessage}</Kb.Banner>
+      )}
       {loading ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
