@@ -1366,4 +1366,15 @@ protocol local {
   // from local and remote sources
   void refreshParticipants(ConversationID convID);
   gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, gregor1.UID uid);
+
+  // Emoji
+  record AddEmojiRes {
+    union { null, RateLimit } rateLimit;
+  }
+  AddEmojiRes addEmoji(ConversationID convID, string alias, string filename);
+  record UserEmojiRes {
+    UserEmojis emojis; 
+    union { null, RateLimit } rateLimit;
+  }
+  UserEmojiRes userEmojis();
 }

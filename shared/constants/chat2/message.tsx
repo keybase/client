@@ -587,20 +587,23 @@ export const uiPaymentInfoToChatPaymentInfo = (
   })
 }
 
-export const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions =>
+export const reactionMapToReactions = (r: RPCChatTypes.UIReactionMap): MessageTypes.Reactions =>
   new Map(
-    Object.keys(r.reactions || {}).reduce((arr: Array<[string, Set<MessageTypes.Reaction>]>, emoji) => {
+    Object.keys(r.reactions || {}).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
       if (r.reactions[emoji]) {
         arr.push([
           emoji,
-          new Set(
-            Object.keys(r.reactions[emoji]).map(username =>
-              makeReaction({
-                timestamp: r.reactions[emoji][username].ctime,
-                username,
-              })
-            )
-          ),
+          {
+            decorated: r.reactions[emoji].decorated,
+            users: new Set(
+              Object.keys(r.reactions[emoji].users).map(username =>
+                makeReaction({
+                  timestamp: r.reactions[emoji].users[username].ctime,
+                  username,
+                })
+              )
+            ),
+          },
         ])
       }
       return arr
@@ -642,7 +645,7 @@ export const uiMessageEditToMessage = (
 const uiMessageToSystemMessage = (
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
-  reactions: Map<string, Set<MessageTypes.Reaction>>,
+  reactions: Map<string, MessageTypes.ReactionDesc>,
   m: RPCChatTypes.UIMessageValid
 ): Types.Message | null => {
   switch (body.systemType) {

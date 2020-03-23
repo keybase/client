@@ -31,6 +31,7 @@ const ConnectedEmojiRow = Container.namedConnect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     className: ownProps.className,
+    conversationIDKey: ownProps.conversationIDKey,
     emojis: stateProps.topReacjis.slice(0, 5),
     onReact: (emoji: string) => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
     onReply:
@@ -38,6 +39,7 @@ const ConnectedEmojiRow = Container.namedConnect(
         ? () => dispatchProps._onReply(ownProps.conversationIDKey, ownProps.ordinal)
         : undefined,
     onShowingEmojiPicker: ownProps.onShowingEmojiPicker,
+    ordinal: ownProps.ordinal,
     style: ownProps.style,
     tooltipPosition: ownProps.tooltipPosition,
   }),

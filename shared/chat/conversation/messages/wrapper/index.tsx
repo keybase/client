@@ -605,6 +605,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   color={Styles.globalColors.black_35}
                   type="iconfont-bot"
                   onClick={() => null}
+                  sizeType="Small"
                   style={styles.paddingLeftTiny}
                 />
               </Kb.WithTooltip>

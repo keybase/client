@@ -82,8 +82,7 @@ export type TypedActionsMap = {
   'bots:searchFeaturedAndUsers': bots.SearchFeaturedAndUsersPayload
   'bots:setSearchFeaturedAndUsersResults': bots.SetSearchFeaturedAndUsersResultsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
-  'chat2:deselectConversation': chat2.DeselectConversationPayload
-  'chat2:selectConversation': chat2.SelectConversationPayload
+  'chat2:selectedConversation': chat2.SelectedConversationPayload
   'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
@@ -483,6 +482,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifySaltpackSaltpackOperationProgress': enginegen.Keybase1NotifySaltpackSaltpackOperationProgressPayload
   'engine-gen:keybase1NotifySaltpackSaltpackOperationDone': enginegen.Keybase1NotifySaltpackSaltpackOperationDonePayload
   'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate': enginegen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+  'engine-gen:keybase1NotifyServiceHandleKeybaseLink': enginegen.Keybase1NotifyServiceHandleKeybaseLinkPayload
   'engine-gen:keybase1NotifyServiceShutdown': enginegen.Keybase1NotifyServiceShutdownPayload
   'engine-gen:keybase1NotifySessionLoggedOut': enginegen.Keybase1NotifySessionLoggedOutPayload
   'engine-gen:keybase1NotifySessionLoggedIn': enginegen.Keybase1NotifySessionLoggedInPayload
@@ -783,6 +783,8 @@ export type TypedActionsMap = {
   'route-tree:switchLoggedIn': routetree.SwitchLoggedInPayload
   'route-tree:switchTab': routetree.SwitchTabPayload
   'route-tree:resetStack': routetree.ResetStackPayload
+  'route-tree:onNavChanged': routetree.OnNavChangedPayload
+  'route-tree:setParams': routetree.SetParamsPayload
   'settings:addPhoneNumber': settings.AddPhoneNumberPayload
   'settings:addedPhoneNumber': settings.AddedPhoneNumberPayload
   'settings:resendVerificationForPhoneNumber': settings.ResendVerificationForPhoneNumberPayload
@@ -951,6 +953,7 @@ export type TypedActionsMap = {
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
   'teams:setNewTeamInfo': teams.SetNewTeamInfoPayload
+  'teams:setNewTeamRequests': teams.SetNewTeamRequestsPayload
   'teams:setTeamSawChatBanner': teams.SetTeamSawChatBannerPayload
   'teams:setTeamSawSubteamsBanner': teams.SetTeamSawSubteamsBannerPayload
   'teams:updateChannelName': teams.UpdateChannelNamePayload
@@ -989,6 +992,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
+  'teams:teamSeen': teams.TeamSeenPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

@@ -146,12 +146,6 @@ export default Container.makeReducer<
     draftState.deletedTeams = action.payload.deletedTeams
     draftState.newTeams = action.payload.newTeams
     draftState.teamIDToResetUsers = action.payload.teamIDToResetUsers
-
-    const newTeamRequests = new Map<Types.TeamID, number>()
-    action.payload.newTeamRequests.forEach(teamID => {
-      newTeamRequests.set(teamID, (newTeamRequests.get(teamID) || 0) + 1)
-    })
-    draftState.newTeamRequests = newTeamRequests
   },
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
@@ -339,6 +333,9 @@ export default Container.makeReducer<
   },
   [TeamsGen.finishAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
+  },
+  [TeamsGen.setNewTeamRequests]: (draftState, action) => {
+    draftState.newTeamRequests = action.payload.newTeamRequests
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

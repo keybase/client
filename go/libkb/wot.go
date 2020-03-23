@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -87,6 +89,8 @@ type reactionExpansion struct {
 type serverWotVouch struct {
 	Voucher               keybase1.UID           `json:"voucher"`
 	VoucherEldestSeqno    keybase1.Seqno         `json:"voucher_eldest_seqno"`
+	Vouchee               keybase1.UID           `json:"vouchee"`
+	VoucheeEldestSeqno    keybase1.Seqno         `json:"vouchee_eldest_seqno"`
 	VouchSigID            keybase1.SigID         `json:"vouch_sig"`
 	VouchExpansionJSON    string                 `json:"vouch_expansion"`
 	ReactionSigID         *keybase1.SigID        `json:"reaction_sig,omitempty"`
@@ -94,7 +98,7 @@ type serverWotVouch struct {
 	Status                keybase1.WotStatusType `json:"status"`
 }
 
-func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, vouchee *User) (res keybase1.WotVouch, err error) {
+func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUser *User) (res keybase1.WotVouch, err error) {
 	// load the voucher and fetch the relevant chain link
 	wotVouchLink, voucher, err := getWotVouchChainLink(mctx, serverVouch.Voucher, serverVouch.VouchSigID)
 	if err != nil {
@@ -116,7 +120,15 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, vouchee *U
 		wotObj.Confidence = nil
 	}
 
-	err = assertVouchIsForUser(mctx, wotObj.User, vouchee)
+	if voucheeUser == nil || voucheeUser.GetUID() != serverVouch.Vouchee {
+		// load vouchee
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee))
+		if err != nil {
+			return res, fmt.Errorf("error loading vouchee: %s", err.Error())
+		}
+	}
+
+	err = assertVouchIsForUser(mctx, wotObj.User, voucheeUser)
 	if err != nil {
 		mctx.Debug("web-of-trust vouch user-section doesn't look right: %+v", wotObj.User)
 		return res, fmt.Errorf("error verifying user section of web-of-trust expansion: %s", err.Error())
@@ -127,7 +139,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, vouchee *U
 	var reactionStatus keybase1.WotReactionType
 	var wotReactLink *WotReactChainLink
 	if hasReaction {
-		wotReactLink, err = getWotReactChainLink(mctx, vouchee, *serverVouch.ReactionSigID)
+		wotReactLink, err = getWotReactChainLink(mctx, voucheeUser, *serverVouch.ReactionSigID)
 		if err != nil {
 			return res, fmt.Errorf("error finding the vouch in the vouchee's sigchain: %s", err.Error())
 		}
@@ -166,6 +178,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, vouchee *U
 	// build a WotVouch
 	return keybase1.WotVouch{
 		Status:     status,
+		Vouchee:    voucheeUser.ToUserVersion(),
 		Voucher:    voucher.ToUserVersion(),
 		VouchTexts: wotObj.VouchTexts,
 		VouchProof: serverVouch.VouchSigID,
@@ -179,14 +192,23 @@ type apiWot struct {
 	Vouches []serverWotVouch `json:"webOfTrust"`
 }
 
-func fetchWot(mctx MetaContext, username *string) (res []serverWotVouch, err error) {
+type FetchWotVouchesArg struct {
+	Vouchee string
+	Voucher string
+}
+
+func fetchWot(mctx MetaContext, vouchee string, voucher string) (res []serverWotVouch, err error) {
 	defer mctx.Trace("fetchWot", func() error { return err })()
 	apiArg := APIArg{
 		Endpoint:    "wot/get",
 		SessionType: APISessionTypeREQUIRED,
 	}
-	if username != nil {
-		apiArg.Args = HTTPArgs{"username": S{Val: *username}}
+	apiArg.Args = HTTPArgs{}
+	if len(vouchee) > 0 {
+		apiArg.Args["vouchee"] = S{Val: vouchee}
+	}
+	if len(voucher) > 0 {
+		apiArg.Args["voucher"] = S{Val: voucher}
 	}
 	var response apiWot
 	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
@@ -198,48 +220,91 @@ func fetchWot(mctx MetaContext, username *string) (res []serverWotVouch, err err
 	return response.Vouches, nil
 }
 
-func FetchMyWot(mctx MetaContext) (res []keybase1.WotVouch, err error) {
-	defer mctx.Trace("FetchMyWot", func() error { return err })()
-	serverVouches, err := fetchWot(mctx, nil)
+// FetchWotVouches gets vouches written for vouchee (if specified) by voucher
+// (if specified).
+func FetchWotVouches(mctx MetaContext, arg FetchWotVouchesArg) (res []keybase1.WotVouch, err error) {
+	vouches, err := fetchWot(mctx, arg.Vouchee, arg.Voucher)
 	if err != nil {
-		mctx.Debug("error fetching pending web-of-trust vouches: %s", err.Error())
+		mctx.Debug("error fetching web-of-trust vouches for vouchee=%s by voucher=%s: %s", arg.Vouchee, arg.Voucher, err.Error())
 		return nil, err
 	}
-	me, err := LoadMe(NewLoadUserArgWithMetaContext(mctx))
-	if err != nil {
-		return nil, fmt.Errorf("error loading myself: %s", err.Error())
-	}
-	for _, serverVouch := range serverVouches {
-		vouch, err := transformUserVouch(mctx, serverVouch, me)
+	var voucheeUser *User
+	if len(arg.Vouchee) > 0 {
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(arg.Vouchee))
 		if err != nil {
-			mctx.Debug("error validating server-reported pending web-of-trust vouches: %s", err.Error())
+			return nil, fmt.Errorf("error loading vouchee: %s", err.Error())
+		}
+	}
+	for _, serverVouch := range vouches {
+		vouch, err := transformUserVouch(mctx, serverVouch, voucheeUser)
+		if err != nil {
+			mctx.Debug("error validating server-reported web-of-trust vouches for vouchee=%s by voucher=%s: %s", arg.Vouchee, arg.Voucher, err.Error())
 			return nil, err
 		}
 		res = append(res, vouch)
 	}
-	mctx.Debug("found %d web-of-trust vouches", len(res))
+	mctx.Debug("found %d web-of-trust vouches for vouchee=%s by voucher=%s", arg.Vouchee, len(res))
 	return res, nil
 }
 
-func FetchUserWot(mctx MetaContext, username string) (res []keybase1.WotVouch, err error) {
-	defer mctx.Trace("FetchUserWot", func() error { return err })()
-	vouches, err := fetchWot(mctx, &username)
-	if err != nil {
-		mctx.Debug("error fetching web-of-trust vouches for %s: %s", username, err.Error())
-		return nil, err
-	}
-	vouchee, err := LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(username))
-	if err != nil {
-		return res, fmt.Errorf("error loading vouchee: %s", err.Error())
-	}
-	for _, serverVouch := range vouches {
-		vouch, err := transformUserVouch(mctx, serverVouch, vouchee)
-		if err != nil {
-			mctx.Debug("error validating server-reported web-of-trust vouches for %s: %s", username, err.Error())
-			return nil, err
+type _wotMsg struct {
+	Voucher *string `json:"voucher,omitempty"`
+	Vouchee *string `json:"vouchee,omitempty"`
+}
+
+func hasWotMsg(testable string) bool {
+	for _, match := range []string{"wot.new_vouch", "wot.accepted", "wot.rejected"} {
+		if match == testable {
+			return true
 		}
-		res = append(res, vouch)
 	}
-	mctx.Debug("found %d web-of-trust vouches for %s", username, len(res))
-	return res, nil
+	return false
+}
+
+func isDismissable(mctx MetaContext, category string, msg _wotMsg, voucher, vouchee kbun.NormalizedUsername) bool {
+	voucherMatches := (msg.Voucher != nil && kbun.NewNormalizedUsername(*msg.Voucher) == voucher)
+	voucheeMatches := (msg.Vouchee != nil && kbun.NewNormalizedUsername(*msg.Vouchee) == vouchee)
+	me := mctx.ActiveDevice().Username(mctx)
+	switch category {
+	case "wot.new_vouch":
+		return voucherMatches && (voucheeMatches || vouchee == me)
+	case "wot.accepted", "wot.rejected":
+		return voucheeMatches && (voucherMatches || voucher == me)
+	default:
+		return false
+	}
+}
+
+func DismissWotNotifications(mctx MetaContext, voucherUsername, voucheeUsername string) (err error) {
+	dismisser := mctx.G().GregorState
+	state, err := mctx.G().GregorState.State(mctx.Ctx())
+	if err != nil {
+		return err
+	}
+	categoryPrefix, err := gregor1.ObjFactory{}.MakeCategory("wot")
+	if err != nil {
+		return err
+	}
+	items, err := state.ItemsWithCategoryPrefix(categoryPrefix)
+	if err != nil {
+		return err
+	}
+	var wotMsg _wotMsg
+	for _, item := range items {
+		category := item.Category().String()
+		if !hasWotMsg(category) {
+			continue
+		}
+		if err := json.Unmarshal(item.Body().Bytes(), &wotMsg); err != nil {
+			return err
+		}
+		if isDismissable(mctx, category, wotMsg, kbun.NewNormalizedUsername(voucherUsername), kbun.NewNormalizedUsername(voucheeUsername)) {
+			itemID := item.Metadata().MsgID()
+			mctx.Debug("dismissing %s for %s,%s", category, voucherUsername, voucheeUsername)
+			if err := dismisser.DismissItem(mctx.Ctx(), nil, itemID); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

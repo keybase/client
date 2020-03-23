@@ -215,6 +215,8 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
+
+	GetAndroidInstallReferrerChecked() bool
 }
 
 type UpdaterConfigReader interface {
@@ -253,6 +255,8 @@ type ConfigWriter interface {
 	SetStayLoggedOut(bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
+
+	SetAndroidInstallReferrerChecked(b bool) error
 }
 
 type HTTPRequest interface {
@@ -519,6 +523,11 @@ type UIRouter interface {
 	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
+
+	// WaitForUIType returns true if a UI of the specified type is registered,
+	// or waits until timeout for such UI to register and returns false if this
+	// does not happen.
+	WaitForUIType(uiKind UIKind, timeout time.Duration) bool
 
 	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()

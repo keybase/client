@@ -1,10 +1,8 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, FloatingBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
+import {Box2, ClickableBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
 import {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
-import {Picker} from './picker'
-import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import DelayInterval from './delay-interval'
 
 export type Props = {
@@ -12,6 +10,7 @@ export type Props = {
   className?: string
   conversationIDKey: Types.ConversationIDKey
   count: number
+  decorated: string
   emoji: string
   onClick: () => void
   onLongPress?: () => void
@@ -75,7 +74,11 @@ const ReactButton = (props: Props) => (
   >
     <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <EmojiIfExists size={Styles.isMobile ? 16 : 18} lineClamp={1} emojiName={props.emoji} />
+        <EmojiIfExists
+          size={Styles.isMobile ? 16 : 18}
+          lineClamp={1}
+          emojiName={props.decorated.length ? props.decorated : props.emoji}
+        />
       </Box2>
       <Text
         type="BodyTinyBold"
@@ -215,16 +218,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             ))
           )}
         </Box2>
-        {this.state.showingPicker && !Styles.isMobile && (
-          <FloatingBox
-            attachTo={this.props.getAttachmentRef}
-            containerStyle={styles.emojiContainer}
-            position="top right"
-            onHidden={() => this._setShowingPicker(false)}
-          >
-            <Picker onClick={this._onAddReaction} backgroundImageFn={backgroundImageFn} />
-          </FloatingBox>
-        )}
       </ButtonBox>
     )
   }

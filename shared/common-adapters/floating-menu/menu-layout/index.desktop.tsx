@@ -109,7 +109,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
         <style>{realCSS}</style>
         <Box style={Styles.collapseStyles([styles.menuContainer, this.props.style])}>
           {/* Display header if there is one */}
-          {this.props.header && this.props.header.view}
+          {this.props.header}
           {/* Display menu items */}
           {items.some(item => item !== 'Divider') && (
             <Box style={Styles.collapseStyles([styles.menuItemList, this.props.listStyle])}>

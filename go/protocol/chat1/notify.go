@@ -326,8 +326,8 @@ func (o EphemeralPurgeNotifInfo) DeepCopy() EphemeralPurgeNotifInfo {
 }
 
 type ReactionUpdate struct {
-	Reactions   ReactionMap `codec:"reactions" json:"reactions"`
-	TargetMsgID MessageID   `codec:"targetMsgID" json:"targetMsgID"`
+	Reactions   UIReactionMap `codec:"reactions" json:"reactions"`
+	TargetMsgID MessageID     `codec:"targetMsgID" json:"targetMsgID"`
 }
 
 func (o ReactionUpdate) DeepCopy() ReactionUpdate {

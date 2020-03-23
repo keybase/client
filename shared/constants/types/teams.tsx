@@ -201,7 +201,7 @@ export type State = {
   readonly teamProfileAddList: Array<TeamProfileAddList>
   readonly teamRoleMap: TeamRoleMap
   readonly newTeams: Set<TeamID>
-  readonly newTeamRequests: Map<TeamID, number>
+  readonly newTeamRequests: Map<TeamID, Set<string>>
   readonly teamBuilding: TeamBuildingSubState
   readonly newTeamWizard: NewTeamWizardState
 }

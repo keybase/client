@@ -62,9 +62,7 @@ export default Container.connect(
               tab: Tabs.chatTab,
             })
           )
-          dispatch(
-            Chat2Gen.createSelectConversation({conversationIDKey, reason: selectConversationWithReason})
-          )
+          dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: selectConversationWithReason}))
         }
       },
     }

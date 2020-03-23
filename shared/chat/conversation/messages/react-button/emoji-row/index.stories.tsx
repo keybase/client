@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
 import * as Styles from '../../../../../styles'
+import * as Constants from '../../../../../constants/chat2'
 import EmojiRow from '.'
 
 const common = {
@@ -23,13 +24,20 @@ const FakeMessage = () => (
     <Kb.Text type="HeaderExtrabold" style={{...Styles.globalStyles.italic}}>
       1-800-FAKEMESSAGE
     </Kb.Text>
-    <EmojiRow {...common} style={{bottom: -20, position: 'absolute', right: 100}} />
+    <EmojiRow
+      {...common}
+      style={{bottom: -20, position: 'absolute', right: 100}}
+      conversationIDKey={Constants.noConversationIDKey}
+      ordinal={0}
+    />
   </HideShowBox>
 )
 
 const load = () =>
   Sb.storiesOf('Chat/Conversation/Emoji row', module)
     .add('On hover', () => <FakeMessage />)
-    .add('Visible', () => <EmojiRow {...common} />)
+    .add('Visible', () => (
+      <EmojiRow {...common} conversationIDKey={Constants.noConversationIDKey} ordinal={0} />
+    ))
 
 export default load

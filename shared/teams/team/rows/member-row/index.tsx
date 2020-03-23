@@ -118,21 +118,18 @@ export const TeamMemberRow = (props: Props) => {
       </Kb.Box2>
     )
 
-    const menuHeader = {
-      title: 'header',
-      view: (
-        <MenuHeader
-          username={props.username}
-          fullName={props.fullName}
-          label={
-            <Kb.Box2 direction="horizontal">
-              <Kb.Text type="BodySmall">{crown}</Kb.Text>
-              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-            </Kb.Box2>
-          }
-        />
-      ),
-    }
+    const menuHeader = (
+      <MenuHeader
+        username={props.username}
+        fullName={props.fullName}
+        label={
+          <Kb.Box2 direction="horizontal">
+            <Kb.Text type="BodySmall">{crown}</Kb.Text>
+            <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+          </Kb.Box2>
+        }
+      />
+    )
 
     const menuItems: Kb.MenuItems = [
       'Divider',

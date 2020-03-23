@@ -15,8 +15,13 @@ protocol emoji {
     MESSAGE_0
   }
 
+  record EmojiMessage {
+    ConversationID convID;
+    MessageID msgID;
+  }
+
   variant EmojiRemoteSource switch (EmojiRemoteSourceTyp typ) {
-    case MESSAGE: MessageID;
+    case MESSAGE: EmojiMessage;
   }
 
   record HarvestedEmoji {

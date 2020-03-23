@@ -37,6 +37,9 @@ export const desktopTabs = [
 // actual routing actions (or make RouteTreeGen append/up the only action)
 export const oldActionToNewActions = (action: any, navigation: any, allowAppendDupe?: boolean) => {
   switch (action.type) {
+    case RouteTreeGen.setParams: {
+      return [NavigationActions.setParams({key: action.payload.key, params: action.payload.params})]
+    }
     case RouteTreeGen.navigateAppend: {
       if (!navigation) {
         return

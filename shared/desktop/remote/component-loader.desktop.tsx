@@ -9,6 +9,8 @@ import Root from '../renderer/container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 import {initDesktopStyles} from '../../styles/index.desktop'
+import {enableMapSet} from 'immer'
+enableMapSet()
 
 disableDragDrop()
 

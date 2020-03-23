@@ -1,45 +1,49 @@
-import React, {Component} from 'react'
-import {Props} from './back-button'
-import Text from './text'
-import Icon from './icon'
+import {createNavigateUp} from '../actions/route-tree-gen'
+import * as Container from '../util/container'
+import * as React from 'react'
 import * as Styles from '../styles'
+import Icon from './icon'
+import Text from './text'
+import {Props} from './back-button'
 
-class BackButton extends Component<Props> {
-  _onClick = (event: React.BaseSyntheticEvent) => {
+const Kb = {
+  Icon,
+  Text,
+}
+
+const BackButton = React.memo((props: Props) => {
+  const dispatch = Container.useDispatch()
+  const onBack = props.disabled ? () => {} : props.onClick ?? (() => dispatch(createNavigateUp()))
+  const _onClick = (event: React.BaseSyntheticEvent) => {
     event.preventDefault()
     event.stopPropagation()
-    if (this.props.onClick) {
-      this.props.onClick()
-    }
+    onBack()
   }
-
-  render() {
-    return (
-      <div
-        style={Styles.collapseStyles([
-          this.props.onClick ? styles.container : styles.disabledContainer,
-          this.props.style,
-        ])}
-        onClick={this._onClick}
-      >
-        <Icon
-          type="iconfont-arrow-left"
-          style={this.props.onClick ? styles.icon : styles.disabledIcon}
-          color={this.props.iconColor}
-        />
-        {this.props.title !== null && !this.props.hideBackLabel && (
-          <Text
-            type={this.props.onClick ? 'BodyPrimaryLink' : 'Body'}
-            style={Styles.collapseStyles([!!this.props.onClick && styles.disabledText, this.props.textStyle])}
-            onClick={this.props.onClick ? this._onClick : null}
-          >
-            {this.props.title || 'Back'}
-          </Text>
-        )}
-      </div>
-    )
-  }
-}
+  return (
+    <div
+      style={Styles.collapseStyles([
+        props.disabled ? styles.disabledContainer : styles.container,
+        props.style,
+      ])}
+      onClick={_onClick}
+    >
+      <Kb.Icon
+        type="iconfont-arrow-left"
+        style={props.disabled ? styles.disabledIcon : styles.icon}
+        color={props.iconColor}
+      />
+      {props.title !== null && !props.hideBackLabel && (
+        <Kb.Text
+          type={props.onClick ? 'BodyPrimaryLink' : 'Body'}
+          style={Styles.collapseStyles([props.disabled && styles.disabledText, props.textStyle])}
+          onClick={_onClick}
+        >
+          {props.title || 'Back'}
+        </Kb.Text>
+      )}
+    </div>
+  )
+})
 
 export const styles = {
   container: {

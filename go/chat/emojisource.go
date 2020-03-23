@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -42,6 +43,7 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	alias, filename string) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
 	var stored chat1.EmojiStorage
+	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
 	storage := s.makeStorage()
 	_, storageConv, err := storage.Get(ctx, uid, convID, s.topicName(), &stored, true)
 	if err != nil {
@@ -60,19 +62,22 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	if msgID == nil {
 		return errors.New("no messageID from attachment")
 	}
-	stored.Mapping[alias] = chat1.NewEmojiRemoteSourceWithMessage(*msgID)
+	stored.Mapping[alias] = chat1.NewEmojiRemoteSourceWithMessage(chat1.EmojiMessage{
+		ConvID: storageConv.GetConvID(),
+		MsgID:  *msgID,
+	})
 	return storage.Put(ctx, uid, convID, s.topicName(), stored)
 }
 
-func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, convID chat1.ConversationID,
-	remote chat1.EmojiRemoteSource) (res chat1.EmojiLoadSource, err error) {
+func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource) (res chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {
 		return res, err
 	}
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
-		url := s.G().AttachmentURLSrv.GetURL(ctx, convID, remote.Message(), false)
+		msg := remote.Message()
+		url := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false)
 		return chat1.NewEmojiLoadSourceWithHttpsrv(url), nil
 	default:
 		return res, errors.New("unknown remote source")
@@ -117,7 +122,7 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 			Name: conv.Info.TlfName,
 		}
 		for alias, storedEmoji := range stored.Mapping {
-			source, err := s.remoteToLocalSource(ctx, conv.GetConvID(), storedEmoji)
+			source, err := s.remoteToLocalSource(ctx, storedEmoji)
 			if err != nil {
 				s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 				continue
@@ -141,6 +146,7 @@ type emojiMatch struct {
 }
 
 func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emojiMatch) {
+	body = utils.ReplaceQuotedSubstrings(body, false)
 	hits := emojiPattern.FindAllStringSubmatchIndex(body, -1)
 	for _, hit := range hits {
 		if len(hit) < 4 {
@@ -205,7 +211,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	added := 0
 	for _, match := range matches {
 		if source, ok := emojiMap[match.name]; ok {
-			localSource, err := s.remoteToLocalSource(ctx, convID, source)
+			localSource, err := s.remoteToLocalSource(ctx, source)
 			if err != nil {
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue

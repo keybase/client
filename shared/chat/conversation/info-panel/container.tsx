@@ -17,13 +17,10 @@ const InfoPanelConnector = (props: Props) => {
     // @ts-ignore
     typeof props.navigation !== 'undefined' ? Container.getRouteProps(props, 'tab', null) : storeSelectedTab
 
-  // TODO removed in other PR
-  const storeID = Container.useSelector(state => state.chat2.selectedConversation)
-  // @ts-ignore
   const conversationIDKey: Types.ConversationIDKey =
-    typeof props.navigation !== 'undefined'
-      ? Container.getRouteProps(props as any, 'conversationIDKey', Constants.noConversationIDKey)
-      : storeID
+    props.conversationIDKey ??
+    Container.getRouteProps(props as any, 'conversationIDKey', Constants.noConversationIDKey)
+
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey
   const yourRole = Container.useSelector(state => TeamConstants.getRole(state, meta.teamID))

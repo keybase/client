@@ -8,17 +8,6 @@
   ],
   "types": [
     {
-      "type": "enum",
-      "name": "WotStatusType",
-      "symbols": [
-        "NONE_0",
-        "PROPOSED_1",
-        "ACCEPTED_2",
-        "REJECTED_3",
-        "REVOKED_4"
-      ]
-    },
-    {
       "type": "record",
       "name": "UsernameVerificationType",
       "fields": [],
@@ -103,6 +92,10 @@
         {
           "type": "SigID",
           "name": "vouchProof"
+        },
+        {
+          "type": "UserVersion",
+          "name": "vouchee"
         },
         {
           "type": "UserVersion",
@@ -206,12 +199,29 @@
           "type": "int"
         },
         {
-          "name": "username",
+          "name": "voucher",
           "type": "string"
         },
         {
           "name": "reaction",
           "type": "WotReactionType"
+        }
+      ],
+      "response": null
+    },
+    "dismissWotNotifications": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "voucher",
+          "type": "string"
+        },
+        {
+          "name": "vouchee",
+          "type": "string"
         }
       ],
       "response": null
@@ -223,11 +233,12 @@
           "type": "int"
         },
         {
-          "name": "username",
-          "type": [
-            null,
-            "string"
-          ]
+          "name": "vouchee",
+          "type": "string"
+        },
+        {
+          "name": "voucher",
+          "type": "string"
         }
       ],
       "response": {

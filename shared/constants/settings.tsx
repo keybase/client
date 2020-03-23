@@ -2,6 +2,7 @@ import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from './reducer'
 import * as WaitingConstants from './waiting'
+import * as ChatConstants from './chat2'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
 import {RPCError} from 'util/errors'
@@ -83,7 +84,7 @@ export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.
 
 export const getExtraChatLogsForLogSend = (state: TypedState) => {
   const chat = state.chat2
-  const c = state.chat2.selectedConversation
+  const c = ChatConstants.getSelectedConversation()
   if (c) {
     const metaMap = getMeta(state, c)
     return {

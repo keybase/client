@@ -63,25 +63,26 @@ type Service struct {
 	libkb.Contextified
 	globals.ChatContextified
 
-	isDaemon        bool
-	chdirTo         string
-	lockPid         *libkb.LockPIDFile
-	ForkType        keybase1.ForkType
-	startCh         chan struct{}
-	stopCh          chan keybase1.ExitCode
-	logForwarder    *logFwd
-	gregor          *gregorHandler
-	rekeyMaster     *rekeyMaster
-	badger          *badges.Badger
-	reachability    *reachability
-	home            *home.Home
-	tlfUpgrader     *tlfupgrade.BackgroundTLFUpdater
-	teamUpgrader    *teams.Upgrader
-	walletState     *stellar.WalletState
-	offlineRPCCache *offline.RPCCache
-	trackerLoader   *TrackerLoader
-	httpSrv         *manager.Srv
-	avatarSrv       *avatars.Srv
+	isDaemon         bool
+	chdirTo          string
+	lockPid          *libkb.LockPIDFile
+	ForkType         keybase1.ForkType
+	startCh          chan struct{}
+	stopCh           chan keybase1.ExitCode
+	logForwarder     *logFwd
+	gregor           *gregorHandler
+	rekeyMaster      *rekeyMaster
+	badger           *badges.Badger
+	reachability     *reachability
+	home             *home.Home
+	tlfUpgrader      *tlfupgrade.BackgroundTLFUpdater
+	teamUpgrader     *teams.Upgrader
+	walletState      *stellar.WalletState
+	offlineRPCCache  *offline.RPCCache
+	trackerLoader    *TrackerLoader
+	httpSrv          *manager.Srv
+	avatarSrv        *avatars.Srv
+	referrerListener InstallReferrerListener // Android only
 
 	loginAttemptMu  sync.Mutex
 	loginAttempt    libkb.LoginAttempt
@@ -383,6 +384,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
+	d.startInstallReferrerListener(d.MetaContext(ctx))
 }
 
 func (d *Service) purgeOldChatAttachmentData() {

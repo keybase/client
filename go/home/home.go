@@ -165,6 +165,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 }
 
 func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
+	ctx = libkb.WithLogTag(ctx, "HOME")
 	defer h.G().CTraceTimed(ctx, "Home#Get", func() error { return err })()
 
 	// 10 people by default

@@ -1129,8 +1129,8 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 	res.convToks = convToks
 	res.nameToks = s.fullNamesForSearch(ctx, conv, convName, username)
 	for _, queryTok := range queryToks {
+		curHit := nameContainsQueryNone
 		for i, convTok := range append(convToks, res.nameToks...) {
-			curHit := nameContainsQueryNone
 			if nameContainsQueryExact > curHit && convTok == queryTok {
 				if i < len(res.convToks) {
 					curHit = nameContainsQueryExact
@@ -1142,9 +1142,9 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 			} else if nameContainsQuerySimilar > curHit && strings.Contains(convTok, queryTok) {
 				curHit = nameContainsQuerySimilar
 			}
-			if curHit > nameContainsQueryNone {
-				res.hits = append(res.hits, curHit)
-			}
+		}
+		if curHit > nameContainsQueryNone {
+			res.hits = append(res.hits, curHit)
 		}
 	}
 	return res

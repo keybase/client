@@ -111,7 +111,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
         ])}
       >
         {/* Display header if there is one */}
-        {props.header && props.header.view}
+        {props.header}
         {beginningDivider && <Divider />}
         <ScrollView
           alwaysBounceVertical={false}

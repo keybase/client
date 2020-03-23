@@ -1,7 +1,6 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
-import * as ChatConstants from '../../constants/chat2'
 import * as Types from '../../constants/types/push'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
@@ -133,22 +132,8 @@ function* handleLoudMessage(notification: Types.PushNotification) {
 
   const {conversationIDKey, unboxPayload, membersType} = notification
 
-  // immediately show the thread on top of the inbox w/o a nav
-  const actions = ChatConstants.isSplit
-    ? []
-    : [
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey}, selected: 'chatConversation'}],
-        }),
-      ]
-  const index = ChatConstants.isSplit ? 0 : 1
-  yield Saga.put(RouteTreeGen.createClearModals())
-  yield Saga.put(RouteTreeGen.createResetStack({actions, index, tab: 'tabs.chatTab'}))
-  yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
   logger.warn('push selecting ', conversationIDKey)
-  yield Saga.put(
-    Chat2Gen.createSelectConversation({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
-  )
+  yield Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, pushBody: unboxPayload, reason: 'push'}))
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
@@ -194,7 +179,7 @@ function* handlePush(state: Container.TypedState, action: PushGen.NotificationPa
       case 'chat.extension':
         {
           const {conversationIDKey} = notification
-          yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
+          yield Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'extension'}))
         }
         break
       case 'settings.contacts':

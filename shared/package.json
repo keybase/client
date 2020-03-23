@@ -90,7 +90,7 @@
     "google-libphonenumber": "3.2.2",
     "hoist-non-react-statics": "3.3.0",
     "iced-runtime": "1.0.3",
-    "immer": "5.3.6",
+    "immer": "6.0.2",
     "lag-radar": "git://github.com/mobz/lag-radar",
     "lodash": "4.17.15",
     "lottie-ios": "3.0.3",
@@ -218,7 +218,7 @@
     "json5": "2.1.0",
     "klaw-sync": "6.0.0",
     "metro-react-native-babel-preset": "0.56.0",
-    "minimist": "1.2.0",
+    "minimist": "1.2.5",
     "msgpack": "git://github.com/keybase/nullModule",
     "net": "git://github.com/keybase/nullModule",
     "null-loader": "0.1.1",
@@ -274,6 +274,8 @@
     "**/@types/react-native": "0.60.25",
     "**/@types/react": "16.9.16",
     "**/node-gyp/tar": "4.4.8",
+    "**/minimist": "1.2.5",
+    "**/os-locale": "3.1.0",
     "babel-core": "7.0.0-bridge.0",
     "react-native-screens": "git://github.com/keybase/react-native-screens#keybase-changes-off-alpha-23"
   }

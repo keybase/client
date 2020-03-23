@@ -50,6 +50,8 @@ type ChatServiceHandler interface {
 	AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply
 	GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply
 	ListMembersV1(context.Context, listMembersOptionsV1) Reply
+	EmojiAddV1(context.Context, emojiAddOptionsV1) Reply
+	EmojiListV1(context.Context) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -454,6 +456,19 @@ func (c *chatServiceHandler) AddResetConvMemberV1(ctx context.Context, opts addR
 	return Reply{Result: chat1.EmptyRes{}}
 }
 
+func (c *chatServiceHandler) reactionMapToUI(reactions chat1.ReactionMap) (res chat1.UIReactionMap) {
+	res.Reactions = make(map[string]chat1.UIReactionDesc)
+	for emoji, users := range reactions.Reactions {
+		res.Reactions[emoji] = chat1.UIReactionDesc{
+			Users: make(map[string]chat1.Reaction),
+		}
+		for username, reaction := range users {
+			res.Reactions[emoji].Users[username] = reaction
+		}
+	}
+	return res
+}
+
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
 	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []chat1.Message, err error) {
 	for _, m := range messages {
@@ -539,7 +554,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			}
 		}
 		if mv.Reactions.Reactions != nil {
-			msg.Reactions = &mv.Reactions
+			uireact := c.reactionMapToUI(mv.Reactions)
+			msg.Reactions = &uireact
 		}
 
 		ret = append(ret, chat1.Message{
@@ -682,7 +698,7 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, cha
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
 	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
-		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+		return c.errReply(err)
 	}
 	messages := []chat1.MessageID{opts.MessageID}
 	arg := sendArgV1{
@@ -1287,6 +1303,38 @@ func (c *chatServiceHandler) ListMembersV1(ctx context.Context, opts listMembers
 	}
 
 	return Reply{Result: details}
+}
+
+func (c *chatServiceHandler) EmojiAddV1(ctx context.Context, opts emojiAddOptionsV1) Reply {
+	conv, _, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	chatClient, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := chatClient.AddEmoji(ctx, chat1.AddEmojiArg{
+		ConvID:   conv.GetConvID(),
+		Alias:    opts.Alias,
+		Filename: opts.Filename,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) EmojiListV1(ctx context.Context) Reply {
+	chatClient, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := chatClient.UserEmojis(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
 }
 
 type postHeader struct {
