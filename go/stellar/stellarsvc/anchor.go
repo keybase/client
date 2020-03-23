@@ -349,14 +349,10 @@ func (a *anchorInteractor) postSep24(mctx libkb.MetaContext, u *url.URL, data ur
 			return stellar1.AssetActionResultLocal{}, err
 		}
 		if resp.Type == "interactive_customer_info_needed" {
-			parsed, err := url.Parse(resp.URL)
+			_, err = url.Parse(resp.URL)
 			if err != nil {
 				mctx.Debug("invalid URL received from anchor: %s", resp.URL)
 				return stellar1.AssetActionResultLocal{}, errors.New("invalid URL received from anchor")
-			}
-			if !a.domainMatches(parsed.Host) {
-				mctx.Debug("response URL on a different domain than asset domain: %s vs. %s", resp.URL, a.asset.VerifiedDomain)
-				return stellar1.AssetActionResultLocal{}, errors.New("anchor requesting opening a different domain")
 			}
 			return stellar1.AssetActionResultLocal{ExternalUrl: &resp.URL}, nil
 		}
