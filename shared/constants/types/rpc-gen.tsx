@@ -956,7 +956,7 @@ export type MessageTypes = {
     outParam: InviteCounts
   }
   'keybase.1.inviteFriends.invitePeople': {
-    inParam: {readonly emails: EmailInvites; readonly phones?: Array<RawPhoneNumber> | null}
+    inParam: {readonly emails: EmailInvites; readonly phones?: Array<PhoneNumber> | null}
     outParam: Int
   }
   'keybase.1.kbfsMount.GetCurrentMountDir': {
