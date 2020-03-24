@@ -262,6 +262,7 @@ func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, upKey, CtxUPAKFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, inKey, in)
+	rctx = libkb.WithLogTag(rctx, "CHTBKG")
 	if IsLocalizerCancelableCtx(sourceCtx) {
 		rctx = CtxAddLocalizerCancelable(rctx)
 	}

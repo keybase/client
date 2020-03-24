@@ -324,6 +324,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	convID chat1.ConversationID, crossTeams map[string]chat1.HarvestedEmoji,
 	mode types.EmojiSourceHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	if s.isHarvestContext(ctx) {
+		s.Debug(ctx, "Harvest: in an existing harvest context, bailing")
 		return nil, nil
 	}
 	matches := s.parse(ctx, body)
