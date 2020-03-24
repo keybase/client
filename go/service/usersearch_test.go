@@ -711,4 +711,102 @@ func TestImptofuSearch(t *testing.T) {
 	require.True(t, emailRet.UID.Exists())
 	require.Equal(t, emailRet.username, "bob")
 	require.Equal(t, emailRet.fullName, "Bobby")
+
+	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"alice@keyba.se"}, []keybase1.RawPhoneNumber{},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 1, "1 email in results")
+	require.Len(t, ret.phoneNumbers, 0, "0 phone numbers in results (we didn't ask)")
+	emailRet = ret.emails[0]
+	require.Equal(t, emailRet.input, "alice@keyba.se")
+	require.Equal(t, emailRet.assertion.String(), "[alice@keyba.se]@email")
+	require.False(t, emailRet.found)
+	require.True(t, emailRet.UID.IsNil())
+	require.Empty(t, emailRet.username)
+	require.Empty(t, emailRet.fullName)
+}
+
+func TestImptofuBadInput(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	ret, err := searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"alice"}, []keybase1.RawPhoneNumber{"test", "01234", "+1"},
+		true, true)
+
+	require.NoError(t, err)
+
+	require.Len(t, ret.emails, 1)
+	require.Len(t, ret.phoneNumbers, 3)
+	require.Equal(t, ret.emails[0].input, "alice")
+	require.Equal(t, ret.phoneNumbers[0].input, "test")
+	require.Equal(t, ret.phoneNumbers[1].input, "01234")
+	require.Equal(t, ret.phoneNumbers[2].input, "+1")
+
+	all := append(ret.emails, ret.phoneNumbers...)
+	for _, v := range all {
+		require.Equal(t, v.validInput, false)
+		require.Nil(t, v.assertion)
+		require.False(t, v.found)
+		require.True(t, v.UID.IsNil())
+		require.Empty(t, v.username)
+		require.Empty(t, v.fullName)
+	}
+}
+
+func TestBulkEmailSearch(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	emails := []string{
+		"alice@example.org",
+		"bob@example.com",
+		"no-reply@keybase.example.com",
+		"test@example.edu",
+		"hello@keybase.example.com",
+	}
+	separators := []string{
+		",", "\n", ", ", "\r\n",
+	}
+
+	query := ""
+	for i, v := range emails {
+		query += v
+		if i < len(emails)-1 {
+			query += separators[i%len(separators)]
+		}
+	}
+
+	ret, err := searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		Emails: "alice@example.org, bob@example.com, no-reply@keybase.example.com\ntest@example.edu",
+	})
+
+	require.NoError(t, err)
+	for i, v := range ret {
+		require.Equal(t, v.AssertionKey, "email")
+		require.Equal(t, v.AssertionValue, emails[i])
+		require.Equal(t, v.Assertion, fmt.Sprintf("[%s]@email", emails[i]))
+
+		require.False(t, v.FoundUser)
+		require.Empty(t, v.Username)
+		require.Empty(t, v.FullName)
+	}
 }

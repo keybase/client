@@ -83,6 +83,10 @@ protocol userSearch {
         string assertion; // entire assertion ("[foo@keyba.se]@email", "48784123123@phone")
         string assertionValue; // name ("foo@keyba.se")
         string assertionKey; // service ("phone"/"email)
+
+        boolean foundUser;
+        string username;
+        string fullName;
     }
 
     // Given a bulk list of emails (in misc. formatting as long as emails are
@@ -90,5 +94,5 @@ protocol userSearch {
     // go package), and a list of phone numbers, do a Keybase user search. As a
     // side-effect, Keybase assertion will be returned for each valid email and
     // phone number.
-    array<EmailOrPhoneNumberSearchResult> bulkEmailOrPhoneSearch(int sessionID, string emails, array<string> phoneNumbers, boolean checkContacts);
+    array<EmailOrPhoneNumberSearchResult> bulkEmailOrPhoneSearch(int sessionID, string emails, array<PhoneNumber> phoneNumbers, boolean checkContacts);
 }

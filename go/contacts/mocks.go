@@ -20,6 +20,7 @@ type MockLookupUser struct {
 	Username   string
 	Fullname   string
 	ServiceMap libkb.UserServiceSummary
+	Coerced    string
 }
 
 func MakeMockLookupUser(username, fullname string) MockLookupUser {

@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"net/mail"
 	"regexp"
 	"sort"
 	"strings"
@@ -669,12 +670,73 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 	return res, nil
 }
 
+// 🍝 splitBulk splits on newline or comma.
+func splitBulk(s string) []string {
+	f := func(c rune) bool {
+		return c == '\n' || c == ','
+	}
+	split := strings.FieldsFunc(s, f)
+	for i, s := range split {
+		split[i] = strings.TrimSpace(s)
+	}
+	return split
+}
+
 func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
 	arg keybase1.BulkEmailOrPhoneSearchArg) (ret []keybase1.EmailOrPhoneNumberSearchResult, err error) {
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)", len(arg.Emails), len(arg.PhoneNumbers)),
-		func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)",
+		len(arg.Emails), len(arg.PhoneNumbers)), func() error { return err })()
+
+	splitEmailCandidates := splitBulk(arg.Emails)
+	emails := make([]keybase1.EmailAddress, 0, len(splitEmailCandidates))
+	for _, maybeEmail := range splitEmailCandidates {
+		address, err := mail.ParseAddress(maybeEmail)
+		if err != nil {
+			mctx.Debug("Failed to mail.ParseAddress(%q): %s", maybeEmail, address)
+			continue
+		}
+		emails = append(emails, keybase1.EmailAddress(address.Address))
+	}
+
+	// We ask callers to give us valid phone numbers as the argument even
+	// though `searchEmailsOrPhoneNumbers` could handle invalid or
+	// mis-formatted numbers as well (in theory).
+
+	// TODO: It's probably a good idea to figure out which one it is and clean
+	// this code up.
+
+	phones := make([]keybase1.RawPhoneNumber, len(arg.PhoneNumbers))
+	for i, v := range arg.PhoneNumbers {
+		phones[i] = keybase1.RawPhoneNumber(v)
+	}
+
+	searchRet, err := h.searchEmailsOrPhoneNumbers(mctx, emails, phones,
+		false /* requireUsernames */, false /* includeServiceSummary */)
+	if err != nil {
+		return ret, err
+	}
+
+	// Caller shouldn't care about the ordering here, we are mixing everything
+	// together and returning as one list.
+	all := append(searchRet.emails, searchRet.phoneNumbers...)
+	ret = make([]keybase1.EmailOrPhoneNumberSearchResult, len(all))
+	for i, result := range all {
+		outRet := keybase1.EmailOrPhoneNumberSearchResult{
+			Input:          result.input,
+			Assertion:      result.assertion.String(),
+			AssertionKey:   result.assertion.GetKey(),
+			AssertionValue: result.assertion.GetValue(),
+		}
+		if result.found && result.username != "" {
+			outRet.FoundUser = result.found
+			outRet.Username = result.username
+			outRet.FullName = result.fullName
+		}
+
+		ret[i] = outRet
+	}
 
 	return ret, nil
 }

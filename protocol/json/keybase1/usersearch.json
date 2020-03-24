@@ -283,6 +283,18 @@
         {
           "type": "string",
           "name": "assertionKey"
+        },
+        {
+          "type": "boolean",
+          "name": "foundUser"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
         }
       ]
     }
@@ -343,7 +355,7 @@
           "name": "phoneNumbers",
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "PhoneNumber"
           }
         },
         {

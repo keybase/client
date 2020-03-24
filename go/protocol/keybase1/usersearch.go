@@ -257,6 +257,9 @@ type EmailOrPhoneNumberSearchResult struct {
 	Assertion      string `codec:"assertion" json:"assertion"`
 	AssertionValue string `codec:"assertionValue" json:"assertionValue"`
 	AssertionKey   string `codec:"assertionKey" json:"assertionKey"`
+	FoundUser      bool   `codec:"foundUser" json:"foundUser"`
+	Username       string `codec:"username" json:"username"`
+	FullName       string `codec:"fullName" json:"fullName"`
 }
 
 func (o EmailOrPhoneNumberSearchResult) DeepCopy() EmailOrPhoneNumberSearchResult {
@@ -265,6 +268,9 @@ func (o EmailOrPhoneNumberSearchResult) DeepCopy() EmailOrPhoneNumberSearchResul
 		Assertion:      o.Assertion,
 		AssertionValue: o.AssertionValue,
 		AssertionKey:   o.AssertionKey,
+		FoundUser:      o.FoundUser,
+		Username:       o.Username,
+		FullName:       o.FullName,
 	}
 }
 
@@ -282,10 +288,10 @@ type UserSearchArg struct {
 }
 
 type BulkEmailOrPhoneSearchArg struct {
-	SessionID     int      `codec:"sessionID" json:"sessionID"`
-	Emails        string   `codec:"emails" json:"emails"`
-	PhoneNumbers  []string `codec:"phoneNumbers" json:"phoneNumbers"`
-	CheckContacts bool     `codec:"checkContacts" json:"checkContacts"`
+	SessionID     int           `codec:"sessionID" json:"sessionID"`
+	Emails        string        `codec:"emails" json:"emails"`
+	PhoneNumbers  []PhoneNumber `codec:"phoneNumbers" json:"phoneNumbers"`
+	CheckContacts bool          `codec:"checkContacts" json:"checkContacts"`
 }
 
 type UserSearchInterface interface {
