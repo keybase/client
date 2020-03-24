@@ -5,6 +5,10 @@ declare module 'framed-msgpack-rpc' {
     msg: {[key: number]: string}
   }
 
+  export const pack: {
+    set_opt(k: string, v: any): void
+  }
+
   export namespace transport {
     class RobustTransport {
       constructor(options: Object)
