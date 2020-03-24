@@ -8,6 +8,7 @@ import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import {mapGetEnsureValue} from '../../util/map'
 import * as RPCGen from '../../constants/types/rpc-gen'
+import {pluralize} from '../../util/string'
 
 type Section = _Section<Contact, {title: string}>
 
@@ -105,6 +106,7 @@ const InviteContacts = () => {
     ) : (
       <Kb.SectionDivider label={section.title} />
     )
+  const disabled = !!successCount
   const renderItem = ({item, index}: {item: Contact; index: number}) => {
     const topText = item.name ?? item.valueFormatted ?? item.value
     const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
@@ -136,8 +138,15 @@ const InviteContacts = () => {
             {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
           </Kb.Box2>
         }
-        onClick={() => onCheck(!checked)}
-        action={<Kb.CheckCircle checked={checked} onCheck={onCheck} style={styles.checkCircle} />}
+        onClick={disabled ? undefined : () => onCheck(!checked)}
+        action={
+          <Kb.CheckCircle
+            checked={checked}
+            onCheck={onCheck}
+            style={styles.checkCircle}
+            disabled={disabled}
+          />
+        }
         icon={
           item.pictureUri ? (
             <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
@@ -174,34 +183,38 @@ const InviteContacts = () => {
         ),
         title: 'Invite friends',
       }}
+      footer={
+        successCount
+          ? {content: <Kb.Button onClick={navUp} small={true} fullWidth={true} label="Close" />}
+          : undefined
+      }
     >
       {(!!contactsErrorMessage || !!rpcErrorMessage) && (
         <Kb.Banner color="red">{contactsErrorMessage ?? rpcErrorMessage}</Kb.Banner>
       )}
       {successCount ? (
-        <Kb.Banner color="green">{`Success! You invited ${successCount} contacts to Keybase.`}</Kb.Banner>
+        <Kb.Banner color="green">{`Success! You invited ${successCount} ${pluralize(
+          'contact',
+          successCount
+        )} to Keybase.`}</Kb.Banner>
+      ) : loading ? (
+        <Kb.ProgressIndicator type="Huge" />
       ) : (
-        <>
-          {loading ? (
-            <Kb.ProgressIndicator type="Huge" />
-          ) : (
-            <Kb.SearchFilter
-              size="small"
-              onChange={setSearch}
-              value={search}
-              placeholderText={placeholderText}
-              placeholderCentered={true}
-              icon="iconfont-search"
-            />
-          )}
-          <Kb.SectionList
-            sections={sections}
-            renderSectionHeader={renderSectionHeader}
-            renderItem={renderItem}
-            keyExtractor={keyExtractor}
-          />
-        </>
+        <Kb.SearchFilter
+          size="small"
+          onChange={setSearch}
+          value={search}
+          placeholderText={placeholderText}
+          placeholderCentered={true}
+          icon="iconfont-search"
+        />
       )}
+      <Kb.SectionList
+        sections={sections}
+        renderSectionHeader={renderSectionHeader}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+      />
     </Kb.Modal>
   )
 }
@@ -211,6 +224,7 @@ const styles = Styles.styleSheetCreate(() => ({
   checkCircle: {
     marginRight: 24,
   },
+  closeButton: Styles.padding(Styles.globalMargins.small),
   disabledLink: {
     opacity: 0.5,
   },
