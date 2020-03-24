@@ -118,6 +118,9 @@ export const colors = {
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
+  get greenLightOrWhite() {
+    return this.greenLight
+  },
   greenLighter: '#E8FAF6',
   get greenLighterOrGreen() {
     return this.greenLighter
@@ -327,6 +330,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
+  get greenLightOrWhite() {
+    return colors.white
+  },
   greenLighter: '#E8FAF6',
   get greenLighterOrGreen() {
     return colors.green
