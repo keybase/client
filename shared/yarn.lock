@@ -6264,13 +6264,14 @@ fragment-cache@^0.2.1:
 
 "framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#master":
   version "1.1.21"
-  resolved "git://github.com/keybase/node-framed-msgpack-rpc#01e6ed0277203894529025f2a3383a66cb8dc5c4"
+  resolved "git://github.com/keybase/node-framed-msgpack-rpc#672d29ac4b3f0826e5fb8572bfd5c71dd7c74c66"
   dependencies:
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
     pako "^1.0.11"
     path-parse "^1.0.6"
+    typedarray-to-buffer "^3.1.5"
   optionalDependencies:
     "@msgpack/msgpack" "1.9.3"
     purepack ">=1"
@@ -9332,7 +9333,7 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
+"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", "purepack@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
   version "0.0.0"
   resolved "git://github.com/keybase/nullModule#e0d7d7874eb4d1fd82056f92f146589186fe94f0"
 
@@ -10593,6 +10594,11 @@ punycode@^2.1.0, punycode@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
+
+purepack@>=1:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/purepack/-/purepack-1.0.6.tgz#d8336e739ee8644fc6697ad38d3aa50a03aa7d37"
+  integrity sha512-L/e3qq/3m/TrYtINo2aBB98oz6w8VHGyFy+arSKwPMZDUNNw2OaQxYnZO6UIZZw2OnRl2qkxGmuSOEfsuHXJdA==
 
 q@^1.1.2:
   version "1.5.1"
@@ -13241,7 +13247,7 @@ typed-styles@^0.0.7:
   resolved "https://registry.yarnpkg.com/typed-styles/-/typed-styles-0.0.7.tgz#93392a008794c4595119ff62dde6809dbc40a3d9"
   integrity sha512-pzP0PWoZUhsECYjABgCGQlRGL1n7tOHsgwYv3oIiEpJwGhFTuty/YNeduxQYzXXa3Ge5BdT6sHYIQYpl4uJ+5Q==
 
-typedarray-to-buffer@3.1.5:
+typedarray-to-buffer@3.1.5, typedarray-to-buffer@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/typedarray-to-buffer/-/typedarray-to-buffer-3.1.5.tgz#a97ee7a9ff42691b9f783ff1bc5112fe3fca9080"
   integrity sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
