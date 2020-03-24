@@ -507,38 +507,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
     const {metaMap, messageCenterOrdinals} = draftState
 
-    if (conversationIDKey) {
-      const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
-
-      logger.info(
-        `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
-      )
-      if (maxVisibleMsgID > readMsgID) {
-        // Store the message ID that will display the orange line above it,
-        // which is the first message after the last read message. We can't
-        // just increment `readMsgID` since that msgID might be a
-        // non-visible (edit, delete, reaction...) message so we scan the
-        // ordinals for the appropriate value.
-        const messageMap = draftState.messageMap.get(conversationIDKey)
-        const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
-        const ord =
-          messageMap &&
-          ordinals.find(o => {
-            const message = messageMap.get(o)
-            return !!(message && message.id >= readMsgID + 1)
-          })
-        const message = ord ? messageMap?.get(ord) : null
-        if (message?.id) {
-          orangeLineMap.set(conversationIDKey, message.id)
-        } else {
-          orangeLineMap.delete(conversationIDKey)
-        }
-      } else {
-        // If there aren't any new messages, we don't want to display an
-        // orange line so remove its entry from orangeLineMap
-        orangeLineMap.delete(conversationIDKey)
-      }
-    }
     // blank out draft so we don't flash old data when switching convs
     const meta = metaMap.get(conversationIDKey)
     if (meta) {
@@ -1586,6 +1554,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         })
       )
     })
+
+    // clear all orange lines
+    draftState.orangeLineMap.clear()
   },
   [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
     const roles =
