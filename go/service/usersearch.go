@@ -407,7 +407,7 @@ func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, e
 
 		assertion := row.assertion
 		if result.Coerced != "" && result.Coerced != assertion.GetValue() {
-			// Server corrected our assertion - take this instead.
+			// Server corrected our assertion - take it instead of what we have.
 			assertion, err := imptofuQueryToAssertion(mctx.Ctx(), assertion.GetKey(), string(result.Coerced))
 			if err == nil {
 				row.assertion = assertion
