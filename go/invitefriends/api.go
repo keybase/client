@@ -22,7 +22,6 @@ func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error)
 	if err != nil {
 		return counts, err
 	}
-	mctx.Warning("@@@ %#v", res)
 	return keybase1.InviteCounts{
 		InviteCount:      res.NumInvitesInLastDay,
 		PercentageChange: res.PercentageChange,
