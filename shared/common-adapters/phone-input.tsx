@@ -544,7 +544,12 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
             </Kb.Box2>
           </Kb.ClickableBox>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap={this.isSmall() ? undefined : 'tiny'} style={styles.fullWidth}>
+        <Kb.Box2
+          direction="horizontal"
+          gap={this.isSmall() ? undefined : 'tiny'}
+          fullWidth={true}
+          style={this.isSmall() ? Styles.globalStyles.flexOne : undefined}
+        >
           {!this.isSmall() && (
             <Kb.Box2
               alignItems="center"
