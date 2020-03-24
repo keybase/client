@@ -6,7 +6,6 @@ import {Props} from './you-rekey'
 const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
   return (
     <Kb.Box2 direction="vertical">
-      <Kb.HeaderHocHeader onBack={onBack} />
       <Kb.Banner color="red">
         <Kb.BannerParagraph bannerColor="red" content="This conversation needs to be rekeyed." />
       </Kb.Banner>
@@ -37,6 +36,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'stretch',
         flex: 1,
         justifyContent: 'flex-start',
+        padding: Styles.globalMargins.small,
       },
       text: {
         marginBottom: Styles.globalMargins.large,

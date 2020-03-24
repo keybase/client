@@ -90,4 +90,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default HeaderHoc(ParticipantRekey)
+export default ParticipantRekey
