@@ -20,6 +20,7 @@ type nameInfoOverride int
 type localizerCancelableKeyTyp int
 type messageSkipsKeyTyp int
 type unboxModeKeyTyp int
+type emojiHarvesterKeyTyp int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -31,6 +32,7 @@ var nameInfoOverrideKey nameInfoOverride
 var localizerCancelableKey localizerCancelableKeyTyp
 var messageSkipsKey messageSkipsKeyTyp
 var unboxModeKey unboxModeKeyTyp
+var emojiHarvesterKey emojiHarvesterKeyTyp
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -203,6 +205,18 @@ func CtxRemoveLocalizerCancelable(ctx context.Context) context.Context {
 	return ctx
 }
 
+func IsEmojiHarvesterCtx(ctx context.Context) bool {
+	val := ctx.Value(emojiHarvesterKey)
+	if bval, ok := val.(bool); ok && bval {
+		return true
+	}
+	return false
+}
+
+func CtxMakeEmojiHarvester(ctx context.Context) context.Context {
+	return context.WithValue(ctx, emojiHarvesterKey, true)
+}
+
 func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier) context.Context {
 	if breaks == nil {
@@ -265,6 +279,9 @@ func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 	rctx = libkb.WithLogTag(rctx, "CHTBKG")
 	if IsLocalizerCancelableCtx(sourceCtx) {
 		rctx = CtxAddLocalizerCancelable(rctx)
+	}
+	if IsEmojiHarvesterCtx(sourceCtx) {
+		rctx = CtxMakeEmojiHarvester(rctx)
 	}
 	return rctx
 }

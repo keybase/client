@@ -304,26 +304,10 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	}, nil
 }
 
-type harvestOperationKey int
-
-var harvestOpKey harvestOperationKey
-
-func (s *DevConvEmojiSource) makeEmojiHarvestContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, harvestOpKey, true)
-}
-
-func (s *DevConvEmojiSource) isHarvestContext(ctx context.Context) bool {
-	val := ctx.Value(harvestOpKey)
-	if _, ok := val.(bool); ok {
-		return true
-	}
-	return false
-}
-
 func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
 	convID chat1.ConversationID, crossTeams map[string]chat1.HarvestedEmoji,
 	mode types.EmojiSourceHarvestMode) (res []chat1.HarvestedEmoji, err error) {
-	if s.isHarvestContext(ctx) {
+	if globals.IsEmojiHarvesterCtx(ctx) {
 		s.Debug(ctx, "Harvest: in an existing harvest context, bailing")
 		return nil, nil
 	}
@@ -331,7 +315,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	if len(matches) == 0 {
 		return nil, nil
 	}
-	ctx = s.makeEmojiHarvestContext(ctx)
+	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
 	emojis, _, err := s.getNoSet(ctx, uid, &convID)
