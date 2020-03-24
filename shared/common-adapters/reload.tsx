@@ -5,7 +5,7 @@ import * as Styles from '../styles'
 import * as Constants from '../constants/waiting'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {Box2} from './box'
-import HeaderHoc from './header-hoc'
+import {HeaderHocHeader} from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
@@ -17,6 +17,7 @@ import {feedbackTab} from '../constants/settings'
 const Kb = {
   Box2,
   Button,
+  HeaderHocHeader,
   Icon,
   ScrollView,
   Text,
@@ -35,31 +36,34 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
     return (
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
-        <Kb.Icon type="icon-illustration-zen-240-180" />
-        <Kb.Text center={true} type="Header">
-          We're having a hard time loading this page.
-        </Kb.Text>
-        {this.state.expanded && (
-          <Kb.ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
-            <Kb.Text type="Terminal" style={styles.details}>
-              {this.props.reason}
-            </Kb.Text>
-          </Kb.ScrollView>
+      <Kb.Box2 direction="vertical">
+        {Styles.isMobile && this.props.onBack && (
+          <Kb.HeaderHocHeader onBack={this.props.onBack} title={this.props.title} />
         )}
-        <Kb.Text type="BodySecondaryLink" onClick={this._toggle}>
-          {this.state.expanded ? 'Hide details' : 'Show details'}
-        </Kb.Text>
-        <Kb.Box2 direction="horizontal" gap="tiny">
-          <Kb.Button label="Retry" mode="Secondary" onClick={this.props.onReload} />
-          <Kb.Button label="Feedback" mode="Primary" onClick={this.props.onFeedback} />
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
+          <Kb.Icon type="icon-illustration-zen-240-180" />
+          <Kb.Text center={true} type="Header">
+            We're having a hard time loading this page.
+          </Kb.Text>
+          {this.state.expanded && (
+            <Kb.ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
+              <Kb.Text type="Terminal" style={styles.details}>
+                {this.props.reason}
+              </Kb.Text>
+            </Kb.ScrollView>
+          )}
+          <Kb.Text type="BodySecondaryLink" onClick={this._toggle}>
+            {this.state.expanded ? 'Hide details' : 'Show details'}
+          </Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="tiny">
+            <Kb.Button label="Retry" mode="Secondary" onClick={this.props.onReload} />
+            <Kb.Button label="Feedback" mode="Primary" onClick={this.props.onFeedback} />
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
   }
 }
-
-const ReloadWithHeader = HeaderHoc(Reload)
 
 export type Props = {
   children: React.ReactNode
@@ -81,16 +85,13 @@ class Reloadable extends React.PureComponent<Props> {
     if (!this.props.needsReload) {
       return this.props.children
     }
-    return this.props.onBack ? (
-      <ReloadWithHeader
+    return (
+      <Reload
         onBack={this.props.onBack}
-        onFeedback={this.props.onFeedback}
         onReload={this.props.onReload}
+        onFeedback={this.props.onFeedback}
         reason={this.props.reason}
-        title={this.props.title}
       />
-    ) : (
-      <Reload onReload={this.props.onReload} onFeedback={this.props.onFeedback} reason={this.props.reason} />
     )
   }
 }
