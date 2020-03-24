@@ -60,8 +60,8 @@ func (o EmailInvites) DeepCopy() EmailInvites {
 }
 
 type InvitePeopleArg struct {
-	Emails EmailInvites     `codec:"emails" json:"emails"`
-	Phones []RawPhoneNumber `codec:"phones" json:"phones"`
+	Emails EmailInvites  `codec:"emails" json:"emails"`
+	Phones []PhoneNumber `codec:"phones" json:"phones"`
 }
 
 type GetInviteCountsArg struct {
