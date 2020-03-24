@@ -298,7 +298,8 @@ func imptofuQueryToAssertion(ctx context.Context, typ, val string) (ret libkb.As
 	return ret, err
 }
 
-type tofuQueryResult struct {
+// Search result coming from `searchEmailsOrPhoneNumbers`.
+type imptofuQueryResult struct {
 	input      string
 	validInput bool
 	assertion  libkb.AssertionURL
@@ -311,8 +312,8 @@ type tofuQueryResult struct {
 }
 
 type searchEmailsOrPhoneNumbersResult struct {
-	emails       []tofuQueryResult
-	phoneNumbers []tofuQueryResult
+	emails       []imptofuQueryResult
+	phoneNumbers []imptofuQueryResult
 }
 
 func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
@@ -323,7 +324,7 @@ func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, e
 	// actually yield a valid assertions, but return all of them in results
 	// from this function.
 	emailsToSearch := make([]keybase1.EmailAddress, 0, len(emails))
-	emailRes := make([]tofuQueryResult, len(emails))
+	emailRes := make([]imptofuQueryResult, len(emails))
 	for i, email := range emails {
 		emailRes[i].input = string(email)
 		assertion, err := imptofuQueryToAssertion(mctx.Ctx(), "email", string(email))
@@ -337,7 +338,7 @@ func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, e
 	}
 
 	phonesToSearch := make([]keybase1.RawPhoneNumber, 0, len(phoneNumbers))
-	phoneRes := make([]tofuQueryResult, len(phoneNumbers))
+	phoneRes := make([]imptofuQueryResult, len(phoneNumbers))
 	for i, phone := range phoneNumbers {
 		phoneRes[i].input = string(phone)
 		assertion, err := imptofuQueryToAssertion(mctx.Ctx(), "phone", string(phone))
@@ -389,7 +390,7 @@ func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, e
 		}
 	}
 
-	copyResult := func(slice []tofuQueryResult, index int, result contacts.ContactLookupResult) {
+	copyResult := func(slice []imptofuQueryResult, index int, result contacts.ContactLookupResult) {
 		if result.Error != "" || result.UID.IsNil() {
 			return
 		}
@@ -721,21 +722,26 @@ func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
 	// Caller shouldn't care about the ordering here, we are mixing everything
 	// together and returning as one list.
 	all := append(searchRet.emails, searchRet.phoneNumbers...)
-	ret = make([]keybase1.EmailOrPhoneNumberSearchResult, len(all))
-	for i, result := range all {
-		outRet := keybase1.EmailOrPhoneNumberSearchResult{
+	ret = make([]keybase1.EmailOrPhoneNumberSearchResult, 0, len(all))
+	for _, result := range all {
+		if !result.validInput {
+			continue
+		}
+
+		// Localize result to keybase1 type.
+		locRes := keybase1.EmailOrPhoneNumberSearchResult{
 			Input:          result.input,
 			Assertion:      result.assertion.String(),
 			AssertionKey:   result.assertion.GetKey(),
 			AssertionValue: result.assertion.GetValue(),
 		}
 		if result.found && result.username != "" {
-			outRet.FoundUser = result.found
-			outRet.Username = result.username
-			outRet.FullName = result.fullName
+			locRes.FoundUser = result.found
+			locRes.Username = result.username
+			locRes.FullName = result.fullName
 		}
 
-		ret[i] = outRet
+		ret = append(ret, locRes)
 	}
 
 	return ret, nil

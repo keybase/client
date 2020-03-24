@@ -879,17 +879,52 @@ func TestBulkEmailSearch(t *testing.T) {
 	}
 
 	ret, err := searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
-		Emails: "alice@example.org, bob@example.com, no-reply@keybase.example.com\ntest@example.edu",
+		Emails: query,
 	})
 
 	require.NoError(t, err)
 	for i, v := range ret {
+		require.Equal(t, v.Assertion, fmt.Sprintf("[%s]@email", emails[i]))
 		require.Equal(t, v.AssertionKey, "email")
 		require.Equal(t, v.AssertionValue, emails[i])
-		require.Equal(t, v.Assertion, fmt.Sprintf("[%s]@email", emails[i]))
 
 		require.False(t, v.FoundUser)
 		require.Empty(t, v.Username)
 		require.Empty(t, v.FullName)
 	}
+}
+
+func TestBulkEmailSearchBadInput(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	emails := "alice@example.org, alice, x\n,  ,\n"
+	ret, err := searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		Emails: emails,
+	})
+
+	require.NoError(t, err)
+	require.Len(t, ret, 1) // there was only one valid email in there
+	require.Equal(t, ret[0].Input, "alice@example.org")
+	require.Equal(t, ret[0].Assertion, "[alice@example.org]@email")
+	require.Equal(t, ret[0].AssertionValue, "alice@example.org")
+	require.Equal(t, ret[0].AssertionKey, "email")
+	require.Equal(t, ret[0].FoundUser, false)
+	require.Equal(t, ret[0].Username, "")
+	require.Equal(t, ret[0].FullName, "")
+
+	ret, err = searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		PhoneNumbers: []keybase1.PhoneNumber{"+1", "00"},
+	})
+
+	require.NoError(t, err)
+	require.Len(t, ret, 0)
 }
