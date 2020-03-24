@@ -88,7 +88,7 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
-            ...(isPhone
+            ...(Styles.isPhone
               ? [
                   {
                     badgeNumber: badgeNumbers.get(TabConstants.walletsTab),

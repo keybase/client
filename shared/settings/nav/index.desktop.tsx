@@ -1,14 +1,27 @@
 import * as React from 'react'
 import * as Constants from '../../constants/settings'
 import * as Styles from '../../styles'
-import {Box} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import SettingsItem from './settings-item'
 import * as Tabs from '../../constants/tabs'
 import {Props} from './index'
 
 const SettingsNav = (props: Props) => {
   return (
-    <Box style={styles.container}>
+    <Kb.Box style={styles.container}>
+      <SettingsItem
+        text="Git"
+        selected={props.selectedTab === Constants.gitTab}
+        onClick={() => props.onTabChange(Constants.gitTab)}
+        badgeNumber={props.badgeNumbers.get(Tabs.gitTab)}
+      />
+      <SettingsItem
+        text="Devices"
+        selected={props.selectedTab === Constants.devicesTab}
+        onClick={() => props.onTabChange(Constants.devicesTab)}
+        badgeNumber={props.badgeNumbers.get(Tabs.devicesTab)}
+      />
+      <Kb.SectionDivider label="Settings" />
       <SettingsItem
         text="Your account"
         selected={props.selectedTab === Constants.accountTab}
@@ -53,7 +66,7 @@ const SettingsNav = (props: Props) => {
       {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
       <SettingsItem text="Sign out" selected={false} onClick={() => props.onTabChange(Constants.logOutTab)} />
-    </Box>
+    </Kb.Box>
   )
 }
 

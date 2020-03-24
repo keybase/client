@@ -99,7 +99,14 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   </Kb.NativeView>
 )
 
-const settingsTabChildren: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab]
+const settingsTabChildrenPhone: Array<Tabs.Tab> = [
+  Tabs.gitTab,
+  Tabs.devicesTab,
+  Tabs.walletsTab,
+  Tabs.settingsTab,
+]
+const settingsTabChildrenTablet: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
 
 type OwnProps = {focused: boolean; routeName: Tabs.Tab}
 const ConnectedTabBarIcon = connect(

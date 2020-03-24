@@ -46,8 +46,6 @@ const desktopTabOrder: Array<AppTab> = [
   cryptoTab,
   teamsTab,
   walletsTab,
-  gitTab,
-  devicesTab,
   settingsTab,
 ]
 
@@ -61,7 +59,7 @@ function isValidInitialTabString(tab: string | null) {
   if (isMobile) {
     return ([peopleTab, chatTab, teamsTab, settingsTab, fsTab] as Tab[]).includes(tab as Tab)
   } else {
-    return [peopleTab, chatTab, folderTab, teamsTab, devicesTab, settingsTab].includes(tab as Tab)
+    return [peopleTab, chatTab, folderTab, teamsTab, settingsTab].includes(tab as Tab)
   }
 }
 
