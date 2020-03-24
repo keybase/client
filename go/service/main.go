@@ -39,6 +39,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
+	"github.com/keybase/client/go/invitefriends"
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -182,6 +183,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.ContactsProtocol(NewContactsHandler(xp, g, contactsProv)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
+		keybase1.InviteFriendsProtocol(NewInviteFriendsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
 		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, contactsProv)),
@@ -378,6 +380,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundBoxAuditRetry()
 	d.runBackgroundBoxAuditScheduler()
 	d.runBackgroundContactSync()
+	d.runBackgroundInviteFriendsPoll()
 	d.runTLFUpgrade()
 	d.runTrackerLoader(ctx)
 	d.runRuntimeStats(ctx)
@@ -385,6 +388,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
 	d.startInstallReferrerListener(d.MetaContext(ctx))
+	d.runInitializeInviteFriendsCounts(ctx)
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
@@ -587,6 +591,24 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 	}
 
 	d.G().PushShutdownHook(eng.Shutdown)
+}
+
+func (d *Service) runInitializeInviteFriendsCounts(ctx context.Context) {
+	go d.runInitializeInviteFriendsCountsInner(ctx)
+}
+func (d *Service) runInitializeInviteFriendsCountsInner(ctx context.Context) {
+	mctx := libkb.NewMetaContext(ctx, d.G())
+
+	if !mctx.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
+		mctx.Debug("Failed to wait for GUI to startup; not initializing invite counts")
+		return
+	}
+	counts, err := invitefriends.GetCounts(mctx)
+	if err != nil {
+		mctx.Debug("failed to initialize invitecounts: %s")
+		return
+	}
+	mctx.G().NotifyRouter.HandleUpdateInviteCounts(mctx.Ctx(), counts)
 }
 
 func (d *Service) startupGregor() {
@@ -902,6 +924,23 @@ func (d *Service) runBackgroundContactSync() {
 
 	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping background ContactSync")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundInviteFriendsPoll() {
+	eng := engine.NewInviteFriendsPollBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background InviteFriendsPoll error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
+		d.G().Log.Debug("stopping background InviteFriendsPoll")
 		eng.Shutdown()
 		return nil
 	})

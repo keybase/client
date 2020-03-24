@@ -21,6 +21,10 @@
         },
         {
           "type": "boolean",
+          "name": "showNumInvites"
+        },
+        {
+          "type": "boolean",
           "name": "showFire"
         }
       ]
@@ -60,7 +64,7 @@
           "name": "phones",
           "type": {
             "type": "array",
-            "items": "RawPhoneNumber"
+            "items": "PhoneNumber"
           }
         }
       ],

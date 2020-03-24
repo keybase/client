@@ -787,6 +787,18 @@ func (s *SimpleFSHandler) SimpleFSSetSfmiBannerDismissed(ctx context.Context, di
 	return cli.SimpleFSSetSfmiBannerDismissed(ctx, dismissed)
 }
 
+// SimpleFSSetSfmiBannerDismissed implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSetSyncOnCellular(
+	ctx context.Context, syncOnCellular bool) error {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSSetSyncOnCellular(ctx, syncOnCellular)
+}
+
 // SimpleFSSearch implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSearch(
 	ctx context.Context, arg keybase1.SimpleFSSearchArg) (

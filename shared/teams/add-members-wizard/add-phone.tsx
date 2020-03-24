@@ -57,6 +57,7 @@ const AddPhone = () => {
               defaultCountry={defaultCountry}
               onChangeNumber={(phoneNumber, valid) => setPhoneNumber(idx, phoneNumber, valid)}
               onClear={phoneNumbers.length === 1 ? undefined : () => removePhoneNumber(idx)}
+              small={true}
             />
           ))}
           <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />

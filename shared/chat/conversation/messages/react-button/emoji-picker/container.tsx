@@ -7,8 +7,10 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
+import * as Data from './data'
+import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
-import EmojiPicker from '.'
+import EmojiPicker, {addSkinToneIfAvailable} from '.'
 
 type Props = {
   onDidPick: () => void
@@ -73,6 +75,7 @@ const WrapperMobile = (props: Props) => {
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
+  const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
@@ -98,7 +101,15 @@ const WrapperMobile = (props: Props) => {
         skinTone={currentSkinTone}
       />
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.footerContainer}>
-        <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
+        <SkinTonePicker
+          currentSkinTone={currentSkinTone}
+          onExpandChange={setSkinTonePickerExpanded}
+          setSkinTone={setSkinTone}
+        />
+        <Kb.Box style={Styles.globalStyles.flexOne} />
+        {!skinTonePickerExpanded && (
+          <Kb.Button mode="Secondary" small={true} label="Add emoji" style={styles.addEmojiButton} />
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -107,6 +118,7 @@ const WrapperMobile = (props: Props) => {
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<Data.EmojiData>(Data.defaultHoverEmoji)
   return (
     <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
       <Kb.Box2
@@ -130,18 +142,29 @@ export const EmojiPickerDesktop = (props: Props) => {
           topReacjis={topReacjis}
           filter={filter}
           onChoose={onAddReaction}
+          onHover={setHoveredEmoji}
           width={336}
           skinTone={currentSkinTone}
         />
       </Kb.Box>
-      {/* TODO
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
         style={styles.footerContainer}
-      ></Kb.Box2>
-      */}
+        gap="small"
+      >
+        <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
+        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+          <Kb.Text type="BodyBig" lineClamp={1}>
+            {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+          </Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.Button mode="Secondary" label="Add emoji" style={styles.addEmojiButton} />
+      </Kb.Box2>
     </Kb.Box>
   )
 }
@@ -149,6 +172,18 @@ export const EmojiPickerDesktop = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addEmojiButton: Styles.platformStyles({
+        common: {
+          // TODO: enable this once we have the "add emoji" modal.
+          display: 'none',
+        },
+        isElectron: {
+          width: 88,
+        },
+        isMobile: {
+          width: 104,
+        },
+      }),
       cancelContainerMobile: {
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.small,
@@ -157,14 +192,15 @@ const styles = Styles.styleSheetCreate(
       containerDesktop: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,
+        height: 561,
+        maxWidth: 336,
+        minHeight: 561,
+        width: 336,
       },
       emojiContainer: {
         flex: 1,
         flexGrow: 1,
-        height: 443,
-        minHeight: 443,
         overflow: 'hidden',
-        width: 336,
       },
       footerContainer: Styles.platformStyles({
         common: {

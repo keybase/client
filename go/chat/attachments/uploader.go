@@ -468,6 +468,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		u.Debug(ctx, "upload: no pending preview, generating one: %s", err)
 		if pre, err = PreprocessAsset(ctx, u.G(), u.DebugLabeler, src, filename, u.G().NativeVideoHelper,
 			callerPreview); err != nil {
+			u.Debug(ctx, "upload: failed to preprocess: %s", err)
 			return res, err
 		}
 		if pre.Preview != nil {

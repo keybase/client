@@ -9,6 +9,8 @@ import {isRemoteDebuggerAttached, isMobile} from '../constants/platform'
 const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
 
+rpc.pack.set_opt('encode_lib', '@msgpack/msgpack')
+
 // We basically always log/ensure once all the calls back and forth
 function _wrap<A1, A2, A3, A4, A5, F extends (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => void>(options: {
   handler: F

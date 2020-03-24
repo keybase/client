@@ -145,6 +145,12 @@ type settingsDBGetter interface {
 	GetSettingsDB() *SettingsDB
 }
 
+type subscriptionManagerGetter interface {
+	// SubscriptionManager returns a subscription manager that can be used to
+	// subscribe to events.
+	SubscriptionManager() SubscriptionManager
+}
+
 type subscriptionManagerPublisherGetter interface {
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
@@ -2124,6 +2130,11 @@ type SubscriptionManagerPublisher interface {
 	PublishChange(topic keybase1.SubscriptionTopic)
 }
 
+type kbContextGetter interface {
+	// KbContext returns the Keybase Context.
+	KbContext() Context
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -2307,16 +2318,15 @@ type Config interface {
 	// "mobile", "vlog1", "vlog2", etc.
 	VLogLevel() string
 
-	// SubscriptionManager returns a subscription manager that can be used to
-	// subscribe to events.
-	SubscriptionManager() SubscriptionManager
+	subscriptionManagerGetter
+
 	// SubscriptionManagerPublisher retursn a publisher that can be used to
 	// publish events to the subscription manager.
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 	// KbEnv returns the *libkb.Env.
 	KbEnv() *libkb.Env
-	// KbContext returns the Keybase Context.
-	KbContext() Context
+
+	kbContextGetter
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

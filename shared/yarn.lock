@@ -6262,15 +6262,19 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-"framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#nojima/HOTPOT-msgpack-js-impl":
-  version "1.1.18"
-  resolved "git://github.com/keybase/node-framed-msgpack-rpc#875159e0a8092c9f673bc68a796a843e093400a0"
+"framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#master":
+  version "1.1.21"
+  resolved "git://github.com/keybase/node-framed-msgpack-rpc#672d29ac4b3f0826e5fb8572bfd5c71dd7c74c66"
   dependencies:
-    "@msgpack/msgpack" "1.9.3"
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
+    pako "^1.0.11"
     path-parse "^1.0.6"
+    typedarray-to-buffer "^3.1.5"
+  optionalDependencies:
+    "@msgpack/msgpack" "1.9.3"
+    purepack ">=1"
 
 fresh@0.5.2:
   version "0.5.2"
@@ -9329,7 +9333,7 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
+"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", purepack@>=1, "purepack@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
   version "0.0.0"
   resolved "git://github.com/keybase/nullModule#e0d7d7874eb4d1fd82056f92f146589186fe94f0"
 
@@ -9960,6 +9964,11 @@ pako@^1.0.0, pako@~1.0.5:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.10.tgz#4328badb5086a426aa90f541977d4955da5c9732"
   integrity sha512-0DTvPVU3ed8+HNXOu5Bs+o//Mbdj9VNQMUOe9oKCwh8l0GNwpTDMKCWbRjgtD291AWnkAgkqA/LOnQS8AmS1tw==
+
+pako@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.11.tgz#6c9599d340d54dfd3946380252a35705a6b992bf"
+  integrity sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==
 
 parallel-transform@^1.1.0:
   version "1.2.0"
@@ -13233,7 +13242,7 @@ typed-styles@^0.0.7:
   resolved "https://registry.yarnpkg.com/typed-styles/-/typed-styles-0.0.7.tgz#93392a008794c4595119ff62dde6809dbc40a3d9"
   integrity sha512-pzP0PWoZUhsECYjABgCGQlRGL1n7tOHsgwYv3oIiEpJwGhFTuty/YNeduxQYzXXa3Ge5BdT6sHYIQYpl4uJ+5Q==
 
-typedarray-to-buffer@3.1.5:
+typedarray-to-buffer@3.1.5, typedarray-to-buffer@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/typedarray-to-buffer/-/typedarray-to-buffer-3.1.5.tgz#a97ee7a9ff42691b9f783ff1bc5112fe3fca9080"
   integrity sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
