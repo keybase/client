@@ -48,7 +48,15 @@ const ExternalTeam = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
       {waiting ? (
-        <Kb.ProgressIndicator />
+        <Kb.Box2
+          direction="horizontal"
+          gap={Styles.isMobile ? 'small' : 'tiny'}
+          fullWidth={true}
+          alignItems="center"
+        >
+          <Kb.ProgressIndicator />
+          <Kb.Text type="BodySmall">Loading team...</Kb.Text>
+        </Kb.Box2>
       ) : (
         <Kb.Text type="Body" style={styles.error}>
           This team does not exist or it has no public information available.
