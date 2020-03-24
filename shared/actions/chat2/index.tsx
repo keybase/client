@@ -272,8 +272,9 @@ const maybeChangeSelectedConv = (
       })
     } else {
       logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-      return Chat2Gen.createSelectedConversation({
+      return Chat2Gen.createNavigateToThread({
         conversationIDKey: Constants.noConversationIDKey,
+        reason: 'findNewestConversation',
       })
     }
   } else {
@@ -2691,6 +2692,7 @@ function* hideConversation(
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
   yield Saga.put(Chat2Gen.createNavigateToInbox())
+  yield Saga.put(Chat2Gen.createShowInfoPanel({show: false}))
   try {
     yield RPCChatTypes.localSetConversationStatusLocalRpcPromise(
       {
