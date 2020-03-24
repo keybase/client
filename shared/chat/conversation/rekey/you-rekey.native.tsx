@@ -1,15 +1,17 @@
 import * as React from 'react'
-import {Box, Text, Button, StandardScreen} from '../../../common-adapters/mobile.native'
+import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import {Props} from './you-rekey'
 
 const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
-  const notification = {message: 'This conversation needs to be rekeyed.', type: 'error' as const}
-
   return (
-    <StandardScreen onBack={onBack} theme="dark" notification={notification}>
-      <Box style={styles.container}>
-        <Box
+    <Kb.Box2 direction="vertical">
+      <Kb.HeaderHocHeader onBack={onBack} />
+      <Kb.Banner color="red">
+        <Kb.BannerParagraph bannerColor="red" content="This conversation needs to be rekeyed." />
+      </Kb.Banner>
+      <Kb.Box style={styles.container}>
+        <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
             alignItems: 'stretch',
@@ -17,13 +19,13 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
             justifyContent: 'center',
           }}
         >
-          <Text center={true} type="BodySmall" style={styles.text} negative={true}>
+          <Kb.Text center={true} type="BodySmall" style={styles.text} negative={true}>
             To unlock this conversation, open one of your other devices or enter a paperkey.
-          </Text>
-          <Button onClick={onEnterPaperkey} label="Enter a paper key" />
-        </Box>
-      </Box>
-    </StandardScreen>
+          </Kb.Text>
+          <Kb.Button onClick={onEnterPaperkey} label="Enter a paper key" />
+        </Kb.Box>
+      </Kb.Box>
+    </Kb.Box2>
   )
 }
 

@@ -280,9 +280,6 @@ module.exports = {
   get SimpleToast() {
     return require('./simple-toast').default
   },
-  get StandardScreen() {
-    return require('./standard-screen').default
-  },
   get Switch() {
     return require('./switch').default
   },

@@ -38,7 +38,6 @@ import richbutton from './rich-button.stories'
 import saveIndicator from './save-indicator.stories'
 import searchFilter from './search-filter.stories'
 import sectionList from './section-list.stories'
-import standardScreen from './standard-screen.stories'
 import switchStories from './switch.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
@@ -89,7 +88,6 @@ const load = () => {
     saveIndicator,
     searchFilter,
     sectionList,
-    standardScreen,
     switchStories,
     text,
     tooltip,
