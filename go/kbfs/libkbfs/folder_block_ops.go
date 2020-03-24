@@ -872,6 +872,10 @@ func (fbo *folderBlockOps) deepCopyFileLocked(
 	return fd.DeepCopy(ctx, dataVer)
 }
 
+func (fbo *folderBlockOps) cacheHashBehavior() data.BlockCacheHashBehavior {
+	return cacheHashBehavior(fbo.config, fbo.id())
+}
+
 func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	lState *kbfssync.LockState, kmd libkey.KeyMetadata, file data.Path, bps blockPutState,
 	dirtyBcache data.DirtyBlockCacheSimple, topBlock *data.FileBlock) (
@@ -885,7 +889,7 @@ func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	fd := fbo.newFileDataWithCache(
 		lState, file, chargedTo, kmd, dirtyBcache)
 	return fd.UndupChildrenInCopy(ctx, fbo.config.BlockCache(),
-		fbo.config.BlockOps(), bps, topBlock)
+		fbo.config.BlockOps(), bps, topBlock, fbo.cacheHashBehavior())
 }
 
 func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
@@ -902,7 +906,7 @@ func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	fd := fbo.newFileDataWithCache(
 		lState, file, chargedTo, kmd, dirtyBcache)
 	return fd.ReadyNonLeafBlocksInCopy(ctx, fbo.config.BlockCache(),
-		fbo.config.BlockOps(), bps, topBlock)
+		fbo.config.BlockOps(), bps, topBlock, fbo.cacheHashBehavior())
 }
 
 // getDirLocked retrieves the block pointed to by the tail pointer of
@@ -2810,7 +2814,8 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 
 	// Ready all children blocks, if any.
 	oldPtrs, err := fd.Ready(ctx, fbo.id(), fbo.config.BlockCache(),
-		fbo.config.DirtyBlockCache(), fbo.config.BlockOps(), si.bps, fblock, df)
+		fbo.config.DirtyBlockCache(), fbo.config.BlockOps(), si.bps, fblock, df,
+		fbo.cacheHashBehavior())
 	if err != nil {
 		return nil, nil, syncState, nil, err
 	}
