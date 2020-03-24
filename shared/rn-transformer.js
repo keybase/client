@@ -2,7 +2,6 @@
 const upstreamTransformer = require('metro-react-native-babel-transformer')
 
 module.exports.transform = function(p) {
-  // console.log('aaa', p.filename)
   if (p.filename.endsWith('css')) {
     return upstreamTransformer.transform({
       filename: p.filename,
