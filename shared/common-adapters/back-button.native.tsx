@@ -40,6 +40,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     marginRight: 8,
+    minWidth: 32,
     padding: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.small,
