@@ -149,7 +149,9 @@ const dismissWotNotifications = async (action: PeopleGen.DismissWotNotifications
 }
 
 const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  PeopleGen.createBadgeAppForWotNotifications({updates: action.payload.badgeState.wotUpdates || {}})
+  PeopleGen.createBadgeAppForWotNotifications({
+    updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
+  })
 
 const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload) => {
   await RPCTypes.homeHomeDismissAnnouncementRpcPromise({

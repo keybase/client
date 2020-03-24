@@ -18,7 +18,7 @@ const initialState: Types.State = {
   resentEmail: '',
   teamBuilding: TeamBuildingConstants.makeSubState(),
   version: -1,
-  wotUpdates: new Map(),
+  wotUpdates: new Map<string, Types.WotUpdate>(),
 }
 
 type Actions =
