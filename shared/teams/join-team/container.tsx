@@ -4,11 +4,12 @@ import JoinTeam from '.'
 import upperFirst from 'lodash/upperFirst'
 import * as Container from '../../util/container'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps<{initialTeamname?: string}>
 
 export default Container.connect(
-  state => ({
+  (state, ownProps: OwnProps) => ({
     errorText: upperFirst(state.teams.errorInTeamJoin),
+    initialTeamname: Container.getRouteProps(ownProps, 'initialTeamname', undefined),
     open: state.teams.teamJoinSuccessOpen,
     success: state.teams.teamJoinSuccess,
     successTeamName: state.teams.teamJoinSuccessTeamName,
@@ -17,5 +18,5 @@ export default Container.connect(
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+  (s, d) => ({...s, ...d})
 )(JoinTeam)
