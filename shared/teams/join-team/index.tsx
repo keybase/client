@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   errorText: string
+  initialTeamname?: string
   open: boolean
   success: boolean
   successTeamName: string | null
@@ -14,7 +15,7 @@ export type Props = {
 }
 
 const JoinTeam = (props: Props) => {
-  const [name, _setName] = React.useState('')
+  const [name, _setName] = React.useState(props.initialTeamname ?? '')
   const setName = (n: string) => _setName(n.toLowerCase())
   const dispatch = Container.useDispatch()
 

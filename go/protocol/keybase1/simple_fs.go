@@ -1293,12 +1293,14 @@ func (e KbfsOnlineStatus) String() string {
 type FSSettings struct {
 	SpaceAvailableNotificationThreshold int64 `codec:"spaceAvailableNotificationThreshold" json:"spaceAvailableNotificationThreshold"`
 	SfmiBannerDismissed                 bool  `codec:"sfmiBannerDismissed" json:"sfmiBannerDismissed"`
+	SyncOnCellular                      bool  `codec:"syncOnCellular" json:"syncOnCellular"`
 }
 
 func (o FSSettings) DeepCopy() FSSettings {
 	return FSSettings{
 		SpaceAvailableNotificationThreshold: o.SpaceAvailableNotificationThreshold,
 		SfmiBannerDismissed:                 o.SfmiBannerDismissed,
+		SyncOnCellular:                      o.SyncOnCellular,
 	}
 }
 
@@ -1870,6 +1872,10 @@ type SimpleFSSetSfmiBannerDismissedArg struct {
 	Dismissed bool `codec:"dismissed" json:"dismissed"`
 }
 
+type SimpleFSSetSyncOnCellularArg struct {
+	SyncOnCellular bool `codec:"syncOnCellular" json:"syncOnCellular"`
+}
+
 type SimpleFSObfuscatePathArg struct {
 	Path Path `codec:"path" json:"path"`
 }
@@ -2084,6 +2090,7 @@ type SimpleFSInterface interface {
 	SimpleFSSettings(context.Context) (FSSettings, error)
 	SimpleFSSetNotificationThreshold(context.Context, int64) error
 	SimpleFSSetSfmiBannerDismissed(context.Context, bool) error
+	SimpleFSSetSyncOnCellular(context.Context, bool) error
 	SimpleFSObfuscatePath(context.Context, Path) (string, error)
 	SimpleFSDeobfuscatePath(context.Context, Path) ([]string, error)
 	SimpleFSGetStats(context.Context) (SimpleFSStats, error)
@@ -2729,6 +2736,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSSetSyncOnCellular": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSetSyncOnCellularArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSetSyncOnCellularArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSetSyncOnCellularArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSSetSyncOnCellular(ctx, typedArgs[0].SyncOnCellular)
+					return
+				},
+			},
 			"simpleFSObfuscatePath": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSObfuscatePathArg
@@ -3364,6 +3386,12 @@ func (c SimpleFSClient) SimpleFSSetNotificationThreshold(ctx context.Context, th
 func (c SimpleFSClient) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismissed bool) (err error) {
 	__arg := SimpleFSSetSfmiBannerDismissedArg{Dismissed: dismissed}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSetSyncOnCellular(ctx context.Context, syncOnCellular bool) (err error) {
+	__arg := SimpleFSSetSyncOnCellularArg{SyncOnCellular: syncOnCellular}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetSyncOnCellular", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

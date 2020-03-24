@@ -6,6 +6,7 @@ protocol inviteFriends {
   record InviteCounts {
     int inviteCount; // Number of invites in the last 24 hours
     double percentageChange; // vs the previous 24 hours
+    boolean showNumInvites;
     boolean showFire; // Are keybase servers on fire?
   }
 
@@ -15,8 +16,6 @@ protocol inviteFriends {
   }
 
   // returns the number of people invited
-  int invitePeople(EmailInvites emails, array<RawPhoneNumber> phones);
-
+  int invitePeople(EmailInvites emails, array<PhoneNumber> phones);
   InviteCounts getInviteCounts();
-
 }

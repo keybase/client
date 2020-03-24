@@ -85,6 +85,24 @@ protocol api {
     array<KnownTeamMention> teamMentions;
   }
 
+  record EmojiContent {
+    string alias;
+    boolean isCrossTeam;
+    union { null, ConvIDStr } convID;
+    union { null, MessageID } messageID; 
+  }
+
+  record MsgTextContent {
+    string body;
+    array<TextPayment> payments;
+    union { null, MessageID } replyTo;
+    union { null, string } replyToUID;
+    array<KnownUserMention> userMentions;
+    array<KnownTeamMention> teamMentions;
+    union { null, LiveLocation } liveLocation;
+    array<EmojiContent> emojis;
+  }
+
   // MsgContent is used to retrieve the type name in addition to one of Text,
   // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
   // message.
@@ -93,7 +111,7 @@ protocol api {
     @jsonkey("type")
     string typeName;
     @jsonkey("text")
-    union { null, MessageText } text;
+    union { null, MsgTextContent } text;
     @jsonkey("attachment")
     union { null, MessageAttachment } attachment;
     @jsonkey("edit")

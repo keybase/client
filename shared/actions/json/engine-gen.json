@@ -394,6 +394,9 @@
         "keybase1NotifyFSFSSubscriptionNotify": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSubscriptionNotify']['outParam']) => void}"
         },
+        "keybase1NotifyInviteFriendsUpdateInviteCounts": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['outParam']) => void}"
+        },
         "keybase1NotifyKeyfamilyKeyfamilyChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['outParam']) => void}"
         },

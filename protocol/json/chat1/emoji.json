@@ -78,6 +78,10 @@
           "name": "alias"
         },
         {
+          "type": "boolean",
+          "name": "isCrossTeam"
+        },
+        {
           "type": "EmojiRemoteSource",
           "name": "source"
         }
@@ -90,6 +94,10 @@
         {
           "type": "string",
           "name": "alias"
+        },
+        {
+          "type": "boolean",
+          "name": "isCrossTeam"
         },
         {
           "type": "EmojiLoadSource",

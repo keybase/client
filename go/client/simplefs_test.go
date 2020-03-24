@@ -404,6 +404,11 @@ func (s SimpleFSMock) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismis
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSSetSyncOnCellular(
+	_ context.Context, _ bool) error {
+	return nil
+}
+
 func (s SimpleFSMock) SimpleFSSearch(
 	_ context.Context, _ keybase1.SimpleFSSearchArg) (
 	keybase1.SimpleFSSearchResults, error) {

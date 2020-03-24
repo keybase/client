@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"os"
 	"path/filepath"
@@ -173,15 +174,19 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	previous *AttachmentInfo, resumable bool, encryptedOut io.Writer) (asset chat1.Asset, err error) {
 	defer a.Trace(ctx, func() error { return err }, "uploadAsset")()
 	var encReader io.Reader
+	var ptHash hash.Hash
 	if previous != nil {
 		a.Debug(ctx, "uploadAsset: found previous upload for %s in conv %s", task.Filename,
 			task.ConversationID)
-		encReader, err = enc.EncryptResume(task.Plaintext, task.Nonce(), previous.EncKey, previous.SignKey, previous.VerifyKey)
+		encReader, err = enc.EncryptResume(task.Plaintext, task.Nonce(), previous.EncKey, previous.SignKey,
+			previous.VerifyKey)
 		if err != nil {
 			return chat1.Asset{}, err
 		}
 	} else {
-		encReader, err = enc.EncryptWithNonce(task.Plaintext, task.Nonce())
+		ptHash = sha256.New()
+		tee := io.TeeReader(task.Plaintext, ptHash)
+		encReader, err = enc.EncryptWithNonce(tee, task.Nonce())
 		if err != nil {
 			return chat1.Asset{}, err
 		}
@@ -229,11 +234,13 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 		EncHash:   hash.Sum(nil),
 		Nonce:     task.Nonce()[:],
 	}
-
+	if ptHash != nil {
+		// can only get this in the non-resume case
+		asset.PtHash = ptHash.Sum(nil)
+	}
 	if resumable {
 		a.finishUpload(ctx, task)
 	}
-
 	return asset, nil
 }
 
@@ -269,7 +276,9 @@ func (a *S3Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader,
 		decBody = dec.Decrypt(tee, asset.Key, asset.VerifyKey)
 	}
 
-	n, err := io.Copy(w, decBody)
+	ptHash := sha256.New()
+	tee = io.TeeReader(decBody, ptHash)
+	n, err := io.Copy(w, tee)
 	if err != nil {
 		return err
 	}
@@ -280,6 +289,10 @@ func (a *S3Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader,
 	// validate the EncHash
 	if !hmac.Equal(asset.EncHash, hash.Sum(nil)) {
 		return fmt.Errorf("invalid attachment content hash")
+	}
+	// validate pt hash if we have it
+	if asset.PtHash != nil && !hmac.Equal(asset.PtHash, ptHash.Sum(nil)) {
+		return fmt.Errorf("invalid attachment plaintext hash")
 	}
 	a.Debug(ctx, "DecryptAsset: attachment content hash is valid")
 	return nil

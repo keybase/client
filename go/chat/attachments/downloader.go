@@ -62,8 +62,7 @@ func Download(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	record := rpc.NewNetworkInstrumenter(g.ExternalG().RemoteNetworkInstrumenterStorage, "ChatAttachmentDownload")
 	defer func() { _ = record.RecordAndFinish(ctx, obj.Size) }()
 	fetcher := g.AttachmentURLSrv.GetAttachmentFetcher()
-	if err = fetcher.FetchAttachment(ctx, sink, convID, obj, ri,
-		NewS3Signer(ri), progress); err != nil {
+	if err = fetcher.FetchAttachment(ctx, sink, convID, obj, ri, NewS3Signer(ri), progress); err != nil {
 		sink.Close()
 		return err
 	}

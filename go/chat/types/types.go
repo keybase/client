@@ -381,6 +381,13 @@ type ParticipantResult struct {
 	Err  error
 }
 
+type EmojiSourceHarvestMode int
+
+const (
+	EmojiSourceHarvestModeOutbound EmojiSourceHarvestMode = iota
+	EmojiSourceHarvestModeInbound
+)
+
 type DummyAttachmentFetcher struct{}
 
 var _ AttachmentFetcher = (*DummyAttachmentFetcher)(nil)
@@ -792,9 +799,9 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 
 type DummyEmojiSource struct{}
 
-func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias,
-	filename string) error {
-	return nil
+func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	alias, filename string, topicNameSuffix *string) (res chat1.EmojiRemoteSource, err error) {
+	return res, err
 }
 func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error) {
 	return chat1.UserEmojis{}, nil
@@ -804,6 +811,7 @@ func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID) ([]chat1.HarvestedEmoji, error) {
-	return nil, nil
+	convID chat1.ConversationID, crossTeams map[string]chat1.HarvestedEmoji,
+	mode EmojiSourceHarvestMode) (res []chat1.HarvestedEmoji, err error) {
+	return res, err
 }
