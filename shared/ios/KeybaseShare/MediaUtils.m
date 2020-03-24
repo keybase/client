@@ -157,7 +157,7 @@
    */
   NSData * thumbnail = UIImageJPEGRepresentation([UIImage imageWithCGImage:cgOriginal], 0.85);
   BOOL OK = [thumbnail writeToURL:thumbnailURL atomically:true];
-  if (!OK) {
+  if (true || !OK) {
     completion([NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error getting thumbnail for video"}], nil, nil);
     return;
   }
