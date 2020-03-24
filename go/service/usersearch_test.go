@@ -728,6 +728,89 @@ func TestImptofuSearch(t *testing.T) {
 	require.Empty(t, emailRet.fullName)
 }
 
+func TestImptofuSearchMulti(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	mockContactsProv.PhoneNumbers["+48111222332"] = contacts.MakeMockLookupUser("alice", "Alice A")
+	mockContactsProv.PhoneNumbers["+1123456789"] = contacts.MakeMockLookupUser("lily", "")
+	mockContactsProv.Emails["bobby6@example.com"] = contacts.MakeMockLookupUser("bob", "Bobby")
+	mockContactsProv.Emails["bob@keyba.se"] = contacts.MakeMockLookupUser("bob", "Bobby")
+
+	ret, err := searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"bobby6@example.com", "bob@keyba.se", "alice@keyba.se", "alice"},
+		[]keybase1.RawPhoneNumber{"+48111222332", "+1123456789", "+44123123", "011"},
+		true, true)
+
+	require.NoError(t, err)
+
+	// Number of results is always equal to the number of inputs.
+	require.Len(t, ret.emails, 4)
+	require.Len(t, ret.phoneNumbers, 4)
+
+	for i, v := range ret.emails {
+		if i < 2 {
+			// "bobby6@example.com", "bob@keyba.se"
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.True(t, v.found)
+			require.True(t, v.UID.Exists())
+			require.Equal(t, v.username, "bob")
+			require.Equal(t, v.fullName, "Bobby")
+		} else if i == 2 {
+			// "alice@keyba.se"
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		} else if i == 3 {
+			// "alice"
+			require.False(t, v.validInput)
+			require.Nil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		}
+	}
+
+	for i, v := range ret.phoneNumbers {
+		if i < 2 {
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.True(t, v.found)
+			require.True(t, v.UID.Exists())
+			switch i {
+			case 0:
+				// "+48111222332", "+1123456789"
+				require.Equal(t, v.username, "alice")
+				require.Equal(t, v.fullName, "Alice A")
+			case 1:
+				require.Equal(t, v.username, "lily")
+				require.Equal(t, v.fullName, "")
+			}
+		} else if i == 2 {
+			// "+44123123"
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		} else if i == 3 {
+			// "011"
+			require.False(t, v.validInput)
+			require.Nil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		}
+	}
+}
+
 func TestImptofuBadInput(t *testing.T) {
 	tc := libkb.SetupTest(t, "usersearch", 1)
 	defer tc.Cleanup()
