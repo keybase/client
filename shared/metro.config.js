@@ -39,8 +39,8 @@ module.exports = (async () => {
     if (storybook === 'storybook') {
       replacements.forEach(rep => {
         const [regex, replacement] = rep
-        if (regex.match(newModuleName)) {
-          newModuleName = `./${replacement}`
+        if (moduleName.match(regex)) {
+          newModuleName = `./${replacement}.tsx`
         }
       })
     }
@@ -56,7 +56,7 @@ module.exports = (async () => {
       sourceExts: [...sourceExts, 'css'],
     },
     transformer: {
-      babelTransformerPath: require.resolve('./rn-css-transformer.js'),
+      babelTransformerPath: require.resolve('./rn-transformer.js'),
       getTransformOptions: async () => ({
         transform: {
           experimentalImportSupport: false,
