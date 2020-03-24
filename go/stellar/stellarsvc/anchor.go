@@ -454,9 +454,6 @@ func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	if !a.domainMatches(u.Host) {
-		return errors.New("auth endpoint domain does not match asset")
-	}
 	if u.Scheme != "https" {
 		return errors.New("auth endpoint is not https")
 	}
