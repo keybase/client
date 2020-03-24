@@ -25,7 +25,7 @@ const InviteFriends = () => {
 
   let inviteCounter: React.ReactNode = null
   let firstTooltipLine = ''
-  if (inviteCounts) {
+  if (inviteCounts?.showNumInvites) {
     inviteCounter = (
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
         <Kb.Icon type="iconfont-envelope" sizeType="Small" color={Styles.globalColors.blueDarkerOrBlack_85} />
