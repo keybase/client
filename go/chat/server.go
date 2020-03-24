@@ -1895,31 +1895,23 @@ func (h *Server) GetAllResetConvMembers(ctx context.Context) (res chat1.GetAllRe
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetAllResetConvMembers")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if _, err := utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return res, err
+	}
+	resetConvs, err := h.remoteClient().GetResetConversations(ctx)
 	if err != nil {
 		return res, err
 	}
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil)
-	if err != nil {
-		return res, err
-	}
-	for _, conv := range ib.ConvsUnverified {
-		switch conv.GetMembersType() {
-		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		default:
-			continue
+	for _, resetMember := range resetConvs.ResetConvs {
+		username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(resetMember.Uid.String()))
+		if err != nil {
+			return res, err
 		}
-		for _, ru := range conv.Conv.Metadata.ResetList {
-			username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
-			if err != nil {
-				return res, err
-			}
-			res.Members = append(res.Members, chat1.ResetConvMember{
-				Uid:      ru,
-				Conv:     conv.GetConvID(),
-				Username: username.String(),
-			})
-		}
+		res.Members = append(res.Members, chat1.ResetConvMember{
+			Uid:      resetMember.Uid,
+			Conv:     resetMember.ConvID,
+			Username: username.String(),
+		})
 	}
 	return res, nil
 }

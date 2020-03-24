@@ -1217,6 +1217,7 @@ export type GetNextAttachmentMessageLocalRes = {readonly message?: UIMessage | n
 export type GetPublicConversationsRes = {readonly conversations?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
 export type GetRecentJoinsRes = {readonly numJoins: Int; readonly rateLimit?: RateLimit | null}
 export type GetResetConvMembersRes = {readonly members?: Array<ResetConvMemberAPI> | null; readonly rateLimits?: Array<RateLimitRes> | null}
+export type GetResetConversationsRes = {readonly resetConvs?: Array<ResetConversationMember> | null; readonly rateLimit?: RateLimit | null}
 export type GetTLFConversationsLocalRes = {readonly convs?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetTLFConversationsRes = {readonly conversations?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
 export type GetThreadLocalRes = {readonly thread: ThreadView; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
@@ -1354,6 +1355,7 @@ export type RemoteBotCommandsAdvertisementTLFID = {readonly convID: Conversation
 export type RemoteUserTypingUpdate = {readonly uid: Gregor1.UID; readonly deviceID: Gregor1.DeviceID; readonly convID: ConversationID; readonly typing: Boolean; readonly t: /* teamType */ TeamType}
 export type ResetConvMember = {readonly username: String; readonly uid: Gregor1.UID; readonly conv: ConversationID}
 export type ResetConvMemberAPI = {readonly conversationID: ConvIDStr; readonly username: String}
+export type ResetConversationMember = {readonly convID: ConversationID; readonly uid: Gregor1.UID}
 export type RetentionPolicy = {typ: RetentionPolicyType.retain; retain: RpRetain} | {typ: RetentionPolicyType.expire; expire: RpExpire} | {typ: RetentionPolicyType.inherit; inherit: RpInherit} | {typ: RetentionPolicyType.ephemeral; ephemeral: RpEphemeral} | {typ: RetentionPolicyType.none}
 export type RpEphemeral = {readonly age: Gregor1.DurationSec}
 export type RpExpire = {readonly age: Gregor1.DurationSec}
@@ -1817,3 +1819,4 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.getRecentJoins'
 // 'chat.1.remote.refreshParticipantsRemote'
 // 'chat.1.remote.getLastActiveAt'
+// 'chat.1.remote.getResetConversations'
