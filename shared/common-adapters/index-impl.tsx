@@ -76,6 +76,9 @@ module.exports = {
   get CopyableText() {
     return require('./copyable-text').default
   },
+  get CustomEmoji() {
+    return require('./custom-emoji').default
+  },
   get DelayedMounting() {
     return require('./delayed-mounting').default
   },
