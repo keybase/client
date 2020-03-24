@@ -298,7 +298,7 @@ class EditAvatar extends React.Component<Props, State> {
     }
 
     if (flags.teamsRedesign && this.props.wizard) {
-      return this.props.onSave(
+      return this.props.onSaveForWizardHeader(
         this.state.imageSource,
         crop,
         this.state.scaledImageWidth,
