@@ -2762,6 +2762,29 @@ func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opTy
 	})
 }
 
+func (n *NotifyRouter) HandleSaltpackOperationDone(ctx context.Context, opType keybase1.SaltpackOperationType, filename string) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Saltpack {
+			// note there's no goroutine here on purpose
+			// (notification ordering)
+			_ = (keybase1.NotifySaltpackClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).SaltpackOperationDone(context.Background(), keybase1.SaltpackOperationDoneArg{
+				OpType:   opType,
+				Filename: filename,
+			})
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.SaltpackOperationDone(opType, filename)
+	})
+}
+
 func (n *NotifyRouter) HandleUpdateInviteCounts(ctx context.Context, counts keybase1.InviteCounts) {
 	if n == nil {
 		return
