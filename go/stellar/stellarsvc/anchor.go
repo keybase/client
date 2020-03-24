@@ -219,10 +219,6 @@ func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url
 	}
 	u.Path = path.Join(u.Path, action)
 
-	if !a.domainMatches(u.Host) {
-		return nil, errors.New("transfer server hostname does not match asset hostname")
-	}
-
 	if u.Scheme != "https" {
 		return nil, errors.New("transfer server URL is not https")
 	}
@@ -341,8 +337,6 @@ func (a *anchorInteractor) postSep24(mctx libkb.MetaContext, u *url.URL, data ur
 		mctx.Debug("POST failed: %s", err)
 		return stellar1.AssetActionResultLocal{}, err
 	}
-
-	mctx.Debug("QWER postSep24 response body: %s", string(body))
 
 	switch code {
 	case http.StatusOK:
