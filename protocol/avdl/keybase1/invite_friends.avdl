@@ -15,7 +15,7 @@ protocol inviteFriends {
   }
 
   // returns the number of people invited
-  int invitePeople(EmailInvites emails, array<RawPhoneNumber> phones);
+  int invitePeople(EmailInvites emails, array<PhoneNumber> phones);
 
   InviteCounts getInviteCounts();
 
