@@ -233,12 +233,14 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 		return false
 	}
 	if !lmsg.IsValid() || !rmsg.IsValid() {
-		s.Debug(ctx, "versionMatch: one message not valid: lmsg: %+v rmsg: %+v", lmsg, rmsg)
+		s.Debug(ctx, "versionMatch: one message not valid: lmsg: %s rmsg: %s", lmsg.DebugString(),
+			rmsg.DebugString())
 		return false
 	}
 	if !lmsg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) ||
 		!rmsg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
-		s.Debug(ctx, "versionMatch: one message not attachment: lmsg: %+v rmsg: %+v", lmsg, rmsg)
+		s.Debug(ctx, "versionMatch: one message not attachment: lmsg: %s rmsg: %s", lmsg.DebugString(),
+			rmsg.DebugString())
 		return false
 	}
 	lhash := lmsg.Valid().MessageBody.Attachment().Object.PtHash
@@ -272,9 +274,8 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 				Source:      existing,
 				IsCrossTeam: true,
 			}, nil
-		} else {
-			s.Debug(ctx, "syncCrossTeam: missed on version")
 		}
+		s.Debug(ctx, "syncCrossTeam: missed on version")
 	} else {
 		s.Debug(ctx, "syncCrossTeam: missed mapping")
 	}
@@ -290,7 +291,6 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 		s.Debug(ctx, "syncCrossTeam: failed to download: %s", err)
 		return res, err
 	}
-	s.Debug(ctx, "syncCrossTeam: sink: %s", sink.Name())
 
 	// add the source to the target storage area
 	newSource, err := s.Add(ctx, uid, convID, stripped, sink.Name(), &suffix)
@@ -313,9 +313,6 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	}
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	for _, match := range matches {
-		s.Debug(ctx, "Harvest: match: %s", match.name)
-	}
 	emojis, _, err := s.getNoSet(ctx, uid, &convID)
 	if err != nil {
 		return res, err
@@ -397,7 +394,6 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
 	for _, emoji := range emojis {
-		s.Debug(ctx, "Decorate: alias: %s source: %+v", emoji.Alias, emoji.Source)
 		emojiMap[emoji.Alias] = emoji.Source
 	}
 	offset := 0

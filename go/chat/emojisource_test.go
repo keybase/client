@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func checkEmoji(t *testing.T, ctx context.Context, tc *kbtest.ChatTestContext,
+func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID, emoji string) {
 	msg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, msgID, true, nil)
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :party_parrot:!",
 	}))
-	checkEmoji(t, ctx, tc, uid, conv, msgID, "party_parrot")
+	checkEmoji(ctx, t, tc, uid, conv, msgID, "party_parrot")
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
@@ -129,7 +129,7 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	msgID := mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :party_parrot:!",
 	}))
-	checkEmoji(t, ctx1, tc1, uid1, sharedConv, msgID, "party_parrot")
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot")
 
 	t.Logf("collision")
 	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename, nil)
@@ -137,7 +137,7 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :party_parrot#2:!",
 	}))
-	checkEmoji(t, ctx1, tc1, uid1, sharedConv, msgID, "party_parrot#2")
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot#2")
 }
 
 type emojiTestCase struct {
