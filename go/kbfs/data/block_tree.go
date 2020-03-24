@@ -1018,7 +1018,8 @@ func (bt *blockTree) readyWorker(
 	ctx context.Context, id tlf.ID, bcache BlockCache, rp ReadyProvider,
 	bps BlockPutState, pathsFromRoot [][]ParentBlockAndChildIndex,
 	makeSync makeSyncFunc, i int, level int, lock *sync.Mutex,
-	oldPtrs map[BlockInfo]BlockPointer, donePtrs map[BlockPointer]bool) error {
+	oldPtrs map[BlockInfo]BlockPointer, donePtrs map[BlockPointer]bool,
+	hashBehavior BlockCacheHashBehavior) error {
 	// Ready the dirty block.
 	pb := pathsFromRoot[i][level]
 
@@ -1035,7 +1036,7 @@ func (bt *blockTree) readyWorker(
 
 	newInfo, _, readyBlockData, err := ReadyBlock(
 		ctx, bcache, rp, bt.kmd, pb.pblock,
-		bt.chargedTo, bt.rootBlockPointer().GetBlockType())
+		bt.chargedTo, bt.rootBlockPointer().GetBlockType(), hashBehavior)
 	if err != nil {
 		return err
 	}
@@ -1083,7 +1084,8 @@ func (bt *blockTree) readyWorker(
 func (bt *blockTree) readyHelper(
 	ctx context.Context, id tlf.ID, bcache BlockCache,
 	rp ReadyProvider, bps BlockPutState,
-	pathsFromRoot [][]ParentBlockAndChildIndex, makeSync makeSyncFunc) (
+	pathsFromRoot [][]ParentBlockAndChildIndex, makeSync makeSyncFunc,
+	hashBehavior BlockCacheHashBehavior) (
 	map[BlockInfo]BlockPointer, error) {
 	oldPtrs := make(map[BlockInfo]BlockPointer)
 	donePtrs := make(map[BlockPointer]bool)
@@ -1109,7 +1111,7 @@ func (bt *blockTree) readyHelper(
 			for i := range indices {
 				err := bt.readyWorker(
 					groupCtx, id, bcache, rp, bps, pathsFromRoot, makeSync,
-					i, level, &lock, oldPtrs, donePtrs)
+					i, level, &lock, oldPtrs, donePtrs, hashBehavior)
 				if err != nil {
 					return err
 				}
@@ -1139,7 +1141,8 @@ func (bt *blockTree) readyHelper(
 func (bt *blockTree) ready(
 	ctx context.Context, id tlf.ID, bcache BlockCache,
 	dirtyBcache IsDirtyProvider, rp ReadyProvider, bps BlockPutState,
-	topBlock BlockWithPtrs, makeSync makeSyncFunc) (
+	topBlock BlockWithPtrs, makeSync makeSyncFunc,
+	hashBehavior BlockCacheHashBehavior) (
 	map[BlockInfo]BlockPointer, error) {
 	if !topBlock.IsIndirect() {
 		return nil, nil
@@ -1187,7 +1190,8 @@ func (bt *blockTree) ready(
 		return nil, nil
 	}
 
-	return bt.readyHelper(ctx, id, bcache, rp, bps, dirtyLeafPaths, makeSync)
+	return bt.readyHelper(
+		ctx, id, bcache, rp, bps, dirtyLeafPaths, makeSync, hashBehavior)
 }
 
 func (bt *blockTree) getIndirectBlocksForOffsetRange(

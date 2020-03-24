@@ -82,7 +82,7 @@ func TestBlockCacheCheckPtrSuccess(t *testing.T) {
 	err := bcache.Put(ptr, tlf, block, TransientEntry, DoCacheHash)
 	require.NoError(t, err)
 
-	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block, DoCacheHash)
 	require.NoError(t, err)
 	require.Equal(t, ptr, checkedPtr)
 }
@@ -99,7 +99,7 @@ func TestBlockCacheCheckPtrPermanent(t *testing.T) {
 	err := bcache.Put(ptr, tlf, block, PermanentEntry, SkipCacheHash)
 	require.NoError(t, err)
 
-	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block, DoCacheHash)
 	require.NoError(t, err)
 	require.Equal(t, BlockPointer{}, checkedPtr)
 }
@@ -118,7 +118,7 @@ func TestBlockCacheCheckPtrNotFound(t *testing.T) {
 
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{4, 3, 2, 1}
-	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block2)
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block2, DoCacheHash)
 	require.NoError(t, err)
 	require.False(t, checkedPtr.IsInitialized())
 }
@@ -139,7 +139,7 @@ func TestBlockCacheDeleteTransient(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make sure the pointer is gone from the hash cache too.
-	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block, DoCacheHash)
 	require.NoError(t, err)
 	require.False(t, checkedPtr.IsInitialized())
 }
@@ -186,7 +186,7 @@ func TestBlockCacheEmptyTransient(t *testing.T) {
 	err = bcache.DeletePermanent(id)
 	require.NoError(t, err)
 
-	_, err = bcache.CheckForKnownPtr(tlf, block.(*FileBlock))
+	_, err = bcache.CheckForKnownPtr(tlf, block.(*FileBlock), DoCacheHash)
 	require.NoError(t, err)
 }
 
@@ -311,7 +311,7 @@ func TestBlockCachePutNoHashCalculation(t *testing.T) {
 
 	// CheckForKnownPtr() calculates hash only if it's nil. If the block with
 	// invalid hash was put into cache, this will find it.
-	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block, DoCacheHash)
 	require.NoError(t, err)
 	require.Equal(t, ptr, checkedPtr)
 	require.Equal(t, hash, block.hash)

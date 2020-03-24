@@ -2715,7 +2715,8 @@ func ResetRootBlock(ctx context.Context, config Config,
 
 	info, plainSize, readyBlockData, err :=
 		data.ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
-			rmd.ReadOnly(), newDblock, chargedTo, config.DefaultBlockType())
+			rmd.ReadOnly(), newDblock, chargedTo, config.DefaultBlockType(),
+			cacheHashBehavior(config, rmd.TlfID()))
 	if err != nil {
 		return nil, data.BlockInfo{}, data.ReadyBlockData{}, err
 	}
@@ -2745,10 +2746,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 }
 
 func (fbo *folderBranchOps) cacheHashBehavior() data.BlockCacheHashBehavior {
-	if TLFJournalEnabled(fbo.config, fbo.id()) {
-		return data.SkipCacheHash
-	}
-	return data.DoCacheHash
+	return cacheHashBehavior(fbo.config, fbo.id())
 }
 
 func (fbo *folderBranchOps) initMDLocked(
@@ -9194,7 +9192,8 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 
 	info, _, readyBlockData, err :=
 		data.ReadyBlock(ctx, fbo.config.BlockCache(), fbo.config.BlockOps(),
-			kmd, b, chargedTo, fbo.config.DefaultBlockType())
+			kmd, b, chargedTo, fbo.config.DefaultBlockType(),
+			fbo.cacheHashBehavior())
 	if err != nil {
 		return FolderSyncEncryptedPartialPaths{}, err
 	}
