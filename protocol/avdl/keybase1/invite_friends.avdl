@@ -14,7 +14,9 @@ protocol inviteFriends {
     union { null, array<EmailAddress> } emailsFromContacts;
   }
 
-  void invitePeople(EmailInvites emails, array<RawPhoneNumber> phones);
+  // returns the number of people invited
+  int invitePeople(EmailInvites emails, array<RawPhoneNumber> phones);
+
   InviteCounts getInviteCounts();
 
 }

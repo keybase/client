@@ -953,7 +953,7 @@ export type MessageTypes = {
   }
   'keybase.1.inviteFriends.invitePeople': {
     inParam: {readonly emails: EmailInvites; readonly phones?: Array<RawPhoneNumber> | null}
-    outParam: void
+    outParam: Int
   }
   'keybase.1.kbfsMount.GetCurrentMountDir': {
     inParam: void

@@ -13,30 +13,30 @@ import (
 	reflect "reflect"
 )
 
-// MockBlockCache is a mock of BlockCache interface
+// MockBlockCache is a mock of BlockCache interface.
 type MockBlockCache struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlockCacheMockRecorder
 }
 
-// MockBlockCacheMockRecorder is the mock recorder for MockBlockCache
+// MockBlockCacheMockRecorder is the mock recorder for MockBlockCache.
 type MockBlockCacheMockRecorder struct {
 	mock *MockBlockCache
 }
 
-// NewMockBlockCache creates a new mock instance
+// NewMockBlockCache creates a new mock instance.
 func NewMockBlockCache(ctrl *gomock.Controller) *MockBlockCache {
 	mock := &MockBlockCache{ctrl: ctrl}
 	mock.recorder = &MockBlockCacheMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlockCache) EXPECT() *MockBlockCacheMockRecorder {
 	return m.recorder
 }
 
-// CheckForKnownPtr mocks base method
+// CheckForKnownPtr mocks base method.
 func (m *MockBlockCache) CheckForKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock) (data.BlockPointer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckForKnownPtr", arg0, arg1)
@@ -45,13 +45,13 @@ func (m *MockBlockCache) CheckForKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock) (da
 	return ret0, ret1
 }
 
-// CheckForKnownPtr indicates an expected call of CheckForKnownPtr
+// CheckForKnownPtr indicates an expected call of CheckForKnownPtr.
 func (mr *MockBlockCacheMockRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckForKnownPtr", reflect.TypeOf((*MockBlockCache)(nil).CheckForKnownPtr), arg0, arg1)
 }
 
-// DeleteKnownPtr mocks base method
+// DeleteKnownPtr mocks base method.
 func (m *MockBlockCache) DeleteKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteKnownPtr", arg0, arg1)
@@ -59,13 +59,13 @@ func (m *MockBlockCache) DeleteKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock) error
 	return ret0
 }
 
-// DeleteKnownPtr indicates an expected call of DeleteKnownPtr
+// DeleteKnownPtr indicates an expected call of DeleteKnownPtr.
 func (mr *MockBlockCacheMockRecorder) DeleteKnownPtr(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKnownPtr", reflect.TypeOf((*MockBlockCache)(nil).DeleteKnownPtr), arg0, arg1)
 }
 
-// DeletePermanent mocks base method
+// DeletePermanent mocks base method.
 func (m *MockBlockCache) DeletePermanent(arg0 kbfsblock.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeletePermanent", arg0)
@@ -73,13 +73,13 @@ func (m *MockBlockCache) DeletePermanent(arg0 kbfsblock.ID) error {
 	return ret0
 }
 
-// DeletePermanent indicates an expected call of DeletePermanent
+// DeletePermanent indicates an expected call of DeletePermanent.
 func (mr *MockBlockCacheMockRecorder) DeletePermanent(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePermanent", reflect.TypeOf((*MockBlockCache)(nil).DeletePermanent), arg0)
 }
 
-// DeleteTransient mocks base method
+// DeleteTransient mocks base method.
 func (m *MockBlockCache) DeleteTransient(arg0 kbfsblock.ID, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTransient", arg0, arg1)
@@ -87,13 +87,13 @@ func (m *MockBlockCache) DeleteTransient(arg0 kbfsblock.ID, arg1 tlf.ID) error {
 	return ret0
 }
 
-// DeleteTransient indicates an expected call of DeleteTransient
+// DeleteTransient indicates an expected call of DeleteTransient.
 func (mr *MockBlockCacheMockRecorder) DeleteTransient(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTransient", reflect.TypeOf((*MockBlockCache)(nil).DeleteTransient), arg0, arg1)
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockBlockCache) Get(arg0 data.BlockPointer) (data.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
@@ -102,13 +102,13 @@ func (m *MockBlockCache) Get(arg0 data.BlockPointer) (data.Block, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockBlockCacheMockRecorder) Get(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockCache)(nil).Get), arg0)
 }
 
-// GetCleanBytesCapacity mocks base method
+// GetCleanBytesCapacity mocks base method.
 func (m *MockBlockCache) GetCleanBytesCapacity() uint64 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCleanBytesCapacity")
@@ -116,13 +116,13 @@ func (m *MockBlockCache) GetCleanBytesCapacity() uint64 {
 	return ret0
 }
 
-// GetCleanBytesCapacity indicates an expected call of GetCleanBytesCapacity
+// GetCleanBytesCapacity indicates an expected call of GetCleanBytesCapacity.
 func (mr *MockBlockCacheMockRecorder) GetCleanBytesCapacity() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCleanBytesCapacity", reflect.TypeOf((*MockBlockCache)(nil).GetCleanBytesCapacity))
 }
 
-// GetWithLifetime mocks base method
+// GetWithLifetime mocks base method.
 func (m *MockBlockCache) GetWithLifetime(arg0 data.BlockPointer) (data.Block, data.BlockCacheLifetime, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWithLifetime", arg0)
@@ -132,13 +132,13 @@ func (m *MockBlockCache) GetWithLifetime(arg0 data.BlockPointer) (data.Block, da
 	return ret0, ret1, ret2
 }
 
-// GetWithLifetime indicates an expected call of GetWithLifetime
+// GetWithLifetime indicates an expected call of GetWithLifetime.
 func (mr *MockBlockCacheMockRecorder) GetWithLifetime(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithLifetime", reflect.TypeOf((*MockBlockCache)(nil).GetWithLifetime), arg0)
 }
 
-// Put mocks base method
+// Put mocks base method.
 func (m *MockBlockCache) Put(arg0 data.BlockPointer, arg1 tlf.ID, arg2 data.Block, arg3 data.BlockCacheLifetime, arg4 data.BlockCacheHashBehavior) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4)
@@ -146,48 +146,48 @@ func (m *MockBlockCache) Put(arg0 data.BlockPointer, arg1 tlf.ID, arg2 data.Bloc
 	return ret0
 }
 
-// Put indicates an expected call of Put
+// Put indicates an expected call of Put.
 func (mr *MockBlockCacheMockRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBlockCache)(nil).Put), arg0, arg1, arg2, arg3, arg4)
 }
 
-// SetCleanBytesCapacity mocks base method
+// SetCleanBytesCapacity mocks base method.
 func (m *MockBlockCache) SetCleanBytesCapacity(arg0 uint64) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetCleanBytesCapacity", arg0)
 }
 
-// SetCleanBytesCapacity indicates an expected call of SetCleanBytesCapacity
+// SetCleanBytesCapacity indicates an expected call of SetCleanBytesCapacity.
 func (mr *MockBlockCacheMockRecorder) SetCleanBytesCapacity(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCleanBytesCapacity", reflect.TypeOf((*MockBlockCache)(nil).SetCleanBytesCapacity), arg0)
 }
 
-// MockBlockSplitter is a mock of BlockSplitter interface
+// MockBlockSplitter is a mock of BlockSplitter interface.
 type MockBlockSplitter struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlockSplitterMockRecorder
 }
 
-// MockBlockSplitterMockRecorder is the mock recorder for MockBlockSplitter
+// MockBlockSplitterMockRecorder is the mock recorder for MockBlockSplitter.
 type MockBlockSplitterMockRecorder struct {
 	mock *MockBlockSplitter
 }
 
-// NewMockBlockSplitter creates a new mock instance
+// NewMockBlockSplitter creates a new mock instance.
 func NewMockBlockSplitter(ctrl *gomock.Controller) *MockBlockSplitter {
 	mock := &MockBlockSplitter{ctrl: ctrl}
 	mock.recorder = &MockBlockSplitterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlockSplitter) EXPECT() *MockBlockSplitterMockRecorder {
 	return m.recorder
 }
 
-// CheckSplit mocks base method
+// CheckSplit mocks base method.
 func (m *MockBlockSplitter) CheckSplit(arg0 *data.FileBlock) int64 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckSplit", arg0)
@@ -195,13 +195,13 @@ func (m *MockBlockSplitter) CheckSplit(arg0 *data.FileBlock) int64 {
 	return ret0
 }
 
-// CheckSplit indicates an expected call of CheckSplit
+// CheckSplit indicates an expected call of CheckSplit.
 func (mr *MockBlockSplitterMockRecorder) CheckSplit(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckSplit", reflect.TypeOf((*MockBlockSplitter)(nil).CheckSplit), arg0)
 }
 
-// CopyUntilSplit mocks base method
+// CopyUntilSplit mocks base method.
 func (m *MockBlockSplitter) CopyUntilSplit(arg0 *data.FileBlock, arg1 bool, arg2 []byte, arg3 int64) int64 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CopyUntilSplit", arg0, arg1, arg2, arg3)
@@ -209,13 +209,13 @@ func (m *MockBlockSplitter) CopyUntilSplit(arg0 *data.FileBlock, arg1 bool, arg2
 	return ret0
 }
 
-// CopyUntilSplit indicates an expected call of CopyUntilSplit
+// CopyUntilSplit indicates an expected call of CopyUntilSplit.
 func (mr *MockBlockSplitterMockRecorder) CopyUntilSplit(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyUntilSplit", reflect.TypeOf((*MockBlockSplitter)(nil).CopyUntilSplit), arg0, arg1, arg2, arg3)
 }
 
-// MaxPtrsPerBlock mocks base method
+// MaxPtrsPerBlock mocks base method.
 func (m *MockBlockSplitter) MaxPtrsPerBlock() int {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MaxPtrsPerBlock")
@@ -223,13 +223,13 @@ func (m *MockBlockSplitter) MaxPtrsPerBlock() int {
 	return ret0
 }
 
-// MaxPtrsPerBlock indicates an expected call of MaxPtrsPerBlock
+// MaxPtrsPerBlock indicates an expected call of MaxPtrsPerBlock.
 func (mr *MockBlockSplitterMockRecorder) MaxPtrsPerBlock() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxPtrsPerBlock", reflect.TypeOf((*MockBlockSplitter)(nil).MaxPtrsPerBlock))
 }
 
-// ShouldEmbedData mocks base method
+// ShouldEmbedData mocks base method.
 func (m *MockBlockSplitter) ShouldEmbedData(arg0 uint64) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldEmbedData", arg0)
@@ -237,13 +237,13 @@ func (m *MockBlockSplitter) ShouldEmbedData(arg0 uint64) bool {
 	return ret0
 }
 
-// ShouldEmbedData indicates an expected call of ShouldEmbedData
+// ShouldEmbedData indicates an expected call of ShouldEmbedData.
 func (mr *MockBlockSplitterMockRecorder) ShouldEmbedData(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldEmbedData", reflect.TypeOf((*MockBlockSplitter)(nil).ShouldEmbedData), arg0)
 }
 
-// SplitDirIfNeeded mocks base method
+// SplitDirIfNeeded mocks base method.
 func (m *MockBlockSplitter) SplitDirIfNeeded(arg0 *data.DirBlock) ([]*data.DirBlock, *data.StringOffset) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SplitDirIfNeeded", arg0)
@@ -252,48 +252,48 @@ func (m *MockBlockSplitter) SplitDirIfNeeded(arg0 *data.DirBlock) ([]*data.DirBl
 	return ret0, ret1
 }
 
-// SplitDirIfNeeded indicates an expected call of SplitDirIfNeeded
+// SplitDirIfNeeded indicates an expected call of SplitDirIfNeeded.
 func (mr *MockBlockSplitterMockRecorder) SplitDirIfNeeded(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SplitDirIfNeeded", reflect.TypeOf((*MockBlockSplitter)(nil).SplitDirIfNeeded), arg0)
 }
 
-// MockBlockWithPtrs is a mock of BlockWithPtrs interface
+// MockBlockWithPtrs is a mock of BlockWithPtrs interface.
 type MockBlockWithPtrs struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlockWithPtrsMockRecorder
 }
 
-// MockBlockWithPtrsMockRecorder is the mock recorder for MockBlockWithPtrs
+// MockBlockWithPtrsMockRecorder is the mock recorder for MockBlockWithPtrs.
 type MockBlockWithPtrsMockRecorder struct {
 	mock *MockBlockWithPtrs
 }
 
-// NewMockBlockWithPtrs creates a new mock instance
+// NewMockBlockWithPtrs creates a new mock instance.
 func NewMockBlockWithPtrs(ctrl *gomock.Controller) *MockBlockWithPtrs {
 	mock := &MockBlockWithPtrs{ctrl: ctrl}
 	mock.recorder = &MockBlockWithPtrsMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlockWithPtrs) EXPECT() *MockBlockWithPtrsMockRecorder {
 	return m.recorder
 }
 
-// AppendNewIndirectPtr mocks base method
+// AppendNewIndirectPtr mocks base method.
 func (m *MockBlockWithPtrs) AppendNewIndirectPtr(arg0 data.BlockPointer, arg1 data.Offset) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AppendNewIndirectPtr", arg0, arg1)
 }
 
-// AppendNewIndirectPtr indicates an expected call of AppendNewIndirectPtr
+// AppendNewIndirectPtr indicates an expected call of AppendNewIndirectPtr.
 func (mr *MockBlockWithPtrsMockRecorder) AppendNewIndirectPtr(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendNewIndirectPtr", reflect.TypeOf((*MockBlockWithPtrs)(nil).AppendNewIndirectPtr), arg0, arg1)
 }
 
-// BytesCanBeDirtied mocks base method
+// BytesCanBeDirtied mocks base method.
 func (m *MockBlockWithPtrs) BytesCanBeDirtied() int64 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BytesCanBeDirtied")
@@ -301,25 +301,25 @@ func (m *MockBlockWithPtrs) BytesCanBeDirtied() int64 {
 	return ret0
 }
 
-// BytesCanBeDirtied indicates an expected call of BytesCanBeDirtied
+// BytesCanBeDirtied indicates an expected call of BytesCanBeDirtied.
 func (mr *MockBlockWithPtrsMockRecorder) BytesCanBeDirtied() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCanBeDirtied", reflect.TypeOf((*MockBlockWithPtrs)(nil).BytesCanBeDirtied))
 }
 
-// ClearIndirectPtrSize mocks base method
+// ClearIndirectPtrSize mocks base method.
 func (m *MockBlockWithPtrs) ClearIndirectPtrSize(arg0 int) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ClearIndirectPtrSize", arg0)
 }
 
-// ClearIndirectPtrSize indicates an expected call of ClearIndirectPtrSize
+// ClearIndirectPtrSize indicates an expected call of ClearIndirectPtrSize.
 func (mr *MockBlockWithPtrsMockRecorder) ClearIndirectPtrSize(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearIndirectPtrSize", reflect.TypeOf((*MockBlockWithPtrs)(nil).ClearIndirectPtrSize), arg0)
 }
 
-// DataVersion mocks base method
+// DataVersion mocks base method.
 func (m *MockBlockWithPtrs) DataVersion() data.Ver {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DataVersion")
@@ -327,13 +327,13 @@ func (m *MockBlockWithPtrs) DataVersion() data.Ver {
 	return ret0
 }
 
-// DataVersion indicates an expected call of DataVersion
+// DataVersion indicates an expected call of DataVersion.
 func (mr *MockBlockWithPtrsMockRecorder) DataVersion() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DataVersion", reflect.TypeOf((*MockBlockWithPtrs)(nil).DataVersion))
 }
 
-// FirstOffset mocks base method
+// FirstOffset mocks base method.
 func (m *MockBlockWithPtrs) FirstOffset() data.Offset {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FirstOffset")
@@ -341,13 +341,13 @@ func (m *MockBlockWithPtrs) FirstOffset() data.Offset {
 	return ret0
 }
 
-// FirstOffset indicates an expected call of FirstOffset
+// FirstOffset indicates an expected call of FirstOffset.
 func (mr *MockBlockWithPtrsMockRecorder) FirstOffset() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FirstOffset", reflect.TypeOf((*MockBlockWithPtrs)(nil).FirstOffset))
 }
 
-// GetEncodedSize mocks base method
+// GetEncodedSize mocks base method.
 func (m *MockBlockWithPtrs) GetEncodedSize() uint32 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEncodedSize")
@@ -355,13 +355,13 @@ func (m *MockBlockWithPtrs) GetEncodedSize() uint32 {
 	return ret0
 }
 
-// GetEncodedSize indicates an expected call of GetEncodedSize
+// GetEncodedSize indicates an expected call of GetEncodedSize.
 func (mr *MockBlockWithPtrsMockRecorder) GetEncodedSize() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSize", reflect.TypeOf((*MockBlockWithPtrs)(nil).GetEncodedSize))
 }
 
-// IndirectPtr mocks base method
+// IndirectPtr mocks base method.
 func (m *MockBlockWithPtrs) IndirectPtr(arg0 int) (data.BlockInfo, data.Offset) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IndirectPtr", arg0)
@@ -370,13 +370,13 @@ func (m *MockBlockWithPtrs) IndirectPtr(arg0 int) (data.BlockInfo, data.Offset) 
 	return ret0, ret1
 }
 
-// IndirectPtr indicates an expected call of IndirectPtr
+// IndirectPtr indicates an expected call of IndirectPtr.
 func (mr *MockBlockWithPtrsMockRecorder) IndirectPtr(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IndirectPtr", reflect.TypeOf((*MockBlockWithPtrs)(nil).IndirectPtr), arg0)
 }
 
-// IsIndirect mocks base method
+// IsIndirect mocks base method.
 func (m *MockBlockWithPtrs) IsIndirect() bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsIndirect")
@@ -384,13 +384,13 @@ func (m *MockBlockWithPtrs) IsIndirect() bool {
 	return ret0
 }
 
-// IsIndirect indicates an expected call of IsIndirect
+// IsIndirect indicates an expected call of IsIndirect.
 func (mr *MockBlockWithPtrsMockRecorder) IsIndirect() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsIndirect", reflect.TypeOf((*MockBlockWithPtrs)(nil).IsIndirect))
 }
 
-// IsTail mocks base method
+// IsTail mocks base method.
 func (m *MockBlockWithPtrs) IsTail() bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsTail")
@@ -398,13 +398,13 @@ func (m *MockBlockWithPtrs) IsTail() bool {
 	return ret0
 }
 
-// IsTail indicates an expected call of IsTail
+// IsTail indicates an expected call of IsTail.
 func (mr *MockBlockWithPtrsMockRecorder) IsTail() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTail", reflect.TypeOf((*MockBlockWithPtrs)(nil).IsTail))
 }
 
-// NewEmptier mocks base method
+// NewEmptier mocks base method.
 func (m *MockBlockWithPtrs) NewEmptier() func() data.Block {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewEmptier")
@@ -412,13 +412,13 @@ func (m *MockBlockWithPtrs) NewEmptier() func() data.Block {
 	return ret0
 }
 
-// NewEmptier indicates an expected call of NewEmptier
+// NewEmptier indicates an expected call of NewEmptier.
 func (mr *MockBlockWithPtrsMockRecorder) NewEmptier() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmptier", reflect.TypeOf((*MockBlockWithPtrs)(nil).NewEmptier))
 }
 
-// NewEmpty mocks base method
+// NewEmpty mocks base method.
 func (m *MockBlockWithPtrs) NewEmpty() data.Block {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewEmpty")
@@ -426,13 +426,13 @@ func (m *MockBlockWithPtrs) NewEmpty() data.Block {
 	return ret0
 }
 
-// NewEmpty indicates an expected call of NewEmpty
+// NewEmpty indicates an expected call of NewEmpty.
 func (mr *MockBlockWithPtrsMockRecorder) NewEmpty() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmpty", reflect.TypeOf((*MockBlockWithPtrs)(nil).NewEmpty))
 }
 
-// NumIndirectPtrs mocks base method
+// NumIndirectPtrs mocks base method.
 func (m *MockBlockWithPtrs) NumIndirectPtrs() int {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NumIndirectPtrs")
@@ -440,13 +440,13 @@ func (m *MockBlockWithPtrs) NumIndirectPtrs() int {
 	return ret0
 }
 
-// NumIndirectPtrs indicates an expected call of NumIndirectPtrs
+// NumIndirectPtrs indicates an expected call of NumIndirectPtrs.
 func (mr *MockBlockWithPtrsMockRecorder) NumIndirectPtrs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NumIndirectPtrs", reflect.TypeOf((*MockBlockWithPtrs)(nil).NumIndirectPtrs))
 }
 
-// OffsetExceedsData mocks base method
+// OffsetExceedsData mocks base method.
 func (m *MockBlockWithPtrs) OffsetExceedsData(arg0, arg1 data.Offset) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OffsetExceedsData", arg0, arg1)
@@ -454,85 +454,85 @@ func (m *MockBlockWithPtrs) OffsetExceedsData(arg0, arg1 data.Offset) bool {
 	return ret0
 }
 
-// OffsetExceedsData indicates an expected call of OffsetExceedsData
+// OffsetExceedsData indicates an expected call of OffsetExceedsData.
 func (mr *MockBlockWithPtrsMockRecorder) OffsetExceedsData(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OffsetExceedsData", reflect.TypeOf((*MockBlockWithPtrs)(nil).OffsetExceedsData), arg0, arg1)
 }
 
-// Set mocks base method
+// Set mocks base method.
 func (m *MockBlockWithPtrs) Set(arg0 data.Block) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Set", arg0)
 }
 
-// Set indicates an expected call of Set
+// Set indicates an expected call of Set.
 func (mr *MockBlockWithPtrsMockRecorder) Set(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockBlockWithPtrs)(nil).Set), arg0)
 }
 
-// SetEncodedSize mocks base method
+// SetEncodedSize mocks base method.
 func (m *MockBlockWithPtrs) SetEncodedSize(arg0 uint32) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetEncodedSize", arg0)
 }
 
-// SetEncodedSize indicates an expected call of SetEncodedSize
+// SetEncodedSize indicates an expected call of SetEncodedSize.
 func (mr *MockBlockWithPtrsMockRecorder) SetEncodedSize(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetEncodedSize", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetEncodedSize), arg0)
 }
 
-// SetIndirectPtrInfo mocks base method
+// SetIndirectPtrInfo mocks base method.
 func (m *MockBlockWithPtrs) SetIndirectPtrInfo(arg0 int, arg1 data.BlockInfo) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetIndirectPtrInfo", arg0, arg1)
 }
 
-// SetIndirectPtrInfo indicates an expected call of SetIndirectPtrInfo
+// SetIndirectPtrInfo indicates an expected call of SetIndirectPtrInfo.
 func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIndirectPtrInfo", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetIndirectPtrInfo), arg0, arg1)
 }
 
-// SetIndirectPtrOff mocks base method
+// SetIndirectPtrOff mocks base method.
 func (m *MockBlockWithPtrs) SetIndirectPtrOff(arg0 int, arg1 data.Offset) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetIndirectPtrOff", arg0, arg1)
 }
 
-// SetIndirectPtrOff indicates an expected call of SetIndirectPtrOff
+// SetIndirectPtrOff indicates an expected call of SetIndirectPtrOff.
 func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrOff(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIndirectPtrOff", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetIndirectPtrOff), arg0, arg1)
 }
 
-// SetIndirectPtrType mocks base method
+// SetIndirectPtrType mocks base method.
 func (m *MockBlockWithPtrs) SetIndirectPtrType(arg0 int, arg1 data.BlockDirectType) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetIndirectPtrType", arg0, arg1)
 }
 
-// SetIndirectPtrType indicates an expected call of SetIndirectPtrType
+// SetIndirectPtrType indicates an expected call of SetIndirectPtrType.
 func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrType(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIndirectPtrType", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetIndirectPtrType), arg0, arg1)
 }
 
-// SwapIndirectPtrs mocks base method
+// SwapIndirectPtrs mocks base method.
 func (m *MockBlockWithPtrs) SwapIndirectPtrs(arg0 int, arg1 data.BlockWithPtrs, arg2 int) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SwapIndirectPtrs", arg0, arg1, arg2)
 }
 
-// SwapIndirectPtrs indicates an expected call of SwapIndirectPtrs
+// SwapIndirectPtrs indicates an expected call of SwapIndirectPtrs.
 func (mr *MockBlockWithPtrsMockRecorder) SwapIndirectPtrs(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SwapIndirectPtrs", reflect.TypeOf((*MockBlockWithPtrs)(nil).SwapIndirectPtrs), arg0, arg1, arg2)
 }
 
-// ToCommonBlock mocks base method
+// ToCommonBlock mocks base method.
 func (m *MockBlockWithPtrs) ToCommonBlock() *data.CommonBlock {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToCommonBlock")
@@ -540,48 +540,48 @@ func (m *MockBlockWithPtrs) ToCommonBlock() *data.CommonBlock {
 	return ret0
 }
 
-// ToCommonBlock indicates an expected call of ToCommonBlock
+// ToCommonBlock indicates an expected call of ToCommonBlock.
 func (mr *MockBlockWithPtrsMockRecorder) ToCommonBlock() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToCommonBlock", reflect.TypeOf((*MockBlockWithPtrs)(nil).ToCommonBlock))
 }
 
-// MockDirtyBlockCache is a mock of DirtyBlockCache interface
+// MockDirtyBlockCache is a mock of DirtyBlockCache interface.
 type MockDirtyBlockCache struct {
 	ctrl     *gomock.Controller
 	recorder *MockDirtyBlockCacheMockRecorder
 }
 
-// MockDirtyBlockCacheMockRecorder is the mock recorder for MockDirtyBlockCache
+// MockDirtyBlockCacheMockRecorder is the mock recorder for MockDirtyBlockCache.
 type MockDirtyBlockCacheMockRecorder struct {
 	mock *MockDirtyBlockCache
 }
 
-// NewMockDirtyBlockCache creates a new mock instance
+// NewMockDirtyBlockCache creates a new mock instance.
 func NewMockDirtyBlockCache(ctrl *gomock.Controller) *MockDirtyBlockCache {
 	mock := &MockDirtyBlockCache{ctrl: ctrl}
 	mock.recorder = &MockDirtyBlockCacheMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockDirtyBlockCache) EXPECT() *MockDirtyBlockCacheMockRecorder {
 	return m.recorder
 }
 
-// BlockSyncFinished mocks base method
+// BlockSyncFinished mocks base method.
 func (m *MockDirtyBlockCache) BlockSyncFinished(arg0 tlf.ID, arg1 int64) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "BlockSyncFinished", arg0, arg1)
 }
 
-// BlockSyncFinished indicates an expected call of BlockSyncFinished
+// BlockSyncFinished indicates an expected call of BlockSyncFinished.
 func (mr *MockDirtyBlockCacheMockRecorder) BlockSyncFinished(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockSyncFinished", reflect.TypeOf((*MockDirtyBlockCache)(nil).BlockSyncFinished), arg0, arg1)
 }
 
-// Delete mocks base method
+// Delete mocks base method.
 func (m *MockDirtyBlockCache) Delete(arg0 tlf.ID, arg1 data.BlockPointer, arg2 data.BranchName) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
@@ -589,13 +589,13 @@ func (m *MockDirtyBlockCache) Delete(arg0 tlf.ID, arg1 data.BlockPointer, arg2 d
 	return ret0
 }
 
-// Delete indicates an expected call of Delete
+// Delete indicates an expected call of Delete.
 func (mr *MockDirtyBlockCacheMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDirtyBlockCache)(nil).Delete), arg0, arg1, arg2)
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockDirtyBlockCache) Get(arg0 context.Context, arg1 tlf.ID, arg2 data.BlockPointer, arg3 data.BranchName) (data.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3)
@@ -604,13 +604,13 @@ func (m *MockDirtyBlockCache) Get(arg0 context.Context, arg1 tlf.ID, arg2 data.B
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockDirtyBlockCacheMockRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDirtyBlockCache)(nil).Get), arg0, arg1, arg2, arg3)
 }
 
-// IsAnyDirty mocks base method
+// IsAnyDirty mocks base method.
 func (m *MockDirtyBlockCache) IsAnyDirty(arg0 tlf.ID) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsAnyDirty", arg0)
@@ -618,13 +618,13 @@ func (m *MockDirtyBlockCache) IsAnyDirty(arg0 tlf.ID) bool {
 	return ret0
 }
 
-// IsAnyDirty indicates an expected call of IsAnyDirty
+// IsAnyDirty indicates an expected call of IsAnyDirty.
 func (mr *MockDirtyBlockCacheMockRecorder) IsAnyDirty(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAnyDirty", reflect.TypeOf((*MockDirtyBlockCache)(nil).IsAnyDirty), arg0)
 }
 
-// IsDirty mocks base method
+// IsDirty mocks base method.
 func (m *MockDirtyBlockCache) IsDirty(arg0 tlf.ID, arg1 data.BlockPointer, arg2 data.BranchName) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsDirty", arg0, arg1, arg2)
@@ -632,13 +632,13 @@ func (m *MockDirtyBlockCache) IsDirty(arg0 tlf.ID, arg1 data.BlockPointer, arg2 
 	return ret0
 }
 
-// IsDirty indicates an expected call of IsDirty
+// IsDirty indicates an expected call of IsDirty.
 func (mr *MockDirtyBlockCacheMockRecorder) IsDirty(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDirty", reflect.TypeOf((*MockDirtyBlockCache)(nil).IsDirty), arg0, arg1, arg2)
 }
 
-// Put mocks base method
+// Put mocks base method.
 func (m *MockDirtyBlockCache) Put(arg0 context.Context, arg1 tlf.ID, arg2 data.BlockPointer, arg3 data.BranchName, arg4 data.Block) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4)
@@ -646,13 +646,13 @@ func (m *MockDirtyBlockCache) Put(arg0 context.Context, arg1 tlf.ID, arg2 data.B
 	return ret0
 }
 
-// Put indicates an expected call of Put
+// Put indicates an expected call of Put.
 func (mr *MockDirtyBlockCacheMockRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockDirtyBlockCache)(nil).Put), arg0, arg1, arg2, arg3, arg4)
 }
 
-// RequestPermissionToDirty mocks base method
+// RequestPermissionToDirty mocks base method.
 func (m *MockDirtyBlockCache) RequestPermissionToDirty(arg0 context.Context, arg1 tlf.ID, arg2 int64) (data.DirtyPermChan, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RequestPermissionToDirty", arg0, arg1, arg2)
@@ -661,13 +661,13 @@ func (m *MockDirtyBlockCache) RequestPermissionToDirty(arg0 context.Context, arg
 	return ret0, ret1
 }
 
-// RequestPermissionToDirty indicates an expected call of RequestPermissionToDirty
+// RequestPermissionToDirty indicates an expected call of RequestPermissionToDirty.
 func (mr *MockDirtyBlockCacheMockRecorder) RequestPermissionToDirty(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestPermissionToDirty", reflect.TypeOf((*MockDirtyBlockCache)(nil).RequestPermissionToDirty), arg0, arg1, arg2)
 }
 
-// ShouldForceSync mocks base method
+// ShouldForceSync mocks base method.
 func (m *MockDirtyBlockCache) ShouldForceSync(arg0 tlf.ID) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldForceSync", arg0)
@@ -675,13 +675,13 @@ func (m *MockDirtyBlockCache) ShouldForceSync(arg0 tlf.ID) bool {
 	return ret0
 }
 
-// ShouldForceSync indicates an expected call of ShouldForceSync
+// ShouldForceSync indicates an expected call of ShouldForceSync.
 func (mr *MockDirtyBlockCacheMockRecorder) ShouldForceSync(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldForceSync", reflect.TypeOf((*MockDirtyBlockCache)(nil).ShouldForceSync), arg0)
 }
 
-// Shutdown mocks base method
+// Shutdown mocks base method.
 func (m *MockDirtyBlockCache) Shutdown() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Shutdown")
@@ -689,43 +689,43 @@ func (m *MockDirtyBlockCache) Shutdown() error {
 	return ret0
 }
 
-// Shutdown indicates an expected call of Shutdown
+// Shutdown indicates an expected call of Shutdown.
 func (mr *MockDirtyBlockCacheMockRecorder) Shutdown() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockDirtyBlockCache)(nil).Shutdown))
 }
 
-// SyncFinished mocks base method
+// SyncFinished mocks base method.
 func (m *MockDirtyBlockCache) SyncFinished(arg0 tlf.ID, arg1 int64) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SyncFinished", arg0, arg1)
 }
 
-// SyncFinished indicates an expected call of SyncFinished
+// SyncFinished indicates an expected call of SyncFinished.
 func (mr *MockDirtyBlockCacheMockRecorder) SyncFinished(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncFinished", reflect.TypeOf((*MockDirtyBlockCache)(nil).SyncFinished), arg0, arg1)
 }
 
-// UpdateSyncingBytes mocks base method
+// UpdateSyncingBytes mocks base method.
 func (m *MockDirtyBlockCache) UpdateSyncingBytes(arg0 tlf.ID, arg1 int64) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UpdateSyncingBytes", arg0, arg1)
 }
 
-// UpdateSyncingBytes indicates an expected call of UpdateSyncingBytes
+// UpdateSyncingBytes indicates an expected call of UpdateSyncingBytes.
 func (mr *MockDirtyBlockCacheMockRecorder) UpdateSyncingBytes(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSyncingBytes", reflect.TypeOf((*MockDirtyBlockCache)(nil).UpdateSyncingBytes), arg0, arg1)
 }
 
-// UpdateUnsyncedBytes mocks base method
+// UpdateUnsyncedBytes mocks base method.
 func (m *MockDirtyBlockCache) UpdateUnsyncedBytes(arg0 tlf.ID, arg1 int64, arg2 bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UpdateUnsyncedBytes", arg0, arg1, arg2)
 }
 
-// UpdateUnsyncedBytes indicates an expected call of UpdateUnsyncedBytes
+// UpdateUnsyncedBytes indicates an expected call of UpdateUnsyncedBytes.
 func (mr *MockDirtyBlockCacheMockRecorder) UpdateUnsyncedBytes(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnsyncedBytes", reflect.TypeOf((*MockDirtyBlockCache)(nil).UpdateUnsyncedBytes), arg0, arg1, arg2)

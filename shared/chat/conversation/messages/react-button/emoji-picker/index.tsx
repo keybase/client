@@ -169,6 +169,8 @@ class EmojiPicker extends React.Component<Props, State> {
     // i.e. we haven't rendered before. let sections be calculated first
     return this.state.sections ? (
       <Kb.SectionList
+        desktopItemHeight={36}
+        desktopHeaderHeight={32}
         keyboardShouldPersistTaps="handled"
         initialNumToRender={14}
         sections={this.state.sections}
