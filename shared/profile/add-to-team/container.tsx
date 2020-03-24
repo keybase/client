@@ -40,7 +40,7 @@ type State = {
   selectedTeams: SelectedTeamState
 }
 
-class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
+export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer' as const,
