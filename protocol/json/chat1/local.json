@@ -209,6 +209,14 @@
             "LiveLocation"
           ],
           "name": "liveLocation"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -750,6 +758,16 @@
           "name": "targetUID",
           "mpackkey": "t",
           "jsonkey": "t"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis",
+          "mpackkey": "e",
+          "jsonkey": "e"
         }
       ]
     },
