@@ -3,7 +3,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Data from './data'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import {isMobile, isAndroid} from '../../../../../constants/platform'
+import {isMobile} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
 import {memoize} from '../../../../../util/memoize'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
@@ -80,6 +80,7 @@ type Props = {
   topReacjis: Array<string>
   filter?: string
   onChoose: (emojiStr: string) => void
+  onHover?: (emoji: Data.EmojiData) => void
   skinTone?: Types.EmojiSkinTone
   width: number
 }
@@ -130,6 +131,30 @@ class EmojiPicker extends React.Component<Props, State> {
     }
   }
 
+  private getEmojiSingle = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) => {
+    const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
+    return (
+      <Kb.ClickableBox
+        onClick={() => this.props.onChoose(emojiStr)}
+        onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
+        style={styles.emoji}
+        key={emoji.short_name}
+      >
+        <Kb.Emoji size={singleEmojiWidth} emojiName={emojiStr} />
+      </Kb.ClickableBox>
+    )
+  }
+
+  private getEmojiRow = (item: Item, emojisPerLine: number) =>
+    // This is possible when we have the cached sections, and we just got mounted
+    // and haven't received width yet.
+    item.emojis.length > emojisPerLine ? null : (
+      <Kb.Box2 key={item.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
+        {item.emojis.map(e => this.getEmojiSingle(e, this.props.skinTone))}
+        {[...Array(emojisPerLine - item.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
+      </Kb.Box2>
+    )
+
   render() {
     const emojisPerLine = this.getEmojisPerLine()
     const {getFilterResults} = getData(this.props.topReacjis)
@@ -150,14 +175,7 @@ class EmojiPicker extends React.Component<Props, State> {
             fullWidth={true}
             style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
           >
-            {results.map(e => (
-              <EmojiRender
-                key={e.short_name}
-                emoji={e}
-                onChoose={this.props.onChoose}
-                skinTone={this.props.skinTone}
-              />
-            ))}
+            {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
             {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
               makeEmojiPlaceholder(index)
             )}
@@ -175,64 +193,17 @@ class EmojiPicker extends React.Component<Props, State> {
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={Styles.isMobile}
-        renderItem={({item, index}: {item: Item; index: number}) => (
-          <EmojiRow
-            key={index}
-            item={item}
-            onChoose={this.props.onChoose}
-            skinTone={this.props.skinTone}
-            emojisPerLine={emojisPerLine}
-          />
-        )}
+        renderItem={({item}: {item: Item; index: number}) => this.getEmojiRow(item, emojisPerLine)}
         renderSectionHeader={HeaderRow}
       />
     ) : null
   }
 }
 
-const EmojiRow = (props: {
-  item: {
-    emojis: Array<Data.EmojiData>
-    key: string
-  }
-  onChoose: (emojiStr: string) => void
-  skinTone?: Types.EmojiSkinTone
-  emojisPerLine: number
-}) =>
-  // This is possible when we have the cached sections, and we just got mounted
-  // and haven't received width yet.
-  props.item.emojis.length > props.emojisPerLine ? null : (
-    <Kb.Box2 key={props.item.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
-      {props.item.emojis.map(e => (
-        <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} skinTone={props.skinTone} />
-      ))}
-      {[...Array(props.emojisPerLine - props.item.emojis.length)].map((_, index) =>
-        makeEmojiPlaceholder(index)
-      )}
-    </Kb.Box2>
-  )
-
-const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) =>
+export const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) =>
   skinTone && emoji.skin_variations?.[skinTone]
     ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
     : `:${emoji.short_name}:`
-
-const EmojiRender = ({
-  emoji,
-  onChoose,
-  skinTone,
-}: {
-  emoji: Data.EmojiData
-  onChoose: (emojiStr: string) => void
-  skinTone?: Types.EmojiSkinTone
-}) => {
-  const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
-  return (
-    <Kb.ClickableBox onClick={() => onChoose(emojiStr)} style={styles.emoji} key={emoji.short_name}>
-      <Kb.Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={emojiStr} />
-    </Kb.ClickableBox>
-  )
-}
 
 const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />

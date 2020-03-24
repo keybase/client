@@ -8,6 +8,7 @@ export type EmojiData = {
   category: string
   name: string | null
   short_name: string
+  short_names: Array<string>
   unified: string
   skin_variations?: {[K in Types.EmojiSkinTone]: Object}
 }
@@ -53,4 +54,7 @@ const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
 export const skinTones = new Map(
   categorized['Skin Tones'].map(skinTone => [skinTone.unified, skinTone]) ?? []
 )
+
+export const defaultHoverEmoji = emojiNameMap.potato || emojidata[0]
+
 export {categories, categoryOrder, emojiIndex, emojiNameMap}
