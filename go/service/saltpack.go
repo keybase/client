@@ -510,7 +510,7 @@ func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.Sal
 	return outFilename, nil
 }
 
-func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (signed string, err error) {
+func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
 
 	h.G().Log.Debug("signing directory")
