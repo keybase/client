@@ -149,6 +149,8 @@ export const keybase1NotifyFSFSSyncStatusResponse = 'engine-gen:keybase1NotifyFS
 export const keybase1NotifyFavoritesFavoritesChanged = 'engine-gen:keybase1NotifyFavoritesFavoritesChanged'
 export const keybase1NotifyFeaturedBotsFeaturedBotsUpdate =
   'engine-gen:keybase1NotifyFeaturedBotsFeaturedBotsUpdate'
+export const keybase1NotifyInviteFriendsUpdateInviteCounts =
+  'engine-gen:keybase1NotifyInviteFriendsUpdateInviteCounts'
 export const keybase1NotifyKeyfamilyKeyfamilyChanged = 'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged'
 export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile'
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
@@ -1272,6 +1274,17 @@ type _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
     error: keybase1Types.IncomingErrorCallback
     result: (
       param: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifyInviteFriendsUpdateInviteCountsPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['outParam']
     ) => void
   }
 }
@@ -2426,6 +2439,12 @@ export const createKeybase1NotifyFeaturedBotsFeaturedBotsUpdate = (
   payload,
   type: keybase1NotifyFeaturedBotsFeaturedBotsUpdate,
 })
+export const createKeybase1NotifyInviteFriendsUpdateInviteCounts = (
+  payload: _Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
+): Keybase1NotifyInviteFriendsUpdateInviteCountsPayload => ({
+  payload,
+  type: keybase1NotifyInviteFriendsUpdateInviteCounts,
+})
 export const createKeybase1NotifyKeyfamilyKeyfamilyChanged = (
   payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
 ): Keybase1NotifyKeyfamilyKeyfamilyChangedPayload => ({
@@ -3234,6 +3253,10 @@ export type Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
   readonly payload: _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
   readonly type: typeof keybase1NotifyFeaturedBotsFeaturedBotsUpdate
 }
+export type Keybase1NotifyInviteFriendsUpdateInviteCountsPayload = {
+  readonly payload: _Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
+  readonly type: typeof keybase1NotifyInviteFriendsUpdateInviteCounts
+}
 export type Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   readonly type: typeof keybase1NotifyKeyfamilyKeyfamilyChanged
@@ -3685,6 +3708,7 @@ export type Actions =
   | Keybase1NotifyFSFSSyncStatusResponsePayload
   | Keybase1NotifyFavoritesFavoritesChangedPayload
   | Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
+  | Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
   | Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
