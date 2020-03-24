@@ -3526,7 +3526,7 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 
 func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetDefaultTeamChannelsLocalRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetDefaultTeamChannelsLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetDefaultTeamChannelsLocal %v", teamID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
@@ -3557,7 +3557,7 @@ func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamID keybase
 
 func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetDefaultTeamChannelsLocalArg) (res chat1.SetDefaultTeamChannelsLocalRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetDefaultTeamChannelsLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("SetDefaultTeamChannelsLocal: %v", arg.TeamID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
