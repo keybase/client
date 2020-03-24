@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# quick way to kill a build
+sudo systemctl restart docker
