@@ -13,7 +13,7 @@ node_modules
 react-native/react-native-contacts
 react-native/wipe-cache.js
 rn-cli.config.js
-rn-css-transformer.js
+rn-transformer.js
 storybook/index.native.js
 storybook/webpack.config.js
 test/setupTestFrameworkScriptFile.js
