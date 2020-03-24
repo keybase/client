@@ -3,6 +3,7 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../constants/types/teams'
+import * as Constants from '../../../constants/teams'
 import {ChannelsWidget} from '../../common'
 
 type Props = {
@@ -15,6 +16,7 @@ const DefaultChannels = (props: Props) => {
   const setDefaultChannelsRPC = Container.useRPC(RPCChatGen.localSetDefaultTeamChannelsLocalRpcPromise)
   const [defaultChannels, setDefaultChannels] = React.useState<Array<Types.ChannelNameID>>([])
   const [waiting, setWaiting] = React.useState(false)
+  const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
 
   const reloadDefaultChannels = React.useCallback(() => {
     setWaiting(true)
@@ -62,14 +64,35 @@ const DefaultChannels = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-      <ChannelsWidget
-        teamID={teamID}
-        channels={defaultChannels}
-        disableGeneral={true}
-        onAddChannel={onAdd}
-        onRemoveChannel={onRemove}
-      />
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Text type="BodySmallSemibold">Default join channels</Kb.Text>
+        {waiting && <Kb.ProgressIndicator />}
+      </Kb.Box2>
+      {canEdit ? (
+        <>
+          <Kb.Text type="BodySmall">Define which channels new members will be added to.</Kb.Text>
+          <ChannelsWidget
+            teamID={teamID}
+            channels={defaultChannels}
+            disableGeneral={true}
+            onAddChannel={onAdd}
+            onRemoveChannel={onRemove}
+          />
+        </>
+      ) : (
+        <Kb.Text type="BodySmall">
+          New members will be added to{' '}
+          {defaultChannels.map((channel, index) => (
+            <Kb.Text key={channel.conversationIDKey} type="BodySmallSemibold">
+              #{channel.channelname}
+              {defaultChannels.length > 2 && index < defaultChannels.length - 1 && ', '}
+              {index === defaultChannels.length - 2 && <Kb.Text type="BodySmall"> and </Kb.Text>}
+            </Kb.Text>
+          ))}
+          .
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
 }
