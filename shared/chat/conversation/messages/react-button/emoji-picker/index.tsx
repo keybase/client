@@ -119,6 +119,7 @@ class EmojiPicker extends React.Component<Props, State> {
                 category: c.name,
                 name: null,
                 short_name: e.alias,
+                short_names: [e.alias],
                 source: e.source.httpsrv,
                 unified: '',
               })) ?? [],
@@ -170,7 +171,11 @@ class EmojiPicker extends React.Component<Props, State> {
         style={styles.emoji}
         key={emoji.short_name}
       >
-        <Kb.Emoji size={singleEmojiWidth} emojiName={emojiStr} />
+        {emoji.source ? (
+          <Kb.CustomEmoji size="Medium" src={emoji.source} alias={emoji.short_name} />
+        ) : (
+          <Kb.Emoji size={singleEmojiWidth} emojiName={emojiStr} />
+        )}
       </Kb.ClickableBox>
     )
   }
@@ -194,10 +199,7 @@ class EmojiPicker extends React.Component<Props, State> {
     // when the width changes to do that processing as infrequently as possible
     if (this.props.waitingForEmoji) {
       return (
-        <Kb.Box2
-          direction="horizontal"
-          style={Styles.collapseStyles([styles.alignItemsCenter, styles.flexWrap])}
-        >
+        <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.flexWrap])}>
           <Kb.ProgressIndicator />
         </Kb.Box2>
       )
@@ -244,27 +246,6 @@ export const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone?: Types.E
   skinTone && emoji.skin_variations?.[skinTone]
     ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
     : `:${emoji.short_name}:`
-
-const EmojiRender = ({
-  emoji,
-  onChoose,
-  skinTone,
-}: {
-  emoji: Data.EmojiData
-  onChoose: (emojiStr: string) => void
-  skinTone?: Types.EmojiSkinTone
-}) => {
-  const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
-  return (
-    <Kb.ClickableBox onClick={() => onChoose(emojiStr)} style={styles.emoji} key={emoji.short_name}>
-      {emoji.source ? (
-        <Kb.CustomEmoji size="Medium" src={emoji.source} alias={emoji.short_name} />
-      ) : (
-        <Kb.Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={emojiStr} />
-      )}
-    </Kb.ClickableBox>
-  )
-}
 
 const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />

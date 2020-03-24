@@ -185,10 +185,16 @@ export const EmojiPickerDesktop = (props: Props) => {
         style={styles.footerContainer}
         gap="small"
       >
-        <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
+        {hoveredEmoji.source ? (
+          <Kb.CustomEmoji size="Big" src={hoveredEmoji.source} alias={hoveredEmoji.short_name} />
+        ) : (
+          <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
+        )}
         <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
           <Kb.Text type="BodyBig" lineClamp={1}>
-            {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+            {hoveredEmoji.source
+              ? hoveredEmoji.short_name
+              : startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
           </Kb.Text>
           <Kb.Text type="BodySmall" lineClamp={1}>
             {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
