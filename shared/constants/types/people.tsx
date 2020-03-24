@@ -75,5 +75,4 @@ export type State = {
   readonly followSuggestions: Array<FollowSuggestion>
   readonly resentEmail: string
   readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  readonly inviteCounts: RPCTypes.InviteCounts | null
 }
