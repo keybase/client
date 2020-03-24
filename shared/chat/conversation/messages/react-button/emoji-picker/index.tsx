@@ -96,12 +96,12 @@ class EmojiPicker extends React.Component<Props, State> {
   state = {sections: cachedSections}
 
   private getEmojisPerLine = () => this.props.width && Math.floor(this.props.width / emojiWidthWithPadding)
-  private chunkData = () => {
+  private chunkData = (force: boolean) => {
     if (!this.props.width) {
       // Nothing to do if we don't have a width
       return
     }
-    if (this.props.width === cachedWidth && this.props.topReacjis === cachedTopReacjis) {
+    if (!force && this.props.width === cachedWidth && this.props.topReacjis === cachedTopReacjis) {
       this.setState(s => (s.sections === cachedSections ? null : {sections: cachedSections}))
       return
     }
@@ -110,7 +110,6 @@ class EmojiPicker extends React.Component<Props, State> {
     const {emojiSections} = getData(this.props.topReacjis.slice(0, emojisPerLine * 4))
     // width is different from cached. make new sections & cache for next time
     let sections: Array<Section> = []
-    console.warn(this.props.customSections)
     this.props.customSections?.map(c =>
       sections.push({
         data: [
@@ -141,20 +140,24 @@ class EmojiPicker extends React.Component<Props, State> {
         title: c.title,
       })
     )
-    console.warn(this.props.customSections)
     cacheSections(this.props.width, sections, this.props.topReacjis)
     this.setState({sections})
   }
 
   componentDidMount() {
     if (this.props.width) {
-      this.chunkData()
+      this.chunkData(false)
     }
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.width !== prevProps.width || this.props.topReacjis !== prevProps.topReacjis) {
-      this.chunkData()
+    const customChanged = this.props.customSections !== prevProps.customSections
+    if (
+      this.props.width !== prevProps.width ||
+      this.props.topReacjis !== prevProps.topReacjis ||
+      customChanged
+    ) {
+      this.chunkData(customChanged)
     }
   }
 
