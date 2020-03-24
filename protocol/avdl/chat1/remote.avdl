@@ -428,9 +428,9 @@ protocol remote {
     gregor1.UID uid;
   }
 
-  record GetResetConvsRes {
+  record GetResetConversationsRes {
     array<ResetConversationMember> resetConvs;
     union { null, RateLimit } rateLimit;
   }
-  GetResetConvsRes getResetConversations();
+  GetResetConversationsRes getResetConversations();
 }

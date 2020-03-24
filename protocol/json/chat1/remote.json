@@ -967,7 +967,7 @@
     },
     {
       "type": "record",
-      "name": "GetResetConvsRes",
+      "name": "GetResetConversationsRes",
       "fields": [
         {
           "type": {
@@ -1744,7 +1744,7 @@
     },
     "getResetConversations": {
       "request": [],
-      "response": "GetResetConvsRes"
+      "response": "GetResetConversationsRes"
     }
   },
   "namespace": "chat.1",
