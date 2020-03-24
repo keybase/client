@@ -18,27 +18,25 @@ const _getData = memoize(() => {
   return {categories, emojiIndex, emojiNameMap, emojiSkinTones}
 })
 
-type EmojiCategory = {category: string; emojis: Array<Data.EmojiData>}
+// type EmojiCategory = {category: string; emojis: Array<Data.EmojiData>}
 const getData = memoize((topReacjis: Array<string>) => {
   const {categories, emojiIndex, emojiNameMap} = _getData()
-  const allCategories: Array<EmojiCategory> =
-    !!topReacjis && topReacjis.length
-      ? [
-          {
-            category: 'Frequently Used',
-            emojis: topReacjis.map(shortName => emojiNameMap[shortName.replace(/:/g, '')]).slice(0, 3),
-          },
-          ...categories,
-        ]
-      : categories
 
   // SectionList data is mostly static, map categories here
   // and chunk data within component
-  const emojiSections = allCategories.map(c => ({
+  const emojiSections = categories.map(c => ({
     data: {emojis: c.emojis, key: ''},
     key: c.category,
     title: c.category,
   }))
+
+  const frequentSection = {
+    data: {
+      emojis: topReacjis.map(shortName => emojiNameMap[shortName.replace(/:/g, '')]).slice(0, 3),
+    },
+    key: 'Frequently Used',
+    title: 'Frequently Used',
+  }
 
   // Get emoji results for a query and map
   // to full emoji data
@@ -53,6 +51,7 @@ const getData = memoize((topReacjis: Array<string>) => {
   return {
     emojiIndex,
     emojiSections,
+    frequentSection,
     getFilterResults,
   }
 })
@@ -107,9 +106,19 @@ class EmojiPicker extends React.Component<Props, State> {
     }
 
     const emojisPerLine = this.getEmojisPerLine()
-    const {emojiSections} = getData(this.props.topReacjis.slice(0, emojisPerLine * 4))
+    const {emojiSections, frequentSection} = getData(this.props.topReacjis.slice(0, emojisPerLine * 4))
     // width is different from cached. make new sections & cache for next time
     let sections: Array<Section> = []
+    if (!!this.props.topReacjis && this.props.topReacjis.length) {
+      sections.push({
+        data: chunk(frequentSection.data.emojis, emojisPerLine).map((c: any, idx: number) => ({
+          emojis: c,
+          key: (c && c.length && c[0] && c[0].short_name) || String(idx),
+        })),
+        key: frequentSection.key,
+        title: frequentSection.title,
+      })
+    }
     this.props.customSections?.map(c =>
       sections.push({
         data: [
