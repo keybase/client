@@ -228,6 +228,8 @@
   "keybase.1.install.installFuse": {"promise": true},
   "keybase.1.install.installKBFS": {"promise": true},
   "keybase.1.install.uninstallKBFS": {"promise": true},
+  "keybase.1.inviteFriends.invitePeople": {"promise": true},
+  "keybase.1.inviteFriends.getInviteCounts": {"promise": true},
   "keybase.1.kbfsMount.GetCurrentMountDir": {"promise": true},
   "keybase.1.kbfsMount.GetKBFSPathInfo": {"promise": true},
   "keybase.1.kbfsMount.GetPreferredMountDirs": {"promise": true},

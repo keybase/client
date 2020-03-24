@@ -456,6 +456,19 @@ func (c *chatServiceHandler) AddResetConvMemberV1(ctx context.Context, opts addR
 	return Reply{Result: chat1.EmptyRes{}}
 }
 
+func (c *chatServiceHandler) reactionMapToUI(reactions chat1.ReactionMap) (res chat1.UIReactionMap) {
+	res.Reactions = make(map[string]chat1.UIReactionDesc)
+	for emoji, users := range reactions.Reactions {
+		res.Reactions[emoji] = chat1.UIReactionDesc{
+			Users: make(map[string]chat1.Reaction),
+		}
+		for username, reaction := range users {
+			res.Reactions[emoji].Users[username] = reaction
+		}
+	}
+	return res
+}
+
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
 	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []chat1.Message, err error) {
 	for _, m := range messages {
@@ -541,7 +554,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			}
 		}
 		if mv.Reactions.Reactions != nil {
-			msg.Reactions = &mv.Reactions
+			uireact := c.reactionMapToUI(mv.Reactions)
+			msg.Reactions = &uireact
 		}
 
 		ret = append(ret, chat1.Message{
@@ -1482,11 +1496,46 @@ func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *chat
 	return res
 }
 
+func (*chatServiceHandler) displayTextBody(text *chat1.MessageText) (res *chat1.MsgTextContent) {
+	if text == nil {
+		return res
+	}
+	res = new(chat1.MsgTextContent)
+	res.Body = text.Body
+	res.Payments = text.Payments
+	res.ReplyTo = text.ReplyTo
+	var strReplyToUID *string
+	if text.ReplyToUID != nil {
+		strReplyToUID = new(string)
+		*strReplyToUID = text.ReplyToUID.String()
+	}
+	res.UserMentions = text.UserMentions
+	res.TeamMentions = text.TeamMentions
+	res.LiveLocation = text.LiveLocation
+	for _, emoji := range text.Emojis {
+		var convIDStr *chat1.ConvIDStr
+		var msgID *chat1.MessageID
+		if emoji.Source.IsMessage() {
+			convIDStr = new(chat1.ConvIDStr)
+			msgID = new(chat1.MessageID)
+			*convIDStr = emoji.Source.Message().ConvID.ConvIDStr()
+			*msgID = emoji.Source.Message().MsgID
+		}
+		res.Emojis = append(res.Emojis, chat1.EmojiContent{
+			Alias:       emoji.Alias,
+			IsCrossTeam: emoji.IsCrossTeam,
+			ConvID:      convIDStr,
+			MessageID:   msgID,
+		})
+	}
+	return res
+}
+
 // need this to get message type name
 func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) chat1.MsgContent {
 	return chat1.MsgContent{
 		TypeName:           strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
-		Text:               mb.Text__,
+		Text:               c.displayTextBody(mb.Text__),
 		Attachment:         mb.Attachment__,
 		Edit:               mb.Edit__,
 		Reaction:           mb.Reaction__,

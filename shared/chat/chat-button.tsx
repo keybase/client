@@ -17,6 +17,10 @@ type Props = {
 const ChatButton = ({small, style, username}: Props) => {
   const dispatch = Container.useDispatch()
   const chat = () => {
+    if (Container.isMobile) {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(RouteTreeGen.createClearModals())
+    }
     dispatch(ConfigGen.createShowMain())
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))

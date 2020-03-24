@@ -2301,13 +2301,23 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				reactionUpdate := info.ReactionUpdates[0]
 				require.Equal(t, targetMsgID, reactionUpdate.TargetMsgID)
 				for _, reactions := range reactionUpdate.Reactions.Reactions {
-					for k, r := range reactions {
+					for k, r := range reactions.Users {
 						require.NotZero(t, r.Ctime)
 						r.Ctime = 0
-						reactions[k] = r
+						reactions.Users[k] = r
 					}
 				}
-				require.Equal(t, reactionMap, reactionUpdate.Reactions)
+				var refMap chat1.UIReactionMap
+				refMap.Reactions = make(map[string]chat1.UIReactionDesc)
+				for emoji, users := range reactionMap.Reactions {
+					refMap.Reactions[emoji] = chat1.UIReactionDesc{
+						Users: make(map[string]chat1.Reaction),
+					}
+					for username, reaction := range users {
+						refMap.Reactions[emoji].Users[username] = reaction
+					}
+				}
+				require.Equal(t, refMap, reactionUpdate.Reactions)
 			}
 
 			var err error

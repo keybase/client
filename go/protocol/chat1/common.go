@@ -1992,6 +1992,7 @@ const (
 	GetThreadReason_KBFSFILEACTIVITY   GetThreadReason = 8
 	GetThreadReason_COINFLIP           GetThreadReason = 9
 	GetThreadReason_BOTCOMMANDS        GetThreadReason = 10
+	GetThreadReason_EMOJISOURCE        GetThreadReason = 11
 )
 
 func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
@@ -2008,6 +2009,7 @@ var GetThreadReasonMap = map[string]GetThreadReason{
 	"KBFSFILEACTIVITY":   8,
 	"COINFLIP":           9,
 	"BOTCOMMANDS":        10,
+	"EMOJISOURCE":        11,
 }
 
 var GetThreadReasonRevMap = map[GetThreadReason]string{
@@ -2022,6 +2024,7 @@ var GetThreadReasonRevMap = map[GetThreadReason]string{
 	8:  "KBFSFILEACTIVITY",
 	9:  "COINFLIP",
 	10: "BOTCOMMANDS",
+	11: "EMOJISOURCE",
 }
 
 func (e GetThreadReason) String() string {
@@ -2422,6 +2425,7 @@ type Asset struct {
 	Size      int64         `codec:"size" json:"size"`
 	MimeType  string        `codec:"mimeType" json:"mimeType"`
 	EncHash   Hash          `codec:"encHash" json:"encHash"`
+	PtHash    Hash          `codec:"ptHash" json:"ptHash"`
 	Key       []byte        `codec:"key" json:"key"`
 	VerifyKey []byte        `codec:"verifyKey" json:"verifyKey"`
 	Title     string        `codec:"title" json:"title"`
@@ -2440,6 +2444,7 @@ func (o Asset) DeepCopy() Asset {
 		Size:     o.Size,
 		MimeType: o.MimeType,
 		EncHash:  o.EncHash.DeepCopy(),
+		PtHash:   o.PtHash.DeepCopy(),
 		Key: (func(x []byte) []byte {
 			if x == nil {
 				return nil

@@ -305,31 +305,28 @@ class Assertion extends React.PureComponent<Props, State> {
     }
 
     return {
-      header: {
-        title: 'header',
-        view: (
-          <Kb.Box2
-            direction="vertical"
-            gap="tiny"
-            centerChildren={true}
-            style={styles.menuHeader}
-            fullWidth={true}
-          >
-            <Kb.Box2 direction="vertical" style={styles.positionRelative}>
-              {this._siteIcon(true)}
-              <Kb.Icon type={stateToDecorationIcon(p.state)} style={styles.siteIconFullDecoration} />
-            </Kb.Box2>
-            {!!this.props.timestamp && (
-              <>
-                <Kb.Text type="BodySmall">Posted on</Kb.Text>
-                <Kb.Text center={true} type="BodySmall">
-                  {formatTimeForAssertionPopup(this.props.timestamp)}
-                </Kb.Text>
-              </>
-            )}
+      header: (
+        <Kb.Box2
+          direction="vertical"
+          gap="tiny"
+          centerChildren={true}
+          style={styles.menuHeader}
+          fullWidth={true}
+        >
+          <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+            {this._siteIcon(true)}
+            <Kb.Icon type={stateToDecorationIcon(p.state)} style={styles.siteIconFullDecoration} />
           </Kb.Box2>
-        ),
-      },
+          {!!this.props.timestamp && (
+            <>
+              <Kb.Text type="BodySmall">Posted on</Kb.Text>
+              <Kb.Text center={true} type="BodySmall">
+                {formatTimeForAssertionPopup(this.props.timestamp)}
+              </Kb.Text>
+            </>
+          )}
+        </Kb.Box2>
+      ),
       items: [{onClick: p.onShowProof, title: `View ${proofTypeToDesc(p.type)}`}, onRevoke],
     }
   }

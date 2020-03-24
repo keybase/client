@@ -872,10 +872,10 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)
 		return msgBody, nil
 	}
-	return chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body:     body,
-		Payments: payments,
-	}), nil
+	newBody := msgBody.Text().DeepCopy()
+	newBody.Body = body
+	newBody.Payments = payments
+	return chat1.NewMessageBodyWithText(newBody), nil
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
@@ -3654,7 +3654,7 @@ func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1
 	if err != nil {
 		return res, err
 	}
-	if err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename); err != nil {
+	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename, nil); err != nil {
 		return res, err
 	}
 	return res, nil

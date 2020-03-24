@@ -16,7 +16,7 @@ export default connect(
   },
   dispatch => ({
     _onOpenOlderConversation: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpToReset'})),
+      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'jumpToReset'})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     onOpenOlderConversation: () => {

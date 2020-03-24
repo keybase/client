@@ -3,14 +3,6 @@
 protocol wot {
   import idl "common.avdl";
 
-  enum WotStatusType {
-    NONE_0,
-    PROPOSED_1,
-    ACCEPTED_2,
-    REJECTED_3,
-    REVOKED_4
-  }
-
   // How the voucher knows they have the right vouchee.
   // See extras.go for values
   @typedef("string")
@@ -48,16 +40,20 @@ protocol wot {
     REJECT_1
   }
   void wotReact(int sessionID, UserVersion voucher, SigID proof, WotReactionType reaction);
-  void wotReactCLI(int sessionID, string username /* voucher */, WotReactionType reaction);
+  void wotReactCLI(int sessionID, string voucher, WotReactionType reaction);
 
   record WotVouch {
     WotStatusType status;
     SigID vouchProof; // ID of the voucher's sigchain link where they did the vouching.
+    UserVersion vouchee;
     UserVersion voucher;
     array<string> vouchTexts;
     Time vouchedAt;
     union { null, Confidence } confidence;
   }
 
-  array<WotVouch> wotListCLI(int sessionID, union {null, string} username);
+  // dismiss notifications for a user vouch
+  void dismissWotNotifications(int sessionID, string voucher, string vouchee);
+
+  array<WotVouch> wotListCLI(int sessionID, string vouchee, string voucher);
 }

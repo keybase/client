@@ -6,6 +6,9 @@ import {isDarwin} from '../../constants/platform'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import flags from '../../util/feature-flags.desktop'
 import React from 'react'
+import {enableMapSet} from 'immer'
+
+enableMapSet()
 
 if (__DEV__ && flags.whyDidYouRender) {
   const whyDidYouRender = require('@welldone-software/why-did-you-render/dist/no-classes-transpile/umd/whyDidYouRender.min.js')

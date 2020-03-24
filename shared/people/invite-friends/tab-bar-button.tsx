@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import InviteHow from './invite-how'
 
 const InviteFriends = () => {
   // TODO: useRPC to get this data
@@ -14,7 +15,16 @@ const InviteFriends = () => {
   const onInviteFriends = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{selected: 'inviteFriendsModal'}]}))
 
-  const inviteButton = <Kb.Button small={true} label="Invite friends" onClick={onInviteFriends} />
+  const {popup, toggleShowingPopup, showingPopup} = Kb.usePopup(() => (
+    <InviteHow visible={showingPopup} onHidden={toggleShowingPopup} />
+  ))
+  const inviteButton = (
+    <Kb.Button
+      small={true}
+      label="Invite friends"
+      onClick={Styles.isMobile ? toggleShowingPopup : onInviteFriends}
+    />
+  )
   const inviteCounter = (
     <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
       <Kb.Icon type="iconfont-envelope" sizeType="Small" color={Styles.globalColors.blueDarkerOrBlack_85} />
@@ -33,6 +43,7 @@ const InviteFriends = () => {
           {inviteCounter}
         </Kb.WithTooltip>
       </Kb.Box2>
+      {popup}
     </Kb.Box2>
   ) : (
     <>

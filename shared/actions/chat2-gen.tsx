@@ -39,7 +39,6 @@ export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
-export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
@@ -120,7 +119,7 @@ export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
-export const selectConversation = 'chat2:selectConversation'
+export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
@@ -274,7 +273,6 @@ type _ConversationErroredPayload = {
   readonly message: string
 }
 type _CreateConversationPayload = {readonly participants: Array<string>}
-type _DeselectConversationPayload = {readonly ifConversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly author: string
@@ -501,7 +499,38 @@ type _MetasReceivedPayload = {
 }
 type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly muted: boolean}
 type _NavigateToInboxPayload = void
-type _NavigateToThreadPayload = void
+type _NavigateToThreadPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly reason:
+    | 'focused'
+    | 'clearSelected'
+    | 'desktopNotification'
+    | 'createdMessagePrivately'
+    | 'extension'
+    | 'files'
+    | 'findNewestConversation'
+    | 'findNewestConversationFromLayout'
+    | 'inboxBig'
+    | 'inboxFilterArrow'
+    | 'inboxFilterChanged'
+    | 'inboxSmall'
+    | 'inboxNewConversation'
+    | 'inboxSearch'
+    | 'jumpFromReset'
+    | 'jumpToReset'
+    | 'justCreated'
+    | 'manageView'
+    | 'previewResolved'
+    | 'push'
+    | 'savedLastState'
+    | 'startFoundExisting'
+    | 'teamChat'
+    | 'addedToChannel'
+    | 'navChanged'
+    | 'misc'
+    | 'teamMention'
+  readonly pushBody?: string
+}
 type _NotificationSettingsUpdatedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly settings: RPCChatTypes.ConversationNotificationInfo
@@ -587,37 +616,7 @@ type _SaveMinWriterRolePayload = {
   readonly role: TeamsTypes.TeamRoleType
   readonly cannotWrite: boolean
 }
-type _SelectConversationPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly reason:
-    | 'focused'
-    | 'clearSelected'
-    | 'desktopNotification'
-    | 'createdMessagePrivately'
-    | 'extension'
-    | 'files'
-    | 'findNewestConversation'
-    | 'inboxBig'
-    | 'inboxFilterArrow'
-    | 'inboxFilterChanged'
-    | 'inboxSmall'
-    | 'inboxNewConversation'
-    | 'inboxSearch'
-    | 'jumpFromReset'
-    | 'jumpToReset'
-    | 'justCreated'
-    | 'manageView'
-    | 'previewResolved'
-    | 'push'
-    | 'savedLastState'
-    | 'startFoundExisting'
-    | 'teamChat'
-    | 'addedToChannel'
-    | 'teamMention'
-  readonly skipNav?: boolean
-  readonly navKey?: string
-  readonly pushBody?: string
-}
+type _SelectedConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _SendAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly fromStaged: boolean
@@ -1464,9 +1463,6 @@ export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload
 export const createConversationErrored = (
   payload: _ConversationErroredPayload
 ): ConversationErroredPayload => ({payload, type: conversationErrored})
-export const createDeselectConversation = (
-  payload: _DeselectConversationPayload
-): DeselectConversationPayload => ({payload, type: deselectConversation})
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
@@ -1634,10 +1630,9 @@ export const createResetLetThemIn = (payload: _ResetLetThemInPayload): ResetLetT
   payload,
   type: resetLetThemIn,
 })
-export const createSelectConversation = (payload: _SelectConversationPayload): SelectConversationPayload => ({
-  payload,
-  type: selectConversation,
-})
+export const createSelectedConversation = (
+  payload: _SelectedConversationPayload
+): SelectedConversationPayload => ({payload, type: selectedConversation})
 export const createSendAudioRecording = (payload: _SendAudioRecordingPayload): SendAudioRecordingPayload => ({
   payload,
   type: sendAudioRecording,
@@ -1789,10 +1784,6 @@ export type ConversationErroredPayload = {
 export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
   readonly type: typeof createConversation
-}
-export type DeselectConversationPayload = {
-  readonly payload: _DeselectConversationPayload
-  readonly type: typeof deselectConversation
 }
 export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
@@ -2078,9 +2069,9 @@ export type SaveMinWriterRolePayload = {
   readonly payload: _SaveMinWriterRolePayload
   readonly type: typeof saveMinWriterRole
 }
-export type SelectConversationPayload = {
-  readonly payload: _SelectConversationPayload
-  readonly type: typeof selectConversation
+export type SelectedConversationPayload = {
+  readonly payload: _SelectedConversationPayload
+  readonly type: typeof selectedConversation
 }
 export type SendAudioRecordingPayload = {
   readonly payload: _SendAudioRecordingPayload
@@ -2336,7 +2327,6 @@ export type Actions =
   | ConfirmScreenResponsePayload
   | ConversationErroredPayload
   | CreateConversationPayload
-  | DeselectConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
@@ -2417,7 +2407,7 @@ export type Actions =
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
-  | SelectConversationPayload
+  | SelectedConversationPayload
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload

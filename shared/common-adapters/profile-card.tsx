@@ -260,18 +260,15 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
         propagateOutsideClicks={!Styles.isMobile}
         remeasureHint={remeasureHint}
         visible={showing}
-        header={{
-          title: '',
-          view: (
-            <ProfileCard
-              containerStyle={styles.profileCardPopup}
-              username={username}
-              clickToProfile={true}
-              onLayoutChange={onLayoutChange}
-              onGoToProfile={() => setShowing(false)}
-            />
-          ),
-        }}
+        header={
+          <ProfileCard
+            containerStyle={styles.profileCardPopup}
+            username={username}
+            clickToProfile={true}
+            onLayoutChange={onLayoutChange}
+            onGoToProfile={() => setShowing(false)}
+          />
+        }
         items={[]}
       />
     </DelayedMounting>

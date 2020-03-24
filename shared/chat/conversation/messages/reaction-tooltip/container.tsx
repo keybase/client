@@ -24,7 +24,7 @@ export type OwnProps = {
 }
 
 const emptyStateProps = {
-  _reactions: new Map<string, Set<Types.Reaction>>(),
+  _reactions: new Map<string, Types.ReactionDesc>(),
   _usersInfo: new Map<string, UsersTypes.UserInfo>(),
 }
 
@@ -57,7 +57,7 @@ export default namedConnect(
     let reactions = [...stateProps._reactions.keys()]
       .map(emoji => ({
         emoji,
-        users: [...(stateProps._reactions.get(emoji) || new Set())]
+        users: [...(stateProps._reactions.get(emoji)?.users ?? new Set())]
           // Earliest users go at the top
           .sort((a, b) => a.timestamp - b.timestamp)
           .map(r => ({

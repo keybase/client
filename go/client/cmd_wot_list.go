@@ -14,8 +14,9 @@ import (
 
 type cmdWotList struct {
 	libkb.Contextified
-	username *string
-	ownWot   bool
+	vouchee string
+	voucher string
+	byMe    bool
 }
 
 func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -29,7 +30,12 @@ func newCmdWotList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "list", c)
 		},
-		Flags: []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "by-me",
+				Usage: "Only get vouches written by me",
+			},
+		},
 	}
 }
 
@@ -37,20 +43,31 @@ func (c *cmdWotList) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 1 {
 		return errors.New("too many arguments")
 	}
-	c.ownWot = true
 	if len(ctx.Args()) == 1 {
 		username := ctx.Args()[0]
-		c.username = &username
-		c.ownWot = false
+		c.vouchee = username
 	}
+	c.byMe = ctx.Bool("by-me")
 	return nil
 }
 
 func (c *cmdWotList) Run() error {
 	ctx := context.Background()
-	arg := keybase1.WotListCLIArg{
-		Username: c.username,
+	me := c.G().Env.GetUsername().String()
+	if c.byMe {
+		c.voucher = me
 	}
+
+	if len(c.voucher) > 0 && len(c.vouchee) > 0 {
+		// don't allow specifying both
+		return errors.New("can't specify both a vouchee and --byMe; please remove one")
+	}
+
+	arg := keybase1.WotListCLIArg{
+		Vouchee: c.vouchee,
+		Voucher: c.voucher,
+	}
+
 	cli, err := GetWebOfTrustClient(c.G())
 	if err != nil {
 		return err
@@ -63,13 +80,26 @@ func (c *cmdWotList) Run() error {
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
 	}
-	var targetUsername string
-	if c.ownWot {
-		targetUsername = c.G().Env.GetUsername().String()
-	} else {
-		targetUsername = *c.username
+
+	// for displaying appropriate text, explicate vouchee and voucher with
+	// targetVouchee and targetVoucher
+	wotTitle := "Web-Of-Trust"
+	var targetVouchee, targetVoucher string
+	if len(c.vouchee) == 0 && len(c.voucher) == 0 {
+		targetVouchee = me
+	} else if len(c.vouchee) > 0 {
+		targetVouchee = c.vouchee
+	} else if len(c.voucher) > 0 {
+		targetVoucher = c.voucher
 	}
-	line("Web-Of-Trust for %s", targetUsername)
+
+	if len(targetVouchee) > 0 {
+		wotTitle += fmt.Sprintf(" for %s", targetVouchee)
+	}
+	if len(targetVoucher) > 0 {
+		wotTitle += fmt.Sprintf(" by %s", targetVoucher)
+	}
+	line(wotTitle)
 	line("-------------------------------")
 	if len(res) == 0 {
 		line("no attestations to show")
@@ -77,15 +107,24 @@ func (c *cmdWotList) Run() error {
 	}
 	for _, vouch := range res {
 		vouchTexts := strings.Join(vouch.VouchTexts, ", ")
+		vouchee, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Vouchee.Uid)
+		if err != nil {
+			return fmt.Errorf("error looking up username for vouchee: %s", err.Error())
+		}
 		voucher, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Voucher.Uid)
 		if err != nil {
-			return fmt.Errorf("error looking up username for vouch: %s", err.Error())
+			return fmt.Errorf("error looking up username for voucher: %s", err.Error())
 		}
+		line("Vouchee: %s", vouchee)
 		line("Voucher: %s", voucher)
 		line("Attestation: \"%s\"", vouchTexts)
 		line("Status: %s", vouch.Status)
-		if c.ownWot && vouch.Status == keybase1.WotStatusType_PROPOSED {
-			line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
+		if vouch.Status == keybase1.WotStatusType_PROPOSED {
+			if len(targetVouchee) > 0 && targetVouchee == me {
+				line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
+			} else if len(targetVoucher) > 0 && targetVoucher == me {
+				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", vouchee) // TODO
+			}
 		}
 		if vouch.Confidence != nil {
 			line("Additional Details: %+v", *vouch.Confidence)

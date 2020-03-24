@@ -27,10 +27,7 @@ class _DeleteChannel extends React.Component<Props, State> {
   render() {
     const {disabled} = this.props
 
-    const header = {
-      title: 'header',
-      view: <PopupHeader channelName={this.props.channelName} />,
-    }
+    const header = <PopupHeader channelName={this.props.channelName} />
 
     const items = [
       'Divider' as const,

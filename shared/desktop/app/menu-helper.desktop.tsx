@@ -1,8 +1,7 @@
 import * as Electron from 'electron'
 import {isDarwin} from '../../constants/platform'
 import {closeWindows} from './main-window.desktop'
-
-let devToolsState = false
+import flags from '../../util/feature-flags'
 
 export default function makeMenu(window: Electron.BrowserWindow) {
   const editMenu = new Electron.MenuItem({
@@ -28,26 +27,28 @@ export default function makeMenu(window: Electron.BrowserWindow) {
       new Electron.MenuItem({accelerator: 'CmdOrCtrl+W', label: 'Close', role: 'close'}),
       new Electron.MenuItem({type: 'separator'}),
       new Electron.MenuItem({label: 'Bring All to Front', role: 'front'}),
-      ...(__DEV__
+      ...(__DEV__ || flags.admin
         ? [
+            new Electron.MenuItem({type: 'separator'}),
+            new Electron.MenuItem({
+              click: () => {},
+              label: '🛑 Admin Only 🛑',
+            }),
             new Electron.MenuItem({
               accelerator: 'CmdOrCtrl+R',
-              click: (_, focusedWindow) => {
-                focusedWindow && focusedWindow.reload()
+              click: () => {
+                Electron.BrowserWindow.getAllWindows().map(bw => bw.reload())
               },
               label: 'Reload',
             }),
             new Electron.MenuItem({
               accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
               click: () => {
-                devToolsState = !devToolsState
                 Electron.BrowserWindow.getAllWindows().map(bw =>
-                  devToolsState
-                    ? bw.webContents.openDevTools({mode: 'detach'})
-                    : bw.webContents.closeDevTools()
+                  bw.webContents.openDevTools({mode: 'detach'})
                 )
               },
-              label: 'Toggle Developer Tools',
+              label: 'Developer Tools',
             }),
           ]
         : []),
