@@ -8,6 +8,11 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/teams'
 import './avatar.css'
 
+export const AVATAR_CONTAINER_SIZE = 175
+export const AVATAR_BORDER_SIZE = 4
+export const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
+export const VIEWPORT_CENTER = AVATAR_SIZE / 2
+
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = typeof avatarSizes[number]
 
