@@ -127,7 +127,6 @@ export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
 export const setBotPublicCommands = 'chat2:setBotPublicCommands'
 export const setBotRoleInConv = 'chat2:setBotRoleInConv'
 export const setBotSettings = 'chat2:setBotSettings'
-export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -645,7 +644,6 @@ type _SetBotSettingsPayload = {
   readonly username: string
   readonly settings: RPCTypes.TeamBotSettings
 }
-type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
@@ -1104,12 +1102,6 @@ export const createSetParticipants = (payload: _SetParticipantsPayload): SetPart
   payload,
   type: setParticipants,
 })
-/**
- * Set filter for channel search
- */
-export const createSetChannelSearchText = (
-  payload: _SetChannelSearchTextPayload
-): SetChannelSearchTextPayload => ({payload, type: setChannelSearchText})
 /**
  * Set index percent complete
  */
@@ -2098,10 +2090,6 @@ export type SetBotSettingsPayload = {
   readonly payload: _SetBotSettingsPayload
   readonly type: typeof setBotSettings
 }
-export type SetChannelSearchTextPayload = {
-  readonly payload: _SetChannelSearchTextPayload
-  readonly type: typeof setChannelSearchText
-}
 export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: typeof setCommandMarkdown
@@ -2415,7 +2403,6 @@ export type Actions =
   | SetBotPublicCommandsPayload
   | SetBotRoleInConvPayload
   | SetBotSettingsPayload
-  | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
