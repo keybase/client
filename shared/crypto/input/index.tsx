@@ -7,6 +7,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
 import HiddenString from '../../util/hidden-string'
 
@@ -59,8 +60,8 @@ const operationToEmptyInputWidth = {
  */
 export const TextInput = (props: TextProps) => {
   const {value, operation, onChangeText, onSetFile} = props
-  const textType = Constants.getInputTextType(operation)
-  const placeholder = Constants.getInputPlaceholder(operation)
+  const textType = Constants.inputTextType.get(operation)
+  const placeholder = Constants.inputPlaceholder.get(operation)
   const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
@@ -146,8 +147,8 @@ export const TextInput = (props: TextProps) => {
 
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
-  const fileIcon = Constants.getInputFileIcon(operation)
-  const waitingKey = Constants.getFileWaitingKey(operation)
+  const fileIcon = Constants.inputFileIcon.get(operation) as IconType
+  const waitingKey = Constants.fileWaitingKey.get(operation) as Types.FileWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   return (
@@ -235,7 +236,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
   }
 
-  const allowFolders = Constants.getAllowInputFolders(props.operation)
+  const allowFolders = Constants.allowInputFolders.get(operation) as boolean
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -255,7 +256,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
 
 export const OperationBanner = (props: CommonProps) => {
   const {operation} = props
-  const infoMessage = Constants.getInfoMessage(operation)
+  const infoMessage = Constants.infoMessage.get(operation)
   const errorMessage = Container.useSelector(state => state.crypto[operation].errorMessage.stringValue())
   const warningMessage = Container.useSelector(state => state.crypto[operation].warningMessage.stringValue())
 
@@ -287,7 +288,7 @@ export const OperationBanner = (props: CommonProps) => {
 export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children} = props
   const dispatch = Container.useDispatch()
-  const waitingKey = Constants.getStringWaitingKey(operation)
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
 
   const operationTitle = capitalize(operation)
 

@@ -10,6 +10,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platforms from '../../constants/platform'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
@@ -47,7 +48,7 @@ const largeOutputLimit = 120
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
 
-  const waitingKey = Constants.getStringWaitingKey(operation)
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
@@ -176,7 +177,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
@@ -330,7 +331,7 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
 
 export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
-  const textType = Constants.getOutputTextType(operation)
+  const textType = Constants.outputTextType.get(operation)
   const dispatch = Container.useDispatch()
 
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
@@ -345,7 +346,7 @@ export const OperationOutput = (props: OutputProps) => {
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
   }
 
-  const waitingKey = Constants.getStringWaitingKey(operation)
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   // Output text can be 24 px when output is less that 120 characters
@@ -358,7 +359,7 @@ export const OperationOutput = (props: OutputProps) => {
 
   const fileOutputTextColor =
     textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
-  const fileIcon = Constants.getOutputFileIcon(operation)
+  const fileIcon = Constants.outputFileIcon.get(operation) as IconType
   const actionsDisabled = waiting || !outputValid
 
   // Placeholder, progress, or encrypt file button

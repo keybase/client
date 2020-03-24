@@ -72,7 +72,7 @@ const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => 
 // transitions to the output route on success
 const handleOperationSuccessNavigation = (action: CryptoGen.OnOperationSuccessPayload) => {
   const {operation} = action.payload
-  const outputRoute = Constants.getOutputRoute(operation)
+  const outputRoute = Constants.outputRoute.get(operation) as Types.CryptoOutputRoute
 
   return RouteTreeGen.createNavigateAppend({
     path: [outputRoute],
