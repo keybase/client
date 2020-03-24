@@ -393,14 +393,28 @@ func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, e
 			return
 		}
 
-		slice[index].found = true
-		slice[index].UID = result.UID
+		row := slice[index]
+		row.found = true
+		row.UID = result.UID
 		usernamePkg, ok := usernames[result.UID]
 		if ok {
-			slice[index].username = usernamePkg.Username
-			slice[index].fullName = usernamePkg.Fullname
+			row.username = usernamePkg.Username
+			row.fullName = usernamePkg.Fullname
 		}
-		slice[index].serviceMap = serviceMaps[result.UID]
+		row.serviceMap = serviceMaps[result.UID]
+
+		assertion := row.assertion
+		if result.Coerced != "" && result.Coerced != assertion.GetValue() {
+			// Server corrected our assertion - take this instead.
+			assertion, err := imptofuQueryToAssertion(mctx.Ctx(), assertion.GetKey(), string(result.Coerced))
+			if err == nil {
+				row.assertion = assertion
+			} else {
+				mctx.Warning("Failed to create assertion from coerced result: %s", err)
+			}
+		}
+
+		slice[index] = row
 	}
 
 	for i, email := range emails {
@@ -435,93 +449,48 @@ func (h *UserSearchHandler) imptofuSearch(mctx libkb.MetaContext, arg keybase1.U
 		return nil, fmt.Errorf("unexpected service=%q in imptofuSearch", arg.Service)
 	}
 
-	lookupRes, err := h.contactsProvider.LookupAll(mctx, emails, phones)
+	searchRet, err := h.searchEmailsOrPhoneNumbers(mctx, emails, phones, false /* requireUsernames */, arg.IncludeServicesSummary)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(lookupRes.Results) > 0 {
-		var uids []keybase1.UID
-		for _, v := range lookupRes.Results {
-			if v.Error == "" && !v.UID.IsNil() {
-				uids = append(uids, v.UID)
-			}
-		}
-
-		usernames, err := h.contactsProvider.FindUsernames(mctx, uids)
-		if err != nil {
-			mctx.Warning("Cannot find usernames for search results: %s", err)
-		}
-		var serviceMaps map[keybase1.UID]libkb.UserServiceSummary
-		if arg.IncludeServicesSummary {
-			serviceMaps, err = h.contactsProvider.FindServiceMaps(mctx, uids)
-			if err != nil {
-				mctx.Warning("Cannot get service maps for search results: %s", err)
-			}
-		}
-
-		for _, v := range lookupRes.Results {
-			// Found a resolution
-			if v.Error != "" || v.UID.IsNil() {
-				continue
-			}
-
-			assertionValueArg := arg.Query
-			if v.Coerced != "" {
-				// Server corrected our assertion - take this instead.
-				assertionValueArg = v.Coerced
-			}
-			assertion, err := imptofuQueryToAssertion(mctx.Ctx(), arg.Service, assertionValueArg)
-			if err != nil {
-				return nil, err
-			}
-			imptofu := &keybase1.ImpTofuSearchResult{
-				Assertion:      assertion.String(),
-				AssertionKey:   assertion.GetKey(),
-				AssertionValue: assertion.GetValue(),
-			}
-			if usernames != nil {
-				if uname, found := usernames[v.UID]; found {
-					imptofu.KeybaseUsername = uname.Username
-					imptofu.PrettyName = uname.Fullname
-				}
-			}
-			var servicesSummary map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary
-			if serviceMaps != nil {
-				if smap, found := serviceMaps[v.UID]; found && len(smap) > 0 {
-					servicesSummary = make(map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary, len(smap))
-					for serviceID, username := range smap {
-						serviceName := keybase1.APIUserServiceID(serviceID)
-						servicesSummary[serviceName] = keybase1.APIUserServiceSummary{
-							ServiceName: serviceName,
-							Username:    username,
-						}
-					}
-				}
-			}
-			res = []keybase1.APIUserSearchResult{{
-				Score:           1.0,
-				Imptofu:         imptofu,
-				ServicesSummary: servicesSummary,
-			}}
-			return res, nil // return here - we only want one result
-		}
+	slice := append(searchRet.emails, searchRet.phoneNumbers...)
+	if len(slice) != 1 {
+		return nil, fmt.Errorf("Expected 1 result from `searchEmailsOrPhoneNumbers` but got %d", len(slice))
 	}
 
-	// Not resolved - add SBS result.
-	assertion, err := imptofuQueryToAssertion(mctx.Ctx(), arg.Service, arg.Query)
-	if err != nil {
-		return nil, err
+	result := slice[0]
+	if !result.validInput {
+		return nil, fmt.Errorf("Invalid input: %q", result.input)
 	}
+
 	imptofu := &keybase1.ImpTofuSearchResult{
-		Assertion:      assertion.String(),
-		AssertionKey:   assertion.GetKey(),
-		AssertionValue: assertion.GetValue(),
+		Assertion:      result.assertion.String(),
+		AssertionKey:   result.assertion.GetKey(),
+		AssertionValue: result.assertion.GetValue(),
 	}
+	var servicesSummary map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary
+	if result.found {
+		imptofu.KeybaseUsername = result.username
+		imptofu.PrettyName = result.fullName
+		if result.serviceMap != nil {
+			servicesSummary = make(map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary, len(result.serviceMap))
+			for serviceID, username := range result.serviceMap {
+				serviceName := keybase1.APIUserServiceID(serviceID)
+				servicesSummary[serviceName] = keybase1.APIUserServiceSummary{
+					ServiceName: serviceName,
+					Username:    username,
+				}
+			}
+		}
+	}
+
 	res = []keybase1.APIUserSearchResult{{
-		Score:   1.0,
-		Imptofu: imptofu,
+		Score:           1.0,
+		Imptofu:         imptofu,
+		ServicesSummary: servicesSummary,
 	}}
+
 	return res, nil
 }
 
