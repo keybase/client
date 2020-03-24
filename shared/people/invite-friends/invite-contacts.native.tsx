@@ -224,7 +224,6 @@ const styles = Styles.styleSheetCreate(() => ({
   checkCircle: {
     marginRight: 24,
   },
-  closeButton: Styles.padding(Styles.globalMargins.small),
   disabledLink: {
     opacity: 0.5,
   },
