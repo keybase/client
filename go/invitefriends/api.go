@@ -7,10 +7,10 @@ import (
 
 func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
 	type apiRes struct {
-		numInvitesInLastDay int
-		percentageChange    float64
-		showNumInvites      bool
-		showFire            bool
+		NumInvitesInLastDay int     `json:"numInvitesInLastDay"`
+		PercentageChange    float64 `json:"percentageChange"`
+		ShowNumInvites      bool    `json:"showNumInvites"`
+		ShowFire            bool    `json:"showFire"`
 		libkb.AppStatusEmbed
 	}
 	apiArg := libkb.APIArg{
@@ -23,9 +23,9 @@ func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error)
 		return counts, err
 	}
 	return keybase1.InviteCounts{
-		InviteCount:      res.numInvitesInLastDay,
-		PercentageChange: res.percentageChange,
-		ShowNumInvites:   res.showNumInvites,
-		ShowFire:         res.showFire,
+		InviteCount:      res.NumInvitesInLastDay,
+		PercentageChange: res.PercentageChange,
+		ShowNumInvites:   res.ShowNumInvites,
+		ShowFire:         res.ShowFire,
 	}, nil
 }
