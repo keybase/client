@@ -386,6 +386,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
 	d.startInstallReferrerListener(d.MetaContext(ctx))
+	d.runInitializeInviteFriendsCounts(ctx)
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
@@ -588,6 +589,24 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 	}
 
 	d.G().PushShutdownHook(eng.Shutdown)
+}
+
+func (d *Service) runInitializeInviteFriendsCounts(ctx context.Context) {
+	go d.runInitializeInviteFriendsCountsInner()
+}
+func (d *Service) runInitializeInviteFriendsCountsInner(ctx context.Context) {
+	mctx := libkb.NewMetaContext(ctx, d.G())
+
+	if !mctx.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
+		mctx.Debug("Failed to wait for GUI to startup; not initializing invite counts")
+		return
+	}
+	counts, err := invitecounts.GetCounts()
+	if err != nil {
+		mctx.Debug("failed to initialize invitecounts: %s")
+		return
+	}
+	mctx.G().NotifyRouter.HandleUpdateInviteCounts(mctx.Ctx(), counts)
 }
 
 func (d *Service) startupGregor() {

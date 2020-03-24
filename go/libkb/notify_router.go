@@ -109,6 +109,7 @@ type NotifyListener interface {
 	SaltpackOperationStart(opType keybase1.SaltpackOperationType, filename string)
 	SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64)
 	SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string)
+	UpdateInviteCounts(keybase1.InviteCounts)
 }
 
 type NoopNotifyListener struct{}
@@ -161,14 +162,15 @@ func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate) {}
 func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
 	conv *chat1.InboxUIItem) {
 }
-func (n *NoopNotifyListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)     {}
-func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)    {}
-func (n *NoopNotifyListener) Chat(uid keybase1.UID, convID chat1.ConversationID)                     {}
-func (n *NoopNotifyListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)     {}
-func (n *NoopNotifyListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)          {}
-func (n *NoopNotifyListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.ConversationID)      {}
-func (n *NoopNotifyListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID)     {}
-func (n *NoopNotifyListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {}
+func (n *NoopNotifyListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)  {}
+func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {}
+func (n *NoopNotifyListener) Chat(uid keybase1.UID, convID chat1.ConversationID)                  {}
+func (n *NoopNotifyListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)  {}
+func (n *NoopNotifyListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)       {}
+func (n *NoopNotifyListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.ConversationID)   {}
+func (n *NoopNotifyListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID)  {}
+func (n *NoopNotifyListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
+}
 func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID) {
 }
@@ -248,6 +250,8 @@ func (n *NoopNotifyListener) SaltpackOperationStart(opType keybase1.SaltpackOper
 func (n *NoopNotifyListener) SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64) {
 }
 func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string) {
+}
+func (n *NoopNotifyListener) UpdateInviteCounts(keybase1.InviteCounts) {
 }
 
 type NotifyListenerID string
@@ -2758,25 +2762,22 @@ func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opTy
 	})
 }
 
-func (n *NotifyRouter) HandleSaltpackOperationDone(ctx context.Context, opType keybase1.SaltpackOperationType, filename string) {
+func (n *NotifyRouter) HandleUpdateInviteCounts(ctx context.Context, counts keybase1.InviteCounts) {
 	if n == nil {
 		return
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Saltpack {
-			// note there's no goroutine here on purpose
-			// (notification ordering)
-			_ = (keybase1.NotifySaltpackClient{
-				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-			}).SaltpackOperationDone(context.Background(), keybase1.SaltpackOperationDoneArg{
-				OpType:   opType,
-				Filename: filename,
-			})
+		if n.getNotificationChannels(id).App {
+			go func() {
+				_ = (keybase1.NotifyInviteFriendsClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).UpdateInviteCounts(context.Background(), counts)
+			}()
 		}
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.SaltpackOperationDone(opType, filename)
+		listener.UpdateInviteCounts(counts)
 	})
 }

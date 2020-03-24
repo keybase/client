@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/invitefriends"
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -66,13 +67,10 @@ func (e *InviteFriendsPollBackground) Shutdown() {
 }
 
 func InviteFriendsPollBackgroundRound(mctx libkb.MetaContext) error {
-
-	// ui, err := mctx.G().UIRouter.GetChatUI()
-	// if err != nil || ui == nil {
-	// 	mctx.Debug("InviteFriendsPollBackgroundRound: no chat UI found; err: %s", err)
-	// 	return nil
-	// }
-
-	// return ui.TriggerInviteFriendsPoll(mctx.Ctx())
-	return ni
+	counts, err := invitefriends.GetCounts(mctx)
+	if err != nil {
+		return err
+	}
+	mctx.G().NotifyRouter.HandleUpdateInviteCounts(mctx.Ctx(), counts)
+	return nil
 }
