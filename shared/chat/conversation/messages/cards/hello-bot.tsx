@@ -47,11 +47,18 @@ const styles = Styles.styleSheetCreate(
           marginTop: 4,
         },
       }),
-      image: {
-        alignSelf: Styles.isMobile ? 'center' : undefined,
-        marginTop: Styles.isMobile ? Styles.globalMargins.tiny : -Styles.globalMargins.xsmall,
-        paddingLeft: Styles.globalMargins.medium,
-      },
+      image: Styles.platformStyles({
+        common: {
+          marginLeft: Styles.globalMargins.medium,
+        },
+        isElectron: {
+          marginTop: -Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          alignSelf: 'center',
+          marginTop: Styles.globalMargins.tiny,
+        },
+      }),
       link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Styles.globalMargins.medium},
     } as const)
