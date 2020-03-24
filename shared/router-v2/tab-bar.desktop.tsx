@@ -36,7 +36,7 @@ const data = {
   [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
   [Tabs.gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
   [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
+  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
   [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
