@@ -263,6 +263,28 @@
           "name": "siteIconFullDarkmode"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmailOrPhoneNumberSearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "input"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
+          "name": "assertionValue"
+        },
+        {
+          "type": "string",
+          "name": "assertionKey"
+        }
+      ]
     }
   ],
   "messages": {
@@ -305,6 +327,33 @@
       "response": {
         "type": "array",
         "items": "APIUserSearchResult"
+      }
+    },
+    "bulkEmailOrPhoneSearch": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "emails",
+          "type": "string"
+        },
+        {
+          "name": "phoneNumbers",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "checkContacts",
+          "type": "boolean"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "EmailOrPhoneNumberSearchResult"
       }
     }
   },

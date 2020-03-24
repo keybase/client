@@ -297,6 +297,131 @@ func imptofuQueryToAssertion(ctx context.Context, typ, val string) (ret libkb.As
 	return ret, err
 }
 
+type tofuQueryResult struct {
+	input      string
+	validInput bool
+	assertion  libkb.AssertionURL
+
+	found      bool
+	UID        keybase1.UID
+	username   string
+	fullName   string
+	serviceMap libkb.UserServiceSummary
+}
+
+type searchEmailsOrPhoneNumbersResult struct {
+	emails       []tofuQueryResult
+	phoneNumbers []tofuQueryResult
+}
+
+func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	phoneNumbers []keybase1.RawPhoneNumber, requireUsernames bool,
+	includeServicesSummary bool) (ret searchEmailsOrPhoneNumbersResult, err error) {
+
+	// Create assertions from e-mail addresses. Only search for the ones that
+	// actually yield a valid assertions, but return all of them in results
+	// from this function.
+	emailsToSearch := make([]keybase1.EmailAddress, 0, len(emails))
+	emailRes := make([]tofuQueryResult, len(emails))
+	for i, email := range emails {
+		emailRes[i].input = string(email)
+		assertion, err := imptofuQueryToAssertion(mctx.Ctx(), "email", string(email))
+		if err == nil {
+			emailRes[i].validInput = true
+			emailRes[i].assertion = assertion
+			emailsToSearch = append(emailsToSearch, email)
+		} else {
+			mctx.Debug("Failed to create assertion from email: %s, skipping in search", email)
+		}
+	}
+
+	phonesToSearch := make([]keybase1.RawPhoneNumber, 0, len(phoneNumbers))
+	phoneRes := make([]tofuQueryResult, len(phoneNumbers))
+	for i, phone := range phoneNumbers {
+		phoneRes[i].input = string(phone)
+		assertion, err := imptofuQueryToAssertion(mctx.Ctx(), "phone", string(phone))
+		if err == nil {
+			phoneRes[i].validInput = true
+			phoneRes[i].assertion = assertion
+			phonesToSearch = append(phonesToSearch, phone)
+		} else {
+			mctx.Debug("Failed to create assertion from phone number: %s, skipping in search", phone)
+		}
+	}
+
+	ret.emails = emailRes
+	ret.phoneNumbers = phoneRes
+
+	if len(emailsToSearch)+len(phonesToSearch) == 0 {
+		// Everything was invalid (or we were given two empty lists).
+		return ret, nil
+	}
+
+	lookupRes, err := h.contactsProvider.LookupAll(mctx, emailsToSearch, phonesToSearch)
+	if err != nil {
+		return ret, err
+	}
+	if len(lookupRes.Results) == 0 {
+		return ret, nil
+	}
+
+	uids := make([]keybase1.UID, 0, len(lookupRes.Results))
+	for _, v := range lookupRes.Results {
+		if v.Error == "" && v.UID.Exists() {
+			uids = append(uids, v.UID)
+		}
+	}
+
+	usernames, err := h.contactsProvider.FindUsernames(mctx, uids)
+	if err != nil {
+		if requireUsernames {
+			return ret, err
+		}
+		mctx.Warning("Cannot find usernames for search results: %s", err)
+	}
+
+	var serviceMaps map[keybase1.UID]libkb.UserServiceSummary
+	if includeServicesSummary {
+		serviceMaps, err = h.contactsProvider.FindServiceMaps(mctx, uids)
+		if err != nil {
+			mctx.Warning("Cannot get service maps for search results: %s", err)
+		}
+	}
+
+	copyResult := func(slice []tofuQueryResult, index int, result contacts.ContactLookupResult) {
+		if result.Error != "" || result.UID.IsNil() {
+			return
+		}
+
+		slice[index].found = true
+		slice[index].UID = result.UID
+		usernamePkg, ok := usernames[result.UID]
+		if ok {
+			slice[index].username = usernamePkg.Username
+			slice[index].fullName = usernamePkg.Fullname
+		}
+		slice[index].serviceMap = serviceMaps[result.UID]
+	}
+
+	for i, email := range emails {
+		lookupKey := contacts.MakeEmailLookupKey(email)
+		result, found := lookupRes.Results[lookupKey]
+		if found {
+			copyResult(emailRes, i, result)
+		}
+	}
+
+	for i, phone := range phoneNumbers {
+		lookupKey := contacts.MakePhoneLookupKey(phone)
+		result, found := lookupRes.Results[lookupKey]
+		if found {
+			copyResult(phoneRes, i, result)
+		}
+	}
+
+	return ret, nil
+}
+
 func (h *UserSearchHandler) imptofuSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	var emails []keybase1.EmailAddress
 	var phones []keybase1.RawPhoneNumber
@@ -573,4 +698,14 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 	}
 
 	return res, nil
+}
+
+func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
+	arg keybase1.BulkEmailOrPhoneSearchArg) (ret []keybase1.EmailOrPhoneNumberSearchResult, err error) {
+
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)", len(arg.Emails), len(arg.PhoneNumbers)),
+		func() error { return err })()
+
+	return ret, nil
 }

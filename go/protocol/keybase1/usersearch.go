@@ -252,6 +252,22 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 	}
 }
 
+type EmailOrPhoneNumberSearchResult struct {
+	Input          string `codec:"input" json:"input"`
+	Assertion      string `codec:"assertion" json:"assertion"`
+	AssertionValue string `codec:"assertionValue" json:"assertionValue"`
+	AssertionKey   string `codec:"assertionKey" json:"assertionKey"`
+}
+
+func (o EmailOrPhoneNumberSearchResult) DeepCopy() EmailOrPhoneNumberSearchResult {
+	return EmailOrPhoneNumberSearchResult{
+		Input:          o.Input,
+		Assertion:      o.Assertion,
+		AssertionValue: o.AssertionValue,
+		AssertionKey:   o.AssertionKey,
+	}
+}
+
 type GetNonUserDetailsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Assertion string `codec:"assertion" json:"assertion"`
@@ -265,9 +281,17 @@ type UserSearchArg struct {
 	IncludeContacts        bool   `codec:"includeContacts" json:"includeContacts"`
 }
 
+type BulkEmailOrPhoneSearchArg struct {
+	SessionID     int      `codec:"sessionID" json:"sessionID"`
+	Emails        string   `codec:"emails" json:"emails"`
+	PhoneNumbers  []string `codec:"phoneNumbers" json:"phoneNumbers"`
+	CheckContacts bool     `codec:"checkContacts" json:"checkContacts"`
+}
+
 type UserSearchInterface interface {
 	GetNonUserDetails(context.Context, GetNonUserDetailsArg) (NonUserDetails, error)
 	UserSearch(context.Context, UserSearchArg) ([]APIUserSearchResult, error)
+	BulkEmailOrPhoneSearch(context.Context, BulkEmailOrPhoneSearchArg) ([]EmailOrPhoneNumberSearchResult, error)
 }
 
 func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
@@ -304,6 +328,21 @@ func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 					return
 				},
 			},
+			"bulkEmailOrPhoneSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]BulkEmailOrPhoneSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BulkEmailOrPhoneSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BulkEmailOrPhoneSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.BulkEmailOrPhoneSearch(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -319,5 +358,10 @@ func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUse
 
 func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserSearchClient) BulkEmailOrPhoneSearch(ctx context.Context, __arg BulkEmailOrPhoneSearchArg) (res []EmailOrPhoneNumberSearchResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.bulkEmailOrPhoneSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

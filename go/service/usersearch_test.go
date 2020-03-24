@@ -651,3 +651,64 @@ func TestUserSearchBadArgs(t *testing.T) {
 	})
 	require.Error(t, err)
 }
+
+func TestImptofuSearch(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	mockContactsProv.PhoneNumbers["+48111222332"] = contacts.MakeMockLookupUser("alice", "Alice A")
+	mockContactsProv.Emails["bob@keyba.se"] = contacts.MakeMockLookupUser("bob", "Bobby")
+
+	ret, err := searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{"+48111222332"},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 0, "0 emails in results (we didn't ask)")
+	require.Len(t, ret.phoneNumbers, 1, "1 phone number in results")
+	phoneRet := ret.phoneNumbers[0]
+	require.Equal(t, phoneRet.input, "+48111222332")
+	require.Equal(t, phoneRet.assertion.String(), "48111222332@phone")
+	require.True(t, phoneRet.found)
+	require.True(t, phoneRet.UID.Exists())
+	require.Equal(t, phoneRet.username, "alice")
+	require.Equal(t, phoneRet.fullName, "Alice A")
+
+	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{"+1555123456"},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 0, "0 emails in results (we didn't ask)")
+	require.Len(t, ret.phoneNumbers, 1, "1 phone number in results (even if it wasn't found)")
+	phoneRet = ret.phoneNumbers[0]
+	require.Equal(t, phoneRet.input, "+1555123456")
+	require.Equal(t, phoneRet.assertion.String(), "1555123456@phone")
+	require.False(t, phoneRet.found)
+	require.True(t, phoneRet.UID.IsNil())
+	require.Empty(t, phoneRet.username)
+	require.Empty(t, phoneRet.fullName)
+
+	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"bob@keyba.se"}, []keybase1.RawPhoneNumber{},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 1, "1 email in results")
+	require.Len(t, ret.phoneNumbers, 0, "0 phone numbers in results (we didn't ask)")
+	emailRet := ret.emails[0]
+	require.Equal(t, emailRet.input, "bob@keyba.se")
+	require.Equal(t, emailRet.assertion.String(), "[bob@keyba.se]@email")
+	require.True(t, emailRet.found)
+	require.True(t, emailRet.UID.Exists())
+	require.Equal(t, emailRet.username, "bob")
+	require.Equal(t, emailRet.fullName, "Bobby")
+}
