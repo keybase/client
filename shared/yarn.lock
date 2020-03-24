@@ -9333,7 +9333,7 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", "purepack@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
+"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", purepack@>=1, "purepack@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
   version "0.0.0"
   resolved "git://github.com/keybase/nullModule#e0d7d7874eb4d1fd82056f92f146589186fe94f0"
 
