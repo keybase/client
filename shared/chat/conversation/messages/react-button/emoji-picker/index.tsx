@@ -191,12 +191,12 @@ class EmojiPicker extends React.Component<Props, State> {
     // when the width changes to do that processing as infrequently as possible
     if (this.props.waitingForEmoji) {
       return (
-        <Box2
+        <Kb.Box2
           direction="horizontal"
           style={Styles.collapseStyles([styles.alignItemsCenter, styles.flexWrap])}
         >
-          <ProgressIndicator />
-        </Box2>
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
       )
     }
     if (this.props.filter) {
@@ -241,6 +241,27 @@ export const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone?: Types.E
   skinTone && emoji.skin_variations?.[skinTone]
     ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
     : `:${emoji.short_name}:`
+
+const EmojiRender = ({
+  emoji,
+  onChoose,
+  skinTone,
+}: {
+  emoji: Data.EmojiData
+  onChoose: (emojiStr: string) => void
+  skinTone?: Types.EmojiSkinTone
+}) => {
+  const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
+  return (
+    <Kb.ClickableBox onClick={() => onChoose(emojiStr)} style={styles.emoji} key={emoji.short_name}>
+      {emoji.source ? (
+        <Kb.CustomEmoji size="Medium" src={emoji.source} alias={emoji.short_name} />
+      ) : (
+        <Kb.Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={emojiStr} />
+      )}
+    </Kb.ClickableBox>
+  )
+}
 
 const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
