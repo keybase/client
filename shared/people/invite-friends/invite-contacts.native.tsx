@@ -76,6 +76,7 @@ const InviteContacts = () => {
 
   const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
   const [rpcErrorMessage, setError] = React.useState('')
+  const [successCount, setSuccessCount] = React.useState(0)
   const onSubmit = () => {
     setError('')
     submit(
@@ -86,10 +87,7 @@ const InviteContacts = () => {
         },
         waitingKey,
       ],
-      () => {
-        // TODO(Y2K-1643): positive feedback
-        navUp()
-      },
+      r => setSuccessCount(r),
       err => {
         setError(err.message)
       }
@@ -158,10 +156,12 @@ const InviteContacts = () => {
         hideBorder: true,
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={navUp}>
-            Cancel
+            {successCount ? 'Close' : 'Cancel'}
           </Kb.Text>
         ),
-        rightButton: waiting ? (
+        rightButton: successCount ? (
+          undefined
+        ) : waiting ? (
           <Kb.ProgressIndicator type="Small" />
         ) : (
           <Kb.Text
@@ -178,24 +178,30 @@ const InviteContacts = () => {
       {(!!contactsErrorMessage || !!rpcErrorMessage) && (
         <Kb.Banner color="red">{contactsErrorMessage ?? rpcErrorMessage}</Kb.Banner>
       )}
-      {loading ? (
-        <Kb.ProgressIndicator type="Huge" />
+      {successCount ? (
+        <Kb.Banner color="green">{`Success! You invited ${successCount} contacts to Keybase.`}</Kb.Banner>
       ) : (
-        <Kb.SearchFilter
-          size="small"
-          onChange={setSearch}
-          value={search}
-          placeholderText={placeholderText}
-          placeholderCentered={true}
-          icon="iconfont-search"
-        />
+        <>
+          {loading ? (
+            <Kb.ProgressIndicator type="Huge" />
+          ) : (
+            <Kb.SearchFilter
+              size="small"
+              onChange={setSearch}
+              value={search}
+              placeholderText={placeholderText}
+              placeholderCentered={true}
+              icon="iconfont-search"
+            />
+          )}
+          <Kb.SectionList
+            sections={sections}
+            renderSectionHeader={renderSectionHeader}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+          />
+        </>
       )}
-      <Kb.SectionList
-        sections={sections}
-        renderSectionHeader={renderSectionHeader}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-      />
     </Kb.Modal>
   )
 }
