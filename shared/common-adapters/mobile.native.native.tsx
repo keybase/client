@@ -76,6 +76,9 @@ module.exports = {
   get CopyableText() {
     return Index.CopyableText
   },
+  get CustomEmoji() {
+    return Index.CustomEmoji
+  },
   get DesktopStyle() {
     return Index.DesktopStyle
   },

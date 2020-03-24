@@ -7,6 +7,7 @@ import {isMobile} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
 import {memoize} from '../../../../../util/memoize'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
+import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
 // defer loading this until we need to, very expensive
 const _getData = memoize(() => {
@@ -82,7 +83,9 @@ type Props = {
   onChoose: (emojiStr: string) => void
   onHover?: (emoji: Data.EmojiData) => void
   skinTone?: Types.EmojiSkinTone
+  customSections?: RPCChatGen.EmojiGroup[]
   width: number
+  waitingForEmoji?: boolean
 }
 
 type State = {
@@ -107,14 +110,38 @@ class EmojiPicker extends React.Component<Props, State> {
     const {emojiSections} = getData(this.props.topReacjis.slice(0, emojisPerLine * 4))
     // width is different from cached. make new sections & cache for next time
     let sections: Array<Section> = []
-    sections = emojiSections.map(c => ({
-      data: chunk(c.data.emojis, emojisPerLine).map((c: any, idx: number) => ({
-        emojis: c,
-        key: (c && c.length && c[0] && c[0].short_name) || String(idx),
-      })),
-      key: c.key,
-      title: c.title,
-    }))
+    console.warn(this.props.customSections)
+    this.props.customSections?.map(c =>
+      sections.push({
+        data: [
+          {
+            emojis:
+              c.emojis?.map(e => ({
+                category: c.name,
+                name: null,
+                short_name: e.alias,
+                source: e.source.httpsrv,
+                unified: '',
+              })) ?? [],
+            key: '',
+          },
+        ],
+        key: c.name,
+        title: c.name,
+      })
+    )
+
+    emojiSections.map(c =>
+      sections.push({
+        data: chunk(c.data.emojis, emojisPerLine).map((c: any, idx: number) => ({
+          emojis: c,
+          key: (c && c.length && c[0] && c[0].short_name) || String(idx),
+        })),
+        key: c.key,
+        title: c.title,
+      })
+    )
+    console.warn(this.props.customSections)
     cacheSections(this.props.width, sections, this.props.topReacjis)
     this.setState({sections})
   }
@@ -162,6 +189,16 @@ class EmojiPicker extends React.Component<Props, State> {
     // to render. Render them directly rather than going through chunkData
     // pipeline for fast list of results. Go through chunkData only
     // when the width changes to do that processing as infrequently as possible
+    if (this.props.waitingForEmoji) {
+      return (
+        <Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([styles.alignItemsCenter, styles.flexWrap])}
+        >
+          <ProgressIndicator />
+        </Box2>
+      )
+    }
     if (this.props.filter) {
       const results = getFilterResults(this.props.filter)
       // NOTE: maxEmojiSearchResults = 50 currently. this never fills the screen

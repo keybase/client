@@ -11,6 +11,7 @@ export type EmojiData = {
   short_names: Array<string>
   unified: string
   skin_variations?: {[K in Types.EmojiSkinTone]: Object}
+  source?: string
 }
 
 const categorized = groupBy(emojidata, 'category')
