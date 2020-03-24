@@ -70,9 +70,7 @@ const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => 
 
 // Mobile is split into two routes (input and output). This Saga handler
 // transitions to the output route on success
-const handleMobileOperationSuccess = (action: CryptoGen.OnOperationSuccessPayload) => {
-  if (!Platform.isMobile) return
-
+const handleOperationSuccessNavigation = (action: CryptoGen.OnOperationSuccessPayload) => {
   const {operation} = action.payload
   const outputRoute = Constants.getOutputRoute(operation)
 
@@ -687,10 +685,12 @@ function* cryptoSaga() {
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
   yield* Saga.chainAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
-  yield* Saga.chainAction(CryptoGen.onOperationSuccess, handleMobileOperationSuccess)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
   yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)
+  if (Platform.isMobile) {
+    yield* Saga.chainAction(CryptoGen.onOperationSuccess, handleOperationSuccessNavigation)
+  }
   yield* teamBuildingSaga()
 }
 
