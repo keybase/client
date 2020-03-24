@@ -60,7 +60,7 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 	}
 	for _, phone := range arg.Phones {
 		phoneStr := strings.TrimPrefix(phone.String(), "+")
-		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "phone", string(phoneStr), false)
+		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "phone", phoneStr, false)
 		if parseErr != nil {
 			allOK = false
 			mctx.Debug("failed to parse phone number %q; skipping: %s", phone, parseErr)
