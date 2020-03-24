@@ -4016,3 +4016,7 @@ func UserRolePairsHaveOwner(users []UserRolePair) bool {
 	}
 	return false
 }
+
+func (e EmailAddress) String() string {
+	return string(e)
+}

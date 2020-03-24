@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -547,7 +548,8 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	t.Log("Create a queue with 0 workers to rule it out from serving blocks.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		0, 0, 0, newTestBlockRetrievalConfig(t, bg, cache))
+		0, 0, 0, newTestBlockRetrievalConfig(t, bg, cache),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 

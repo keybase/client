@@ -26,11 +26,13 @@ protocol emoji {
 
   record HarvestedEmoji {
     string alias;
+    boolean isCrossTeam;
     EmojiRemoteSource source;
   }
 
   record Emoji {
     string alias;
+    boolean isCrossTeam;
     EmojiLoadSource source;
     EmojiRemoteSource remoteSource;
   }

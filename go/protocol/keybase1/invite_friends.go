@@ -12,6 +12,7 @@ import (
 type InviteCounts struct {
 	InviteCount      int     `codec:"inviteCount" json:"inviteCount"`
 	PercentageChange float64 `codec:"percentageChange" json:"percentageChange"`
+	ShowNumInvites   bool    `codec:"showNumInvites" json:"showNumInvites"`
 	ShowFire         bool    `codec:"showFire" json:"showFire"`
 }
 
@@ -19,6 +20,7 @@ func (o InviteCounts) DeepCopy() InviteCounts {
 	return InviteCounts{
 		InviteCount:      o.InviteCount,
 		PercentageChange: o.PercentageChange,
+		ShowNumInvites:   o.ShowNumInvites,
 		ShowFire:         o.ShowFire,
 	}
 }
@@ -58,8 +60,8 @@ func (o EmailInvites) DeepCopy() EmailInvites {
 }
 
 type InvitePeopleArg struct {
-	Emails EmailInvites     `codec:"emails" json:"emails"`
-	Phones []RawPhoneNumber `codec:"phones" json:"phones"`
+	Emails EmailInvites  `codec:"emails" json:"emails"`
+	Phones []PhoneNumber `codec:"phones" json:"phones"`
 }
 
 type GetInviteCountsArg struct {

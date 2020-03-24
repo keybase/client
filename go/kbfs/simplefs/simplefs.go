@@ -3339,6 +3339,24 @@ func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
 	return nil
 }
 
+// SimpleFSSetSyncOnCellular implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSetSyncOnCellular(
+	ctx context.Context, syncOnCellular bool) (err error) {
+	defer func() {
+		k.log.CDebugf(ctx, "SimpleFSSetSyncOnCellular err=%+v", err)
+	}()
+	db := k.config.GetSettingsDB()
+	if db == nil {
+		return libkbfs.ErrNoSettingsDB
+	}
+	if err = db.SetSyncOnCellular(ctx, syncOnCellular); err != nil {
+		return err
+	}
+	k.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_SETTINGS)
+	return nil
+}
+
 // SimpleFSSearch implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSearch(
 	ctx context.Context, arg keybase1.SimpleFSSearchArg) (

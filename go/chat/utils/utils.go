@@ -652,7 +652,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
-// Start at the beginng of the line, space, or some hand picked artisanal
+// Start at the beginning of the line, space, or some hand picked artisanal
 // characters
 const ServiceDecorationPrefix = `(?:^|[\s([/{:;.,!?"'])`
 
@@ -2544,7 +2544,7 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	origBody := body
 
 	// early out of here if there is no dot
-	if !strings.Contains(body, ".") {
+	if !(strings.Contains(body, ".") || strings.Contains(body, "://")) {
 		return body
 	}
 	shouldSkipLink := func(body string) bool {

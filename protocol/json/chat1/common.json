@@ -1518,7 +1518,8 @@
         "INDEXED_SEARCH_7",
         "KBFSFILEACTIVITY_8",
         "COINFLIP_9",
-        "BOTCOMMANDS_10"
+        "BOTCOMMANDS_10",
+        "EMOJISOURCE_11"
       ]
     },
     {
@@ -1866,6 +1867,10 @@
         {
           "type": "Hash",
           "name": "encHash"
+        },
+        {
+          "type": "Hash",
+          "name": "ptHash"
         },
         {
           "type": "bytes",
