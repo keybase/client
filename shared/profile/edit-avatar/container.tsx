@@ -84,15 +84,10 @@ export default Container.connect(
           offsetTop != undefined
         ) {
           dispatchProps.onSaveWizardAvatar(filename, {crop, offsetLeft, offsetTop, scaledWidth})
+        } else if (stateProps.teamname) {
+          dispatchProps.onSaveTeamAvatar(filename, stateProps.teamname, stateProps.sendChatNotification, crop)
         } else {
-          stateProps.teamname
-            ? dispatchProps.onSaveTeamAvatar(
-                filename,
-                stateProps.teamname,
-                stateProps.sendChatNotification,
-                crop
-              )
-            : dispatchProps.onSaveUserAvatar(filename, crop)
+          dispatchProps.onSaveUserAvatar(filename, crop)
         }
       },
       onSkip: dispatchProps.onSkip,
