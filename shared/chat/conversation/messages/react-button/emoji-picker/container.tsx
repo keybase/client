@@ -90,7 +90,7 @@ const useCustomReacji = () => {
     )
   }, [getUserEmoji])
 
-  return {waiting, customEmojiGroups}
+  return {customEmojiGroups, waiting}
 }
 
 const WrapperMobile = (props: Props) => {
