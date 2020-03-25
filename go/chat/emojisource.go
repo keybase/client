@@ -90,6 +90,53 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
 }
 
+func (s *DevConvEmojiSource) removeRemoteSource(ctx context.Context, uid gregor1.UID,
+	conv chat1.ConversationLocal, source chat1.EmojiRemoteSource) error {
+	typ, err := source.Typ()
+	if err != nil {
+		return err
+	}
+	switch typ {
+	case chat1.EmojiRemoteSourceTyp_MESSAGE:
+		return s.G().ChatHelper.DeleteMsg(ctx, source.Message().ConvID, conv.Info.TlfName,
+			source.Message().MsgID)
+	default:
+		return fmt.Errorf("unable to delete remote source of typ: %v", typ)
+	}
+}
+
+func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	alias string) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Remove")()
+	var stored chat1.EmojiStorage
+	storage := s.makeStorage(chat1.TopicType_EMOJI)
+	topicName := s.topicName(nil)
+	_, storageConv, err := storage.Get(ctx, uid, convID, topicName, &stored, true)
+	if err != nil {
+		return err
+	}
+	if storageConv == nil {
+		s.Debug(ctx, "Remove: no storage conv returned, bailing")
+		return nil
+	}
+	if stored.Mapping == nil {
+		s.Debug(ctx, "Remove: no mapping, bailing")
+		return nil
+	}
+	// get attachment message and delete it
+	source, ok := stored.Mapping[alias]
+	if !ok {
+		s.Debug(ctx, "Remove: no alias in mapping, bailing")
+		return nil
+	}
+	if err := s.removeRemoteSource(ctx, uid, *storageConv, source); err != nil {
+		s.Debug(ctx, "Remove: failed to remove remote source: %s", err)
+		return err
+	}
+	delete(stored.Mapping, alias)
+	return storage.Put(ctx, uid, convID, topicName, stored)
+}
+
 func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource) (res chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {

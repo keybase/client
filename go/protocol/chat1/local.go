@@ -6185,6 +6185,22 @@ func (o AddEmojiRes) DeepCopy() AddEmojiRes {
 	}
 }
 
+type RemoveEmojiRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o RemoveEmojiRes) DeepCopy() RemoveEmojiRes {
+	return RemoveEmojiRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type UserEmojiRes struct {
 	Emojis    UserEmojis `codec:"emojis" json:"emojis"`
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
@@ -6838,6 +6854,11 @@ type AddEmojiArg struct {
 	Filename string         `codec:"filename" json:"filename"`
 }
 
+type RemoveEmojiArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Alias  string         `codec:"alias" json:"alias"`
+}
+
 type UserEmojisArg struct {
 	ConvID *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
 }
@@ -6954,6 +6975,7 @@ type LocalInterface interface {
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
+	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, *ConversationID) (UserEmojiRes, error)
 }
 
@@ -8571,6 +8593,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"removeEmoji": {
+				MakeArg: func() interface{} {
+					var ret [1]RemoveEmojiArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RemoveEmojiArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RemoveEmojiArg)(nil), args)
+						return
+					}
+					ret, err = i.RemoveEmoji(ctx, typedArgs[0])
+					return
+				},
+			},
 			"userEmojis": {
 				MakeArg: func() interface{} {
 					var ret [1]UserEmojisArg
@@ -9175,6 +9212,11 @@ func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActi
 
 func (c LocalClient) AddEmoji(ctx context.Context, __arg AddEmojiArg) (res AddEmojiRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addEmoji", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RemoveEmoji(ctx context.Context, __arg RemoveEmojiArg) (res RemoveEmojiRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.removeEmoji", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

@@ -371,6 +371,10 @@ export type MessageTypes = {
     inParam: {readonly dismissed: Boolean}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSSetSyncOnCellular': {
+    inParam: {readonly syncOnCellular: Boolean}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSSettings': {
     inParam: void
     outParam: FSSettings
@@ -958,6 +962,10 @@ export type MessageTypes = {
   'keybase.1.inviteFriends.invitePeople': {
     inParam: {readonly emails: EmailInvites; readonly phones?: Array<PhoneNumber> | null}
     outParam: Int
+  }
+  'keybase.1.inviteFriends.requestInviteCounts': {
+    inParam: void
+    outParam: void
   }
   'keybase.1.kbfsMount.GetCurrentMountDir': {
     inParam: void
@@ -3633,6 +3641,7 @@ export const SimpleFSSimpleFSSetDebugLevelRpcPromise = (params: MessageTypes['ke
 export const SimpleFSSimpleFSSetFolderSyncConfigRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetNotificationThresholdRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSetSyncOnCellularRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetSyncOnCellular']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetSyncOnCellular']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetSyncOnCellular', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSettingsRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStartDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStartDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStartUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStartUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStartUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStartUpload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3746,6 +3755,7 @@ export const installInstallKBFSRpcPromise = (params: MessageTypes['keybase.1.ins
 export const installUninstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.uninstallKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.uninstallKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.uninstallKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const inviteFriendsGetInviteCountsRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.getInviteCounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.getInviteCounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.getInviteCounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const inviteFriendsInvitePeopleRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.invitePeople']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.invitePeople']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.invitePeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const inviteFriendsRequestInviteCountsRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.requestInviteCounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.requestInviteCounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.requestInviteCounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetCurrentMountDir', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetKBFSPathInfoRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetKBFSPathInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetPreferredMountDirsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetPreferredMountDirs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4205,7 +4215,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSReset'
-// 'keybase.1.SimpleFS.simpleFSSetSyncOnCellular'
 // 'keybase.1.SimpleFS.simpleFSObfuscatePath'
 // 'keybase.1.SimpleFS.simpleFSDeobfuscatePath'
 // 'keybase.1.SimpleFS.simpleFSGetStats'

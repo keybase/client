@@ -73,6 +73,10 @@
     "getInviteCounts": {
       "request": [],
       "response": "InviteCounts"
+    },
+    "requestInviteCounts": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

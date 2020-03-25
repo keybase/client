@@ -1375,6 +1375,10 @@ protocol local {
     union { null, RateLimit } rateLimit;
   }
   AddEmojiRes addEmoji(ConversationID convID, string alias, string filename);
+   record RemoveEmojiRes {
+    union { null, RateLimit } rateLimit;
+  }
+  RemoveEmojiRes removeEmoji(ConversationID convID, string alias);
   record UserEmojiRes {
     UserEmojis emojis; 
     union { null, RateLimit } rateLimit;

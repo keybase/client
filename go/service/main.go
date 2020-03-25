@@ -39,7 +39,6 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
-	"github.com/keybase/client/go/invitefriends"
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -388,7 +387,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
 	d.startInstallReferrerListener(d.MetaContext(ctx))
-	d.runInitializeInviteFriendsCounts(ctx)
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
@@ -591,24 +589,6 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 	}
 
 	d.G().PushShutdownHook(eng.Shutdown)
-}
-
-func (d *Service) runInitializeInviteFriendsCounts(ctx context.Context) {
-	go d.runInitializeInviteFriendsCountsInner(ctx)
-}
-func (d *Service) runInitializeInviteFriendsCountsInner(ctx context.Context) {
-	mctx := libkb.NewMetaContext(ctx, d.G())
-
-	if !mctx.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
-		mctx.Debug("Failed to wait for GUI to startup; not initializing invite counts")
-		return
-	}
-	counts, err := invitefriends.GetCounts(mctx)
-	if err != nil {
-		mctx.Debug("failed to initialize invitecounts: %s")
-		return
-	}
-	mctx.G().NotifyRouter.HandleUpdateInviteCounts(mctx.Ctx(), counts)
 }
 
 func (d *Service) startupGregor() {

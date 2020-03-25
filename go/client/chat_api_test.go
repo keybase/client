@@ -47,6 +47,7 @@ type handlerTracker struct {
 	listMembersV1       int
 	emojiAddV1          int
 	emojiListV1         int
+	emojiRemoveV1       int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -207,6 +208,11 @@ func (h *handlerTracker) EmojiListV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) EmojiRemoveV1(context.Context, Call, io.Writer) error {
+	h.emojiRemoveV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -341,6 +347,10 @@ func (c *chatEcho) EmojiAddV1(context.Context, emojiAddOptionsV1) Reply {
 }
 
 func (c *chatEcho) EmojiListV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiRemoveV1(context.Context, emojiRemoveOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
