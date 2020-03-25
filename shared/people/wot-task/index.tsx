@@ -91,7 +91,7 @@ const makeMessage = (props: Props) => {
   }
 }
 
-const WotTask = React.memo((props: Props) => {
+const WotTask = (props: Props) => {
   const dispatch = Container.useDispatch()
   const myUsername = Container.useSelector(state => state.config.username)
   const otherUser = myUsername.localeCompare(props.voucher) === 0 ? props.vouchee : props.voucher
@@ -117,6 +117,6 @@ const WotTask = React.memo((props: Props) => {
       </PeopleItem>
     </Kb.ClickableBox>
   )
-})
+}
 
 export default WotTask

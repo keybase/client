@@ -1,6 +1,6 @@
+import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as React from 'react'
 import * as PeopleGen from '../actions/people-gen'
 import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
@@ -61,22 +61,6 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
   return null
 }
 
-const wotItems = (props: Props) => {
-  const wotUpdates: Array<React.ReactNode> = []
-  props.wotUpdates.forEach(item =>
-    wotUpdates.push(
-      <WotTask
-        voucher={item.voucher}
-        vouchee={item.vouchee}
-        status={item.status}
-        key={JSON.stringify(item)}
-        onClickUser={props.onClickUser}
-      />
-    )
-  )
-  return wotUpdates
-}
-
 const EmailVerificationBanner = () => {
   const dispatch = Container.useDispatch()
   React.useEffect(
@@ -130,7 +114,16 @@ export const PeoplePageList = (props: Props) => (
     {props.newItems
       .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
       .map(item => itemToComponent(item, props))}
-    {wotItems(props)}
+    {Array.from(props.wotUpdates, ([key, item]) => (
+      <WotTask
+        key={key}
+        voucher={item.voucher}
+        vouchee={item.vouchee}
+        status={item.status}
+        onClickUser={props.onClickUser}
+      />
+    ))}
+
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Kb.Box>
