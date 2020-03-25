@@ -1,9 +1,19 @@
 import * as React from 'react'
 import {isMobile, hoistNonReactStatic} from '../util/container'
-import HeaderHoc, {HeaderHocHeader} from './header-hoc'
+import HeaderHoc, {HeaderHocHeader, HeaderHocWrapper} from './header-hoc'
 import PopupDialog from './popup-dialog'
 import * as Styles from '../styles'
 import {Props} from './header-or-popup.d'
+
+/** TODO only use this **/
+export const PopupWrapper = (props: {onCancel?: () => void; children: React.ReactNode}) => {
+  const {onCancel, children} = props
+  if (isMobile) {
+    return <HeaderHocWrapper onCancel={onCancel}>{children}</HeaderHocWrapper>
+  } else {
+    return <PopupDialog onClose={onCancel}>{children}</PopupDialog>
+  }
+}
 
 // HeaderOrPopup replaces our common pattern of:
 // isMobile
@@ -11,15 +21,18 @@ import {Props} from './header-or-popup.d'
 //   : <PopupDialog>
 //       <Foo />
 //     </PopupDialog>
+/** TODO deprecate **/
 function HeaderOrPopup<P>(WrappedComponent: React.ComponentType<P>) {
   return isMobile ? HeaderHoc(WrappedComponent) : Popup(WrappedComponent)
 }
 
 // Same as above but the Popup itself has a header
+/** TODO deprecate **/
 export function HeaderOrPopupWithHeader<P>(WrappedComponent: React.ComponentType<P>) {
   return isMobile ? HeaderHoc(WrappedComponent) : PopupWithHeader(WrappedComponent)
 }
 
+/** TODO deprecate **/
 function Popup<P>(Wrapped: React.ComponentType<P>) {
   const PopupWrapper = (props: P & Props) => (
     <PopupDialog onClose={props.onCancel}>
@@ -30,6 +43,7 @@ function Popup<P>(Wrapped: React.ComponentType<P>) {
   return PopupWrapper
 }
 
+/** TODO deprecate **/
 function PopupWithHeader<P>(Wrapped: React.ComponentType<P>) {
   const PopupWrapper = (props: P & Props) => (
     <PopupDialog onClose={props.onCancel} styleClipContainer={props.style}>
