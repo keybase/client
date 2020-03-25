@@ -3588,18 +3588,27 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
     return false
   }
 
+  // deselect if there was one
+  const deselectAction =
+    wasChat && Constants.isValidConversationIDKey(wasID)
+      ? [Chat2Gen.createDeselectedConversation({conversationIDKey: wasID})]
+      : []
+
   // still chatting? just select new one
   if (wasChat && isChat && Constants.isValidConversationIDKey(isID)) {
-    return Chat2Gen.createSelectedConversation({conversationIDKey: isID})
+    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
   }
 
   // leaving a chat
   if (wasChat) {
-    return Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey})
+    return [
+      ...deselectAction,
+      Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey}),
+    ]
   }
 
   if (isChat) {
-    return Chat2Gen.createSelectedConversation({conversationIDKey: isID})
+    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
   }
 
   return false
@@ -3612,6 +3621,12 @@ const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
   }
   return false
 }
+
+const updateDraftState = (action: Chat2Gen.DeselectedConversationPayload) =>
+  Chat2Gen.createMetaNeedsUpdating({
+    conversationIDKeys: [action.payload.conversationIDKey],
+    reason: 'deselectingAConversationAndUpdatingDraft',
+  })
 
 function* chat2Saga() {
   // Platform specific actions
@@ -3871,6 +3886,7 @@ function* chat2Saga() {
 
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeChangeChatSelection)
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeChatTabSelected)
+  yield* Saga.chainAction(Chat2Gen.deselectedConversation, updateDraftState)
 }
 
 export default chat2Saga

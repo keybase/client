@@ -39,6 +39,7 @@ export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
+export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
@@ -273,6 +274,7 @@ type _ConversationErroredPayload = {
   readonly message: string
 }
 type _CreateConversationPayload = {readonly participants: Array<string>}
+type _DeselectedConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly author: string
@@ -1463,6 +1465,9 @@ export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload
 export const createConversationErrored = (
   payload: _ConversationErroredPayload
 ): ConversationErroredPayload => ({payload, type: conversationErrored})
+export const createDeselectedConversation = (
+  payload: _DeselectedConversationPayload
+): DeselectedConversationPayload => ({payload, type: deselectedConversation})
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
@@ -1784,6 +1789,10 @@ export type ConversationErroredPayload = {
 export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
   readonly type: typeof createConversation
+}
+export type DeselectedConversationPayload = {
+  readonly payload: _DeselectedConversationPayload
+  readonly type: typeof deselectedConversation
 }
 export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
@@ -2327,6 +2336,7 @@ export type Actions =
   | ConfirmScreenResponsePayload
   | ConversationErroredPayload
   | CreateConversationPayload
+  | DeselectedConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
