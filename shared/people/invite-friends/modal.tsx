@@ -23,7 +23,13 @@ const InviteFriendsModal = () => {
   }, [defaultCountry, dispatch])
 
   const [emails, setEmails] = React.useState('')
-  const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
+  const {
+    phoneNumbers,
+    setPhoneNumber,
+    addPhoneNumber,
+    removePhoneNumber,
+    resetPhoneNumbers,
+  } = usePhoneNumberList()
 
   // disabled if both are empty or if there are some invalid phone numbers
   const disabled =
@@ -46,7 +52,7 @@ const InviteFriendsModal = () => {
         setSuccessCount(r)
         setError('')
         setEmails('')
-        phoneNumbers.filter(p => !!p.phoneNumber).forEach(p => removePhoneNumber(p.key))
+        resetPhoneNumbers()
       },
       err => {
         setSuccessCount(null)
@@ -108,7 +114,7 @@ const InviteFriendsModal = () => {
       ]}
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} alignItems="center" style={styles.container}>
-        <Kb.Icon type="icon-illustration-invite-friends-460-96" />
+        <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.illustration} />
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.content}>
           <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'tiny'} fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">By email address (separate with commas)</Kb.Text>
@@ -169,6 +175,7 @@ const styles = Styles.styleSheetCreate(() => ({
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
   },
+  illustration: Styles.platformStyles({isElectron: {width: '100%'}}),
   linkPopupContainer: {
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
   },
