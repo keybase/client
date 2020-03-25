@@ -3674,7 +3674,7 @@ func (h *Server) RemoveEmoji(ctx context.Context, arg chat1.RemoveEmojiArg) (res
 	return res, nil
 }
 
-func (h *Server) UserEmojis(ctx context.Context, convID *chat1.ConversationID) (res chat1.UserEmojiRes, err error) {
+func (h *Server) UserEmojis(ctx context.Context, arg chat1.UserEmojisArg) (res chat1.UserEmojiRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UserEmojis")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
@@ -3682,6 +3682,6 @@ func (h *Server) UserEmojis(ctx context.Context, convID *chat1.ConversationID) (
 	if err != nil {
 		return res, err
 	}
-	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, convID)
+	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, arg.ConvID, arg.GetCreationInfo)
 	return res, err
 }

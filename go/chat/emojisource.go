@@ -267,10 +267,11 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	return res, aliasLookup, nil
 }
 
-func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res chat1.UserEmojis, err error) {
+func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
+	getCreationInfo bool) (res chat1.UserEmojis, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get")()
 	var aliasLookup map[string]chat1.Emoji
-	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, true); err != nil {
+	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, getCreationInfo); err != nil {
 		return res, err
 	}
 	s.getLock.Lock()
