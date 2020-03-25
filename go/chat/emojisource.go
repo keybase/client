@@ -178,7 +178,8 @@ func (s *DevConvEmojiSource) creationInfo(ctx context.Context, uid gregor1.UID,
 	}
 }
 
-func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res chat1.UserEmojis, aliasLookup map[string]chat1.Emoji, err error) {
+func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
+	getCreationInfo bool) (res chat1.UserEmojis, aliasLookup map[string]chat1.Emoji, err error) {
 	aliasLookup = make(map[string]chat1.Emoji)
 	topicType := chat1.TopicType_EMOJI
 	storage := s.makeStorage(topicType)
@@ -225,12 +226,14 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
 				}
-				ci, err := s.creationInfo(ctx, uid, storedEmoji)
-				if err != nil {
-					s.Debug(ctx, "Get: failed to get creation info: %s", err)
-				} else {
-					creationInfo = new(chat1.EmojiCreationInfo)
-					*creationInfo = ci
+				if getCreationInfo {
+					ci, err := s.creationInfo(ctx, uid, storedEmoji)
+					if err != nil {
+						s.Debug(ctx, "Get: failed to get creation info: %s", err)
+					} else {
+						creationInfo = new(chat1.EmojiCreationInfo)
+						*creationInfo = ci
+					}
 				}
 				emoji := chat1.Emoji{
 					Alias:        alias,
@@ -267,7 +270,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res chat1.UserEmojis, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get")()
 	var aliasLookup map[string]chat1.Emoji
-	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID); err != nil {
+	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, true); err != nil {
 		return res, err
 	}
 	s.getLock.Lock()
@@ -405,7 +408,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	emojis, _, err := s.getNoSet(ctx, uid, &convID)
+	emojis, _, err := s.getNoSet(ctx, uid, &convID, false)
 	if err != nil {
 		return res, err
 	}
