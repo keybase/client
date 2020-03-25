@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
+import * as TeamsTypes from '../constants/types/teams'
 import emailSearch from './email-search/index.stories'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
@@ -102,6 +103,7 @@ const commonProps = {
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
+  teamID: undefined,
   teamname: '',
 }
 

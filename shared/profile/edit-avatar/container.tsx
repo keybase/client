@@ -14,6 +14,7 @@ type OwnProps = Container.RouteProps<{
   createdTeam: boolean
   image: ImagePicker.ImagePickerResult
   sendChatNotification: boolean
+  teamID: Types.TeamID
   teamname: string
   wizard: boolean
 }>
@@ -27,6 +28,7 @@ export default Container.connect(
     image: Container.getRouteProps(ownProps, 'image', cancelledImage),
     sendChatNotification: Container.getRouteProps(ownProps, 'sendChatNotification', false),
     submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
+    teamID: Container.getRouteProps(ownProps, 'teamID', Types.noTeamID),
     teamname: Container.getRouteProps(ownProps, 'teamname', ''),
   }),
   dispatch => ({
@@ -87,6 +89,7 @@ export default Container.connect(
       onSkip: dispatchProps.onSkip,
       sendChatNotification: stateProps.sendChatNotification,
       submitting: stateProps.submitting,
+      teamID: stateProps.teamID,
       teamname: stateProps.teamname,
       waitingKey: Constants.uploadAvatarWaitingKey,
       wizard,

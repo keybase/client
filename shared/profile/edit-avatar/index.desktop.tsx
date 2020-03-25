@@ -328,12 +328,7 @@ class EditAvatar extends React.Component<Props, State> {
                 type="Default"
               />
             ) : null,
-            title: (
-              <ModalTitle
-                teamname={this.props.teamname ? this.props.teamname : ''}
-                title="Upload an avatar"
-              />
-            ),
+            title: <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />,
           }}
           allowOverflow={true}
           footer={{

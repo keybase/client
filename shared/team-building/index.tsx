@@ -8,7 +8,7 @@ import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
 import Flags from '../util/feature-flags'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
-import {TeamRoleType, TeamID} from '../constants/types/teams'
+import {TeamRoleType, TeamID, noTeamID} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
@@ -126,7 +126,7 @@ export type Props = ContactProps & {
   showResults: boolean
   showServiceResultCount: boolean
   teamBuildingSearchResults: SearchResults
-  teamID: TeamID
+  teamID: TeamID | undefined
   teamSoFar: Array<SelectedUser>
   teamname: string | undefined
   title: string
@@ -626,7 +626,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             ) : (
               undefined
             ),
-            title: <TeamsModalTitle teamID={this.props.teamID} title="Search people" />,
+            title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
           }
         }
         return Styles.isMobile
