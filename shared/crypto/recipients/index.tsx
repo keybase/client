@@ -47,6 +47,7 @@ const Recipients = () => {
           <Kb.Icon
             type="iconfont-remove"
             boxStyle={styles.removeRecipients}
+            style={Styles.isMobile && styles.removeRecipients}
             color={Styles.globalColors.black_20}
             hoverColor={inProgress ? Styles.globalColors.black_20 : undefined}
             onClick={onClearRecipients}
@@ -79,6 +80,8 @@ const styles = Styles.styleSheetCreate(
       },
       removeRecipients: {
         ...Styles.globalStyles.flexGrow,
+        ...Styles.globalStyles.flexBoxRow,
+        justifyContent: 'flex-end',
         marginRight: Styles.globalMargins.tiny,
         textAlign: 'right',
       },

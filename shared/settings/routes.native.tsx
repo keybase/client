@@ -41,6 +41,7 @@ const subRoutes = {
     getScreen: (): typeof AdvancedTab => require('./advanced').default,
   },
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
+  [Constants.cryptoTab]: {getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default},
   [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display/container').default},
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.walletsTab]: Container.isTablet

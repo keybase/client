@@ -410,6 +410,7 @@ export type IconType =
   | 'icon-dark-wallet-placeholder-add-32'
   | 'icon-dark-wallet-remove-48'
   | 'icon-dark-wallet-remove-64'
+  | 'icon-decrypt-64'
   | 'icon-dns-48'
   | 'icon-dns-64'
   | 'icon-email-add-48'
@@ -418,6 +419,7 @@ export type IconType =
   | 'icon-email-remove-48'
   | 'icon-email-remove-64'
   | 'icon-email-remove-96'
+  | 'icon-encrypt-64'
   | 'icon-facebook-continue'
   | 'icon-facebook-logo-16'
   | 'icon-facebook-logo-24'
@@ -791,6 +793,7 @@ export type IconType =
   | 'icon-shh-active-19-16'
   | 'icon-shh-active-26-21'
   | 'icon-shh-hover-19-16'
+  | 'icon-sign-64'
   | 'icon-skull-32'
   | 'icon-skull-48'
   | 'icon-skull-64'
@@ -842,6 +845,7 @@ export type IconType =
   | 'icon-twitter-logo-48'
   | 'icon-twitter-logo-64'
   | 'icon-user-add-32'
+  | 'icon-verify-64'
   | 'icon-wallet-32'
   | 'icon-wallet-48'
   | 'icon-wallet-64'
@@ -4503,6 +4507,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-wallet-remove-64.png')
     },
   },
+  'icon-decrypt-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-decrypt-64.png')
+    },
+  },
   'icon-dns-48': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4585,6 +4597,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-email-remove-96.png')
+    },
+  },
+  'icon-encrypt-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-encrypt-64.png')
     },
   },
   'icon-facebook-continue': {
@@ -8371,6 +8391,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-shh-hover-19-16.png')
     },
   },
+  'icon-sign-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-sign-64.png')
+    },
+  },
   'icon-skull-32': {
     extension: 'png',
     imagesDir: 'icons',
@@ -8833,6 +8861,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-user-add-32.png')
+    },
+  },
+  'icon-verify-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-verify-64.png')
     },
   },
   'icon-wallet-32': {
