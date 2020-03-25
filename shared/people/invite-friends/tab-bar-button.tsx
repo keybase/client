@@ -9,14 +9,15 @@ import InviteHow from './invite-how'
 const InviteFriends = () => {
   const requestInviteCounts = Container.useRPC(RPCTypes.inviteFriendsRequestInviteCountsRpcPromise)
   const inviteCounts = Container.useSelector(state => state.people.inviteCounts)
+  const inviteCountsLoaded = !!inviteCounts
   React.useEffect(() => {
-    if (inviteCounts) return
+    if (!inviteCountsLoaded) return
     requestInviteCounts(
       [undefined],
       _ => {},
       err => logger.error(err.message)
     )
-  }, [inviteCounts, requestInviteCounts])
+  }, [inviteCountsLoaded, requestInviteCounts])
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
