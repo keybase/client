@@ -55,17 +55,17 @@ func TestEmojiSourceBasic(t *testing.T) {
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 
 	t.Logf("admin")
-	_, err := tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "party_parrot", filename, nil)
+	_, err := tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "party_parrot", filename)
 	require.NoError(t, err)
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "mike", filename, nil)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "mike", filename)
 	require.NoError(t, err)
 
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
 
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "mike2", filename, nil)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "mike2", filename)
 	require.NoError(t, err)
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot2", filename, nil)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot2", filename)
 	require.NoError(t, err)
 
 	res, err := tc.Context().EmojiSource.Get(ctx, uid, nil)
@@ -123,7 +123,7 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 		chat1.ConversationMembersType_TEAM, users[2])
 
 	t.Logf("basic")
-	_, err := tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename, nil)
+	_, err := tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename)
 	require.NoError(t, err)
 
 	msgID := mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -132,7 +132,7 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot")
 
 	t.Logf("collision")
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename, nil)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename)
 	require.NoError(t, err)
 	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :party_parrot#2:!",

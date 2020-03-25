@@ -38,8 +38,8 @@ func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) 
 	}
 }
 
-func (s *DevConvEmojiSource) makeStorage() types.ConvConversationBackedStorage {
-	return NewConvDevConversationBackedStorage(s.G(), chat1.TopicType_EMOJI, true, s.ri)
+func (s *DevConvEmojiSource) makeStorage(topicType chat1.TopicType) types.ConvConversationBackedStorage {
+	return NewConvDevConversationBackedStorage(s.G(), topicType, false, s.ri)
 }
 
 func (s *DevConvEmojiSource) topicName(suffix *string) string {
@@ -50,15 +50,10 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 	return ret
 }
 
-func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string, topicNameSuffix *string) (res chat1.EmojiRemoteSource, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Add")()
-	if strings.Contains(alias, "#") {
-		return res, errors.New("invalid character in emoji alias")
-	}
+func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	alias, filename string, topicNameSuffix *string, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
 	var stored chat1.EmojiStorage
 	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
-	storage := s.makeStorage()
 	topicName := s.topicName(topicNameSuffix)
 	_, storageConv, err := storage.Get(ctx, uid, convID, topicName, &stored, true)
 	if err != nil {
@@ -85,6 +80,16 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
 }
 
+func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Add")()
+	if strings.Contains(alias, "#") {
+		return res, errors.New("invalid character in emoji alias")
+	}
+	storage := s.makeStorage(chat1.TopicType_EMOJI)
+	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
+}
+
 func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource) (res chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {
@@ -102,8 +107,8 @@ func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote cha
 
 func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res chat1.UserEmojis, aliasLookup map[string]chat1.Emoji, err error) {
 	aliasLookup = make(map[string]chat1.Emoji)
-	storage := s.makeStorage()
 	topicType := chat1.TopicType_EMOJI
+	storage := s.makeStorage(topicType)
 	var sourceTLFID *chat1.TLFID
 	seenAliases := make(map[string]int)
 	if convID != nil {
@@ -255,7 +260,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	}
 	suffix := convID.String()
 	var stored chat1.EmojiStorage
-	storage := s.makeStorage()
+	storage := s.makeStorage(chat1.TopicType_EMOJICROSS)
 	if _, _, err := storage.Get(ctx, uid, convID, s.topicName(&suffix), &stored, true); err != nil {
 		return res, err
 	}
@@ -293,7 +298,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	}
 
 	// add the source to the target storage area
-	newSource, err := s.Add(ctx, uid, convID, stripped, sink.Name(), &suffix)
+	newSource, err := s.addAdvanced(ctx, uid, convID, stripped, sink.Name(), &suffix, storage)
 	if err != nil {
 		return res, err
 	}

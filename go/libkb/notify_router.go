@@ -932,11 +932,14 @@ func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType cha
 		return n.getNotificationChannels(id).Chatkbfsedits
 	case chat1.TopicType_EMOJI:
 		return n.getNotificationChannels(id).Chatemoji
+	case chat1.TopicType_EMOJICROSS:
+		return n.getNotificationChannels(id).Chatemojicross
 	case chat1.TopicType_NONE:
 		return n.getNotificationChannels(id).Chat ||
 			n.getNotificationChannels(id).Chatdev ||
 			n.getNotificationChannels(id).Chatkbfsedits ||
-			n.getNotificationChannels(id).Chatemoji
+			n.getNotificationChannels(id).Chatemoji ||
+			n.getNotificationChannels(id).Chatemojicross
 	}
 	return false
 }
