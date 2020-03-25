@@ -5,12 +5,12 @@ package service
 
 import (
 	"fmt"
-	"net/mail"
 	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/keybase/client/go/contacts"
+	email_utils "github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -671,18 +671,6 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 	return res, nil
 }
 
-// 🍝 splitBulk splits on newline or comma.
-func splitBulk(s string) []string {
-	f := func(c rune) bool {
-		return c == '\n' || c == ','
-	}
-	split := strings.FieldsFunc(s, f)
-	for i, s := range split {
-		split[i] = strings.TrimSpace(s)
-	}
-	return split
-}
-
 func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
 	arg keybase1.BulkEmailOrPhoneSearchArg) (ret []keybase1.EmailOrPhoneNumberSearchResult, err error) {
 
@@ -690,15 +678,12 @@ func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)",
 		len(arg.Emails), len(arg.PhoneNumbers)), func() error { return err })()
 
-	splitEmailCandidates := splitBulk(arg.Emails)
-	emails := make([]keybase1.EmailAddress, 0, len(splitEmailCandidates))
-	for _, maybeEmail := range splitEmailCandidates {
-		address, err := mail.ParseAddress(maybeEmail)
-		if err != nil {
-			mctx.Debug("Failed to mail.ParseAddress(%q): %s", maybeEmail, err)
-			continue
-		}
-		emails = append(emails, keybase1.EmailAddress(address.Address))
+	// Use `emails` package to split comma/newline separated list of emails
+	// into actual list of valid emails.
+	emailStrings := email_utils.ParseSeparatedEmails(mctx, arg.Emails, nil /* malformed */)
+	emails := make([]keybase1.EmailAddress, len(emailStrings))
+	for i, v := range emailStrings {
+		emails[i] = keybase1.EmailAddress(v)
 	}
 
 	// We ask callers to give us valid phone numbers as the argument even

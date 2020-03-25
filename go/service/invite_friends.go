@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	email_utils "github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/invitefriends"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"golang.org/x/net/context"
@@ -52,11 +52,22 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 	}
 	if arg.Emails.CommaSeparatedEmailsFromUser != nil {
 		var malformed []string
-		parsedEmails := teams.ParseCommaSeparatedEmails(mctx, *arg.Emails.CommaSeparatedEmailsFromUser, &malformed)
+		parsedEmails := email_utils.ParseSeparatedEmails(mctx, *arg.Emails.CommaSeparatedEmailsFromUser, &malformed)
 		if len(malformed) > 0 {
 			allOK = false
 		}
-		assertions = append(assertions, parsedEmails...)
+
+		actx := mctx.G().MakeAssertionContext(mctx)
+		for _, email := range parsedEmails {
+			// `strict` argument here doesn't actually do anything for "email" assertions.
+			assertion, parseErr := libkb.ParseAssertionURLKeyValue(actx, "email", email, false /* strict */)
+			if parseErr != nil {
+				mctx.Debug("failed to create assertion from email %q: %s", email, parseErr)
+				allOK = false
+				continue
+			}
+			assertions = append(assertions, assertion.String())
+		}
 	}
 	for _, phone := range arg.Phones {
 		phoneStr := strings.TrimPrefix(phone.String(), "+")

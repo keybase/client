@@ -883,6 +883,7 @@ func TestBulkEmailSearch(t *testing.T) {
 	})
 
 	require.NoError(t, err)
+	require.Len(t, ret, len(emails))
 	for i, v := range ret {
 		require.Equal(t, v.Assertion, fmt.Sprintf("[%s]@email", emails[i]))
 		require.Equal(t, v.AssertionKey, "email")
@@ -892,6 +893,17 @@ func TestBulkEmailSearch(t *testing.T) {
 		require.Empty(t, v.Username)
 		require.Empty(t, v.FullName)
 	}
+
+	ret, err = searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		Emails: "Alice <alice@example.com>,Bob <bob@example.com>",
+	})
+
+	require.NoError(t, err)
+	require.Len(t, ret, 2)
+	require.Equal(t, ret[0].Input, "alice@example.com")
+	require.Equal(t, ret[0].Assertion, "[alice@example.com]@email")
+	require.Equal(t, ret[1].Input, "bob@example.com")
+	require.Equal(t, ret[1].Assertion, "[bob@example.com]@email")
 }
 
 func TestBulkEmailSearchBadInput(t *testing.T) {
