@@ -3623,9 +3623,10 @@ const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
 }
 
 const updateDraftState = (action: Chat2Gen.DeselectedConversationPayload) =>
-  Chat2Gen.createMetaNeedsUpdating({
+  Chat2Gen.createMetaRequestTrusted({
     conversationIDKeys: [action.payload.conversationIDKey],
-    reason: 'deselectingAConversationAndUpdatingDraft',
+    force: true,
+    reason: 'refreshPreviousSelected',
   })
 
 function* chat2Saga() {
