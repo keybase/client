@@ -80,7 +80,7 @@ const styles = Styles.styleSheetCreate(
       },
       textOverflow: Styles.platformStyles({
         isElectron: {
-          color: Styles.globalColors.white,
+          color: Styles.globalColors.whiteOrWhite,
           maxWidth: '100%',
           overflow: 'hidden',
           textAlign: 'center',
