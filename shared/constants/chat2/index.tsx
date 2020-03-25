@@ -401,9 +401,9 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
 export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
-  let mode = state.chat2.explodingModeLocks.get(c) || null
-  if (mode === null) {
-    mode = state.chat2.explodingModes.get(c) || 0
+  let mode = state.chat2.explodingModeLocks.get(c)
+  if (mode === undefined) {
+    mode = state.chat2.explodingModes.get(c) ?? 0
   }
   const meta = getMeta(state, c)
   const convRetention = getEffectiveRetentionPolicy(meta)
@@ -411,7 +411,7 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
   return mode || 0
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
-  (state.chat2.explodingModeLocks.get(c) || null) !== null
+  state.chat2.explodingModeLocks.get(c) !== undefined
 
 export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')
