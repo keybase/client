@@ -28,7 +28,6 @@ type Props = {
   savePublicity: (arg0: Types.PublicitySettings, arg1: boolean, arg2: RetentionPolicy | null) => void
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
-  waitingForSavePublicity: boolean
   waitingForWelcomeMessage: boolean
   welcomeMessage?: RPCChatTypes.WelcomeMessageDisplay
   loadWelcomeMessage: () => void
@@ -268,6 +267,10 @@ export class Settings extends React.Component<Props, State> {
         prevState.newPublicityTeam !== this.props.publicityTeam ||
         prevState.retentionPolicyChanged
 
+      if (publicitySettingsChanged !== prevState.publicitySettingsChanged) {
+        this.onSaveSettings()
+      }
+
       return publicitySettingsChanged !== prevState.publicitySettingsChanged
         ? {publicitySettingsChanged}
         : null
@@ -337,14 +340,6 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
-        <Kb.Box2 direction="horizontal" style={styles.button}>
-          <Kb.Button
-            label="Save"
-            onClick={this.onSaveSettings}
-            disabled={!this.state.publicitySettingsChanged}
-            waiting={this.props.waitingForSavePublicity}
-          />
-        </Kb.Box2>
         {flags.teamsRedesign &&
           this.props.yourOperations.editTeamDescription &&
           (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (

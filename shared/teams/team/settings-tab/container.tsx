@@ -33,12 +33,6 @@ export default Container.connect(
       publicityTeam,
       teamID,
       teamname: teamMeta.teamname,
-      waitingForSavePublicity: anyWaiting(
-        state,
-        Constants.teamWaitingKeyByID(teamID, state),
-        Constants.retentionWaitingKey(teamID),
-        Constants.settingsWaitingKey(teamID)
-      ),
       waitingForWelcomeMessage: anyWaiting(state, Constants.loadWelcomeMessageWaitingKey(teamID)),
       welcomeMessage: welcomeMessage || undefined,
       yourOperations: Constants.getCanPerformByID(state, teamID),
