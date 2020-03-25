@@ -173,9 +173,9 @@ export const outputRoute: Map<Types.Operations, Types.CryptoOutputRoute> = new M
 ])
 
 export const saltpackEncryptedExtension = '.encrypted.saltpack'
-export const saltpackSignedExtension = '.encrypted.saltpack'
-export const isPathSaltpackEncrypted = (path: string) => path.endsWith('.encrypted.saltpack')
-export const isPathSaltpackSigned = (path: string) => path.endsWith('.signed.saltpack')
+export const saltpackSignedExtension = '.signed.saltpack'
+export const isPathSaltpackEncrypted = (path: string) => path.endsWith(saltpackEncryptedExtension)
+export const isPathSaltpackSigned = (path: string) => path.endsWith(saltpackSignedExtension)
 export const isPathSaltpack = (path: string) => isPathSaltpackEncrypted(path) || isPathSaltpackSigned(path)
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
