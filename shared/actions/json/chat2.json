@@ -13,6 +13,9 @@
     "selectedConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    "deselectedConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
