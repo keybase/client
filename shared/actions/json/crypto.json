@@ -67,6 +67,10 @@
       "_description": "Resets all values in the store for the given operation",
       "operation": "Types.Operations"
     },
+    "runTextOperation": {
+      "_description": "Used on mobile to split input/output steps",
+      "operation": "Types.Operations"
+    },
     "runFileOperation": {
       "_description": "",
       "operation": "Types.Operations",

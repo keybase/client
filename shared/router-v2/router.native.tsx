@@ -66,7 +66,7 @@ const defaultNavigationOptions: any = {
 // workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
-const tabs = Shared.mobileTabs
+const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
 type TabData = {
   icon: IconType
@@ -78,7 +78,7 @@ const data: {[key: string]: TabData} = {
   [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
   [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallets'},
+  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 }
 
 const FilesTabBadge = () => {
@@ -99,7 +99,14 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   </Kb.NativeView>
 )
 
-const settingsTabChildren: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab]
+const settingsTabChildrenPhone: Array<Tabs.Tab> = [
+  Tabs.gitTab,
+  Tabs.devicesTab,
+  Tabs.walletsTab,
+  Tabs.settingsTab,
+]
+const settingsTabChildrenTablet: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
 
 type OwnProps = {focused: boolean; routeName: Tabs.Tab}
 const ConnectedTabBarIcon = connect(

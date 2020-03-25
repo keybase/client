@@ -230,6 +230,7 @@ export const settingsWaitingKey = 'settings:generic'
 export const aboutTab = 'settingsTabs.aboutTab'
 export const advancedTab = 'settingsTabs.advancedTab'
 export const chatTab = 'settingsTabs.chatTab'
+export const cryptoTab = 'settingsTabs:cryptoTab'
 export const devicesTab = 'settingsTabs.devicesTab'
 export const displayTab = 'settingsTabs.displayTab'
 export const feedbackTab = 'settingsTabs.feedbackTab'
@@ -265,5 +266,6 @@ export type SettingsTab =
   | typeof passwordTab
   | typeof walletsTab
   | typeof chatTab
+  | typeof cryptoTab
   | typeof contactsTab
   | typeof whatsNewTab

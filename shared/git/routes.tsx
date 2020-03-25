@@ -7,7 +7,6 @@ const gitRoot = {getScreen: (): typeof GitRoot => require('./container').default
 
 export const newRoutes = {
   gitRoot,
-  'settingsTabs.gitTab': gitRoot,
 }
 export const newModalRoutes = {
   gitDeleteRepo: {getScreen: (): typeof GitDeleteRepo => require('./delete-repo/container').default},

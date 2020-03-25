@@ -410,6 +410,7 @@ export type IconType =
   | 'icon-dark-wallet-placeholder-add-32'
   | 'icon-dark-wallet-remove-48'
   | 'icon-dark-wallet-remove-64'
+  | 'icon-decrypt-64'
   | 'icon-dns-48'
   | 'icon-dns-64'
   | 'icon-email-add-48'
@@ -418,6 +419,7 @@ export type IconType =
   | 'icon-email-remove-48'
   | 'icon-email-remove-64'
   | 'icon-email-remove-96'
+  | 'icon-encrypt-64'
   | 'icon-facebook-continue'
   | 'icon-facebook-logo-16'
   | 'icon-facebook-logo-24'
@@ -791,6 +793,7 @@ export type IconType =
   | 'icon-shh-active-19-16'
   | 'icon-shh-active-26-21'
   | 'icon-shh-hover-19-16'
+  | 'icon-sign-64'
   | 'icon-skull-32'
   | 'icon-skull-48'
   | 'icon-skull-64'
@@ -842,6 +845,7 @@ export type IconType =
   | 'icon-twitter-logo-48'
   | 'icon-twitter-logo-64'
   | 'icon-user-add-32'
+  | 'icon-verify-64'
   | 'icon-wallet-32'
   | 'icon-wallet-48'
   | 'icon-wallet-64'
@@ -868,10 +872,12 @@ export type IconType =
   | 'icon-zcash-logo-48'
   | 'icon-zcash-logo-64'
   | 'iconfont-add'
+  | 'iconfont-airplane'
   | 'iconfont-app-close'
   | 'iconfont-app-maximize'
   | 'iconfont-app-minimize'
   | 'iconfont-app-un-maximize'
+  | 'iconfont-apple'
   | 'iconfont-arrow-down'
   | 'iconfont-arrow-full-down'
   | 'iconfont-arrow-full-up'
@@ -879,6 +885,7 @@ export type IconType =
   | 'iconfont-arrow-right'
   | 'iconfont-arrow-up'
   | 'iconfont-attachment'
+  | 'iconfont-basketball'
   | 'iconfont-block'
   | 'iconfont-block-user'
   | 'iconfont-bomb'
@@ -888,10 +895,13 @@ export type IconType =
   | 'iconfont-calculator'
   | 'iconfont-camera'
   | 'iconfont-camera-off'
+  | 'iconfont-campfire-burning'
+  | 'iconfont-campfire-out'
   | 'iconfont-caret-down'
   | 'iconfont-caret-right'
   | 'iconfont-chat'
   | 'iconfont-check'
+  | 'iconfont-checkbox'
   | 'iconfont-circle'
   | 'iconfont-clipboard'
   | 'iconfont-clock'
@@ -924,6 +934,7 @@ export type IconType =
   | 'iconfont-filter'
   | 'iconfont-finder'
   | 'iconfont-fire'
+  | 'iconfont-flag'
   | 'iconfont-folder-downloads'
   | 'iconfont-folder-dropdown'
   | 'iconfont-folder-new'
@@ -961,6 +972,7 @@ export type IconType =
   | 'iconfont-mailbox'
   | 'iconfont-mention'
   | 'iconfont-mic'
+  | 'iconfont-music'
   | 'iconfont-nav-2-chat'
   | 'iconfont-nav-2-crypto'
   | 'iconfont-nav-2-devices'
@@ -990,8 +1002,10 @@ export type IconType =
   | 'iconfont-open-browser'
   | 'iconfont-password'
   | 'iconfont-pause'
+  | 'iconfont-pawprint'
   | 'iconfont-people'
   | 'iconfont-person'
+  | 'iconfont-person-raisedarms'
   | 'iconfont-phone-contact'
   | 'iconfont-photo-library'
   | 'iconfont-pin'
@@ -1036,6 +1050,7 @@ export type IconType =
   | 'iconfont-timer'
   | 'iconfont-trash'
   | 'iconfont-tweet'
+  | 'iconfont-typing'
   | 'iconfont-unhide'
   | 'iconfont-unlock'
   | 'iconfont-upload'
@@ -4492,6 +4507,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-wallet-remove-64.png')
     },
   },
+  'icon-decrypt-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-decrypt-64.png')
+    },
+  },
   'icon-dns-48': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4574,6 +4597,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-email-remove-96.png')
+    },
+  },
+  'icon-encrypt-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-encrypt-64.png')
     },
   },
   'icon-facebook-continue': {
@@ -8360,6 +8391,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-shh-hover-19-16.png')
     },
   },
+  'icon-sign-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-sign-64.png')
+    },
+  },
   'icon-skull-32': {
     extension: 'png',
     imagesDir: 'icons',
@@ -8824,6 +8863,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-user-add-32.png')
     },
   },
+  'icon-verify-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-verify-64.png')
+    },
+  },
   'icon-wallet-32': {
     extension: 'png',
     imagesDir: 'icons',
@@ -9049,6 +9096,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-airplane': {
+    charCode: 0xe9bb,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-app-close': {
     charCode: 0xe987,
     gridSize: 16,
@@ -9066,6 +9118,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-app-un-maximize': {
     charCode: 0xe999,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-apple': {
+    charCode: 0xe9b9,
     gridSize: 16,
     isFont: true,
   },
@@ -9101,6 +9158,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-attachment': {
     charCode: 0xe907,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-basketball': {
+    charCode: 0xe9ba,
     gridSize: 16,
     isFont: true,
   },
@@ -9149,6 +9211,16 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-campfire-burning': {
+    charCode: 0xe9b3,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-campfire-out': {
+    charCode: 0xe9b4,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-caret-down': {
     charCode: 0xe90c,
     gridSize: 8,
@@ -9166,6 +9238,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-check': {
     charCode: 0xe90f,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-checkbox': {
+    charCode: 0xe9bd,
     gridSize: 16,
     isFont: true,
   },
@@ -9235,7 +9312,7 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-copy': {
-    charCode: 0xe9ae,
+    charCode: 0xe9bf,
     gridSize: 16,
     isFont: true,
   },
@@ -9326,6 +9403,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-fire': {
     charCode: 0xe91f,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-flag': {
+    charCode: 0xe9be,
     gridSize: 16,
     isFont: true,
   },
@@ -9514,6 +9596,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-music': {
+    charCode: 0xe9bc,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-nav-2-chat': {
     charCode: 0xe97d,
     gridSize: 24,
@@ -9659,6 +9746,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-pawprint': {
+    charCode: 0xe9b8,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-people': {
     charCode: 0xe94a,
     gridSize: 16,
@@ -9666,6 +9758,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-person': {
     charCode: 0xe9a7,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-person-raisedarms': {
+    charCode: 0xe9b6,
     gridSize: 16,
     isFont: true,
   },
@@ -9889,6 +9986,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-typing': {
+    charCode: 0xe9b7,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-unhide': {
     charCode: 0xe99a,
     gridSize: 16,
@@ -9930,7 +10032,7 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-warning': {
-    charCode: 0xe9b3,
+    charCode: 0xe9ae,
     gridSize: 16,
     isFont: true,
   },

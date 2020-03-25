@@ -14,6 +14,7 @@ export const folderListWaitingKey = 'fs:folderList'
 export const statWaitingKey = 'fs:stat'
 export const acceptMacOSFuseExtClosedSourceWaitingKey = 'fs:acceptMacOSFuseExtClosedSourceWaitingKey'
 export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
+export const setSyncOnCellularWaitingKey = 'fs:setSyncOnCellular'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -222,6 +223,7 @@ export const emptySettings: Types.Settings = {
   loaded: false,
   sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
+  syncOnCellular: false,
 }
 
 export const emptyPathInfo: Types.PathInfo = {

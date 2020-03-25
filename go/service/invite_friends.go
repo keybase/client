@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/invitefriends"
 	"github.com/keybase/client/go/libkb"
@@ -58,7 +59,8 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 		assertions = append(assertions, parsedEmails...)
 	}
 	for _, phone := range arg.Phones {
-		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "phone", string(phone), false)
+		phoneStr := strings.TrimPrefix(phone.String(), "+")
+		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "phone", phoneStr, false)
 		if parseErr != nil {
 			allOK = false
 			mctx.Debug("failed to parse phone number %q; skipping: %s", phone, parseErr)
@@ -97,4 +99,11 @@ func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keyb
 	defer mctx.TraceTimed("InviteFriendsHandler#GetInviteCounts", func() error { return err })()
 
 	return invitefriends.GetCounts(mctx)
+}
+
+func (h *InviteFriendsHandler) RequestInviteCounts(ctx context.Context) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("InviteFriendsHandler#RequestInviteCounts", func() error { return err })()
+
+	return invitefriends.RequestNotification(mctx)
 }

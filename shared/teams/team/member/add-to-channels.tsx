@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
@@ -41,7 +40,6 @@ const AddToChannels = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const usernames = Container.getRouteProps(props, 'usernames', [])
 
-  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const {channelMetasAll, channelMetasFiltered, channelMetaGeneral} = getChannelsForList(
     useAllChannelMetas(teamID)
   )
@@ -153,7 +151,7 @@ const AddToChannels = (props: Props) => {
         ),
         title: (
           <Common.ModalTitle
-            teamname={meta.teamname}
+            teamID={teamID}
             title={`Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`}
           />
         ),

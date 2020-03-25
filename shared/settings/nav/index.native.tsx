@@ -9,7 +9,18 @@ import {keybaseFM} from '../../constants/whats-new'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import WhatsNewIcon from '../../whats-new/icon/container'
-import {Props} from './index'
+import SplitNav from './split-nav'
+
+type Props = {
+  badgeNotifications?: boolean
+  badgeNumbers: Map<TabConstants.Tab, number>
+  contactsLabel: string
+  hasRandomPW: boolean | null
+  logoutInProgress: boolean
+  onLogout: () => void
+  onTabChange: (tab: Constants.SettingsTab) => void
+  selectedTab: Constants.SettingsTab
+}
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -76,6 +87,11 @@ function SettingsNav(props: Props) {
         {
           data: [
             ...(statsShown ? [{text: 'perf'}] : []),
+            {
+              icon: 'iconfont-nav-2-crypto',
+              onClick: () => props.onTabChange(Constants.cryptoTab),
+              text: 'Crypto',
+            },
             {
               badgeNumber: badgeNumbers.get(TabConstants.gitTab),
               icon: 'iconfont-nav-git',
@@ -173,4 +189,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default SettingsNav
+export default Styles.isPhone ? SettingsNav : SplitNav

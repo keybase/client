@@ -57,7 +57,7 @@ protocol NotifyBadges {
     array<DeletedTeamInfo> deletedTeams;
     array<TeamMemberOutReset> teamsWithResetUsers;
     array<WalletAccountInfo> unreadWalletAccounts;
-    array<WotUpdate> wotUpdates;
+    map<string, WotUpdate> wotUpdates;
     ResetState resetState;
   }
 

@@ -30,7 +30,3 @@
 .listItem2:hover .grow {
   max-width: 64px;
 }
-
-.listItem2:hover .checkCircle {
-  color: #4c8eff;
-}

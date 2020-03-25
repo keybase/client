@@ -20,6 +20,7 @@ const commonSystemFileManagerIntegrationBannerSettings = {
   loaded: true,
   sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
+  syncOnCellular: false,
 }
 
 const commonSystemFileManagerIntegrationBannerProps = {

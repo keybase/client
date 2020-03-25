@@ -23,7 +23,7 @@ type CmdSimpleFSIndexProgress struct {
 func NewCmdSimpleFSIndexProgress(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "index-progress",
-		Usage: "print the current progress of the indexer",
+		Usage: "[disabled] print the current progress of the indexer",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSIndexProgress{
 				Contextified: libkb.NewContextified(g)}, "index-progress", c)
