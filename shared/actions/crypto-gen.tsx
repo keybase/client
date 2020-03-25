@@ -15,6 +15,7 @@ export const onOperationSuccess = 'crypto:onOperationSuccess'
 export const onSaltpackOpenFile = 'crypto:onSaltpackOpenFile'
 export const resetOperation = 'crypto:resetOperation'
 export const runFileOperation = 'crypto:runFileOperation'
+export const runTextOperation = 'crypto:runTextOperation'
 export const saltpackDecrypt = 'crypto:saltpackDecrypt'
 export const saltpackDone = 'crypto:saltpackDone'
 export const saltpackEncrypt = 'crypto:saltpackEncrypt'
@@ -47,6 +48,7 @@ type _OnOperationSuccessPayload = {
 type _OnSaltpackOpenFilePayload = {readonly operation: Types.Operations; readonly path: HiddenString}
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _RunFileOperationPayload = {readonly operation: Types.Operations; readonly destinationDir: HiddenString}
+type _RunTextOperationPayload = {readonly operation: Types.Operations}
 type _SaltpackDecryptPayload = {
   readonly input: HiddenString
   readonly type: Types.InputTypes
@@ -218,6 +220,13 @@ export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): Set
   type: setEncryptOptions,
 })
 /**
+ * Used on mobile to split input/output steps
+ */
+export const createRunTextOperation = (payload: _RunTextOperationPayload): RunTextOperationPayload => ({
+  payload,
+  type: runTextOperation,
+})
+/**
  * User opened a saltpack file on from their file browser. Notified by OS and deeplinks
  */
 export const createOnSaltpackOpenFile = (payload: _OnSaltpackOpenFilePayload): OnSaltpackOpenFilePayload => ({
@@ -262,6 +271,10 @@ export type ResetOperationPayload = {
 export type RunFileOperationPayload = {
   readonly payload: _RunFileOperationPayload
   readonly type: typeof runFileOperation
+}
+export type RunTextOperationPayload = {
+  readonly payload: _RunTextOperationPayload
+  readonly type: typeof runTextOperation
 }
 export type SaltpackDecryptPayload = {
   readonly payload: _SaltpackDecryptPayload
@@ -311,6 +324,7 @@ export type Actions =
   | OnSaltpackOpenFilePayload
   | ResetOperationPayload
   | RunFileOperationPayload
+  | RunTextOperationPayload
   | SaltpackDecryptPayload
   | SaltpackDonePayload
   | SaltpackEncryptPayload

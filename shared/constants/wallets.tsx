@@ -295,6 +295,7 @@ export const makeAssets = (a?: Partial<Types.Assets>): Types.Assets => ({
   reserves: [],
   showDepositButton: false,
   showWithdrawButton: false,
+  useSep24: false,
   withdrawButtonText: '',
   worth: '',
   worthCurrency: '',
@@ -778,9 +779,9 @@ export const inputPlaceholderForCurrency = (currency: string) => (currency !== '
 
 export const numDecimalsAllowedForCurrency = (currency: string) => (currency !== 'XLM' ? 2 : 7)
 
-export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
-export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
-export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
+export const rootWalletTab = Styles.isPhone ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
+export const rootWalletPath = [rootWalletTab, ...(Styles.isPhone ? [SettingsConstants.walletsTab] : [])] // path to wallets
+export const walletPath = Styles.isPhone ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 export const trustlineHoldingBalance = 0.5
 
 // Info text for cancelable payments

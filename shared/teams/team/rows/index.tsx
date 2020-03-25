@@ -38,8 +38,12 @@ export const useMembersSections = (
     {
       data: stillLoading ? ['loading'] : getOrderedMemberArray(details.members, yourUsername, yourOperations),
       key: 'member-members',
-      renderItem: ({item}) =>
-        item === 'loading' ? <LoadingRow /> : <MemberRow teamID={teamID} username={item.username} />,
+      renderItem: ({index, item}) =>
+        item === 'loading' ? (
+          <LoadingRow />
+        ) : (
+          <MemberRow teamID={teamID} username={item.username} firstItem={index == 0} />
+        ),
       title: flags.teamsRedesign ? `Already in team (${meta.memberCount})` : '',
     },
   ]

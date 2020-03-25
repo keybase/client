@@ -36,7 +36,11 @@ func TestWotNotifications(t *testing.T) {
 		badgeState := getBadgeState(t, user)
 		wotUpdates := badgeState.WotUpdates
 		require.Equal(t, 1, len(wotUpdates))
-		return wotUpdates[0]
+		for _, w := range wotUpdates {
+			return w
+		}
+		t.Fail()
+		return keybase1.WotUpdate{}
 	}
 
 	dismiss := func(user *userPlusDevice) {
@@ -108,7 +112,12 @@ func TestWotNotifications(t *testing.T) {
 	// 2. bob has a notification
 	pollForTrue(t, bob.tc.G, func(i int) bool {
 		badges := getBadgeState(t, bob)
-		return len(badges.WotUpdates) == 1 && badges.WotUpdates[0].Status == keybase1.WotStatusType_PROPOSED
+		var wotUpdate keybase1.WotUpdate
+		for _, w := range badges.WotUpdates {
+			wotUpdate = w
+			break
+		}
+		return len(badges.WotUpdates) == 1 && wotUpdate.Status == keybase1.WotStatusType_PROPOSED
 	})
 	// 3. bob reacts
 	bobAccepts()

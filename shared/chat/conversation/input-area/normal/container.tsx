@@ -358,11 +358,11 @@ export default Container.namedConnect(
       },
 
       setUnsentText: (text: string) => {
-        const unset = text.length <= 0
-        if (stateProps._isExplodingModeLocked ? unset : !unset) {
+        const set = text.length > 0
+        if (stateProps._isExplodingModeLocked !== set) {
           // if it's locked and we want to unset, unset it
           // alternatively, if it's not locked and we want to set it, set it
-          dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
+          dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, !set)
         }
         // The store text only lasts until we change it, so blow it away now
         if (stateProps.unsentText) {

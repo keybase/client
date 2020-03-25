@@ -73,6 +73,7 @@ const (
 	PromptDescriptorPassphraseRecovery
 	PromptDescriptorStellarURIAmount
 	PromptDescriptorAccountDeleteConfirmation
+	PromptDescriptorChatEmojiRemove
 )
 
 const (

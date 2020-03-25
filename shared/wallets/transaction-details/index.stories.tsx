@@ -67,6 +67,7 @@ const partialAsset = {
   showWithdrawButton: false,
   transferServer: '',
   type: '',
+  useSep24: false,
   withdrawButtonText: '',
   withdrawReqAuth: false,
   withdrawType: '',

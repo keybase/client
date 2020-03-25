@@ -8,7 +8,7 @@ import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
 import Flags from '../util/feature-flags'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
-import {TeamRoleType} from '../constants/types/teams'
+import {TeamRoleType, TeamID, noTeamID} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
@@ -126,6 +126,7 @@ export type Props = ContactProps & {
   showResults: boolean
   showServiceResultCount: boolean
   teamBuildingSearchResults: SearchResults
+  teamID: TeamID | undefined
   teamSoFar: Array<SelectedUser>
   teamname: string | undefined
   title: string
@@ -625,7 +626,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             ) : (
               undefined
             ),
-            title: <TeamsModalTitle teamname={this.props.teamname ?? ''} title="Search people" />,
+            title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
           }
         }
         return Styles.isMobile
@@ -645,6 +646,20 @@ class TeamBuilding extends React.PureComponent<Props> {
         const rightButton = Styles.isMobile ? (
           <Kb.Button
             label="Start"
+            onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
+            small={true}
+            type="Success"
+            style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+          />
+        ) : (
+          undefined
+        )
+        return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
+      }
+      case 'crypto': {
+        const rightButton = Styles.isMobile ? (
+          <Kb.Button
+            label={this.props.goButtonLabel ?? 'Start'}
             onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
             small={true}
             type="Success"

@@ -4,14 +4,14 @@ import Image from './image'
 import Text from './text'
 import {Box2} from './box'
 import WithTooltip from './with-tooltip'
+import {Props} from './custom-emoji'
+
 const Kb = {
   Box2,
   Image,
   Text,
   WithTooltip,
 }
-
-import {Props} from './custom-emoji'
 
 const emojiTypes = {
   Big: 32,

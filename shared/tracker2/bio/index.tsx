@@ -35,7 +35,7 @@ const FollowText = ({followThem, followsYou}) => {
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
     <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-      <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} selectable={true}>
+      <Kb.Text center={true} type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} selectable={true}>
         {p.fullname}
       </Kb.Text>
     </Kb.Box2>

@@ -35,9 +35,7 @@ const AddToChannel = (props: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname, teamname, teamID} = Container.useSelector(s =>
-    ChatConstants.getMeta(s, conversationIDKey)
-  )
+  const {channelname, teamID} = Container.useSelector(s => ChatConstants.getMeta(s, conversationIDKey))
   const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey)).all
   const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
   const allMembers = sortMembers(teamDetails.members)
@@ -71,7 +69,7 @@ const AddToChannel = (props: Props) => {
             Add
           </Kb.Text>
         ),
-        title: title({channelname, teamname}),
+        title: title({channelname, teamID}),
       }}
       footer={
         Styles.isMobile
@@ -156,12 +154,8 @@ const AddToChannel = (props: Props) => {
   )
 }
 
-const title = ({channelname, teamname}: {channelname: string; teamname: string}) =>
-  Styles.isMobile ? (
-    `Add to #${channelname}`
-  ) : (
-    <ModalTitle teamname={teamname} title={`Add to #${channelname}`} />
-  )
+const title = ({channelname, teamID}: {channelname: string; teamID: TeamTypes.TeamID}) =>
+  Styles.isMobile ? `Add to #${channelname}` : <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
 
 const styles = Styles.styleSheetCreate(() => ({
   checkCircle: {paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny},

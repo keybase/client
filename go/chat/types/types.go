@@ -800,10 +800,15 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 type DummyEmojiSource struct{}
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string, topicNameSuffix *string) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
-func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error) {
+func (DummyEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	alias string) error {
+	return nil
+}
+func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
+	getCreationInfo bool) (chat1.UserEmojis, error) {
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,

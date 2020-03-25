@@ -86,6 +86,7 @@ type Asset struct {
 	AuthEndpoint       string `codec:"authEndpoint" json:"authEndpoint"`
 	DepositReqAuth     bool   `codec:"depositReqAuth" json:"depositReqAuth"`
 	WithdrawReqAuth    bool   `codec:"withdrawReqAuth" json:"withdrawReqAuth"`
+	UseSep24           bool   `codec:"useSep24" json:"useSep24"`
 }
 
 func (o Asset) DeepCopy() Asset {
@@ -107,6 +108,7 @@ func (o Asset) DeepCopy() Asset {
 		AuthEndpoint:       o.AuthEndpoint,
 		DepositReqAuth:     o.DepositReqAuth,
 		WithdrawReqAuth:    o.WithdrawReqAuth,
+		UseSep24:           o.UseSep24,
 	}
 }
 

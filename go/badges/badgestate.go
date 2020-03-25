@@ -6,6 +6,7 @@ package badges
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -159,13 +160,8 @@ func (b *BadgeState) ConversationBadge(ctx context.Context, convID chat1.Convers
 	return b.ConversationBadgeStr(ctx, convID.ConvIDStr())
 }
 
-func wotUpdatesWithout(wotIn []keybase1.WotUpdate, voucher, vouchee string) (wotOut []keybase1.WotUpdate) {
-	for _, el := range wotIn {
-		if el.Voucher != voucher && el.Vouchee != vouchee {
-			wotOut = append(wotOut, el)
-		}
-	}
-	return wotOut
+func keyForWotUpdate(w keybase1.WotUpdate) string {
+	return fmt.Sprintf("%s:%s", w.Voucher, w.Vouchee)
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -187,7 +183,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.ResetState = keybase1.ResetState{}
 	b.state.UnverifiedEmails = 0
 	b.state.UnverifiedPhones = 0
-	b.state.WotUpdates = []keybase1.WotUpdate{}
+	b.state.WotUpdates = make(map[string]keybase1.WotUpdate)
 
 	var hsb *libkb.HomeStateBody
 
@@ -276,7 +272,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				Vouchee: vouchee,
 				Status:  keybase1.WotStatusType_PROPOSED,
 			}
-			b.state.WotUpdates = append(wotUpdatesWithout(b.state.WotUpdates, voucher, vouchee), wotUpdate)
+			b.state.WotUpdates[keyForWotUpdate(wotUpdate)] = wotUpdate
 		case "wot.accepted", "wot.rejected":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
@@ -298,7 +294,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				Vouchee: vouchee,
 				Status:  status,
 			}
-			b.state.WotUpdates = append(wotUpdatesWithout(b.state.WotUpdates, voucher, vouchee), wotUpdate)
+			b.state.WotUpdates[keyForWotUpdate(wotUpdate)] = wotUpdate
 		case "device.revoked":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {

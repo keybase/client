@@ -20,6 +20,7 @@ const setupNotifications = async () => {
         chatattachments: true,
         chatdev: false,
         chatemoji: false,
+        chatemojicross: false,
         chatkbfsedits: false,
         deviceclone: false,
         ephemeral: false,
