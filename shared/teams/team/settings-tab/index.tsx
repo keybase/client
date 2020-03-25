@@ -269,11 +269,10 @@ export class Settings extends React.Component<Props, State> {
 
       if (publicitySettingsChanged !== prevState.publicitySettingsChanged) {
         this.onSaveSettings()
+        return {publicitySettingsChanged}
       }
 
-      return publicitySettingsChanged !== prevState.publicitySettingsChanged
-        ? {publicitySettingsChanged}
-        : null
+      return null
     })
   }
 
