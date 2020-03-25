@@ -89,7 +89,7 @@ const useCustomReacji = (conversationIDKey: Types.ConversationIDKey | undefined)
         setWaiting(false)
       }
     )
-  }, [getUserEmoji])
+  }, [conversationIDKey, getUserEmoji])
 
   return {customEmojiGroups, waiting}
 }
