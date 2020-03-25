@@ -22,7 +22,6 @@ import DbNukeConfirm from './db-nuke-confirm/container'
 import DeleteConfirm from './delete-confirm/container'
 import InviteSent from './invite-generated/container'
 import RemoveDevice from '../devices/device-revoke/container'
-import SettingsRoot from '.'
 import WebLink from './web-links.native'
 import LogOutTab from './logout/container'
 import DisableCertPinningModal from './disable-cert-pinning-modal/container'
@@ -80,7 +79,6 @@ const subRoutes = {
   removeDevice: {
     getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default,
   },
-  settingsRoot: {getScreen: (): typeof SettingsRoot => require('.').default},
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }
 
