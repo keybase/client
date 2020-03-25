@@ -873,7 +873,7 @@ func (fbo *folderBlockOps) deepCopyFileLocked(
 }
 
 func (fbo *folderBlockOps) cacheHashBehavior() data.BlockCacheHashBehavior {
-	return cacheHashBehavior(fbo.config, fbo.id())
+	return cacheHashBehavior(fbo.config, fbo.config, fbo.id())
 }
 
 func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,

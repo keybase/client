@@ -17,8 +17,8 @@ import (
 
 // GetJournalManager returns the JournalManager tied to a particular
 // config.
-func GetJournalManager(config Config) (*JournalManager, error) {
-	bserver := config.BlockServer()
+func GetJournalManager(getter blockServerGetter) (*JournalManager, error) {
+	bserver := getter.BlockServer()
 	jbserver, ok := bserver.(journalBlockServer)
 	if !ok {
 		return nil, errors.New("Write journal not enabled")
@@ -28,8 +28,8 @@ func GetJournalManager(config Config) (*JournalManager, error) {
 
 // TLFJournalEnabled returns true if journaling is enabled for the
 // given TLF.
-func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
-	if jManager, err := GetJournalManager(config); err == nil {
+func TLFJournalEnabled(getter blockServerGetter, tlfID tlf.ID) bool {
+	if jManager, err := GetJournalManager(getter); err == nil {
 		return jManager.JournalEnabled(tlfID)
 	}
 	return false
