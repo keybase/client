@@ -28,6 +28,7 @@ const (
 	spaceAvailableNotificationThresholdKey = "spaceAvailableNotificationThreshold"
 
 	sfmiBannerDismissedKey = "sfmiBannerDismissed"
+	syncOnCellularKey      = "syncOnCellular"
 )
 
 // ErrNoSettingsDB is returned when there is no settings DB potentially due to
@@ -161,7 +162,7 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 		db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
 	switch errors.Cause(err) {
 	case leveldb.ErrNotFound:
-		db.logger.CDebugf(ctx,
+		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"notificationThreshold not set; using default value")
 	case nil:
 		notificationThreshold, err =
@@ -194,9 +195,28 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 		return keybase1.FSSettings{}, err
 	}
 
+	var syncOnCellular bool
+	syncOnCellularBytes, err :=
+		db.Get(getSettingsDbKey(uid, syncOnCellularKey), nil)
+	switch errors.Cause(err) {
+	case leveldb.ErrNotFound:
+		db.vlogger.CLogf(ctx, libkb.VLog1,
+			"syncOnCellular not set; using default value")
+	case nil:
+		syncOnCellular, err = strconv.ParseBool(string(syncOnCellularBytes))
+		if err != nil {
+			return keybase1.FSSettings{}, err
+		}
+	default:
+		db.logger.CWarningf(ctx,
+			"reading syncOnCellular from leveldb error: %+v", err)
+		return keybase1.FSSettings{}, err
+	}
+
 	return keybase1.FSSettings{
 		SpaceAvailableNotificationThreshold: notificationThreshold,
 		SfmiBannerDismissed:                 sfmiBannerDismissed,
+		SyncOnCellular:                      syncOnCellular,
 	}, nil
 }
 
@@ -212,7 +232,7 @@ func (db *SettingsDB) SetNotificationThreshold(
 		[]byte(strconv.FormatInt(threshold, 10)), nil)
 }
 
-// SetSfmiBannerDismissed hello from this comment
+// SetSfmiBannerDismissed sets whether the smfi banner has been dismissed.
 func (db *SettingsDB) SetSfmiBannerDismissed(
 	ctx context.Context, dismissed bool) error {
 	uid := db.getUID(ctx)
@@ -221,4 +241,16 @@ func (db *SettingsDB) SetSfmiBannerDismissed(
 	}
 	return db.Put(getSettingsDbKey(uid, sfmiBannerDismissedKey),
 		[]byte(strconv.FormatBool(dismissed)), nil)
+}
+
+// SetSyncOnCellular sets whether we should do TLF syncing on a
+// cellular network.
+func (db *SettingsDB) SetSyncOnCellular(
+	ctx context.Context, syncOnCellular bool) error {
+	uid := db.getUID(ctx)
+	if uid == keybase1.UID("") {
+		return errNoSession
+	}
+	return db.Put(getSettingsDbKey(uid, syncOnCellularKey),
+		[]byte(strconv.FormatBool(syncOnCellular)), nil)
 }

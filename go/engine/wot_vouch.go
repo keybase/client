@@ -165,10 +165,13 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{item}
 
-	_, err = e.G().API.PostJSON(mctx, libkb.APIArg{
+	if _, err := e.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-	})
-	return err
+	}); err != nil {
+		return err
+	}
+	voucherUsername := mctx.ActiveDevice().Username(mctx).String()
+	return libkb.DismissWotNotifications(mctx, voucherUsername, them.GetName())
 }

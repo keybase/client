@@ -1102,6 +1102,41 @@ func (o UserReacjis) DeepCopy() UserReacjis {
 	}
 }
 
+type WotStatusType int
+
+const (
+	WotStatusType_NONE     WotStatusType = 0
+	WotStatusType_PROPOSED WotStatusType = 1
+	WotStatusType_ACCEPTED WotStatusType = 2
+	WotStatusType_REJECTED WotStatusType = 3
+	WotStatusType_REVOKED  WotStatusType = 4
+)
+
+func (o WotStatusType) DeepCopy() WotStatusType { return o }
+
+var WotStatusTypeMap = map[string]WotStatusType{
+	"NONE":     0,
+	"PROPOSED": 1,
+	"ACCEPTED": 2,
+	"REJECTED": 3,
+	"REVOKED":  4,
+}
+
+var WotStatusTypeRevMap = map[WotStatusType]string{
+	0: "NONE",
+	1: "PROPOSED",
+	2: "ACCEPTED",
+	3: "REJECTED",
+	4: "REVOKED",
+}
+
+func (e WotStatusType) String() string {
+	if v, ok := WotStatusTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type CommonInterface interface {
 }
 

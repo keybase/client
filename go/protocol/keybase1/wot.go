@@ -10,41 +10,6 @@ import (
 	"time"
 )
 
-type WotStatusType int
-
-const (
-	WotStatusType_NONE     WotStatusType = 0
-	WotStatusType_PROPOSED WotStatusType = 1
-	WotStatusType_ACCEPTED WotStatusType = 2
-	WotStatusType_REJECTED WotStatusType = 3
-	WotStatusType_REVOKED  WotStatusType = 4
-)
-
-func (o WotStatusType) DeepCopy() WotStatusType { return o }
-
-var WotStatusTypeMap = map[string]WotStatusType{
-	"NONE":     0,
-	"PROPOSED": 1,
-	"ACCEPTED": 2,
-	"REJECTED": 3,
-	"REVOKED":  4,
-}
-
-var WotStatusTypeRevMap = map[WotStatusType]string{
-	0: "NONE",
-	1: "PROPOSED",
-	2: "ACCEPTED",
-	3: "REJECTED",
-	4: "REVOKED",
-}
-
-func (e WotStatusType) String() string {
-	if v, ok := WotStatusTypeRevMap[e]; ok {
-		return v
-	}
-	return fmt.Sprintf("%v", int(e))
-}
-
 type UsernameVerificationType string
 
 func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
@@ -124,6 +89,7 @@ func (e WotReactionType) String() string {
 type WotVouch struct {
 	Status     WotStatusType `codec:"status" json:"status"`
 	VouchProof SigID         `codec:"vouchProof" json:"vouchProof"`
+	Vouchee    UserVersion   `codec:"vouchee" json:"vouchee"`
 	Voucher    UserVersion   `codec:"voucher" json:"voucher"`
 	VouchTexts []string      `codec:"vouchTexts" json:"vouchTexts"`
 	VouchedAt  Time          `codec:"vouchedAt" json:"vouchedAt"`
@@ -134,6 +100,7 @@ func (o WotVouch) DeepCopy() WotVouch {
 	return WotVouch{
 		Status:     o.Status.DeepCopy(),
 		VouchProof: o.VouchProof.DeepCopy(),
+		Vouchee:    o.Vouchee.DeepCopy(),
 		Voucher:    o.Voucher.DeepCopy(),
 		VouchTexts: (func(x []string) []string {
 			if x == nil {
@@ -180,13 +147,20 @@ type WotReactArg struct {
 
 type WotReactCLIArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Username  string          `codec:"username" json:"username"`
+	Voucher   string          `codec:"voucher" json:"voucher"`
 	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
 }
 
+type DismissWotNotificationsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Voucher   string `codec:"voucher" json:"voucher"`
+	Vouchee   string `codec:"vouchee" json:"vouchee"`
+}
+
 type WotListCLIArg struct {
-	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Username  *string `codec:"username,omitempty" json:"username,omitempty"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Vouchee   string `codec:"vouchee" json:"vouchee"`
+	Voucher   string `codec:"voucher" json:"voucher"`
 }
 
 type WotInterface interface {
@@ -194,6 +168,7 @@ type WotInterface interface {
 	WotVouchCLI(context.Context, WotVouchCLIArg) error
 	WotReact(context.Context, WotReactArg) error
 	WotReactCLI(context.Context, WotReactCLIArg) error
+	DismissWotNotifications(context.Context, DismissWotNotificationsArg) error
 	WotListCLI(context.Context, WotListCLIArg) ([]WotVouch, error)
 }
 
@@ -261,6 +236,21 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 					return
 				},
 			},
+			"dismissWotNotifications": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissWotNotificationsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DismissWotNotificationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DismissWotNotificationsArg)(nil), args)
+						return
+					}
+					err = i.DismissWotNotifications(ctx, typedArgs[0])
+					return
+				},
+			},
 			"wotListCLI": {
 				MakeArg: func() interface{} {
 					var ret [1]WotListCLIArg
@@ -301,6 +291,11 @@ func (c WotClient) WotReact(ctx context.Context, __arg WotReactArg) (err error) 
 
 func (c WotClient) WotReactCLI(ctx context.Context, __arg WotReactCLIArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.wot.wotReactCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c WotClient) DismissWotNotifications(ctx context.Context, __arg DismissWotNotificationsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.dismissWotNotifications", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

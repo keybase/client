@@ -263,7 +263,7 @@
       "name": "ReactionUpdate",
       "fields": [
         {
-          "type": "ReactionMap",
+          "type": "UIReactionMap",
           "name": "reactions"
         },
         {

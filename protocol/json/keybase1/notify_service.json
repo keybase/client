@@ -34,6 +34,16 @@
       "oneway": true,
       "lint": "ignore"
     },
+    "handleKeybaseLink": {
+      "request": [
+        {
+          "name": "link",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "shutdown": {
       "request": [
         {

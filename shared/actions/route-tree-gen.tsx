@@ -1,6 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import * as Tabs from '../constants/tabs'
+import * as Types from '../constants/types/route-tree'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
@@ -9,7 +10,9 @@ export const clearModals = 'route-tree:clearModals'
 export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
+export const onNavChanged = 'route-tree:onNavChanged'
 export const resetStack = 'route-tree:resetStack'
+export const setParams = 'route-tree:setParams'
 export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
 
@@ -18,11 +21,17 @@ type _ClearModalsPayload = void
 type _NavUpToScreenPayload = {readonly routeName: string}
 type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
 type _NavigateUpPayload = {readonly fromKey?: string}
+type _OnNavChangedPayload = {
+  readonly prev: Array<Types.NavState>
+  readonly next: Array<Types.NavState>
+  readonly navAction: any
+}
 type _ResetStackPayload = {
   readonly tab: Tabs.AppTab | 'loggedOut'
   readonly actions: Array<any>
   readonly index: number
 }
+type _SetParamsPayload = {readonly params: Object; readonly key: string}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
 
@@ -59,6 +68,10 @@ export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload
   payload,
   type: resetStack,
 })
+/**
+ * deprecated soon
+ */
+export const createSetParams = (payload: _SetParamsPayload): SetParamsPayload => ({payload, type: setParams})
 export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => ({
   payload,
   type: navigateAppend,
@@ -66,6 +79,10 @@ export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateA
 export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})): NavigateUpPayload => ({
   payload,
   type: navigateUp,
+})
+export const createOnNavChanged = (payload: _OnNavChangedPayload): OnNavChangedPayload => ({
+  payload,
+  type: onNavChanged,
 })
 
 // Action Payloads
@@ -79,7 +96,9 @@ export type NavigateAppendPayload = {
   readonly type: typeof navigateAppend
 }
 export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: typeof navigateUp}
+export type OnNavChangedPayload = {readonly payload: _OnNavChangedPayload; readonly type: typeof onNavChanged}
 export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: typeof resetStack}
+export type SetParamsPayload = {readonly payload: _SetParamsPayload; readonly type: typeof setParams}
 export type SwitchLoggedInPayload = {
   readonly payload: _SwitchLoggedInPayload
   readonly type: typeof switchLoggedIn
@@ -93,7 +112,9 @@ export type Actions =
   | NavUpToScreenPayload
   | NavigateAppendPayload
   | NavigateUpPayload
+  | OnNavChangedPayload
   | ResetStackPayload
+  | SetParamsPayload
   | SwitchLoggedInPayload
   | SwitchTabPayload
   | {type: 'common:resetStore', payload: {}}

@@ -12,6 +12,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
@@ -31,9 +32,10 @@ type testBlockRetrievalConfig struct {
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock                       Clock
-	reporter                    Reporter
-	subsciptionManagerPublisher SubscriptionManagerPublisher
+	clock                        Clock
+	reporter                     Reporter
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
@@ -51,6 +53,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 		testInitModeGetter{InitDefault},
 		clock,
 		NewReporterSimple(clock, 1),
+		nil,
 		mockPublisher,
 	}
 }
@@ -79,8 +82,12 @@ func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
 	return nil
 }
 
+func (c testBlockRetrievalConfig) SubscriptionManager() SubscriptionManager {
+	return c.subscriptionManager
+}
+
 func (c testBlockRetrievalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
-	return c.subsciptionManagerPublisher
+	return c.subscriptionManagerPublisher
 }
 
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
@@ -106,7 +113,8 @@ func makeKMD() libkey.KeyMetadata {
 
 func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
 	q := newBlockRetrievalQueue(
-		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil),
+		env.EmptyAppStateUpdater{})
 	<-q.TogglePrefetcher(false, nil, nil)
 	return q
 }

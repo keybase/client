@@ -12,22 +12,21 @@ type Props = {
   channelname: string
   conversationIDKey: Types.ConversationIDKey
   navKey: string
+  selected: boolean
 }
 
 const BigTeamChannel = (props: Props) => {
-  const {conversationIDKey, navKey} = props
+  const {conversationIDKey, selected} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const hasBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
   const getDraft = Container.useSelector(state => !!Constants.getDraft(state, conversationIDKey))
   const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
-  const isSelected = Container.useSelector(
-    state => !Container.isPhone && Constants.getSelectedConversation(state) === conversationIDKey
-  )
+  const isSelected = selected
 
   const onSelectConversation = () =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxBig'}))
+    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxBig'}))
 
   const channelname = meta.channelname || props.channelname
   const hasDraft = getDraft && !isSelected
@@ -40,6 +39,7 @@ const BigTeamChannel = (props: Props) => {
       outboxIcon = (
         <Kb.Icon
           style={styles.icon}
+          sizeType="Small"
           type={'iconfont-hourglass'}
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
         />

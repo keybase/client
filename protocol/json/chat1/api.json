@@ -201,6 +201,93 @@
     },
     {
       "type": "record",
+      "name": "EmojiContent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "alias"
+        },
+        {
+          "type": "boolean",
+          "name": "isCrossTeam"
+        },
+        {
+          "type": [
+            null,
+            "ConvIDStr"
+          ],
+          "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "messageID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgTextContent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "body"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TextPayment"
+          },
+          "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "replyTo"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "replyToUID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownUserMention"
+          },
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
+        },
+        {
+          "type": [
+            null,
+            "LiveLocation"
+          ],
+          "name": "liveLocation"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "EmojiContent"
+          },
+          "name": "emojis"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MsgContent",
       "fields": [
         {
@@ -211,7 +298,7 @@
         {
           "type": [
             null,
-            "MessageText"
+            "MsgTextContent"
           ],
           "name": "text",
           "jsonkey": "text"
@@ -405,7 +492,7 @@
         {
           "type": [
             null,
-            "ReactionMap"
+            "UIReactionMap"
           ],
           "name": "reactions",
           "jsonkey": "reactions"

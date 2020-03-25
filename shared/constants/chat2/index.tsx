@@ -4,7 +4,6 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
 import clamp from 'lodash/clamp'
-import {chatTab} from '../tabs'
 import {TypedState} from '../reducer'
 import {isMobile, isTablet} from '../platform'
 import {
@@ -28,6 +27,9 @@ export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaul
 const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
+
+// in split mode the root is the 'inbox'
+export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
@@ -82,10 +84,8 @@ export const makeState = (): Types.State => ({
   paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   prependTextMap: new Map(),
-  previousSelectedConversation: noConversationIDKey,
   quote: undefined,
   replyToMap: new Map(),
-  selectedConversation: noConversationIDKey,
   shouldDeleteZzzJourneycard: new Map(),
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
@@ -231,7 +231,14 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.badgeMap.get(id) || 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
-export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
+export const getSelectedConversation = (): Types.ConversationIDKey => {
+  const maybeVisibleScreen = Router2.getVisibleScreen()
+  if (maybeVisibleScreen?.routeName === threadRouteName) {
+    return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
+  }
+  return noConversationIDKey
+}
+
 export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   return state.chat2.replyToMap.get(conversationIDKey) || null
 }
@@ -278,7 +285,7 @@ export const isUserActivelyLookingAtThisThread = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey
 ) => {
-  const selectedConversationIDKey = getSelectedConversation(state)
+  const selectedConversationIDKey = getSelectedConversation()
 
   let chatThreadSelected = false
   if (!isSplit) {
@@ -288,7 +295,7 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected =
       (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined
-        : maybeVisibleScreen.routeName) === 'chatRoot'
+        : maybeVisibleScreen.routeName) === threadRouteName
   }
 
   return (
@@ -299,7 +306,7 @@ export const isUserActivelyLookingAtThisThread = (
   )
 }
 export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
-  const meta = getMeta(state, getSelectedConversation(state))
+  const meta = getMeta(state, getSelectedConversation())
   return meta.teamname === teamname
 }
 
@@ -451,9 +458,6 @@ export const makeInboxQuery = (
 }
 
 export const isAssertion = (username: string) => username.includes('@')
-
-export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
-export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100

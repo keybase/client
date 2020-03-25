@@ -71,7 +71,8 @@
     CHAT_1,
     DEV_2,
     KBFSFILEEDIT_3,
-    EMOJI_4
+    EMOJI_4,
+    EMOJICROSS_5
   }
 
   enum TeamType {
@@ -359,7 +360,7 @@
   }
 
   record ReactionMap {
-    // { reactionText (:+1:) -> { username -> Reaction } }
+    // { reactionText (:+1:) -> { username -> Reaction }
     map<string, map<string, Reaction>> reactions;
   }
 
@@ -585,7 +586,8 @@
     INDEXED_SEARCH_7,
     KBFSFILEACTIVITY_8,
     COINFLIP_9,
-    BOTCOMMANDS_10
+    BOTCOMMANDS_10,
+    EMOJISOURCE_11
   }
 
   enum ReIndexingMode {
@@ -703,6 +705,7 @@
     long size;                 // size of the object
     string mimeType;           // mime type of the object
     Hash encHash;              // hash of ciphertext object
+    Hash ptHash;               // hash of plaintext object
     bytes key;                 // encryption key
     bytes verifyKey;           // signature verification key
     string title;              // title of the asset (defaults to filename if not provided)

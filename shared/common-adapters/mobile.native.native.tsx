@@ -49,6 +49,9 @@ module.exports = {
   get ButtonBar() {
     return Index.ButtonBar
   },
+  get CheckCircle() {
+    return Index.CheckCircle
+  },
   get Checkbox() {
     return Index.Checkbox
   },
@@ -72,6 +75,9 @@ module.exports = {
   },
   get CopyableText() {
     return Index.CopyableText
+  },
+  get CustomEmoji() {
+    return Index.CustomEmoji
   },
   get DesktopStyle() {
     return Index.DesktopStyle

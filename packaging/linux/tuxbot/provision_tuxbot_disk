@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euox pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt install -yq parted
+
+swapoff -a
+parted --script /dev/sda rm 2
+# https://bugs.launchpad.net/ubuntu/+source/parted/+bug/1270203
+echo -e "yes\n100%" | parted /dev/sda ---pretend-input-tty resizepart 1
+resize2fs /dev/sda1

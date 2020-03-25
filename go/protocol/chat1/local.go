@@ -197,13 +197,14 @@ func (o LiveLocation) DeepCopy() LiveLocation {
 }
 
 type MessageText struct {
-	Body         string             `codec:"body" json:"body"`
-	Payments     []TextPayment      `codec:"payments" json:"payments"`
-	ReplyTo      *MessageID         `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
-	ReplyToUID   *gregor1.UID       `codec:"replyToUID,omitempty" json:"replyToUID,omitempty"`
-	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
-	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
-	LiveLocation *LiveLocation      `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
+	Body         string                    `codec:"body" json:"body"`
+	Payments     []TextPayment             `codec:"payments" json:"payments"`
+	ReplyTo      *MessageID                `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	ReplyToUID   *gregor1.UID              `codec:"replyToUID,omitempty" json:"replyToUID,omitempty"`
+	UserMentions []KnownUserMention        `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention        `codec:"teamMentions" json:"teamMentions"`
+	LiveLocation *LiveLocation             `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
+	Emojis       map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -263,6 +264,18 @@ func (o MessageText) DeepCopy() MessageText {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.LiveLocation),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -1080,9 +1093,10 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 }
 
 type MessageReaction struct {
-	MessageID MessageID    `codec:"m" json:"m"`
-	Body      string       `codec:"b" json:"b"`
-	TargetUID *gregor1.UID `codec:"t,omitempty" json:"t,omitempty"`
+	MessageID MessageID                 `codec:"m" json:"m"`
+	Body      string                    `codec:"b" json:"b"`
+	TargetUID *gregor1.UID              `codec:"t,omitempty" json:"t,omitempty"`
+	Emojis    map[string]HarvestedEmoji `codec:"e" json:"e"`
 }
 
 func (o MessageReaction) DeepCopy() MessageReaction {
@@ -1096,6 +1110,18 @@ func (o MessageReaction) DeepCopy() MessageReaction {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TargetUID),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -6143,6 +6169,40 @@ func (o SetDefaultTeamChannelsLocalRes) DeepCopy() SetDefaultTeamChannelsLocalRe
 	}
 }
 
+type AddEmojiRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o AddEmojiRes) DeepCopy() AddEmojiRes {
+	return AddEmojiRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type UserEmojiRes struct {
+	Emojis    UserEmojis `codec:"emojis" json:"emojis"`
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o UserEmojiRes) DeepCopy() UserEmojiRes {
+	return UserEmojiRes{
+		Emojis: o.Emojis.DeepCopy(),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -6777,6 +6837,15 @@ type GetLastActiveAtMultiLocalArg struct {
 	Username string            `codec:"username" json:"username"`
 }
 
+type AddEmojiArg struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Alias    string         `codec:"alias" json:"alias"`
+	Filename string         `codec:"filename" json:"filename"`
+}
+
+type UserEmojisArg struct {
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -6889,6 +6958,8 @@ type LocalInterface interface {
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
+	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
+	UserEmojis(context.Context) (UserEmojiRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8505,6 +8576,31 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"addEmoji": {
+				MakeArg: func() interface{} {
+					var ret [1]AddEmojiArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddEmojiArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddEmojiArg)(nil), args)
+						return
+					}
+					ret, err = i.AddEmoji(ctx, typedArgs[0])
+					return
+				},
+			},
+			"userEmojis": {
+				MakeArg: func() interface{} {
+					var ret [1]UserEmojisArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.UserEmojis(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -9094,5 +9190,15 @@ func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActi
 
 func (c LocalClient) GetLastActiveAtMultiLocal(ctx context.Context, __arg GetLastActiveAtMultiLocalArg) (res map[keybase1.TeamID]gregor1.Time, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtMultiLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) AddEmoji(ctx context.Context, __arg AddEmojiArg) (res AddEmojiRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.addEmoji", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) UserEmojis(ctx context.Context) (res UserEmojiRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.userEmojis", []interface{}{UserEmojisArg{}}, &res, 0*time.Millisecond)
 	return
 }

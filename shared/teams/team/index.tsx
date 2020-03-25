@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
@@ -80,6 +81,10 @@ const Team = (props: Props) => {
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+
+  const dispatch = Container.useDispatch()
+  const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
+  Container.useFocusBlur(undefined, onBlur)
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)

@@ -4,6 +4,10 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import {usePhoneNumberList} from '../../teams/common'
+import * as RPCGen from '../../constants/types/rpc-gen'
+
+const shareURL = 'https://keybase.io/download'
+const waitingKey = 'invitePeople'
 
 const InviteFriendsModal = () => {
   const dispatch = Container.useDispatch()
@@ -19,36 +23,102 @@ const InviteFriendsModal = () => {
   }, [defaultCountry, dispatch])
 
   const [emails, setEmails] = React.useState('')
-  const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
+  const {
+    phoneNumbers,
+    setPhoneNumber,
+    addPhoneNumber,
+    removePhoneNumber,
+    resetPhoneNumbers,
+  } = usePhoneNumberList()
 
   // disabled if both are empty or if there are some invalid phone numbers
   const disabled =
     (!emails && phoneNumbers.every(pn => !pn.phoneNumber)) ||
     phoneNumbers.some(pn => pn.phoneNumber && !pn.valid)
 
+  const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
+  const [error, setError] = React.useState('')
+  const [successCount, setSuccessCount] = React.useState<number | null>(null)
+  const onSubmit = () =>
+    submit(
+      [
+        {
+          emails: {commaSeparatedEmailsFromUser: emails},
+          phones: phoneNumbers.filter(p => !!p.phoneNumber).map(p => p.phoneNumber),
+        },
+        waitingKey,
+      ],
+      r => {
+        setSuccessCount(r)
+        setError('')
+        setEmails('')
+        resetPhoneNumbers()
+      },
+      err => {
+        setSuccessCount(null)
+        if (err.code === RPCGen.StatusCode.scratelimit) {
+          setError("You've been doing that a bit too much lately. Try again later.")
+        } else {
+          setError(err.message)
+        }
+      }
+    )
+  const {popup, setShowingPopup} = Kb.usePopup(() => (
+    <ShareLinkPopup onClose={() => setShowingPopup(false)} />
+  ))
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
       onClose={onClose}
-      header={{title: Styles.isMobile ? 'Invite friends' : 'Invite your friends to Keybase'}}
+      header={{
+        leftButton: Styles.isMobile && (
+          <Kb.Text type="BodyBigLink" onClick={onClose}>
+            Cancel
+          </Kb.Text>
+        ),
+        title: Styles.isMobile ? 'Invite friends' : 'Invite your friends to Keybase',
+      }}
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="medium" fullWidth={true}>
-            <Kb.Button fullWidth={true} label="Send invite" disabled={disabled} />
+            <Kb.WaitingButton
+              fullWidth={true}
+              label="Send invite"
+              disabled={disabled}
+              waitingKey={waitingKey}
+              onClick={onSubmit}
+            />
             {!Styles.isMobile && (
               <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
                 <Kb.Text type="BodySmall" center={true}>
                   or share a link:
                 </Kb.Text>
-                <Kb.CopyText textType="BodySemibold" text="https://keybase.io/download" />
+                <Kb.CopyText textType="BodySemibold" text={shareURL} />
               </Kb.Box2>
             )}
           </Kb.Box2>
         ),
       }}
+      banners={[
+        ...(error
+          ? [
+              <Kb.Banner color="red" key="error">
+                {error}
+              </Kb.Banner>,
+            ]
+          : []),
+        ...(successCount === null
+          ? []
+          : [
+              <Kb.Banner
+                color="green"
+                key="success"
+              >{`Success! You invited ${successCount} friends to Keybase.`}</Kb.Banner>,
+            ]),
+      ]}
     >
-      <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
-        <Kb.Icon type="icon-illustration-invite-friends-460-96" style={{width: '100%'}} />
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} alignItems="center" style={styles.container}>
+        <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.illustration} />
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.content}>
           <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'tiny'} fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">By email address (separate with commas)</Kb.Text>
@@ -66,6 +136,7 @@ const InviteFriendsModal = () => {
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               {phoneNumbers.map((pn, i) => (
                 <Kb.PhoneInput
+                  small={true}
                   key={pn.key}
                   defaultCountry={defaultCountry}
                   onChangeNumber={(phoneNumber, valid) => setPhoneNumber(i, phoneNumber, valid)}
@@ -76,11 +147,12 @@ const InviteFriendsModal = () => {
             </Kb.Box2>
           </Kb.Box2>
           {Styles.isMobile && (
-            <Kb.ClickableBox style={styles.shareALink}>
+            <Kb.ClickableBox style={styles.shareALink} onClick={() => setShowingPopup(true)}>
               <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" alignSelf="flex-start">
                 <Kb.Icon type="iconfont-link" color={Styles.globalColors.blueDark} />
                 <Kb.Text type="BodyPrimaryLink">or share a link</Kb.Text>
               </Kb.Box2>
+              {popup}
             </Kb.ClickableBox>
           )}
         </Kb.Box2>
@@ -89,6 +161,16 @@ const InviteFriendsModal = () => {
   )
 }
 
+const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
+  <Kb.MobilePopup>
+    <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
+      <Kb.Text type="Header">Share a link to Keybase</Kb.Text>
+      <Kb.CopyText text={shareURL} shareSheet={true} />
+      <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={onClose} />
+    </Kb.Box2>
+  </Kb.MobilePopup>
+)
+
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.blueGrey,
@@ -96,6 +178,10 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
+  },
+  illustration: Styles.platformStyles({isElectron: {width: '100%'}}),
+  linkPopupContainer: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
   },
   shareALink: {
     ...Styles.padding(10, 0),

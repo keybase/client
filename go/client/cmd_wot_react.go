@@ -10,14 +10,14 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type cmdWotAccept struct {
-	username string
+type CmdWotAccept struct {
+	Voucher string
 	libkb.Contextified
 }
 
 func newCmdWotAccept(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{}
-	cmd := &cmdWotAccept{
+	cmd := &CmdWotAccept{
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
@@ -31,17 +31,17 @@ func newCmdWotAccept(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 	}
 }
 
-func (c *cmdWotAccept) ParseArgv(ctx *cli.Context) error {
+func (c *CmdWotAccept) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return errors.New("accept requires a username")
 	}
-	c.username = ctx.Args()[0]
+	c.Voucher = ctx.Args()[0]
 	return nil
 }
 
-func (c *cmdWotAccept) Run() error {
+func (c *CmdWotAccept) Run() error {
 	arg := keybase1.WotReactCLIArg{
-		Username: c.username,
+		Voucher:  c.Voucher,
 		Reaction: keybase1.WotReactionType_ACCEPT,
 	}
 
@@ -52,7 +52,7 @@ func (c *cmdWotAccept) Run() error {
 	return cli.WotReactCLI(context.Background(), arg)
 }
 
-func (c *cmdWotAccept) GetUsage() libkb.Usage {
+func (c *CmdWotAccept) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -62,14 +62,14 @@ func (c *cmdWotAccept) GetUsage() libkb.Usage {
 
 /////////////////////////////////////////
 
-type cmdWotReject struct {
-	username string
+type CmdWotReject struct {
+	Voucher string
 	libkb.Contextified
 }
 
 func newCmdWotReject(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{}
-	cmd := &cmdWotReject{
+	cmd := &CmdWotReject{
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
@@ -84,17 +84,17 @@ func newCmdWotReject(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 	}
 }
 
-func (c *cmdWotReject) ParseArgv(ctx *cli.Context) error {
+func (c *CmdWotReject) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return errors.New("reject requires a username")
 	}
-	c.username = ctx.Args()[0]
+	c.Voucher = ctx.Args()[0]
 	return nil
 }
 
-func (c *cmdWotReject) Run() error {
+func (c *CmdWotReject) Run() error {
 	arg := keybase1.WotReactCLIArg{
-		Username: c.username,
+		Voucher:  c.Voucher,
 		Reaction: keybase1.WotReactionType_REJECT,
 	}
 
@@ -105,7 +105,7 @@ func (c *cmdWotReject) Run() error {
 	return cli.WotReactCLI(context.Background(), arg)
 }
 
-func (c *cmdWotReject) GetUsage() libkb.Usage {
+func (c *CmdWotReject) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

@@ -9,6 +9,8 @@ protocol NotifyService {
   @lint("ignore")
   void HTTPSrvInfoUpdate(HttpSrvInfo info) oneway;
 
+  void handleKeybaseLink(string link) oneway;
+
   // sent when the service shuts down.
   void shutdown(int code);
 }

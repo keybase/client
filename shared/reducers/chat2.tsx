@@ -80,49 +80,54 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
+const stopAudioRecording = (
+  draftState: Container.Draft<Types.State>,
+  action: Chat2Gen.StopAudioRecordingPayload
+) => {
+  const {conversationIDKey, stopType, amps} = action.payload
+  const info = draftState.audioRecording.get(conversationIDKey)
+  if (info) {
+    let nextStatus: Types.AudioRecordingStatus = info.status
+    if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
+      return
+    }
+    let nextPath = info.path
+    if (info.isLocked) {
+      switch (stopType) {
+        case Types.AudioStopType.CANCEL:
+          nextStatus = Types.AudioRecordingStatus.CANCELLED
+          nextPath = ''
+          break
+        case Types.AudioStopType.SEND:
+          nextStatus = Types.AudioRecordingStatus.STOPPED
+          break
+        case Types.AudioStopType.STOPBUTTON:
+          nextStatus = Types.AudioRecordingStatus.STAGED
+          break
+      }
+    } else {
+      switch (stopType) {
+        case Types.AudioStopType.CANCEL:
+          nextStatus = Types.AudioRecordingStatus.CANCELLED
+          nextPath = ''
+          break
+        default:
+          nextStatus = Types.AudioRecordingStatus.STOPPED
+      }
+    }
+    info.amps = amps
+    info.path = nextPath
+    info.recordEnd = Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined
+    info.status = nextStatus
+  }
+}
+
 const audioActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.enableAudioRecording]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     draftState.audioRecording.set(conversationIDKey, Constants.makeAudioRecordingInfo())
   },
-  [Chat2Gen.stopAudioRecording]: (draftState, action) => {
-    const {conversationIDKey, stopType, amps} = action.payload
-    const info = draftState.audioRecording.get(conversationIDKey)
-    if (info) {
-      let nextStatus: Types.AudioRecordingStatus = info.status
-      if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
-        return
-      }
-      let nextPath = info.path
-      if (info.isLocked) {
-        switch (stopType) {
-          case Types.AudioStopType.CANCEL:
-            nextStatus = Types.AudioRecordingStatus.CANCELLED
-            nextPath = ''
-            break
-          case Types.AudioStopType.SEND:
-            nextStatus = Types.AudioRecordingStatus.STOPPED
-            break
-          case Types.AudioStopType.STOPBUTTON:
-            nextStatus = Types.AudioRecordingStatus.STAGED
-            break
-        }
-      } else {
-        switch (stopType) {
-          case Types.AudioStopType.CANCEL:
-            nextStatus = Types.AudioRecordingStatus.CANCELLED
-            nextPath = ''
-            break
-          default:
-            nextStatus = Types.AudioRecordingStatus.STOPPED
-        }
-      }
-      info.amps = amps
-      info.path = nextPath
-      info.recordEnd = Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined
-      info.status = nextStatus
-    }
-  },
+  [Chat2Gen.stopAudioRecording]: stopAudioRecording,
   [Chat2Gen.lockAudioRecording]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {audioRecording} = draftState
@@ -497,14 +502,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.changeFocus]: (draftState, action) => {
     draftState.focus = action.payload.nextFocus
   },
-  [Chat2Gen.selectConversation]: (draftState, action) => {
+  [Chat2Gen.selectedConversation]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {selectedConversation, threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
+    const {threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
     const {metaMap, messageCenterOrdinals} = draftState
-    // ignore non-changing
-    if (selectedConversation === conversationIDKey) {
-      return
-    }
 
     if (conversationIDKey) {
       const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
@@ -539,15 +540,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     }
     // blank out draft so we don't flash old data when switching convs
-    const meta = metaMap.get(selectedConversation)
+    const meta = metaMap.get(conversationIDKey)
     if (meta) {
       meta.draft = ''
     }
     messageCenterOrdinals.delete(conversationIDKey)
     threadLoadStatus.delete(conversationIDKey)
     containsLatestMessageMap.set(conversationIDKey, true)
-    draftState.previousSelectedConversation = selectedConversation
-    draftState.selectedConversation = conversationIDKey
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
       // error msg.
@@ -1055,16 +1054,19 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const m = messageMap.get(conversationIDKey)?.get(targetOrdinal)
     if (m && Constants.isMessageWithReactions(m)) {
       const reactions = m.reactions
-      const rs = reactions.get(emoji) || new Set()
+      const rs = {
+        decorated: reactions.get(emoji)?.decorated ?? '',
+        users: reactions.get(emoji)?.users ?? new Set(),
+      }
       reactions.set(emoji, rs)
-      const existing = [...rs].find(r => r.username === username)
+      const existing = [...rs.users].find(r => r.username === username)
       if (existing) {
         // found an existing reaction. remove it from our list
-        rs.delete(existing)
+        rs.users.delete(existing)
       }
       // no existing reaction. add this one to the map
-      rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
-      if (rs.size === 0) {
+      rs.users.add(Constants.makeReaction({timestamp: Date.now(), username}))
+      if (rs.users.size === 0) {
         reactions.delete(emoji)
       }
     }
@@ -1558,6 +1560,32 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.setGeneralConvFromTeamID]: (draftState, action) => {
     draftState.teamIDToGeneralConvID.set(action.payload.teamID, action.payload.conversationIDKey)
+  },
+  [Chat2Gen.navigateToThread]: (draftState, action) => {
+    const {conversationIDKey} = action.payload
+    // hide search
+    const toHide = [...draftState.threadSearchInfoMap.entries()].reduce<Array<Types.ConversationIDKey>>(
+      (arr, [id, val]) => {
+        if (id !== conversationIDKey && val.visible) {
+          arr.push(id)
+        }
+        return arr
+      },
+      []
+    )
+    toHide.forEach(id => (draftState.threadSearchInfoMap.get(id)!.visible = false))
+
+    // stop all audio recording
+    const audioIDs = [...draftState.audioRecording.keys()]
+    audioIDs.forEach(conversationIDKey => {
+      stopAudioRecording(
+        draftState,
+        Chat2Gen.createStopAudioRecording({
+          conversationIDKey,
+          stopType: Types.AudioStopType.CANCEL,
+        })
+      )
+    })
   },
   [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
     const roles =

@@ -149,6 +149,8 @@ export const keybase1NotifyFSFSSyncStatusResponse = 'engine-gen:keybase1NotifyFS
 export const keybase1NotifyFavoritesFavoritesChanged = 'engine-gen:keybase1NotifyFavoritesFavoritesChanged'
 export const keybase1NotifyFeaturedBotsFeaturedBotsUpdate =
   'engine-gen:keybase1NotifyFeaturedBotsFeaturedBotsUpdate'
+export const keybase1NotifyInviteFriendsUpdateInviteCounts =
+  'engine-gen:keybase1NotifyInviteFriendsUpdateInviteCounts'
 export const keybase1NotifyKeyfamilyKeyfamilyChanged = 'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged'
 export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile'
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
@@ -163,6 +165,7 @@ export const keybase1NotifySaltpackSaltpackOperationProgress =
 export const keybase1NotifySaltpackSaltpackOperationStart =
   'engine-gen:keybase1NotifySaltpackSaltpackOperationStart'
 export const keybase1NotifyServiceHTTPSrvInfoUpdate = 'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate'
+export const keybase1NotifyServiceHandleKeybaseLink = 'engine-gen:keybase1NotifyServiceHandleKeybaseLink'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -1274,6 +1277,17 @@ type _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
     ) => void
   }
 }
+type _Keybase1NotifyInviteFriendsUpdateInviteCountsPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyInviteFriends.updateInviteCounts']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {
     sessionID: number
@@ -1368,6 +1382,17 @@ type _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
     error: keybase1Types.IncomingErrorCallback
     result: (
       param: keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifyServiceHandleKeybaseLinkPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.handleKeybaseLink']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyService.handleKeybaseLink']['outParam']
     ) => void
   }
 }
@@ -2414,6 +2439,12 @@ export const createKeybase1NotifyFeaturedBotsFeaturedBotsUpdate = (
   payload,
   type: keybase1NotifyFeaturedBotsFeaturedBotsUpdate,
 })
+export const createKeybase1NotifyInviteFriendsUpdateInviteCounts = (
+  payload: _Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
+): Keybase1NotifyInviteFriendsUpdateInviteCountsPayload => ({
+  payload,
+  type: keybase1NotifyInviteFriendsUpdateInviteCounts,
+})
 export const createKeybase1NotifyKeyfamilyKeyfamilyChanged = (
   payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
 ): Keybase1NotifyKeyfamilyKeyfamilyChangedPayload => ({
@@ -2462,6 +2493,9 @@ export const createKeybase1NotifySaltpackSaltpackOperationStart = (
 export const createKeybase1NotifyServiceHTTPSrvInfoUpdate = (
   payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
 ): Keybase1NotifyServiceHTTPSrvInfoUpdatePayload => ({payload, type: keybase1NotifyServiceHTTPSrvInfoUpdate})
+export const createKeybase1NotifyServiceHandleKeybaseLink = (
+  payload: _Keybase1NotifyServiceHandleKeybaseLinkPayload
+): Keybase1NotifyServiceHandleKeybaseLinkPayload => ({payload, type: keybase1NotifyServiceHandleKeybaseLink})
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
 ): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
@@ -3219,6 +3253,10 @@ export type Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
   readonly payload: _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
   readonly type: typeof keybase1NotifyFeaturedBotsFeaturedBotsUpdate
 }
+export type Keybase1NotifyInviteFriendsUpdateInviteCountsPayload = {
+  readonly payload: _Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
+  readonly type: typeof keybase1NotifyInviteFriendsUpdateInviteCounts
+}
 export type Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   readonly type: typeof keybase1NotifyKeyfamilyKeyfamilyChanged
@@ -3254,6 +3292,10 @@ export type Keybase1NotifySaltpackSaltpackOperationStartPayload = {
 export type Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
   readonly payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   readonly type: typeof keybase1NotifyServiceHTTPSrvInfoUpdate
+}
+export type Keybase1NotifyServiceHandleKeybaseLinkPayload = {
+  readonly payload: _Keybase1NotifyServiceHandleKeybaseLinkPayload
+  readonly type: typeof keybase1NotifyServiceHandleKeybaseLink
 }
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
@@ -3666,6 +3708,7 @@ export type Actions =
   | Keybase1NotifyFSFSSyncStatusResponsePayload
   | Keybase1NotifyFavoritesFavoritesChangedPayload
   | Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
+  | Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
   | Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
@@ -3675,6 +3718,7 @@ export type Actions =
   | Keybase1NotifySaltpackSaltpackOperationProgressPayload
   | Keybase1NotifySaltpackSaltpackOperationStartPayload
   | Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+  | Keybase1NotifyServiceHandleKeybaseLinkPayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload

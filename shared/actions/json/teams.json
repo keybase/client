@@ -261,8 +261,11 @@
     "setNewTeamInfo": {
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
       "newTeams": "Set<Types.TeamID>",
-      "newTeamRequests": "Array<Types.TeamID>",
       "teamIDToResetUsers": "Map<Types.TeamID, Set<string>>"
+    },
+    "setNewTeamRequests": {
+      "_description": "Set which requests we haven't seen yet for a team.",
+      "newTeamRequests": "Map<Types.TeamID, Set<string>>"
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
@@ -411,6 +414,10 @@
     "setTeamWizardSubteams": {
       "subteams": "Array<string>"
     },
-    "finishNewTeamWizard": {}
+    "finishNewTeamWizard": {},
+    "teamSeen": {
+      "_description": "User has viewed this team. Clear related badges.",
+      "teamID": "Types.TeamID"
+    }
   }
 }

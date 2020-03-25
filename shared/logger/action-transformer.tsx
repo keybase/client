@@ -43,7 +43,8 @@ const actionTransformMap = {
       type: a.type,
     }
   },
-  [Chat2Gen.selectConversation]: fullOutput,
+  [Chat2Gen.selectedConversation]: fullOutput,
+  [Chat2Gen.navigateToThread]: fullOutput,
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.updateMoreToLoad]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,

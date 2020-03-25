@@ -28,6 +28,7 @@ protocol notifyCtl {
     boolean chatkbfsedits;
     boolean chatdev;
     boolean chatemoji;
+    boolean chatemojicross;
     boolean deviceclone;
     boolean chatattachments;
     boolean wallet;

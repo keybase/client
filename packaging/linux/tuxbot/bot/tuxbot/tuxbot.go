@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/packaging/linux/tuxbot/bot/access"
 	"github.com/keybase/client/packaging/linux/tuxbot/bot/chatbot"
@@ -89,7 +90,8 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 
 	switch command {
 	case "help":
-		c.Info("`release revision?, nightly revision?, test revision?, tuxjournal, journal, archive revision, build-docker revision?, release-docker tag`")
+		c.Info("`release/nightly/test revision?, [tux]journal, archive revision, build-docker revision?, release-docker tag`")
+		c.Info("`cleanup, restartdocker`")
 		return nil
 	case "archive":
 		if len(args) < 1 {
@@ -408,17 +410,55 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			c.Debug("unable to SendMessage: %v", err)
 		}
 		return nil
-	case "tuxjournal":
-		ret, _ := exec.Command("sudo", "journalctl", "--user-unit", "tuxbot", "-n", "50").CombinedOutput()
-		c.Debug("```%s```", ret)
+	case "tuxjournal", "journal":
+		filename := fmt.Sprintf("/keybase/team/%s/%s-%s.txt", c.archiveTeam, command, time.Now().Format(time.RFC3339))
+		var cmd *exec.Cmd
+		if command == "tuxjournal" {
+			cmd = exec.Command("journalctl", "--user-unit", "tuxbot", "-n", "1000")
+		} else {
+			cmd = exec.Command("journalctl", "-n", "100")
+		}
+		err = execToFile(filename, cmd)
+		if err != nil {
+			return err
+		}
+		c.Info("Wrote journal to %s", filename)
 		return nil
-	case "journal":
-		ret, _ := exec.Command("sudo", "journalctl", "-n", "100").CombinedOutput()
-		c.Debug("```%s```", ret)
+	case "cleanup":
+		cleanupCmd := exec.Command("./cleanup")
+		cleanupCmd.Dir = filepath.Join(currentUser.HomeDir)
+		ret, err := cleanupCmd.CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
+		return nil
+	case "restartdocker":
+		cmd := exec.Command("./restartdocker")
+		cmd.Dir = filepath.Join(currentUser.HomeDir)
+		ret, err := cmd.CombinedOutput()
+		c.Debug("RET: ```%s```, ERR: %s", ret, err)
 		return nil
 	default:
 		return fmt.Errorf("invalid command %s", command)
 	}
+}
+
+func execToFile(filename string, cmd *exec.Cmd) error {
+	handle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer handle.Close()
+	var execErr bytes.Buffer
+	cmd.Stdout = handle
+	cmd.Stderr = &execErr
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+	err = cmd.Wait()
+	if err != nil {
+		return errors.Wrap(err, execErr.String())
+	}
+	return nil
 }
 
 func main() {

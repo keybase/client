@@ -45,15 +45,18 @@ func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg
 	if err != nil {
 		return nil, err
 	}
-	ret := NewTeam(ctx, g, teamData, hidden)
+	team := NewTeam(ctx, g, teamData, hidden)
 
 	if lArg.RefreshUIDMapper {
 		// If we just loaded the group, then inform the UIDMapper of any UID->EldestSeqno
 		// mappings, so that we're guaranteed they aren't stale.
-		ret.refreshUIDMapper(ctx, g)
+		team.refreshUIDMapper(ctx, g)
 	}
 
-	return ret, nil
+	// OK if it errors; just move on and return the team.
+	_, _ = team.calculateAndCacheMemberCount(ctx)
+
+	return team, nil
 }
 
 // Loader of keybase1.TeamData objects. Handles caching.

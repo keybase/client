@@ -177,6 +177,9 @@ export type ParticipantInfo = {
   contactName: Map<string, string> // member username -> contact name
 }
 
+// Corresponds to skinTones in emoji-datasource.
+export type EmojiSkinTone = '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'
+
 export type State = {
   readonly accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -239,10 +242,8 @@ export type State = {
   readonly paymentStatusMap: Map<Wallet.PaymentID, _Message.ChatPaymentInfo>
   readonly pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   readonly prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
-  readonly previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   readonly quote?: QuoteInfo // last quoted message,
   readonly replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
-  readonly selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
   readonly smallTeamsExpanded: boolean // if we're showing all small teams,
   readonly staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
@@ -317,6 +318,7 @@ export type PathAndOutboxID = _Message.PathAndOutboxID
 export type PreviewSpec = _Message.PreviewSpec
 export type Reaction = _Message.Reaction
 export type Reactions = _Message.Reactions
+export type ReactionDesc = _Message.ReactionDesc
 
 // common passthroughs
 export type ConversationIDKey = Common.ConversationIDKey

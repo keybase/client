@@ -178,13 +178,22 @@ func getInboxFetcherActivitySortedFlags() []cli.Flag {
 }
 
 func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {
-	switch t := strings.ToLower(ctx.String("topic-type")); t {
+	strTopicType := strings.ToLower(ctx.String("topic-type"))
+	if len(strTopicType) == 0 {
+		return chat1.TopicType_CHAT, nil
+	}
+	switch strTopicType {
 	case "chat":
 		topicType = chat1.TopicType_CHAT
 	case "dev":
 		topicType = chat1.TopicType_DEV
+	case "emoji":
+		topicType = chat1.TopicType_EMOJI
+	case "emojicross":
+		topicType = chat1.TopicType_EMOJICROSS
 	default:
-		err = fmt.Errorf("invalid topic-type '%s'. Has to be one of %v", t, []string{"chat", "dev"})
+		err = fmt.Errorf("invalid topic-type '%s'. Has to be one of %v", strTopicType,
+			[]string{"chat", "dev", "emoji"})
 	}
 	return topicType, err
 }

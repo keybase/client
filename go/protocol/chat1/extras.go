@@ -2536,6 +2536,31 @@ func (r *SetDefaultTeamChannelsLocalRes) SetRateLimits(rl []RateLimit) {
 	}
 }
 
+func (r *AddEmojiRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AddEmojiRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+func (r *UserEmojiRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *UserEmojiRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
 func (i EphemeralPurgeInfo) IsNil() bool {
 	return i.IsActive == false && i.NextPurgeTime == 0 && i.MinUnexplodedID <= 1
 }
@@ -3059,4 +3084,12 @@ func (s SnippetDecoration) ToEmoji() string {
 	default:
 		return ""
 	}
+}
+
+func (r EmojiRemoteSource) IsMessage() bool {
+	typ, err := r.Typ()
+	if err != nil {
+		return false
+	}
+	return typ == EmojiRemoteSourceTyp_MESSAGE
 }

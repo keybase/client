@@ -61,6 +61,7 @@ protocol local {
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
     union { null, LiveLocation } liveLocation;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageConversationMetadata {
@@ -222,6 +223,8 @@ protocol local {
      string body; // emoji reaction :+1:
      @mpackkey("t") @jsonkey("t")
      union { null, gregor1.UID } targetUID;
+     @mpackkey("e") @jsonkey("e")
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageSendPayment {
@@ -1367,4 +1370,15 @@ protocol local {
   void refreshParticipants(ConversationID convID);
   gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, string username);
   map<keybase1.TeamID, gregor1.Time> getLastActiveAtMultiLocal(array<keybase1.TeamID> teamIDs, string username);
+
+  // Emoji
+  record AddEmojiRes {
+    union { null, RateLimit } rateLimit;
+  }
+  AddEmojiRes addEmoji(ConversationID convID, string alias, string filename);
+  record UserEmojiRes {
+    UserEmojis emojis; 
+    union { null, RateLimit } rateLimit;
+  }
+  UserEmojiRes userEmojis();
 }

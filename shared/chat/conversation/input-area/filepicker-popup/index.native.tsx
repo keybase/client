@@ -53,11 +53,7 @@ class FilePickerPopup extends React.Component<Props> {
     ]
     const items = isIOS ? iosItems : androidItems
 
-    const header = {
-      title: 'header',
-      view: <Prompt />,
-    }
-
+    const header = <Prompt />
     return (
       <Kb.FloatingMenu
         header={header}

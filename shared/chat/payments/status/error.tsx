@@ -23,22 +23,20 @@ type Props = {
 const items: MenuItems = []
 
 const PaymentStatusError = (props: Props) => {
-  const header = {
-    title: 'header',
-    view: (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodyExtrabold" style={styles.headerError}>
-          Failed to send payment
+  const header = (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text type="BodyExtrabold" style={styles.headerError}>
+        Failed to send payment
+      </Kb.Text>
+      <Kb.Divider />
+      <Kb.Box2 style={styles.errorContainer} direction="vertical" centerChildren={true} fullWidth={true}>
+        <Kb.Text type="BodySemibold" style={styles.bodyError}>
+          {props.error}
         </Kb.Text>
-        <Kb.Divider />
-        <Kb.Box2 style={styles.errorContainer} direction="vertical" centerChildren={true} fullWidth={true}>
-          <Kb.Text type="BodySemibold" style={styles.bodyError}>
-            {props.error}
-          </Kb.Text>
-        </Kb.Box2>
       </Kb.Box2>
-    ),
-  }
+    </Kb.Box2>
+  )
+
   return (
     <Kb.FloatingMenu
       attachTo={props.attachTo}

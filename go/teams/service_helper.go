@@ -712,36 +712,51 @@ func InviteEmailPhoneMember(ctx context.Context, g *libkb.GlobalContext, teamID 
 	})
 }
 
-func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (res keybase1.BulkRes, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
-	unparsedEmailList := splitBulk(emails)
-	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(unparsedEmailList))
-
-	var toAdd []keybase1.UserRolePair
-
-	for _, email := range unparsedEmailList {
+func ParseCommaSeparatedEmails(mctx libkb.MetaContext, emails string, malformed *[]string) (ret []string) {
+	emailList := splitBulk(emails)
+	mctx.Debug("bulk email invite count: %d", len(emailList))
+	for _, email := range emailList {
 		addr, parseErr := mail.ParseAddress(email)
 		if parseErr != nil {
-			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
-			res.Malformed = append(res.Malformed, email)
+			mctx.Debug("skipping malformed email %q: %s", email, parseErr)
+			if malformed != nil {
+				*malformed = append(*malformed, email)
+			}
 			continue
 		}
 
 		// API server side of this only accepts x.yy domain name:
 		parts := strings.Split(addr.Address, ".")
 		if len(parts[len(parts)-1]) < 2 {
-			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q", teamname, email)
-			res.Malformed = append(res.Malformed, email)
+			mctx.Debug("skipping malformed email (domain) %q", email)
+			if malformed != nil {
+				*malformed = append(*malformed, email)
+			}
 			continue
 		}
 
-		assertion, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
+		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "email", addr.Address, false)
 		if parseErr != nil {
-			g.Log.CDebugf(ctx, "team %q: skipping malformed email %q; could not parse into assertion: %s", teamname, email, parseErr)
-			res.Malformed = append(res.Malformed, email)
+			mctx.Debug("skipping malformed email %q; could not parse into assertion: %s", email, parseErr)
+			if malformed != nil {
+				*malformed = append(*malformed, email)
+			}
 			continue
 		}
-		toAdd = append(toAdd, keybase1.UserRolePair{Assertion: assertion.String(), Role: role})
+		ret = append(ret, assertion.String())
+	}
+	return ret
+}
+
+func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (res keybase1.BulkRes, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+
+	mctx.Debug("parsing email list for team %q", teamname)
+
+	assertions := ParseCommaSeparatedEmails(mctx, emails, &res.Malformed)
+	var toAdd []keybase1.UserRolePair
+	for _, assertion := range assertions {
+		toAdd = append(toAdd, keybase1.UserRolePair{Assertion: assertion, Role: role})
 	}
 
 	if len(toAdd) == 0 {

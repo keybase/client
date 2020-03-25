@@ -6,8 +6,12 @@ import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../styles'
-import EmojiPicker from '.'
+import * as Data from './data'
+import startCase from 'lodash/startCase'
+import SkinTonePicker from './skin-tone-picker'
+import EmojiPicker, {addSkinToneIfAvailable} from '.'
 
 type Props = {
   onDidPick: () => void
@@ -52,68 +56,152 @@ const useReacji = ({onPick, onDidPick}: Props) => {
   }
 }
 
+let lastSetSkinTone: undefined | Types.EmojiSkinTone = undefined
+// This can only be used in one place at a time for now since when it's changed
+// it doesn't cause other hook instances to update.
+const useSkinTone = () => {
+  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
+  const setSkinTone = React.useCallback(
+    (skinTone: undefined | Types.EmojiSkinTone) => {
+      lastSetSkinTone = skinTone
+      _setSkinTone(skinTone)
+    },
+    [_setSkinTone]
+  )
+  return {currentSkinTone, setSkinTone}
+}
+const useCustomReacji = () => {
+  const getUserEmoji = Container.useRPC(RPCChatGen.localUserEmojisRpcPromise)
+  const [customEmojiGroups, setCustomEmojiGroups] = React.useState<RPCChatGen.EmojiGroup[]>([])
+  const [waiting, setWaiting] = React.useState(true)
+
+  React.useEffect(() => {
+    setWaiting(true)
+    getUserEmoji(
+      [undefined],
+      result => {
+        setCustomEmojiGroups(result.emojis.emojis ?? [])
+        setWaiting(false)
+      },
+      _ => {
+        setCustomEmojiGroups([])
+        setWaiting(false)
+      }
+    )
+  }, [getUserEmoji])
+
+  return {customEmojiGroups, waiting}
+}
+
 const WrapperMobile = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
+  const {waiting, customEmojiGroups} = useCustomReacji()
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
+  const {currentSkinTone, setSkinTone} = useSkinTone()
+  const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
-    <Kb.Box2
-      direction="vertical"
-      onLayout={onLayout}
-      style={styles.alignItemsCenter}
-      fullWidth={true}
-      fullHeight={true}
-    >
-      <Kb.NewInput
-        autoFocus={true}
-        containerStyle={styles.input}
-        decoration={
-          <Kb.Text type="BodySemiboldLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        }
-        placeholder="Search"
-        icon="iconfont-search"
-        onChangeText={filter => setFilter(filter)}
-        textType="BodySemibold"
-      />
+    <Kb.Box2 direction="vertical" onLayout={onLayout} fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.ClickableBox onClick={onCancel} style={styles.cancelContainerMobile}>
+          <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
+        </Kb.ClickableBox>
+        <Kb.SearchFilter
+          focusOnMount={true}
+          size="small"
+          icon="iconfont-search"
+          placeholderText="Search"
+          onChange={setFilter}
+          style={styles.searchFilter}
+        />
+      </Kb.Box2>
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
-        onChoose={emoji => onAddReaction(`:${emoji.short_name}:`)}
+        onChoose={onAddReaction}
+        customSections={customEmojiGroups}
+        waitingForEmoji={waiting}
         width={width}
+        skinTone={currentSkinTone}
       />
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.footerContainer}>
+        <SkinTonePicker
+          currentSkinTone={currentSkinTone}
+          onExpandChange={setSkinTonePickerExpanded}
+          setSkinTone={setSkinTone}
+        />
+        <Kb.Box style={Styles.globalStyles.flexOne} />
+        {!skinTonePickerExpanded && (
+          <Kb.Button mode="Secondary" small={true} label="Add emoji" style={styles.addEmojiButton} />
+        )}
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
+  const {currentSkinTone, setSkinTone} = useSkinTone()
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<Data.EmojiData>(Data.defaultHoverEmoji)
+  const {waiting, customEmojiGroups} = useCustomReacji()
+
   return (
-    <Kb.Box
-      direction="vertical"
-      style={styles.containerDesktop}
-      onClick={e => e.stopPropagation()}
-      gap="tiny"
-    >
-      <Kb.SearchFilter
-        focusOnMount={true}
-        size="full-width"
-        icon="iconfont-search"
-        placeholderText="Search"
-        onChange={str => setFilter(str)}
-        style={styles.searchFilter}
-      />
+    <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        fullWidth={true}
+        alignItems="center"
+        style={styles.topContainerDesktop}
+      >
+        <Kb.SearchFilter
+          focusOnMount={true}
+          size="full-width"
+          icon="iconfont-search"
+          placeholderText="Search"
+          onChange={setFilter}
+        />
+        <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
+      </Kb.Box2>
       <Kb.Box style={styles.emojiContainer}>
+        {waiting && <Kb.ProgressIndicator />}
         <EmojiPicker
           topReacjis={topReacjis}
           filter={filter}
-          onChoose={emoji => onAddReaction(`:${emoji.short_name}:`)}
-          width={320}
+          onChoose={onAddReaction}
+          onHover={setHoveredEmoji}
+          width={336}
+          skinTone={currentSkinTone}
+          customSections={customEmojiGroups}
+          waitingForEmoji={waiting}
         />
       </Kb.Box>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        style={styles.footerContainer}
+        gap="small"
+      >
+        {hoveredEmoji.source ? (
+          <Kb.CustomEmoji size="Big" src={hoveredEmoji.source} alias={hoveredEmoji.short_name} />
+        ) : (
+          <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
+        )}
+        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+          <Kb.Text type="BodyBig" lineClamp={1}>
+            {hoveredEmoji.source
+              ? hoveredEmoji.short_name
+              : startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+          </Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.Button mode="Secondary" label="Add emoji" style={styles.addEmojiButton} />
+      </Kb.Box2>
     </Kb.Box>
   )
 }
@@ -121,22 +209,49 @@ export const EmojiPickerDesktop = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {
-        alignItems: 'center',
+      addEmojiButton: Styles.platformStyles({
+        common: {
+          // TODO: enable this once we have the "add emoji" modal.
+          display: 'none',
+        },
+        isElectron: {
+          width: 88,
+        },
+        isMobile: {
+          width: 104,
+        },
+      }),
+      cancelContainerMobile: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
       },
       containerDesktop: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,
-        padding: Styles.globalMargins.tiny,
+        height: 561,
+        maxWidth: 336,
+        minHeight: 561,
+        width: 336,
       },
       emojiContainer: {
         flex: 1,
         flexGrow: 1,
-        height: 400,
-        minHeight: 400,
         overflow: 'hidden',
-        width: 320,
       },
+      footerContainer: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isElectron: {
+          height: Styles.globalMargins.xlarge + Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          height: Styles.globalMargins.mediumLarge + Styles.globalMargins.small,
+        },
+      }),
       input: {
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
@@ -144,8 +259,14 @@ const styles = Styles.styleSheetCreate(
         borderWidth: 0,
         padding: Styles.globalMargins.small,
       },
-      searchFilter: {
-        flex: 0,
+      searchFilter: Styles.platformStyles({
+        isMobile: {
+          flexGrow: 1,
+          flexShrink: 1,
+        },
+      }),
+      topContainerDesktop: {
+        padding: Styles.globalMargins.tiny,
       },
     } as const)
 )

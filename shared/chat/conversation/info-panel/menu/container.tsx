@@ -52,16 +52,15 @@ export default Container.namedConnect(
     let _convPropsFullname: ConvProps['fullname'] | undefined
     let _convPropsIgnored: ConvProps['ignored'] | undefined
     let _convPropsMuted: ConvProps['muted'] | undefined
-    let _convPropsParticipants: ConvProps['participants'] | undefined
     let _convPropsTeamID: ConvProps['teamID'] | undefined
     let _convPropsTeamType: ConvProps['teamType'] | undefined
     let _convPropsTeamname: ConvProps['teamname'] | undefined
+    let _participants: Array<string> | undefined
 
     let teamMeta: TeamTypes.TeamMeta | undefined
     let teamname: string = ''
     let channelname: string = ''
     let isInChannel: boolean = false
-    let participantsCount: number = 0
     let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
       const meta = ChatConstants.getMeta(state, conversationIDKey)
@@ -78,11 +77,10 @@ export default Container.namedConnect(
       channelname = meta.channelname
       teamID = meta.teamID ?? TeamTypes.noTeamID
       isInChannel = meta.membershipType !== 'youArePreviewing'
-      participantsCount = participantInfo?.all?.length ?? 0
       _convPropsFullname = fullname
       _convPropsIgnored = meta.status === RPCChatTypes.ConversationStatus.ignored
       _convPropsMuted = meta.isMuted
-      _convPropsParticipants = participants
+      _participants = participants
       _convPropsTeamID = meta.teamID
       _convPropsTeamType = meta.teamType
       _convPropsTeamname = teamname
@@ -97,10 +95,10 @@ export default Container.namedConnect(
         _convPropsFullname,
         _convPropsIgnored,
         _convPropsMuted,
-        _convPropsParticipants,
         _convPropsTeamID,
         _convPropsTeamType,
         _convPropsTeamname,
+        _participants,
         _teamID: _convPropsTeamID ?? teamID,
         badgeSubscribe: false,
         canAddPeople: false,
@@ -110,8 +108,6 @@ export default Container.namedConnect(
         isSmallTeam: false,
         manageChannelsSubtitle: '',
         manageChannelsTitle: '',
-        memberCount: 0,
-        participantsCount: 0,
         teamname: '',
       }
     }
@@ -129,10 +125,10 @@ export default Container.namedConnect(
       _convPropsFullname,
       _convPropsIgnored,
       _convPropsMuted,
-      _convPropsParticipants,
       _convPropsTeamID,
       _convPropsTeamType,
       _convPropsTeamname,
+      _participants,
       _teamID: _convPropsTeamID ?? teamID,
       badgeSubscribe,
       canAddPeople: yourOperations.manageMembers,
@@ -141,8 +137,6 @@ export default Container.namedConnect(
       isSmallTeam,
       manageChannelsSubtitle,
       manageChannelsTitle,
-      memberCount: teamMeta?.memberCount ?? 0,
-      participantsCount,
       teamname,
     }
   },
@@ -187,10 +181,10 @@ export default Container.namedConnect(
     const convProps: ConvProps | undefined =
       s._convPropsFullname != null
         ? {
+            conversationIDKey: o.conversationIDKey,
             fullname: s._convPropsFullname!,
             ignored: s._convPropsIgnored!,
             muted: s._convPropsMuted!,
-            participants: s._convPropsParticipants!,
             teamID: s._convPropsTeamID!,
             teamType: s._convPropsTeamType!,
             teamname: s._convPropsTeamname!,
@@ -209,9 +203,8 @@ export default Container.namedConnect(
       isSmallTeam: s.isSmallTeam,
       manageChannelsSubtitle: s.manageChannelsSubtitle,
       manageChannelsTitle: s.manageChannelsTitle,
-      memberCount: s.memberCount,
       onAddPeople: () => d._onAddPeople(s._teamID),
-      onBlockConv: () => d._onBlockConv(s.teamname, s._convPropsParticipants ?? []),
+      onBlockConv: () => d._onBlockConv(s.teamname, s._participants ?? []),
       onHidden: o.onHidden,
       onHideConv: d.onHideConv,
       onInvite: () => d._onInvite(s._teamID),
@@ -222,7 +215,7 @@ export default Container.namedConnect(
       onMuteConv: d.onMuteConv,
       onUnhideConv: d.onUnhideConv,
       onViewTeam: () => d._onViewTeam(s._teamID),
-      participantsCount: s.participantsCount,
+      teamID: s._teamID,
       teamname: s.teamname,
       visible: o.visible,
     }

@@ -639,6 +639,8 @@ export const retentionPolicyToServiceRetentionPolicy = (
 export const publicAdminsLimit = 6
 
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
+export const newRequestsGregorPrefix = 'team.request_access:'
+export const newRequestsGregorKey = (teamID: Types.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
 export const isOnTeamsTab = () => {
   const path = getFullRoute()
