@@ -80,7 +80,6 @@ const Files = (props: Props) => {
           disabled={props.areSettingsLoading}
           gapSize={Styles.globalMargins.small}
           style={styles.switch}
-          //style={styles.syncNotificationCheckbox}
         />
         {!!props.spaceAvailableNotificationThreshold && (
           <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>
