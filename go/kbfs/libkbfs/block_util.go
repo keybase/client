@@ -177,14 +177,11 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache data.BlockCache,
 	return blocksToRemove, err
 }
 
-func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
-	codec kbfscodec.Codec, cryptoPure cryptoPure, kmd libkey.KeyMetadata,
-	blockPtr data.BlockPointer, block data.Block, buf []byte,
+func doAssembleBlock(
+	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
+	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, buf []byte,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
-		return err
-	}
-
 	tlfCryptKey, err := keyGetter.GetTLFCryptKeyForBlockDecryption(
 		ctx, kmd, blockPtr)
 	if err != nil {
@@ -215,4 +212,34 @@ func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
 
 	block.SetEncodedSize(uint32(len(buf)))
 	return nil
+}
+
+func assembleBlockLocal(
+	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
+	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, buf []byte,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	// This call only verifies the block ID if we're not running
+	// production mode, for performance reasons.
+	if err := verifyLocalBlockID(buf, blockPtr.ID); err != nil {
+		return err
+	}
+
+	return doAssembleBlock(
+		ctx, keyGetter, codec, cryptoPure, kmd, blockPtr, block, buf,
+		blockServerHalf)
+}
+
+func assembleBlock(
+	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
+	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, buf []byte,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
+		return err
+	}
+
+	return doAssembleBlock(
+		ctx, keyGetter, codec, cryptoPure, kmd, blockPtr, block, buf,
+		blockServerHalf)
 }

@@ -1033,7 +1033,7 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 		}
 	} else {
 		block = data.NewFileBlock().(*data.FileBlock)
-		err = assembleBlock(
+		err = assembleBlockLocal(
 			ctx, fbo.config.keyGetter(), fbo.config.Codec(),
 			fbo.config.Crypto(), kmd, config.Paths.Ptr, block,
 			config.Paths.Buf, config.Paths.ServerHalf)
