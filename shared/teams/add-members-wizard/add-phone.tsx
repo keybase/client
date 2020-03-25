@@ -9,8 +9,6 @@ import {ModalTitle, usePhoneNumberList} from '../common'
 
 const AddPhone = () => {
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
-  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
-  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -19,7 +17,6 @@ const AddPhone = () => {
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
 
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
 
   React.useEffect(() => {
@@ -42,14 +39,7 @@ const AddPhone = () => {
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: (
-          <ModalTitle
-            teamname={teamname}
-            title="Phone list"
-            avatarFilepath={avatarFilepath}
-            avatarCrop={avatarCrop}
-          />
-        ),
+        title: <ModalTitle teamID={teamID} title="Phone list" />,
       }}
       allowOverflow={true}
       footer={{

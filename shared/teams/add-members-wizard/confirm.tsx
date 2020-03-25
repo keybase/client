@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
@@ -18,9 +17,6 @@ const AddMembersConfirm = () => {
 
   const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
-  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
-  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const onlyEmails = React.useMemo(
     () =>
@@ -74,14 +70,7 @@ const AddMembersConfirm = () => {
             Cancel
           </Kb.Text>
         ),
-        title: (
-          <ModalTitle
-            teamname={teamname}
-            title={`Inviting ${addingMembers.length} ${noun}`}
-            avatarFilepath={avatarFilepath}
-            avatarCrop={avatarCrop}
-          />
-        ),
+        title: <ModalTitle teamID={teamID} title={`Inviting ${addingMembers.length} ${noun}`} />,
       }}
       footer={{
         content: (

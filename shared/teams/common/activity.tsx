@@ -2,8 +2,10 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 
-type Props = {title: string; teamname: string; avatarFilepath?: string; avatarCrop?: Types.AvatarCrop}
+type Props = {title: string; teamID: Types.TeamID}
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-fire',
@@ -34,7 +36,16 @@ const Activity = ({level}: {level: Types.ActivityLevel}) =>
     </Kb.Box2>
   )
 
-export const ModalTitle = ({title, teamname, avatarFilepath, avatarCrop}: Props) => {
+export const ModalTitle = ({title, teamID}: Props) => {
+  const teamname =
+    title == 'Enter team info'
+      ? 'New team'
+      : Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+
+  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
+  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
+  const isNewTeamWizard = teamID == Types.newTeamWizardTeamID
+
   return Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
@@ -46,11 +57,11 @@ export const ModalTitle = ({title, teamname, avatarFilepath, avatarCrop}: Props)
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
       <Kb.Avatar
         size={32}
-        teamname={teamname == 'New team' ? '' : teamname}
+        teamname={teamname}
         style={styles.avatar}
         isTeam={true}
-        imageOverrideUrl={avatarFilepath}
-        crop={avatarCrop}
+        imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}
+        crop={isNewTeamWizard ? avatarCrop : undefined}
       />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>

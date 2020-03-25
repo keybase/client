@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -13,14 +14,12 @@ const CreateChannel = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
+  const teamID = Types.newTeamWizardTeamID
   const initialChannels = Container.useSelector(s => s.teams.newTeamWizard.channels) ?? [
     'hellos',
     'random',
     '',
   ]
-  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
-  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
   const setChannel = (i: number) => (value: string) => {
@@ -51,14 +50,7 @@ const CreateChannel = () => {
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: (
-          <ModalTitle
-            teamname={teamname}
-            title="Create channels"
-            avatarFilepath={avatarFilepath}
-            avatarCrop={avatarCrop}
-          />
-        ),
+        title: <ModalTitle teamID={teamID} title="Create channels" />,
       }}
       footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}

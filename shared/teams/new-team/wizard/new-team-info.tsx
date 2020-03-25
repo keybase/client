@@ -84,7 +84,7 @@ const NewTeamInfo = () => {
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname="New team" title="Enter team info" />,
+        title: <ModalTitle teamID={Types.noTeamID} title="Enter team info" />,
       }}
       footer={{
         content: (
