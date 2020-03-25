@@ -94,6 +94,8 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.EmojiAddV1(ctx, c, w)
 	case methodEmojiList:
 		return d.handler.EmojiListV1(ctx, c, w)
+	case methodEmojiRemove:
+		return d.handler.EmojiRemoveV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

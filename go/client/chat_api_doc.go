@@ -136,6 +136,9 @@ List members of a conversation from a conversation id:
 Add an emoji:
     {"method": "emojiadd", "params": {"options": {"channel": {"name": "mikem"}, "alias": "mask-parrot2", "filename": "/Users/mike/Downloads/mask-parrot.gif"}}}
 
+Remove an emoji:
+    {"method": "emojiremove", "params": {"options": {"channel": {"name": "mikem"}, "alias": "mask-parrot2"}}}
+
 List emojis available to send:
     {"method": "emojilist"}'
 `
