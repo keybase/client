@@ -2716,7 +2716,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 	info, plainSize, readyBlockData, err :=
 		data.ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
 			rmd.ReadOnly(), newDblock, chargedTo, config.DefaultBlockType(),
-			cacheHashBehavior(config, rmd.TlfID()))
+			cacheHashBehavior(config, config, rmd.TlfID()))
 	if err != nil {
 		return nil, data.BlockInfo{}, data.ReadyBlockData{}, err
 	}
@@ -2746,7 +2746,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 }
 
 func (fbo *folderBranchOps) cacheHashBehavior() data.BlockCacheHashBehavior {
-	return cacheHashBehavior(fbo.config, fbo.id())
+	return cacheHashBehavior(fbo.config, fbo.config, fbo.id())
 }
 
 func (fbo *folderBranchOps) initMDLocked(
