@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
-import * as Kb from '../../common-adapters'
+import * as Kb from '../../common-adapters/mobile.native'
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
@@ -9,6 +9,7 @@ import {keybaseFM} from '../../constants/whats-new'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import WhatsNewIcon from '../../whats-new/icon/container'
+import SplitNav from './split-nav'
 
 type Props = {
   badgeNotifications?: boolean
@@ -65,7 +66,7 @@ const renderItem = ({item}) => {
   return item.text ? <SettingsItem {...item} /> : null
 }
 
-function SettingsNavPhone(props: Props) {
+function SettingsNav(props: Props) {
   const {badgeNumbers} = props
   const statsShown = Container.useSelector(state => !!state.config.runtimeStats)
 
@@ -174,79 +175,7 @@ function SettingsNavPhone(props: Props) {
   )
 }
 
-const SettingsNav = (props: Props) => {
-  return (
-    <Kb.Box style={styles.container}>
-      <SettingsItem
-        text="Git"
-        selected={props.selectedTab === Constants.gitTab}
-        onClick={() => props.onTabChange(Constants.gitTab)}
-        badgeNumber={props.badgeNumbers.get(TabConstants.gitTab)}
-      />
-      <SettingsItem
-        text="Devices"
-        selected={props.selectedTab === Constants.devicesTab}
-        onClick={() => props.onTabChange(Constants.devicesTab)}
-        badgeNumber={props.badgeNumbers.get(TabConstants.devicesTab)}
-      />
-      <Kb.SectionDivider label="Settings" />
-      <SettingsItem
-        text="Your account"
-        selected={props.selectedTab === Constants.accountTab}
-        onClick={() => props.onTabChange(Constants.accountTab)}
-        badgeNumber={props.badgeNumbers.get(TabConstants.settingsTab)}
-      />
-      <SettingsItem
-        text="Chat"
-        selected={props.selectedTab === Constants.chatTab}
-        onClick={() => props.onTabChange(Constants.chatTab)}
-      />
-      <SettingsItem
-        text="Files"
-        selected={props.selectedTab === Constants.fsTab}
-        onClick={() => props.onTabChange(Constants.fsTab)}
-      />
-      <SettingsItem
-        text="Notifications"
-        selected={props.selectedTab === Constants.notificationsTab}
-        onClick={() => props.onTabChange(Constants.notificationsTab)}
-      />
-      <SettingsItem
-        text="Display"
-        selected={props.selectedTab === Constants.displayTab}
-        onClick={() => props.onTabChange(Constants.displayTab)}
-      />
-      <SettingsItem
-        text="Feedback"
-        selected={props.selectedTab === Constants.feedbackTab}
-        onClick={() => props.onTabChange(Constants.feedbackTab)}
-      />
-      {!Styles.isTablet && (
-        <SettingsItem
-          text="Invitations"
-          selected={props.selectedTab === Constants.invitationsTab}
-          onClick={() => props.onTabChange(Constants.invitationsTab)}
-        />
-      )}
-      <SettingsItem
-        text="Advanced"
-        selected={props.selectedTab === Constants.advancedTab}
-        onClick={() => props.onTabChange(Constants.advancedTab)}
-      />
-      {/* TODO: Do something with logoutInProgress once Offline is
-        removed from the settings page. */}
-      <SettingsItem text="Sign out" selected={false} onClick={() => props.onTabChange(Constants.logOutTab)} />
-    </Kb.Box>
-  )
-}
-
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.blueGrey,
-    paddingTop: Styles.globalMargins.small,
-    width: 160,
-  },
   perfInput: {backgroundColor: Styles.globalColors.grey},
   perfRow: {height: 44},
   sectionTitle: {
@@ -259,4 +188,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Styles.isPhone ? SettingsNavPhone : SettingsNav
+export default Styles.isPhone ? SettingsNav : SplitNav
