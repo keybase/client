@@ -62,6 +62,10 @@ func (c *CmdChatRemoveEmoji) Run() error {
 	if err != nil {
 		return err
 	}
+	promptText := "Removing an emoji will cause all uses to be cleared. Hit Enter to confirm, Ctrl-C to cancel."
+	if _, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorChatEmojiRemove, promptText); err != nil {
+		return err
+	}
 	_, err = resolver.ChatClient.RemoveEmoji(ctx, chat1.RemoveEmojiArg{
 		ConvID: conversation.GetConvID(),
 		Alias:  c.alias,
