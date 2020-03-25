@@ -43,6 +43,7 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatProfileSearchDev(cl, g),
 		newCmdChatAddEmoji(cl, g),
 		newCmdChatListEmoji(cl, g),
+		newCmdChatRemoveEmoji(cl, g),
 	}
 }
 

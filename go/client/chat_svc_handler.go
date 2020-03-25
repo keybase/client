@@ -51,6 +51,7 @@ type ChatServiceHandler interface {
 	GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply
 	ListMembersV1(context.Context, listMembersOptionsV1) Reply
 	EmojiAddV1(context.Context, emojiAddOptionsV1) Reply
+	EmojiRemoveV1(context.Context, emojiRemoveOptionsV1) Reply
 	EmojiListV1(context.Context) Reply
 }
 
@@ -1303,6 +1304,25 @@ func (c *chatServiceHandler) ListMembersV1(ctx context.Context, opts listMembers
 	}
 
 	return Reply{Result: details}
+}
+
+func (c *chatServiceHandler) EmojiRemoveV1(ctx context.Context, opts emojiRemoveOptionsV1) Reply {
+	conv, _, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	chatClient, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := chatClient.RemoveEmoji(ctx, chat1.RemoveEmojiArg{
+		ConvID: conv.GetConvID(),
+		Alias:  opts.Alias,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
 }
 
 func (c *chatServiceHandler) EmojiAddV1(ctx context.Context, opts emojiAddOptionsV1) Reply {
