@@ -170,7 +170,7 @@ func TestAttachmentUploader(t *testing.T) {
 	outboxID, err := storage.NewOutboxID()
 	require.NoError(t, err)
 	filename := "../testdata/empty.txt"
-	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
+	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "empty", filename, md, nil)
 	require.NoError(t, err)
 	deliverCheck(true)
 	uploadStartCheck(true, outboxID)
