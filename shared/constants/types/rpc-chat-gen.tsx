@@ -604,7 +604,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.userEmojis': {
-    inParam: void
+    inParam: {readonly convID?: ConversationID | null}
     outParam: UserEmojiRes
   }
 }

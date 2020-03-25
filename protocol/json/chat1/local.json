@@ -5893,7 +5893,15 @@
       "response": "RemoveEmojiRes"
     },
     "userEmojis": {
-      "request": [],
+      "request": [
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "ConversationID"
+          ]
+        }
+      ],
       "response": "UserEmojiRes"
     }
   },
