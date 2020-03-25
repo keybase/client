@@ -618,6 +618,7 @@ const styles = Styles.styleSheetCreate(
       },
       scrollContainer: {
         flexGrow: 1,
+        flexShrink: 1,
         position: 'relative',
       },
       switchTab: {
