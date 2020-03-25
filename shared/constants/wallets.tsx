@@ -295,6 +295,7 @@ export const makeAssets = (a?: Partial<Types.Assets>): Types.Assets => ({
   reserves: [],
   showDepositButton: false,
   showWithdrawButton: false,
+  useSep24: false,
   withdrawButtonText: '',
   worth: '',
   worthCurrency: '',

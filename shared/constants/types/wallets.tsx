@@ -64,6 +64,7 @@ export type Assets = {
   reserves: Array<Reserve>
   showDepositButton: boolean
   showWithdrawButton: boolean
+  useSep24: boolean
   withdrawButtonText: string
   worth: string
   worthCurrency: string

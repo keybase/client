@@ -198,6 +198,25 @@ var validAnchorTests = []anchorTest{
 		DepositExternalURL:  "https://keybase.io/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566",
 		WithdrawExternalURL: "https://keybase.io/onboarding?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI",
 	},
+	{
+		Name: "sep24",
+		Asset: stellar1.Asset{
+			Type:               "credit_alphanum4",
+			Code:               "EUR",
+			Issuer:             "GAKBPBDMW6CTRDCXNAPSVJZ6QAN3OBNRG6CWI27FGDQT2ZJJEMDRXPKK",
+			VerifiedDomain:     "keybase.io",
+			TransferServer:     "https://transfer.keybase.io/transfer",
+			AuthEndpoint:       "https://transfer.keybase.io/auth",
+			ShowDepositButton:  true,
+			ShowWithdrawButton: true,
+			DepositReqAuth:     true,
+			WithdrawReqAuth:    true,
+			UseSep24:           true,
+		},
+		MockTransferGet:     mockAuthGet,
+		DepositExternalURL:  "https://keybase.io/transfer/deposit?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI",
+		WithdrawExternalURL: "https://keybase.io/transfer/withdraw?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI",
+	},
 }
 
 func TestAnchorInteractor(t *testing.T) {
@@ -338,7 +357,7 @@ func mockWWTransferGet(mctx libkb.MetaContext, url, authToken string) (int, []by
 	}
 }
 
-// mockKAuthGet is an httpGetClient func that returns a stored result
+// mockAuthGet is an httpGetClient func that returns a stored result
 // for WEB_AUTH_ENDPOINT and TRANSFER_SERVER/deposit and TRANSFER_SERVER/withdraw.
 func mockAuthGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	parts := strings.Split(url, "?")
@@ -360,12 +379,16 @@ func mockAuthGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, er
 	}
 }
 
-func mockAuthPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
+func mockAuthPost(mctx libkb.MetaContext, url, authToken string, data url.Values) (int, []byte, error) {
 	switch url {
 	case "https://transfer.keybase.io/auth":
 		return 200, []byte(authBody), nil
+	case "https://transfer.keybase.io/transfer/transactions/deposit/interactive":
+		return 200, []byte(sep24DepBody), nil
+	case "https://transfer.keybase.io/transfer/transactions/withdraw/interactive":
+		return 200, []byte(sep24WithdrawBody), nil
 	default:
-		return 0, nil, fmt.Errorf("unknown mocked url %q", url)
+		return 0, nil, fmt.Errorf("mockAuthPost: unknown mocked url %q", url)
 	}
 }
 
@@ -378,3 +401,5 @@ const authChallenge = `{"transaction":"AAAAAANjzBWOC6YJo49wLshbTPMAmHnZ1I5AESV73
 const authBody = `{
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJHQTZVSVhYUEVXWUZJTE5VSVdBQzM3WTRRUEVaTVFWREpIREtWV0ZaSjJLQ1dVQklVNUlYWk5EQSIsImp0aSI6IjE0NGQzNjdiY2IwZTcyY2FiZmRiZGU2MGVhZTBhZDczM2NjNjVkMmE2NTg3MDgzZGFiM2Q2MTZmODg1MTkwMjQiLCJpc3MiOiJodHRwczovL2ZsYXBweS1iaXJkLWRhcHAuZmlyZWJhc2VhcHAuY29tLyIsImlhdCI6MTUzNDI1Nzk5NCwiZXhwIjoxNTM0MzQ0Mzk0fQ.8nbB83Z6vGBgC1X9r3N6oQCFTBzDiITAfCJasRft0z0"
 }`
+const sep24DepBody = `{ "type": "interactive_customer_info_needed", "url" : "https://keybase.io/transfer/deposit?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI", "id": "82fhs729f63dh0v4" }`
+const sep24WithdrawBody = `{ "type": "interactive_customer_info_needed", "url" : "https://keybase.io/transfer/withdraw?account=GACW7NONV43MZIFHCOKCQJAKSJSISSICFVUJ2C6EZIW5773OU3HD64VI", "id": "82fhs729f63dh0v4" }`
