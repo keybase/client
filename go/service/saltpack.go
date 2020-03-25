@@ -359,13 +359,13 @@ func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.
 	}, nil
 }
 
-func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (res keybase1.SaltpackEncryptFileResult, err error) {
+func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	h.G().Log.Debug("encrypting directory")
 
 	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
-		return res, errors.New("source and destination directories cannot be the same")
+		return keybase1.SaltpackEncryptFileResult{}, errors.New("source and destination directories cannot be the same")
 	}
 
 	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
@@ -375,14 +375,14 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 	}
 	prog, err := newDirProgressWriter(progReporter, arg.Filename)
 	if err != nil {
-		return res, err
+		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 
 	pipeRead := zipDir(arg.Filename, prog)
 
 	outFilename, bw, err := boxFilename(arg.Filename, encryptedDirSuffix, arg.DestinationDir)
 	if err != nil {
-		return res, err
+		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 	defer bw.Close()
 
@@ -407,7 +407,7 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 			transformSaltpackError(&rmErr)
 			h.G().Log.Debug("error removing output file: %s", rmErr)
 		}
-		return res, err
+		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 
 	return keybase1.SaltpackEncryptFileResult{
@@ -512,7 +512,6 @@ func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.Sal
 
 func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
-
 	h.G().Log.Debug("signing directory")
 
 	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
