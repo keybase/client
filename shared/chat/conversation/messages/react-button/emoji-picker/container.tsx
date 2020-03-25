@@ -14,6 +14,7 @@ import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
 
 type Props = {
+  conversationIDKey?: Types.ConversationIDKey
   onDidPick: () => void
   onPick:
     | ((emoji: string) => void)
@@ -70,7 +71,7 @@ const useSkinTone = () => {
   )
   return {currentSkinTone, setSkinTone}
 }
-const useCustomReacji = () => {
+const useCustomReacji = (conversationIDKey: Types.ConversationIDKey | undefined) => {
   const getUserEmoji = Container.useRPC(RPCChatGen.localUserEmojisRpcPromise)
   const [customEmojiGroups, setCustomEmojiGroups] = React.useState<RPCChatGen.EmojiGroup[]>([])
   const [waiting, setWaiting] = React.useState(true)
@@ -78,7 +79,7 @@ const useCustomReacji = () => {
   React.useEffect(() => {
     setWaiting(true)
     getUserEmoji(
-      [undefined],
+      [{convID: conversationIDKey ? Types.keyToConversationID(conversationIDKey) : null}],
       result => {
         setCustomEmojiGroups(result.emojis.emojis ?? [])
         setWaiting(false)
@@ -95,7 +96,7 @@ const useCustomReacji = () => {
 
 const WrapperMobile = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
-  const {waiting, customEmojiGroups} = useCustomReacji()
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
@@ -145,7 +146,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<Data.EmojiData>(Data.defaultHoverEmoji)
-  const {waiting, customEmojiGroups} = useCustomReacji()
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
 
   return (
     <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
@@ -280,5 +281,11 @@ export const Routable = (routableProps: RoutableProps) => {
   const ordinal = Container.getRouteProps(routableProps, 'ordinal', Types.numberToOrdinal(0))
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
-  return <WrapperMobile onPick={{conversationIDKey, ordinal}} onDidPick={navigateUp} />
+  return (
+    <WrapperMobile
+      conversationIDKey={conversationIDKey}
+      onPick={{conversationIDKey, ordinal}}
+      onDidPick={navigateUp}
+    />
+  )
 }
