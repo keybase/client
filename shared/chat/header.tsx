@@ -31,36 +31,40 @@ type Props = {
   fullName?: string
 }
 
-const descColor = Styles.globalColors.black_50
-
-const descStyleMobile = {
-  color: descColor,
-  fontSize: 13,
-  lineHeight: 17,
-}
-const descStyleDesktop = {
-  fontSize: 13,
-  lineHeight: '17px',
-  wordBreak: 'break-all',
-} as const // approximates BodySmall since markdown does not support text type
-const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
-
-const descStyleOverride = {
-  del: descStyle,
-  em: descStyle,
-  fence: descStyle,
-  inlineCode: descStyle,
-  kbfsPath: descStyle,
-  link: descStyle,
-  mailto: descStyle,
-  paragraph: descStyle,
-  preview: descStyle,
-  strong: descStyle,
-} as any
-
 const Header = (p: Props) => {
   const {desc, canEditDesc, isTeam, participants, fullName, channel, showActions, muted, username} = p
   const {onToggleInfoPanel, onToggleThreadSearch, unMuteConversation, onOpenFolder} = p
+  const isDarkMode = Styles.isDarkMode()
+
+  const descStyleOverride = React.useMemo(() => {
+    const descStyleMobile = {
+      color: Styles.globalColors.black_50,
+      fontSize: 13,
+      lineHeight: 17,
+    }
+    const descStyleDesktop = {
+      fontSize: 13,
+      lineHeight: '17px',
+      wordBreak: 'break-all',
+    } as const // approximates BodySmall since markdown does not support text type
+    const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
+
+    return {
+      del: descStyle,
+      em: descStyle,
+      fence: descStyle,
+      inlineCode: descStyle,
+      kbfsPath: descStyle,
+      link: descStyle,
+      mailto: descStyle,
+      paragraph: descStyle,
+      preview: descStyle,
+      strong: descStyle,
+    }
+    // we don't refer to isDarkMode so lint is correct to complain but it is a side effect
+    // eslint-disable-next-line
+  }, [isDarkMode])
+
   let description = !!desc && (
     <Kb.Markdown
       smallStandaloneEmoji={true}
@@ -232,7 +236,7 @@ const styles = Styles.styleSheetCreate(
       },
       desc: {
         ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-        color: descColor,
+        color: Styles.globalColors.black_50,
       },
       descriptionContainer: {
         height: 17,
