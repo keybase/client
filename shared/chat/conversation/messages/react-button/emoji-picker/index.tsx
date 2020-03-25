@@ -67,51 +67,50 @@ type Props = {
 }
 
 type State = {
-  bookmarks: Array<Bookmark>
-  sections: Array<Section> | null
+  activeSectionIndex: number
 }
 
 type Bookmark = {
+  coveredSectionIndices?: Set<number>
   iconType: Kb.IconType
   sectionIndex: number
 }
 
-const emojiGroupsToEmojiArrayArray = memoize(
-  (emojiGroups: Array<RPCChatGen.EmojiGroup>): Array<{emojis: Array<Data.EmojiData>; name: string}> =>
-    emojiGroups.map(emojiGroup => ({
-      emojis:
-        emojiGroup.emojis?.map(e => ({
+const emojiGroupsToEmojiArrayArray = (
+  emojiGroups: Array<RPCChatGen.EmojiGroup>
+): Array<{emojis: Array<Data.EmojiData>; name: string}> =>
+  emojiGroups.map(emojiGroup => ({
+    emojis:
+      emojiGroup.emojis
+        ?.map(e => ({
           category: emojiGroup.name,
           name: null,
           short_name: e.alias,
           short_names: [e.alias],
           source: e.source.httpsrv,
           unified: '',
-        })) || [],
-      name: emojiGroup.name,
-    }))
+        }))
+        .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
+    name: emojiGroup.name,
+  }))
+
+const getCustomEmojiSections = memoize(
+  (emojiGroups: Array<RPCChatGen.EmojiGroup>, emojisPerLine: number): Array<Section> =>
+    emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
+      data: chunkEmojis(group.emojis, emojisPerLine),
+      key: group.name,
+      title: group.name,
+    })) || []
 )
 
-const getCustomEmojiSections = (
-  emojiGroups: Array<RPCChatGen.EmojiGroup>,
-  emojisPerLine: number
-): Array<Section> =>
-  emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
-    data: chunkEmojis(group.emojis, emojisPerLine),
-    key: group.name,
-    title: group.name,
-  })) || []
-
 const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) => {
-  const keys: Array<string> = []
   const mapper = new Map<string, Data.EmojiData>()
   emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
     emojiGroup.emojis.forEach(emoji => {
-      keys.push(emoji.short_name)
       mapper.set(emoji.short_name, emoji)
     })
   )
-  keys.sort()
+  const keys = [...mapper.keys()]
   // This is gonna be slow, but is probably fine until we have too many custom
   // emojis. We should switch to a prefix tree and maybe move this to Go side
   // at that point.
@@ -155,13 +154,21 @@ const getSectionsAndBookmarks = (
   const bookmarks: Array<Bookmark> = []
 
   if (topReacjis.length) {
-    bookmarks.push({iconType: 'iconfont-time', sectionIndex: sections.length})
+    bookmarks.push({iconType: 'iconfont-clock', sectionIndex: sections.length})
     sections.push(getFrequentSection(topReacjis, emojisPerLine))
   }
 
   if (customSections?.length) {
-    bookmarks.push({iconType: 'iconfont-keybase', sectionIndex: sections.length})
-    getCustomEmojiSections(customSections, emojisPerLine).forEach(section => sections.push(section))
+    const bookmark = {
+      coveredSectionIndices: new Set<number>(),
+      iconType: 'iconfont-keybase',
+      sectionIndex: sections.length,
+    } as Bookmark
+    getCustomEmojiSections(customSections, emojisPerLine).forEach(section => {
+      bookmark.coveredSectionIndices?.add(sections.length)
+      sections.push(section)
+    })
+    bookmarks.push(bookmark)
   }
 
   getEmojiSections(emojisPerLine).forEach(section => {
@@ -174,10 +181,18 @@ const getSectionsAndBookmarks = (
 }
 
 class EmojiPicker extends React.PureComponent<Props, State> {
+  state = {activeSectionIndex: 0}
+
+  private mounted = true
+  componentWillUnmount() {
+    this.mounted = false
+  }
+
   private getEmojiSingle = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) => {
     const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
     return (
       <Kb.ClickableBox
+        className="emoji-picker-emoji-box"
         onClick={() => this.props.onChoose(emojiStr)}
         onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
         style={styles.emoji}
@@ -201,6 +216,41 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
       </Kb.Box2>
     )
+
+  private sectionListRef = React.createRef<any>()
+
+  private getBookmarkBar = (bookmarks: Array<Bookmark>) =>
+    Styles.isMobile ? null : (
+      <Kb.Box2 direction="horizontal" style={styles.bookmarkContainer}>
+        {bookmarks.map(bookmark => {
+          const isActive =
+            this.state.activeSectionIndex === bookmark.sectionIndex ||
+            bookmark.coveredSectionIndices?.has(this.state.activeSectionIndex)
+          return (
+            <Kb.Box
+              key={bookmark.sectionIndex}
+              className="emoji-picker-emoji-box"
+              style={isActive ? styles.activeBookmark : undefined}
+            >
+              <Kb.Icon
+                type={bookmark.iconType}
+                padding="tiny"
+                color={isActive ? Styles.globalColors.blue : Styles.globalColors.black_50}
+                onClick={() =>
+                  this.sectionListRef.current?.scrollToLocation({sectionIndex: bookmark.sectionIndex})
+                }
+              />
+            </Kb.Box>
+          )
+        })}
+      </Kb.Box2>
+    )
+
+  private getSectionHeader = (title: string) => (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
+      <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
+    </Kb.Box2>
+  )
 
   render() {
     const {bookmarks, sections} = getSectionsAndBookmarks(
@@ -234,6 +284,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             fullWidth={true}
             style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
           >
+            {this.getSectionHeader('Search results')}
             {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
             {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
               makeEmojiPlaceholder(index)
@@ -242,19 +293,27 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         </Kb.Box2>
       )
     }
+
     // !this.state.sections means we haven't cached any sections yet
     // i.e. we haven't rendered before. let sections be calculated first
     return sections ? (
-      <Kb.SectionList
-        desktopItemHeight={36}
-        desktopHeaderHeight={32}
-        keyboardShouldPersistTaps="handled"
-        initialNumToRender={14}
-        sections={sections}
-        stickySectionHeadersEnabled={Styles.isMobile}
-        renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
-        renderSectionHeader={HeaderRow}
-      />
+      <>
+        {this.getBookmarkBar(bookmarks)}
+        <Kb.SectionList
+          ref={this.sectionListRef}
+          desktopItemHeight={36}
+          desktopHeaderHeight={32}
+          keyboardShouldPersistTaps="handled"
+          initialNumToRender={14}
+          sections={sections}
+          desktopOnSectionChange={sectionIndex =>
+            this.mounted && this.setState({activeSectionIndex: sectionIndex})
+          }
+          stickySectionHeadersEnabled={Styles.isMobile}
+          renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
+          renderSectionHeader={({section}) => this.getSectionHeader(section.title)}
+        />
+      </>
     ) : null
   }
 }
@@ -268,16 +327,19 @@ const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
-const HeaderRow = ({section}: {section: Section}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
-    <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
-  </Kb.Box2>
-)
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      activeBookmark: {
+        backgroundColor: Styles.globalColors.blue_10,
+      },
+      bookmarkContainer: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+      },
       emoji: {
+        borderRadius: 2,
         padding: emojiPadding,
         width: emojiWidthWithPadding,
       },

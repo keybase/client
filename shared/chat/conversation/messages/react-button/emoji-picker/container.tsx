@@ -105,7 +105,13 @@ const WrapperMobile = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
-    <Kb.Box2 direction="vertical" onLayout={onLayout} fullWidth={true} fullHeight={true}>
+    <Kb.Box2
+      direction="vertical"
+      onLayout={onLayout}
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.contain}
+    >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.ClickableBox onClick={onCancel} style={styles.cancelContainerMobile}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
@@ -150,7 +156,11 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
 
   return (
-    <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
+    <Kb.Box
+      style={Styles.collapseStyles([styles.containerDesktop, styles.contain])}
+      onClick={e => e.stopPropagation()}
+      gap="tiny"
+    >
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
@@ -228,6 +238,11 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.tiny,
       },
+      contain: Styles.platformStyles({
+        isElectron: {
+          contain: 'content',
+        },
+      }),
       containerDesktop: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,

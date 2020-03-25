@@ -32,14 +32,14 @@ const categoryOrder = [
   'Flags',
 ]
 export const categoryIcons = {
-  Activities: 'iconfont-emoji',
-  'Animals & Nature': 'iconfont-emoji',
-  Flags: 'iconfont-emoji',
-  'Food & Drink': 'iconfont-emoji',
-  Objects: 'iconfont-emoji',
+  Activities: 'iconfont-basketball',
+  'Animals & Nature': 'iconfont-pawprint',
+  Flags: 'iconfont-flag',
+  'Food & Drink': 'iconfont-apple',
+  Objects: 'iconfont-music',
   'Smileys & People': 'iconfont-emoji',
-  Symbols: 'iconfont-emoji',
-  'Travel & Places': 'iconfont-emoji',
+  Symbols: 'iconfont-checkbox',
+  'Travel & Places': 'iconfont-airplane',
 }
 const categories: Array<{
   category: string
