@@ -295,6 +295,7 @@ export const makeAssets = (a?: Partial<Types.Assets>): Types.Assets => ({
   reserves: [],
   showDepositButton: false,
   showWithdrawButton: false,
+  useSep24: false,
   withdrawButtonText: '',
   worth: '',
   worthCurrency: '',
@@ -317,6 +318,7 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     reserves: (w.reserves ?? []).map(makeReserve),
     showDepositButton: w.showDepositButton,
     showWithdrawButton: w.showWithdrawButton,
+    useSep24: w.useSep24,
     withdrawButtonText: w.withdrawButtonText,
     worth: w.worth,
   })
