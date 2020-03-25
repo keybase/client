@@ -12,6 +12,7 @@ const SplitNav = (props: Props) => {
       {Styles.isTablet && (
         <Kb.Box style={styles.header}>
           <SettingsItem
+            icon="iconfont-nav-git"
             text="Git"
             selected={props.selectedTab === Constants.gitTab}
             onClick={() => props.onTabChange(Constants.gitTab)}
@@ -19,6 +20,7 @@ const SplitNav = (props: Props) => {
           />
           <SettingsItem
             text="Devices"
+            icon="iconfont-nav-devices"
             selected={props.selectedTab === Constants.devicesTab}
             onClick={() => props.onTabChange(Constants.devicesTab)}
             badgeNumber={props.badgeNumbers.get(TabConstants.devicesTab)}
