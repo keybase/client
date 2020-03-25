@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Container from '../util/container'
+import * as Styles from '../styles'
 import SettingsNav from './nav'
 import {Box} from '../common-adapters'
-import {globalStyles} from '../styles'
 import {Tab} from '../constants/tabs'
 import {SettingsTab} from '../constants/settings'
 
@@ -25,8 +25,8 @@ const SettingsRender = (props: Props) => {
     loadHasRandomPW()
   }, [loadHasRandomPW])
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, height: '100%'}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: '100%'}}>
+    <Box style={styles.container}>
+      <Box style={styles.row}>
         <SettingsNav
           badgeNumbers={props.badgeNumbers}
           contactsLabel={props.contactsLabel}
@@ -36,9 +36,7 @@ const SettingsRender = (props: Props) => {
           onLogout={props.onLogout}
           hasRandomPW={props.hasRandomPW || null}
         />
-        <Box style={{...globalStyles.flexBoxRow, flex: 1, height: '100%', overflow: 'auto'}}>
-          {props.children}
-        </Box>
+        <Box style={styles.overflowRow}>{props.children}</Box>
       </Box>
     </Box>
   )
@@ -71,5 +69,28 @@ PhoneRender.navigationOptions = {
   header: undefined,
   title: 'More',
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    flex: 1,
+    height: '100%',
+  },
+  overflowRow: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      flex: 1,
+      height: '100%',
+    },
+    isElectron: {
+      overflow: 'auto',
+    },
+  }),
+  row: {
+    ...Styles.globalStyles.flexBoxRow,
+    flex: 1,
+    height: '100%',
+  },
+}))
 
 export default Container.isPhone ? PhoneRender : SettingsRender

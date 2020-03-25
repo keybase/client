@@ -211,11 +211,13 @@ const SettingsNav = (props: Props) => {
         selected={props.selectedTab === Constants.feedbackTab}
         onClick={() => props.onTabChange(Constants.feedbackTab)}
       />
-      <SettingsItem
-        text="Invitations"
-        selected={props.selectedTab === Constants.invitationsTab}
-        onClick={() => props.onTabChange(Constants.invitationsTab)}
-      />
+      {!Styles.isTablet && (
+        <SettingsItem
+          text="Invitations"
+          selected={props.selectedTab === Constants.invitationsTab}
+          onClick={() => props.onTabChange(Constants.invitationsTab)}
+        />
+      )}
       <SettingsItem
         text="Advanced"
         selected={props.selectedTab === Constants.advancedTab}
