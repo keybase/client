@@ -6,7 +6,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
-import {HeaderOnMobile} from '../../common-adapters'
 import {sendNotificationFooter} from '../../teams/role-picker'
 import * as Types from '../../constants/types/teams'
 
@@ -41,7 +40,7 @@ type State = {
   selectedTeams: SelectedTeamState
 }
 
-class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
+export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer' as const,
@@ -148,17 +147,14 @@ export default Container.connect(
       addUserToTeamsResults: stateProps.addUserToTeamsResults,
       addUserToTeamsState: stateProps.addUserToTeamsState,
       clearAddUserToTeamsResults: dispatchProps.clearAddUserToTeamsResults,
-      customComponent: undefined,
-      headerStyle: undefined,
       loadTeamList: dispatchProps.loadTeamList,
       onAddToTeams: (role: Types.TeamRoleType, teams: Array<string>) =>
         dispatchProps._onAddToTeams(role, teams, stateProps._them),
       onBack: dispatchProps.onBack,
-      onCancel: undefined,
       teamProfileAddList: teamProfileAddList,
       them: _them,
       title,
       waiting: stateProps.waiting,
     }
   }
-)(HeaderOnMobile(AddToTeamStateWrapper))
+)(AddToTeamStateWrapper)

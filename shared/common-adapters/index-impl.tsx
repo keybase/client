@@ -118,9 +118,6 @@ module.exports = {
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },
-  get HeaderOnMobile() {
-    return require('./header-on-mobile').default
-  },
   get HeaderOrPopup() {
     return require('./header-or-popup').default
   },

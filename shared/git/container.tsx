@@ -51,7 +51,10 @@ const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
   )
 }
 GitReloadable.navigationOptions = Container.isMobile
-  ? undefined
+  ? {
+      header: undefined,
+      title: 'Git',
+    }
   : {
       header: undefined,
       headerRightActions: HeaderRightActions,
