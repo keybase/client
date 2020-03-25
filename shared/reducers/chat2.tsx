@@ -203,10 +203,6 @@ const paymentActions: Container.ActionHandler<Actions, Types.State> = {
 }
 
 const searchActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.setChannelSearchText]: (draftState, action) => {
-    const {text} = action.payload
-    draftState.channelSearchText = text.toLowerCase()
-  },
   [Chat2Gen.threadSearchResults]: (draftState, action) => {
     const {conversationIDKey, clear, messages} = action.payload
     const {threadSearchInfoMap} = draftState

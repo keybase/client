@@ -202,7 +202,6 @@ export type State = {
   readonly botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
   readonly botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   readonly botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | null>>
-  readonly channelSearchText: string
   readonly commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   readonly commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   readonly containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>

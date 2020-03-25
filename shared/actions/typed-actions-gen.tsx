@@ -222,7 +222,6 @@ export type TypedActionsMap = {
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
-  'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'chat2:updateBlockButtons': chat2.UpdateBlockButtonsPayload
   'chat2:dismissBlockButtons': chat2.DismissBlockButtonsPayload
   'chat2:setInboxNumSmallRows': chat2.SetInboxNumSmallRowsPayload
