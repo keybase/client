@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
+import * as Types from '../../../constants/types/teams'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
@@ -14,14 +15,15 @@ const MakeBigTeam = () => {
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
   const onSubmit = (isBig: boolean) => dispatch(TeamsGen.createSetTeamWizardTeamSize({isBig}))
 
-  const teamname = Container.useSelector(state => state.teams.newTeamWizard.name)
+  const teamID = Types.newTeamWizardTeamID
+
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Make it a big team?" />,
+        title: <ModalTitle teamID={teamID} title="Make it a big team?" />,
       }}
       allowOverflow={true}
     >
