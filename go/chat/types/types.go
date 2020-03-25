@@ -807,7 +807,8 @@ func (DummyEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat
 	alias string) error {
 	return nil
 }
-func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error) {
+func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
+	getCreationInfo bool) (chat1.UserEmojis, error) {
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
