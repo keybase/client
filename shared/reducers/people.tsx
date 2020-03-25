@@ -27,7 +27,7 @@ type Actions =
   | EngineGen.Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
-  [PeopleGen.resetStore]: () => initialState,
+  [PeopleGen.resetStore]: draftState => ({...initialState, inviteCounts: draftState.inviteCounts}),
   [PeopleGen.peopleDataProcessed]: (draftState, action) => {
     const {payload} = action
     const {followSuggestions, lastViewed, newItems, oldItems, version} = payload
