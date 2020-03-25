@@ -695,7 +695,7 @@ func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
 	for _, maybeEmail := range splitEmailCandidates {
 		address, err := mail.ParseAddress(maybeEmail)
 		if err != nil {
-			mctx.Debug("Failed to mail.ParseAddress(%q): %s", maybeEmail, address)
+			mctx.Debug("Failed to mail.ParseAddress(%q): %s", maybeEmail, err)
 			continue
 		}
 		emails = append(emails, keybase1.EmailAddress(address.Address))

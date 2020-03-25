@@ -906,7 +906,7 @@ func TestBulkEmailSearchBadInput(t *testing.T) {
 
 	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
 
-	emails := "alice@example.org, alice, x\n,  ,\n"
+	emails := "\nalice:,alice@example.org, alice, x\n,  ,\n"
 	ret, err := searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
 		Emails: emails,
 	})
