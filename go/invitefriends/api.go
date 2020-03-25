@@ -43,7 +43,7 @@ func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error)
 
 func RequestNotification(mctx libkb.MetaContext) error {
 	// noop if there's no home ui present
-	if ui, err := mctx.G().UIRouter.GetHomeUI(); ui == nil || err == nil {
+	if ui, err := mctx.G().UIRouter.GetHomeUI(); ui == nil || err != nil {
 		return nil
 	}
 
