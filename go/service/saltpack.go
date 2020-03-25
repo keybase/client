@@ -360,8 +360,6 @@ func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.
 }
 
 func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
-	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
-
 	h.G().Log.Debug("encrypting directory")
 
 	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
@@ -369,6 +367,7 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 	}
 
 	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
+	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
@@ -511,7 +510,6 @@ func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.Sal
 }
 
 func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
-	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
 	h.G().Log.Debug("signing directory")
 
 	if filepath.Clean(arg.Filename) == filepath.Clean(arg.DestinationDir) {
@@ -519,6 +517,7 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 	}
 
 	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
+	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
@@ -854,7 +853,6 @@ func newSourceFile(g *libkb.GlobalContext, op keybase1.SaltpackOperationType, fi
 	sf.G().NotifyRouter.HandleSaltpackOperationStart(context.Background(), sf.op, sf.filename)
 	sf.prog = progress.NewProgressWriterWithUpdateDuration(sf.reporter, s.Size(), 80*time.Millisecond)
 	sf.r = io.TeeReader(bufio.NewReader(f), sf.prog)
-
 	return sf, nil
 }
 
