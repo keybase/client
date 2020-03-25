@@ -656,9 +656,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d", nm.ConvID, nm.MsgID)
 
 			uid := m.UID().Bytes()
-			if _, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
+			if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
+			activity = new(chat1.ChatActivity)
+			*activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
+				MsgID:  nm.MsgID,
+				ConvID: nm.ConvID,
+				Conv:   g.presentUIItem(ctx, conv, uid, utils.PresentParticipantsModeSkip),
+			})
 		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
 			if err = dec.Decode(&nm); err != nil {
