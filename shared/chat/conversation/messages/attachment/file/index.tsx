@@ -1,10 +1,13 @@
+import captialize from 'lodash/capitalize'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Types from '../../../../../constants/types/chat2'
+import * as CryptoTypes from '../../../../../constants/types/crypto'
 import * as Constants from '../../../../../constants/chat2'
 import * as Styles from '../../../../../styles'
 import {ShowToastAfterSaving} from '../shared'
 import {useMemo} from '../../../../../util/memoize'
+import {isPathSaltpackEncrypted, isPathSaltpackSigned, Operations} from '../../../../../constants/crypto'
 
 type Props = {
   arrowColor: string
@@ -17,12 +20,20 @@ type Props = {
   transferState: Types.MessageAttachmentTransferState
   hasProgress: boolean
   errorMsg: string
+  isSaltpackFile: boolean
+  onSaltpackFileOpen: (path: string, operation: CryptoTypes.Operations) => void
 }
 
 const FileAttachment = React.memo((props: Props) => {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
-  const iconType = 'icon-file-32'
-  const {message} = props
+  const {message, isSaltpackFile} = props
+  const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
+  const operation = isPathSaltpackEncrypted(props.fileName)
+    ? Operations.Decrypt
+    : isPathSaltpackSigned(props.fileName)
+    ? Operations.Verify
+    : undefined
+  const operationTitle = captialize(operation)
   const wrappedMeta = useMemo(() => ({message}), [message])
   return (
     <>
@@ -33,7 +44,11 @@ const FileAttachment = React.memo((props: Props) => {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
             {props.fileName === props.title ? (
               // if the title is the filename, don't try to parse it as markdown
-              <Kb.Text type="BodySemibold" onClick={props.onDownload}>
+              <Kb.Text
+                type="BodySemibold"
+                onClick={props.onDownload}
+                style={Styles.collapseStyles([isSaltpackFile && styles.saltpackFileName])}
+              >
                 {props.fileName}
               </Kb.Text>
             ) : (
@@ -42,12 +57,27 @@ const FileAttachment = React.memo((props: Props) => {
               </Kb.Markdown>
             )}
             {props.fileName !== props.title && (
-              <Kb.Text type="BodyTiny" onClick={props.onDownload}>
+              <Kb.Text
+                type="BodyTiny"
+                onClick={props.onDownload}
+                style={Styles.collapseStyles([isSaltpackFile && styles.saltpackFileName])}
+              >
                 {props.fileName}
               </Kb.Text>
             )}
           </Kb.Box2>
         </Kb.Box2>
+        {!Styles.isMobile && isSaltpackFile && operation && (
+          <Kb.Box style={styles.saltpackOperationContainer}>
+            <Kb.Button
+              mode="Secondary"
+              small={true}
+              label={operationTitle}
+              style={styles.saltpackOperation}
+              onClick={() => props.onSaltpackFileOpen(props.fileName, operation)}
+            />
+          </Kb.Box>
+        )}
         {!!props.arrowColor && (
           <Kb.Box style={styles.downloadedIconWrapperStyle}>
             <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={props.arrowColor} />
@@ -121,6 +151,18 @@ const styles = Styles.styleSheetCreate(
       retry: {
         color: Styles.globalColors.redDark,
         textDecorationLine: 'underline',
+      },
+      saltpackFileName: {
+        color: Styles.globalColors.greenDark,
+      },
+      saltpackOperation: Styles.platformStyles({
+        isTablet: {
+          alignSelf: 'flex-start',
+        },
+      }),
+      saltpackOperationContainer: {
+        alignItems: 'flex-start',
+        marginTop: Styles.globalMargins.xtiny,
       },
       titleStyle: {
         flex: 1,

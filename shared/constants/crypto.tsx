@@ -172,6 +172,12 @@ export const outputRoute: Map<Types.Operations, Types.CryptoOutputRoute> = new M
   ['verify', verifyOutput],
 ])
 
+export const saltpackEncryptedExtension = '.encrypted.saltpack'
+export const saltpackSignedExtension = '.encrypted.saltpack'
+export const isPathSaltpackEncrypted = (path: string) => path.endsWith('.encrypted.saltpack')
+export const isPathSaltpackSigned = (path: string) => path.endsWith('.signed.saltpack')
+export const isPathSaltpack = (path: string) => isPathSaltpackEncrypted(path) || isPathSaltpackSigned(path)
+
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
 
