@@ -44,8 +44,8 @@ const Header = (p: Props) => {
     }
     const descStyleDesktop = {
       fontSize: 13,
-      lineHeight: '17px',
-      wordBreak: 'break-all',
+      lineHeight: 17,
+      wordBreak: 'break-all' as any,
     } as const // approximates BodySmall since markdown does not support text type
     const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
 
