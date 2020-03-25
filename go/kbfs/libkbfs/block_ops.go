@@ -80,7 +80,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd libkey.KeyMetadata,
 			return err
 		}
 		if found {
-			return assembleBlock(
+			return assembleBlockLocal(
 				ctx, b.config.keyGetter(), b.config.Codec(),
 				b.config.cryptoPure(), kmd, blockPtr, block, data, serverHalf)
 		}

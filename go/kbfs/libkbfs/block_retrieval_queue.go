@@ -424,8 +424,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	}
 
 	// Assemble the block from the encrypted block buffer.
-	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block, blockBuf,
-		serverHalf)
+	err = brq.config.blockGetter().assembleBlockLocal(
+		ctx, kmd, ptr, block, blockBuf, serverHalf)
 	if err == nil {
 		// Cache the block in memory.
 		_ = brq.config.BlockCache().Put(
