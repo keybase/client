@@ -56,7 +56,11 @@ const InviteFriendsModal = () => {
       },
       err => {
         setSuccessCount(null)
-        setError(err.message)
+        if (err.code === RPCGen.StatusCode.scratelimit) {
+          setError("You've been doing that a bit too much lately. Try again later.")
+        } else {
+          setError(err.message)
+        }
       }
     )
   const {popup, setShowingPopup} = Kb.usePopup(() => (
