@@ -20,7 +20,8 @@ const Avatar = (props: Props) => {
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
 
   const scaledAvatarRatio = props.size / AVATAR_SIZE
-  const avatarScaledWidth = props.crop ? props.crop.scaledWidth * scaledAvatarRatio : null
+  const avatarScaledWidth =
+    props.crop && props.crop.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
 
   return (
     <div
@@ -55,7 +56,7 @@ const Avatar = (props: Props) => {
           }}
         />
       )}
-      {!!props.url && props.crop && (
+      {!!props.url && props.crop && props.crop?.offsetLeft && props.crop?.offsetTop && (
         <img
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
           style={{
