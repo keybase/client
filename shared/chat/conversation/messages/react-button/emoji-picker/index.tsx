@@ -47,17 +47,6 @@ const getFrequentSection = memoize(
   }
 )
 
-const getResultFilter = () => {
-  const {emojiIndex, emojiNameMap} = _getData()
-  return (filter: string): Array<Data.EmojiData> =>
-    emojiIndex
-      // @ts-ignore type wrong?
-      .search(filter, {maxResults: maxEmojiSearchResults})
-      .map((res: {id: string}) => emojiNameMap[res.id])
-      // MUST sort this so its stable
-      .sort((a: any, b: any) => a.sort_order - b.sort_order)
-}
-
 const singleEmojiWidth = isMobile ? 32 : 26
 const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
@@ -87,27 +76,68 @@ type Bookmark = {
   sectionIndex: number
 }
 
-// TODO: maybe memoize this if/when we can reuse props.customSections
-// reference based on a hash from service.
-const emojiGroupToSections = (
+const emojiGroupsToEmojiArrayArray = memoize(
+  (emojiGroups: Array<RPCChatGen.EmojiGroup>): Array<{emojis: Array<Data.EmojiData>; name: string}> =>
+    emojiGroups.map(emojiGroup => ({
+      emojis:
+        emojiGroup.emojis?.map(e => ({
+          category: emojiGroup.name,
+          name: null,
+          short_name: e.alias,
+          short_names: [e.alias],
+          source: e.source.httpsrv,
+          unified: '',
+        })) || [],
+      name: emojiGroup.name,
+    }))
+)
+
+const getCustomEmojiSections = (
   emojiGroups: Array<RPCChatGen.EmojiGroup>,
   emojisPerLine: number
 ): Array<Section> =>
-  emojiGroups?.map(group => ({
-    data: chunkEmojis(
-      group.emojis?.map(e => ({
-        category: group.name,
-        name: null,
-        short_name: e.alias,
-        short_names: [e.alias],
-        source: e.source.httpsrv,
-        unified: '',
-      })) || [],
-      emojisPerLine
-    ),
+  emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
+    data: chunkEmojis(group.emojis, emojisPerLine),
     key: group.name,
     title: group.name,
   })) || []
+
+const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) => {
+  const keys: Array<string> = []
+  const mapper = new Map<string, Data.EmojiData>()
+  emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
+    emojiGroup.emojis.forEach(emoji => {
+      keys.push(emoji.short_name)
+      mapper.set(emoji.short_name, emoji)
+    })
+  )
+  keys.sort()
+  // This is gonna be slow, but is probably fine until we have too many custom
+  // emojis. We should switch to a prefix tree and maybe move this to Go side
+  // at that point.
+  return (filter: string): Array<Data.EmojiData> =>
+    // @ts-ignore ts doesn't know Boolean filters out undefined.
+    keys
+      .filter(k => k.includes(filter))
+      .map(key => mapper.get(key))
+      .filter(Boolean)
+})
+
+const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
+  const {emojiIndex, emojiNameMap} = _getData()
+  const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : () => []
+  return (filter: string): Array<Data.EmojiData> => {
+    return [
+      ...customEmojiIndex(filter),
+      ...emojiIndex
+        // @ts-ignore type wrong?
+        .search(filter, {maxResults: maxEmojiSearchResults})
+        .map((res: {id: string}) => emojiNameMap[res.id])
+        // MUST sort this so its stable
+        .sort((a: any, b: any) => a.sort_order - b.sort_order),
+    ]
+  }
+}
 
 const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWidthWithPadding)
 
@@ -131,7 +161,7 @@ const getSectionsAndBookmarks = (
 
   if (customSections?.length) {
     bookmarks.push({iconType: 'iconfont-keybase', sectionIndex: sections.length})
-    emojiGroupToSections(customSections, emojisPerLine).forEach(section => sections.push(section))
+    getCustomEmojiSections(customSections, emojisPerLine).forEach(section => sections.push(section))
   }
 
   getEmojiSections(emojisPerLine).forEach(section => {
@@ -179,7 +209,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       this.props.customSections
     )
     const emojisPerLine = getEmojisPerLine(this.props.width)
-    const getFilterResults = getResultFilter()
+    const getFilterResults = getResultFilter(this.props.customSections)
     // For filtered results, we have <= `maxEmojiSearchResults` emojis
     // to render. Render them directly rather than going through chunkData
     // pipeline for fast list of results. Go through chunkData only

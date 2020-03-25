@@ -9,6 +9,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../styles'
 import * as Data from './data'
+import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
@@ -114,7 +115,7 @@ const WrapperMobile = (props: Props) => {
           size="small"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={setFilter}
+          onChange={debounce(setFilter, 200)}
           style={styles.searchFilter}
         />
       </Kb.Box2>
@@ -162,7 +163,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           size="full-width"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={setFilter}
+          onChange={debounce(setFilter, 200)}
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
