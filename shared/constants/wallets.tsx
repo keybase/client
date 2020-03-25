@@ -318,7 +318,6 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     reserves: (w.reserves ?? []).map(makeReserve),
     showDepositButton: w.showDepositButton,
     showWithdrawButton: w.showWithdrawButton,
-    useSep24: w.useSep24,
     withdrawButtonText: w.withdrawButtonText,
     worth: w.worth,
   })
