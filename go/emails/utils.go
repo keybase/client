@@ -21,13 +21,16 @@ func splitBulk(s string) []string {
 	return split
 }
 
-// ParseSeparatedEmails tries to extract a list of e-mail addresses that
-// conform to RFC 5322 and RFC 6532 (see net/mail documentation for more info).
+// ParseSeparatedEmails parses a comma-or-new-line-separated email list that
+// comes in a string. It can extract emails that conform to RFC 5322 and RFC
+// 6532 (see net/mail documentation for more info).
 //
-// Examples of a valid e-mail entity would be: - Jan Smith <jan@example.com> -
-// alice@example.org The "name" portion is always ignored, caller will always
-// get just the raw e-mails, in this case: { "jan@example.com",
-// "alice@example.org" }
+// Examples of a valid e-mail entities would be:
+// - Jan Smith <jan@example.com>
+// - alice@example.org
+//
+// The "name" portion is ignored, caller will always get the raw e-mails, in
+// this case: { "jan@example.com", "alice@example.org" }.
 //
 // Individual e-mails have to be separated by comma or newline, and they can be
 // surrounded by any amount of whitespace characters that will be ignored.
