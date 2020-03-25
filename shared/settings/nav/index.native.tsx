@@ -99,16 +99,12 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
-            ...(Styles.isPhone
-              ? [
-                  {
-                    badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
-                    icon: 'iconfont-nav-wallets',
-                    onClick: () => props.onTabChange(Constants.walletsTab),
-                    text: 'Wallet',
-                  },
-                ]
-              : []),
+            {
+              badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
+              icon: 'iconfont-nav-wallets',
+              onClick: () => props.onTabChange(Constants.walletsTab),
+              text: 'Wallet',
+            },
             {
               iconComponent: WhatsNewIcon,
               onClick: () => props.onTabChange(Constants.whatsNewTab),
