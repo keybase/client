@@ -1,4 +1,4 @@
-import {isMobile} from '../constants/platform'
+import {isPhone} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
 import {
@@ -28,7 +28,7 @@ export const sharedRoutes = {
 }
 
 export const newRoutes = {
-  walletsRoot: isMobile
+  walletsRoot: isPhone
     ? {getScreen: () => require('./wallet/container').default}
     : // MUST use screen and not getScreen for subnavs!
       {

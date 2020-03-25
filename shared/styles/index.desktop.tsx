@@ -68,6 +68,7 @@ const util = {
   },
   mediumWidth: 400,
   shortWidth: 240,
+  tinyWidth: 200,
 }
 
 export const globalStyles = {
