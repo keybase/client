@@ -197,41 +197,60 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
       {/* Placed here so that it doesn't generate any gaps */}
       <TeamDetailsSubscriber teamID={props.subteam.id} />
 
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="stretch"
+        style={Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
+      >
+        {/* <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            Styles.globalStyles.flexOne,
+            styles.contentCollapsedFixedHeight,
+          ])}
+        > */}
+        {/* <Kb.Box2
+            direction="vertical"
+            alignItems="flex-start"
+            centerChildren={true}
+            gap="tiny"
+            style={Styles.collapseStyles([
+              Styles.globalStyles.flexGrow,
+              styles.contentCollapsedFixedHeight,
+            ])}
+          > */}
         <Kb.Box2
           direction="horizontal"
-          style={Styles.collapseStyles([Styles.globalStyles.flexOne, styles.contentCollapsedFixedHeight])}
+          alignSelf="flex-start"
+          alignItems="center"
+          gap="tiny"
+          style={Styles.collapseStyles([
+            Styles.globalStyles.flexGrow,
+            styles.inviteTeamInfo,
+            styles.contentCollapsedFixedHeight,
+          ])}
         >
+          <Kb.Avatar teamname={props.subteam.teamname} size={32} />
           <Kb.Box2
             direction="vertical"
-            fullWidth={true}
             alignItems="flex-start"
-            gap="tiny"
-            style={styles.contentCollapsedFixedHeight}
+            style={Styles.collapseStyles([
+              Styles.globalStyles.flexGrow,
+              styles.membershipTeamText,
+              styles.contentCollapsedFixedHeight,
+            ])}
           >
-            <Kb.Box2
-              direction="horizontal"
-              alignSelf="flex-start"
-              alignItems="center"
-              gap="tiny"
-              style={Styles.collapseStyles([styles.inviteTeamInfo, styles.contentCollapsedFixedHeight])}
-            >
-              <Kb.Avatar teamname={props.subteam.teamname} size={32} />
-              <Kb.Box2
-                direction="vertical"
-                alignItems="flex-start"
-                style={Styles.collapseStyles([styles.membershipTeamText, styles.contentCollapsedFixedHeight])}
-              >
-                <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
-                  {props.subteam.teamname}
-                </Kb.Text>
-                <Kb.Text type="BodySmall">
-                  {memberCount.toLocaleString()} {pluralize('member', memberCount)}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
+            <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+              {props.subteam.teamname}
+            </Kb.Text>
+            <Kb.Text type="BodySmall">
+              {memberCount.toLocaleString()} {pluralize('member', memberCount)}
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
+        {/* </Kb.Box2> */}
+        {/* </Kb.Box2> */}
 
         <Kb.Box2 direction="horizontal" alignSelf="center">
           <FloatingRolePicker
@@ -570,10 +589,10 @@ const BlockDropdown = (props: {username: string}) => {
 const styles = Styles.styleSheetCreate(() => ({
   contentCollapsedFixedHeight: Styles.platformStyles({
     isElectron: {
-      height: 32,
+      height: 48,
     },
     isMobile: {
-      height: 48,
+      height: 64,
     },
   }),
   expandIcon: {
@@ -622,9 +641,6 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       paddingLeft: Styles.globalMargins.small,
     },
-    isMobile: {
-      marginTop: Styles.globalMargins.small,
-    },
   }),
   membershipTeamText: {
     justifyContent: 'center',
@@ -637,15 +653,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   row: Styles.platformStyles({
     isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
     },
     isMobile: {
-      flex: 1,
-      height: '100%',
-      paddingBottom: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
   }),
@@ -654,6 +664,7 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 49,
     },
     isMobile: {
+      flexShrink: 0,
       height: 65,
     },
   }),
