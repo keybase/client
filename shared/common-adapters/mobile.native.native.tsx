@@ -124,9 +124,6 @@ module.exports = {
   get HeaderHocHeader() {
     return Index.HeaderHocHeader
   },
-  get HeaderOnMobile() {
-    return Index.HeaderOnMobile
-  },
   get HeaderOrPopup() {
     return Index.HeaderOrPopup
   },
