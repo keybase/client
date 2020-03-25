@@ -1,7 +1,24 @@
+import * as ConfigGen from '../../actions/config-gen'
 import * as Electron from 'electron'
-import {isDarwin} from '../../constants/platform'
-import {closeWindows} from './main-window.desktop'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 import flags from '../../util/feature-flags'
+import {closeWindows} from './main-window.desktop'
+import {isDarwin, isLinux} from '../../constants/platform'
+import {mainWindowDispatch} from '../remote/util.desktop'
+import {quit} from './ctl.desktop'
+
+const reallyQuit = () => {
+  closeWindows()
+  if (isLinux) {
+    mainWindowDispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+  } else {
+    mainWindowDispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+  }
+  setTimeout(() => {
+    quit()
+  }, 2000)
+}
 
 export default function makeMenu(window: Electron.BrowserWindow) {
   const editMenu = new Electron.MenuItem({
@@ -84,6 +101,13 @@ export default function makeMenu(window: Electron.BrowserWindow) {
             },
             label: 'Minimize to Tray',
           }),
+          new Electron.MenuItem({
+            accelerator: 'CmdOrCtrl+Option+Q',
+            click() {
+              reallyQuit()
+            },
+            label: 'Quit Keybase Completely',
+          }),
         ]),
       }),
       {...editMenu},
@@ -104,6 +128,13 @@ export default function makeMenu(window: Electron.BrowserWindow) {
               closeWindows()
             },
             label: '&Minimize to Tray',
+          },
+          {
+            accelerator: 'CmdOrCtrl+Option+Q',
+            click() {
+              reallyQuit()
+            },
+            label: 'Quit Keybase Completely',
           },
         ],
       }),
