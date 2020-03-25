@@ -800,7 +800,7 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 type DummyEmojiSource struct{}
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string, topicNameSuffix *string) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
 func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error) {

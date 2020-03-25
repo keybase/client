@@ -987,6 +987,7 @@ export enum TopicType {
   dev = 2,
   kbfsfileedit = 3,
   emoji = 4,
+  emojicross = 5,
 }
 
 export enum UIBotCommandsUpdateStatusTyp {

@@ -312,6 +312,7 @@ const (
 	TopicType_DEV          TopicType = 2
 	TopicType_KBFSFILEEDIT TopicType = 3
 	TopicType_EMOJI        TopicType = 4
+	TopicType_EMOJICROSS   TopicType = 5
 )
 
 func (o TopicType) DeepCopy() TopicType { return o }
@@ -322,6 +323,7 @@ var TopicTypeMap = map[string]TopicType{
 	"DEV":          2,
 	"KBFSFILEEDIT": 3,
 	"EMOJI":        4,
+	"EMOJICROSS":   5,
 }
 
 var TopicTypeRevMap = map[TopicType]string{
@@ -330,6 +332,7 @@ var TopicTypeRevMap = map[TopicType]string{
 	2: "DEV",
 	3: "KBFSFILEEDIT",
 	4: "EMOJI",
+	5: "EMOJICROSS",
 }
 
 type TeamType int

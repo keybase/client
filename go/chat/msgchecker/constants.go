@@ -31,7 +31,8 @@ func getMaxTextLength(topicType chat1.TopicType) (textMsgLength int) {
 	switch topicType {
 	case chat1.TopicType_CHAT:
 		textMsgLength = TextMessageMaxLength
-	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI:
+	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI,
+		chat1.TopicType_EMOJICROSS:
 		textMsgLength = DevTextMessageMaxLength
 	default:
 		textMsgLength = TextMessageMaxLength
@@ -43,7 +44,8 @@ func getBoxedMaxTextLength(topicType chat1.TopicType) (textMsgLength int) {
 	switch topicType {
 	case chat1.TopicType_CHAT:
 		textMsgLength = BoxedTextMessageBodyMaxLength
-	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI:
+	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI,
+		chat1.TopicType_EMOJICROSS:
 		textMsgLength = DevBoxedTextMessageBodyMaxLength
 	default:
 		textMsgLength = BoxedTextMessageBodyMaxLength

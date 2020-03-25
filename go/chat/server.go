@@ -3654,7 +3654,7 @@ func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename, nil); err != nil {
+	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename); err != nil {
 		return res, err
 	}
 	return res, nil

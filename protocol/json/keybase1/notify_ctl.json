@@ -105,6 +105,10 @@
         },
         {
           "type": "boolean",
+          "name": "chatemojicross"
+        },
+        {
+          "type": "boolean",
           "name": "deviceclone"
         },
         {

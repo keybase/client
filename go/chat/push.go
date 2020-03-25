@@ -717,7 +717,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			// If the topic type is DEV, skip the localization step
 			var inbox types.Inbox
 			switch nm.TopicType {
-			case chat1.TopicType_CHAT, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI:
+			case chat1.TopicType_CHAT, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI,
+				chat1.TopicType_EMOJICROSS:
 				if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 					types.InboxSourceDataSourceRemoteOnly,
 					nil, &chat1.GetInboxLocalQuery{
