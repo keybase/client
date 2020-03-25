@@ -37,11 +37,7 @@ const Activity = ({level}: {level: Types.ActivityLevel}) =>
   )
 
 export const ModalTitle = ({title, teamID}: Props) => {
-  const teamname =
-    title == 'Enter team info'
-      ? 'New team'
-      : Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-
+  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
   const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
   const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
   const isNewTeamWizard = teamID == Types.newTeamWizardTeamID

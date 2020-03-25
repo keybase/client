@@ -127,9 +127,9 @@ export type TeamVersion = {
 
 export type AvatarCrop = {
   crop: RPCTypes.ImageCropRect
-  offsetLeft: number
-  offsetTop: number
-  scaledWidth: number
+  offsetLeft?: number
+  offsetTop?: number
+  scaledWidth?: number
 }
 
 export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'

@@ -8,6 +8,7 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/teams'
 import './avatar.css'
 
+// Desktop sizes also imported for edit-avatar
 export const AVATAR_CONTAINER_SIZE = 175
 export const AVATAR_BORDER_SIZE = 4
 export const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2

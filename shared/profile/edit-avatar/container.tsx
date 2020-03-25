@@ -69,25 +69,21 @@ export default Container.connect(
       image: stateProps.image,
       onBack: dispatchProps.onBack,
       onClose: dispatchProps.onClose,
-      onSave: (filename: string, crop?: RPCTypes.ImageCropRect) => {
-        if (wizard) {
-          dispatchProps.onSaveWizardAvatar(
-            filename,
-            undefined /* Use onSaveForWizardHeader if AvatarCrop is needed */
-          )
+      onSave: (
+        filename: string,
+        crop?: RPCTypes.ImageCropRect,
+        scaledWidth?: number,
+        offsetLeft?: number,
+        offsetTop?: number
+      ) => {
+        if (wizard && !!crop) {
+          dispatchProps.onSaveWizardAvatar(filename, {crop, offsetLeft, offsetTop, scaledWidth})
         } else if (stateProps.teamname) {
           dispatchProps.onSaveTeamAvatar(filename, stateProps.teamname, stateProps.sendChatNotification, crop)
         } else {
           dispatchProps.onSaveUserAvatar(filename, crop)
         }
       },
-      onSaveForWizardHeader: (
-        filename: string,
-        crop: RPCTypes.ImageCropRect,
-        scaledWidth: number,
-        offsetLeft: number,
-        offsetTop: number
-      ) => dispatchProps.onSaveWizardAvatar(filename, {crop, offsetLeft, offsetTop, scaledWidth}),
       onSkip: dispatchProps.onSkip,
       sendChatNotification: stateProps.sendChatNotification,
       submitting: stateProps.submitting,
