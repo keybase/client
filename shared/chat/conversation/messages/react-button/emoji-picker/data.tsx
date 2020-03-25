@@ -31,6 +31,16 @@ const categoryOrder = [
   'Symbols',
   'Flags',
 ]
+export const categoryIcons = {
+  Activities: 'iconfont-emoji',
+  'Animals & Nature': 'iconfont-emoji',
+  Flags: 'iconfont-emoji',
+  'Food & Drink': 'iconfont-emoji',
+  Objects: 'iconfont-emoji',
+  'Smileys & People': 'iconfont-emoji',
+  Symbols: 'iconfont-emoji',
+  'Travel & Places': 'iconfont-emoji',
+}
 const categories: Array<{
   category: string
   emojis: Array<EmojiData>
