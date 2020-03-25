@@ -36,7 +36,7 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
     return (
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {Styles.isMobile && this.props.onBack && (
           <Kb.HeaderHocHeader onBack={this.props.onBack} title={this.props.title} />
         )}
