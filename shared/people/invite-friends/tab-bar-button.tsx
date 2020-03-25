@@ -11,7 +11,7 @@ const InviteFriends = () => {
   const inviteCounts = Container.useSelector(state => state.people.inviteCounts)
   const inviteCountsLoaded = !!inviteCounts
   React.useEffect(() => {
-    if (!inviteCountsLoaded) return
+    if (inviteCountsLoaded) return
     requestInviteCounts(
       [undefined],
       _ => {},
