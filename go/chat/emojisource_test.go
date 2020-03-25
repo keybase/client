@@ -68,7 +68,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot2", filename)
 	require.NoError(t, err)
 
-	res, err := tc.Context().EmojiSource.Get(ctx, uid, nil)
+	res, err := tc.Context().EmojiSource.Get(ctx, uid, nil, true)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res.Emojis))
 	for _, group := range res.Emojis {
@@ -97,7 +97,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	require.True(t, source.IsMessage())
 	_, err = GetMessage(ctx, tc.Context(), uid, source.Message().ConvID, source.Message().MsgID, true, nil)
 	require.Error(t, err)
-	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id)
+	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, true)
 	require.NoError(t, err)
 	checked := false
 	for _, group := range res.Emojis {
