@@ -1,11 +1,18 @@
 package invitefriends
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
+var (
+	countsCache   *keybase1.InviteCounts
+	countsCacheMu sync.Mutex // mutex isn't rw due to low call frequency
+)
+
+func GetCounts(m libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
 	type apiRes struct {
 		NumInvitesInLastDay int     `json:"numInvitesInLastDay"`
 		PercentageChange    float64 `json:"percentageChange"`
@@ -18,14 +25,40 @@ func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error)
 		SessionType: libkb.APISessionTypeNONE,
 	}
 	var res apiRes
-	err = mctx.G().API.GetDecode(mctx, apiArg, &res)
+	err = m.G().API.GetDecode(m, apiArg, &res)
 	if err != nil {
 		return counts, err
 	}
-	return keybase1.InviteCounts{
+	newCounts := keybase1.InviteCounts{
 		InviteCount:      res.NumInvitesInLastDay,
 		PercentageChange: res.PercentageChange,
 		ShowNumInvites:   res.ShowNumInvites,
 		ShowFire:         res.ShowFire,
-	}, nil
+	}
+	countsCacheMu.Lock()
+	countsCache = &newCounts
+	countsCacheMu.Unlock()
+	return newCounts, nil
+}
+
+func RequestNotification(m libkb.MetaContext) error {
+	// noop if there's no home ui present
+	if ui, err := m.G().UIRouter.GetHomeUI(); ui == nil || err == nil {
+		return nil
+	}
+
+	// we only need to grab the pointer during the lock
+	countsCacheMu.Lock()
+	counts := countsCache
+	countsCacheMu.Unlock()
+
+	if counts == nil {
+		freshCounts, err := GetCounts(m)
+		if err != nil {
+			return err
+		}
+		counts = &freshCounts
+	}
+	m.G().NotifyRouter.HandleUpdateInviteCounts(m.Ctx(), *counts)
+	return nil
 }

@@ -2,10 +2,21 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import logger from '../../logger'
 import InviteHow from './invite-how'
 
 const InviteFriends = () => {
+  const requestInviteCounts = Container.useRPC(RPCTypes.inviteFriendsRequestInviteCountsRpcPromise)
   const inviteCounts = Container.useSelector(state => state.people.inviteCounts)
+  React.useEffect(() => {
+    if (inviteCounts) return
+    requestInviteCounts(
+      [undefined],
+      _ => {},
+      err => logger.error(err.message)
+    )
+  }, [inviteCounts, requestInviteCounts])
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
