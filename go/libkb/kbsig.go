@@ -699,13 +699,9 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 }
 
 func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte, merkleRoot *MerkleRoot, sigIDsToRevoke []keybase1.SigID) (*ProofMetadataRes, error) {
-	linkType := LinkTypeWotVouch
-	if len(sigIDsToRevoke) > 0 {
-		linkType = LinkTypeWotVouchWithRevoke
-	}
 	md := ProofMetadata{
 		Me:                  u,
-		LinkType:            linkType,
+		LinkType:            LinkTypeWotVouch,
 		MerkleRoot:          merkleRoot,
 		SigningKey:          signingKey,
 		SigVersion:          sigVersion,

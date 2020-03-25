@@ -551,9 +551,11 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 	case string(LinkTypeWalletStellar):
 		ret = SigchainV2TypeWalletStellar
 	case string(LinkTypeWotVouch):
-		ret = SigchainV2TypeWotVouch
-	case string(LinkTypeWotVouchWithRevoke):
-		ret = SigchainV2TypeWotVouchWithRevoke
+		if hasRevocations {
+			ret = SigchainV2TypeWotVouchWithRevoke
+		} else {
+			ret = SigchainV2TypeWotVouch
+		}
 	case string(LinkTypeWotReact):
 		ret = SigchainV2TypeWotReact
 	default:

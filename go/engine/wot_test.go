@@ -479,14 +479,15 @@ func TestWebOfTrustRevoke(t *testing.T) {
 	///////////
 	// VouchWithRevoke
 	///////////
-	assertUserLastLinkAsVouchWithRevoke := func(user *FakeUser, tc libkb.TestContext) *libkb.WotVouchWithRevokeChainLink {
+	assertUserLastLinkIsVouchWithRevoke := func(user *FakeUser, tc libkb.TestContext) *libkb.WotVouchChainLink {
 		err := user.LoadUser(tc)
 		require.NoError(t, err)
 		lastLink := user.User.GetLastLink()
 		tlink, warning := libkb.NewTypedChainLink(lastLink)
 		require.Nil(t, warning)
-		vouchLink, ok := tlink.(*libkb.WotVouchWithRevokeChainLink)
+		vouchLink, ok := tlink.(*libkb.WotVouchChainLink)
 		require.True(t, ok)
+		require.Equal(t, 1, len(vouchLink.Revocations))
 		return vouchLink
 	}
 	vouchVersion++
@@ -498,7 +499,7 @@ func TestWebOfTrustRevoke(t *testing.T) {
 	bobVouchesForAlice(vouchVersion)
 	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
 	vouchToAccept := assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
-	vwrLink := assertUserLastLinkAsVouchWithRevoke(bob, tcBob)
+	vwrLink := assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
 	require.Contains(t, vwrLink.Revocations, vouchToRevoke.VouchProof)
 	err = aliceAccepts(vouchToRevoke.VouchProof)
 	require.Error(t, err)
@@ -511,7 +512,7 @@ func TestWebOfTrustRevoke(t *testing.T) {
 	bobVouchesForAlice(vouchVersion)
 	vouchToAccept = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
 	_ = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
-	vwrLink = assertUserLastLinkAsVouchWithRevoke(bob, tcBob)
+	vwrLink = assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
 	require.Contains(t, vwrLink.Revocations, vouchToRevoke.VouchProof)
 	err = aliceAccepts(vouchToAccept.VouchProof)
 	require.NoError(t, err)
@@ -525,10 +526,40 @@ func TestWebOfTrustRevoke(t *testing.T) {
 	bobVouchesForAlice(vouchVersion)
 	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
 	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
-	vwrLink = assertUserLastLinkAsVouchWithRevoke(bob, tcBob)
+	vwrLink = assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
 	require.Contains(t, vwrLink.Revocations, vouchToRevoke.VouchProof)
 	err = aliceAccepts(vouchToAccept.VouchProof)
 	require.NoError(t, err)
+
+	// confirm that vouch and vouchWithRevoke links are not stubbed by the server
+	// by checking that, when they are not the last link in someone's chain,
+	// they are still reactable
+	// ------------------------------------------
+	// clear out so our vouch doesn't have the revoke
+	revokeSig(mctxB, vouchToAccept.VouchProof.String())
+	// bob vouches for alice and fetches it himself
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	// bob follows charlie, unfollows charlie (just to have some stubbable links after the vouch)
+	tcCharlie := SetupEngineTest(t, "wot")
+	defer tcCharlie.Cleanup()
+	charlie := CreateAndSignupFakeUser(tcCharlie, "wot")
+	trackUser(tcBob, bob, charlie.NormalizedUsername(), sigVersion)
+	require.NoError(t, runUntrack(tcBob, bob, charlie.NormalizedUsername().String(), sigVersion))
+	// alice can still react to this link
+	err = aliceAccepts(vouchToAccept.VouchProof)
+	require.NoError(t, err)
+	// this vouch will have a revocation of the previous one
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	// confirms its a revoke
+	_ = assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
+	// bob follow and unfollow charlie again to pad his sigchain
+	trackUser(tcBob, bob, charlie.NormalizedUsername(), sigVersion)
+	require.NoError(t, runUntrack(tcBob, bob, charlie.NormalizedUsername().String(), sigVersion))
+	// assert its fetchable by alice
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
 }
 
 // perhaps revisit after Y2K-1494

@@ -25,12 +25,6 @@ func getWotVouchChainLink(mctx MetaContext, uid keybase1.UID, sigID keybase1.Sig
 	if w != nil {
 		return nil, nil, fmt.Errorf("Could not get typed chain link: %v", w.Warning())
 	}
-	if vwrlink, ok := tlink.(*WotVouchWithRevokeChainLink); ok {
-		return &WotVouchChainLink{
-			GenericChainLink: vwrlink.GenericChainLink,
-			ExpansionID:      vwrlink.ExpansionID,
-		}, user, nil
-	}
 	vlink, ok := tlink.(*WotVouchChainLink)
 	if !ok {
 		return nil, nil, fmt.Errorf("Link is not a WotVouchChainLink: %v", tlink)

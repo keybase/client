@@ -133,6 +133,7 @@ func CanonicalProofName(t TypedChainLink) string {
 type WotVouchChainLink struct {
 	GenericChainLink
 	ExpansionID string
+	Revocations []keybase1.SigID
 }
 
 func (cl *WotVouchChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
@@ -146,28 +147,6 @@ func ParseWotVouch(base GenericChainLink) (ret *WotVouchChainLink, err error) {
 		return nil, err
 	}
 	return &WotVouchChainLink{
-		GenericChainLink: base,
-		ExpansionID:      expansionID,
-	}, nil
-}
-
-type WotVouchWithRevokeChainLink struct {
-	GenericChainLink
-	ExpansionID string
-	Revocations []keybase1.SigID
-}
-
-func (cl *WotVouchWithRevokeChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
-
-var _ TypedChainLink = (*WotVouchWithRevokeChainLink)(nil)
-
-func ParseWotVouchWithRevoke(base GenericChainLink) (ret *WotVouchWithRevokeChainLink, err error) {
-	body := base.UnmarshalPayloadJSON()
-	expansionID, err := body.AtPath("body.wot_vouch").GetString()
-	if err != nil {
-		return nil, err
-	}
-	return &WotVouchWithRevokeChainLink{
 		GenericChainLink: base,
 		ExpansionID:      expansionID,
 		Revocations:      base.GetRevocations(),
@@ -1462,8 +1441,6 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseWotVouch(base)
 		case string(LinkTypeWotReact):
 			ret, err = ParseWotReact(base)
-		case string(LinkTypeWotVouchWithRevoke):
-			ret, err = ParseWotVouchWithRevoke(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}

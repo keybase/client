@@ -131,8 +131,6 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		return err
 	}
 
-	linkType := libkb.LinkTypeWotVouch
-	var sigHasRevokes bool
 	sigIDsToRevoke, err := getSigIDsToRevoke(mctx, them)
 	if err != nil {
 		return err
@@ -144,8 +142,6 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		if err != nil {
 			return err
 		}
-		linkType = libkb.LinkTypeWotVouchWithRevoke
-		sigHasRevokes = true
 		defer func() {
 			// not sure if this is necessary or not
 			err := libkb.CancelDowngradeLease(ctx, g, lease.LeaseID)
@@ -174,13 +170,12 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		if err != nil {
 			return err
 		}
-
 		sig, _, linkID, err = libkb.MakeSig(
 			mctx,
 			signingKey,
-			linkType,
+			libkb.LinkTypeWotVouch,
 			inner,
-			libkb.SigHasRevokes(sigHasRevokes),
+			libkb.SigHasRevokes(len(sigIDsToRevoke) > 0),
 			keybase1.SeqType_PUBLIC,
 			libkb.SigIgnoreIfUnsupported(true),
 			me,
