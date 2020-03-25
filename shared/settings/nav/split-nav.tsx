@@ -9,19 +9,23 @@ import {Props} from './index'
 const SplitNav = (props: Props) => {
   return (
     <Kb.Box style={styles.container}>
-      <SettingsItem
-        text="Git"
-        selected={props.selectedTab === Constants.gitTab}
-        onClick={() => props.onTabChange(Constants.gitTab)}
-        badgeNumber={props.badgeNumbers.get(TabConstants.gitTab)}
-      />
-      <SettingsItem
-        text="Devices"
-        selected={props.selectedTab === Constants.devicesTab}
-        onClick={() => props.onTabChange(Constants.devicesTab)}
-        badgeNumber={props.badgeNumbers.get(TabConstants.devicesTab)}
-      />
-      <Kb.SectionDivider label="Settings" />
+      {Styles.isTablet && (
+        <Kb.Box style={styles.header}>
+          <SettingsItem
+            text="Git"
+            selected={props.selectedTab === Constants.gitTab}
+            onClick={() => props.onTabChange(Constants.gitTab)}
+            badgeNumber={props.badgeNumbers.get(TabConstants.gitTab)}
+          />
+          <SettingsItem
+            text="Devices"
+            selected={props.selectedTab === Constants.devicesTab}
+            onClick={() => props.onTabChange(Constants.devicesTab)}
+            badgeNumber={props.badgeNumbers.get(TabConstants.devicesTab)}
+          />
+          <Kb.SectionDivider label="Settings" />
+        </Kb.Box>
+      )}
       <SettingsItem
         text="Your account"
         selected={props.selectedTab === Constants.accountTab}
@@ -73,11 +77,21 @@ const SplitNav = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.blueGrey,
-    paddingTop: Styles.globalMargins.small,
-    width: 160,
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.blueGrey,
+      paddingTop: Styles.globalMargins.small,
+    },
+    isElectron: {
+      width: 160,
+    },
+    isTablet: {
+      width: Styles.globalStyles.shortWidth,
+    },
+  }),
+  header: {
+    marginTop: Styles.globalMargins.xlarge,
   },
 }))
 

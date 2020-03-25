@@ -69,6 +69,7 @@ export declare const globalStyles: {
     borderRadius: 3
   }
   shortWidth: number | string
+  tinyWidth: number | string
 }
 
 export declare const desktopStyles: {

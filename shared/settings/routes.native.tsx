@@ -7,8 +7,10 @@ import * as Container from '../util/container'
 import AboutTab from './about-container'
 import AdvancedTab from './advanced'
 import ChatTab from './chat/container'
+import DevicesTab from '../devices/container'
 import DisplayTab from './display/container'
 import FsTab from './files/container'
+import GitTab from '../git/container'
 import WalletsTab from '../wallets/wallet/container'
 import FeedbackTab from './feedback/container'
 import InvitationsTab from './invites/container'
@@ -32,6 +34,8 @@ import WhatsNewTab from '../whats-new/container'
 import SettingsRoot from '.'
 
 const subRoutes = {
+  [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
+  [Constants.gitTab]: {getScreen: (): typeof GitTab => require('../git/container').default},
   [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
   [Constants.advancedTab]: {
     getScreen: (): typeof AdvancedTab => require('./advanced').default,

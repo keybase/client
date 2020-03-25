@@ -54,15 +54,21 @@ const Git = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
-      <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={() => setShowingPopup(!showingPopup)}>
-        <Kb.Icon
-          type="iconfont-new"
-          style={{marginRight: Styles.globalMargins.tiny}}
-          color={Styles.globalColors.blue}
-          fontSize={Styles.isMobile ? 20 : 16}
-        />
-        <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
-      </Kb.ClickableBox>
+      {Styles.isMobile && (
+        <Kb.ClickableBox
+          ref={popupAnchor}
+          style={styles.header}
+          onClick={() => setShowingPopup(!showingPopup)}
+        >
+          <Kb.Icon
+            type="iconfont-new"
+            style={{marginRight: Styles.globalMargins.tiny}}
+            color={Styles.globalColors.blue}
+            fontSize={Styles.isMobile ? 20 : 16}
+          />
+          <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
+        </Kb.ClickableBox>
+      )}
       <Kb.SectionList
         keyExtractor={item => item}
         sectionKeyExtractor={section => section.title}

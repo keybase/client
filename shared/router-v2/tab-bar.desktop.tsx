@@ -32,9 +32,11 @@ export type Props = {
 const data = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
   [Tabs.cryptoTab]: {icon: 'iconfont-nav-2-crypto', label: 'Crypto'},
+  [Tabs.devicesTab]: {icon: 'iconfont-nav-2-devices', label: 'Devices'},
   [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
+  [Tabs.gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
   [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
+  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
   [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const

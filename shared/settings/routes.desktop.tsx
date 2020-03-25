@@ -73,7 +73,7 @@ const SettingsSubNavigator = createNavigator(
 )
 
 SettingsSubNavigator.navigationOptions = {
-  title: 'More',
+  title: 'Settings',
 }
 
 export const newRoutes = {
