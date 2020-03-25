@@ -37,7 +37,7 @@ export const usePhoneNumberList = () => {
    */
   const resetPhoneNumbers = () => {
     setPhoneNumbers([
-      {key: (phoneNumbers[phoneNumbers.length - 1]?.key || -1) + 1, phoneNumber: '', valid: false},
+      {key: (phoneNumbers[phoneNumbers.length - 1]?.key ?? -1) + 1, phoneNumber: '', valid: false},
     ])
   }
 
