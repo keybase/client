@@ -12,7 +12,7 @@ var (
 	countsCacheMu sync.Mutex // mutex isn't rw due to low call frequency
 )
 
-func GetCounts(m libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
+func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
 	type apiRes struct {
 		NumInvitesInLastDay int     `json:"numInvitesInLastDay"`
 		PercentageChange    float64 `json:"percentageChange"`
@@ -25,7 +25,7 @@ func GetCounts(m libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
 		SessionType: libkb.APISessionTypeNONE,
 	}
 	var res apiRes
-	err = m.G().API.GetDecode(m, apiArg, &res)
+	err = mctx.G().API.GetDecode(mctx, apiArg, &res)
 	if err != nil {
 		return counts, err
 	}
@@ -41,9 +41,9 @@ func GetCounts(m libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
 	return newCounts, nil
 }
 
-func RequestNotification(m libkb.MetaContext) error {
+func RequestNotification(mctx libkb.MetaContext) error {
 	// noop if there's no home ui present
-	if ui, err := m.G().UIRouter.GetHomeUI(); ui == nil || err == nil {
+	if ui, err := mctx.G().UIRouter.GetHomeUI(); ui == nil || err == nil {
 		return nil
 	}
 
@@ -53,12 +53,12 @@ func RequestNotification(m libkb.MetaContext) error {
 	countsCacheMu.Unlock()
 
 	if counts == nil {
-		freshCounts, err := GetCounts(m)
+		freshCounts, err := GetCounts(mctx)
 		if err != nil {
 			return err
 		}
 		counts = &freshCounts
 	}
-	m.G().NotifyRouter.HandleUpdateInviteCounts(m.Ctx(), *counts)
+	mctx.G().NotifyRouter.HandleUpdateInviteCounts(mctx.Ctx(), *counts)
 	return nil
 }

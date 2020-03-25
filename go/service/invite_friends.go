@@ -29,11 +29,11 @@ func NewInviteFriendsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *Invite
 var _ keybase1.InviteFriendsInterface = (*InviteFriendsHandler)(nil)
 
 func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.InvitePeopleArg) (succeeded int, err error) {
-	m := libkb.NewMetaContext(ctx, h.G())
-	defer m.TraceTimed("InviteFriendsHandler#InvitePeople", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("InviteFriendsHandler#InvitePeople", func() error { return err })()
 
 	if err := assertLoggedIn(ctx, h.G()); err != nil {
-		m.Debug("not logged in err: %v", err)
+		mctx.Debug("not logged in err: %v", err)
 		return 0, err
 	}
 
@@ -41,10 +41,10 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 	var assertions []string
 	if arg.Emails.EmailsFromContacts != nil {
 		for _, email := range *arg.Emails.EmailsFromContacts {
-			assertion, parseErr := libkb.ParseAssertionURLKeyValue(m.G().MakeAssertionContext(m), "email", email.String(), false)
+			assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "email", email.String(), false)
 			if parseErr != nil {
 				allOK = false
-				m.Debug("failed to parse email %q; skipping: %s", email, parseErr)
+				mctx.Debug("failed to parse email %q; skipping: %s", email, parseErr)
 				continue
 			}
 			assertions = append(assertions, assertion.String())
@@ -52,7 +52,7 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 	}
 	if arg.Emails.CommaSeparatedEmailsFromUser != nil {
 		var malformed []string
-		parsedEmails := teams.ParseCommaSeparatedEmails(m, *arg.Emails.CommaSeparatedEmailsFromUser, &malformed)
+		parsedEmails := teams.ParseCommaSeparatedEmails(mctx, *arg.Emails.CommaSeparatedEmailsFromUser, &malformed)
 		if len(malformed) > 0 {
 			allOK = false
 		}
@@ -60,10 +60,10 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 	}
 	for _, phone := range arg.Phones {
 		phoneStr := strings.TrimPrefix(phone.String(), "+")
-		assertion, parseErr := libkb.ParseAssertionURLKeyValue(m.G().MakeAssertionContext(m), "phone", phoneStr, false)
+		assertion, parseErr := libkb.ParseAssertionURLKeyValue(mctx.G().MakeAssertionContext(mctx), "phone", phoneStr, false)
 		if parseErr != nil {
 			allOK = false
-			m.Debug("failed to parse phone number %q; skipping: %s", phone, parseErr)
+			mctx.Debug("failed to parse phone number %q; skipping: %s", phone, parseErr)
 			continue
 		}
 		assertions = append(assertions, assertion.String())
@@ -87,7 +87,7 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 		JSONPayload: payload,
 	}
 	var res apiRes
-	err = m.G().API.PostDecode(m, apiArg, &res)
+	err = mctx.G().API.PostDecode(mctx, apiArg, &res)
 	if err != nil {
 		return 0, err
 	}
@@ -95,15 +95,15 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 }
 
 func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keybase1.InviteCounts, err error) {
-	m := libkb.NewMetaContext(ctx, h.G())
-	defer m.TraceTimed("InviteFriendsHandler#GetInviteCounts", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("InviteFriendsHandler#GetInviteCounts", func() error { return err })()
 
-	return invitefriends.GetCounts(m)
+	return invitefriends.GetCounts(mctx)
 }
 
 func (h *InviteFriendsHandler) RequestInviteCounts(ctx context.Context) (err error) {
-	m := libkb.NewMetaContext(ctx, h.G())
-	defer m.TraceTimed("InviteFriendsHandler#RequestInviteCounts", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("InviteFriendsHandler#RequestInviteCounts", func() error { return err })()
 
-	return invitefriends.RequestNotification(m)
+	return invitefriends.RequestNotification(mctx)
 }
