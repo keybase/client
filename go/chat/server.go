@@ -722,24 +722,9 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 		return res, err
 	}
 	err = h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status)
-	switch err.(type) {
-	case nil:
-		return chat1.SetConversationStatusLocalRes{
-			IdentifyFailures: identBreaks,
-		}, nil
-	case libkb.ChatBadConversationError:
-		// Clear the inbox, we could have a deleted conversation stuck in our
-		// cache that we need to boot.
-		if err := h.G().InboxSource.Clear(ctx, uid); err != nil {
-			h.Debug(ctx, "unable to clear inbox %v", err)
-		}
-		h.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "SetConversationStatusLocal")
-		return chat1.SetConversationStatusLocalRes{
-			IdentifyFailures: identBreaks,
-		}, nil
-	default:
-		return res, err
-	}
+	return chat1.SetConversationStatusLocalRes{
+		IdentifyFailures: identBreaks,
+	}, err
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
