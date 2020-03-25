@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -53,7 +54,13 @@ func (c *CmdChatListEmoji) Run() error {
 			default:
 				source = "???"
 			}
-			dui.Printf("%s src: %s\n", emoji.Alias, source)
+			var creator string
+			var timeStr string
+			if emoji.CreationInfo != nil {
+				creator = emoji.CreationInfo.Username
+				timeStr = emoji.CreationInfo.Time.Time().Format(time.UnixDate)
+			}
+			dui.Printf("%s creator: %s time: %s src: %s\n", emoji.Alias, creator, timeStr, source)
 		}
 	}
 	return nil

@@ -148,7 +148,33 @@ func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote cha
 		url := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false)
 		return chat1.NewEmojiLoadSourceWithHttpsrv(url), nil
 	default:
-		return res, errors.New("unknown remote source")
+		return res, errors.New("unknown remote source for local source")
+	}
+}
+
+func (s *DevConvEmojiSource) creationInfo(ctx context.Context, uid gregor1.UID,
+	remote chat1.EmojiRemoteSource) (res chat1.EmojiCreationInfo, err error) {
+	typ, err := remote.Typ()
+	if err != nil {
+		return res, err
+	}
+	reason := chat1.GetThreadReason_EMOJISOURCE
+	switch typ {
+	case chat1.EmojiRemoteSourceTyp_MESSAGE:
+		msg := remote.Message()
+		sourceMsg, err := GetMessage(ctx, s.G(), uid, msg.ConvID, msg.MsgID, false, &reason)
+		if err != nil {
+			return res, err
+		}
+		if !sourceMsg.IsValid() {
+			return res, errors.New("invalid message for creation info")
+		}
+		return chat1.EmojiCreationInfo{
+			Username: sourceMsg.Valid().SenderUsername,
+			Time:     sourceMsg.Valid().ServerHeader.Ctime,
+		}, nil
+	default:
+		return res, errors.New("unknown remote source for creation info")
 	}
 }
 
@@ -193,16 +219,25 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 				Name: conv.Info.TlfName,
 			}
 			for alias, storedEmoji := range stored.Mapping {
+				var creationInfo *chat1.EmojiCreationInfo
 				source, err := s.remoteToLocalSource(ctx, storedEmoji)
 				if err != nil {
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
+				}
+				ci, err := s.creationInfo(ctx, uid, storedEmoji)
+				if err != nil {
+					s.Debug(ctx, "Get: failed to get creation info: %s", err)
+				} else {
+					creationInfo = new(chat1.EmojiCreationInfo)
+					*creationInfo = ci
 				}
 				emoji := chat1.Emoji{
 					Alias:        alias,
 					Source:       source,
 					RemoteSource: storedEmoji,
 					IsCrossTeam:  isCrossTeam,
+					CreationInfo: creationInfo,
 				}
 				if seen, ok := seenAliases[alias]; ok {
 					seenAliases[alias]++

@@ -2,6 +2,7 @@
 
 protocol emoji {
   import idl "common.avdl";
+  import idl "../gregor1" as gregor1;
 
   enum EmojiLoadSourceTyp {
     HTTPSRV_0
@@ -30,11 +31,17 @@ protocol emoji {
     EmojiRemoteSource source;
   }
 
+  record EmojiCreationInfo {
+    string username;
+    gregor1.Time time;
+  }
+
   record Emoji {
     string alias;
     boolean isCrossTeam;
     EmojiLoadSource source;
     EmojiRemoteSource remoteSource;
+    union { null, EmojiCreationInfo } creationInfo;
   }
 
   record EmojiGroup {
