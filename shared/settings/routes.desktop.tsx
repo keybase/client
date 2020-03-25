@@ -3,6 +3,8 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
+import DevicesTab from '../devices/container'
+import GitTab from '../git/container'
 import FsTab from './files/container'
 import AdvancedTab from './advanced'
 import ChatTab from './chat/container'
@@ -22,6 +24,8 @@ import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
+  [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
+  [Constants.gitTab]: {getScreen: (): typeof GitTab => require('../git/container').default},
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},

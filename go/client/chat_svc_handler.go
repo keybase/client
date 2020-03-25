@@ -1350,7 +1350,7 @@ func (c *chatServiceHandler) EmojiListV1(ctx context.Context) Reply {
 	if err != nil {
 		return c.errReply(err)
 	}
-	res, err := chatClient.UserEmojis(ctx)
+	res, err := chatClient.UserEmojis(ctx, nil)
 	if err != nil {
 		return c.errReply(err)
 	}

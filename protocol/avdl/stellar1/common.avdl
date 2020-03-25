@@ -26,10 +26,11 @@ protocol common {
     boolean showWithdrawButton; // if true, show a withdraw button
     string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
     string withdrawType; // bank_account, crypto, cash, etc. that the anchor supports
-    string transferServer; // sep6 transfer server
-    string authEndpoint; // sep6 auth endpoint
+    string transferServer; // sep6/24 transfer server
+    string authEndpoint; // sep6/24 auth endpoint
     boolean depositReqAuth; // deposit requires sep10 authentication
     boolean withdrawReqAuth; // withdraw requires sep10 authentication
+    boolean useSep24; // anchor uses sep24 instead of sep6
   }
 
   record AssetListResult {

@@ -685,6 +685,8 @@ export type TypedActionsMap = {
   'people:getPeopleData': people.GetPeopleDataPayload
   'people:peopleDataProcessed': people.PeopleDataProcessedPayload
   'people:dismissAnnouncement': people.DismissAnnouncementPayload
+  'people:dismissWotNotifications': people.DismissWotNotificationsPayload
+  'people:badgeAppForWotNotifications': people.BadgeAppForWotNotificationsPayload
   'people:markViewed': people.MarkViewedPayload
   'people:skipTodo': people.SkipTodoPayload
   'people:setResentEmail': people.SetResentEmailPayload

@@ -37,7 +37,7 @@ func (c *CmdChatListEmoji) Run() error {
 	if err != nil {
 		return err
 	}
-	res, err := cli.UserEmojis(ctx)
+	res, err := cli.UserEmojis(ctx, nil)
 	if err != nil {
 		return err
 	}

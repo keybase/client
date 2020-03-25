@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
+import * as Types from '../../../constants/types/teams'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
@@ -13,6 +14,7 @@ const CreateSubteams = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
+  const teamID = Types.newTeamWizardTeamID
   const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
   const initialSubteams = Container.useSelector(s => s.teams.newTeamWizard.subteams) ?? ['', '', '']
 
@@ -45,7 +47,7 @@ const CreateSubteams = () => {
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Create subteams" />,
+        title: <ModalTitle teamID={teamID} title="Create subteams" />,
       }}
       footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}

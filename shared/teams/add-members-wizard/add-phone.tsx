@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle, usePhoneNumberList} from '../common'
@@ -17,7 +16,6 @@ const AddPhone = () => {
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
 
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
 
   React.useEffect(() => {
@@ -40,7 +38,7 @@ const AddPhone = () => {
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Phone list" />,
+        title: <ModalTitle teamID={teamID} title="Phone list" />,
       }}
       allowOverflow={true}
       footer={{

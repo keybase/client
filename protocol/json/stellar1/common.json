@@ -133,6 +133,10 @@
         {
           "type": "boolean",
           "name": "withdrawReqAuth"
+        },
+        {
+          "type": "boolean",
+          "name": "useSep24"
         }
       ]
     },
