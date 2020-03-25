@@ -63,7 +63,7 @@ const CommonResult = (props: CommonResultProps) => {
   return (
     <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
       <Kb.Box2
-        className="hover_background_color_blueLighter2"
+        className="hover_background_color_blueLighter2 hover_container"
         direction="horizontal"
         fullWidth={true}
         centerChildren={true}
