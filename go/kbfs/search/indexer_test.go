@@ -369,12 +369,6 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	sendToIndexer(nil) // beta
 	err = errors.New("STOP")
 	sendToIndexer(err)
-	// The `SetInitialHeadFromServer` call when the indexer constructs
-	// its read-only FS ends up causing two more sync requests that
-	// need to be stopped.  (In production, these should be no-ops
-	// once the first pass of the indexer is done.)
-	sendToIndexer(err)
-	sendToIndexer(err)
 
 	err = i.waitForSyncs(ctx)
 	require.NoError(t, err)

@@ -1713,16 +1713,23 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 	}
 }
 
+func (fbo *folderBranchOps) isSyncedTlf() bool {
+	return fbo.branch() == data.MasterBranch && fbo.config.IsSyncedTlf(fbo.id())
+}
+
 func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
 	ptr := rmd.Data().Dir.BlockPointer
 	action := fbo.config.Mode().DefaultBlockRequestAction().
 		AddStopPrefetchIfFull()
-	if !action.prefetch() && fbo.config.IsSyncedTlf(fbo.id()) {
+	if !action.prefetch() && fbo.isSyncedTlf() {
 		// Explicitly add the prefetch action for synced folders when
 		// getting the root block, since in some modes (like
 		// constrained) the prefetch action isn't set by default.
 		action = action.AddPrefetch()
+	}
+	if fbo.branch() != data.MasterBranch {
+		action = action.AddNonMasterBranch()
 	}
 
 	return fbo.config.BlockOps().BlockRetriever().Request(
@@ -1765,7 +1772,7 @@ func (fbo *folderBranchOps) waitForRootBlockFetchAndSyncIfNeeded(
 		return data.ZeroPtr, nil, err
 	}
 
-	if fbo.config.IsSyncedTlf(rmd.TlfID()) {
+	if fbo.isSyncedTlf() {
 		fbo.syncedTlfObservers.fullSyncStarted(
 			ctx, fbo.id(), rmd.Revision(), waitCh)
 	}
@@ -2694,7 +2701,7 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 		}
 	}()
 	cacheType := DiskBlockAnyCache
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		cacheType = DiskBlockSyncCache
 	}
 	ptrsToDelete, err := doBlockPuts(
@@ -2842,7 +2849,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	cacheType := DiskBlockAnyCache
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		cacheType = DiskBlockSyncCache
 	}
 	if err = PutBlockCheckLimitErrs(
@@ -3262,7 +3269,7 @@ func (fbo *folderBranchOps) transformReadError(
 		return err
 	}
 
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		fbo.log.CWarningf(ctx,
 			"Got unexpected read error on a synced TLF: %+v", err)
 		return err
@@ -6259,7 +6266,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	// Put all the blocks.
 	cacheType := DiskBlockAnyCache
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		cacheType = DiskBlockSyncCache
 	}
 	blocksToRemove, err = doBlockPuts(
