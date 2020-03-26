@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	"fmt"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -173,11 +174,24 @@ func (o HarvestedEmoji) DeepCopy() HarvestedEmoji {
 	}
 }
 
+type EmojiCreationInfo struct {
+	Username string       `codec:"username" json:"username"`
+	Time     gregor1.Time `codec:"time" json:"time"`
+}
+
+func (o EmojiCreationInfo) DeepCopy() EmojiCreationInfo {
+	return EmojiCreationInfo{
+		Username: o.Username,
+		Time:     o.Time.DeepCopy(),
+	}
+}
+
 type Emoji struct {
-	Alias        string            `codec:"alias" json:"alias"`
-	IsCrossTeam  bool              `codec:"isCrossTeam" json:"isCrossTeam"`
-	Source       EmojiLoadSource   `codec:"source" json:"source"`
-	RemoteSource EmojiRemoteSource `codec:"remoteSource" json:"remoteSource"`
+	Alias        string             `codec:"alias" json:"alias"`
+	IsCrossTeam  bool               `codec:"isCrossTeam" json:"isCrossTeam"`
+	Source       EmojiLoadSource    `codec:"source" json:"source"`
+	RemoteSource EmojiRemoteSource  `codec:"remoteSource" json:"remoteSource"`
+	CreationInfo *EmojiCreationInfo `codec:"creationInfo,omitempty" json:"creationInfo,omitempty"`
 }
 
 func (o Emoji) DeepCopy() Emoji {
@@ -186,6 +200,13 @@ func (o Emoji) DeepCopy() Emoji {
 		IsCrossTeam:  o.IsCrossTeam,
 		Source:       o.Source.DeepCopy(),
 		RemoteSource: o.RemoteSource.DeepCopy(),
+		CreationInfo: (func(x *EmojiCreationInfo) *EmojiCreationInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CreationInfo),
 	}
 }
 

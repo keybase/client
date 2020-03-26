@@ -203,10 +203,6 @@ const paymentActions: Container.ActionHandler<Actions, Types.State> = {
 }
 
 const searchActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.setChannelSearchText]: (draftState, action) => {
-    const {text} = action.payload
-    draftState.channelSearchText = text.toLowerCase()
-  },
   [Chat2Gen.threadSearchResults]: (draftState, action) => {
     const {conversationIDKey, clear, messages} = action.payload
     const {threadSearchInfoMap} = draftState
@@ -1183,9 +1179,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.setExplodingModeLock]: (draftState, action) => {
     const {conversationIDKey, unset} = action.payload
     const {explodingModes, explodingModeLocks} = draftState
-    const mode = explodingModes.get(conversationIDKey) || 0
+    const mode = explodingModes.get(conversationIDKey) ?? 0
     // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
-    const alreadyLocked = (explodingModeLocks.get(conversationIDKey) || null) !== null
+    const alreadyLocked = explodingModeLocks.get(conversationIDKey) !== undefined
     if (unset) {
       explodingModeLocks.delete(conversationIDKey)
     } else if (!alreadyLocked) {

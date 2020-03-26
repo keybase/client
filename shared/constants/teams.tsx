@@ -675,7 +675,7 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
         isOpen: state.teams.newTeamWizard.open,
         memberCount: 0,
         showcasing: state.teams.newTeamWizard.showcase,
-        teamname: state.teams.newTeamWizard.name,
+        teamname: state.teams.newTeamWizard.name == '' ? 'New team' : state.teams.newTeamWizard.name,
       })
     : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 

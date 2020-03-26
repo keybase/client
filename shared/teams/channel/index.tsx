@@ -196,6 +196,7 @@ const Channel = (props: OwnProps) => {
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
       />
       <SelectionPopup
         selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
@@ -240,6 +241,13 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 0,
   },
   header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+  list: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.fillAbsolute,
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'stretch',
+    },
+  }),
   listContentContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,

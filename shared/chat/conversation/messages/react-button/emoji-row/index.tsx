@@ -84,6 +84,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             propagateOutsideClicks={false}
           >
             <EmojiPickerDesktop
+              conversationIDKey={this.props.conversationIDKey}
               onPick={{
                 conversationIDKey: this.props.conversationIDKey,
                 ordinal: this.props.ordinal,

@@ -2548,6 +2548,20 @@ func (r *AddEmojiRes) SetRateLimits(rl []RateLimit) {
 		r.RateLimit = &rl[0]
 	}
 }
+
+func (r *RemoveEmojiRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *RemoveEmojiRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
 func (r *UserEmojiRes) GetRateLimit() (res []RateLimit) {
 	if r.RateLimit != nil {
 		res = []RateLimit{*r.RateLimit}

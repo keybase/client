@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
@@ -92,7 +93,7 @@ func initPrefetcherTestWithDiskCache(t *testing.T, dbc DiskBlockCache) (
 	// _actually_ completed.
 	bg := newFakeBlockGetter(false)
 	config := newTestBlockRetrievalConfig(t, bg, dbc)
-	q := newBlockRetrievalQueue(1, 1, 0, config)
+	q := newBlockRetrievalQueue(1, 1, 0, config, env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 
 	return q, bg, config
@@ -2322,4 +2323,57 @@ func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
 		"complete with only a single notify, for root2's child.")
 	notifySyncCh(t, prefetchSyncCh)
 	waitForPrefetchOrBust(ctx, t, q.Prefetcher(), rootPtr2)
+}
+
+type testAppStateUpdater struct {
+	c      <-chan keybase1.MobileNetworkState
+	calls  chan<- keybase1.MobileNetworkState
+	nCalls int
+}
+
+func (tasu *testAppStateUpdater) NextAppStateUpdate(
+	_ *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
+	// Receiving on a nil channel blocks forever.
+	return nil
+}
+
+func (tasu *testAppStateUpdater) NextNetworkStateUpdate(
+	lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState {
+	if tasu.nCalls > 0 {
+		tasu.calls <- *lastState
+		tasu.nCalls--
+	}
+	return tasu.c
+}
+
+func TestPrefetcherCellularPause(t *testing.T) {
+	t.Log("Test that a cell mobile network pauses prefetching.")
+	bg := newFakeBlockGetter(false)
+	config := newTestBlockRetrievalConfig(t, bg, nil)
+	stateCh := make(chan keybase1.MobileNetworkState)
+	callCh := make(chan keybase1.MobileNetworkState)
+	q := newBlockRetrievalQueue(
+		1, 1, 0, config, &testAppStateUpdater{stateCh, callCh, 4})
+	require.NotNil(t, q)
+	<-callCh // Initial prefetcher, before sync ch is set.
+
+	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
+	<-q.TogglePrefetcher(true, prefetchSyncCh, nil)
+
+	notifySyncCh(t, prefetchSyncCh)
+	last := <-callCh
+	require.Equal(t, keybase1.MobileNetworkState_NONE, last)
+
+	t.Log("Switch to cell and make sure it pauses")
+	stateCh <- keybase1.MobileNetworkState_CELLULAR
+	// Should be called again without a call to syncCh.
+	last = <-callCh
+	require.Equal(t, keybase1.MobileNetworkState_CELLULAR, last)
+
+	t.Log("Unpause it to make it notify again")
+	stateCh <- keybase1.MobileNetworkState_NONE
+	notifySyncCh(t, prefetchSyncCh)
+	last = <-callCh
+	require.Equal(t, keybase1.MobileNetworkState_NONE, last)
 }

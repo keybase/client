@@ -101,18 +101,9 @@ func TestAttachmentUploader(t *testing.T) {
 	cacheSize := 1
 	uploader := NewUploader(g, store, NewS3Signer(getRi), getRi, cacheSize)
 	convID := chat1.ConversationID([]byte{0, 1, 0})
-	outboxID, err := storage.NewOutboxID()
-	require.NoError(t, err)
-	filename := "../testdata/ship.jpg"
-
-	// Basic test to see if it works
-	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
-		return chat1.Asset{}, nil
-	}
 	md, err := libkb.RandBytes(10)
 	require.NoError(t, err)
-	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
-	require.NoError(t, err)
+
 	uploadStartCheck := func(shouldHappen bool, outboxID chat1.OutboxID) {
 		if shouldHappen {
 			select {
@@ -157,6 +148,39 @@ func TestAttachmentUploader(t *testing.T) {
 			require.Fail(t, "no upload")
 		}
 	}
+
+	successCheckEmpty := func(cb types.AttachmentUploaderResultCb) {
+		ch := cb.Wait()
+		select {
+		case res := <-ch:
+			require.Nil(t, res.Error)
+			require.Equal(t, md, res.Metadata)
+			require.Nil(t, res.Preview)
+			require.Equal(t, "", res.Object.MimeType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no upload")
+		}
+	}
+
+	// Basic test to see if it works
+	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
+		return chat1.Asset{}, nil
+	}
+
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	filename := "../testdata/empty.txt"
+	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "empty", filename, md, nil)
+	require.NoError(t, err)
+	deliverCheck(true)
+	uploadStartCheck(true, outboxID)
+	successCheckEmpty(resChan)
+
+	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
+	filename = "../testdata/ship.jpg"
+	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
+	require.NoError(t, err)
 	deliverCheck(true)
 	uploadStartCheck(true, outboxID)
 	successCheck(resChan)

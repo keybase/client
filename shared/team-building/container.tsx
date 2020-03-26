@@ -639,6 +639,7 @@ const mergeProps = (
     showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamBuildingSearchResults: stateProps.teamBuildingSearchResults,
+    teamID: ownProps.teamID,
     teamSoFar,
     teamname: stateProps.teamname,
     title,

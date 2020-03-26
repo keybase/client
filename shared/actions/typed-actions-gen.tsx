@@ -83,6 +83,7 @@ export type TypedActionsMap = {
   'bots:setSearchFeaturedAndUsersResults': bots.SetSearchFeaturedAndUsersResultsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:selectedConversation': chat2.SelectedConversationPayload
+  'chat2:deselectedConversation': chat2.DeselectedConversationPayload
   'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
@@ -221,7 +222,6 @@ export type TypedActionsMap = {
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
-  'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'chat2:updateBlockButtons': chat2.UpdateBlockButtonsPayload
   'chat2:dismissBlockButtons': chat2.DismissBlockButtonsPayload
   'chat2:setInboxNumSmallRows': chat2.SetInboxNumSmallRowsPayload
@@ -317,6 +317,7 @@ export type TypedActionsMap = {
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:runTextOperation': crypto.RunTextOperationPayload
   'crypto:runFileOperation': crypto.RunFileOperationPayload
   'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
@@ -473,6 +474,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyFSFSOnlineStatusChanged': enginegen.Keybase1NotifyFSFSOnlineStatusChangedPayload
   'engine-gen:keybase1NotifyFSFSSubscriptionNotifyPath': enginegen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload
   'engine-gen:keybase1NotifyFSFSSubscriptionNotify': enginegen.Keybase1NotifyFSFSSubscriptionNotifyPayload
+  'engine-gen:keybase1NotifyInviteFriendsUpdateInviteCounts': enginegen.Keybase1NotifyInviteFriendsUpdateInviteCountsPayload
   'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged': enginegen.Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   'engine-gen:keybase1NotifyPaperKeyPaperKeyCached': enginegen.Keybase1NotifyPaperKeyPaperKeyCachedPayload
   'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile': enginegen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
@@ -684,6 +686,8 @@ export type TypedActionsMap = {
   'people:getPeopleData': people.GetPeopleDataPayload
   'people:peopleDataProcessed': people.PeopleDataProcessedPayload
   'people:dismissAnnouncement': people.DismissAnnouncementPayload
+  'people:dismissWotNotifications': people.DismissWotNotificationsPayload
+  'people:badgeAppForWotNotifications': people.BadgeAppForWotNotificationsPayload
   'people:markViewed': people.MarkViewedPayload
   'people:skipTodo': people.SkipTodoPayload
   'people:setResentEmail': people.SetResentEmailPayload

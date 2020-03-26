@@ -853,6 +853,14 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "@keybase.bots.build.macos",
 			result: "@keybase.bots.build.macos",
 		},
+		{
+			body:   "keybase://team-page/keybasefriends",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsidXJsIjoia2V5YmFzZTovL3RlYW0tcGFnZS9rZXliYXNlZnJpZW5kcyIsInB1bnljb2RlIjoiIn19$<kb$",
+		},
+		{
+			body:   "keybase://team-page/keybasefriends https://github.com",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsidXJsIjoia2V5YmFzZTovL3RlYW0tcGFnZS9rZXliYXNlZnJpZW5kcyIsInB1bnljb2RlIjoiIn19$<kb$ $>kb$eyJ0eXAiOjQsImxpbmsiOnsidXJsIjoiaHR0cHM6Ly9naXRodWIuY29tIiwicHVueWNvZGUiOiIifX0=$<kb$",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)

@@ -39,6 +39,7 @@ export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
+export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
@@ -127,7 +128,6 @@ export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
 export const setBotPublicCommands = 'chat2:setBotPublicCommands'
 export const setBotRoleInConv = 'chat2:setBotRoleInConv'
 export const setBotSettings = 'chat2:setBotSettings'
-export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -273,6 +273,7 @@ type _ConversationErroredPayload = {
   readonly message: string
 }
 type _CreateConversationPayload = {readonly participants: Array<string>}
+type _DeselectedConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly author: string
@@ -645,7 +646,6 @@ type _SetBotSettingsPayload = {
   readonly username: string
   readonly settings: RPCTypes.TeamBotSettings
 }
-type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
@@ -820,6 +820,12 @@ type _UpdateUserReacjisPayload = {readonly userReacjis: RPCTypes.UserReacjis}
 
 // Action Creators
 /**
+ * About to try and unbox some inbox rows
+ */
+export const createMetaRequestingTrusted = (
+  payload: _MetaRequestingTrustedPayload
+): MetaRequestingTrustedPayload => ({payload, type: metaRequestingTrusted})
+/**
  * Actually start a conversation
  */
 export const createCreateConversation = (payload: _CreateConversationPayload): CreateConversationPayload => ({
@@ -827,11 +833,30 @@ export const createCreateConversation = (payload: _CreateConversationPayload): C
   type: createConversation,
 })
 /**
+ * Actually unboxing
+ */
+export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload): MetaRequestTrustedPayload => ({
+  payload,
+  type: metaRequestTrusted,
+})
+/**
  * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
  */
 export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload): AddUsersToChannelPayload => ({
   payload,
   type: addUsersToChannel,
+})
+/**
+ * Add a new message
+ *
+ * Context types:
+ * - sent = we sent it
+ * - incoming = a streaming message
+ * - threadLoad = we're loading more messages on select / scroll
+ */
+export const createMessagesAdd = (payload: _MessagesAddPayload): MessagesAddPayload => ({
+  payload,
+  type: messagesAdd,
 })
 /**
  * Add a single user to a conversation. Creates a SystemBulkAddToConv message.
@@ -853,6 +878,13 @@ export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload): U
 export const createAddAttachmentViewMessage = (
   payload: _AddAttachmentViewMessagePayload
 ): AddAttachmentViewMessagePayload => ({payload, type: addAttachmentViewMessage})
+/**
+ * Block a conversation
+ */
+export const createBlockConversation = (payload: _BlockConversationPayload): BlockConversationPayload => ({
+  payload,
+  type: blockConversation,
+})
 /**
  * Change selected index of inbox search
  */
@@ -889,6 +921,25 @@ export const createUpdateConvRetentionPolicy = (
 export const createUpdateTeamRetentionPolicy = (
   payload: _UpdateTeamRetentionPolicyPayload
 ): UpdateTeamRetentionPolicyPayload => ({payload, type: updateTeamRetentionPolicy})
+/**
+ * Conversation was loaded and is offline
+ */
+export const createSetConversationOffline = (
+  payload: _SetConversationOfflinePayload
+): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+/**
+ * Delete a message
+ */
+export const createMessageDelete = (payload: _MessageDeletePayload): MessageDeletePayload => ({
+  payload,
+  type: messageDelete,
+})
+/**
+ * Deletes all messages
+ */
+export const createMessageDeleteHistory = (
+  payload: _MessageDeleteHistoryPayload
+): MessageDeleteHistoryPayload => ({payload, type: messageDeleteHistory})
 /**
  * Desktop changed tab to chat
  */
@@ -929,17 +980,71 @@ export const createGiphyGotSearchResult = (
   payload: _GiphyGotSearchResultPayload
 ): GiphyGotSearchResultPayload => ({payload, type: giphyGotSearchResult})
 /**
+ * Got an error sending a message
+ */
+export const createMessageErrored = (payload: _MessageErroredPayload): MessageErroredPayload => ({
+  payload,
+  type: messageErrored,
+})
+/**
+ * Got an error while creating a conversation.
+ */
+export const createConversationErrored = (
+  payload: _ConversationErroredPayload
+): ConversationErroredPayload => ({payload, type: conversationErrored})
+/**
+ * Got some inbox errors
+ */
+export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload): MetaReceivedErrorPayload => ({
+  payload,
+  type: metaReceivedError,
+})
+/**
+ * Got some new inbox rows
+ */
+export const createMetasReceived = (payload: _MetasReceivedPayload): MetasReceivedPayload => ({
+  payload,
+  type: metasReceived,
+})
+/**
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (
   payload: _UpdateConvExplodingModesPayload
 ): UpdateConvExplodingModesPayload => ({payload, type: updateConvExplodingModes})
 /**
+ * Hide a conversation until future activity
+ */
+export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
+  payload,
+  type: hideConversation,
+})
+/**
+ * If an implied team chat member resets you can add them back in
+ */
+export const createResetLetThemIn = (payload: _ResetLetThemInPayload): ResetLetThemInPayload => ({
+  payload,
+  type: resetLetThemIn,
+})
+/**
+ * If an implied team chat member resets you can start a new chat w/o any reset people
+ */
+export const createResetChatWithoutThem = (
+  payload: _ResetChatWithoutThemPayload
+): ResetChatWithoutThemPayload => ({payload, type: resetChatWithoutThem})
+/**
  * Ignore pinned message
  */
 export const createIgnorePinnedMessage = (
   payload: _IgnorePinnedMessagePayload
 ): IgnorePinnedMessagePayload => ({payload, type: ignorePinnedMessage})
+/**
+ * Image data pasted into a conversation
+ */
+export const createAttachmentPasted = (payload: _AttachmentPastedPayload): AttachmentPastedPayload => ({
+  payload,
+  type: attachmentPasted,
+})
 /**
  * Inbox search has started
  */
@@ -966,6 +1071,13 @@ export const createInboxSearchTextResult = (
   payload: _InboxSearchTextResultPayload
 ): InboxSearchTextResultPayload => ({payload, type: inboxSearchTextResult})
 /**
+ * Internal action: pull more metas from the queue to request
+ */
+export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload): MetaHandleQueuePayload => ({
+  payload,
+  type: metaHandleQueue,
+})
+/**
  * Jump to a replied to message
  */
 export const createReplyJump = (payload: _ReplyJumpPayload): ReplyJumpPayload => ({payload, type: replyJump})
@@ -983,6 +1095,39 @@ export const createLoadAttachmentView = (payload: _LoadAttachmentViewPayload): L
   payload,
   type: loadAttachmentView,
 })
+/**
+ * Load some more messages for a conversation
+ */
+export const createLoadOlderMessagesDueToScroll = (
+  payload: _LoadOlderMessagesDueToScrollPayload
+): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
+/**
+ * Mark a message as deleted
+ */
+export const createMessagesWereDeleted = (
+  payload: _MessagesWereDeletedPayload
+): MessagesWereDeletedPayload => ({payload, type: messagesWereDeleted})
+/**
+ * Navigation helper. Nav is slightly different on mobile / desktop.
+ */
+export const createNavigateToInbox = (payload: _NavigateToInboxPayload): NavigateToInboxPayload => ({
+  payload,
+  type: navigateToInbox,
+})
+/**
+ * Navigation helper. Nav is slightly different on mobile / desktop.
+ */
+export const createNavigateToThread = (payload: _NavigateToThreadPayload): NavigateToThreadPayload => ({
+  payload,
+  type: navigateToThread,
+})
+/**
+ * On startup we're automatically loading a thread sometimes.
+ * When we first view it we should go through our marking as read logic
+ */
+export const createMarkInitiallyLoadedThreadAsRead = (
+  payload: _MarkInitiallyLoadedThreadAsReadPayload
+): MarkInitiallyLoadedThreadAsReadPayload => ({payload, type: markInitiallyLoadedThreadAsRead})
 /**
  * Perform a search in a thread
  */
@@ -1035,6 +1180,13 @@ export const createRefreshBotRoleInConv = (
   payload: _RefreshBotRoleInConvPayload
 ): RefreshBotRoleInConvPayload => ({payload, type: refreshBotRoleInConv})
 /**
+ * Refresh the inbox
+ */
+export const createInboxRefresh = (payload: _InboxRefreshPayload): InboxRefreshPayload => ({
+  payload,
+  type: inboxRefresh,
+})
+/**
  * Remove an unfurl
  */
 export const createUnfurlRemove = (payload: _UnfurlRemovePayload): UnfurlRemovePayload => ({
@@ -1042,11 +1194,24 @@ export const createUnfurlRemove = (payload: _UnfurlRemovePayload): UnfurlRemoveP
   type: unfurlRemove,
 })
 /**
+ * Reply privately to a message with quoting
+ */
+export const createMessageReplyPrivately = (
+  payload: _MessageReplyPrivatelyPayload
+): MessageReplyPrivatelyPayload => ({payload, type: messageReplyPrivately})
+/**
  * Reply to a message publicly
  */
 export const createToggleReplyToMessage = (
   payload: _ToggleReplyToMessagePayload
 ): ToggleReplyToMessagePayload => ({payload, type: toggleReplyToMessage})
+/**
+ * Resend a message
+ */
+export const createMessageRetry = (payload: _MessageRetryPayload): MessageRetryPayload => ({
+  payload,
+  type: messageRetry,
+})
 /**
  * Resolve an unknown @ mention
  */
@@ -1060,11 +1225,57 @@ export const createUnfurlResolvePrompt = (
   payload: _UnfurlResolvePromptPayload
 ): UnfurlResolvePromptPayload => ({payload, type: unfurlResolvePrompt})
 /**
+ * Save on mobile (camera roll)
+ */
+export const createMessageAttachmentNativeSave = (
+  payload: _MessageAttachmentNativeSavePayload
+): MessageAttachmentNativeSavePayload => ({payload, type: messageAttachmentNativeSave})
+/**
+ * Saving an attachment to mobile storage
+ */
+export const createAttachmentMobileSave = (
+  payload: _AttachmentMobileSavePayload
+): AttachmentMobileSavePayload => ({payload, type: attachmentMobileSave})
+/**
+ * Saving an attachment to mobile storage has finished
+ */
+export const createAttachmentMobileSaved = (
+  payload: _AttachmentMobileSavedPayload
+): AttachmentMobileSavedPayload => ({payload, type: attachmentMobileSaved})
+/**
+ * Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
+ * fromAReset means you were in a reset kbfs convo and you want to make a new one
+ * Chatting from external places in the app should usually call this
+ * if you want to preview a team chat (and add it to the inbox use selectConversation instead)
+ */
+export const createPreviewConversation = (
+  payload: _PreviewConversationPayload
+): PreviewConversationPayload => ({payload, type: previewConversation})
+/**
  * Select an inbox search item
  */
 export const createInboxSearchSelect = (
   payload: _InboxSearchSelectPayload = Object.freeze({})
 ): InboxSearchSelectPayload => ({payload, type: inboxSearchSelect})
+/**
+ * Selected a conversation (used by nav only)
+ */
+export const createSelectedConversation = (
+  payload: _SelectedConversationPayload
+): SelectedConversationPayload => ({payload, type: selectedConversation})
+/**
+ * Send a text message
+ */
+export const createMessageSend = (payload: _MessageSendPayload): MessageSendPayload => ({
+  payload,
+  type: messageSend,
+})
+/**
+ * Server told us a conversation is out of date
+ */
+export const createMarkConversationsStale = (
+  payload: _MarkConversationsStalePayload
+): MarkConversationsStalePayload => ({payload, type: markConversationsStale})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
@@ -1104,12 +1315,6 @@ export const createSetParticipants = (payload: _SetParticipantsPayload): SetPart
   payload,
   type: setParticipants,
 })
-/**
- * Set filter for channel search
- */
-export const createSetChannelSearchText = (
-  payload: _SetChannelSearchTextPayload
-): SetChannelSearchTextPayload => ({payload, type: setChannelSearchText})
 /**
  * Set index percent complete
  */
@@ -1198,6 +1403,18 @@ export const createSetConvRetentionPolicy = (
   payload: _SetConvRetentionPolicyPayload
 ): SetConvRetentionPolicyPayload => ({payload, type: setConvRetentionPolicy})
 /**
+ * Share to external app on mobile
+ */
+export const createMessageAttachmentNativeShare = (
+  payload: _MessageAttachmentNativeSharePayload
+): MessageAttachmentNativeSharePayload => ({payload, type: messageAttachmentNativeShare})
+/**
+ * Show a desktop notification
+ */
+export const createDesktopNotification = (
+  payload: _DesktopNotificationPayload
+): DesktopNotificationPayload => ({payload, type: desktopNotification})
+/**
  * Show or hide invitation to block for a given team ID
  */
 export const createUpdateBlockButtons = (payload: _UpdateBlockButtonsPayload): UpdateBlockButtonsPayload => ({
@@ -1205,11 +1422,39 @@ export const createUpdateBlockButtons = (payload: _UpdateBlockButtonsPayload): U
   type: updateBlockButtons,
 })
 /**
+ * Start editing a message / or edit the last message / or clear editing
+ */
+export const createMessageSetEditing = (payload: _MessageSetEditingPayload): MessageSetEditingPayload => ({
+  payload,
+  type: messageSetEditing,
+})
+/**
+ * Start quoting a message / or clear quoting
+ */
+export const createMessageSetQuoting = (payload: _MessageSetQuotingPayload): MessageSetQuotingPayload => ({
+  payload,
+  type: messageSetQuoting,
+})
+/**
  * Static configuration info was loaded from the service.
  */
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload): StaticConfigLoadedPayload => ({
   payload,
   type: staticConfigLoaded,
+})
+/**
+ * Submit an edit to the daemon
+ */
+export const createMessageEdit = (payload: _MessageEditPayload): MessageEditPayload => ({
+  payload,
+  type: messageEdit,
+})
+/**
+ * Tell server we're typing
+ */
+export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload => ({
+  payload,
+  type: sendTyping,
 })
 /**
  * Tell the service to toggle a reaction on a message.
@@ -1224,6 +1469,12 @@ export const createUpdateReactions = (payload: _UpdateReactionsPayload): UpdateR
   payload,
   type: updateReactions,
 })
+/**
+ * The user has selected an attachment with a preview
+ */
+export const createAttachmentPreviewSelect = (
+  payload: _AttachmentPreviewSelectPayload
+): AttachmentPreviewSelectPayload => ({payload, type: attachmentPreviewSelect})
 /**
  * Toggle /giphy text to trigger preview window
  */
@@ -1273,6 +1524,13 @@ export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload): Uns
   type: unsentTextChanged,
 })
 /**
+ * Update a message which changed
+ */
+export const createMessageWasEdited = (payload: _MessageWasEditedPayload): MessageWasEditedPayload => ({
+  payload,
+  type: messageWasEdited,
+})
+/**
  * Update last known coordinate
  */
 export const createUpdateLastCoord = (payload: _UpdateLastCoordPayload): UpdateLastCoordPayload => ({
@@ -1287,11 +1545,31 @@ export const createUpdateMessages = (payload: _UpdateMessagesPayload): UpdateMes
   type: updateMessages,
 })
 /**
+ * Update our badges in the nav
+ */
+export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdatedPayload => ({
+  payload,
+  type: badgesUpdated,
+})
+/**
+ * Update progress on an upload
+ */
+export const createAttachmentUploading = (
+  payload: _AttachmentUploadingPayload
+): AttachmentUploadingPayload => ({payload, type: attachmentUploading})
+/**
  * Update status of a coin flip game
  */
 export const createUpdateCoinFlipStatus = (
   payload: _UpdateCoinFlipStatusPayload
 ): UpdateCoinFlipStatusPayload => ({payload, type: updateCoinFlipStatus})
+/**
+ * Update the loading bars
+ */
+export const createAttachmentLoading = (payload: _AttachmentLoadingPayload): AttachmentLoadingPayload => ({
+  payload,
+  type: attachmentLoading,
+})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
@@ -1313,6 +1591,26 @@ export const createConfirmScreenResponse = (
   payload: _ConfirmScreenResponsePayload
 ): ConfirmScreenResponsePayload => ({payload, type: confirmScreenResponse})
 /**
+ * We get new notification settings
+ */
+export const createNotificationSettingsUpdated = (
+  payload: _NotificationSettingsUpdatedPayload
+): NotificationSettingsUpdatedPayload => ({payload, type: notificationSettingsUpdated})
+/**
+ * We got a status update saying it was blocked or ignored
+ */
+export const createMetaDelete = (payload: _MetaDeletePayload): MetaDeletePayload => ({
+  payload,
+  type: metaDelete,
+})
+/**
+ * We got an uploaded attachment.
+ * While online this is like an edit of the placeholder
+ */
+export const createMessageAttachmentUploaded = (
+  payload: _MessageAttachmentUploadedPayload
+): MessageAttachmentUploadedPayload => ({payload, type: messageAttachmentUploaded})
+/**
  * We received payment info for a sendPayment message
  */
 export const createPaymentInfoReceived = (
@@ -1324,6 +1622,53 @@ export const createPaymentInfoReceived = (
 export const createRequestInfoReceived = (
   payload: _RequestInfoReceivedPayload
 ): RequestInfoReceivedPayload => ({payload, type: requestInfoReceived})
+/**
+ * We saved an attachment to the local disk
+ */
+export const createAttachmentDownloaded = (
+  payload: _AttachmentDownloadedPayload
+): AttachmentDownloadedPayload => ({payload, type: attachmentDownloaded})
+/**
+ * We updated our view of a thread
+ */
+export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload): UpdateMoreToLoadPayload => ({
+  payload,
+  type: updateMoreToLoad,
+})
+/**
+ * We want to save an attachment to the local disk
+ */
+export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
+  payload,
+  type: attachmentDownload,
+})
+/**
+ * We want to unbox an inbox row
+ */
+export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload): MetaNeedsUpdatingPayload => ({
+  payload,
+  type: metaNeedsUpdating,
+})
+/**
+ * We want to upload some attachments
+ */
+export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload): AttachmentsUploadPayload => ({
+  payload,
+  type: attachmentsUpload,
+})
+/**
+ * We're changing the notification settings
+ */
+export const createUpdateNotificationSettings = (
+  payload: _UpdateNotificationSettingsPayload
+): UpdateNotificationSettingsPayload => ({payload, type: updateNotificationSettings})
+/**
+ * We're done uploading
+ */
+export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload): AttachmentUploadedPayload => ({
+  payload,
+  type: attachmentUploaded,
+})
 /**
  * Where we want our focus for keypresses
  */
@@ -1403,52 +1748,9 @@ export const createAddToMessageMap = (payload: _AddToMessageMapPayload): AddToMe
 export const createAttachFromDragAndDrop = (
   payload: _AttachFromDragAndDropPayload
 ): AttachFromDragAndDropPayload => ({payload, type: attachFromDragAndDrop})
-export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
-  payload,
-  type: attachmentDownload,
-})
-export const createAttachmentDownloaded = (
-  payload: _AttachmentDownloadedPayload
-): AttachmentDownloadedPayload => ({payload, type: attachmentDownloaded})
-export const createAttachmentLoading = (payload: _AttachmentLoadingPayload): AttachmentLoadingPayload => ({
-  payload,
-  type: attachmentLoading,
-})
-export const createAttachmentMobileSave = (
-  payload: _AttachmentMobileSavePayload
-): AttachmentMobileSavePayload => ({payload, type: attachmentMobileSave})
-export const createAttachmentMobileSaved = (
-  payload: _AttachmentMobileSavedPayload
-): AttachmentMobileSavedPayload => ({payload, type: attachmentMobileSaved})
-export const createAttachmentPasted = (payload: _AttachmentPastedPayload): AttachmentPastedPayload => ({
-  payload,
-  type: attachmentPasted,
-})
-export const createAttachmentPreviewSelect = (
-  payload: _AttachmentPreviewSelectPayload
-): AttachmentPreviewSelectPayload => ({payload, type: attachmentPreviewSelect})
-export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload): AttachmentUploadedPayload => ({
-  payload,
-  type: attachmentUploaded,
-})
-export const createAttachmentUploading = (
-  payload: _AttachmentUploadingPayload
-): AttachmentUploadingPayload => ({payload, type: attachmentUploading})
-export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload): AttachmentsUploadPayload => ({
-  payload,
-  type: attachmentsUpload,
-})
 export const createAttemptAudioRecording = (
   payload: _AttemptAudioRecordingPayload
 ): AttemptAudioRecordingPayload => ({payload, type: attemptAudioRecording})
-export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdatedPayload => ({
-  payload,
-  type: badgesUpdated,
-})
-export const createBlockConversation = (payload: _BlockConversationPayload): BlockConversationPayload => ({
-  payload,
-  type: blockConversation,
-})
 export const createChannelSuggestionsTriggered = (
   payload: _ChannelSuggestionsTriggeredPayload
 ): ChannelSuggestionsTriggeredPayload => ({payload, type: channelSuggestionsTriggered})
@@ -1460,26 +1762,15 @@ export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload
   payload,
   type: clearMetas,
 })
-export const createConversationErrored = (
-  payload: _ConversationErroredPayload
-): ConversationErroredPayload => ({payload, type: conversationErrored})
-export const createDesktopNotification = (
-  payload: _DesktopNotificationPayload
-): DesktopNotificationPayload => ({payload, type: desktopNotification})
+export const createDeselectedConversation = (
+  payload: _DeselectedConversationPayload
+): DeselectedConversationPayload => ({payload, type: deselectedConversation})
 export const createDismissBlockButtons = (
   payload: _DismissBlockButtonsPayload
 ): DismissBlockButtonsPayload => ({payload, type: dismissBlockButtons})
 export const createEnableAudioRecording = (
   payload: _EnableAudioRecordingPayload
 ): EnableAudioRecordingPayload => ({payload, type: enableAudioRecording})
-export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
-  payload,
-  type: hideConversation,
-})
-export const createInboxRefresh = (payload: _InboxRefreshPayload): InboxRefreshPayload => ({
-  payload,
-  type: inboxRefresh,
-})
 export const createJoinConversation = (payload: _JoinConversationPayload): JoinConversationPayload => ({
   payload,
   type: joinConversation,
@@ -1494,9 +1785,6 @@ export const createLoadMessagesCentered = (
 export const createLoadNewerMessagesDueToScroll = (
   payload: _LoadNewerMessagesDueToScrollPayload
 ): LoadNewerMessagesDueToScrollPayload => ({payload, type: loadNewerMessagesDueToScroll})
-export const createLoadOlderMessagesDueToScroll = (
-  payload: _LoadOlderMessagesDueToScrollPayload
-): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
 export const createLoadedMutualTeams = (payload: _LoadedMutualTeamsPayload): LoadedMutualTeamsPayload => ({
   payload,
   type: loadedMutualTeams,
@@ -1505,111 +1793,13 @@ export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): L
   payload,
   type: lockAudioRecording,
 })
-export const createMarkConversationsStale = (
-  payload: _MarkConversationsStalePayload
-): MarkConversationsStalePayload => ({payload, type: markConversationsStale})
-export const createMarkInitiallyLoadedThreadAsRead = (
-  payload: _MarkInitiallyLoadedThreadAsReadPayload
-): MarkInitiallyLoadedThreadAsReadPayload => ({payload, type: markInitiallyLoadedThreadAsRead})
-export const createMessageAttachmentNativeSave = (
-  payload: _MessageAttachmentNativeSavePayload
-): MessageAttachmentNativeSavePayload => ({payload, type: messageAttachmentNativeSave})
-export const createMessageAttachmentNativeShare = (
-  payload: _MessageAttachmentNativeSharePayload
-): MessageAttachmentNativeSharePayload => ({payload, type: messageAttachmentNativeShare})
-export const createMessageAttachmentUploaded = (
-  payload: _MessageAttachmentUploadedPayload
-): MessageAttachmentUploadedPayload => ({payload, type: messageAttachmentUploaded})
-export const createMessageDelete = (payload: _MessageDeletePayload): MessageDeletePayload => ({
-  payload,
-  type: messageDelete,
-})
-export const createMessageDeleteHistory = (
-  payload: _MessageDeleteHistoryPayload
-): MessageDeleteHistoryPayload => ({payload, type: messageDeleteHistory})
-export const createMessageEdit = (payload: _MessageEditPayload): MessageEditPayload => ({
-  payload,
-  type: messageEdit,
-})
-export const createMessageErrored = (payload: _MessageErroredPayload): MessageErroredPayload => ({
-  payload,
-  type: messageErrored,
-})
-export const createMessageReplyPrivately = (
-  payload: _MessageReplyPrivatelyPayload
-): MessageReplyPrivatelyPayload => ({payload, type: messageReplyPrivately})
-export const createMessageRetry = (payload: _MessageRetryPayload): MessageRetryPayload => ({
-  payload,
-  type: messageRetry,
-})
-export const createMessageSend = (payload: _MessageSendPayload): MessageSendPayload => ({
-  payload,
-  type: messageSend,
-})
 export const createMessageSendByUsernames = (
   payload: _MessageSendByUsernamesPayload
 ): MessageSendByUsernamesPayload => ({payload, type: messageSendByUsernames})
-export const createMessageSetEditing = (payload: _MessageSetEditingPayload): MessageSetEditingPayload => ({
-  payload,
-  type: messageSetEditing,
-})
-export const createMessageSetQuoting = (payload: _MessageSetQuotingPayload): MessageSetQuotingPayload => ({
-  payload,
-  type: messageSetQuoting,
-})
-export const createMessageWasEdited = (payload: _MessageWasEditedPayload): MessageWasEditedPayload => ({
-  payload,
-  type: messageWasEdited,
-})
-export const createMessagesAdd = (payload: _MessagesAddPayload): MessagesAddPayload => ({
-  payload,
-  type: messagesAdd,
-})
-export const createMessagesWereDeleted = (
-  payload: _MessagesWereDeletedPayload
-): MessagesWereDeletedPayload => ({payload, type: messagesWereDeleted})
-export const createMetaDelete = (payload: _MetaDeletePayload): MetaDeletePayload => ({
-  payload,
-  type: metaDelete,
-})
-export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload): MetaHandleQueuePayload => ({
-  payload,
-  type: metaHandleQueue,
-})
-export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload): MetaNeedsUpdatingPayload => ({
-  payload,
-  type: metaNeedsUpdating,
-})
-export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload): MetaReceivedErrorPayload => ({
-  payload,
-  type: metaReceivedError,
-})
-export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload): MetaRequestTrustedPayload => ({
-  payload,
-  type: metaRequestTrusted,
-})
-export const createMetaRequestingTrusted = (
-  payload: _MetaRequestingTrustedPayload
-): MetaRequestingTrustedPayload => ({payload, type: metaRequestingTrusted})
-export const createMetasReceived = (payload: _MetasReceivedPayload): MetasReceivedPayload => ({
-  payload,
-  type: metasReceived,
-})
 export const createMuteConversation = (payload: _MuteConversationPayload): MuteConversationPayload => ({
   payload,
   type: muteConversation,
 })
-export const createNavigateToInbox = (payload: _NavigateToInboxPayload): NavigateToInboxPayload => ({
-  payload,
-  type: navigateToInbox,
-})
-export const createNavigateToThread = (payload: _NavigateToThreadPayload): NavigateToThreadPayload => ({
-  payload,
-  type: navigateToThread,
-})
-export const createNotificationSettingsUpdated = (
-  payload: _NotificationSettingsUpdatedPayload
-): NotificationSettingsUpdatedPayload => ({payload, type: notificationSettingsUpdated})
 export const createOpenChatFromWidget = (
   payload: _OpenChatFromWidgetPayload = Object.freeze({})
 ): OpenChatFromWidgetPayload => ({payload, type: openChatFromWidget})
@@ -1620,33 +1810,13 @@ export const createOpenFolder = (payload: _OpenFolderPayload): OpenFolderPayload
 export const createPendingMessageWasEdited = (
   payload: _PendingMessageWasEditedPayload
 ): PendingMessageWasEditedPayload => ({payload, type: pendingMessageWasEdited})
-export const createPreviewConversation = (
-  payload: _PreviewConversationPayload
-): PreviewConversationPayload => ({payload, type: previewConversation})
-export const createResetChatWithoutThem = (
-  payload: _ResetChatWithoutThemPayload
-): ResetChatWithoutThemPayload => ({payload, type: resetChatWithoutThem})
-export const createResetLetThemIn = (payload: _ResetLetThemInPayload): ResetLetThemInPayload => ({
-  payload,
-  type: resetLetThemIn,
-})
-export const createSelectedConversation = (
-  payload: _SelectedConversationPayload
-): SelectedConversationPayload => ({payload, type: selectedConversation})
 export const createSendAudioRecording = (payload: _SendAudioRecordingPayload): SendAudioRecordingPayload => ({
   payload,
   type: sendAudioRecording,
 })
-export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload => ({
-  payload,
-  type: sendTyping,
-})
 export const createSetAudioRecordingPostInfo = (
   payload: _SetAudioRecordingPostInfoPayload
 ): SetAudioRecordingPostInfoPayload => ({payload, type: setAudioRecordingPostInfo})
-export const createSetConversationOffline = (
-  payload: _SetConversationOfflinePayload
-): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
 export const createSetInboxNumSmallRows = (
   payload: _SetInboxNumSmallRowsPayload
 ): SetInboxNumSmallRowsPayload => ({payload, type: setInboxNumSmallRows})
@@ -1665,13 +1835,6 @@ export const createUnhideConversation = (payload: _UnhideConversationPayload): U
   payload,
   type: unhideConversation,
 })
-export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload): UpdateMoreToLoadPayload => ({
-  payload,
-  type: updateMoreToLoad,
-})
-export const createUpdateNotificationSettings = (
-  payload: _UpdateNotificationSettingsPayload
-): UpdateNotificationSettingsPayload => ({payload, type: updateNotificationSettings})
 export const createUpdateUserReacjis = (payload: _UpdateUserReacjisPayload): UpdateUserReacjisPayload => ({
   payload,
   type: updateUserReacjis,
@@ -1784,6 +1947,10 @@ export type ConversationErroredPayload = {
 export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
   readonly type: typeof createConversation
+}
+export type DeselectedConversationPayload = {
+  readonly payload: _DeselectedConversationPayload
+  readonly type: typeof deselectedConversation
 }
 export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
@@ -2098,10 +2265,6 @@ export type SetBotSettingsPayload = {
   readonly payload: _SetBotSettingsPayload
   readonly type: typeof setBotSettings
 }
-export type SetChannelSearchTextPayload = {
-  readonly payload: _SetChannelSearchTextPayload
-  readonly type: typeof setChannelSearchText
-}
 export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: typeof setCommandMarkdown
@@ -2327,6 +2490,7 @@ export type Actions =
   | ConfirmScreenResponsePayload
   | ConversationErroredPayload
   | CreateConversationPayload
+  | DeselectedConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
@@ -2415,7 +2579,6 @@ export type Actions =
   | SetBotPublicCommandsPayload
   | SetBotRoleInConvPayload
   | SetBotSettingsPayload
-  | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload

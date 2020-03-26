@@ -11,7 +11,6 @@ export const newRoutes = {
   devicePage: {getScreen: (): typeof DevicePage => require('./device-page/container').default},
   deviceRevoke: {getScreen: (): typeof DeviceRevoke => require('./device-revoke/container').default},
   devicesRoot: {getScreen: (): typeof DevicesRoot => require('./container').default},
-  'settingsTabs.devicesTab': {getScreen: (): typeof DevicesRoot => require('./container').default},
 }
 
 export const newModalRoutes = {

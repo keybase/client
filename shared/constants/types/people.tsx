@@ -1,6 +1,5 @@
 import * as RPCTypes from './rpc-gen'
 import * as TeamBuildingTypes from './team-building'
-
 import {IconType} from '../../common-adapters/icon.constants-gen'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
@@ -58,6 +57,12 @@ export type Announcement = {
   url: string | null
 }
 
+export type WotUpdate = {
+  voucher: string
+  vouchee: string
+  status: RPCTypes.WotStatusType
+}
+
 export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
 export type FollowSuggestion = {
@@ -72,7 +77,9 @@ export type State = {
   readonly version: number
   readonly newItems: Array<PeopleScreenItem>
   readonly oldItems: Array<PeopleScreenItem>
+  readonly wotUpdates: Map<string, WotUpdate>
   readonly followSuggestions: Array<FollowSuggestion>
   readonly resentEmail: string
   readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  readonly inviteCounts: RPCTypes.InviteCounts | null
 }

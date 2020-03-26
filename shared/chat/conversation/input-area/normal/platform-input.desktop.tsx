@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Types from '../../../../constants/types/chat2'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
@@ -269,7 +270,11 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               />
             )}
             {this.state.emojiPickerOpen && (
-              <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._insertEmoji} />
+              <EmojiPicker
+                conversationIDKey={this.props.conversationIDKey}
+                emojiPickerToggle={this._emojiPickerToggle}
+                onClick={this._insertEmoji}
+              />
             )}
             {!this.props.cannotWrite && this.props.showWalletsIcon && (
               <WalletsIcon
@@ -311,9 +316,11 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 const PlatformInput = AddSuggestors(_PlatformInput)
 
 const EmojiPicker = ({
+  conversationIDKey,
   emojiPickerToggle,
   onClick,
 }: {
+  conversationIDKey: Types.ConversationIDKey
   emojiPickerToggle: () => void
   onClick: (c: any) => void
 }) => (
@@ -321,7 +328,11 @@ const EmojiPicker = ({
     <Kb.Box style={styles.emojiPickerContainerWrapper} onClick={emojiPickerToggle} />
     <Kb.Box style={styles.emojiPickerRelative}>
       <Kb.Box style={styles.emojiPickerContainer}>
-        <EmojiPickerDesktop onPick={onClick} onDidPick={emojiPickerToggle} />
+        <EmojiPickerDesktop
+          conversationIDKey={conversationIDKey}
+          onPick={onClick}
+          onDidPick={emojiPickerToggle}
+        />
       </Kb.Box>
     </Kb.Box>
   </Kb.Box>

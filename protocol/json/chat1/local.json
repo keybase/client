@@ -3943,6 +3943,19 @@
     },
     {
       "type": "record",
+      "name": "RemoveEmojiRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserEmojiRes",
       "fields": [
         {
@@ -5866,8 +5879,33 @@
       ],
       "response": "AddEmojiRes"
     },
+    "removeEmoji": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "alias",
+          "type": "string"
+        }
+      ],
+      "response": "RemoveEmojiRes"
+    },
     "userEmojis": {
-      "request": [],
+      "request": [
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "ConversationID"
+          ]
+        },
+        {
+          "name": "getCreationInfo",
+          "type": "boolean"
+        }
+      ],
       "response": "UserEmojiRes"
     }
   },

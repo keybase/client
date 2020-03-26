@@ -10,6 +10,8 @@ import RuntimeStats from './runtime-stats'
 
 type Props = {}
 
+const ViewForGatewayDest = (props: any) => <Kb.NativeView {...props} />
+
 const Main = (_: Props) => {
   const isDarkMode = Styles.isDarkMode()
   return (
@@ -20,7 +22,7 @@ const Main = (_: Props) => {
       <RouterSwitcheroo />
       <GatewayDest
         name="popup-root"
-        component={Kb.NativeView}
+        component={ViewForGatewayDest}
         // @ts-ignore
         pointerEvents="box-none"
         style={Styles.globalStyles.fillAbsolute}
@@ -32,7 +34,7 @@ const Main = (_: Props) => {
       >
         <GatewayDest
           name="keyboard-avoiding-root"
-          component={Kb.NativeView}
+          component={ViewForGatewayDest}
           // @ts-ignore
           pointerEvents="box-none"
           style={styles.gatewayDest}

@@ -22,7 +22,7 @@ else
     opts="-b --compatibility"
     fn=code_signing_key.gpg.3s
 fi
-echo "(wait until you seee 'Key (will not be printed):', may take a bit)"
+echo "(wait until you see 'Key (will not be printed):', may take a bit)"
 # shellcheck disable=SC2086
 triplesec dec $opts < "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/$fn" | gpg --import
 

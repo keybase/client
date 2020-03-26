@@ -753,7 +753,7 @@ func doInit(
 	prefetchWorkers := config.Mode().PrefetchWorkers()
 	throttledPrefetchPeriod := config.Mode().ThrottledPrefetchPeriod()
 	config.SetBlockOps(NewBlockOpsStandard(
-		config, workers, prefetchWorkers, throttledPrefetchPeriod))
+		config, workers, prefetchWorkers, throttledPrefetchPeriod, kbCtx))
 
 	bsplitter, err := data.NewBlockSplitterSimple(
 		data.MaxBlockSizeBytesDefault, 8*1024, config.Codec())

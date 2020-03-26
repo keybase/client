@@ -61,10 +61,10 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@chardskarth/react-gateway": "3.0.3",
     "@emotion/core": "10.0.17",
     "@emotion/native": "10.0.14",
     "@emotion/styled": "10.0.17",
-    "@chardskarth/react-gateway": "3.0.3",
     "@msgpack/msgpack": "1.9.3",
     "@react-native-community/cameraroll": "1.2.1",
     "@react-native-community/geolocation": "2.0.2",
@@ -86,7 +86,7 @@
     "expo-image-picker": "7.0.0",
     "expo-permissions": "7.0.0",
     "expo-sms": "7.0.0",
-    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#nojima/HOTPOT-msgpack-js-impl",
+    "framed-msgpack-rpc": "1.1.22",
     "google-libphonenumber": "3.2.2",
     "hoist-non-react-statics": "3.3.0",
     "iced-runtime": "1.0.3",
@@ -223,6 +223,7 @@
     "net": "git://github.com/keybase/nullModule",
     "null-loader": "0.1.1",
     "prettier": "1.19.1",
+    "purepack": "git://github.com/keybase/nullModule",
     "randexp": "0.5.3",
     "react-hot-loader": "4.12.14",
     "react-native-v8": "git://github.com/keybase/react-native-v8#7557c145de2ba9f91ed705ec34751cb776b3ced2",
@@ -277,6 +278,7 @@
     "**/minimist": "1.2.5",
     "**/os-locale": "3.1.0",
     "babel-core": "7.0.0-bridge.0",
+    "**/purepack": "git://github.com/keybase/nullModule",
     "react-native-screens": "git://github.com/keybase/react-native-screens#keybase-changes-off-alpha-23"
   }
 }

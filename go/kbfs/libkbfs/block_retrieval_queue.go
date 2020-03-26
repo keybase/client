@@ -15,6 +15,7 @@ import (
 
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -45,6 +46,7 @@ type blockRetrievalPartialConfig interface {
 	clockGetter
 	reporterGetter
 	settingsDBGetter
+	subscriptionManagerGetter
 	subscriptionManagerPublisherGetter
 }
 
@@ -124,8 +126,9 @@ type blockRetrievalQueue struct {
 	ptrs map[blockPtrLookup]*blockRetrieval
 	// global counter of insertions to queue
 	// capacity: ~584 years at 1 billion requests/sec
-	insertionCount uint64
-	heap           *blockRetrievalHeap
+	insertionCount  uint64
+	heap            *blockRetrievalHeap
+	appStateUpdater env.AppStateUpdater
 
 	// These are notification channels to maximize the time that each request
 	// is in the heap, allowing preemption as long as possible. This way, a
@@ -160,7 +163,8 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 func newBlockRetrievalQueue(
 	numWorkers int, numPrefetchWorkers int,
 	throttledPrefetchPeriod time.Duration,
-	config blockRetrievalConfig) *blockRetrievalQueue {
+	config blockRetrievalConfig,
+	appStateUpdater env.AppStateUpdater) *blockRetrievalQueue {
 	var throttledWorkCh channels.Channel
 	if numPrefetchWorkers > 0 {
 		throttledWorkCh = NewInfiniteChannelWrapper()
@@ -173,6 +177,7 @@ func newBlockRetrievalQueue(
 		vlog:               config.MakeVLogger(log),
 		ptrs:               make(map[blockPtrLookup]*blockRetrieval),
 		heap:               &blockRetrievalHeap{},
+		appStateUpdater:    appStateUpdater,
 		workerCh:           NewInfiniteChannelWrapper(),
 		prefetchWorkerCh:   NewInfiniteChannelWrapper(),
 		throttledWorkCh:    throttledWorkCh,
@@ -181,7 +186,7 @@ func newBlockRetrievalQueue(
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
 	}
-	q.prefetcher = newBlockPrefetcher(q, config, nil, nil)
+	q.prefetcher = newBlockPrefetcher(q, config, nil, nil, appStateUpdater)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
 			config.blockGetter(), q, q.workerCh))
@@ -738,7 +743,7 @@ func (brq *blockRetrievalQueue) TogglePrefetcher(enable bool,
 	ch := brq.prefetcher.Shutdown()
 	if enable {
 		brq.prefetcher = newBlockPrefetcher(
-			brq, brq.config, testSyncCh, testDoneCh)
+			brq, brq.config, testSyncCh, testDoneCh, brq.appStateUpdater)
 	}
 	return ch
 }

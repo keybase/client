@@ -318,6 +318,14 @@ body {
   text-decoration: none;
 }
 
+.emoji-picker-emoji-box {
+  border-radius: 2px;
+}
+
+.emoji-picker-emoji-box:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
 .hover-underline {
   text-decoration: none;
 }
