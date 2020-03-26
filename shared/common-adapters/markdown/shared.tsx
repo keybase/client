@@ -263,12 +263,7 @@ const isAllEmoji = ast => {
   return false
 }
 
-class SimpleMarkdownComponent extends PureComponent<
-  MarkdownProps,
-  {
-    hasError: boolean
-  }
-> {
+class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: boolean}> {
   state = {hasError: false}
 
   static getDerivedStateFromError() {
