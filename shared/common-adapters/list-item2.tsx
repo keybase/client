@@ -91,6 +91,7 @@ const ListItem = (props: Props) => (
           })}
           style={getActionStyle(props)}
           alignSelf="flex-start"
+          fullHeight={true}
         >
           {props.action}
         </Kb.Box2>
@@ -324,12 +325,15 @@ const getContainerStyles = (props: Props) =>
   ])
 
 const getActionStyle = (props: Props) =>
-  props.type === 'Small'
-    ? props.onlyShowActionOnHover
-      ? styles.actionSmallIsGrowOnHover
-      : styles.actionSmallNotGrowOnHover
-    : props.onlyShowActionOnHover
-    ? styles.actionLargeIsGrowOnHover
-    : styles.actionLargeNotGrowOnHover
+  Styles.collapseStyles([
+    props.type === 'Small'
+      ? props.onlyShowActionOnHover
+        ? styles.actionSmallIsGrowOnHover
+        : styles.actionSmallNotGrowOnHover
+      : props.onlyShowActionOnHover
+      ? styles.actionLargeIsGrowOnHover
+      : styles.actionLargeNotGrowOnHover,
+    !!props.height && {minHeight: props.height},
+  ])
 
 export default ListItem

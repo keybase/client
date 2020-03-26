@@ -8,8 +8,8 @@ import * as Constants from '../../constants/teams'
 type Props = {title: string; teamID: Types.TeamID}
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
-  active: 'iconfont-fire',
-  recently: 'iconfont-team-leave',
+  active: 'iconfont-campfire-burning',
+  recently: 'iconfont-campfire-out',
 }
 const activityToLabel = {
   active: 'Active',

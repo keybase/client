@@ -112,7 +112,7 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
 }
 
 export const useChannelsSections = (teamID: Types.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
-  const channelMetas = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
+  const {channelMetas} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
   return [
     {data: ['channel-add'], key: 'channel-add', renderItem: () => <ChannelHeaderRow teamID={teamID} />},
     {

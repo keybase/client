@@ -19,6 +19,7 @@ type Props = {
 const Meta = (props: Props) => (
   <Box2
     alignSelf="flex-start"
+    alignItems="center"
     direction={props.icon ? 'horizontal' : 'vertical'}
     pointerEvents="none"
     style={Styles.collapseStyles([

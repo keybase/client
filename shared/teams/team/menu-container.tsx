@@ -61,7 +61,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProp
   onManageChat: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'chatManageChannels'}],
+        path: flags.teamsRedesign
+          ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
+          : [{props: {teamID}, selected: 'chatManageChannels'}],
       })
     ),
   onOpenFolder: (teamname: string) =>

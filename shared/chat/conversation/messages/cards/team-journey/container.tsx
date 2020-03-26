@@ -14,6 +14,7 @@ import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
+import flags from '../../../../../util/feature-flags'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
@@ -48,7 +49,7 @@ const TeamJourneyContainer = (props: Props) => {
   const dontCallRPC =
     props.message.cardType !== RPCChatTypes.JourneycardType.popularChannels &&
     props.message.cardType !== RPCChatTypes.JourneycardType.msgNoAnswer
-  const channelMetas = useAllChannelMetas(props.teamID, dontCallRPC)
+  const {channelMetas} = useAllChannelMetas(props.teamID, dontCallRPC)
   // Take the top three channels with most recent activity.
   const joinableStatuses = new Set<ChatTypes.ConversationMeta['membershipType']>([
     // keep in sync with journey_card_manager.go
@@ -212,7 +213,11 @@ const TeamJourneyConnected = Container.connect(
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
     _onManageChannels: (teamID: string) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
+        RouteTreeGen.createNavigateAppend({
+          path: flags.teamsRedesign
+            ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
+            : [{props: {teamID}, selected: 'chatManageChannels'}],
+        })
       ),
     _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
     _onShowTeam: (teamID: TeamTypes.TeamID) =>

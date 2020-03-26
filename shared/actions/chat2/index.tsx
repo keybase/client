@@ -32,6 +32,7 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
 import {isIOS} from '../../constants/platform'
+import flags from '../../util/feature-flags'
 
 const onConnect = async () => {
   try {
@@ -818,7 +819,11 @@ const onChatShowManageChannels = (
 ) => {
   const {teamname} = action.payload.params
   const teamID = state.teams.teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
-  return RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
+  return RouteTreeGen.createNavigateAppend({
+    path: flags.teamsRedesign
+      ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
+      : [{props: {teamID}, selected: 'chatManageChannels'}],
+  })
 }
 
 const onNewChatActivity = (

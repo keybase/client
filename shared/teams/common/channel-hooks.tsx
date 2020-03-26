@@ -16,7 +16,7 @@ function filterNull<A>(arr: Array<A | null>): Array<A> {
 export const useAllChannelMetas = (
   teamID: Types.TeamID,
   dontCallRPC?: boolean
-): Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta> => {
+): {channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>; loadingChannels: boolean} => {
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
@@ -47,7 +47,18 @@ export const useAllChannelMetas = (
       emptyArrForUseSelector
   )
   // TODO: not always a new map?
-  return new Map(filterNull(conversationMetas).map(a => [a.conversationIDKey, a]))
+  const channelMetas = new Map(filterNull(conversationMetas).map(a => [a.conversationIDKey, a]))
+
+  const [loadingChannels, setLoadingChannels] = React.useState(true)
+  const nowLoading = Container.useAnyWaiting(Constants.getChannelsWaitingKey(teamID))
+  const wasLoading = Container.usePrevious(nowLoading)
+  React.useEffect(() => {
+    if (wasLoading && !nowLoading) {
+      setLoadingChannels(false)
+    }
+  }, [nowLoading, wasLoading, setLoadingChannels])
+
+  return {channelMetas, loadingChannels}
 }
 
 export const useChannelMeta = (

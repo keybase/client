@@ -4,6 +4,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {TeamID} from '../../../../constants/types/teams'
 import SystemSimpleToComplex from '.'
 import {connect} from '../../../../util/container'
+import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
   message: Types.MessageSystemSimpleToComplex
@@ -20,7 +21,11 @@ export default connect(
   dispatch => ({
     _onManageChannels: (teamID: TeamID) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
+        RouteTreeGen.createNavigateAppend({
+          path: flags.teamsRedesign
+            ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
+            : [{props: {teamID}, selected: 'chatManageChannels'}],
+        })
       ),
     _onViewTeam: (teamID: TeamID) => {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))

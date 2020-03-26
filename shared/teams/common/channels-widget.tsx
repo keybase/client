@@ -35,8 +35,8 @@ type ChannelInputProps = {onAdd: (channelname: string) => void; selected: Array<
 
 const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
-  const channels = useAllChannelMetas(teamID)
-  const channelnames = [...channels.values()]
+  const {channelMetas} = useAllChannelMetas(teamID)
+  const channelnames = [...channelMetas.values()]
     .filter(c => !selected.includes(c.channelname))
     .map(c => `#${c.channelname}`)
 

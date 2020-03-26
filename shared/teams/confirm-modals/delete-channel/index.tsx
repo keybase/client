@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
-import * as TeamsTypes from '../../../constants/types/teams'
+import * as Types from '../../../constants/types/teams'
+import * as ChatTypes from '../../../constants/types/chat2'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
@@ -8,7 +9,8 @@ import {useAllChannelMetas} from '../../common/channel-hooks'
 import {pluralize} from '../../../util/string'
 
 type Props = Container.RouteProps<{
-  teamID: TeamsTypes.TeamID
+  teamID: Types.TeamID
+  conversationIDKey?: ChatTypes.ConversationIDKey // undefined means use the currently selected channels in the store
 }>
 
 const Header = () => (
@@ -18,23 +20,26 @@ const Header = () => (
   </>
 )
 
-const getTeamSelectedCount = (state: Container.TypedState, teamID: TeamsTypes.TeamID) => {
+const getTeamSelectedCount = (state: Container.TypedState, teamID: Types.TeamID) => {
   return state.teams.teamSelectedChannels.get(teamID)
 }
 
 const DeleteChannel = (props: Props) => {
-  const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
-  const channelIDs = Container.useSelector(state => getTeamSelectedCount(state, teamID))
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const routePropChannel = Container.getRouteProps(props, 'conversationIDKey', undefined)
+  const channelIDs = routePropChannel
+    ? [routePropChannel]
+    : Container.useSelector(state => getTeamSelectedCount(state, teamID))
 
   if (channelIDs == undefined) {
     throw new Error('conversationIDKeys unexpectedly empty')
   }
 
-  const channels = useAllChannelMetas(teamID)
+  const {channelMetas} = useAllChannelMetas(teamID)
   var channelnames: string[] = []
 
   channelIDs.forEach(channelID => {
-    const conversationMeta = channels?.get(channelID)
+    const conversationMeta = channelMetas?.get(channelID)
     const channelname = conversationMeta ? conversationMeta.channelname : ''
     channelnames.push(channelname)
   })

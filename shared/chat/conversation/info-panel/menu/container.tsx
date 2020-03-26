@@ -11,6 +11,7 @@ import {InfoPanelMenu, ConvProps} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as Styles from '../../../../styles'
+import flags from '../../../../util/feature-flags'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -166,7 +167,13 @@ export default Container.namedConnect(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}]})
       ),
     _onManageChannels: (teamID: TeamTypes.TeamID) => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]}))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: flags.teamsRedesign
+            ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
+            : [{props: {teamID}, selected: 'chatManageChannels'}],
+        })
+      )
       dispatch(TeamsGen.createAddTeamWithChosenChannels({teamID}))
     },
     _onViewTeam: (teamID: TeamTypes.TeamID) => {
