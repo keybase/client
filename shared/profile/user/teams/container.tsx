@@ -2,7 +2,7 @@ import * as Container from '../../../util/container'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
-import {TeamID, noTeamID} from '../../../constants/types/teams'
+import {noTeamID} from '../../../constants/types/teams'
 import Teams, {Props} from '.'
 
 type OwnProps = {

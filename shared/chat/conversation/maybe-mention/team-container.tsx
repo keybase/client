@@ -5,7 +5,6 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../util/container'
-import {TeamID} from '../../../constants/types/teams'
 import {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import TeamMention from './team'
 
