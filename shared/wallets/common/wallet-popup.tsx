@@ -28,7 +28,7 @@ type WalletPopupProps = {
 
 const WalletPopup = (props: WalletPopupProps) => {
   return (
-    <Kb.PopupWitHeaderWrapper
+    <Kb.PopupWithHeaderWrapper
       customCancelText={props.backButtonType === 'close' ? 'Close' : ''}
       customComponent={
         props.headerTitle && <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
@@ -76,7 +76,7 @@ const WalletPopup = (props: WalletPopupProps) => {
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
-    </Kb.PopupWitHeaderWrapper>
+    </Kb.PopupWithHeaderWrapper>
   )
 }
 

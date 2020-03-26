@@ -46,7 +46,7 @@ export {
   default as HeaderOrPopup,
   HeaderOrPopupWithHeader,
   PopupWrapper,
-  PopupWitHeaderWrapper,
+  PopupWithHeaderWrapper,
 } from './header-or-popup'
 export {HotKey, useHotKey} from './hot-key'
 export {default as HoverHoc} from './hover-hoc'

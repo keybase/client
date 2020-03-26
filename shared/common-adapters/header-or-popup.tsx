@@ -15,7 +15,7 @@ export const PopupWrapper = (props: PopupDialogProps & HeaderHocProps & {childre
   }
 }
 /** TODO deprecate eventually **/
-export const PopupWitHeaderWrapper = (
+export const PopupWithHeaderWrapper = (
   props: PopupDialogProps & HeaderHocProps & {children: React.ReactNode; style?: Styles.StylesCrossPlatform}
 ) => {
   if (isMobile) {

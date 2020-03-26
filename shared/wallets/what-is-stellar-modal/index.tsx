@@ -8,7 +8,7 @@ const WhatIsStellarModal = () => {
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
-    <Kb.PopupWitHeaderWrapper onCancel={onClose} customCancelText="Close" borderless={true}>
+    <Kb.PopupWithHeaderWrapper onCancel={onClose} customCancelText="Close" borderless={true}>
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" style={styles.container}>
           <Kb.Icon
@@ -58,7 +58,7 @@ Here’s everything that makes Stellar powerful:`}
           </Kb.Text>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWitHeaderWrapper>
+    </Kb.PopupWithHeaderWrapper>
   )
 }
 

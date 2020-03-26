@@ -50,7 +50,7 @@ class EditChannel extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.PopupWitHeaderWrapper onCancel={this.props.onCancel} title={this.props.title}>
+      <Kb.PopupWithHeaderWrapper onCancel={this.props.onCancel} title={this.props.title}>
         <Kb.ScrollView style={styles.scroll}>
           <Kb.Box style={styles.box}>
             <Kb.Avatar isTeam={true} teamname={this.props.teamname} size={32} />
@@ -134,7 +134,7 @@ class EditChannel extends React.Component<Props, State> {
             </Kb.Box2>
           </Kb.Box>
         </Kb.ScrollView>
-      </Kb.PopupWitHeaderWrapper>
+      </Kb.PopupWithHeaderWrapper>
     )
   }
 }

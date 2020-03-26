@@ -50,7 +50,7 @@ class EditProfile extends React.Component<Props, State> {
   // TODO use NewInput when that supports better border radius changes
   render() {
     return (
-      <Kb.PopupWitHeaderWrapper onCancel={this.props.onCancel} title={this.props.title}>
+      <Kb.PopupWithHeaderWrapper onCancel={this.props.onCancel} title={this.props.title}>
         <Kb.ScrollView>
           <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
             {Styles.isMobile ? null : (
@@ -94,7 +94,7 @@ class EditProfile extends React.Component<Props, State> {
             {this.state.bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
           </Kb.Box2>
         </Kb.ScrollView>
-      </Kb.PopupWitHeaderWrapper>
+      </Kb.PopupWithHeaderWrapper>
     )
   }
 }

@@ -69,7 +69,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
 
   render() {
     return (
-      <Kb.PopupWitHeaderWrapper onCancel={this.props.onCancel} title="Rename subteam">
+      <Kb.PopupWithHeaderWrapper onCancel={this.props.onCancel} title="Rename subteam">
         <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
           <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
             <Kb.Avatar teamname={this.props.teamname} size={Styles.isMobile ? 64 : 48} />
@@ -140,7 +140,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
             />
           </Kb.ButtonBar>
         </Kb.Box2>
-      </Kb.PopupWitHeaderWrapper>
+      </Kb.PopupWithHeaderWrapper>
     )
   }
 }
