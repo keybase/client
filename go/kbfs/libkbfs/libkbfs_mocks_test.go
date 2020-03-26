@@ -92,17 +92,17 @@ func (mr *MockBlockOpsMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock
 }
 
 // Get mocks base method.
-func (m *MockBlockOps) Get(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer, arg3 data.Block, arg4 data.BlockCacheLifetime) error {
+func (m *MockBlockOps) Get(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer, arg3 data.Block, arg4 data.BlockCacheLifetime, arg5 data.BranchName) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockBlockOpsMockRecorder) Get(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockBlockOpsMockRecorder) Get(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockOps)(nil).Get), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockOps)(nil).Get), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // GetEncodedSizes mocks base method.

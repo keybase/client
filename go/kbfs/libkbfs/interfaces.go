@@ -1464,7 +1464,8 @@ type BlockOps interface {
 	// permission for that block. cacheLifetime controls the behavior of the
 	// write-through cache once a Get completes.
 	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
-		block data.Block, cacheLifetime data.BlockCacheLifetime) error
+		block data.Block, cacheLifetime data.BlockCacheLifetime,
+		branch data.BranchName) error
 
 	// GetEncodedSizes gets the encoded sizes and statuses of the
 	// block associated with the given block pointers (which belongs

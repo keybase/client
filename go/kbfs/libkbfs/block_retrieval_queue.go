@@ -581,7 +581,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
 	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	if brq.config.IsSyncedTlf(kmd.TlfID()) {
+	if !action.NonMasterBranch() && brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()
 	}
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)

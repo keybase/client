@@ -69,7 +69,8 @@ func NewBlockOpsStandard(
 
 // Get implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Get(ctx context.Context, kmd libkey.KeyMetadata,
-	blockPtr data.BlockPointer, block data.Block, lifetime data.BlockCacheLifetime) error {
+	blockPtr data.BlockPointer, block data.Block,
+	lifetime data.BlockCacheLifetime, branch data.BranchName) error {
 	// Check the journal explicitly first, so we don't get stuck in
 	// the block-fetching queue.
 	if journalBServer, ok := b.config.BlockServer().(journalBlockServer); ok {
@@ -87,9 +88,13 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd libkey.KeyMetadata,
 
 	b.log.LazyTrace(ctx, "BOps: Requesting %s", blockPtr.ID)
 
+	action := b.config.Mode().DefaultBlockRequestAction()
+	if branch != data.MasterBranch {
+		action = action.AddNonMasterBranch()
+	}
 	errCh := b.queue.Request(
 		ctx, defaultOnDemandRequestPriority, kmd,
-		blockPtr, block, lifetime, b.config.Mode().DefaultBlockRequestAction())
+		blockPtr, block, lifetime, action)
 	err := <-errCh
 
 	b.log.LazyTrace(ctx, "BOps: Request fulfilled for %s (err=%v)", blockPtr.ID, err)

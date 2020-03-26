@@ -29,7 +29,8 @@ func mdResetOne(
 		if rootPtr.Ref().IsValid() {
 			var dirBlock data.DirBlock
 			err = config.BlockOps().Get(
-				ctx, irmd, rootPtr, &dirBlock, data.NoCacheEntry)
+				ctx, irmd, rootPtr, &dirBlock, data.NoCacheEntry,
+				data.MasterBranch)
 			if err == nil {
 				fmt.Printf("Got no error when getting root block %s; not doing anything\n", rootPtr)
 				return nil
