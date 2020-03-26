@@ -215,7 +215,7 @@ const RoleSelector = () => {
         }
       >
         <Kb.InlineDropdown
-          type="BodySmallSemibold"
+          textWrapperType="BodySmallSemibold"
           label={storeRole ? capitalize(storeRole) + 's' : 'Set individually'}
           onPress={() => setShowingMenu(true)}
         />
@@ -308,7 +308,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
             confirmLabel={`Add as ${rolePickerRole}`}
           >
             <Kb.InlineDropdown
-              type="BodySmallSemibold"
+              textWrapperType="BodySmallSemibold"
               onPress={onOpenRolePicker}
               label={capitalize(individualRole)}
             />

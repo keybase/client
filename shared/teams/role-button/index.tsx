@@ -20,6 +20,7 @@ const RoleButton = (props: Props) => {
   return (
     <InlineDropdown
       containerStyle={props.containerStyle}
+      textWrapperType={null}
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
           <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" />

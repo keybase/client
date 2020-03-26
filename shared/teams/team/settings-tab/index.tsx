@@ -171,7 +171,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
                 <InlineDropdown
                   label={pluralize(props.newOpenTeamRole)}
                   onPress={props.newOpenTeam ? props.onOpenRolePicker : () => {}}
-                  type="BodySmall"
+                  textWrapperType="BodySmall"
                 />
               </FloatingRolePicker>
             </Kb.Box2>

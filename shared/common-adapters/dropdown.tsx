@@ -122,19 +122,19 @@ type InlineDropdownProps = {
   loading?: boolean
 } & (
   | {
-      label: string
-      type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+      textWrapperType: null
+      label: React.ReactElement
     }
   | {
-      label: React.ReactNode
-      type: never
+      textWrapperType: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+      label: string
     }
 )
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
     <Box2 direction="horizontal" style={styles.inlineSelected}>
-      {typeof props.label === 'string' ? <Text type={props.type}>{props.label}</Text> : props.label}
+      {props.textWrapperType ? <Text type={props.textWrapperType}>{props.label}</Text> : props.label}
     </Box2>
   )
   return (
