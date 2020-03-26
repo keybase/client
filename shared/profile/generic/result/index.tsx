@@ -11,7 +11,7 @@ type Props = {
   serviceIcon: Tracker2Types.SiteIconSet
 }
 
-const _Result = (props: Props) => {
+const Result = (props: Props) => {
   const success = !props.errorText
   const iconType = success ? 'icon-proof-success' : 'icon-proof-broken'
   let frag = (
@@ -28,30 +28,30 @@ const _Result = (props: Props) => {
     )
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        alignItems="center"
-        fullWidth={true}
-        style={styles.topContainer}
-      >
-        <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
-          <SiteIcon set={props.serviceIcon} full={true} />
-          <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
-            <Kb.Icon type={iconType} color={Styles.globalColors.green} />
+    <Kb.PopupWrapper>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          alignItems="center"
+          fullWidth={true}
+          style={styles.topContainer}
+        >
+          <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
+            <SiteIcon set={props.serviceIcon} full={true} />
+            <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
+              <Kb.Icon type={iconType} color={Styles.globalColors.green} />
+            </Kb.Box2>
           </Kb.Box2>
+          {frag}
         </Kb.Box2>
-        {frag}
+        <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
+          <Kb.Button type="Dim" label="Close and reload Profile" onClick={props.onClose} />
+        </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
-        <Kb.Button type="Dim" label="Close and reload Profile" onClick={props.onClose} />
-      </Kb.Box2>
-    </Kb.Box2>
+    </Kb.PopupWrapper>
   )
 }
-const Result = Kb.HeaderOrPopup(_Result)
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
