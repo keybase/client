@@ -90,19 +90,38 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
 }
 
-func (s *DevConvEmojiSource) resolveAlias(ctx context.Context, aliasSource chat1.EmojiRemoteSource,
-	mapping map[string]chat1.EmojiRemoteSource) (res chat1.EmojiRemoteSource, err error) {
-	if !aliasSource.IsAlias() {
-		return aliasSource, nil
+func (s *DevConvEmojiSource) resolveAlias(ctx context.Context, uid gregor1.UID,
+	alias chat1.Emoji) (res chat1.Emoji, err error) {
+	if !alias.RemoteSource.IsAlias() {
+		return alias, nil
 	}
-	source, ok := mapping[aliasSource.Alias()]
+	aliasSource := alias.RemoteSource
+	storage := s.makeStorage(chat1.TopicType_EMOJI)
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, aliasSource.Alias().ConvID,
+		types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	var stored chat1.EmojiStorage
+	found, err := storage.GetFromKnownConv(ctx, uid, conv, &stored)
+	if err != nil {
+		return res, err
+	}
+	if !found {
+		return res, errors.New("no alias found")
+	}
+	if stored.Mapping == nil {
+		return res, errors.New("no mapping found")
+	}
+	source, ok := stored.Mapping[aliasSource.Alias().ExistingAlias]
 	if !ok {
 		return res, errors.New("missing alias")
 	}
 	if !source.IsMessage() {
 		return res, errors.New("invalid alias, must point at message source")
 	}
-	return source, nil
+	alias.RemoteSource = source
+	return alias, nil
 }
 
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -114,7 +133,8 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
 	topicName := s.topicName(nil)
-	if _, _, err := storage.Get(ctx, uid, convID, topicName, &stored, false); err != nil {
+	_, storageConv, err := storage.Get(ctx, uid, convID, topicName, &stored, false)
+	if err != nil {
 		return res, err
 	}
 	if stored.Mapping == nil {
@@ -130,7 +150,10 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 	if source, ok := stored.Mapping[newAlias]; ok && !source.IsAlias() {
 		return res, errors.New("cannot override non-alias with alias")
 	}
-	res = chat1.NewEmojiRemoteSourceWithAlias(existingAlias)
+	res = chat1.NewEmojiRemoteSourceWithAlias(chat1.EmojiAlias{
+		ConvID:        storageConv.GetConvID(),
+		ExistingAlias: existingAlias,
+	})
 	stored.Mapping[newAlias] = res
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
 }
@@ -501,6 +524,10 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	for _, match := range matches {
 		// try group map first
 		if rawemoji, ok := groupMap[match.name]; ok {
+			emoji, err := s.resolveAlias(ctx, uid, rawemoji)
+			if err != nil {
+				return res, err
+			}
 			var resEmoji chat1.HarvestedEmoji
 			if emoji.IsCrossTeam {
 				if resEmoji, err = s.syncCrossTeam(ctx, uid, chat1.HarvestedEmoji{
