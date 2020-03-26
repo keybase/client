@@ -57,7 +57,11 @@
       "clearAll?": "boolean"
     },
     "getTeams": {
-      "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_description": [
+        "Load team list if we are stale.",
+        "",
+        "`_subscribe` is for use by teams/subscriber only."
+      ],
       "_subscribe?": "boolean",
       "forceReload?": "boolean"
     },
@@ -65,7 +69,11 @@
       "_description": "Don't eagerly reload team list anymore."
     },
     "loadTeam": {
-      "_description": "Load team details if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_description": [
+        "Load team details if we are stale.",
+        "",
+        "`_subscribe` is for use by teams/subscriber only."
+      ],
       "_subscribe?": "boolean",
       "teamID": "Types.TeamID"
     },
@@ -374,6 +382,12 @@
       "parentTeam?": "Types.TeamID"
     },
     "showTeamByName": {
+      "_description": [
+        "Tries to show a team with this name whether the user is in the team or not.",
+        "For teams we are not in:",
+        "- with teamsRedesign on go to external team page",
+        "- with teamsRedesign off noop"
+      ],
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"

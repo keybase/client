@@ -19,7 +19,10 @@
       "_description": "Download the signed output to a text file"
     },
     "setRecipients": {
-      "_description": "Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions",
+      "_description": [
+        "Array recipients of operations, provided via TeamBuilding.",
+        "Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions"
+      ],
       "operation": "Types.Operations",
       "recipients": "Array<string>",
       "hasSBS": "boolean"
@@ -37,7 +40,10 @@
       "value": "HiddenString"
     },
     "setEncryptOptions": {
-      "_description": "Sets options for encrypt operations. Also takkes 'hideIncludeSelf' to disable includeSelf when user includes themselves as a recipient",
+      "_description": [
+        "Sets options for encrypt operations.",
+        "Also takes `hideIncludeSelf` to disable includeSelf when user includes themselves as a recipient"
+      ],
       "options": "Types.EncryptOptions",
       "hideIncludeSelf?": "boolean"
     },
