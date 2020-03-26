@@ -16,7 +16,11 @@ const DefaultChannels = (props: Props) => {
   const setDefaultChannelsRPC = Container.useRPC(RPCChatGen.localSetDefaultTeamChannelsLocalRpcPromise)
   const [defaultChannels, setDefaultChannels] = React.useState<Array<Types.ChannelNameID>>([])
   const [waiting, setWaiting] = React.useState(false)
-  const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
+  // TODO TRIAGE-2474
+  // Implicit admins should be able to set this, but chat stuff doesnt know about them.
+  // For now limit to people who are admins in this team.
+  // const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
+  const canEdit = Container.useSelector(s => ['admin', 'owner'].includes(Constants.getRole(s, teamID)))
 
   const reloadDefaultChannels = React.useCallback(() => {
     setWaiting(true)
