@@ -27,21 +27,22 @@ type WalletPopupProps = {
 }
 
 const WalletPopup = (props: WalletPopupProps) => {
+  const onBack = props.backButtonType === 'back' ? props.onExit : undefined // Displays back button on desktop
   return (
-    <Kb.PopupWithHeaderWrapper
+    <Kb.PopupWrapper
       customCancelText={props.backButtonType === 'close' ? 'Close' : ''}
       customComponent={
         props.headerTitle && <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
       }
       customSafeAreaBottomStyle={props.safeAreaViewBottomStyle}
       customSafeAreaTopStyle={props.safeAreaViewTopStyle}
-      onBack={props.backButtonType === 'back' ? props.onExit : undefined} // Displays back button on desktop
       onCancel={
         props.onCancel ??
         (props.backButtonType === 'cancel' || props.backButtonType === 'close' ? props.onExit : undefined)
       }
-      style={styles.popup}
+      styleClipContainer={styles.popup}
     >
+      {onBack && !Styles.isMobile && <Kb.HeaderHocHeader onBack={onBack} headerStyle={styles.headerStyle} />}
       <Kb.Box2 direction="vertical" style={styles.outerContainer}>
         <Kb.ScrollView
           alwaysBounceVertical={false}
@@ -76,7 +77,7 @@ const WalletPopup = (props: WalletPopupProps) => {
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
-    </Kb.PopupWithHeaderWrapper>
+    </Kb.PopupWrapper>
   )
 }
 
@@ -112,6 +113,7 @@ const styles = Styles.styleSheetCreate(() => ({
       borderRadius: 4,
     },
   }),
+  headerStyle: {backgroundColor: Styles.globalColors.transparent},
   outerContainer: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
