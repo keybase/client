@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-const WhatIsStellarModal = (props: {onClose: () => void}) => {
+const WhatIsStellarModal = () => {
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return (

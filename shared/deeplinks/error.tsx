@@ -7,7 +7,7 @@ import * as Styles from '../styles'
 type KeybaseLinkErrorBodyProps = {
   message: string
   isError: boolean
-  onCancel: () => void
+  onCancel?: () => void
 }
 
 export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
@@ -41,9 +41,7 @@ const KeybaseLinkError = (props: OwnProps) => {
   const isError = errorSource !== 'sep6' || sep6Error
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
-  return (
-    <KeybaseLinkErrorBody onCancel={onClose} customCancelText="Close" isError={isError} message={message} />
-  )
+  return <KeybaseLinkErrorBody onCancel={onClose} isError={isError} message={message} />
 }
 
 const styles = Styles.styleSheetCreate(() => ({
