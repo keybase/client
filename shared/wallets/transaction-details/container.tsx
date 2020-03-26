@@ -1,5 +1,4 @@
 import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -13,105 +12,101 @@ import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID; paymentID: Types.PaymentID}>
 
-export default Container.compose(
-  Container.connect(
-    (state, ownProps: OwnProps) => {
-      const you = state.config.username
-      const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
-      const paymentID = Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID)
-      const _transaction = Constants.getPayment(state, accountID, paymentID)
-      const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
-      // Transaction can briefly be empty when status changes
-      const loading =
-        anyWaiting(state, Constants.getRequestDetailsWaitingKey(paymentID)) ||
-        _transaction.id === Types.noPaymentID
+export default Container.connect(
+  (state, ownProps: OwnProps) => {
+    const you = state.config.username
+    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
+    const paymentID = Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID)
+    const _transaction = Constants.getPayment(state, accountID, paymentID)
+    const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
+    // Transaction can briefly be empty when status changes
+    const loading =
+      anyWaiting(state, Constants.getRequestDetailsWaitingKey(paymentID)) ||
+      _transaction.id === Types.noPaymentID
+    return {
+      _transaction,
+      counterpartyMeta:
+        yourInfoAndCounterparty.counterpartyType === 'keybaseUser'
+          ? getFullname(
+              state,
+              yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
+            )
+          : null,
+      loading,
+      transactionURL: _transaction.externalTxURL,
+      you,
+      yourInfoAndCounterparty,
+    }
+  },
+  (dispatch, ownProps) => ({
+    navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onCancelPayment: () =>
+      dispatch(
+        WalletsGen.createCancelPayment({
+          paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
+          showAccount: true,
+        })
+      ),
+    onChat: (username: string) =>
+      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
+    onLoadPaymentDetail: () =>
+      dispatch(
+        WalletsGen.createLoadPaymentDetail({
+          accountID: Container.getRouteProps(ownProps, 'accountID', Types.noAccountID),
+          paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
+        })
+      ),
+    onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => {
+    const tx = stateProps._transaction
+    if (stateProps.loading) {
       return {
-        _transaction,
-        counterpartyMeta:
-          yourInfoAndCounterparty.counterpartyType === 'keybaseUser'
-            ? getFullname(
-                state,
-                yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
-              )
-            : null,
-        loading,
-        transactionURL: _transaction.externalTxURL,
-        you,
-        yourInfoAndCounterparty,
-      }
-    },
-    (dispatch, ownProps) => ({
-      navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
-      onCancelPayment: () =>
-        dispatch(
-          WalletsGen.createCancelPayment({
-            paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
-            showAccount: true,
-          })
-        ),
-      onChat: (username: string) =>
-        dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
-      onLoadPaymentDetail: () =>
-        dispatch(
-          WalletsGen.createLoadPaymentDetail({
-            accountID: Container.getRouteProps(ownProps, 'accountID', Types.noAccountID),
-            paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
-          })
-        ),
-      onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    }),
-    (stateProps, dispatchProps, _: OwnProps) => {
-      const tx = stateProps._transaction
-      if (stateProps.loading) {
-        return {
-          loading: true,
-          onBack: dispatchProps.navigateUp,
-          onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
-          title: 'Transaction details',
-        }
-      }
-      return {
-        ...stateProps.yourInfoAndCounterparty,
-        amountUser: tx.worth,
-        amountXLM: tx.amountDescription,
-        approxWorth: tx.worthAtSendTime,
-        assetCode: tx.assetCode,
-        counterpartyMeta: stateProps.counterpartyMeta,
-        feeChargedDescription: tx.feeChargedDescription,
-        fromAirdrop: tx.fromAirdrop,
-        isAdvanced: tx.isAdvanced,
-        issuerAccountID: tx.issuerAccountID,
-        issuerDescription: tx.issuerDescription,
-        loading: false,
-        memo: tx.note.stringValue(),
+        loading: true,
         onBack: dispatchProps.navigateUp,
-        onCancelPayment: tx.showCancel ? dispatchProps.onCancelPayment : null,
-        onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
-        onChat: dispatchProps.onChat,
         onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
-        onShowProfile: dispatchProps.onShowProfile,
-        onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : undefined,
-        operations: tx.operations,
-        pathIntermediate: tx.pathIntermediate,
-        publicMemo: tx.publicMemo.stringValue(),
-        recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
-        selectableText: true,
-        senderAccountID: Types.stringToAccountID(tx.sourceAccountID),
-        sourceAmount: tx.sourceAmount,
-        sourceAsset: tx.sourceAsset,
-        sourceConvRate: tx.sourceConvRate,
-        sourceIssuer: tx.sourceIssuer,
-        sourceIssuerAccountID: tx.sourceIssuerAccountID,
-        status: tx.statusSimplified,
-        statusDetail: tx.statusDetail,
-        summaryAdvanced: tx.summaryAdvanced,
-        timestamp: tx.time ? new Date(tx.time) : null,
         title: 'Transaction details',
-        transactionID: tx.txID,
-        trustline: tx.trustline,
-        you: stateProps.you,
       }
     }
-  ),
-  Kb.HeaderHoc
+    return {
+      ...stateProps.yourInfoAndCounterparty,
+      amountUser: tx.worth,
+      amountXLM: tx.amountDescription,
+      approxWorth: tx.worthAtSendTime,
+      assetCode: tx.assetCode,
+      counterpartyMeta: stateProps.counterpartyMeta,
+      feeChargedDescription: tx.feeChargedDescription,
+      fromAirdrop: tx.fromAirdrop,
+      isAdvanced: tx.isAdvanced,
+      issuerAccountID: tx.issuerAccountID,
+      issuerDescription: tx.issuerDescription,
+      loading: false,
+      memo: tx.note.stringValue(),
+      onBack: dispatchProps.navigateUp,
+      onCancelPayment: tx.showCancel ? dispatchProps.onCancelPayment : null,
+      onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+      onChat: dispatchProps.onChat,
+      onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
+      onShowProfile: dispatchProps.onShowProfile,
+      onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : undefined,
+      operations: tx.operations,
+      pathIntermediate: tx.pathIntermediate,
+      publicMemo: tx.publicMemo.stringValue(),
+      recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
+      selectableText: true,
+      senderAccountID: Types.stringToAccountID(tx.sourceAccountID),
+      sourceAmount: tx.sourceAmount,
+      sourceAsset: tx.sourceAsset,
+      sourceConvRate: tx.sourceConvRate,
+      sourceIssuer: tx.sourceIssuer,
+      sourceIssuerAccountID: tx.sourceIssuerAccountID,
+      status: tx.statusSimplified,
+      statusDetail: tx.statusDetail,
+      summaryAdvanced: tx.summaryAdvanced,
+      timestamp: tx.time ? new Date(tx.time) : null,
+      transactionID: tx.txID,
+      trustline: tx.trustline,
+      you: stateProps.you,
+    }
+  }
 )(TransactionDetails)

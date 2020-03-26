@@ -154,7 +154,8 @@ const Team = (props: Props) => {
         onToggleCollapsed={section.onToggleCollapsed}
       />
     ) : null
-  return (
+
+  const body = (
     <Kb.Box style={styles.container}>
       {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset} />}
       <SectionList
@@ -173,6 +174,12 @@ const Team = (props: Props) => {
       />
     </Kb.Box>
   )
+
+  if (flags.teamsRedesign) {
+    return body
+  } else {
+    return <Kb.HeaderHocWrapper onBack={props.onBack}>{body}</Kb.HeaderHocWrapper>
+  }
 }
 
 const startAnimationOffset = 40

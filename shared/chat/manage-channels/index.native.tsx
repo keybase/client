@@ -160,6 +160,10 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const Wrapper = (p: Props) => <ManageChannels {...p} onClose={undefined} />
+const Wrapper = (p: Props) => (
+  <Kb.HeaderHocWrapper onBack={p.onBack}>
+    <ManageChannels {...p} onClose={undefined} />
+  </Kb.HeaderHocWrapper>
+)
 
-export default Kb.HeaderHoc(Wrapper)
+export default Wrapper

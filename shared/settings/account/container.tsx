@@ -63,7 +63,6 @@ export default Container.connect(
       onClearSupersededPhoneNumber: () =>
         supersededKey && dispatchProps._onClearSupersededPhoneNumber(supersededKey),
       supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
-      title: 'Your account',
       tooManyEmails: !!stateProps._emails && stateProps._emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
       tooManyPhones: !!stateProps._phones && stateProps._phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
       waiting: stateProps.waiting,
