@@ -5897,6 +5897,23 @@
       ],
       "response": "AddEmojiRes"
     },
+    "addEmojiAlias": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "newAlias",
+          "type": "string"
+        },
+        {
+          "name": "existingAlias",
+          "type": "string"
+        }
+      ],
+      "response": "AddEmojiRes"
+    },
     "removeEmoji": {
       "request": [
         {

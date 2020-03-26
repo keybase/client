@@ -40,6 +40,7 @@ func (c *CmdChatListEmoji) Run() error {
 	res, err := cli.UserEmojis(ctx, chat1.UserEmojisArg{
 		Opts: chat1.EmojiFetchOpts{
 			GetCreationInfo: true,
+			GetAliases:      true,
 		},
 		ConvID: nil,
 	})

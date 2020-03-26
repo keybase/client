@@ -6868,6 +6868,12 @@ type AddEmojiArg struct {
 	Filename string         `codec:"filename" json:"filename"`
 }
 
+type AddEmojiAliasArg struct {
+	ConvID        ConversationID `codec:"convID" json:"convID"`
+	NewAlias      string         `codec:"newAlias" json:"newAlias"`
+	ExistingAlias string         `codec:"existingAlias" json:"existingAlias"`
+}
+
 type RemoveEmojiArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 	Alias  string         `codec:"alias" json:"alias"`
@@ -6990,6 +6996,7 @@ type LocalInterface interface {
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
+	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiRes, error)
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
 }
@@ -8608,6 +8615,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"addEmojiAlias": {
+				MakeArg: func() interface{} {
+					var ret [1]AddEmojiAliasArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddEmojiAliasArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddEmojiAliasArg)(nil), args)
+						return
+					}
+					ret, err = i.AddEmojiAlias(ctx, typedArgs[0])
+					return
+				},
+			},
 			"removeEmoji": {
 				MakeArg: func() interface{} {
 					var ret [1]RemoveEmojiArg
@@ -9227,6 +9249,11 @@ func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActi
 
 func (c LocalClient) AddEmoji(ctx context.Context, __arg AddEmojiArg) (res AddEmojiRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addEmoji", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) AddEmojiAlias(ctx context.Context, __arg AddEmojiAliasArg) (res AddEmojiRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.addEmojiAlias", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

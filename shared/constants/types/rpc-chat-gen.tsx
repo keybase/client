@@ -1756,6 +1756,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.addEmoji'
+// 'chat.1.local.addEmojiAlias'
 // 'chat.1.local.removeEmoji'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'

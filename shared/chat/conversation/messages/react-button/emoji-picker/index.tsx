@@ -86,14 +86,24 @@ const emojiGroupsToEmojiArrayArray = (
   emojiGroups.map(emojiGroup => ({
     emojis:
       emojiGroup.emojis
-        ?.map(e => ({
-          category: emojiGroup.name,
-          name: null,
-          short_name: e.alias,
-          short_names: [e.alias],
-          source: e.source.httpsrv,
-          unified: '',
-        }))
+        ?.map(e =>
+          e.source.typ === RPCChatGen.EmojiLoadSourceTyp.str
+            ? {
+                category: emojiGroup.name,
+                name: null,
+                short_name: e.source.str,
+                short_names: [e.source.str, e.alias],
+                unified: '',
+              }
+            : {
+                category: emojiGroup.name,
+                name: null,
+                short_name: e.alias,
+                short_names: [e.alias],
+                source: e.source.httpsrv,
+                unified: '',
+              }
+        )
         .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
     name: emojiGroup.name,
   }))
