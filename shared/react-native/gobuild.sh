@@ -38,6 +38,12 @@ GOPATH0=${GOPATH_ARRAY[0]}
 client_dir="$GOPATH0/src/github.com/keybase/client"
 client_go_dir="$client_dir/go"
 
+if [ ! -d $client_dir ]; then
+  echo "Getting client (via git clone)..."
+  mkdir -p $client_dir
+  (cd "$GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/client)
+fi
+
 echo "Using GOPATH: $GOPATH"
 
 # gomobile looks for gobind in $PATH, so put $GOPATH/bin in $PATH. We
