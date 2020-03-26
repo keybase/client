@@ -1628,4 +1628,22 @@ protocol teams {
     TeamRole role;
   }
   array<AnnotatedSubteamMemberDetails> getUserSubteamMemberships(TeamID teamID, string username);
+
+  // For member page
+  record TeamTreeMembership {
+    TeamName teamName;
+    TeamID teamID;
+    TeamRole role;
+
+  }
+
+  record loadTeamTreeMembershipsResult {
+    AnnotatedTeam parent;
+  }
+  // singleflighted on teamID
+  loadTeamTreeResult loadTeamTreeMemberships(int sessionID, TeamID teamID);
+  void teamTreeMembershipsPartial(int sessionID, AnnotatedTeam team) oneway;
+  void teamTreeMembershipsDone(int sessionID) oneway;
+  // called when navigating out of page
+  void cancelLoadTeamTree(int sessionID);
 }
