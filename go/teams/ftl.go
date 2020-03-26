@@ -1320,7 +1320,7 @@ func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg
 		m.Debug("hiddenPackage: disabling checks since we a subteam reader looking for parent chain")
 		hp.DisableHiddenChainData()
 	}
-	if tmp := hidden.CheckFeatureGateForSupport(m, arg.ID, false /* isWrite */); tmp != nil {
+	if tmp := hidden.CheckFeatureGateForSupport(m, arg.ID); tmp != nil {
 		m.Debug("hiddenPackage: disabling checks since we are feature-flagged off")
 		hp.DisableHiddenChainData()
 	}

@@ -240,11 +240,11 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	return &bun, ratchets, nil
 }
 
-func CheckFeatureGateForSupportWithRotationType(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool, rt keybase1.RotationType) (ret keybase1.RotationType, err error) {
+func CheckFeatureGateForSupportWithRotationType(mctx libkb.MetaContext, teamID keybase1.TeamID, rt keybase1.RotationType) (ret keybase1.RotationType, err error) {
 	if rt == keybase1.RotationType_VISIBLE {
 		return rt, nil
 	}
-	ok, err := checkFeatureGateForSupport(mctx, teamID, isWrite)
+	ok, err := checkFeatureGateForSupport(mctx, teamID)
 	if err != nil {
 		return rt, err
 	}
@@ -288,7 +288,7 @@ func featureGateForTeamFromServer(mctx libkb.MetaContext, teamID keybase1.TeamID
 	return raw.Support, nil
 }
 
-func checkFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (ok bool, err error) {
+func checkFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID) (ok bool, err error) {
 	userFlagEnabled := mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureCheckForHiddenChainSupport)
 	runmode := mctx.G().Env.GetRunMode()
 	if runmode != libkb.ProductionRunMode {
@@ -301,8 +301,8 @@ func checkFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, 
 	return mctx.G().GetHiddenTeamChainManager().TeamSupportsHiddenChain(mctx, teamID)
 }
 
-func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (err error) {
-	ok, err := checkFeatureGateForSupport(mctx, teamID, isWrite)
+func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
+	ok, err := checkFeatureGateForSupport(mctx, teamID)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, 
 }
 
 func ProcessHiddenResponseFunc(m libkb.MetaContext, teamID keybase1.TeamID, apiRes *libkb.APIRes, blindRootHashStr string) (hiddenResp *libkb.MerkleHiddenResponse, err error) {
-	if CheckFeatureGateForSupport(m, teamID, false /* isWrite */) != nil {
+	if CheckFeatureGateForSupport(m, teamID) != nil {
 		m.Debug("Skipped ProcessHiddenResponseFunc as the feature flag is off (%v)", err)
 		return &libkb.MerkleHiddenResponse{RespType: libkb.MerkleHiddenResponseTypeFLAGOFF}, nil
 	}

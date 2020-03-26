@@ -2,12 +2,15 @@ package hidden
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	storage "github.com/keybase/client/go/teams/storage"
+)
+
+const (
+	HiddenChainFlagCacheTime = 24 * time.Hour
 )
 
 // ChainManager manages a hidden team chain, and wraps put/gets to mem/disk storage.
@@ -17,19 +20,11 @@ type ChainManager struct {
 	// single-flight lock on TeamID
 	locktab *libkb.LockTable
 
-	hiddenSupportCacheLock sync.Mutex
-	hiddenSupportCache     map[keybase1.TeamID]HiddenChainSupportState
+	hiddenSupportStorage *storage.SupportsHiddenFlagStorage
 
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
 	storage *storage.HiddenStorage
-}
-
-// HiddenChainSupportState describes whether a team supports the hidden chain or
-// not. This information is fetched from the server and cached.
-type HiddenChainSupportState struct {
-	state      bool
-	cacheUntil time.Time
 }
 
 var _ libkb.HiddenTeamChainManager = (*ChainManager)(nil)
@@ -40,19 +35,21 @@ type loadArg struct {
 }
 
 func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybase1.TeamID) (state bool, err error) {
-	m.hiddenSupportCacheLock.Lock()
-	defer m.hiddenSupportCacheLock.Unlock()
-	if supports, found := m.hiddenSupportCache[id]; found {
-		if mctx.G().Clock().Now().Before(supports.cacheUntil) {
-			return supports.state, nil
+	supportsHiddenState := m.hiddenSupportStorage.Get(mctx, id)
+	// if we never checked before or the chain was not supported but the cache
+	// expired, check again. Once enabled, hidden support cannot be revoked
+	// regardless of the cache staleness.
+	if supportsHiddenState == nil || (!supportsHiddenState.State && mctx.G().Clock().Now().Before(supportsHiddenState.CacheUntil)) {
+		mctx.Debug("TeamSupportsHiddenChain: current state is %+v, querying the server", supportsHiddenState)
+		state, err = featureGateForTeamFromServer(mctx, id)
+		if err != nil {
+			return false, err
 		}
+		supportsHiddenState = &storage.HiddenChainSupportState{TeamID: id, State: state, CacheUntil: mctx.G().Clock().Now().Add(HiddenChainFlagCacheTime)}
+		m.hiddenSupportStorage.Put(mctx, supportsHiddenState)
 	}
-	state, err = featureGateForTeamFromServer(mctx, id)
-	if err != nil {
-		return false, err
-	}
-	m.hiddenSupportCache[id] = HiddenChainSupportState{state: state, cacheUntil: mctx.G().Clock().Now().Add(1 * time.Hour)}
-	return state, nil
+	mctx.Debug("TeamSupportsHiddenChain(%s): returning %v", id, supportsHiddenState.State)
+	return supportsHiddenState.State, nil
 }
 
 // Tail returns the furthest known tail of the hidden team chain, as known to our local cache.
@@ -289,9 +286,9 @@ func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamCh
 
 func NewChainManager(g *libkb.GlobalContext) *ChainManager {
 	return &ChainManager{
-		storage:            storage.NewHiddenStorage(g),
-		hiddenSupportCache: make(map[keybase1.TeamID]HiddenChainSupportState),
-		locktab:            libkb.NewLockTable(),
+		storage:              storage.NewHiddenStorage(g),
+		hiddenSupportStorage: storage.NewSupportsHiddenFlagStorage(g),
+		locktab:              libkb.NewLockTable(),
 	}
 }
 
