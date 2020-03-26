@@ -732,6 +732,7 @@ export enum EmojiLoadSourceTyp {
 
 export enum EmojiRemoteSourceTyp {
   message = 0,
+  alias = 1,
 }
 
 export enum ExternalAPIKeyTyp {
@@ -1176,12 +1177,13 @@ export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit>
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
 export type Emoji = {readonly alias: String; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
+export type EmojiAlias = {readonly convID: ConversationID; readonly existingAlias: String}
 export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
 export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String}
 export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID}
-export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage}
+export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage} | {typ: EmojiRemoteSourceTyp.alias; alias: EmojiAlias}
 export type EmojiStorage = {readonly mapping: {[key: string]: EmojiRemoteSource}}
 export type EmptyRes = {readonly rateLimits?: Array<RateLimitRes> | null}
 export type EmptyStruct = {}

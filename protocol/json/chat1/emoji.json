@@ -40,7 +40,8 @@
       "type": "enum",
       "name": "EmojiRemoteSourceTyp",
       "symbols": [
-        "MESSAGE_0"
+        "MESSAGE_0",
+        "ALIAS_1"
       ]
     },
     {
@@ -58,6 +59,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "EmojiAlias",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "existingAlias"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "EmojiRemoteSource",
       "switch": {
@@ -71,6 +86,13 @@
             "def": false
           },
           "body": "EmojiMessage"
+        },
+        {
+          "label": {
+            "name": "ALIAS",
+            "def": false
+          },
+          "body": "EmojiAlias"
         }
       ]
     },

@@ -90,6 +90,51 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
 }
 
+func (s *DevConvEmojiSource) resolveAlias(ctx context.Context, aliasSource chat1.EmojiRemoteSource,
+	mapping map[string]chat1.EmojiRemoteSource) (res chat1.EmojiRemoteSource, err error) {
+	if !aliasSource.IsAlias() {
+		return aliasSource, nil
+	}
+	source, ok := mapping[aliasSource.Alias()]
+	if !ok {
+		return res, errors.New("missing alias")
+	}
+	if !source.IsMessage() {
+		return res, errors.New("invalid alias, must point at message source")
+	}
+	return source, nil
+}
+
+func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
+	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
+	if strings.Contains(newAlias, "#") {
+		return res, errors.New("invalid character in emoji alias")
+	}
+	var stored chat1.EmojiStorage
+	storage := s.makeStorage(chat1.TopicType_EMOJI)
+	topicName := s.topicName(nil)
+	if _, _, err := storage.Get(ctx, uid, convID, topicName, &stored, false); err != nil {
+		return res, err
+	}
+	if stored.Mapping == nil {
+		return res, errors.New("no current mapping in emoji alias")
+	}
+	existingSource, ok := stored.Mapping[existingAlias]
+	if !ok {
+		return res, errors.New("no current alias in emoji alias")
+	}
+	if !existingSource.IsMessage() {
+		return res, errors.New("must point alias at a message source")
+	}
+	if source, ok := stored.Mapping[newAlias]; ok && !source.IsAlias() {
+		return res, errors.New("cannot override non-alias with alias")
+	}
+	res = chat1.NewEmojiRemoteSourceWithAlias(existingAlias)
+	stored.Mapping[newAlias] = res
+	return res, storage.Put(ctx, uid, convID, topicName, stored)
+}
+
 func (s *DevConvEmojiSource) removeRemoteSource(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal, source chat1.EmojiRemoteSource) error {
 	typ, err := source.Typ()
@@ -178,8 +223,13 @@ func (s *DevConvEmojiSource) creationInfo(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+type getNoSetOpts struct {
+	getCreationInfo bool
+	getAliases      bool
+}
+
 func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
-	getCreationInfo bool) (res chat1.UserEmojis, aliasLookup map[string]chat1.Emoji, err error) {
+	opts getNoSetOpts) (res chat1.UserEmojis, aliasLookup map[string]chat1.Emoji, err error) {
 	aliasLookup = make(map[string]chat1.Emoji)
 	topicType := chat1.TopicType_EMOJI
 	storage := s.makeStorage(topicType)
@@ -220,13 +270,16 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 				Name: conv.Info.TlfName,
 			}
 			for alias, storedEmoji := range stored.Mapping {
+				if !opts.getAliases && storedEmoji.IsAlias() {
+					continue
+				}
 				var creationInfo *chat1.EmojiCreationInfo
 				source, err := s.remoteToLocalSource(ctx, storedEmoji)
 				if err != nil {
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
 				}
-				if getCreationInfo {
+				if opts.getCreationInfo {
 					ci, err := s.creationInfo(ctx, uid, storedEmoji)
 					if err != nil {
 						s.Debug(ctx, "Get: failed to get creation info: %s", err)
@@ -271,7 +324,9 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	getCreationInfo bool) (res chat1.UserEmojis, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get")()
 	var aliasLookup map[string]chat1.Emoji
-	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, getCreationInfo); err != nil {
+	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, getNoSetOpts{
+		getCreationInfo: getCreationInfo,
+	}); err != nil {
 		return res, err
 	}
 	s.getLock.Lock()
@@ -409,7 +464,10 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	emojis, _, err := s.getNoSet(ctx, uid, &convID, false)
+	emojis, _, err := s.getNoSet(ctx, uid, &convID, getNoSetOpts{
+		getCreationInfo: false,
+		getAliases:      true,
+	})
 	if err != nil {
 		return res, err
 	}
@@ -442,7 +500,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 		len(aliasMap))
 	for _, match := range matches {
 		// try group map first
-		if emoji, ok := groupMap[match.name]; ok {
+		if rawemoji, ok := groupMap[match.name]; ok {
 			var resEmoji chat1.HarvestedEmoji
 			if emoji.IsCrossTeam {
 				if resEmoji, err = s.syncCrossTeam(ctx, uid, chat1.HarvestedEmoji{
