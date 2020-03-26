@@ -22,7 +22,8 @@ export const useAllChannelMetas = (
     ['13', {channelname: 'team-beasts'}],
     ['14', {channelname: 'team-dogs-of-the-sea-and-other-creatures'}],
   ]
-  return new Map(data.map(([a, b]) => [a, {...ChatConstants.makeConversationMeta(), ...b}]))
+  const channelMetas = new Map(data.map(([a, b]) => [a, {...ChatConstants.makeConversationMeta(), ...b}]))
+  return {channelMetas, loadingChannels: false}
 }
 
 export const useChannelMeta = (

@@ -91,7 +91,6 @@ const ListItem = (props: Props) => (
           })}
           style={getActionStyle(props)}
           alignSelf="flex-start"
-          fullHeight={true}
         >
           {props.action}
         </Kb.Box2>
