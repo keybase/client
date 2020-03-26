@@ -55,7 +55,7 @@ const SplitNav = (props: Props) => {
         selected={props.selectedTab === Constants.chatTab}
         onClick={() => props.onTabChange(Constants.chatTab)}
       />
-      {props.contactsLabel && (
+      {Styles.isTablet && props.contactsLabel && (
         <SettingsItem
           text={props.contactsLabel}
           selected={props.selectedTab === Constants.contactsTab}
@@ -77,6 +77,13 @@ const SplitNav = (props: Props) => {
         selected={props.selectedTab === Constants.displayTab}
         onClick={() => props.onTabChange(Constants.displayTab)}
       />
+      {Styles.isTablet && (
+        <SettingsItem
+          text="About"
+          selected={props.selectedTab === Constants.aboutTab}
+          onClick={() => props.onTabChange(Constants.aboutTab)}
+        />
+      )}
       <SettingsItem
         text="Feedback"
         selected={props.selectedTab === Constants.feedbackTab}
