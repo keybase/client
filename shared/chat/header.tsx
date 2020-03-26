@@ -34,36 +34,21 @@ type Props = {
 const Header = (p: Props) => {
   const {desc, canEditDesc, isTeam, participants, fullName, channel, showActions, muted, username} = p
   const {onToggleInfoPanel, onToggleThreadSearch, unMuteConversation, onOpenFolder} = p
-  const isDarkMode = Styles.isDarkMode()
-
-  const descStyleOverride = React.useMemo(() => {
-    const descStyleMobile = {
-      color: Styles.globalColors.black_50,
-      fontSize: 13,
-      lineHeight: 17,
-    }
-    const descStyleDesktop = {
-      fontSize: 13,
-      lineHeight: 17,
-      wordBreak: 'break-all' as any,
-    } as const // approximates BodySmall since markdown does not support text type
-    const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
-
-    return {
-      del: descStyle,
-      em: descStyle,
-      fence: descStyle,
-      inlineCode: descStyle,
-      kbfsPath: descStyle,
-      link: descStyle,
-      mailto: descStyle,
-      paragraph: descStyle,
-      preview: descStyle,
-      strong: descStyle,
-    }
-    // we don't refer to isDarkMode so lint is correct to complain but it is a side effect
-    // eslint-disable-next-line
-  }, [isDarkMode])
+  const descStyleOverride = React.useMemo(
+    () => ({
+      del: styles.markdownOverride,
+      em: styles.markdownOverride,
+      fence: styles.markdownOverride,
+      inlineCode: styles.markdownOverride,
+      kbfsPath: styles.markdownOverride,
+      link: styles.markdownOverride,
+      mailto: styles.markdownOverride,
+      paragraph: styles.markdownOverride,
+      preview: styles.markdownOverride,
+      strong: styles.markdownOverride,
+    }),
+    []
+  )
 
   let description = !!desc && (
     <Kb.Markdown
@@ -260,6 +245,14 @@ const styles = Styles.styleSheetCreate(
       left: Styles.platformStyles({
         isElectron: {minWidth: 260},
         isTablet: {paddingLeft: Styles.globalMargins.small, width: '30%'},
+      }),
+      markdownOverride: Styles.platformStyles({
+        common: {
+          fontSize: 13,
+          lineHeight: 17,
+        },
+        isElectron: {wordBreak: 'break-all'},
+        isMobile: {color: Styles.globalColors.black_50},
       }),
       right: Styles.platformStyles({
         common: {
