@@ -40,7 +40,8 @@
       "type": "enum",
       "name": "EmojiRemoteSourceTyp",
       "symbols": [
-        "MESSAGE_0"
+        "MESSAGE_0",
+        "STOCKALIAS_1"
       ]
     },
     {
@@ -54,6 +55,13 @@
         {
           "type": "MessageID",
           "name": "msgID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "original"
         }
       ]
     },
@@ -71,6 +79,13 @@
             "def": false
           },
           "body": "EmojiMessage"
+        },
+        {
+          "label": {
+            "name": "STOCKALIAS",
+            "def": false
+          },
+          "body": "string"
         }
       ]
     },

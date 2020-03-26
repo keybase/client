@@ -90,6 +90,36 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
 }
 
+func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
+	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
+	if strings.Contains(newAlias, "#") {
+		return res, errors.New("invalid character in emoji alias")
+	}
+	var stored chat1.EmojiStorage
+	storage := s.makeStorage(chat1.TopicType_EMOJI)
+	topicName := s.topicName(nil)
+	if _, _, err := storage.Get(ctx, uid, convID, topicName, &stored, false); err != nil {
+		return res, err
+	}
+	if stored.Mapping == nil {
+		return res, errors.New("no current mapping in emoji alias")
+	}
+	existingSource, ok := stored.Mapping[existingAlias]
+	if !ok {
+		return res, errors.New("no current alias in emoji alias")
+	}
+	if !existingSource.IsMessage() {
+		return res, errors.New("must point alias at a message source")
+	}
+	if source, ok := stored.Mapping[newAlias]; ok && !source.IsAlias() {
+		return res, errors.New("cannot override non-alias with alias")
+	}
+	res = chat1.NewEmojiRemoteSourceWithAlias(existingAlias)
+	stored.Mapping[newAlias] = res
+	return res, storage.Put(ctx, uid, convID, topicName, stored)
+}
+
 func (s *DevConvEmojiSource) removeRemoteSource(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal, source chat1.EmojiRemoteSource) error {
 	typ, err := source.Typ()

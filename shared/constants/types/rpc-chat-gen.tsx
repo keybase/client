@@ -732,6 +732,7 @@ export enum EmojiLoadSourceTyp {
 
 export enum EmojiRemoteSourceTyp {
   message = 0,
+  stockalias = 1,
 }
 
 export enum ExternalAPIKeyTyp {
@@ -1180,8 +1181,8 @@ export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolea
 export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String}
-export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID}
-export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage}
+export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID; readonly original?: String | null}
+export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage} | {typ: EmojiRemoteSourceTyp.stockalias; stockalias: String}
 export type EmojiStorage = {readonly mapping: {[key: string]: EmojiRemoteSource}}
 export type EmptyRes = {readonly rateLimits?: Array<RateLimitRes> | null}
 export type EmptyStruct = {}

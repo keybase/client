@@ -13,16 +13,19 @@ protocol emoji {
   }
 
   enum EmojiRemoteSourceTyp {
-    MESSAGE_0
+    MESSAGE_0,
+    STOCKALIAS_1
   }
 
   record EmojiMessage {
     ConversationID convID;
     MessageID msgID;
+    union { null, string } original;
   }
 
   variant EmojiRemoteSource switch (EmojiRemoteSourceTyp typ) {
     case MESSAGE: EmojiMessage;
+    case STOCKALIAS: string;
   }
 
   record HarvestedEmoji {

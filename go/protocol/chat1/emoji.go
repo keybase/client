@@ -82,17 +82,20 @@ func (o EmojiLoadSource) DeepCopy() EmojiLoadSource {
 type EmojiRemoteSourceTyp int
 
 const (
-	EmojiRemoteSourceTyp_MESSAGE EmojiRemoteSourceTyp = 0
+	EmojiRemoteSourceTyp_MESSAGE    EmojiRemoteSourceTyp = 0
+	EmojiRemoteSourceTyp_STOCKALIAS EmojiRemoteSourceTyp = 1
 )
 
 func (o EmojiRemoteSourceTyp) DeepCopy() EmojiRemoteSourceTyp { return o }
 
 var EmojiRemoteSourceTypMap = map[string]EmojiRemoteSourceTyp{
-	"MESSAGE": 0,
+	"MESSAGE":    0,
+	"STOCKALIAS": 1,
 }
 
 var EmojiRemoteSourceTypRevMap = map[EmojiRemoteSourceTyp]string{
 	0: "MESSAGE",
+	1: "STOCKALIAS",
 }
 
 func (e EmojiRemoteSourceTyp) String() string {
@@ -103,20 +106,29 @@ func (e EmojiRemoteSourceTyp) String() string {
 }
 
 type EmojiMessage struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	MsgID    MessageID      `codec:"msgID" json:"msgID"`
+	Original *string        `codec:"original,omitempty" json:"original,omitempty"`
 }
 
 func (o EmojiMessage) DeepCopy() EmojiMessage {
 	return EmojiMessage{
 		ConvID: o.ConvID.DeepCopy(),
 		MsgID:  o.MsgID.DeepCopy(),
+		Original: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Original),
 	}
 }
 
 type EmojiRemoteSource struct {
-	Typ__     EmojiRemoteSourceTyp `codec:"typ" json:"typ"`
-	Message__ *EmojiMessage        `codec:"message,omitempty" json:"message,omitempty"`
+	Typ__        EmojiRemoteSourceTyp `codec:"typ" json:"typ"`
+	Message__    *EmojiMessage        `codec:"message,omitempty" json:"message,omitempty"`
+	Stockalias__ *string              `codec:"stockalias,omitempty" json:"stockalias,omitempty"`
 }
 
 func (o *EmojiRemoteSource) Typ() (ret EmojiRemoteSourceTyp, err error) {
@@ -124,6 +136,11 @@ func (o *EmojiRemoteSource) Typ() (ret EmojiRemoteSourceTyp, err error) {
 	case EmojiRemoteSourceTyp_MESSAGE:
 		if o.Message__ == nil {
 			err = errors.New("unexpected nil value for Message__")
+			return ret, err
+		}
+	case EmojiRemoteSourceTyp_STOCKALIAS:
+		if o.Stockalias__ == nil {
+			err = errors.New("unexpected nil value for Stockalias__")
 			return ret, err
 		}
 	}
@@ -140,10 +157,27 @@ func (o EmojiRemoteSource) Message() (res EmojiMessage) {
 	return *o.Message__
 }
 
+func (o EmojiRemoteSource) Stockalias() (res string) {
+	if o.Typ__ != EmojiRemoteSourceTyp_STOCKALIAS {
+		panic("wrong case accessed")
+	}
+	if o.Stockalias__ == nil {
+		return
+	}
+	return *o.Stockalias__
+}
+
 func NewEmojiRemoteSourceWithMessage(v EmojiMessage) EmojiRemoteSource {
 	return EmojiRemoteSource{
 		Typ__:     EmojiRemoteSourceTyp_MESSAGE,
 		Message__: &v,
+	}
+}
+
+func NewEmojiRemoteSourceWithStockalias(v string) EmojiRemoteSource {
+	return EmojiRemoteSource{
+		Typ__:        EmojiRemoteSourceTyp_STOCKALIAS,
+		Stockalias__: &v,
 	}
 }
 
@@ -157,6 +191,13 @@ func (o EmojiRemoteSource) DeepCopy() EmojiRemoteSource {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Message__),
+		Stockalias__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Stockalias__),
 	}
 }
 
