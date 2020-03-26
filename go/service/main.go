@@ -775,18 +775,22 @@ func (d *Service) slowChecks() {
 		return nil
 	})
 	go func() {
-		// Do this once fast
-		if err := d.deviceCloneSelfCheck(); err != nil {
-			d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
-		}
 		ctx := context.Background()
 		m := libkb.NewMetaContext(ctx, d.G()).WithLogTag("SLOWCHK")
+		// Do this once fast
+		if err := d.deviceCloneSelfCheck(); err != nil {
+			m.Debug("deviceCloneSelfCheck error: %s", err)
+		}
 		for {
 			<-ticker.C
 			m.Debug("+ slow checks loop")
 			m.Debug("| checking if current device should log out")
 			if err := m.LogoutSelfCheck(); err != nil {
 				m.Debug("LogoutSelfCheck error: %s", err)
+			}
+			if m.G().MobileNetState.State().IsLimited() {
+				m.Debug("| skipping clone check, limited net state")
+				continue
 			}
 			m.Debug("| checking if current device is a clone")
 			if err := d.deviceCloneSelfCheck(); err != nil {

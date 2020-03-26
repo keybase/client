@@ -9,6 +9,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../styles'
 import * as Data from './data'
+import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
@@ -109,7 +110,13 @@ const WrapperMobile = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
-    <Kb.Box2 direction="vertical" onLayout={onLayout} fullWidth={true} fullHeight={true}>
+    <Kb.Box2
+      direction="vertical"
+      onLayout={onLayout}
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.contain}
+    >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.ClickableBox onClick={onCancel} style={styles.cancelContainerMobile}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
@@ -119,7 +126,7 @@ const WrapperMobile = (props: Props) => {
           size="small"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={setFilter}
+          onChange={debounce(setFilter, 200)}
           style={styles.searchFilter}
         />
       </Kb.Box2>
@@ -154,7 +161,11 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
 
   return (
-    <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
+    <Kb.Box
+      style={Styles.collapseStyles([styles.containerDesktop, styles.contain])}
+      onClick={e => e.stopPropagation()}
+      gap="tiny"
+    >
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
@@ -167,7 +178,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           size="full-width"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={setFilter}
+          onChange={debounce(setFilter, 200)}
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
@@ -232,6 +243,11 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.tiny,
       },
+      contain: Styles.platformStyles({
+        isElectron: {
+          contain: 'content',
+        },
+      }),
       containerDesktop: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,

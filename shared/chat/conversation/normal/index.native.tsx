@@ -11,6 +11,7 @@ import PinnedMessage from '../pinned-message/container'
 import {GatewayDest} from '@chardskarth/react-gateway'
 import InvitationToBlock from '../../blocking/invitation-to-block'
 import {useSafeArea} from '../../../common-adapters/safe-area-view.native'
+import {View} from 'react-native'
 
 const Offline = () => (
   <Kb.Box
@@ -87,10 +88,12 @@ const Conversation = React.memo((props: Props) => {
         {props.threadLoadedOffline && <Offline />}
         {innerComponent}
       </Kb.Box2>
-      <GatewayDest name="convOverlay" component={Kb.NativeView} />
+      <GatewayDest name="convOverlay" component={ViewForGatewayDest} />
     </Kb.Box>
   )
 })
+
+const ViewForGatewayDest = (props: any) => <View {...props} />
 
 const styles = Styles.styleSheetCreate(
   () =>

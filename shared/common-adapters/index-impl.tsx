@@ -121,9 +121,6 @@ module.exports = {
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },
-  get HeaderOnMobile() {
-    return require('./header-on-mobile').default
-  },
   get HeaderOrPopup() {
     return require('./header-or-popup').default
   },
@@ -282,9 +279,6 @@ module.exports = {
   },
   get SimpleToast() {
     return require('./simple-toast').default
-  },
-  get StandardScreen() {
-    return require('./standard-screen').default
   },
   get Switch() {
     return require('./switch').default

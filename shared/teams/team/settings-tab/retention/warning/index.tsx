@@ -135,4 +135,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Kb.HeaderOnMobile(RetentionWarning)
+export default RetentionWarning
