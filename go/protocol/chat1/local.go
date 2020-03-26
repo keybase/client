@@ -6860,7 +6860,8 @@ type RemoveEmojiArg struct {
 }
 
 type UserEmojisArg struct {
-	ConvID *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	ConvID          *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	GetCreationInfo bool            `codec:"getCreationInfo" json:"getCreationInfo"`
 }
 
 type LocalInterface interface {
@@ -6976,7 +6977,7 @@ type LocalInterface interface {
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
-	UserEmojis(context.Context, *ConversationID) (UserEmojiRes, error)
+	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8619,7 +8620,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]UserEmojisArg)(nil), args)
 						return
 					}
-					ret, err = i.UserEmojis(ctx, typedArgs[0].ConvID)
+					ret, err = i.UserEmojis(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9220,8 +9221,7 @@ func (c LocalClient) RemoveEmoji(ctx context.Context, __arg RemoveEmojiArg) (res
 	return
 }
 
-func (c LocalClient) UserEmojis(ctx context.Context, convID *ConversationID) (res UserEmojiRes, err error) {
-	__arg := UserEmojisArg{ConvID: convID}
+func (c LocalClient) UserEmojis(ctx context.Context, __arg UserEmojisArg) (res UserEmojiRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.userEmojis", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

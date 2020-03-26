@@ -1383,5 +1383,5 @@ protocol local {
     UserEmojis emojis; 
     union { null, RateLimit } rateLimit;
   }
-  UserEmojiRes userEmojis(union { null, ConversationID } convID);
+  UserEmojiRes userEmojis(union { null, ConversationID } convID, boolean getCreationInfo);
 }

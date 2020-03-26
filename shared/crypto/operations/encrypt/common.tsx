@@ -1,17 +1,15 @@
 import * as React from 'react'
-import * as CryptoGen from '../../actions/crypto-gen'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/crypto'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import openURL from '../../util/open-url'
-import {Input, DragAndDrop, OperationBanner} from '../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../output'
-import Recipients from '../recipients'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as Constants from '../../../constants/crypto'
+import * as Container from '../../../util/container'
+import * as CryptoGen from '../../../actions/crypto-gen'
+import openURL from '../../../util/open-url'
+import {OutputInfoBanner} from '../../output'
 
 const operation = Constants.Operations.Encrypt
 
-const EncryptOptions = () => {
+export const EncryptOptions = React.memo(() => {
   const dispatch = Container.useDispatch()
 
   const hideIncludeSelf = Container.useSelector(state => state.crypto.encrypt.meta.hideIncludeSelf)
@@ -26,8 +24,17 @@ const EncryptOptions = () => {
     dispatch(CryptoGen.createSetEncryptOptions({options: {includeSelf: newIncludeSelf, sign: newSign}}))
   }
 
+  const direction = Styles.isTablet ? 'horizontal' : Styles.isMobile ? 'vertical' : 'horizontal'
+  const gap = Styles.isTablet ? 'medium' : Styles.isMobile ? 'xtiny' : 'medium'
+
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
+    <Kb.Box2
+      direction={direction}
+      fullWidth={true}
+      centerChildren={Styles.isTablet}
+      gap={gap}
+      style={styles.optionsContainer}
+    >
       {hideIncludeSelf ? null : (
         <Kb.Checkbox
           label="Include yourself"
@@ -44,9 +51,9 @@ const EncryptOptions = () => {
       />
     </Kb.Box2>
   )
-}
+})
 
-const EncryptOutputBanner = () => {
+export const EncryptOutputBanner = () => {
   const includeSelf = Container.useSelector(state => state.crypto.encrypt.options.includeSelf)
   const hasRecipients = Container.useSelector(state => state.crypto.encrypt.meta.hasRecipients)
   const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
@@ -57,59 +64,53 @@ const EncryptOutputBanner = () => {
     ? ` Only ${recipients?.length > 1 ? youAnd('your recipients') : youAnd(recipients[0])} can decipher it.`
     : ''
 
-  return (
-    <OutputInfoBanner operation={operation}>
+  const paragraphs: Array<React.ReactElement<typeof Kb.BannerParagraph>> = []
+  paragraphs.push(
+    <Kb.BannerParagraph
+      key="saltpackDisclaimer"
+      bannerColor="grey"
+      content={[
+        `This is your encrypted ${outputType === 'file' ? 'file' : 'message'}, using `,
+        {
+          onClick: () => openURL(Constants.saltpackDocumentation),
+          text: 'Saltpack',
+        },
+        '.',
+        outputType == 'text' ? " It's also called ciphertext." : '',
+      ]}
+    />
+  )
+  if (hasRecipients) {
+    paragraphs.push(
       <Kb.BannerParagraph
-        bannerColor="grey"
-        content={[
-          `This is your encrypted ${outputType === 'file' ? 'file' : 'message'}, using `,
-          {
-            onClick: () => openURL(Constants.saltpackDocumentation),
-            text: 'Saltpack',
-          },
-          '.',
-          outputType == 'text' ? " It's also called ciphertext." : '',
-        ]}
-      />
-      <Kb.BannerParagraph
+        key="whoCanRead"
         bannerColor="grey"
         content={[hasRecipients ? ' Share it however you like.' : null, whoCanRead]}
       />
-    </OutputInfoBanner>
-  )
-}
+    )
+  }
 
-const Encrypt = () => {
-  return (
-    <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
-      <OperationBanner
-        operation={operation}
-        infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
-      />
-      <Recipients />
-      <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Input operation={operation} />
-        <EncryptOptions />
-        <Kb.Box2 direction="vertical" fullHeight={true}>
-          <EncryptOutputBanner />
-          <SignedSender operation={operation} />
-          <OperationOutput operation={operation} />
-          <OutputBar operation={operation} />
-        </Kb.Box2>
-      </Kb.Box2>
-    </DragAndDrop>
-  )
+  return <OutputInfoBanner operation={operation}>{paragraphs}</OutputInfoBanner>
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      optionsContainer: {
-        ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small),
-        alignItems: 'center',
-        height: 40,
-      },
+      optionsContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small),
+          alignItems: 'center',
+          height: 40,
+        },
+        isMobile: {
+          alignItems: 'flex-start',
+        },
+        isTablet: {
+          ...Styles.globalStyles.fullWidth,
+          alignSelf: 'center',
+          justifyContent: 'space-between',
+          maxWidth: 460,
+        },
+      }),
     } as const)
 )
-
-export default Encrypt

@@ -80,7 +80,12 @@ const useCustomReacji = (conversationIDKey: Types.ConversationIDKey | undefined)
   React.useEffect(() => {
     setWaiting(true)
     getUserEmoji(
-      [{convID: conversationIDKey ? Types.keyToConversationID(conversationIDKey) : null}],
+      [
+        {
+          convID: conversationIDKey ? Types.keyToConversationID(conversationIDKey) : null,
+          getCreationInfo: false,
+        },
+      ],
       result => {
         setCustomEmojiGroups(result.emojis.emojis ?? [])
         setWaiting(false)

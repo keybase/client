@@ -3,7 +3,9 @@ import * as Constants from '../../constants/settings'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as TabConstants from '../../constants/tabs'
+import WhatsNewIcon from '../../whats-new/icon/container'
 import SettingsItem from './settings-item'
+import {keybaseFM} from '../../constants/whats-new'
 import {Props} from './index'
 
 const SplitNav = (props: Props) => {
@@ -11,6 +13,13 @@ const SplitNav = (props: Props) => {
     <Kb.Box style={styles.container}>
       {Styles.isTablet && (
         <Kb.Box style={styles.header}>
+          <SettingsItem
+            icon="iconfont-nav-2-crypto"
+            text="Crypto"
+            selected={props.selectedTab === Constants.cryptoTab}
+            onClick={() => props.onTabChange(Constants.cryptoTab)}
+            badgeNumber={props.badgeNumbers.get(TabConstants.cryptoTab)}
+          />
           <SettingsItem
             icon="iconfont-nav-git"
             text="Git"
@@ -24,6 +33,13 @@ const SplitNav = (props: Props) => {
             selected={props.selectedTab === Constants.devicesTab}
             onClick={() => props.onTabChange(Constants.devicesTab)}
             badgeNumber={props.badgeNumbers.get(TabConstants.devicesTab)}
+          />
+
+          <SettingsItem
+            text={keybaseFM}
+            iconComponent={WhatsNewIcon}
+            selected={props.selectedTab === Constants.whatsNewTab}
+            onClick={() => props.onTabChange(Constants.whatsNewTab)}
           />
           <Kb.SectionDivider label="Settings" />
         </Kb.Box>
@@ -39,6 +55,13 @@ const SplitNav = (props: Props) => {
         selected={props.selectedTab === Constants.chatTab}
         onClick={() => props.onTabChange(Constants.chatTab)}
       />
+      {props.contactsLabel && (
+        <SettingsItem
+          text={props.contactsLabel}
+          selected={props.selectedTab === Constants.contactsTab}
+          onClick={() => props.onTabChange(Constants.contactsTab)}
+        />
+      )}
       <SettingsItem
         text="Files"
         selected={props.selectedTab === Constants.fsTab}

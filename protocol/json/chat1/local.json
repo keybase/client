@@ -5900,6 +5900,10 @@
             null,
             "ConversationID"
           ]
+        },
+        {
+          "name": "getCreationInfo",
+          "type": "boolean"
         }
       ],
       "response": "UserEmojiRes"
