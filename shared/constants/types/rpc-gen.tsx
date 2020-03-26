@@ -1447,10 +1447,6 @@ export type MessageTypes = {
     inParam: {readonly id: TeamID}
     outParam: TeamMembersDetails
   }
-  'keybase.1.teams.teamGetSubteams': {
-    inParam: {readonly name: TeamName}
-    outParam: SubteamListResult
-  }
   'keybase.1.teams.teamIgnoreRequest': {
     inParam: {readonly name: String; readonly username: String}
     outParam: void
@@ -3833,7 +3829,6 @@ export const teamsTeamGetByIDRpcPromise = (params: MessageTypes['keybase.1.teams
 export const teamsTeamGetMembersByIDRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembersByID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembersByID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembersByID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetRpcPromise = (params: MessageTypes['keybase.1.teams.teamGet']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGet']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGet', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const teamsTeamGetSubteamsRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetSubteams']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetSubteams']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetSubteams', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamIgnoreRequestRpcPromise = (params: MessageTypes['keybase.1.teams.teamIgnoreRequest']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamIgnoreRequest']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamIgnoreRequest', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamLeaveRpcPromise = (params: MessageTypes['keybase.1.teams.teamLeave']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamLeave']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamLeave', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamListMyAccessRequestsRpcPromise = (params: MessageTypes['keybase.1.teams.teamListMyAccessRequests']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamListMyAccessRequests']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamListMyAccessRequests', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4244,7 +4239,8 @@ export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keyba
 // 'keybase.1.teams.teamSetBotSettings'
 // 'keybase.1.teams.teamAcceptInvite'
 // 'keybase.1.teams.teamRequestAccess'
-// 'keybase.1.teams.teamTree'
+// 'keybase.1.teams.teamTreeUnverified'
+// 'keybase.1.teams.teamGetSubteamsUnverified'
 // 'keybase.1.teams.teamCreateSeitanToken'
 // 'keybase.1.teams.teamCreateSeitanInvitelink'
 // 'keybase.1.teams.lookupImplicitTeam'

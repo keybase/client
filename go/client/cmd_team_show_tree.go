@@ -32,7 +32,7 @@ func (v *CmdTeamShowTree) Run() (err error) {
 	}
 
 	// Get the tree from the root.
-	treeRes, err := cli.TeamTree(context.TODO(), keybase1.TeamTreeArg{
+	treeRes, err := cli.TeamTreeUnverified(context.TODO(), keybase1.TeamTreeUnverifiedArg{
 		Name:      v.TeamName,
 		SessionID: v.SessionID,
 	})

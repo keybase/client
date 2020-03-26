@@ -576,10 +576,10 @@ func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamI
 	return teams.IgnoreRequest(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
 
-func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
+func (h *TeamsHandler) TeamTreeUnverified(ctx context.Context, arg keybase1.TeamTreeUnverifiedArg) (res keybase1.TeamTreeResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamTree", func() error { return err })()
-	return teams.TeamTree(ctx, h.G().ExternalG(), arg)
+	defer h.G().CTraceTimed(ctx, "TeamTreeUnverified", func() error { return err })()
+	return teams.TeamTreeUnverified(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) (err error) {

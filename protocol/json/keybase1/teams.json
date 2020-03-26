@@ -4000,7 +4000,7 @@
       ],
       "response": null
     },
-    "teamTree": {
+    "teamTreeUnverified": {
       "request": [
         {
           "name": "sessionID",
@@ -4013,7 +4013,7 @@
       ],
       "response": "TeamTreeResult"
     },
-    "teamGetSubteams": {
+    "teamGetSubteamsUnverified": {
       "request": [
         {
           "name": "sessionID",

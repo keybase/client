@@ -4072,12 +4072,12 @@ type TeamIgnoreRequestArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
-type TeamTreeArg struct {
+type TeamTreeUnverifiedArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      TeamName `codec:"name" json:"name"`
 }
 
-type TeamGetSubteamsArg struct {
+type TeamGetSubteamsUnverifiedArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      TeamName `codec:"name" json:"name"`
 }
@@ -4288,8 +4288,8 @@ type TeamsInterface interface {
 	TeamListRequests(context.Context, TeamListRequestsArg) ([]TeamJoinRequest, error)
 	TeamListMyAccessRequests(context.Context, TeamListMyAccessRequestsArg) ([]TeamName, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
-	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
-	TeamGetSubteams(context.Context, TeamGetSubteamsArg) (SubteamListResult, error)
+	TeamTreeUnverified(context.Context, TeamTreeUnverifiedArg) (TeamTreeResult, error)
+	TeamGetSubteamsUnverified(context.Context, TeamGetSubteamsUnverifiedArg) (SubteamListResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
@@ -4796,33 +4796,33 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"teamTree": {
+			"teamTreeUnverified": {
 				MakeArg: func() interface{} {
-					var ret [1]TeamTreeArg
+					var ret [1]TeamTreeUnverifiedArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TeamTreeArg)
+					typedArgs, ok := args.(*[1]TeamTreeUnverifiedArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]TeamTreeArg)(nil), args)
+						err = rpc.NewTypeError((*[1]TeamTreeUnverifiedArg)(nil), args)
 						return
 					}
-					ret, err = i.TeamTree(ctx, typedArgs[0])
+					ret, err = i.TeamTreeUnverified(ctx, typedArgs[0])
 					return
 				},
 			},
-			"teamGetSubteams": {
+			"teamGetSubteamsUnverified": {
 				MakeArg: func() interface{} {
-					var ret [1]TeamGetSubteamsArg
+					var ret [1]TeamGetSubteamsUnverifiedArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TeamGetSubteamsArg)
+					typedArgs, ok := args.(*[1]TeamGetSubteamsUnverifiedArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]TeamGetSubteamsArg)(nil), args)
+						err = rpc.NewTypeError((*[1]TeamGetSubteamsUnverifiedArg)(nil), args)
 						return
 					}
-					ret, err = i.TeamGetSubteams(ctx, typedArgs[0])
+					ret, err = i.TeamGetSubteamsUnverified(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5461,13 +5461,13 @@ func (c TeamsClient) TeamIgnoreRequest(ctx context.Context, __arg TeamIgnoreRequ
 	return
 }
 
-func (c TeamsClient) TeamTree(ctx context.Context, __arg TeamTreeArg) (res TeamTreeResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamTree", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c TeamsClient) TeamTreeUnverified(ctx context.Context, __arg TeamTreeUnverifiedArg) (res TeamTreeResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamTreeUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
-func (c TeamsClient) TeamGetSubteams(ctx context.Context, __arg TeamGetSubteamsArg) (res SubteamListResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetSubteams", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c TeamsClient) TeamGetSubteamsUnverified(ctx context.Context, __arg TeamGetSubteamsUnverifiedArg) (res SubteamListResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetSubteamsUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
