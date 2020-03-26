@@ -36,9 +36,13 @@ const getEmojiSections = memoize(
 const getFrequentSection = memoize(
   (topReacjis: Array<string>, emojisPerLine): Section => {
     const {emojiNameMap} = _getData()
-    const emojis: Array<Data.EmojiData> = topReacjis.map(
-      shortName => emojiNameMap[shortName.replace(/:/g, '')]
-    )
+    const emojis = topReacjis.reduce<Array<Data.EmojiData>>((arr, shortName) => {
+      const emoji = emojiNameMap[shortName.replace(/:/g, '')]
+      if (emoji) {
+        arr.push(emoji)
+      }
+      return arr
+    }, [])
     return {
       data: chunkEmojis(emojis, emojisPerLine).slice(0, 4),
       key: 'Frequently Used',
