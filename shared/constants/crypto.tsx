@@ -131,16 +131,16 @@ export const outputTextType: Map<Types.Operations, Types.TextType> = new Map([
 ] as const)
 
 export const inputFileIcon: Map<Types.Operations, IconType> = new Map([
-  ['decrypt', 'icon-file-saltpack-encrypted-64'],
+  ['decrypt', 'icon-file-saltpack-64'],
   ['encrypt', 'icon-file-64'],
   ['sign', 'icon-file-64'],
-  ['verify', 'icon-file-saltpack-signed-64'],
+  ['verify', 'icon-file-saltpack-64'],
 ])
 
 export const outputFileIcon: Map<Types.Operations, IconType> = new Map([
   ['decrypt', 'icon-file-64'],
-  ['encrypt', 'icon-file-saltpack-encrypted-64'],
-  ['sign', 'icon-file-saltpack-signed-64'],
+  ['encrypt', 'icon-file-saltpack-64'],
+  ['sign', 'icon-file-saltpack-64'],
   ['verify', 'icon-file-64'],
 ])
 
