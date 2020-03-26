@@ -2,9 +2,7 @@ import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as ChatConstants from '../../../constants/chat2'
 
-export const useAllChannelMetas = (
-  _: Types.TeamID
-): Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta> => {
+export const useAllChannelMetas = (_: Types.TeamID) => {
   const data: Array<[ChatTypes.ConversationIDKey, Partial<ChatTypes.ConversationMeta>]> = [
     ['0', {channelname: 'general'}],
     ['1', {channelname: 'random'}],
