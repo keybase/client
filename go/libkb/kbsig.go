@@ -698,7 +698,7 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	return ret, nil
 }
 
-func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte, merkleRoot *MerkleRoot, sigIDsToRevoke []keybase1.SigID) (*ProofMetadataRes, error) {
+func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte, merkleRoot *MerkleRoot, sigIDToRevoke *keybase1.SigID) (*ProofMetadataRes, error) {
 	md := ProofMetadata{
 		Me:                  u,
 		LinkType:            LinkTypeWotVouch,
@@ -717,12 +717,9 @@ func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion Si
 		return nil, err
 	}
 
-	if len(sigIDsToRevoke) > 1 {
-		return nil, fmt.Errorf("cannot revoke more than one previous attestation at a time")
-	}
-	if len(sigIDsToRevoke) > 0 {
+	if sigIDToRevoke != nil {
 		revokeSection := jsonw.NewDictionary()
-		err := revokeSection.SetKey("sig_id", jsonw.NewString(sigIDsToRevoke[0].String()))
+		err := revokeSection.SetKey("sig_id", jsonw.NewString(sigIDToRevoke.String()))
 		if err != nil {
 			return nil, err
 		}

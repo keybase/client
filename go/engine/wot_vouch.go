@@ -53,18 +53,26 @@ func (e *WotVouch) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func getSigIDsToRevoke(mctx libkb.MetaContext, vouchee *libkb.User) (toRevoke []keybase1.SigID, err error) {
+func getSigIDToRevoke(mctx libkb.MetaContext, vouchee *libkb.User) (toRevoke *keybase1.SigID, err error) {
 	voucherUsername := mctx.ActiveDevice().Username(mctx).String()
 	vouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Voucher: voucherUsername, Vouchee: vouchee.GetName()})
 	if err != nil {
 		return nil, err
 	}
+	var unrevokedVouches []keybase1.WotVouch
 	for _, vouch := range vouches {
 		if vouch.Status != keybase1.WotStatusType_REVOKED {
-			toRevoke = append(toRevoke, vouch.VouchProof)
+			unrevokedVouches = append(unrevokedVouches, vouch)
 		}
 	}
-	return toRevoke, nil
+	switch {
+	case len(unrevokedVouches) > 1:
+		return nil, fmt.Errorf("there should be at most one existing vouch to revoke, but there are %d", len(unrevokedVouches))
+	case len(unrevokedVouches) == 1:
+		return &unrevokedVouches[0].VouchProof, nil
+	default:
+		return nil, nil
+	}
 }
 
 // Run starts the engine.
@@ -131,14 +139,14 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		return err
 	}
 
-	sigIDsToRevoke, err := getSigIDsToRevoke(mctx, them)
+	sigIDToRevoke, err := getSigIDToRevoke(mctx, them)
 	if err != nil {
 		return err
 	}
 	var lease *libkb.Lease
 	var merkleRoot *libkb.MerkleRoot
-	if len(sigIDsToRevoke) > 0 {
-		lease, merkleRoot, err = libkb.RequestDowngradeLeaseBySigIDs(ctx, g, sigIDsToRevoke)
+	if sigIDToRevoke != nil {
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseBySigIDs(ctx, g, []keybase1.SigID{*sigIDToRevoke})
 		if err != nil {
 			return err
 		}
@@ -162,7 +170,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		if me.GetUID() == e.arg.Vouchee.Uid {
 			return libkb.InvalidArgumentError{Msg: "can't vouch for yourself"}
 		}
-		proof, err = me.WotVouchProof(mctx, signingKey, sigVersion, sum, merkleRoot, sigIDsToRevoke)
+		proof, err = me.WotVouchProof(mctx, signingKey, sigVersion, sum, merkleRoot, sigIDToRevoke)
 		if err != nil {
 			return err
 		}
@@ -175,7 +183,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 			signingKey,
 			libkb.LinkTypeWotVouch,
 			inner,
-			libkb.SigHasRevokes(len(sigIDsToRevoke) > 0),
+			libkb.SigHasRevokes(sigIDToRevoke != nil),
 			keybase1.SeqType_PUBLIC,
 			libkb.SigIgnoreIfUnsupported(true),
 			me,
