@@ -173,6 +173,12 @@ const BOOL isSimulator = NO;
   }];
 }
 
+- (void)appendManifestAndLogErrorWithText:(NSString*)text error:(NSError*)error {
+  [self.manifest addObject:@{
+    @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
+  }];
+}
+
 - (NSError *)writeManifest {
   NSURL* fileURL = [self getManifestFileURL];
   NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
@@ -189,13 +195,13 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   // But if the text is short enough, we also include it in the manifest so
   // GUI can easily pre-fill it into the chat compose box.
   if (error != nil) {
-    NSLog(@"handleText: load error: %@", error);
+    [self appendManifestAndLogErrorWithText:@"handleText: load error" error:error];
     return;
   }
   NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
   [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
   if (error != nil){
-    NSLog(@"handleText: unable to write payload file: %@", error);
+    [self appendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
     return;
   }
   if (text.length < TEXT_LENGTH_THRESHOLD) {
@@ -209,7 +215,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   NSURL * originalFileURL = [self getPayloadURLFromExt:ext];
   BOOL OK = [data writeToURL:originalFileURL atomically:true];
   if (!OK){
-    NSLog(@"handleData: unable to write payload file");
+    [self appendManifestAndLogErrorWithText:@"handleData: unable to write payload file" error:nil];
     return;
   }
   [self appendManifestType:type originalFileURL:originalFileURL];
@@ -218,7 +224,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 - (void) handleAndMaybeCompleteMediaFile:(NSURL *)url isVideo:(BOOL)isVideo lastItem:(BOOL)lastItem {
   ProcessMediaCompletion completion = ^(NSError * error, NSURL * scaled, NSURL * thumbnail) {
     if (error != nil) {
-      NSLog(@"fileHandler: prcessVideoFromOriginal error: %@", error);
+      [self appendManifestAndLogErrorWithText:@"handleAndMaybeCompleteMediaFile" error:error];
       [self maybeCompleteRequest:lastItem];
       return;
     }
@@ -251,7 +257,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
     if (error != nil) {
-      NSLog(@"imageHandler: load error: %@", error);
+      [self appendManifestAndLogErrorWithText:@"imageHandler: load error" error:error];
       [self maybeCompleteRequest:lastItem];
       return;
     }
@@ -259,7 +265,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     NSURL * originalFileURL = [self getPayloadURLFromExt:@"jpg"];
     BOOL OK = [imageData writeToURL:originalFileURL atomically:true];
     if (!OK){
-      NSLog(@"handleData: unable to write payload file");
+      [self appendManifestAndLogErrorWithText:@"handleData: unable to write payload file" error:nil];
       return;
     }
     [self handleAndMaybeCompleteMediaFile:originalFileURL isVideo:false lastItem:lastItem];
@@ -283,14 +289,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       return;
     }
     if (error != nil) {
-      NSLog(@"fileHandler: load error: %@", error);
+      [self appendManifestAndLogErrorWithText:@"fileHandler: load error" error:error];
       [self maybeCompleteRequest:lastItem];
       return;
     }
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
-      NSLog(@"fileHandler: copy error: %@", error);
+      [self appendManifestAndLogErrorWithText:@"fileHandler: copy error" error:error];
       [self maybeCompleteRequest:lastItem];
       return;
     }
