@@ -2,6 +2,7 @@ package hidden
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -59,16 +60,16 @@ func newRatchetError(format string, args ...interface{}) RatchetError {
 	return RatchetError{fmt.Sprintf(format, args...)}
 }
 
-type HiddenRotationNotSupportedError struct {
+type HiddenChainNotSupportedError struct {
 	teamID keybase1.TeamID
 }
 
-func NewHiddenRotationNotSupportedError(teamID keybase1.TeamID) HiddenRotationNotSupportedError {
-	return HiddenRotationNotSupportedError{teamID: teamID}
+func NewHiddenChainNotSupportedError(teamID keybase1.TeamID) HiddenChainNotSupportedError {
+	return HiddenChainNotSupportedError{teamID: teamID}
 }
 
-func (e HiddenRotationNotSupportedError) Error() string {
-	return fmt.Sprintf("hidden team rotation is not enabled for team %s", e.teamID)
+func (e HiddenChainNotSupportedError) Error() string {
+	return fmt.Sprintf("hidden team chain is not enabled for team %s", e.teamID)
 }
 
 type RepeatPTKGenerationError struct {

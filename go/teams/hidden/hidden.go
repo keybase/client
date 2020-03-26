@@ -258,7 +258,7 @@ func CheckFeatureGateForSupportWithRotationType(mctx libkb.MetaContext, teamID k
 	case rt == keybase1.RotationType_HIDDEN && ok:
 		return keybase1.RotationType_HIDDEN, nil
 	case rt == keybase1.RotationType_HIDDEN && !ok:
-		return keybase1.RotationType_HIDDEN, NewHiddenRotationNotSupportedError(teamID)
+		return keybase1.RotationType_HIDDEN, NewHiddenChainNotSupportedError(teamID)
 
 	default:
 		return keybase1.RotationType_HIDDEN, fmt.Errorf("unhandled case")
@@ -307,7 +307,7 @@ func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID) 
 		return err
 	}
 	if !ok {
-		return NewHiddenRotationNotSupportedError(teamID)
+		return NewHiddenChainNotSupportedError(teamID)
 	}
 	return nil
 }
