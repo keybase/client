@@ -3,7 +3,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from './index'
+import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
 type OwnProps = {}
 
@@ -42,11 +42,7 @@ const mergeProps = (
 }
 
 // Export the popup as the default export so it is easy to make a route pointing to it
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(HeaderHoc(ProxySettingsPopup))
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProxySettingsPopup)
 
 // The proxy settings component used in the advanced settings screen
 const ProxySettings = Container.connect(

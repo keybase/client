@@ -30,7 +30,6 @@ export default Container.namedConnect(
       contactSettingsTeams,
       contactSettingsTeamsEnabled,
       teamMeta: state.teams.teamMeta,
-      title: 'Chat',
       unfurlError: state.settings.chat.unfurl.unfurlError,
       unfurlMode: state.settings.chat.unfurl.unfurlMode,
       unfurlWhitelist,
