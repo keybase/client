@@ -22,13 +22,15 @@ type ErrorProps = {
   onWallet: () => void
 }
 
-const PaymentsConfirmError = (props: ErrorProps) => {
-  if (props.errorIsNoWallet) {
-    return PaymentsConfirmErrorNoWallet(props)
-  } else {
-    return PaymentsConfirmErrorMisc(props)
-  }
-}
+const PaymentsConfirmError = (props: ErrorProps) => (
+  <Kb.PopupWrapper onCancel={props.onCancel}>
+    {props.errorIsNoWallet ? (
+      <PaymentsConfirmErrorNoWallet {...props} />
+    ) : (
+      <PaymentsConfirmErrorMisc {...props} />
+    )}
+  </Kb.PopupWrapper>
+)
 
 const PaymentsConfirmErrorMisc = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
@@ -47,27 +49,25 @@ const PaymentsConfirmErrorMisc = (props: ErrorProps) => (
 )
 
 const PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
-  <Kb.PopupWrapper onCancel={props.onCancel}>
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-        style={styles.fullErrorContainer}
-      >
-        <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
-          <Kb.Text type="BodyExtrabold">{props.error}</Kb.Text>
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-            <Kb.Button style={styles.submitButton} onClick={props.onWallet} label="Set up wallet" />
-          </Kb.ButtonBar>
-        </Kb.Box2>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2
+      direction="vertical"
+      centerChildren={true}
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.fullErrorContainer}
+    >
+      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
+        <Kb.Text type="BodyExtrabold">{props.error}</Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button style={styles.submitButton} onClick={props.onWallet} label="Set up wallet" />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.PopupWrapper>
+  </Kb.Box2>
 )
 
 type PaymentProps = {
