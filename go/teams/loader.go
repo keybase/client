@@ -275,9 +275,9 @@ func (l *TeamLoader) makeNameLookupBurstCacheLoader(ctx context.Context, g *libk
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
 // The key difference between load1 and load2 is that load2 is recursive (for subteams).
-func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (*keybase1.TeamData, *keybase1.HiddenTeamChain, error) {
+func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (data *keybase1.TeamData, hidden *keybase1.HiddenTeamChain, err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
-	err := l.checkArg(ctx, lArg)
+	err = l.checkArg(ctx, lArg)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -306,6 +306,13 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 			return nil, nil, err
 		}
 	}
+
+	defer func() {
+		if err != nil {
+			mctx.Debug("Clearing support hidden chain flag for team %s because of error %v in team loader (load1)", teamID, err)
+			mctx.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(mctx, teamID)
+		}
+	}()
 
 	mungedForceRepoll := lArg.ForceRepoll
 	mungedWantMembers, err := l.mungeWantMembers(ctx, lArg.Refreshers.WantMembers)
@@ -469,6 +476,13 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 	}
 
 	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
+	defer func() {
+		if err != nil {
+			mctx := libkb.NewMetaContext(ctx, l.G())
+			mctx.Debug("Clearing support hidden chain flag for team %s because of error %v in team loader (load2)", arg.teamID, err)
+			mctx.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(mctx, arg.teamID)
+		}
+	}()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
 }

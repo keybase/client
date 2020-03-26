@@ -52,6 +52,10 @@ func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybas
 	return supportsHiddenState.State, nil
 }
 
+func (m *ChainManager) ClearSupportFlagIfFalse(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+	m.hiddenSupportStorage.ClearEntryIfFalse(mctx, teamID)
+}
+
 // Tail returns the furthest known tail of the hidden team chain, as known to our local cache.
 // Needed when posting new main chain links that point back to the most recently known tail.
 func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybase1.LinkTriple, error) {

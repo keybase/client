@@ -81,3 +81,10 @@ func (s *SupportsHiddenFlagStorage) Get(mctx libkb.MetaContext, teamID keybase1.
 	}
 	return ret
 }
+
+func (s *SupportsHiddenFlagStorage) ClearEntryIfFalse(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+	if currentState := s.Get(mctx, teamID); currentState != nil && !currentState.State {
+		// put an already expired state in the cache
+		s.Put(mctx, &HiddenChainSupportState{TeamID: teamID, State: false, CacheUntil: mctx.G().Clock().Now().Add(-1 * time.Second)})
+	}
+}

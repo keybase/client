@@ -146,6 +146,12 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 			Ctime:     keybase1.ToTime(start),
 		})
 	}()
+	defer func() {
+		if err != nil {
+			m.Debug("Clearing support hidden chain flag for team %s because of error %v in Auditor", id, err)
+			m.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(m, id)
+		}
+	}()
 
 	if id.IsPublic() != isPublic {
 		return NewBadPublicError(id, isPublic)

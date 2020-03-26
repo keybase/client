@@ -256,7 +256,12 @@ func (a fastLoadArg) needChainTail() bool {
 
 // load acquires a lock by team ID, and the runs loadLockedWithRetries.
 func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
-
+	defer func() {
+		if err != nil {
+			m.Debug("Clearing support hidden chain flag for team %s because of error %v in FTL", arg.ID, err)
+			m.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(m, arg.ID)
+		}
+	}()
 	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#load(%+v)", arg), func() error { return err })()
 
 	// Single-flight lock by team ID.
