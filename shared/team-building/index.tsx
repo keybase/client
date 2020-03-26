@@ -217,7 +217,7 @@ const ContactsImportButton = (props: ContactProps) => {
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black_20} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -261,33 +261,10 @@ const FilteredServiceTabBar = (
 }
 
 const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: string}) => (
-  <Kb.Box2
-    alignSelf="center"
-    centerChildren={!Styles.isMobile}
-    direction="vertical"
-    fullWidth={true}
-    gap="tiny"
-    style={styles.emptyContainer}
-  >
-    {!Styles.isMobile && (
-      <Kb.Icon
-        fontSize={Styles.isMobile ? 48 : 64}
-        type={serviceIdToIconFont(props.selectedService)}
-        style={Styles.collapseStyles([
-          !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
-        ])}
-      />
-    )}
-    {!Styles.isMobile && (
-      <Kb.Text center={true} type="BodyBig">
-        Enter a {serviceIdToLabel(props.selectedService)} username above.
-      </Kb.Text>
-    )}
-    <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-      {props.action} anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a Keybase
-      account.
-    </Kb.Text>
-  </Kb.Box2>
+  <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+    {props.action} anyone on {serviceIdToLabel(props.selectedService)}. Your messages will unlock after your
+    recipient signs up and proves their Twitter.
+  </Kb.Text>
 )
 
 // TODO: the type of this is any
@@ -457,9 +434,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       if (this.props.namespace === 'people') {
         return <EmptyResultText selectedService={this.props.selectedService} action="Search for" />
       } else {
-        return (
-          <EmptyResultText selectedService={this.props.selectedService} action="Start a Keybase chat with" />
-        )
+        return <EmptyResultText selectedService={this.props.selectedService} action="Start a chat with" />
       }
     }
     if (this.props.showRecs && this.props.recommendations) {
@@ -849,11 +824,9 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '80%'},
       }),
-      emptyServiceText: Styles.platformStyles({
-        isMobile: {
-          padding: Styles.globalMargins.small,
-        },
-      }),
+      emptyServiceText: {
+        margin: Styles.globalMargins.small,
+      },
       headerContainer: Styles.platformStyles({
         isElectron: {
           marginBottom: Styles.globalMargins.xtiny,

@@ -67,8 +67,13 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             onChangeNumber={onChangeNumberCb}
             onEnterKeyDown={_onContinue}
           />
-          {!!user && canSubmit && !!user.serviceMap.keybase && (
+          {!!user && canSubmit && !!user.serviceMap.keybase ? (
             <UserMatchMention username={user.serviceMap.keybase} />
+          ) : (
+            <Kb.Text type="BodySmall" style={styles.helperText}>
+              Start a chat with any phone number. Your messages will unlock after your recipient signs up and
+              proves their phone number.
+            </Kb.Text>
           )}
           {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
@@ -113,6 +118,11 @@ const styles = Styles.styleSheetCreate(
           zIndex: -1,
         },
       }),
+      helperText: {
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+        textAlign: 'center',
+      },
       loading: {alignSelf: 'center'},
       spaceFillingBox: {flexGrow: 1},
       userMatchMention: {

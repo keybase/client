@@ -68,8 +68,13 @@ const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResult
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         )}
-        {!!user && canSubmit && !!user.serviceMap.keybase && (
+        {!!user && canSubmit && !!user.serviceMap.keybase ? (
           <UserMatchMention username={user.serviceMap.keybase} />
+        ) : (
+          <Kb.Text type="BodySmall" style={styles.helperText}>
+            Start a chat with any email address. Your messages will unlock after your recipient signs up and
+            proves their email address.
+          </Kb.Text>
         )}
         {/* TODO: add support for multiple emails  */}
       </Kb.Box2>
@@ -97,6 +102,11 @@ const styles = Styles.styleSheetCreate(
       }),
       bottomContainer: {
         flexGrow: 1,
+      },
+      helperText: {
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+        textAlign: 'center',
       },
       input: Styles.platformStyles({
         common: {},
