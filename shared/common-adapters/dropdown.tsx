@@ -117,17 +117,24 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
 
 type InlineDropdownProps = {
   containerStyle?: Styles.StylesCrossPlatform
-  label: React.ReactNode
   onPress: () => void
-  type?: 'Body' | 'BodySmall' | 'BodySmallSemibold'
   style?: Styles.StylesCrossPlatform
   loading?: boolean
-}
+} & (
+  | {
+      label: string
+      type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+    }
+  | {
+      label: React.ReactNode
+      type: never
+    }
+)
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
     <Box2 direction="horizontal" style={styles.inlineSelected}>
-      {props.type ? <Text type={props.type}>{props.label}</Text> : props.label}
+      {typeof props.label === 'string' ? <Text type={props.type}>{props.label}</Text> : props.label}
     </Box2>
   )
   return (

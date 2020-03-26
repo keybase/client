@@ -203,23 +203,6 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
         alignItems="stretch"
         style={Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
       >
-        {/* <Kb.Box2
-          direction="horizontal"
-          style={Styles.collapseStyles([
-            Styles.globalStyles.flexOne,
-            styles.contentCollapsedFixedHeight,
-          ])}
-        > */}
-        {/* <Kb.Box2
-            direction="vertical"
-            alignItems="flex-start"
-            centerChildren={true}
-            gap="tiny"
-            style={Styles.collapseStyles([
-              Styles.globalStyles.flexGrow,
-              styles.contentCollapsedFixedHeight,
-            ])}
-          > */}
         <Kb.Box2
           direction="horizontal"
           alignSelf="flex-start"
@@ -249,8 +232,6 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        {/* </Kb.Box2> */}
-        {/* </Kb.Box2> */}
 
         <Kb.Box2 direction="horizontal" alignSelf="center">
           <FloatingRolePicker
@@ -329,8 +310,6 @@ const SubteamInRow = (props: SubteamInRowProps) => {
     .map(([_, {channelname}]) => channelname)
     .join(', #')
 
-  const height = expanded ? (Styles.isMobile ? 208 : 140) : undefined
-
   const rolePicker = (
     <FloatingRolePicker
       selectedRole={role}
@@ -359,10 +338,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
         <TeamDetailsSubscriber teamID={props.subteam.id} />
 
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-          <Kb.Box2
-            direction="horizontal"
-            style={Styles.collapseStyles([styles.expandIcon, expanded && styles.expandIconExpanded])}
-          >
+          <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
             <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
           </Kb.Box2>
 
@@ -371,6 +347,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
             style={Styles.collapseStyles([
               Styles.globalStyles.flexGrow,
               !expanded && styles.contentCollapsedFixedHeight,
+              expanded && styles.membershipExpanded,
             ])}
           >
             <Kb.Box2
@@ -385,7 +362,10 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                 alignSelf="flex-start"
                 alignItems="center"
                 gap="tiny"
-                style={styles.contentCollapsedFixedHeight}
+                style={Styles.collapseStyles([
+                  !expanded && styles.contentCollapsedFixedHeight,
+                  expanded && styles.membershipContentExpanded,
+                ])}
               >
                 <Kb.Avatar teamname={props.subteam.teamname} size={32} />
                 <Kb.Box2
@@ -393,6 +373,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   alignItems="flex-start"
                   style={Styles.collapseStyles([
                     styles.membershipTeamText,
+                    expanded && styles.membershipTeamTextExpanded,
                     !expanded && styles.contentCollapsedFixedHeight,
                   ])}
                 >
@@ -429,9 +410,20 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   gap="tiny"
                   alignSelf="flex-start"
                   style={{justifyContent: 'center'}}
+                  fullWidth={true}
                 >
-                  <Kb.Icon type="iconfont-hash" sizeType="Small" color={Styles.globalColors.black_20} />
-                  <Kb.Text type="BodySmall">
+                  <Kb.Icon
+                    type="iconfont-hash"
+                    sizeType="Small"
+                    color={Styles.globalColors.black_20}
+                    style={styles.membershipIcon}
+                  />
+                  <Kb.Text
+                    type="BodySmall"
+                    style={Styles.globalStyles.flexOne}
+                    lineClamp={4}
+                    ellipsizeMode="tail"
+                  >
                     {channels.size > 0 ? `Member of #${channelsJoined}` : 'Loading channels...'}
                   </Kb.Text>
                 </Kb.Box2>
@@ -454,6 +446,8 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   />
                 </Kb.Box2>
               )}
+
+              {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
             </Kb.Box2>
           </Kb.Box2>
 
@@ -595,19 +589,27 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 64,
     },
   }),
-  expandIcon: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    display: 'flex',
-    flexShrink: 0,
-    height: 32,
-    justifyContent: 'center',
-    padding: Styles.globalMargins.tiny,
-    width: 40,
-  },
-  expandIconExpanded: {
-    marginTop: -2,
-  },
+  expandIcon: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      display: 'flex',
+      flexShrink: 0,
+      height: 48,
+      justifyContent: 'center',
+      padding: Styles.globalMargins.tiny,
+      width: 40,
+    },
+    isMobile: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      display: 'flex',
+      flexShrink: 0,
+      height: 64,
+      justifyContent: 'center',
+      width: 10 + Styles.globalMargins.small * 2, // 16px side paddings
+    },
+  }),
   headerContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
@@ -642,15 +644,40 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingLeft: Styles.globalMargins.small,
     },
   }),
+  membershipContentExpanded: Styles.platformStyles({
+    isElectron: {
+      height: 40,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      height: 48,
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
+  membershipExpanded: Styles.platformStyles({
+    isElectron: {
+      paddingBottom: Styles.globalMargins.tiny,
+    },
+  }),
+  membershipIcon: {
+    flexShrink: 0,
+  },
   membershipTeamText: {
     justifyContent: 'center',
   },
+  membershipTeamTextExpanded: Styles.platformStyles({
+    isMobile: {
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
   roleButton: {
     paddingRight: 0,
   },
-  roleButtonExpanded: {
-    marginTop: Styles.globalMargins.xxtiny,
-  },
+  roleButtonExpanded: Styles.platformStyles({
+    isElectron: {
+      marginTop: 12, // does not exist as an official size
+    },
+  }),
   row: Styles.platformStyles({
     isElectron: {
       paddingRight: Styles.globalMargins.small,
