@@ -70,7 +70,7 @@ export default Container.connect(
             {
               props: {
                 conversationIDKey: ownProps.message.conversationIDKey,
-                ordinal: ownProps.message.ordinal,
+                onPickAddToMessageOrdinal: ownProps.message.ordinal,
               },
               selected: 'chatChooseEmoji',
             },

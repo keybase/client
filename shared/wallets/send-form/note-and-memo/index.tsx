@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as ChatConstants from '../../../constants/chat2'
 import {EmojiPickerDesktop} from '../../../chat/conversation/messages/react-button/emoji-picker/container'
 
 type SecretNoteProps = {
@@ -114,7 +115,11 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
                 position="bottom right"
                 onHidden={() => this.setState({emojiPickerOpen: false})}
               >
-                <EmojiPickerDesktop onPick={this._insertEmoji} onDidPick={this._emojiPickerToggle} />
+                <EmojiPickerDesktop
+                  conversationIDKey={ChatConstants.noConversationIDKey}
+                  onPickAction={this._insertEmoji}
+                  onDidPick={this._emojiPickerToggle}
+                />
               </Kb.Overlay>
             )}
           </Kb.Box2>

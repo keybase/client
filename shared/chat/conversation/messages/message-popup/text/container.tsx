@@ -58,7 +58,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            props: {conversationIDKey: message.conversationIDKey, onPickAddToMessageOrdinal: message.ordinal},
             selected: 'chatChooseEmoji',
           },
         ],
