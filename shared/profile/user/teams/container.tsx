@@ -2,7 +2,7 @@ import * as Container from '../../../util/container'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
-import {TeamID, noTeamID} from '../../../constants/types/teams'
+import {noTeamID} from '../../../constants/types/teams'
 import Teams, {Props} from '.'
 
 type OwnProps = {
@@ -25,9 +25,9 @@ export default Container.namedConnect(
   dispatch => ({
     onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    onViewTeam: (teamID: TeamID) => {
+    onViewTeam: (teamname: string) => {
       dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+      dispatch(TeamsGen.createShowTeamByName({teamname}))
     },
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({

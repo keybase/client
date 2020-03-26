@@ -160,9 +160,9 @@ const handleSaltpackOpenFile = (
     })
   }
   let operation: CryptoTypes.Operations | null = null
-  if (path.endsWith('.encrypted.saltpack')) {
+  if (CrytoConstants.isPathSaltpackEncrypted(path)) {
     operation = CrytoConstants.Operations.Decrypt
-  } else if (path.endsWith('.signed.saltpack')) {
+  } else if (CrytoConstants.isPathSaltpackSigned(path)) {
     operation = CrytoConstants.Operations.Verify
   } else {
     logger.warn(
