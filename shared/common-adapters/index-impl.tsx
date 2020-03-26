@@ -124,12 +124,6 @@ module.exports = {
   get HeaderHocWrapper() {
     return require('./header-hoc').HeaderHocWrapper
   },
-  get HeaderOrPopup() {
-    return require('./header-or-popup').default
-  },
-  get HeaderOrPopupWithHeader() {
-    return require('./header-or-popup').HeaderOrPopupWithHeader
-  },
   get HotKey() {
     return require('./hot-key').HotKey
   },

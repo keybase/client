@@ -22,15 +22,15 @@ type ErrorProps = {
   onWallet: () => void
 }
 
-const _PaymentsConfirmError = (props: ErrorProps) => {
+const PaymentsConfirmError = (props: ErrorProps) => {
   if (props.errorIsNoWallet) {
-    return _PaymentsConfirmErrorNoWallet(props)
+    return PaymentsConfirmErrorNoWallet(props)
   } else {
-    return _PaymentsConfirmErrorMisc(props)
+    return PaymentsConfirmErrorMisc(props)
   }
 }
 
-const _PaymentsConfirmErrorMisc = (props: ErrorProps) => (
+const PaymentsConfirmErrorMisc = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2
       direction="vertical"

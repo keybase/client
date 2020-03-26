@@ -20,7 +20,7 @@ type Props = {
   onNewFolder?: () => void
   onBackUp?: () => void
   customComponent?: React.ReactNode | null
-  headerStyle?: StylesCrossPlatform
+  headerStyle?: Styles.StylesCrossPlatform
 }
 
 const NewFolder = ({onNewFolder}) => (

@@ -125,7 +125,7 @@ const DesktopSendAttachmentToChat = (props: Props) => {
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
   }
   return (
-    <Kb.PopupWrapper onCancel={props.onCancel}>
+    <Kb.PopupWrapper>
       <DesktopSendAttachmentToChatRender
         enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
         convName={convName}
