@@ -57,25 +57,32 @@ class NewRepo extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.Box key={item} style={styles.avatarBox}>
-        <Kb.Avatar isTeam={true} teamname={item} size={16} style={{marginRight: Styles.globalMargins.tiny}} />
-        <Kb.Text
-          type="Header"
-          style={Styles.platformStyles({
-            common: {
-              overflow: 'hidden',
-              width: '100%',
-            },
-            isElectron: {
-              display: 'block',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            },
-          })}
-        >
-          {item}
-        </Kb.Text>
-      </Kb.Box>
+      <Kb.PopupWrapper onCancel={this.props.onClose}>
+        <Kb.Box key={item} style={styles.avatarBox}>
+          <Kb.Avatar
+            isTeam={true}
+            teamname={item}
+            size={16}
+            style={{marginRight: Styles.globalMargins.tiny}}
+          />
+          <Kb.Text
+            type="Header"
+            style={Styles.platformStyles({
+              common: {
+                overflow: 'hidden',
+                width: '100%',
+              },
+              isElectron: {
+                display: 'block',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              },
+            })}
+          >
+            {item}
+          </Kb.Text>
+        </Kb.Box>
+      </Kb.PopupWrapper>
     )
   }
 
@@ -211,4 +218,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Kb.HeaderOrPopup(NewRepo)
+export default NewRepo

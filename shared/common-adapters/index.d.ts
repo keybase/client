@@ -42,7 +42,12 @@ export {default as FloatingPicker} from './floating-picker'
 export {usePopup} from './use-popup'
 export {default as OverlayParentHOC} from './overlay/parent-hoc'
 export {default as HeaderHoc, HeaderHocHeader, HeaderHocWrapper} from './header-hoc'
-export {default as HeaderOrPopup, HeaderOrPopupWithHeader, PopupWrapper} from './header-or-popup'
+export {
+  default as HeaderOrPopup,
+  HeaderOrPopupWithHeader,
+  PopupWrapper,
+  PopupWitHeaderWrapper,
+} from './header-or-popup'
 export {HotKey, useHotKey} from './hot-key'
 export {default as HoverHoc} from './hover-hoc'
 export {default as Icon, urlsToImgSet, IconStyle} from './icon'

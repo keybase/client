@@ -45,7 +45,6 @@ export const newModalRoutes = {
   },
   profileRevoke: {getScreen: (): typeof ProfileRevoke => require('./revoke/container').default},
   profileShowcaseTeamOffer: {
-    // @ts-ignore HeaderOrPopup typing busted
     getScreen: (): typeof ProfileShowcaseTeamOffer => require('./showcase-team-offer/container').default,
   },
   ...PGPRoutes,

@@ -7,16 +7,19 @@ import * as Styles from '../styles'
 type KeybaseLinkErrorBodyProps = {
   message: string
   isError: boolean
+  onCancel: () => void
 }
 
 export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   const bannerColor = props.isError ? 'red' : 'green'
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Banner color={bannerColor}>
-        <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
-      </Kb.Banner>
-    </Kb.Box2>
+    <Kb.PopupWrapper onCancel={props.onCancel} customCancelText="Close">
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.Banner color={bannerColor}>
+          <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
+        </Kb.Banner>
+      </Kb.Box2>
+    </Kb.PopupWrapper>
   )
 }
 
@@ -24,7 +27,6 @@ type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep6' | 'sep7'}>
 
 const KeybaseLinkError = (props: OwnProps) => {
   const errorSource = Container.getRouteProps(props, 'errorSource', 'app')
-  const Body = Kb.HeaderOrPopup(KeybaseLinkErrorBody)
   const message = Container.useSelector(s => {
     switch (errorSource) {
       case 'app':
@@ -39,7 +41,9 @@ const KeybaseLinkError = (props: OwnProps) => {
   const isError = errorSource !== 'sep6' || sep6Error
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
-  return <Body onCancel={onClose} customCancelText="Close" isError={isError} message={message} />
+  return (
+    <KeybaseLinkErrorBody onCancel={onClose} customCancelText="Close" isError={isError} message={message} />
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({

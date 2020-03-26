@@ -26,40 +26,59 @@ type WalletPopupProps = {
   safeAreaViewTopStyle?: Styles.StylesCrossPlatform
 }
 
-const WalletPopup = (props: WalletPopupProps) => (
-  <Kb.Box2 direction="vertical" style={styles.outerContainer}>
-    <Kb.ScrollView
-      alwaysBounceVertical={false}
-      style={styles.scrollView}
-      contentContainerStyle={styles.scrollViewContentContainer}
+const WalletPopup = (props: WalletPopupProps) => {
+  return (
+    <Kb.PopupWitHeaderWrapper
+      customCancelText={props.backButtonType === 'close' ? 'Close' : ''}
+      customComponent={
+        props.headerTitle && <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
+      }
+      customSafeAreaBottomStyle={props.safeAreaViewBottomStyle}
+      customSafeAreaTopStyle={props.safeAreaViewTopStyle}
+      onBack={props.backButtonType === 'back' ? props.onExit : undefined} // Displays back button on desktop
+      onCancel={
+        props.onCancel ??
+        (props.backButtonType === 'cancel' || props.backButtonType === 'close' ? props.onExit : undefined)
+      }
+      style={styles.popup}
     >
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={!Styles.isMobile}
-        fullWidth={true}
-        centerChildren={true}
-        style={Styles.collapseStyles([
-          styles.container,
-          props.backButtonType === 'back' && !Styles.isMobile ? {paddingTop: Styles.globalMargins.small} : {},
-          props.containerStyle,
-        ])}
-      >
-        {props.children}
-        {props.bottomButtons && props.bottomButtons.length > 0 && (
-          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-            <Kb.ButtonBar
-              direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
-              fullWidth={Styles.isMobile}
-              style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
-            >
-              {props.bottomButtons}
-            </Kb.ButtonBar>
+      <Kb.Box2 direction="vertical" style={styles.outerContainer}>
+        <Kb.ScrollView
+          alwaysBounceVertical={false}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContentContainer}
+        >
+          <Kb.Box2
+            direction="vertical"
+            fullHeight={!Styles.isMobile}
+            fullWidth={true}
+            centerChildren={true}
+            style={Styles.collapseStyles([
+              styles.container,
+              props.backButtonType === 'back' && !Styles.isMobile
+                ? {paddingTop: Styles.globalMargins.small}
+                : {},
+              props.containerStyle,
+            ])}
+          >
+            {props.children}
+            {props.bottomButtons && props.bottomButtons.length > 0 && (
+              <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+                <Kb.ButtonBar
+                  direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
+                  fullWidth={Styles.isMobile}
+                  style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
+                >
+                  {props.bottomButtons}
+                </Kb.ButtonBar>
+              </Kb.Box2>
+            )}
           </Kb.Box2>
-        )}
+        </Kb.ScrollView>
       </Kb.Box2>
-    </Kb.ScrollView>
-  </Kb.Box2>
-)
+    </Kb.PopupWitHeaderWrapper>
+  )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   buttonBar: Styles.platformStyles({
@@ -113,21 +132,4 @@ const styles = Styles.styleSheetCreate(() => ({
   scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 }))
 
-const Pop = Kb.HeaderOrPopupWithHeader(WalletPopup)
-
-export default (props: WalletPopupProps) => {
-  const otherProps = {
-    customCancelText: props.backButtonType === 'close' ? 'Close' : '',
-    customComponent: props.headerTitle && (
-      <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
-    ),
-    customSafeAreaBottomStyle: props.safeAreaViewBottomStyle,
-    customSafeAreaTopStyle: props.safeAreaViewTopStyle,
-    onBack: props.backButtonType === 'back' ? props.onExit : undefined, // Displays back button on desktop
-    onCancel:
-      props.onCancel ??
-      (props.backButtonType === 'cancel' || props.backButtonType === 'close' ? props.onExit : undefined),
-    style: styles.popup,
-  }
-  return <Pop {...props} {...otherProps} />
-}
+export default WalletPopup

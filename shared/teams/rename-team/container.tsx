@@ -10,7 +10,6 @@ type OwnProps = Container.RouteProps<{teamname: string}>
 const mapStateToProps = (state, ownProps) => ({
   error: Container.anyErrors(state, Constants.teamRenameWaitingKey),
   teamname: Container.getRouteProps(ownProps, 'teamname', ''),
-  title: 'Rename subteam',
   waiting: Container.anyWaiting(state, Constants.teamRenameWaitingKey),
 })
 
@@ -31,7 +30,6 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onRename: newName => dispatchProps._onRename(stateProps.teamname, newName),
   onSuccess: dispatchProps.onSuccess,
   teamname: stateProps.teamname,
-  title: stateProps.title,
   waiting: stateProps.waiting,
 })
 

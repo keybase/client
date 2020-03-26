@@ -14,6 +14,25 @@ export const PopupWrapper = (props: {onCancel?: () => void; children: React.Reac
     return <PopupDialog onClose={onCancel}>{children}</PopupDialog>
   }
 }
+/** TODO deprecate eventually **/
+export const PopupWitHeaderWrapper = (props: {
+  onCancel?: () => void
+  children: React.ReactNode
+  style?: Styles.StylesCrossPlatform
+  onBack?: () => void
+}) => {
+  const {onCancel, children, style, onBack} = props
+  if (isMobile) {
+    return <HeaderHocWrapper onCancel={onCancel}>{children}</HeaderHocWrapper>
+  } else {
+    return (
+      <PopupDialog onClose={onCancel} styleClipContainer={style}>
+        {onBack && <HeaderHocHeader onBack={onBack} headerStyle={headerStyle} />}
+        {children}
+      </PopupDialog>
+    )
+  }
+}
 
 // HeaderOrPopup replaces our common pattern of:
 // isMobile

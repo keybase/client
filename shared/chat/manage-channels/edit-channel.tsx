@@ -25,7 +25,7 @@ type State = {
   newTopic: string
 }
 
-class _EditChannel extends React.Component<Props, State> {
+class EditChannel extends React.Component<Props, State> {
   state = {newChannelName: this.props.channelName, newTopic: this.props.topic}
 
   private onChangeChannelName = (newChannelName: string) => this.setState({newChannelName})
@@ -50,93 +50,94 @@ class _EditChannel extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.ScrollView style={styles.scroll}>
-        <Kb.Box style={styles.box}>
-          <Kb.Avatar isTeam={true} teamname={this.props.teamname} size={32} />
-          <Kb.Text type="BodySmallSemibold" style={{marginTop: Styles.globalMargins.xtiny}}>
-            {this.props.teamname}
-          </Kb.Text>
-          {this.props.waitingForGetInfo ? (
-            <Kb.ProgressIndicator
-              type="Large"
-              style={{marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny}}
-            />
-          ) : (
-            !Styles.isMobile && (
-              <Kb.Box2 direction="horizontal" fullWidth={true}>
-                <Kb.Text center={true} lineClamp={1} type="Header" style={styles.title}>
-                  {this.props.title}
-                </Kb.Text>
-              </Kb.Box2>
-            )
-          )}
-
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bannerContainer}>
-            {!!this.props.errorText && (
-              <Kb.Banner color="red">
-                <Kb.BannerParagraph bannerColor="red" content={this.props.errorText} />
-              </Kb.Banner>
+      <Kb.PopupWitHeaderWrapper onCancel={this.props.onCancel} title={this.props.title}>
+        <Kb.ScrollView style={styles.scroll}>
+          <Kb.Box style={styles.box}>
+            <Kb.Avatar isTeam={true} teamname={this.props.teamname} size={32} />
+            <Kb.Text type="BodySmallSemibold" style={{marginTop: Styles.globalMargins.xtiny}}>
+              {this.props.teamname}
+            </Kb.Text>
+            {this.props.waitingForGetInfo ? (
+              <Kb.ProgressIndicator
+                type="Large"
+                style={{marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny}}
+              />
+            ) : (
+              !Styles.isMobile && (
+                <Kb.Box2 direction="horizontal" fullWidth={true}>
+                  <Kb.Text center={true} lineClamp={1} type="Header" style={styles.title}>
+                    {this.props.title}
+                  </Kb.Text>
+                </Kb.Box2>
+              )
             )}
-            {this.props.deleteRenameDisabled && (
-              <Kb.Banner color="blue">
-                <Kb.BannerParagraph bannerColor="blue" content="#general can’t be renamed or deleted." />
-              </Kb.Banner>
-            )}
-          </Kb.Box2>
 
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.inputContainer}>
-            <Kb.LabeledInput
-              autoFocus={true}
-              onChangeText={this.onChangeChannelName}
-              placeholder={this.props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
-              disabled={this.props.waitingForGetInfo || this.props.deleteRenameDisabled}
-              value={this.state.newChannelName}
-            />
-            <Kb.LabeledInput
-              onChangeText={this.onChangeTopic}
-              disabled={this.props.waitingForGetInfo}
-              placeholder={
-                this.props.waitingForGetInfo
-                  ? 'Loading channel description...'
-                  : 'Add a description or topic...'
-              }
-              value={this.state.newTopic}
-              multiline={true}
-              rowsMin={1}
-              rowsMax={Styles.isMobile ? 2 : 10}
-              autoCorrect={true}
-              autoCapitalize="sentences"
-              // From go/chat/msgchecker/constants.go#HeadlineMaxLength
-              maxLength={280}
-            />
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-              <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} />
-              <Kb.Button
-                label="Save"
-                disabled={
-                  this.props.channelName === this.state.newChannelName &&
-                  this.props.topic === this.state.newTopic
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bannerContainer}>
+              {!!this.props.errorText && (
+                <Kb.Banner color="red">
+                  <Kb.BannerParagraph bannerColor="red" content={this.props.errorText} />
+                </Kb.Banner>
+              )}
+              {this.props.deleteRenameDisabled && (
+                <Kb.Banner color="blue">
+                  <Kb.BannerParagraph bannerColor="blue" content="#general can’t be renamed or deleted." />
+                </Kb.Banner>
+              )}
+            </Kb.Box2>
+
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.inputContainer}>
+              <Kb.LabeledInput
+                autoFocus={true}
+                onChangeText={this.onChangeChannelName}
+                placeholder={this.props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
+                disabled={this.props.waitingForGetInfo || this.props.deleteRenameDisabled}
+                value={this.state.newChannelName}
+              />
+              <Kb.LabeledInput
+                onChangeText={this.onChangeTopic}
+                disabled={this.props.waitingForGetInfo}
+                placeholder={
+                  this.props.waitingForGetInfo
+                    ? 'Loading channel description...'
+                    : 'Add a description or topic...'
                 }
-                waiting={this.props.waitingOnSave}
-                onClick={this.onSave}
+                value={this.state.newTopic}
+                multiline={true}
+                rowsMin={1}
+                rowsMax={Styles.isMobile ? 2 : 10}
+                autoCorrect={true}
+                autoCapitalize="sentences"
+                // From go/chat/msgchecker/constants.go#HeadlineMaxLength
+                maxLength={280}
               />
-            </Kb.ButtonBar>
-            {this.props.showDelete && !this.props.deleteRenameDisabled && (
-              <DeleteChannel
-                channelName={this.props.channelName}
-                onConfirmedDelete={this.props.onConfirmedDelete}
-                disabled={this.props.deleteRenameDisabled}
-              />
-            )}
-          </Kb.Box2>
-        </Kb.Box>
-      </Kb.ScrollView>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+                <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} />
+                <Kb.Button
+                  label="Save"
+                  disabled={
+                    this.props.channelName === this.state.newChannelName &&
+                    this.props.topic === this.state.newTopic
+                  }
+                  waiting={this.props.waitingOnSave}
+                  onClick={this.onSave}
+                />
+              </Kb.ButtonBar>
+              {this.props.showDelete && !this.props.deleteRenameDisabled && (
+                <DeleteChannel
+                  channelName={this.props.channelName}
+                  onConfirmedDelete={this.props.onConfirmedDelete}
+                  disabled={this.props.deleteRenameDisabled}
+                />
+              )}
+            </Kb.Box2>
+          </Kb.Box>
+        </Kb.ScrollView>
+      </Kb.PopupWitHeaderWrapper>
     )
   }
 }
-const EditChannel = Kb.HeaderOrPopupWithHeader(_EditChannel)
 
 const styles = Styles.styleSheetCreate(
   () =>
