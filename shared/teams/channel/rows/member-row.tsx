@@ -110,6 +110,7 @@ const ChannelMemberRow = (props: Props) => {
       onCheck={onSelect}
       key={`check-${username}`}
       selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
+      style={styles.widenClickableArea}
     />
   )
 
@@ -257,6 +258,7 @@ const styles = Styles.styleSheetCreate(() => ({
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
+  widenClickableArea: {margin: -5, padding: 5},
 }))
 
 export default ChannelMemberRow

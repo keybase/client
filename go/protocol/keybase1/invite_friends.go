@@ -67,9 +67,13 @@ type InvitePeopleArg struct {
 type GetInviteCountsArg struct {
 }
 
+type RequestInviteCountsArg struct {
+}
+
 type InviteFriendsInterface interface {
 	InvitePeople(context.Context, InvitePeopleArg) (int, error)
 	GetInviteCounts(context.Context) (InviteCounts, error)
+	RequestInviteCounts(context.Context) error
 }
 
 func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
@@ -101,6 +105,16 @@ func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"requestInviteCounts": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInviteCountsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RequestInviteCounts(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -116,5 +130,10 @@ func (c InviteFriendsClient) InvitePeople(ctx context.Context, __arg InvitePeopl
 
 func (c InviteFriendsClient) GetInviteCounts(ctx context.Context) (res InviteCounts, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.getInviteCounts", []interface{}{GetInviteCountsArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c InviteFriendsClient) RequestInviteCounts(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.requestInviteCounts", []interface{}{RequestInviteCountsArg{}}, nil, 0*time.Millisecond)
 	return
 }

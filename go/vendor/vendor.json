@@ -866,10 +866,10 @@
 			"revisionTime": "2019-08-28T02:14:36Z"
 		},
 		{
-			"checksumSHA1": "L3Ikyd7jWuQrEjmrQXWpWmf8crc=",
+			"checksumSHA1": "KfBWxwb7GdNVgFQlju7SCN43K7E=",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "378d9d7f431816a42f30985e8ffee63ac5434370",
-			"revisionTime": "2019-12-20T02:13:28Z"
+			"revision": "65d7292bc904e98fdf2ee5429df80c1408b85283",
+			"revisionTime": "2020-03-25T14:30:49Z"
 		},
 		{
 			"checksumSHA1": "zgzyigxAOGm4vkwoY75Al9UyHAc=",
@@ -938,10 +938,10 @@
 			"revisionTime": "2018-09-13T22:10:37Z"
 		},
 		{
-			"checksumSHA1": "e4+s/4oTQwUd2sfvU2bh2fxYnNI=",
+			"checksumSHA1": "KZLZbHak4K4RDfs1nK6IrkPUIMI=",
 			"path": "github.com/keybase/go.dbus",
-			"revision": "7ce83444282d459dcd3724fa5e2721d1662c5dc0",
-			"revisionTime": "2019-06-04T18:23:40Z"
+			"revision": "a94be52c0b0383bbeb8b40062e27c7b1bd2f4560",
+			"revisionTime": "2020-03-24T22:33:59Z"
 		},
 		{
 			"checksumSHA1": "6siKrD8lFPCe0S3OF9E4wuRgUAo=",

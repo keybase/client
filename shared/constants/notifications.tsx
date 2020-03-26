@@ -1,6 +1,6 @@
+import * as Container from '../util/container'
 import * as RPCTypes from './types/rpc-gen'
 import * as Tabs from './tabs'
-import * as Container from '../util/container'
 
 export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
@@ -12,6 +12,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
   const unreadWalletAccounts = bs.unreadWalletAccounts ?? []
+  const wotUpdates = bs.wotUpdates ?? new Map<string, RPCTypes.WotUpdate>()
 
   if (state.notifications.badgeVersion >= inboxVers) {
     return undefined
@@ -19,7 +20,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
 
   const counts = new Map<Tabs.Tab, number>()
 
-  counts.set(Tabs.peopleTab, bs.homeTodoItems)
+  counts.set(Tabs.peopleTab, bs.homeTodoItems + Object.keys(wotUpdates).length)
 
   const allDeviceChanges = new Set(newDevices)
   newDevices.forEach(d => allDeviceChanges.add(d))

@@ -39,7 +39,6 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
-	"github.com/keybase/client/go/invitefriends"
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -388,7 +387,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
 	d.startInstallReferrerListener(d.MetaContext(ctx))
-	d.runInitializeInviteFriendsCounts(ctx)
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
@@ -593,24 +591,6 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 	d.G().PushShutdownHook(eng.Shutdown)
 }
 
-func (d *Service) runInitializeInviteFriendsCounts(ctx context.Context) {
-	go d.runInitializeInviteFriendsCountsInner(ctx)
-}
-func (d *Service) runInitializeInviteFriendsCountsInner(ctx context.Context) {
-	mctx := libkb.NewMetaContext(ctx, d.G())
-
-	if !mctx.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
-		mctx.Debug("Failed to wait for GUI to startup; not initializing invite counts")
-		return
-	}
-	counts, err := invitefriends.GetCounts(mctx)
-	if err != nil {
-		mctx.Debug("failed to initialize invitecounts: %s")
-		return
-	}
-	mctx.G().NotifyRouter.HandleUpdateInviteCounts(mctx.Ctx(), counts)
-}
-
 func (d *Service) startupGregor() {
 	g := d.G()
 	if g.Env.GetGregorDisabled() {
@@ -795,18 +775,22 @@ func (d *Service) slowChecks() {
 		return nil
 	})
 	go func() {
-		// Do this once fast
-		if err := d.deviceCloneSelfCheck(); err != nil {
-			d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
-		}
 		ctx := context.Background()
 		m := libkb.NewMetaContext(ctx, d.G()).WithLogTag("SLOWCHK")
+		// Do this once fast
+		if err := d.deviceCloneSelfCheck(); err != nil {
+			m.Debug("deviceCloneSelfCheck error: %s", err)
+		}
 		for {
 			<-ticker.C
 			m.Debug("+ slow checks loop")
 			m.Debug("| checking if current device should log out")
 			if err := m.LogoutSelfCheck(); err != nil {
 				m.Debug("LogoutSelfCheck error: %s", err)
+			}
+			if m.G().MobileNetState.State().IsLimited() {
+				m.Debug("| skipping clone check, limited net state")
+				continue
 			}
 			m.Debug("| checking if current device is a clone")
 			if err := d.deviceCloneSelfCheck(); err != nil {

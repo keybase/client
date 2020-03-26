@@ -187,14 +187,22 @@
 .icon-gen-iconfont-hash::before {content: "\e9ab";}
 .icon-gen-iconfont-photo-library::before {content: "\e9ac";}
 .icon-gen-iconfont-video-library::before {content: "\e9ad";}
-.icon-gen-iconfont-copy::before {content: "\e9ae";}
+.icon-gen-iconfont-warning::before {content: "\e9ae";}
 .icon-gen-iconfont-nav-2-crypto::before {content: "\e9af";}
 .icon-gen-iconfont-verify::before {content: "\e9b0";}
 .icon-gen-iconfont-unlock::before {content: "\e9b1";}
 .icon-gen-iconfont-bot::before {content: "\e9b2";}
-.icon-gen-iconfont-warning::before {content: "\e9b3";}
+.icon-gen-iconfont-campfire-burning::before {content: "\e9b3";}
 .icon-gen-iconfont-campfire-out::before {content: "\e9b4";}
 .icon-gen-iconfont-envelope::before {content: "\e9b5";}
 .icon-gen-iconfont-person-raisedarms::before {content: "\e9b6";}
 .icon-gen-iconfont-typing::before {content: "\e9b7";}
+.icon-gen-iconfont-pawprint::before {content: "\e9b8";}
+.icon-gen-iconfont-apple::before {content: "\e9b9";}
+.icon-gen-iconfont-basketball::before {content: "\e9ba";}
+.icon-gen-iconfont-airplane::before {content: "\e9bb";}
+.icon-gen-iconfont-music::before {content: "\e9bc";}
+.icon-gen-iconfont-checkbox::before {content: "\e9bd";}
+.icon-gen-iconfont-flag::before {content: "\e9be";}
+.icon-gen-iconfont-copy::before {content: "\e9bf";}
 

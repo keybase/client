@@ -13,6 +13,9 @@
     "selectedConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    "deselectedConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
@@ -780,10 +783,6 @@
     "toggleGiphyPrefill": {
       "_description": "Toggle /giphy text to trigger preview window",
       "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "setChannelSearchText": {
-      "_description": "Set filter for channel search",
-      "text": "string"
     },
     "updateBlockButtons": {
       "_description": "Show or hide invitation to block for a given team ID",

@@ -100,3 +100,10 @@ func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keyb
 
 	return invitefriends.GetCounts(mctx)
 }
+
+func (h *InviteFriendsHandler) RequestInviteCounts(ctx context.Context) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("InviteFriendsHandler#RequestInviteCounts", func() error { return err })()
+
+	return invitefriends.RequestNotification(mctx)
+}

@@ -15,14 +15,14 @@ export type Props = {
   open?: boolean
 }
 
-const _Spinner = (props: Props) => (
+const Spinner = (props: Props) => (
   <Kb.MaybePopup onClose={props.onBack}>
+    {Styles.isMobile && <Kb.HeaderHocHeader onBack={props.onBack} />}
     <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
       <Kb.ProgressIndicator style={styles.spinnerProgressIndicator} />
     </Kb.Box2>
   </Kb.MaybePopup>
 )
-const Spinner = Kb.HeaderOnMobile(_Spinner)
 
 const Header = (props: Props) => (
   <>

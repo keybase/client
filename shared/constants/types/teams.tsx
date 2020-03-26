@@ -128,6 +128,13 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
+export type AvatarCrop = {
+  crop: RPCTypes.ImageCropRect
+  offsetLeft?: number
+  offsetTop?: number
+  scaledWidth?: number
+}
+
 export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'
 export type NewTeamWizardState = {
   teamType: TeamWizardTeamType
@@ -138,7 +145,7 @@ export type NewTeamWizardState = {
   openTeamJoinRole: TeamRoleType
   showcase: boolean
   avatarFilename?: string
-  avatarCrop?: RPCTypes.ImageCropRect
+  avatarCrop?: AvatarCrop
   isBig: boolean
   channels?: string[]
   subteams?: string[]

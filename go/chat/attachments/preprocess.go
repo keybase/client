@@ -189,7 +189,11 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res string, err error) {
 	head := make([]byte, 512)
 	_, err = io.ReadFull(src, head)
-	if err != nil && err != io.ErrUnexpectedEOF {
+	switch err {
+	case nil:
+	case io.EOF, io.ErrUnexpectedEOF:
+		return "", nil
+	default:
 		return res, err
 	}
 

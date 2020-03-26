@@ -608,7 +608,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.userEmojis': {
-    inParam: void
+    inParam: {readonly convID?: ConversationID | null; readonly getCreationInfo: Boolean}
     outParam: UserEmojiRes
   }
 }
@@ -1179,8 +1179,9 @@ export type DeviceInfo = {readonly deviceID: Keybase1.DeviceID; readonly deviceD
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
-export type Emoji = {readonly alias: String; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource}
+export type Emoji = {readonly alias: String; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
 export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
+export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String}
 export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID}
@@ -1362,6 +1363,7 @@ export type RemoteBotCommandsAdvertisement = {typ: BotCommandsAdvertisementTyp.p
 export type RemoteBotCommandsAdvertisementPublic = {readonly convID: ConversationID}
 export type RemoteBotCommandsAdvertisementTLFID = {readonly convID: ConversationID; readonly tlfID: TLFID}
 export type RemoteUserTypingUpdate = {readonly uid: Gregor1.UID; readonly deviceID: Gregor1.DeviceID; readonly convID: ConversationID; readonly typing: Boolean; readonly t: /* teamType */ TeamType}
+export type RemoveEmojiRes = {readonly rateLimit?: RateLimit | null}
 export type ResetConvMember = {readonly username: String; readonly uid: Gregor1.UID; readonly conv: ConversationID}
 export type ResetConvMemberAPI = {readonly conversationID: ConvIDStr; readonly username: String}
 export type ResetConversationMember = {readonly convID: ConversationID; readonly uid: Gregor1.UID}
@@ -1755,6 +1757,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.addEmoji'
+// 'chat.1.local.removeEmoji'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

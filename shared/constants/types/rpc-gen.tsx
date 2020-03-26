@@ -371,6 +371,10 @@ export type MessageTypes = {
     inParam: {readonly dismissed: Boolean}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSSetSyncOnCellular': {
+    inParam: {readonly syncOnCellular: Boolean}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSSettings': {
     inParam: void
     outParam: FSSettings
@@ -958,6 +962,10 @@ export type MessageTypes = {
   'keybase.1.inviteFriends.invitePeople': {
     inParam: {readonly emails: EmailInvites; readonly phones?: Array<PhoneNumber> | null}
     outParam: Int
+  }
+  'keybase.1.inviteFriends.requestInviteCounts': {
+    inParam: void
+    outParam: void
   }
   'keybase.1.kbfsMount.GetCurrentMountDir': {
     inParam: void
@@ -1594,6 +1602,10 @@ export type MessageTypes = {
   'keybase.1.userSearch.userSearch': {
     inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean}
     outParam: Array<APIUserSearchResult> | null
+  }
+  'keybase.1.wot.dismissWotNotifications': {
+    inParam: {readonly voucher: String; readonly vouchee: String}
+    outParam: void
   }
 }
 
@@ -2748,7 +2760,7 @@ export type AvatarClearCacheMsg = {readonly name: String; readonly formats?: Arr
 export type AvatarFormat = String
 export type AvatarUrl = String
 export type BadgeConversationInfo = {readonly convID: ChatConversationID; readonly badgeCount: Int; readonly unreadMessages: Int}
-export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly unverifiedEmails: Int; readonly unverifiedPhones: Int; readonly smallTeamBadgeCount: Int; readonly bigTeamBadgeCount: Int; readonly newTeamAccessRequestCount: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeams?: Array<TeamID> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly wotUpdates?: Array<WotUpdate> | null; readonly resetState: ResetState}
+export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly unverifiedEmails: Int; readonly unverifiedPhones: Int; readonly smallTeamBadgeCount: Int; readonly bigTeamBadgeCount: Int; readonly newTeamAccessRequestCount: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeams?: Array<TeamID> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly wotUpdates: {[key: string]: WotUpdate}; readonly resetState: ResetState}
 export type BinaryKID = Bytes
 export type BinaryLinkID = Bytes
 export type BlockIdCombo = {readonly blockHash: String; readonly chargedTo: UserOrTeamID; readonly blockType: BlockType}
@@ -3633,6 +3645,7 @@ export const SimpleFSSimpleFSSetDebugLevelRpcPromise = (params: MessageTypes['ke
 export const SimpleFSSimpleFSSetFolderSyncConfigRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetNotificationThresholdRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSetSyncOnCellularRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetSyncOnCellular']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetSyncOnCellular']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetSyncOnCellular', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSettingsRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStartDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStartDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStartUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStartUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStartUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStartUpload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3746,6 +3759,7 @@ export const installInstallKBFSRpcPromise = (params: MessageTypes['keybase.1.ins
 export const installUninstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.uninstallKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.uninstallKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.uninstallKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const inviteFriendsGetInviteCountsRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.getInviteCounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.getInviteCounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.getInviteCounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const inviteFriendsInvitePeopleRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.invitePeople']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.invitePeople']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.invitePeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const inviteFriendsRequestInviteCountsRpcPromise = (params: MessageTypes['keybase.1.inviteFriends.requestInviteCounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.inviteFriends.requestInviteCounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.inviteFriends.requestInviteCounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetCurrentMountDir', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetKBFSPathInfoRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetKBFSPathInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetPreferredMountDirsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetPreferredMountDirs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3854,6 +3868,7 @@ export const userSetUserBlocksRpcPromise = (params: MessageTypes['keybase.1.user
 export const userUnblockUserRpcPromise = (params: MessageTypes['keybase.1.user.unblockUser']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.unblockUser']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.unblockUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.user.uploadUserAvatar']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.uploadUserAvatar']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.uploadUserAvatar', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.userCard']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.userCard']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.userCard', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keybase.1.wot.dismissWotNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.dismissWotNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.dismissWotNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.timeTravelReset'
@@ -4205,7 +4220,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSReset'
-// 'keybase.1.SimpleFS.simpleFSSetSyncOnCellular'
 // 'keybase.1.SimpleFS.simpleFSObfuscatePath'
 // 'keybase.1.SimpleFS.simpleFSDeobfuscatePath'
 // 'keybase.1.SimpleFS.simpleFSGetStats'
@@ -4279,5 +4293,4 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.wot.wotVouchCLI'
 // 'keybase.1.wot.wotReact'
 // 'keybase.1.wot.wotReactCLI'
-// 'keybase.1.wot.dismissWotNotifications'
 // 'keybase.1.wot.wotListCLI'

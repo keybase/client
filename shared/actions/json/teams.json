@@ -402,7 +402,7 @@
       "showcase": "boolean"
     },
     "setTeamWizardAvatar": {
-      "crop?": "RPCTypes.ImageCropRect",
+      "crop?": "Types.AvatarCrop",
       "filename?": "string"
     },
     "setTeamWizardTeamSize": {

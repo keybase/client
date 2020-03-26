@@ -2,10 +2,22 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import logger from '../../logger'
 import InviteHow from './invite-how'
 
 const InviteFriends = () => {
+  const requestInviteCounts = Container.useRPC(RPCTypes.inviteFriendsRequestInviteCountsRpcPromise)
   const inviteCounts = Container.useSelector(state => state.people.inviteCounts)
+  const inviteCountsLoaded = !!inviteCounts
+  React.useEffect(() => {
+    if (inviteCountsLoaded) return
+    requestInviteCounts(
+      [undefined],
+      _ => {},
+      err => logger.error(err.message)
+    )
+  }, [inviteCountsLoaded, requestInviteCounts])
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -56,8 +68,7 @@ const InviteFriends = () => {
     </Kb.Box2>
   ) : (
     <>
-      <Kb.Box style={Styles.globalStyles.flexOne} />
-      <Kb.Divider />
+      <Kb.Divider style={styles.goToBottom} />
       <Kb.Box2 direction="vertical" gap="xsmall" style={styles.container} className="invite-friends-big">
         {inviteButton}
         {!!inviteCounts && (
@@ -117,6 +128,7 @@ const styles = Styles.styleSheetCreate(() => ({
   counter: {
     color: Styles.globalColors.blueLighterOrBlack_50,
   },
+  goToBottom: {marginTop: 'auto'},
   inviteCounterBox: {
     flex: 1,
     justifyContent: 'flex-end',

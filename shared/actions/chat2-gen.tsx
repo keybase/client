@@ -39,6 +39,7 @@ export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
+export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
@@ -127,7 +128,6 @@ export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
 export const setBotPublicCommands = 'chat2:setBotPublicCommands'
 export const setBotRoleInConv = 'chat2:setBotRoleInConv'
 export const setBotSettings = 'chat2:setBotSettings'
-export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -273,6 +273,7 @@ type _ConversationErroredPayload = {
   readonly message: string
 }
 type _CreateConversationPayload = {readonly participants: Array<string>}
+type _DeselectedConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly author: string
@@ -645,7 +646,6 @@ type _SetBotSettingsPayload = {
   readonly username: string
   readonly settings: RPCTypes.TeamBotSettings
 }
-type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
@@ -1105,12 +1105,6 @@ export const createSetParticipants = (payload: _SetParticipantsPayload): SetPart
   type: setParticipants,
 })
 /**
- * Set filter for channel search
- */
-export const createSetChannelSearchText = (
-  payload: _SetChannelSearchTextPayload
-): SetChannelSearchTextPayload => ({payload, type: setChannelSearchText})
-/**
  * Set index percent complete
  */
 export const createInboxSearchSetIndexPercent = (
@@ -1463,6 +1457,9 @@ export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload
 export const createConversationErrored = (
   payload: _ConversationErroredPayload
 ): ConversationErroredPayload => ({payload, type: conversationErrored})
+export const createDeselectedConversation = (
+  payload: _DeselectedConversationPayload
+): DeselectedConversationPayload => ({payload, type: deselectedConversation})
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
@@ -1785,6 +1782,10 @@ export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
   readonly type: typeof createConversation
 }
+export type DeselectedConversationPayload = {
+  readonly payload: _DeselectedConversationPayload
+  readonly type: typeof deselectedConversation
+}
 export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
   readonly type: typeof desktopNotification
@@ -2098,10 +2099,6 @@ export type SetBotSettingsPayload = {
   readonly payload: _SetBotSettingsPayload
   readonly type: typeof setBotSettings
 }
-export type SetChannelSearchTextPayload = {
-  readonly payload: _SetChannelSearchTextPayload
-  readonly type: typeof setChannelSearchText
-}
 export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: typeof setCommandMarkdown
@@ -2327,6 +2324,7 @@ export type Actions =
   | ConfirmScreenResponsePayload
   | ConversationErroredPayload
   | CreateConversationPayload
+  | DeselectedConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
@@ -2415,7 +2413,6 @@ export type Actions =
   | SetBotPublicCommandsPayload
   | SetBotRoleInConvPayload
   | SetBotSettingsPayload
-  | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload

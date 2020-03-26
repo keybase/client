@@ -6,7 +6,7 @@ import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import Onboarding from '../onboarding/container'
 import partition from 'lodash/partition'
-import Wallet, {Props, AssetSectionTitle} from '.'
+import Wallet, {AssetSectionTitle, Props} from '.'
 
 type OwnProps = {}
 
