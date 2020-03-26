@@ -174,4 +174,4 @@ const styles = Styles.styleSheetCreate(() => ({
   relative: {position: 'relative'},
 }))
 
-const reactSprintConfig = {friction: 20, tension: 210, clamp: true}
+const reactSprintConfig = {clamp: true, friction: 20, tension: 210}
