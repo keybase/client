@@ -38,7 +38,10 @@
       "_description": "someone wants to log out"
     },
     "logoutAndTryToLogInAs": {
-      "_description": "Log out the current user, keeping secrets stored. Then prefill the username for provisioned another user to log in.",
+      "_description": [
+        "Log out the current user, keeping secrets stored.",
+        "Then prefill the username for provisioned another user to log in."
+      ],
       "username": "string"
     },
     "logoutHandshake": {
@@ -103,7 +106,10 @@
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
     "loggedIn": {
-      "_description": "Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded",
+      "_description": [
+        "Used internally to know we were logged in.",
+        "If you want to react to being logged in likely you want bootstrapStatusLoaded"
+      ],
       "causedBySignup": "boolean",
       "causedByStartup": "boolean"
     },
@@ -149,7 +155,10 @@
       "useNativeFrame": "boolean"
     },
     "setWhatsNewLastSeenVersion": {
-      "_description": "Set the latest version number that a user has seen from Gregor. This is used to set the badged state of the 'What's New' radio icon",
+      "_description": [
+        "Set the latest version number that a user has seen from Gregor.",
+        "This is used to set the badged state of the 'What's New' radio icon"
+      ],
       "lastSeenVersion": "string"
     },
     "toggleRuntimeStats": {},
@@ -158,7 +167,10 @@
       "status": "boolean | null"
     },
     "loadOnStart": {
-      "_description": "This action is dispatched multiple times with various flags. if you want to do something as a result of startup or login listen to this",
+      "_description": [
+        "This action is dispatched multiple times with various flags.",
+        "If you want to do something as a result of startup or login listen to this."
+      ],
       "phase": "'initialStartupAsEarlyAsPossible' | 'connectedToDaemonForFirstTime' | 'reloggedIn' | 'startupOrReloginButNotInARush'"
     },
     "showShareActionSheet": {

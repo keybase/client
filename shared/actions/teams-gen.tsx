@@ -385,11 +385,15 @@ export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
 /**
- * Load team details if we are stale. _subscribe is for use by teams/subscriber only.
+ * Load team details if we are stale.
+ *
+ * `_subscribe` is for use by teams/subscriber only.
  */
 export const createLoadTeam = (payload: _LoadTeamPayload): LoadTeamPayload => ({payload, type: loadTeam})
 /**
- * Load team list if we are stale. _subscribe is for use by teams/subscriber only.
+ * Load team list if we are stale.
+ *
+ * `_subscribe` is for use by teams/subscriber only.
  */
 export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
   payload,

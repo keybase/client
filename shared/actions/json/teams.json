@@ -57,7 +57,11 @@
       "clearAll?": "boolean"
     },
     "getTeams": {
-      "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_description": [
+        "Load team list if we are stale.",
+        "",
+        "`_subscribe` is for use by teams/subscriber only."
+      ],
       "_subscribe?": "boolean",
       "forceReload?": "boolean"
     },
@@ -65,7 +69,11 @@
       "_description": "Don't eagerly reload team list anymore."
     },
     "loadTeam": {
-      "_description": "Load team details if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_description": [
+        "Load team details if we are stale.",
+        "",
+        "`_subscribe` is for use by teams/subscriber only."
+      ],
       "_subscribe?": "boolean",
       "teamID": "Types.TeamID"
     },
