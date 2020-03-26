@@ -87,6 +87,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       d.followingCount = d.following.size
     }
   },
+  [Tracker2Gen.updateWotEntries]: (draftState, action) => {
+    const d = getDetails(draftState, action.payload.voucheeUsername)
+    d.webOfTrustEntries = action.payload.entries
+  },
   [Tracker2Gen.proofSuggestionsUpdated]: (draftState, action) => {
     draftState.proofSuggestions = Container.castDraft(action.payload.suggestions)
   },

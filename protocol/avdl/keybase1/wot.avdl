@@ -32,21 +32,21 @@ protocol wot {
     string other;
   }
 
-  void wotVouch(int sessionID, UserVersion vouchee, array<string> vouchTexts, Confidence confidence);
-  void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
+  void wotVouch(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
 
   enum WotReactionType {
     ACCEPT_0,
     REJECT_1
   }
-  void wotReact(int sessionID, UserVersion voucher, SigID proof, WotReactionType reaction);
-  void wotReactCLI(int sessionID, string voucher, WotReactionType reaction);
+  void wotReact(int sessionID, string voucher, WotReactionType reaction);
 
   record WotVouch {
     WotStatusType status;
     SigID vouchProof; // ID of the voucher's sigchain link where they did the vouching.
     UserVersion vouchee;
+    string voucheeUsername;
     UserVersion voucher;
+    string voucherUsername;
     array<string> vouchTexts;
     Time vouchedAt;
     union { null, Confidence } confidence;
@@ -55,5 +55,5 @@ protocol wot {
   // dismiss notifications for a user vouch
   void dismissWotNotifications(int sessionID, string voucher, string vouchee);
 
-  array<WotVouch> wotListCLI(int sessionID, string vouchee, string voucher);
+  array<WotVouch> wotFetchVouches(int sessionID, string vouchee, string voucher);
 }

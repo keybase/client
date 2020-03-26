@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/profile'
+import {WebOfTrustVerificationType} from '../../constants/types/more'
 import * as Constants from '../../constants/profile'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -75,7 +75,7 @@ export const Question1 = (props: Props) => {
           is the person you think they are?
         </Kb.Text>
       </Kb.Box2>
-      {Constants.webOfTrustVerificationTypes.map(vt => (
+      {Constants.choosableWotVerificationTypes.map(vt => (
         <VerificationChoice
           key={vt}
           voucheeUsername={props.voucheeUsername}
@@ -129,7 +129,7 @@ export const Question2 = (props: Props) => {
 
 const VerificationChoice = (props: {
   voucheeUsername: string
-  verificationType: Types.WebOfTrustVerificationType
+  verificationType: WebOfTrustVerificationType
   selected: boolean
   onSelect: () => void
 }) => {
