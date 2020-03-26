@@ -68,8 +68,7 @@ const InviteFriends = () => {
     </Kb.Box2>
   ) : (
     <>
-      <Kb.Box style={Styles.globalStyles.flexOne} />
-      <Kb.Divider />
+      <Kb.Divider style={styles.goToBottom} />
       <Kb.Box2 direction="vertical" gap="xsmall" style={styles.container} className="invite-friends-big">
         {inviteButton}
         {!!inviteCounts && (
@@ -129,6 +128,7 @@ const styles = Styles.styleSheetCreate(() => ({
   counter: {
     color: Styles.globalColors.blueLighterOrBlack_50,
   },
+  goToBottom: {marginTop: 'auto'},
   inviteCounterBox: {
     flex: 1,
     justifyContent: 'flex-end',
