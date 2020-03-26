@@ -28,6 +28,7 @@ type ReloadProps = {
   onFeedback: () => void
   onReload: () => void
   reason: string
+  style?: Styles.StylesCrossPlatform
   title?: string
 }
 
@@ -36,30 +37,32 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={this.props.style}>
         {Styles.isMobile && this.props.onBack && (
           <Kb.HeaderHocHeader onBack={this.props.onBack} title={this.props.title} />
         )}
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
-          <Kb.Icon type="icon-illustration-zen-240-180" />
-          <Kb.Text center={true} type="Header">
-            We're having a hard time loading this page.
-          </Kb.Text>
-          {this.state.expanded && (
-            <Kb.ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
-              <Kb.Text type="Terminal" style={styles.details}>
-                {this.props.reason}
-              </Kb.Text>
-            </Kb.ScrollView>
-          )}
-          <Kb.Text type="BodySecondaryLink" onClick={this._toggle}>
-            {this.state.expanded ? 'Hide details' : 'Show details'}
-          </Kb.Text>
-          <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Button label="Retry" mode="Secondary" onClick={this.props.onReload} />
-            <Kb.Button label="Feedback" mode="Primary" onClick={this.props.onFeedback} />
+        <Kb.ScrollView style={styles.container}>
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
+            <Kb.Icon type="icon-illustration-zen-240-180" />
+            <Kb.Text center={true} type="Header">
+              We're having a hard time loading this page.
+            </Kb.Text>
+            {this.state.expanded && (
+              <Kb.Box2 direction="vertical" style={styles.detailContainer}>
+                <Kb.Text type="Terminal" style={styles.details}>
+                  {this.props.reason}
+                </Kb.Text>
+              </Kb.Box2>
+            )}
+            <Kb.Text type="BodySecondaryLink" onClick={this._toggle}>
+              {this.state.expanded ? 'Hide details' : 'Show details'}
+            </Kb.Text>
+            <Kb.Box2 direction="horizontal" gap="tiny">
+              <Kb.Button label="Retry" mode="Secondary" onClick={this.props.onReload} />
+              <Kb.Button label="Feedback" mode="Primary" onClick={this.props.onFeedback} />
+            </Kb.Box2>
           </Kb.Box2>
-        </Kb.Box2>
+        </Kb.ScrollView>
       </Kb.Box2>
     )
   }
@@ -73,6 +76,7 @@ export type Props = {
   onFeedback: () => void
   reason: string
   reloadOnMount?: boolean
+  style?: Styles.StylesCrossPlatform
   title?: string
 }
 
@@ -91,23 +95,18 @@ class Reloadable extends React.PureComponent<Props> {
         onReload={this.props.onReload}
         onFeedback={this.props.onFeedback}
         reason={this.props.reason}
+        style={this.props.style}
       />
     )
   }
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  details: Styles.platformStyles({
-    common: {flexGrow: 1},
-    isElectron: {wordBreak: 'break-all'},
-  }),
-  reload: {
-    flexGrow: 1,
-    maxHeight: '100%',
-    maxWidth: '100%',
-    padding: Styles.globalMargins.small,
+  container: {
+    height: '100%',
+    width: '100%',
   },
-  scroll: Styles.platformStyles({
+  detailContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blueDarker2,
       borderRadius: Styles.borderRadius,
@@ -121,6 +120,16 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
+  details: Styles.platformStyles({
+    common: {flexGrow: 1},
+    isElectron: {wordBreak: 'break-all'},
+  }),
+  reload: {
+    flexGrow: 1,
+    maxHeight: '100%',
+    maxWidth: '100%',
+    padding: Styles.globalMargins.small,
+  },
   scrollInside: {
     height: '100%',
     maxHeight: '100%',
@@ -134,6 +143,7 @@ export type OwnProps = {
   onBack?: () => void
   onReload: () => void
   reloadOnMount?: boolean
+  style?: Styles.StylesCrossPlatform
   title?: string
   waitingKeys: string | Array<string>
   errorFilter?: (rPCError: RPCError) => boolean
@@ -177,6 +187,7 @@ export default Container.namedConnect(
     onReload: ownProps.onReload,
     reason: stateProps.reason,
     reloadOnMount: ownProps.reloadOnMount,
+    style: ownProps.style,
     title: ownProps.title,
   }),
 
