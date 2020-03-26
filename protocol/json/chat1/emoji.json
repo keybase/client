@@ -16,7 +16,8 @@
       "type": "enum",
       "name": "EmojiLoadSourceTyp",
       "symbols": [
-        "HTTPSRV_0"
+        "HTTPSRV_0",
+        "STR_1"
       ]
     },
     {
@@ -33,6 +34,13 @@
             "def": false
           },
           "body": "string"
+        },
+        {
+          "label": {
+            "name": "STR",
+            "def": false
+          },
+          "body": "string"
         }
       ]
     },
@@ -41,7 +49,7 @@
       "name": "EmojiRemoteSourceTyp",
       "symbols": [
         "MESSAGE_0",
-        "ALIAS_1"
+        "STOCKALIAS_1"
       ]
     },
     {
@@ -55,20 +63,28 @@
         {
           "type": "MessageID",
           "name": "msgID"
+        },
+        {
+          "type": "boolean",
+          "name": "isAlias"
         }
       ]
     },
     {
       "type": "record",
-      "name": "EmojiAlias",
+      "name": "EmojiStockAlias",
       "fields": [
         {
-          "type": "ConversationID",
-          "name": "convID"
+          "type": "string",
+          "name": "text"
         },
         {
           "type": "string",
-          "name": "existingAlias"
+          "name": "username"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
         }
       ]
     },
@@ -89,10 +105,10 @@
         },
         {
           "label": {
-            "name": "ALIAS",
+            "name": "STOCKALIAS",
             "def": false
           },
-          "body": "EmojiAlias"
+          "body": "EmojiStockAlias"
         }
       ]
     },

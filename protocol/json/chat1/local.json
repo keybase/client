@@ -3970,6 +3970,24 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiFetchOpts",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "getCreationInfo"
+        },
+        {
+          "type": "boolean",
+          "name": "getAliases"
+        },
+        {
+          "type": "boolean",
+          "name": "onlyInTeam"
+        }
+      ]
     }
   ],
   "messages": {
@@ -5895,15 +5913,15 @@
     "userEmojis": {
       "request": [
         {
+          "name": "opts",
+          "type": "EmojiFetchOpts"
+        },
+        {
           "name": "convID",
           "type": [
             null,
             "ConversationID"
           ]
-        },
-        {
-          "name": "getCreationInfo",
-          "type": "boolean"
         }
       ],
       "response": "UserEmojiRes"

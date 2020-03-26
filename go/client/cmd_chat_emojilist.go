@@ -38,8 +38,10 @@ func (c *CmdChatListEmoji) Run() error {
 		return err
 	}
 	res, err := cli.UserEmojis(ctx, chat1.UserEmojisArg{
-		GetCreationInfo: true,
-		ConvID:          nil,
+		Opts: chat1.EmojiFetchOpts{
+			GetCreationInfo: true,
+		},
+		ConvID: nil,
 	})
 	if err != nil {
 		return err
@@ -54,6 +56,8 @@ func (c *CmdChatListEmoji) Run() error {
 			case chat1.EmojiRemoteSourceTyp_MESSAGE:
 				source = fmt.Sprintf("convID: %s msgID: %d", emoji.RemoteSource.Message().ConvID,
 					emoji.RemoteSource.Message().MsgID)
+			case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
+				source = emoji.RemoteSource.Stockalias().Text
 			default:
 				source = "???"
 			}

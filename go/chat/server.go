@@ -3682,6 +3682,6 @@ func (h *Server) UserEmojis(ctx context.Context, arg chat1.UserEmojisArg) (res c
 	if err != nil {
 		return res, err
 	}
-	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, arg.ConvID, arg.GetCreationInfo)
+	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, arg.ConvID, arg.Opts)
 	return res, err
 }

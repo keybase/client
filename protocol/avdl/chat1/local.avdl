@@ -1383,5 +1383,10 @@ protocol local {
     UserEmojis emojis; 
     union { null, RateLimit } rateLimit;
   }
-  UserEmojiRes userEmojis(union { null, ConversationID } convID, boolean getCreationInfo);
+  record EmojiFetchOpts {
+    boolean getCreationInfo;
+    boolean getAliases;
+    boolean onlyInTeam;
+  }
+  UserEmojiRes userEmojis(EmojiFetchOpts opts, union { null, ConversationID } convID);
 }

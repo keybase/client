@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -90,40 +91,6 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
 }
 
-func (s *DevConvEmojiSource) resolveAlias(ctx context.Context, uid gregor1.UID,
-	alias chat1.Emoji) (res chat1.Emoji, err error) {
-	if !alias.RemoteSource.IsAlias() {
-		return alias, nil
-	}
-	aliasSource := alias.RemoteSource
-	storage := s.makeStorage(chat1.TopicType_EMOJI)
-	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, aliasSource.Alias().ConvID,
-		types.InboxSourceDataSourceAll)
-	if err != nil {
-		return res, err
-	}
-	var stored chat1.EmojiStorage
-	found, err := storage.GetFromKnownConv(ctx, uid, conv, &stored)
-	if err != nil {
-		return res, err
-	}
-	if !found {
-		return res, errors.New("no alias found")
-	}
-	if stored.Mapping == nil {
-		return res, errors.New("no mapping found")
-	}
-	source, ok := stored.Mapping[aliasSource.Alias().ExistingAlias]
-	if !ok {
-		return res, errors.New("missing alias")
-	}
-	if !source.IsMessage() {
-		return res, errors.New("invalid alias, must point at message source")
-	}
-	alias.RemoteSource = source
-	return alias, nil
-}
-
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
@@ -133,27 +100,40 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
 	topicName := s.topicName(nil)
-	_, storageConv, err := storage.Get(ctx, uid, convID, topicName, &stored, false)
-	if err != nil {
+	if _, _, err := storage.Get(ctx, uid, convID, topicName, &stored, false); err != nil {
 		return res, err
 	}
-	if stored.Mapping == nil {
-		return res, errors.New("no current mapping in emoji alias")
+	getExistingMsgSrc := func() (res chat1.EmojiRemoteSource, found bool) {
+		if stored.Mapping == nil {
+			return res, false
+		}
+		existingSource, ok := stored.Mapping[existingAlias]
+		if !ok {
+			return res, false
+		}
+		if !existingSource.IsMessage() {
+			return res, false
+		}
+		return existingSource, true
 	}
-	existingSource, ok := stored.Mapping[existingAlias]
-	if !ok {
-		return res, errors.New("no current alias in emoji alias")
+	msgSrc, ok := getExistingMsgSrc()
+	if ok {
+		res = chat1.NewEmojiRemoteSourceWithMessage(chat1.EmojiMessage{
+			ConvID:  msgSrc.Message().ConvID,
+			MsgID:   msgSrc.Message().MsgID,
+			IsAlias: true,
+		})
+	} else {
+		username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
+		if err != nil {
+			return res, err
+		}
+		res = chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+			Text:     existingAlias,
+			Username: username.String(),
+			Time:     gregor1.ToTime(time.Now()),
+		})
 	}
-	if !existingSource.IsMessage() {
-		return res, errors.New("must point alias at a message source")
-	}
-	if source, ok := stored.Mapping[newAlias]; ok && !source.IsAlias() {
-		return res, errors.New("cannot override non-alias with alias")
-	}
-	res = chat1.NewEmojiRemoteSourceWithAlias(chat1.EmojiAlias{
-		ConvID:        storageConv.GetConvID(),
-		ExistingAlias: existingAlias,
-	})
 	stored.Mapping[newAlias] = res
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
 }
@@ -166,11 +146,17 @@ func (s *DevConvEmojiSource) removeRemoteSource(ctx context.Context, uid gregor1
 	}
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
+		if source.Message().IsAlias {
+			return errors.New("cannot remove an alias directly")
+		}
 		return s.G().ChatHelper.DeleteMsg(ctx, source.Message().ConvID, conv.Info.TlfName,
 			source.Message().MsgID)
+	case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
+		// do nothing
 	default:
 		return fmt.Errorf("unable to delete remote source of typ: %v", typ)
 	}
+	return nil
 }
 
 func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -202,6 +188,13 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 		return err
 	}
 	delete(stored.Mapping, alias)
+	// take out any aliases
+	for existingAlias, existingSource := range stored.Mapping {
+		if existingSource.IsMessage() && existingSource.Message().IsAlias &&
+			existingSource.Message().MsgID == source.Message().MsgID {
+			delete(stored.Mapping, existingAlias)
+		}
+	}
 	return storage.Put(ctx, uid, convID, topicName, stored)
 }
 
@@ -215,6 +208,8 @@ func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote cha
 		msg := remote.Message()
 		url := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false)
 		return chat1.NewEmojiLoadSourceWithHttpsrv(url), nil
+	case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
+		return chat1.NewEmojiLoadSourceWithStr(remote.Stockalias().Text), nil
 	default:
 		return res, errors.New("unknown remote source for local source")
 	}
@@ -241,18 +236,18 @@ func (s *DevConvEmojiSource) creationInfo(ctx context.Context, uid gregor1.UID,
 			Username: sourceMsg.Valid().SenderUsername,
 			Time:     sourceMsg.Valid().ServerHeader.Ctime,
 		}, nil
+	case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
+		return chat1.EmojiCreationInfo{
+			Username: remote.Stockalias().Username,
+			Time:     remote.Stockalias().Time,
+		}, nil
 	default:
 		return res, errors.New("unknown remote source for creation info")
 	}
 }
 
-type getNoSetOpts struct {
-	getCreationInfo bool
-	getAliases      bool
-}
-
 func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
-	opts getNoSetOpts) (res chat1.UserEmojis, aliasLookup map[string]chat1.Emoji, err error) {
+	opts chat1.EmojiFetchOpts) (res chat1.UserEmojis, aliasLookup map[string]chat1.Emoji, err error) {
 	aliasLookup = make(map[string]chat1.Emoji)
 	topicType := chat1.TopicType_EMOJI
 	storage := s.makeStorage(topicType)
@@ -278,6 +273,9 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	}
 	convs := ibox.Convs
 	addEmojis := func(convs []chat1.ConversationLocal, isCrossTeam bool) {
+		if opts.OnlyInTeam {
+			return
+		}
 		for _, conv := range convs {
 			var stored chat1.EmojiStorage
 			found, err := storage.GetFromKnownConv(ctx, uid, conv, &stored)
@@ -293,7 +291,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 				Name: conv.Info.TlfName,
 			}
 			for alias, storedEmoji := range stored.Mapping {
-				if !opts.getAliases && storedEmoji.IsAlias() {
+				if !opts.GetAliases && storedEmoji.IsAlias() {
 					continue
 				}
 				var creationInfo *chat1.EmojiCreationInfo
@@ -302,7 +300,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
 				}
-				if opts.getCreationInfo {
+				if opts.GetCreationInfo {
 					ci, err := s.creationInfo(ctx, uid, storedEmoji)
 					if err != nil {
 						s.Debug(ctx, "Get: failed to get creation info: %s", err)
@@ -344,12 +342,10 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 }
 
 func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
-	getCreationInfo bool) (res chat1.UserEmojis, err error) {
+	opts chat1.EmojiFetchOpts) (res chat1.UserEmojis, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get")()
 	var aliasLookup map[string]chat1.Emoji
-	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, getNoSetOpts{
-		getCreationInfo: getCreationInfo,
-	}); err != nil {
+	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, opts); err != nil {
 		return res, err
 	}
 	s.getLock.Lock()
@@ -419,8 +415,17 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 
 func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID, emoji chat1.HarvestedEmoji,
 	convID chat1.ConversationID) (res chat1.HarvestedEmoji, err error) {
-	if !emoji.Source.IsMessage() {
-		return res, errors.New("can only sync message remote source")
+	typ, err := emoji.Source.Typ()
+	if err != nil {
+		return res, err
+	}
+	switch typ {
+	case chat1.EmojiRemoteSourceTyp_MESSAGE:
+	case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
+		emoji.IsCrossTeam = true
+		return emoji, nil
+	default:
+		return res, errors.New("invalid remote source to sync")
 	}
 	suffix := convID.String()
 	var stored chat1.EmojiStorage
@@ -487,9 +492,10 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	emojis, _, err := s.getNoSet(ctx, uid, &convID, getNoSetOpts{
-		getCreationInfo: false,
-		getAliases:      true,
+	emojis, _, err := s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
+		GetCreationInfo: false,
+		GetAliases:      true,
+		OnlyInTeam:      false,
 	})
 	if err != nil {
 		return res, err
@@ -523,11 +529,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 		len(aliasMap))
 	for _, match := range matches {
 		// try group map first
-		if rawemoji, ok := groupMap[match.name]; ok {
-			emoji, err := s.resolveAlias(ctx, uid, rawemoji)
-			if err != nil {
-				return res, err
-			}
+		if emoji, ok := groupMap[match.name]; ok {
 			var resEmoji chat1.HarvestedEmoji
 			if emoji.IsCrossTeam {
 				if resEmoji, err = s.syncCrossTeam(ctx, uid, chat1.HarvestedEmoji{

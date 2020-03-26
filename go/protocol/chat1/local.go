@@ -6219,6 +6219,20 @@ func (o UserEmojiRes) DeepCopy() UserEmojiRes {
 	}
 }
 
+type EmojiFetchOpts struct {
+	GetCreationInfo bool `codec:"getCreationInfo" json:"getCreationInfo"`
+	GetAliases      bool `codec:"getAliases" json:"getAliases"`
+	OnlyInTeam      bool `codec:"onlyInTeam" json:"onlyInTeam"`
+}
+
+func (o EmojiFetchOpts) DeepCopy() EmojiFetchOpts {
+	return EmojiFetchOpts{
+		GetCreationInfo: o.GetCreationInfo,
+		GetAliases:      o.GetAliases,
+		OnlyInTeam:      o.OnlyInTeam,
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -6860,8 +6874,8 @@ type RemoveEmojiArg struct {
 }
 
 type UserEmojisArg struct {
-	ConvID          *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
-	GetCreationInfo bool            `codec:"getCreationInfo" json:"getCreationInfo"`
+	Opts   EmojiFetchOpts  `codec:"opts" json:"opts"`
+	ConvID *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
 type LocalInterface interface {
