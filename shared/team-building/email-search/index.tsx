@@ -52,7 +52,7 @@ const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResult
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.flexGrow}>
         <Kb.NewInput
           autoFocus={true}
           containerStyle={styles.input}
@@ -71,18 +71,27 @@ const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResult
         {!!user && canSubmit && !!user.serviceMap.keybase ? (
           <UserMatchMention username={user.serviceMap.keybase} />
         ) : (
-          <Kb.Text type="BodySmall" style={styles.helperText}>
-            Start a chat with any email address. Your messages will unlock after your recipient signs up and
-            proves their email address.
-          </Kb.Text>
+          <Kb.Box2
+            alignSelf="center"
+            centerChildren={!Styles.isMobile}
+            direction="vertical"
+            fullWidth={true}
+            gap="tiny"
+            style={styles.emptyContainer}
+          >
+            {!Styles.isMobile && (
+              <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
+            )}
+
+            <Kb.Text type="BodySmall" style={styles.helperText}>
+              Start a chat with any email address. Your messages will unlock after your recipient signs up and
+              proves their email address.
+            </Kb.Text>
+          </Kb.Box2>
         )}
         {/* TODO: add support for multiple emails  */}
       </Kb.Box2>
-      <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true}>
-          <ContinueButton label={continueLabel} onClick={onSubmit} disabled={!canSubmit} />
-        </Kb.Box2>
-      </Kb.Box2>
+      <ContinueButton label={continueLabel} onClick={onSubmit} disabled={!canSubmit} />
     </Kb.Box2>
   )
 }
@@ -103,11 +112,24 @@ const styles = Styles.styleSheetCreate(
       bottomContainer: {
         flexGrow: 1,
       },
-      helperText: {
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
-        textAlign: 'center',
+      emptyContainer: Styles.platformStyles({
+        common: {flex: 1},
+        isElectron: {
+          maxWidth: 290,
+          paddingBottom: 40,
+        },
+        isMobile: {maxWidth: '90%'},
+      }),
+      flexGrow: {
+        flex: 1,
       },
+      helperText: Styles.platformStyles({
+        common: {textAlign: 'center'},
+        isMobile: {
+          paddingBottom: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
+        },
+      }),
       input: Styles.platformStyles({
         common: {},
         isElectron: {

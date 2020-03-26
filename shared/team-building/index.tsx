@@ -260,13 +260,6 @@ const FilteredServiceTabBar = (
   )
 }
 
-const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: string}) => (
-  <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-    {props.action} anyone on {serviceIdToLabel(props.selectedService)}. Your messages will unlock after your
-    recipient signs up and proves their Twitter.
-  </Kb.Text>
-)
-
 // TODO: the type of this is any
 // If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
 // a bunch of the native props.
@@ -431,11 +424,38 @@ class TeamBuilding extends React.PureComponent<Props> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      if (this.props.namespace === 'people') {
-        return <EmptyResultText selectedService={this.props.selectedService} action="Search for" />
-      } else {
-        return <EmptyResultText selectedService={this.props.selectedService} action="Start a chat with" />
-      }
+      return (
+        <Kb.Box2
+          alignSelf="center"
+          centerChildren={!Styles.isMobile}
+          direction="vertical"
+          fullWidth={true}
+          gap="tiny"
+          style={styles.emptyContainer}
+        >
+          {!Styles.isMobile && (
+            <Kb.Icon
+              fontSize={48}
+              type={serviceIdToIconFont(this.props.selectedService)}
+              style={Styles.collapseStyles([
+                !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
+              ])}
+            />
+          )}
+          {this.props.namespace === 'people' ? (
+            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+              Search for anyone on {serviceIdToLabel(this.props.selectedService)}. Start a chat, then have
+              them sign up to Keybase.
+            </Kb.Text>
+          ) : (
+            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+              Start a chat with anyone on {serviceIdToLabel(this.props.selectedService)}. Your messages will
+              unlock after your recipient signs up and proves their{' '}
+              {serviceIdToLabel(this.props.selectedService)} username.
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+      )
     }
     if (this.props.showRecs && this.props.recommendations) {
       const highlightDetails = this._listIndexToSectionAndLocalIndex(
@@ -824,9 +844,12 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '80%'},
       }),
-      emptyServiceText: {
-        margin: Styles.globalMargins.small,
-      },
+      emptyServiceText: Styles.platformStyles({
+        isMobile: {
+          paddingBottom: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
+        },
+      }),
       headerContainer: Styles.platformStyles({
         isElectron: {
           marginBottom: Styles.globalMargins.xtiny,
