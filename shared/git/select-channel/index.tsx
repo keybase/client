@@ -46,44 +46,46 @@ const SelectChannel = (ownProps: OwnProps) => {
 
   // TODO: this modal could use a little bit of love
   return (
-    <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
-      <Kb.Box
-        style={{
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          flex: 1,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
-        }}
-      >
-        <Kb.Text type="Header">Select a channel</Kb.Text>
+    <Kb.PopupWrapper onCancel={props.onCancel}>
+      <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
-            marginBottom: Styles.globalMargins.medium,
-            marginTop: Styles.globalMargins.medium,
+            alignItems: 'center',
+            flex: 1,
+            paddingBottom: Styles.globalMargins.xtiny,
+            paddingTop: Styles.globalMargins.xtiny,
           }}
         >
-          {channelNames.map(name => (
-            <Kb.Box
-              key={name}
-              style={
-                (Styles.globalStyles.flexBoxRow,
-                {paddingLeft: Styles.globalMargins.medium, paddingRight: Styles.globalMargins.medium})
-              }
-            >
-              <Kb.RadioButton
-                label={name}
-                selected={selected === name}
-                style={styles.radioButton}
-                onSelect={selected => selected && setSelected(name)}
-              />
-            </Kb.Box>
-          ))}
+          <Kb.Text type="Header">Select a channel</Kb.Text>
+          <Kb.Box
+            style={{
+              ...Styles.globalStyles.flexBoxColumn,
+              marginBottom: Styles.globalMargins.medium,
+              marginTop: Styles.globalMargins.medium,
+            }}
+          >
+            {channelNames.map(name => (
+              <Kb.Box
+                key={name}
+                style={
+                  (Styles.globalStyles.flexBoxRow,
+                  {paddingLeft: Styles.globalMargins.medium, paddingRight: Styles.globalMargins.medium})
+                }
+              >
+                <Kb.RadioButton
+                  label={name}
+                  selected={selected === name}
+                  style={styles.radioButton}
+                  onSelect={selected => selected && setSelected(name)}
+                />
+              </Kb.Box>
+            ))}
+          </Kb.Box>
+          <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
         </Kb.Box>
-        <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
-      </Kb.Box>
-    </Kb.ScrollView>
+      </Kb.ScrollView>
+    </Kb.PopupWrapper>
   )
 }
 
@@ -94,4 +96,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Kb.HeaderOrPopup(SelectChannel)
+export default SelectChannel

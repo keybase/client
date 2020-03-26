@@ -5,13 +5,15 @@ import ConfirmForm from '../../../wallets/confirm-form'
 
 type LoadingProps = {}
 
-const PaymentsConfirmLoading = Kb.HeaderOrPopup((_: LoadingProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
-      <Kb.ProgressIndicator type="Huge" />
+const PaymentsConfirmLoading = (_: LoadingProps) => (
+  <Kb.PopupWrapper>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+        <Kb.ProgressIndicator type="Huge" />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-))
+  </Kb.PopupWrapper>
+)
 
 type ErrorProps = {
   error: string
@@ -44,29 +46,29 @@ const _PaymentsConfirmErrorMisc = (props: ErrorProps) => (
   </Kb.Box2>
 )
 
-const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2
-      direction="vertical"
-      centerChildren={true}
-      fullWidth={true}
-      fullHeight={true}
-      style={styles.fullErrorContainer}
-    >
-      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
-        <Kb.Text type="BodyExtrabold">{props.error}</Kb.Text>
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
-        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-          <Kb.Button style={styles.submitButton} onClick={props.onWallet} label="Set up wallet" />
-        </Kb.ButtonBar>
+const PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
+  <Kb.PopupWrapper onCancel={props.onCancel}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        fullHeight={true}
+        style={styles.fullErrorContainer}
+      >
+        <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
+          <Kb.Text type="BodyExtrabold">{props.error}</Kb.Text>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+            <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+            <Kb.Button style={styles.submitButton} onClick={props.onWallet} label="Set up wallet" />
+          </Kb.ButtonBar>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
+  </Kb.PopupWrapper>
 )
-
-const PaymentsConfirmError = Kb.HeaderOrPopup(_PaymentsConfirmError)
 
 type PaymentProps = {
   readonly displayAmount?: string | null
