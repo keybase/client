@@ -27,7 +27,6 @@ export default Container.namedConnect(
         : null
     return {
       _convID: mentionInfo ? mentionInfo.convID : undefined,
-      _teamNameToID: state.teams.teamNameToID, // TODO come back after fixing profile's
       allowFontScaling: !!allowFontScaling,
       channel,
       description: (mentionInfo && mentionInfo.description) || '',
@@ -43,9 +42,9 @@ export default Container.namedConnect(
   dispatch => ({
     _onChat: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'})),
-    _onViewTeam: (teamID: TeamID) => {
+    _onViewTeam: (teamname: string) => {
       dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+      dispatch(TeamsGen.createShowTeamByName({teamname}))
     },
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
   }),
@@ -61,7 +60,7 @@ export default Container.namedConnect(
       numMembers: stateProps.numMembers,
       onChat: convID ? () => dispatchProps._onChat(convID) : undefined,
       onJoinTeam: dispatchProps.onJoinTeam,
-      onViewTeam: () => dispatchProps._onViewTeam(stateProps._teamNameToID.get(stateProps.name) || ''),
+      onViewTeam: () => dispatchProps._onViewTeam(stateProps.name),
       publicAdmins: stateProps.publicAdmins,
       resolved: stateProps.resolved,
       style: stateProps.style,

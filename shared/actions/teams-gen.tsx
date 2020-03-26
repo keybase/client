@@ -510,6 +510,16 @@ export const createToggleInvitesCollapsed = (
   payload: _ToggleInvitesCollapsedPayload
 ): ToggleInvitesCollapsedPayload => ({payload, type: toggleInvitesCollapsed})
 /**
+ * Tries to show a team with this name whether the user is in the team or not.
+ * For teams we are not in:
+ * - with teamsRedesign on go to external team page
+ * - with teamsRedesign off noop
+ */
+export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
+  payload,
+  type: showTeamByName,
+})
+/**
  * User has viewed this team. Clear related badges.
  */
 export const createTeamSeen = (payload: _TeamSeenPayload): TeamSeenPayload => ({payload, type: teamSeen})
@@ -738,10 +748,6 @@ export const createSetWelcomeMessageError = (
 export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErrorPayload => ({
   payload,
   type: settingsError,
-})
-export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
-  payload,
-  type: showTeamByName,
 })
 export const createStartNewTeamWizard = (payload: _StartNewTeamWizardPayload): StartNewTeamWizardPayload => ({
   payload,

@@ -25,9 +25,9 @@ export default Container.namedConnect(
   dispatch => ({
     onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    onViewTeam: (teamID: TeamID) => {
+    onViewTeam: (teamname: string) => {
       dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+      dispatch(TeamsGen.createShowTeamByName({teamname}))
     },
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({

@@ -374,6 +374,12 @@
       "parentTeam?": "Types.TeamID"
     },
     "showTeamByName": {
+      "_description": [
+        "Tries to show a team with this name whether the user is in the team or not.",
+        "For teams we are not in:",
+        "- with teamsRedesign on go to external team page",
+        "- with teamsRedesign off noop"
+      ],
       "teamname": "string",
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
