@@ -85,10 +85,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
           >
             <EmojiPickerDesktop
               conversationIDKey={this.props.conversationIDKey}
-              onPick={{
-                conversationIDKey: this.props.conversationIDKey,
-                ordinal: this.props.ordinal,
-              }}
+              onPickAddToMessageOrdinal={this.props.ordinal}
               onDidPick={this._hidePicker}
             />
           </Kb.FloatingBox>
