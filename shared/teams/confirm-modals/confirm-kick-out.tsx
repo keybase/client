@@ -51,6 +51,15 @@ const ConfirmKickOut = (props: Props) => {
 
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
+    dispatch(
+      TeamsGen.createTeamSetMemberSelected({
+        clearAll: true,
+        selected: false,
+        teamID: teamID,
+        username: '',
+      })
+    )
+
     members.forEach(member =>
       dispatch(
         TeamsGen.createRemoveMember({
@@ -97,7 +106,7 @@ const ConfirmKickOut = (props: Props) => {
             They will lose access to all the {teamname} chats and folders, and they won’t be able to get back
             unless an admin invites them.
           </Kb.Text>
-          {subteams.length && (
+          {subteams.length != 0 && (
             <Kb.Checkbox
               checked={subteamsToo}
               onCheck={setSubteamsToo}
