@@ -58,6 +58,7 @@ const DefaultChannels = (props: Props) => {
       const convs = channelsCopy.filter(c => c.channelname !== 'general').map(c => c.conversationIDKey)
       setWaiting(true)
       setDefaultChannelsRPC([{convs, teamID}], reloadDefaultChannels, error => {
+        setWaiting(false)
         console.error(error)
       })
     }
