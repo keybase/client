@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -989,6 +990,18 @@ func GetChangesBetweenRevisions(
 	for _, itemSlice := range items {
 		changes = append(changes, itemSlice...)
 	}
+
+	// Renames should always go at the end, since if there's a pointer
+	// change for the renamed thing (e.g., because it was a directory
+	// that changed or a file that was written), we need to process
+	// that pointer change before the rename.
+	sort.SliceStable(changes, func(i, j int) bool {
+		if changes[i].Type != ChangeTypeRename &&
+			changes[j].Type == ChangeTypeRename {
+			return true
+		}
+		return false
+	})
 
 	return changes, refSize, nil
 }
