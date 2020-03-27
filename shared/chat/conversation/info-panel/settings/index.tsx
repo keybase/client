@@ -149,28 +149,33 @@ const SettingsPanel = (props: SettingsPanelProps) => {
               />
             )}
             {entityType === 'adhoc' && (
-              <CaptionedDangerIcon
-                caption="Block"
+              <Kb.Button
+                type="Danger"
+                mode="Primary"
+                label="Block"
                 onClick={onShowBlockConversationDialog}
                 icon="iconfont-remove"
+                iconColor={Styles.globalColors.red}
               />
             )}
             {entityType !== 'channel' &&
               (ignored ? (
-                <CaptionedDangerIcon
-                  caption="Unhide this conversation"
-                  icon="iconfont-unhide"
+                <Kb.Button
+                  type="Danger"
+                  mode="Secondary"
+                  label="Unhide this conversation"
                   onClick={onUnhideConv}
-                  noDanger={true}
-                  spinner={spinnerForHide}
+                  icon="iconfont-unhide"
+                  iconColor={Styles.globalColors.red}
                 />
               ) : (
-                <CaptionedDangerIcon
-                  caption="Hide this conversation"
+                <Kb.Button
+                  type="Danger"
+                  mode="Secondary"
+                  label="Hide this conversation"
                   onClick={onHideConv}
-                  noDanger={true}
-                  icon="iconfont-hide"
-                  spinner={spinnerForHide}
+                  icon="iconfont-unhide"
+                  iconColor={Styles.globalColors.red}
                 />
               ))}
           </Kb.Box2>
