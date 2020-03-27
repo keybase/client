@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 
-const EnableContacts = ({onClose}: {onClose: () => void}) => {
+const EnableContactsPopup = ({onClose}: {onClose: () => void}) => {
   const dispatch = Container.useDispatch()
   const onOpenSettings = () => dispatch(ConfigGen.createOpenAppSettings())
   return (
@@ -40,7 +40,7 @@ export const useEnableContactsPopup = (noAccess: boolean, onClose: () => void) =
     setShowingPopup(false)
     onClose()
   }
-  return showingPopup ? <EnableContacts onClose={onClosePopup} /> : undefined
+  return showingPopup ? <EnableContactsPopup onClose={onClosePopup} /> : null
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -48,4 +48,4 @@ const styles = Styles.styleSheetCreate(() => ({
   header: {marginBottom: 6},
 }))
 
-export default EnableContacts
+export default EnableContactsPopup
