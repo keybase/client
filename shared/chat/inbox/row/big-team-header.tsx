@@ -125,7 +125,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           ...Styles.desktopStyles.clickable,
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.xsmall,
         },
         isMobile: {
           paddingLeft: Styles.globalMargins.small,

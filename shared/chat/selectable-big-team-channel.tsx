@@ -160,8 +160,8 @@ const styles = Styles.styleSheetCreate(
           height: rowHeight,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
         },
         isMobile: {
           paddingLeft: Styles.globalMargins.small,
