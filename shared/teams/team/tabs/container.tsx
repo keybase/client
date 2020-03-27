@@ -22,7 +22,7 @@ export default Container.connect(
       isBig: Constants.isBigTeam(state, teamID),
       loading: anyWaiting(
         state,
-        Constants.teamWaitingKey(teamID),
+        Constants.teamWaitingKey(teamMeta.teamname),
         Constants.teamTarsWaitingKey(teamMeta.teamname)
       ),
       newTeamRequests: state.teams.newTeamRequests,

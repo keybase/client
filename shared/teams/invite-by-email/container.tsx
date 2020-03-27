@@ -20,8 +20,8 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _onInvite: (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
-      dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamID, teamname}))
+    _onInvite: (teamname: string, invitees: string, role: Types.TeamRoleType) => {
+      dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
     },
     onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
@@ -31,9 +31,6 @@ export default Container.connect(
     ...s,
     onClearInviteError: d.onClearInviteError,
     onClose: d.onClose,
-    onInvite: (invitees: string, role: Types.TeamRoleType) => {
-      const teamID = Container.getRouteProps(o, 'teamID', '')
-      d._onInvite(s.name, teamID, invitees, role)
-    },
+    onInvite: (invitees: string, role: Types.TeamRoleType) => d._onInvite(s.name, invitees, role),
   })
 )(InviteByEmailDesktop)

@@ -15,7 +15,7 @@ export default connect(
     const yourOperations = Constants.getCanPerformByID(state, teamID)
     return {
       canChat: !yourOperations.joinTeam,
-      loading: anyWaiting(state, Constants.teamWaitingKey(teamID)),
+      loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
       teamname,
     }
   },

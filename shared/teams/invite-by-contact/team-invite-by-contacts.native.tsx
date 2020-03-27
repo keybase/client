@@ -77,7 +77,6 @@ const TeamInviteByContact = (props: Props) => {
             invitees: contact.value,
             loadingKey: contact.value,
             role: selectedRole,
-            teamID,
             teamname,
           })
         )
@@ -88,13 +87,12 @@ const TeamInviteByContact = (props: Props) => {
             loadingKey: contact.value,
             phoneNumber: contact.valueFormatted || contact.value,
             role: selectedRole,
-            teamID,
             teamname,
           })
         )
       }
     },
-    [dispatch, selectedRole, teamID, teamname]
+    [dispatch, selectedRole, teamname]
   )
 
   const onCancelInvite = React.useCallback(
