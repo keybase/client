@@ -11,7 +11,6 @@ import {InfoPanelMenu, ConvProps} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as Styles from '../../../../styles'
-import flags from '../../../../util/feature-flags'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null

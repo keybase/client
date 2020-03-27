@@ -2,11 +2,10 @@ import * as Types from '../../../../constants/types/chat2'
 import * as TeamsTypes from '../../../../constants/types/teams'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import Joined from '.'
 import * as Container from '../../../../util/container'
-import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
   message: Types.MessageSystemJoined

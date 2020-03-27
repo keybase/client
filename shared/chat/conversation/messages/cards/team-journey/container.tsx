@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as MessageTypes from '../../../../../constants/types/chat2/message'
@@ -14,7 +15,6 @@ import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
-import flags from '../../../../../util/feature-flags'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard

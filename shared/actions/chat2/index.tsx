@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
 import {isIOS} from '../../constants/platform'
-import flags from '../../util/feature-flags'
 
 const onConnect = async () => {
   try {
