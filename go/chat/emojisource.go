@@ -147,7 +147,8 @@ func (s *DevConvEmojiSource) removeRemoteSource(ctx context.Context, uid gregor1
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		if source.Message().IsAlias {
-			return errors.New("cannot remove an alias directly")
+			s.Debug(ctx, "removeRemoteSource: skipping asset remove on alias")
+			return nil
 		}
 		return s.G().ChatHelper.DeleteMsg(ctx, source.Message().ConvID, conv.Info.TlfName,
 			source.Message().MsgID)
@@ -187,12 +188,16 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 		s.Debug(ctx, "Remove: failed to remove remote source: %s", err)
 		return err
 	}
+	s.Debug(ctx, "Remove: mapping size (before): %d", len(stored.Mapping))
 	delete(stored.Mapping, alias)
+	s.Debug(ctx, "Remove: mapping size (after): %d", len(stored.Mapping))
 	// take out any aliases
-	for existingAlias, existingSource := range stored.Mapping {
-		if existingSource.IsMessage() && existingSource.Message().IsAlias &&
-			existingSource.Message().MsgID == source.Message().MsgID {
-			delete(stored.Mapping, existingAlias)
+	if source.IsMessage() {
+		for existingAlias, existingSource := range stored.Mapping {
+			if existingSource.IsMessage() && existingSource.Message().IsAlias &&
+				existingSource.Message().MsgID == source.Message().MsgID {
+				delete(stored.Mapping, existingAlias)
+			}
 		}
 	}
 	return storage.Put(ctx, uid, convID, topicName, stored)

@@ -803,6 +803,10 @@ func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.C
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
+func (DummyEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
+	return res, err
+}
 func (DummyEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias string) error {
 	return nil
