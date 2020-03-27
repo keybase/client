@@ -44,6 +44,7 @@ export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
 export const loadWelcomeMessage = 'teams:loadWelcomeMessage'
 export const loadedWelcomeMessage = 'teams:loadedWelcomeMessage'
+export const manageChatChannels = 'teams:manageChatChannels'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
@@ -203,6 +204,7 @@ type _LoadedWelcomeMessagePayload = {
   readonly teamID: Types.TeamID
   readonly message: RPCChatTypes.WelcomeMessageDisplay
 }
+type _ManageChatChannelsPayload = {readonly teamID: Types.TeamID}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveParticipantPayload = {
@@ -596,6 +598,10 @@ export const createInviteToTeamByPhone = (
 ): InviteToTeamByPhonePayload => ({payload, type: inviteToTeamByPhone})
 export const createJoinTeam = (payload: _JoinTeamPayload): JoinTeamPayload => ({payload, type: joinTeam})
 export const createLeaveTeam = (payload: _LeaveTeamPayload): LeaveTeamPayload => ({payload, type: leaveTeam})
+export const createManageChatChannels = (payload: _ManageChatChannelsPayload): ManageChatChannelsPayload => ({
+  payload,
+  type: manageChatChannels,
+})
 export const createReAddToTeam = (payload: _ReAddToTeamPayload): ReAddToTeamPayload => ({
   payload,
   type: reAddToTeam,
@@ -886,6 +892,10 @@ export type LoadedWelcomeMessagePayload = {
   readonly payload: _LoadedWelcomeMessagePayload
   readonly type: typeof loadedWelcomeMessage
 }
+export type ManageChatChannelsPayload = {
+  readonly payload: _ManageChatChannelsPayload
+  readonly type: typeof manageChatChannels
+}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
 export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
 export type RemoveParticipantPayload = {
@@ -1148,6 +1158,7 @@ export type Actions =
   | LoadTeamPayload
   | LoadWelcomeMessagePayload
   | LoadedWelcomeMessagePayload
+  | ManageChatChannelsPayload
   | ReAddToTeamPayload
   | RemoveMemberPayload
   | RemoveParticipantPayload

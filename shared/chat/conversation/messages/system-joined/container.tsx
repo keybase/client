@@ -22,14 +22,7 @@ export default Container.connect(
     timestamp: message.timestamp,
   }),
   dispatch => ({
-    _onManageChannels: (teamID: TeamsTypes.TeamID) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: flags.teamsRedesign
-            ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
-            : [{props: {teamID}, selected: 'chatManageChannels'}],
-        })
-      ),
+    _onManageChannels: (teamID: TeamsTypes.TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
     _onManageNotifications: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(
         Chat2Gen.createShowInfoPanel({

@@ -211,14 +211,7 @@ const TeamJourneyConnected = Container.connect(
     ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
-    _onManageChannels: (teamID: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: flags.teamsRedesign
-            ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
-            : [{props: {teamID}, selected: 'chatManageChannels'}],
-        })
-      ),
+    _onManageChannels: (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID})),
     _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
     _onShowTeam: (teamID: TeamTypes.TeamID) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),

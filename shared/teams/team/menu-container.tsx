@@ -5,6 +5,7 @@ import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
 import flags from '../../util/feature-flags'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
@@ -58,14 +59,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProp
         path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
-  onManageChat: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: flags.teamsRedesign
-          ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
-          : [{props: {teamID}, selected: 'chatManageChannels'}],
-      })
-    ),
+  onManageChat: () => dispatch(TeamsGen.createManageChatChannels({teamID})),
   onOpenFolder: (teamname: string) =>
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })

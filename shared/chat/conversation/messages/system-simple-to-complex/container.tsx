@@ -19,14 +19,7 @@ export default connect(
     }
   },
   dispatch => ({
-    _onManageChannels: (teamID: TeamID) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: flags.teamsRedesign
-            ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
-            : [{props: {teamID}, selected: 'chatManageChannels'}],
-        })
-      ),
+    _onManageChannels: (teamID: TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
     _onViewTeam: (teamID: TeamID) => {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
     },

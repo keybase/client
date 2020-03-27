@@ -2,7 +2,7 @@
 import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
-import {default as Icon, SizeType} from './icon'
+import Icon, {SizeType} from './icon'
 import WithTooltip from './with-tooltip'
 import * as React from 'react'
 import Text, {StylesTextCrossPlatform} from './text'

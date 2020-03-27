@@ -167,13 +167,7 @@ export default Container.namedConnect(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}]})
       ),
     _onManageChannels: (teamID: TeamTypes.TeamID) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: flags.teamsRedesign
-            ? [{props: {mode: 'self', teamID}, selected: 'teamAddToChannels'}]
-            : [{props: {teamID}, selected: 'chatManageChannels'}],
-        })
-      )
+      dispatch(TeamsGen.createManageChatChannels({teamID}))
       dispatch(TeamsGen.createAddTeamWithChosenChannels({teamID}))
     },
     _onViewTeam: (teamID: TeamTypes.TeamID) => {

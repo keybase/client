@@ -27,9 +27,8 @@ const getTeamSelectedCount = (state: Container.TypedState, teamID: Types.TeamID)
 const DeleteChannel = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const routePropChannel = Container.getRouteProps(props, 'conversationIDKey', undefined)
-  const channelIDs = routePropChannel
-    ? [routePropChannel]
-    : Container.useSelector(state => getTeamSelectedCount(state, teamID))
+  const storeSelectedChannels = Container.useSelector(state => getTeamSelectedCount(state, teamID))
+  const channelIDs = routePropChannel ? [routePropChannel] : storeSelectedChannels
 
   if (channelIDs == undefined) {
     throw new Error('conversationIDKeys unexpectedly empty')
