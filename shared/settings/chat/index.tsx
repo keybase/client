@@ -14,6 +14,7 @@ export type Props = {
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
   unfurlError?: string
+  onBack?: () => void
   onContactSettingsSave: (
     enabled: boolean,
     indirectFollowees: boolean,

@@ -51,7 +51,6 @@ export type NotLoadingProps = {
   statusDetail: string
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null
-  title: string
   transactionID?: string
   you: string
   yourRole: Types.Role
@@ -67,7 +66,6 @@ export type Props =
       loading: true
       onBack: () => void
       onLoadPaymentDetail: () => void
-      title: string
     }
 
 type PartyAccountProps = {
@@ -546,7 +544,7 @@ function isNotLoadingProps(props: Props): props is NotLoadingProps {
   return !props.loading
 }
 
-class LoadTransactionDetails extends React.Component<Props> {
+class LoadTransactionDetails extends React.Component<NotLoadingProps /*Props TODO fix*/> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
   }

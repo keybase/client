@@ -63,7 +63,7 @@ let Conversation = (p: SwitchProps) => {
     case 'rekey':
       return <Rekey conversationIDKey={conversationIDKey} />
     default:
-      return <NoConversation onBack={onBack} />
+      return <NoConversation />
   }
 }
 

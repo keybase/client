@@ -25,6 +25,7 @@ import {
 
 export type Props = {
   teamID: Types.TeamID
+  onBack?: () => void
   initialTab?: Types.TabKey
 }
 

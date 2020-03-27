@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
-import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import Rows from '../rows/rows-container'
 import Root from '../root'
 import * as FsCommon from '../../common'
@@ -123,7 +122,7 @@ const DestinationPicker = (props: Props) => {
   )
 }
 
-const HighOrderDestinationPickerMobile = (props: Props & HeaderHocProps) => {
+const HighOrderDestinationPickerMobile = (props: Props) => {
   const otherProps = {
     customComponent: (
       <Kb.Box2 direction="horizontal" fullWidth={true}>

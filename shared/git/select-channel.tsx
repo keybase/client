@@ -47,32 +47,12 @@ const SelectChannel = (ownProps: OwnProps) => {
   // TODO: this modal could use a little bit of love
   return (
     <Kb.PopupWrapper>
-      <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
-        <Kb.Box
-          style={{
-            ...Styles.globalStyles.flexBoxColumn,
-            alignItems: 'center',
-            flex: 1,
-            paddingBottom: Styles.globalMargins.xtiny,
-            paddingTop: Styles.globalMargins.xtiny,
-          }}
-        >
+      <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Kb.Box style={styles.container}>
           <Kb.Text type="Header">Select a channel</Kb.Text>
-          <Kb.Box
-            style={{
-              ...Styles.globalStyles.flexBoxColumn,
-              marginBottom: Styles.globalMargins.medium,
-              marginTop: Styles.globalMargins.medium,
-            }}
-          >
+          <Kb.Box style={styles.inner}>
             {channelNames.map(name => (
-              <Kb.Box
-                key={name}
-                style={
-                  (Styles.globalStyles.flexBoxRow,
-                  {paddingLeft: Styles.globalMargins.medium, paddingRight: Styles.globalMargins.medium})
-                }
-              >
+              <Kb.Box key={name} style={styles.row}>
                 <Kb.RadioButton
                   label={name}
                   selected={selected === name}
@@ -90,10 +70,28 @@ const SelectChannel = (ownProps: OwnProps) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
+  inner: {
+    ...Styles.globalStyles.flexBoxColumn,
+    marginBottom: Styles.globalMargins.medium,
+    marginTop: Styles.globalMargins.medium,
+  },
   radioButton: {
     ...Styles.globalStyles.flexBoxRow,
     marginLeft: Styles.globalMargins.tiny,
   },
+  row: {
+    ...Styles.globalStyles.flexBoxRow,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
+  scrollContainer: {padding: Styles.globalMargins.large},
 }))
 
 export default SelectChannel

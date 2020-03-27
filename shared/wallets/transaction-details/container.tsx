@@ -7,7 +7,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {getFullname} from '../../constants/users'
 import openURL from '../../util/open-url'
-import TransactionDetails from '.'
+import TransactionDetails, {NotLoadingProps} from '.'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID; paymentID: Types.PaymentID}>
@@ -61,12 +61,11 @@ export default Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const tx = stateProps._transaction
     if (stateProps.loading) {
-      return {
+      return ({
         loading: true,
         onBack: dispatchProps.navigateUp,
         onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
-        title: 'Transaction details',
-      }
+      } as any) as NotLoadingProps // TODO actually split this container so it doesn't do this. makes it much harder to type
     }
     return {
       ...stateProps.yourInfoAndCounterparty,
