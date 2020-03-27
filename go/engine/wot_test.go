@@ -532,34 +532,41 @@ func TestWebOfTrustRevoke(t *testing.T) {
 	require.NoError(t, err)
 
 	// confirm that vouch and vouchWithRevoke links are not stubbed by the server
-	// by checking that, when they are not the last link in someone's chain,
-	// they are still reactable
+	// by checking that, when they are not the last link in someone's chain (which is always unstubbed),
+	// an unstubbed load is successful, and subsequently, those vouches are reactable.
 	// ------------------------------------------
-	// clear out so our vouch doesn't have the revoke
-	revokeSig(mctxB, vouchToAccept.VouchProof.String())
-	// bob vouches for alice and fetches it himself
-	vouchVersion++
-	bobVouchesForAlice(vouchVersion)
-	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
-	// bob follows charlie, unfollows charlie (just to have some stubbable links after the vouch)
+	// create a new user
 	tcCharlie := SetupEngineTest(t, "wot")
 	defer tcCharlie.Cleanup()
 	charlie := CreateAndSignupFakeUser(tcCharlie, "wot")
-	trackUser(tcBob, bob, charlie.NormalizedUsername(), sigVersion)
-	require.NoError(t, runUntrack(tcBob, bob, charlie.NormalizedUsername().String(), sigVersion))
-	// alice can still react to this link
-	err = aliceAccepts(vouchToAccept.VouchProof)
-	require.NoError(t, err)
-	// this vouch will have a revocation of the previous one
+	// clear out so our next vouch link doesn't have a revoke
+	revokeSig(mctxB, vouchToAccept.VouchProof.String())
+
+	assertVouchLinkLoadsCleanly := func(vouchToAccept keybase1.WotVouch) {
+		// add two stubbable links to the end of bob's chain
+		trackUser(tcBob, bob, charlie.NormalizedUsername(), sigVersion)
+		require.NoError(t, runUntrack(tcBob, bob, charlie.NormalizedUsername().String(), sigVersion))
+		// wipe alice so the load is definitely uncached
+		_, err := mctxA.G().LocalDb.Nuke()
+		require.NoError(t, err)
+		// alice can do a normal stubbed load of bob (there are no problems with vouch links being stubbed)
+		_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tcAlice.G, bobName))
+		require.NoError(t, err)
+		// alice can still react to this link after having done a stubbed load
+		err = aliceAccepts(vouchToAccept.VouchProof)
+		require.NoError(t, err)
+	}
+	// a vouch link buried inside a sigchain does not cause loading/stubbing issues
 	vouchVersion++
 	bobVouchesForAlice(vouchVersion)
-	// confirms its a revoke
+	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	assertVouchLinkLoadsCleanly(vouchToAccept)
+	// a vouch_with_revoke link buried inside a sigchain does not cause loading/stubbing issues
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
 	_ = assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
-	// bob follow and unfollow charlie again to pad his sigchain
-	trackUser(tcBob, bob, charlie.NormalizedUsername(), sigVersion)
-	require.NoError(t, runUntrack(tcBob, bob, charlie.NormalizedUsername().String(), sigVersion))
-	// assert its fetchable by alice
-	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	assertVouchLinkLoadsCleanly(vouchToAccept)
 }
 
 // perhaps revisit after Y2K-1494
