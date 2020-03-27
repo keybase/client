@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import {Section as _Section} from '../../common-adapters/section-list'
 import useContacts from '../../teams/common/use-contacts.native'
-import {useEnableContacts} from '../../teams/common'
+import {useEnableContactsPopup} from '../../teams/common'
 import {Contact} from '../../teams/invite-by-contact/index.native'
 import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
@@ -75,7 +75,7 @@ const InviteContacts = () => {
   const nav = Container.useSafeNavigation()
   const navUp = () => dispatch(nav.safeNavigateUpPayload())
   const waiting = Container.useAnyWaiting(waitingKey)
-  const enableContactsPopup = useEnableContacts(contactInfo.noAccessPermanent, navUp)
+  const enableContactsPopup = useEnableContactsPopup(contactInfo.noAccessPermanent, navUp)
 
   const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
   const [rpcErrorMessage, setError] = React.useState('')

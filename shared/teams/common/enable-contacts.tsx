@@ -28,7 +28,7 @@ const EnableContacts = ({onClose}: {onClose: () => void}) => {
   )
 }
 
-export const useEnableContacts = (noAccess: boolean, onClose: () => void) => {
+export const useEnableContactsPopup = (noAccess: boolean, onClose: () => void) => {
   // Whether we show the modal === whether we don't have contact permission
   // Except on hitting close we want it to dismiss immediately rather than
   // assume onClose will cause us to unmount.
