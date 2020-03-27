@@ -18,18 +18,28 @@ import shallowEqual from 'shallowequal'
 type RowItem = Types.ChatInboxRowItem
 
 const NoChats = (props: {onNewChat: () => void}) => (
-  <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
-    <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
-    <Kb.Box2 direction="vertical">
-      <Kb.Text type="BodySmall" center={true}>
-        All conversations are
-      </Kb.Text>
-      <Kb.Text type="BodySmall" center={true}>
-        end-to-end encrypted.
-      </Kb.Text>
+  <>
+    <Kb.Box2 direction="vertical" gapStart={true} gap="small" style={styles.noChatsContainer}>
+      <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
+      <Kb.Box2 direction="vertical">
+        <Kb.Text type="BodySmall" center={true}>
+          All conversations are
+        </Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          end-to-end encrypted.
+        </Kb.Text>
+      </Kb.Box2>
     </Kb.Box2>
-    <Kb.Button onClick={props.onNewChat} mode="Primary" label="Start a new chat" style={styles.button} />
-  </Kb.Box2>
+    <Kb.Box2 direction="vertical" gapStart={true} gap="medium" style={styles.newChat}>
+      <Kb.Button
+        fullWidth={true}
+        onClick={props.onNewChat}
+        mode="Primary"
+        label="Start a new chat"
+        style={styles.button}
+      />
+    </Kb.Box2>
+  </>
 )
 
 type State = {
@@ -231,6 +241,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
       return false
     })
 
+    console.warn(this.props.neverLoaded, this.props.isSearching, this.props.rows.length)
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
       <NoChats onNewChat={this.props.onNewChat} />
     )
@@ -280,6 +291,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      buttonBar: {
+        alignSelf: 'flex-end',
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
+      },
       button: {width: '100%'},
       container: Styles.platformStyles({
         common: {
@@ -301,13 +317,19 @@ const styles = Styles.styleSheetCreate(
         top: 0,
         zIndex: 1000,
       },
+      newChat: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+        backgroundColor: Styles.globalColors.fastBlank,
+        flexShrink: 0,
+        width: '100%',
+      },
       noChatsContainer: {
-        ...Styles.globalStyles.fillAbsolute,
         alignItems: 'center',
-        flex: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
+        paddingBottom: Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.xlarge,
       },
     } as const)
 )

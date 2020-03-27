@@ -55,7 +55,7 @@ let Conversation = (p: SwitchProps) => {
       // On iOS it is less noticeable because screen transitions slide away to
       // the right, though it is visible for a small amount of time.
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
-      return Container.isMobile ? null : <NoConversation />
+      return Container.isPhone ? null : <NoConversation />
     case 'normal':
       return <Normal conversationIDKey={conversationIDKey} />
     case 'youAreReset':
