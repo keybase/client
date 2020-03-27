@@ -38,7 +38,6 @@ const ManageContacts = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
-      <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
         <ManageContactsBanner />
         <SettingsSection>
@@ -119,6 +118,11 @@ const ManageContactsBanner = () => {
       )}
     </>
   )
+}
+
+ManageContacts.navigationOptions = {
+  header: undefined,
+  title: 'Contacts',
 }
 
 const styles = Styles.styleSheetCreate(

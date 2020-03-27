@@ -32,7 +32,6 @@ const Screenprotector = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.HeaderHocHeader onBack={onBack} title="Screen Protector" />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.Checkbox
           label="Disable App switcher preview and screenshots"
@@ -43,6 +42,11 @@ const Screenprotector = () => {
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+Screenprotector.navigationOptions = {
+  header: undefined,
+  title: 'Screen Protector',
 }
 
 const styles = Styles.styleSheetCreate(() => ({
