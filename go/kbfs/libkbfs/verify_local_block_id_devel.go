@@ -8,6 +8,6 @@ package libkbfs
 
 import "github.com/keybase/client/go/kbfs/kbfsblock"
 
-func verifyLocalBlockID(data []byte, id kbfsblock.ID) error {
+func verifyLocalBlockIDMaybe(data []byte, id kbfsblock.ID) error {
 	return kbfsblock.VerifyID(data, id)
 }
