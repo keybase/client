@@ -121,11 +121,8 @@ module.exports = {
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },
-  get HeaderOrPopup() {
-    return require('./header-or-popup').default
-  },
-  get HeaderOrPopupWithHeader() {
-    return require('./header-or-popup').HeaderOrPopupWithHeader
+  get HeaderHocWrapper() {
+    return require('./header-hoc').HeaderHocWrapper
   },
   get HotKey() {
     return require('./hot-key').HotKey
@@ -228,6 +225,9 @@ module.exports = {
   },
   get PopupHeaderText() {
     return require('./popup-header-text').default
+  },
+  get PopupWrapper() {
+    return require('./header-or-popup').PopupWrapper
   },
   get ProfileCard() {
     return require('./profile-card').default

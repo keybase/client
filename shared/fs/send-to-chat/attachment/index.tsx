@@ -125,16 +125,18 @@ const DesktopSendAttachmentToChat = (props: Props) => {
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
   }
   return (
-    <DesktopSendAttachmentToChatRender
-      enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
-      convName={convName}
-      path={path}
-      title={title}
-      setTitle={setTitle}
-      onSend={onSend}
-      onSelect={onSelect}
-      onCancel={onCancel}
-    />
+    <Kb.PopupWrapper>
+      <DesktopSendAttachmentToChatRender
+        enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
+        convName={convName}
+        path={path}
+        title={title}
+        setTitle={setTitle}
+        onSend={onSend}
+        onSelect={onSelect}
+        onCancel={onCancel}
+      />
+    </Kb.PopupWrapper>
   )
 }
 
@@ -188,9 +190,7 @@ export const DesktopSendAttachmentToChatRender = (props: DesktopSendAttachmentTo
   )
 }
 
-const SendAttachmentToChat = Styles.isMobile
-  ? MobileSendAttachmentToChat
-  : Kb.HeaderOrPopup(DesktopSendAttachmentToChat)
+const SendAttachmentToChat = Styles.isMobile ? MobileSendAttachmentToChat : DesktopSendAttachmentToChat
 
 export default SendAttachmentToChat
 
