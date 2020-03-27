@@ -873,11 +873,12 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 			if cm.TopicType != chat1.TopicType_CHAT {
 				continue
 			}
-			if _, ok := convMap[cm.ConvID.ConvIDStr()]; !ok {
-				convMap[cm.ConvID.ConvIDStr()] = []chat1.MemberInfo{}
+			convIDStr := cm.ConvID.ConvIDStr()
+			if _, ok := convMap[convIDStr]; !ok {
+				convMap[convIDStr] = []chat1.MemberInfo{}
 			}
 			if uname, ok := uidMap[cm.Uid.String()]; ok {
-				convMap[cm.ConvID.ConvIDStr()] = append(convMap[cm.ConvID.ConvIDStr()], chat1.MemberInfo{
+				convMap[convIDStr] = append(convMap[convIDStr], chat1.MemberInfo{
 					Member: uname,
 					Status: status,
 				})

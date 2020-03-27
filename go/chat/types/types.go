@@ -63,6 +63,7 @@ type MembershipUpdateRes struct {
 }
 
 func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
+	res = make([]gregor1.UID, 0, len(m.OthersResetConvs)+len(m.OthersJoinedConvs)+len(m.OthersRemovedConvs))
 	for _, cm := range append(m.OthersResetConvs, append(m.OthersJoinedConvs, m.OthersRemovedConvs...)...) {
 		res = append(res, cm.Uid)
 	}
