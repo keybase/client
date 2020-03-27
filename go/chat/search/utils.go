@@ -9,6 +9,7 @@ import (
 	"github.com/araddon/dateparse"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -144,11 +145,11 @@ func searchMatches(msg chat1.MessageUnboxed, queryRe *regexp.Regexp) (validMatch
 }
 
 // Order messages ascending by ID for presentation
-func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+func getUIMsgs(ctx context.Context, g *globals.Context, conv types.RemoteConversation,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {
 	for i := len(msgs) - 1; i >= 0; i-- {
 		msg := msgs[i]
-		uiMsg := utils.PresentMessageUnboxed(ctx, g, msg, uid, convID)
+		uiMsg := utils.PresentMessageUnboxed(ctx, g, msg, uid, conv)
 		uiMsgs = append(uiMsgs, uiMsg)
 	}
 	return uiMsgs

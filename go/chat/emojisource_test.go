@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/kbtest"
 
@@ -16,18 +17,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func consumeEmojiInfo(t *testing.T, listener *serverChatListener, alias string) {
+	select {
+	case infos := <-listener.emojiInfo:
+		require.Equal(t, 1, len(infos))
+		require.Equal(t, alias, infos[0].Emoji.Alias)
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no notification")
+	}
+}
+
 func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
-	uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID, emoji string) {
+	listener *serverChatListener, uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID,
+	emoji string, numExpected int) {
 	msg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, msgID, true, nil)
 	require.NoError(t, err)
 	require.True(t, msg.IsValid())
-	require.Equal(t, 1, len(msg.Valid().Emojis))
-	require.Equal(t, emoji, msg.Valid().Emojis[0].Alias)
-	uimsg := utils.PresentMessageUnboxed(ctx, tc.Context(), msg, uid, conv.Id)
+	uimsg := utils.PresentMessageUnboxed(ctx, tc.Context(), msg, uid, conv)
 	require.True(t, uimsg.IsValid())
 	require.NotNil(t, uimsg.Valid().DecoratedTextBody)
 	checker := regexp.MustCompile(utils.ServiceDecorationPrefix)
 	require.True(t, checker.Match([]byte(*uimsg.Valid().DecoratedTextBody)))
+	// we either expect 2 or 3. 3 if we are the sender for the extra location notification, and 2
+	// if we are the receiver for the PresentMessageUnboxed from this funtion, and the
+	// push receive.
+	for i := 0; i < numExpected; i++ {
+		consumeEmojiInfo(t, listener, emoji)
+	}
 }
 
 func TestEmojiSourceBasic(t *testing.T) {
@@ -50,6 +66,8 @@ func TestEmojiSourceBasic(t *testing.T) {
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
 	filename := "./testdata/ship.jpg"
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
@@ -91,7 +109,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :party_parrot:!",
 	}))
-	checkEmoji(ctx, t, tc, uid, conv, msgID, "party_parrot")
+	checkEmoji(ctx, t, tc, listener0, uid, conv, msgID, "party_parrot", 3)
 
 	t.Logf("remove")
 	_, err = GetMessage(ctx, tc.Context(), uid, source.Message().ConvID, source.Message().MsgID, true, nil)
@@ -133,7 +151,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	msgID = mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :mike2:!",
 	}))
-	checkEmoji(ctx, t, tc, uid, conv, msgID, "mike2")
+	checkEmoji(ctx, t, tc, listener0, uid, conv, msgID, "mike2", 3)
 	require.NoError(t, tc.Context().EmojiSource.Remove(ctx, uid, conv.Id, "mike2"))
 	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
 		GetCreationInfo: true,
@@ -152,7 +170,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	msgID = mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :mike:!",
 	}))
-	checkEmoji(ctx, t, tc, uid, conv, msgID, "mike")
+	checkEmoji(ctx, t, tc, listener0, uid, conv, msgID, "mike", 3)
 	_, err = tc.Context().EmojiSource.AddAlias(ctx, uid, conv.Id, "mike2", "mike")
 	require.NoError(t, err)
 	require.NoError(t, tc.Context().EmojiSource.Remove(ctx, uid, conv.Id, "mike"))
@@ -170,6 +188,12 @@ func TestEmojiSourceBasic(t *testing.T) {
 	}
 	require.True(t, checked)
 
+	t.Logf("cleanup")
+	select {
+	case <-listener0.emojiInfo:
+		require.Fail(t, "no infos expected")
+	default:
+	}
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
@@ -195,6 +219,10 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
 	filename := "./testdata/ship.jpg"
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	listener1 := newServerChatListener()
+	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
 
 	aloneConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
@@ -210,7 +238,8 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	msgID := mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :party_parrot:!",
 	}))
-	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot")
+	checkEmoji(ctx, t, tc, listener0, uid, sharedConv, msgID, "party_parrot", 3)
+	checkEmoji(ctx1, t, tc1, listener1, uid1, sharedConv, msgID, "party_parrot", 2)
 
 	t.Logf("collision")
 	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename)
@@ -218,7 +247,20 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "ITS TIME :party_parrot#2:!",
 	}))
-	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot#2")
+	checkEmoji(ctx, t, tc, listener0, uid, sharedConv, msgID, "party_parrot#2", 3)
+	checkEmoji(ctx1, t, tc1, listener1, uid1, sharedConv, msgID, "party_parrot#2", 2)
+
+	t.Logf("cleanup")
+	select {
+	case <-listener1.emojiInfo:
+		require.Fail(t, "no infos expected")
+	default:
+	}
+	select {
+	case <-listener0.emojiInfo:
+		require.Fail(t, "no infos expected")
+	default:
+	}
 }
 
 type emojiTestCase struct {

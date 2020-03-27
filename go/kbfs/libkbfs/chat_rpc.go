@@ -926,3 +926,8 @@ func (c *ChatRPC) ChatWelcomeMessageLoaded(
 func (c *ChatRPC) ChatParticipantsInfo(context.Context, map[chat1.ConvIDStr][]chat1.UIParticipant) error {
 	return nil
 }
+
+// ChatEmojiInfo exists
+func (c *ChatRPC) ChatEmojiInfo(context.Context, []chat1.EmojiNotifyInfo) error {
+	return nil
+}

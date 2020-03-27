@@ -1632,9 +1632,21 @@ func (e UIEmojiDecorationStatus) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type UIEmojiResolvingInfo struct {
+	Key   string `codec:"key" json:"key"`
+	Alias string `codec:"alias" json:"alias"`
+}
+
+func (o UIEmojiResolvingInfo) DeepCopy() UIEmojiResolvingInfo {
+	return UIEmojiResolvingInfo{
+		Key:   o.Key,
+		Alias: o.Alias,
+	}
+}
+
 type UIEmojiDecoration struct {
 	Status__    UIEmojiDecorationStatus `codec:"status" json:"status"`
-	Resolving__ *string                 `codec:"resolving,omitempty" json:"resolving,omitempty"`
+	Resolving__ *UIEmojiResolvingInfo   `codec:"resolving,omitempty" json:"resolving,omitempty"`
 	Emoji__     *Emoji                  `codec:"emoji,omitempty" json:"emoji,omitempty"`
 }
 
@@ -1654,7 +1666,7 @@ func (o *UIEmojiDecoration) Status() (ret UIEmojiDecorationStatus, err error) {
 	return o.Status__, nil
 }
 
-func (o UIEmojiDecoration) Resolving() (res string) {
+func (o UIEmojiDecoration) Resolving() (res UIEmojiResolvingInfo) {
 	if o.Status__ != UIEmojiDecorationStatus_RESOLVING {
 		panic("wrong case accessed")
 	}
@@ -1674,7 +1686,7 @@ func (o UIEmojiDecoration) Emoji() (res Emoji) {
 	return *o.Emoji__
 }
 
-func NewUIEmojiDecorationWithResolving(v string) UIEmojiDecoration {
+func NewUIEmojiDecorationWithResolving(v UIEmojiResolvingInfo) UIEmojiDecoration {
 	return UIEmojiDecoration{
 		Status__:    UIEmojiDecorationStatus_RESOLVING,
 		Resolving__: &v,
@@ -1691,11 +1703,11 @@ func NewUIEmojiDecorationWithEmoji(v Emoji) UIEmojiDecoration {
 func (o UIEmojiDecoration) DeepCopy() UIEmojiDecoration {
 	return UIEmojiDecoration{
 		Status__: o.Status__.DeepCopy(),
-		Resolving__: (func(x *string) *string {
+		Resolving__: (func(x *UIEmojiResolvingInfo) *UIEmojiResolvingInfo {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Resolving__),
 		Emoji__: (func(x *Emoji) *Emoji {

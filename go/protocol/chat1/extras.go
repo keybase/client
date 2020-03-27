@@ -1314,6 +1314,14 @@ func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 	return c.TlfName + " " + c.FinalizeInfo.BeforeSummary()
 }
 
+func (c ConversationInfoLocal) GetConvID() ConversationID {
+	return c.Id
+}
+
+func (c ConversationInfoLocal) GetTopicType() TopicType {
+	return c.Triple.TopicType
+}
+
 // TLFNameExpanded returns a TLF name with a reset suffix if it exists.
 // This version can be used in requests to lookup the TLF.
 func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {

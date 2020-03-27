@@ -47,6 +47,7 @@ export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
 export const chat1NotifyChatChatAttachmentUploadStart = 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'
 export const chat1NotifyChatChatConvUpdate = 'engine-gen:chat1NotifyChatChatConvUpdate'
+export const chat1NotifyChatChatEmojiInfo = 'engine-gen:chat1NotifyChatChatEmojiInfo'
 export const chat1NotifyChatChatIdentifyUpdate = 'engine-gen:chat1NotifyChatChatIdentifyUpdate'
 export const chat1NotifyChatChatInboxStale = 'engine-gen:chat1NotifyChatChatInboxStale'
 export const chat1NotifyChatChatInboxSyncStarted = 'engine-gen:chat1NotifyChatChatInboxSyncStarted'
@@ -551,6 +552,9 @@ type _Chat1NotifyChatChatConvUpdatePayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {
     sessionID: number
   }
+}
+type _Chat1NotifyChatChatEmojiInfoPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatEmojiInfo']['inParam'] & {sessionID: number}
 }
 type _Chat1NotifyChatChatIdentifyUpdatePayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam'] & {
@@ -2096,6 +2100,9 @@ export const createChat1NotifyChatChatAttachmentUploadStart = (
 export const createChat1NotifyChatChatConvUpdate = (
   payload: _Chat1NotifyChatChatConvUpdatePayload
 ): Chat1NotifyChatChatConvUpdatePayload => ({payload, type: chat1NotifyChatChatConvUpdate})
+export const createChat1NotifyChatChatEmojiInfo = (
+  payload: _Chat1NotifyChatChatEmojiInfoPayload
+): Chat1NotifyChatChatEmojiInfoPayload => ({payload, type: chat1NotifyChatChatEmojiInfo})
 export const createChat1NotifyChatChatIdentifyUpdate = (
   payload: _Chat1NotifyChatChatIdentifyUpdatePayload
 ): Chat1NotifyChatChatIdentifyUpdatePayload => ({payload, type: chat1NotifyChatChatIdentifyUpdate})
@@ -2887,6 +2894,10 @@ export type Chat1NotifyChatChatConvUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatConvUpdatePayload
   readonly type: typeof chat1NotifyChatChatConvUpdate
 }
+export type Chat1NotifyChatChatEmojiInfoPayload = {
+  readonly payload: _Chat1NotifyChatChatEmojiInfoPayload
+  readonly type: typeof chat1NotifyChatChatEmojiInfo
+}
 export type Chat1NotifyChatChatIdentifyUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatIdentifyUpdatePayload
   readonly type: typeof chat1NotifyChatChatIdentifyUpdate
@@ -3615,6 +3626,7 @@ export type Actions =
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload
   | Chat1NotifyChatChatConvUpdatePayload
+  | Chat1NotifyChatChatEmojiInfoPayload
   | Chat1NotifyChatChatIdentifyUpdatePayload
   | Chat1NotifyChatChatInboxStalePayload
   | Chat1NotifyChatChatInboxSyncStartedPayload

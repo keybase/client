@@ -779,6 +779,10 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		defer uiStatusLock.Unlock()
 		return displayedStatus
 	}
+	displayConv := utils.PresentMessageUnboxConvInfoBasic{
+		ConvID:    convID,
+		TopicType: chat1.TopicType_CHAT,
+	}
 
 	localCtx, cancel := context.WithCancel(ctx)
 	wg.Add(1)
@@ -834,7 +838,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			t.Debug(ctx, "LoadNonblock: sending cached response: messages: %d pager: %s",
 				len(resThread.Messages), resThread.Pagination)
 			localSentThread = resThread
-			pt := utils.PresentThreadView(ctx, t.G(), uid, *resThread, convID)
+			pt := utils.PresentThreadView(ctx, t.G(), uid, *resThread, displayConv)
 			jsonPt, err := json.Marshal(pt)
 			if err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to JSON cached response: %v", err)
@@ -896,7 +900,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		t.Debug(ctx, "LoadNonblock: presenting full response: messages: %d pager: %s",
 			len(rthread.Messages), rthread.Pagination)
 		start := time.Now()
-		uires := utils.PresentThreadView(ctx, t.G(), uid, rthread, convID)
+		uires := utils.PresentThreadView(ctx, t.G(), uid, rthread, displayConv)
 		t.Debug(ctx, "LoadNonblock: present compute time: %v", time.Since(start))
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
@@ -987,7 +991,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 						continue
 					}
 					notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, t.G(), msg, uid,
-						convID))
+						displayConv))
 				}
 				act := chat1.NewChatActivityWithMessagesUpdated(notif)
 				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,

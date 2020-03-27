@@ -464,6 +464,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.UIThreadLoader = NewUIThreadLoader(g, func() chat1.RemoteInterface { return ri })
 	g.ParticipantsSource = NewCachingParticipantSource(g, func() chat1.RemoteInterface { return ri })
 	g.EmojiSource = NewDevConvEmojiSource(g, func() chat1.RemoteInterface { return ri })
+	g.EmojiSource.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -2113,6 +2114,7 @@ type serverChatListener struct {
 	welcomeMessage   chan keybase1.TeamID
 	setStatus        chan chat1.SetStatusInfo
 	teamChangedByID  chan keybase1.TeamChangedByIDArg
+	emojiInfo        chan []chat1.EmojiNotifyInfo
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -2218,6 +2220,9 @@ func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno
 		LatestHiddenSeqno: latestHiddenSeqno,
 	}
 }
+func (n *serverChatListener) ChatEmojiInfo(infos []chat1.EmojiNotifyInfo) {
+	n.emojiInfo <- infos
+}
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
@@ -2250,6 +2255,7 @@ func newServerChatListener() *serverChatListener {
 		unfurlPrompt:     make(chan chat1.MessageID, buf),
 		setStatus:        make(chan chat1.SetStatusInfo, buf),
 		teamChangedByID:  make(chan keybase1.TeamChangedByIDArg, buf),
+		emojiInfo:        make(chan []chat1.EmojiNotifyInfo, buf),
 	}
 }
 
@@ -6691,8 +6697,7 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 			})
 			require.NoError(t, err)
 			uid := users[0].User.GetUID().ToBytes()
-			ptv := utils.PresentThreadView(ctx, ctc.as(t, users[0]).h.G(), uid, tv.Thread,
-				channel.Conv.GetConvID())
+			ptv := utils.PresentThreadView(ctx, ctc.as(t, users[0]).h.G(), uid, tv.Thread, channel.Conv)
 			require.Equal(t, 1, len(ptv.Messages))
 			require.Equal(t, 1, len(ptv.Messages[0].Valid().ChannelNameMentions))
 			require.Equal(t, topicName, ptv.Messages[0].Valid().ChannelNameMentions[0].Name)

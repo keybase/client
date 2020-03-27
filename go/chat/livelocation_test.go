@@ -122,8 +122,11 @@ func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convI
 	mvalid.ClientHeader.OutboxID = &outboxID
 	notMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-		Message: utils.PresentMessageUnboxed(ctx, m.G(), notMsg, uid, convID),
-		ConvID:  convID,
+		Message: utils.PresentMessageUnboxed(ctx, m.G(), notMsg, uid,
+			utils.PresentMessageUnboxConvInfoOnlyConvID{
+				ConvID: convID,
+			}),
+		ConvID: convID,
 	})
 	m.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), chat1.TopicType_CHAT,
 		&activity, chat1.ChatActivitySource_LOCAL)

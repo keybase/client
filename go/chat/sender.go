@@ -1255,7 +1255,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		*boxed, nil); err != nil {
 		s.Debug(ctx, "Send: failed to update inbox: %s", err)
 	}
-	// Send up to frontend
+	// Send up to frontend (squash for emoji chats)
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
 		if convLocal != nil {
 			unboxedMsg, err = NewReplyFiller(s.G()).FillSingle(ctx, boxed.ClientHeader.Sender, *convLocal,
@@ -1265,8 +1265,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			}
 		}
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender,
-				convID),
+			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg,
+				boxed.ClientHeader.Sender, conv),
 			ConvID:                     convID,
 			DisplayDesktopNotification: false,
 			Conv:                       s.presentUIItem(ctx, boxed.ClientHeader.Sender, convLocal),
@@ -1415,6 +1415,7 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 		storage.NewMessageNotifier(func(ctx context.Context, obr chat1.OutboxRecord) {
 			uid := obr.Msg.ClientHeader.Sender
 			convID := obr.ConvID
+			topicType := obr.Msg.ClientHeader.Conv.TopicType
 			vis := keybase1.TLFVisibility_PRIVATE
 			if obr.Msg.ClientHeader.TlfPublic {
 				vis = keybase1.TLFVisibility_PUBLIC
@@ -1430,7 +1431,10 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 			}
 			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 				Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
-					uid, convID),
+					uid, utils.PresentMessageUnboxConvInfoBasic{
+						ConvID:    convID,
+						TopicType: topicType,
+					}),
 				ConvID: convID,
 			})
 			s.G().ActivityNotifier.Activity(ctx, uid, obr.Msg.ClientHeader.Conv.TopicType, &act,

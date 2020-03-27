@@ -1008,7 +1008,7 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		ConvID: convID,
 	}
 	for _, msg := range updatedMsgs {
-		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
+		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, conv))
 	}
 	act := chat1.NewChatActivityWithMessagesUpdated(notif)
 	s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(),
@@ -1054,14 +1054,16 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 }
 
 // notifyEphemeralPurge notifies the GUI after messages are exploded.
-func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
+func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyEphemeralPurge: exploded: %d", len(explodedMsgs))
 	if len(explodedMsgs) > 0 {
+		conv := utils.PresentMessageUnboxConvInfoOnlyConvID{ConvID: convID}
 		// Blast out an EphemeralPurgeNotifInfo since it's time sensitive for the UI
 		// to update.
 		purgedMsgs := []chat1.UIMessage{}
 		for _, msg := range explodedMsgs {
-			purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
+			purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, conv))
 		}
 		act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
 			ConvID: convID,

@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -60,7 +62,9 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	consumeNewMsgRemote(t, listener, chat1.MessageType_ATTACHMENT)
 
 	t.Logf("case: backintime all attachments")
-	nm, _, err := gallery.NextMessage(ctx, uid, conv.Id, m3Res.MessageID,
+	rc, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, types.InboxSourceDataSourceAll)
+	require.NoError(t, err)
+	nm, _, err := gallery.NextMessage(ctx, uid, rc, m3Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 		})
@@ -68,7 +72,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	require.NotNil(t, nm)
 	require.Equal(t, nm.GetMessageID(), m1Res.MessageID)
 	t.Logf("case: backintime imagesonly")
-	nm, _, err = gallery.NextMessage(ctx, uid, conv.Id, m3Res.MessageID,
+	nm, _, err = gallery.NextMessage(ctx, uid, rc, m3Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
@@ -77,7 +81,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	require.NotNil(t, nm)
 	require.Equal(t, nm.GetMessageID(), m0Res.MessageID)
 	t.Logf("case: forwardintime all attachments")
-	nm, _, err = gallery.NextMessage(ctx, uid, conv.Id, m0Res.MessageID,
+	nm, _, err = gallery.NextMessage(ctx, uid, rc, m0Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: false,
 		})
@@ -85,7 +89,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	require.NotNil(t, nm)
 	require.Equal(t, nm.GetMessageID(), m1Res.MessageID)
 	t.Logf("case: forwardintime imagesonly")
-	nm, _, err = gallery.NextMessage(ctx, uid, conv.Id, m0Res.MessageID,
+	nm, _, err = gallery.NextMessage(ctx, uid, rc, m0Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: false,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
@@ -94,14 +98,14 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	require.NotNil(t, nm)
 	require.Equal(t, nm.GetMessageID(), m3Res.MessageID)
 	t.Logf("case: backintime off the end")
-	nm, _, err = gallery.NextMessage(ctx, uid, conv.Id, m0Res.MessageID,
+	nm, _, err = gallery.NextMessage(ctx, uid, rc, m0Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 		})
 	require.NoError(t, err)
 	require.Nil(t, nm)
 	t.Logf("case: forwardintime off the end")
-	nm, _, err = gallery.NextMessage(ctx, uid, conv.Id, m3Res.MessageID,
+	nm, _, err = gallery.NextMessage(ctx, uid, rc, m3Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: false,
 		})
@@ -111,7 +115,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	gallery.NextStride = 1
 	gallery.PrevStride = 1
 	t.Logf("case: backintime short stride")
-	nm, _, err = gallery.NextMessage(ctx, uid, conv.Id, m3Res.MessageID,
+	nm, _, err = gallery.NextMessage(ctx, uid, rc, m3Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
@@ -120,7 +124,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	require.NotNil(t, nm)
 	require.Equal(t, nm.GetMessageID(), m0Res.MessageID)
 	t.Logf("case: forwardintime short stride")
-	nm, _, err = gallery.NextMessage(ctx, uid, conv.Id, m0Res.MessageID,
+	nm, _, err = gallery.NextMessage(ctx, uid, rc, m0Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: false,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
@@ -167,7 +171,9 @@ func TestAttachmentGalleryLinks(t *testing.T) {
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 
-	nm, last, err := gallery.NextMessages(ctx, uid, conv.Id, m1Res.MessageID+1, 5,
+	rc, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, types.InboxSourceDataSourceAll)
+	require.NoError(t, err)
+	nm, last, err := gallery.NextMessages(ctx, uid, rc, m1Res.MessageID+1, 5,
 		attachments.NextMessageOptions{
 			BackInTime:  true,
 			MessageType: chat1.MessageType_TEXT,
@@ -177,7 +183,7 @@ func TestAttachmentGalleryLinks(t *testing.T) {
 	require.True(t, last)
 	require.Equal(t, 2, len(nm))
 
-	nm, last, err = gallery.NextMessages(ctx, uid, conv.Id, m1Res.MessageID+1, 1,
+	nm, last, err = gallery.NextMessages(ctx, uid, rc, m1Res.MessageID+1, 1,
 		attachments.NextMessageOptions{
 			BackInTime:  true,
 			MessageType: chat1.MessageType_TEXT,
@@ -187,7 +193,7 @@ func TestAttachmentGalleryLinks(t *testing.T) {
 	require.False(t, last)
 	require.Equal(t, 1, len(nm))
 
-	nm, last, err = gallery.NextMessages(ctx, uid, conv.Id, m1Res.MessageID, 2,
+	nm, last, err = gallery.NextMessages(ctx, uid, rc, m1Res.MessageID, 2,
 		attachments.NextMessageOptions{
 			BackInTime:  true,
 			MessageType: chat1.MessageType_TEXT,
@@ -253,7 +259,9 @@ func TestAttachmentGalleryPagination(t *testing.T) {
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener, chat1.MessageType_ATTACHMENT)
 
-	nm, last, err := gallery.NextMessages(ctx, uid, conv.Id, m3Res.MessageID+1, 2,
+	rc, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, types.InboxSourceDataSourceAll)
+	require.NoError(t, err)
+	nm, last, err := gallery.NextMessages(ctx, uid, rc, m3Res.MessageID+1, 2,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
@@ -262,7 +270,7 @@ func TestAttachmentGalleryPagination(t *testing.T) {
 	require.False(t, last)
 	require.Equal(t, 2, len(nm))
 
-	nm, last, err = gallery.NextMessages(ctx, uid, conv.Id, m2Res.MessageID+1, 2,
+	nm, last, err = gallery.NextMessages(ctx, uid, rc, m2Res.MessageID+1, 2,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
@@ -271,7 +279,7 @@ func TestAttachmentGalleryPagination(t *testing.T) {
 	require.Equal(t, 2, len(nm))
 	require.False(t, last)
 
-	nm, last, err = gallery.NextMessages(ctx, uid, conv.Id, m0Res.MessageID, 2,
+	nm, last, err = gallery.NextMessages(ctx, uid, rc, m0Res.MessageID, 2,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
@@ -280,7 +288,7 @@ func TestAttachmentGalleryPagination(t *testing.T) {
 	require.Zero(t, len(nm))
 	require.True(t, last)
 
-	nm, last, err = gallery.NextMessages(ctx, uid, conv.Id, m3Res.MessageID+1, 5,
+	nm, last, err = gallery.NextMessages(ctx, uid, rc, m3Res.MessageID+1, 5,
 		attachments.NextMessageOptions{
 			BackInTime: true,
 			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},

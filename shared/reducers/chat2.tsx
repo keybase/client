@@ -21,6 +21,7 @@ type EngineActions =
   | EngineGen.Chat1NotifyChatChatParticipantsInfoPayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
+  | EngineGen.Chat1NotifyChatChatEmojiInfoPayload
 
 type Actions =
   | Chat2Gen.Actions
@@ -1238,6 +1239,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           Constants.uiParticipantsToParticipantInfo(participants)
         )
       }
+    })
+  },
+  [EngineGen.chat1NotifyChatChatEmojiInfo]: (draftState, action) => {
+    const {infos} = action.payload.params
+    infos?.forEach(info => {
+      draftState.customEmojiMap.set(info.key, info.emoji)
     })
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {

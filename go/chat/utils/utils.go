@@ -1477,8 +1477,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.Draft = rawConv.Info.Draft
 	if rawConv.Info.PinnedMsg != nil {
 		res.PinnedMsg = new(chat1.UIPinnedMessage)
-		res.PinnedMsg.Message = PresentMessageUnboxed(ctx, g, rawConv.Info.PinnedMsg.Message, uid,
-			rawConv.GetConvID())
+		res.PinnedMsg.Message = PresentMessageUnboxed(ctx, g, rawConv.Info.PinnedMsg.Message, uid, rawConv)
 		res.PinnedMsg.PinnerUsername = rawConv.Info.PinnedMsg.PinnerUsername
 	}
 	switch partMode {
@@ -1498,10 +1497,10 @@ func PresentConversationLocals(ctx context.Context, g *globals.Context, uid greg
 }
 
 func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID, tv chat1.ThreadView,
-	convID chat1.ConversationID) (res chat1.UIMessages) {
+	conv PresentMessageUnboxConvInfo) (res chat1.UIMessages) {
 	res.Pagination = PresentPagination(tv.Pagination)
 	for _, msg := range tv.Messages {
-		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
+		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, conv))
 	}
 	return res
 }
@@ -1871,15 +1870,45 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func PresentMessagesUnboxed(ctx context.Context, g *globals.Context, msgs []chat1.MessageUnboxed,
-	uid gregor1.UID, convID chat1.ConversationID) (res []chat1.UIMessage) {
+	uid gregor1.UID, conv PresentMessageUnboxConvInfo) (res []chat1.UIMessage) {
 	for _, msg := range msgs {
-		res = append(res, PresentMessageUnboxed(ctx, g, msg, uid, convID))
+		res = append(res, PresentMessageUnboxed(ctx, g, msg, uid, conv))
 	}
 	return res
 }
 
+type PresentMessageUnboxConvInfo interface {
+	GetConvID() chat1.ConversationID
+	GetTopicType() chat1.TopicType
+}
+
+type PresentMessageUnboxConvInfoOnlyConvID struct {
+	ConvID chat1.ConversationID
+}
+
+func (p PresentMessageUnboxConvInfoOnlyConvID) GetConvID() chat1.ConversationID {
+	return p.ConvID
+}
+
+func (p PresentMessageUnboxConvInfoOnlyConvID) GetTopicType() chat1.TopicType {
+	return chat1.TopicType_NONE
+}
+
+type PresentMessageUnboxConvInfoBasic struct {
+	ConvID    chat1.ConversationID
+	TopicType chat1.TopicType
+}
+
+func (p PresentMessageUnboxConvInfoBasic) GetConvID() chat1.ConversationID {
+	return p.ConvID
+}
+
+func (p PresentMessageUnboxConvInfoBasic) GetTopicType() chat1.TopicType {
+	return p.TopicType
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
-	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
+	uid gregor1.UID, conv PresentMessageUnboxConvInfo) (res chat1.UIMessage) {
 	miscErr := func(err error) chat1.UIMessage {
 		return chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
 			ErrType:   chat1.MessageUnboxedErrorType_MISC,
@@ -1916,7 +1945,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		var replyTo *chat1.UIMessage
 		if valid.ReplyTo != nil {
 			replyTo = new(chat1.UIMessage)
-			*replyTo = PresentMessageUnboxed(ctx, g, *valid.ReplyTo, uid, convID)
+			*replyTo = PresentMessageUnboxed(ctx, g, *valid.ReplyTo, uid, conv)
 		}
 		var pinnedMessageID *chat1.MessageID
 		if valid.MessageBody.IsType(chat1.MessageType_PIN) {
@@ -1924,12 +1953,19 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			*pinnedMessageID = valid.MessageBody.Pin().MsgID
 		}
 		loadTeamMentions(ctx, g, uid, valid)
+		var decoratedTextBody *string
+		switch conv.GetTopicType() {
+		case chat1.TopicType_EMOJI, chat1.TopicType_EMOJICROSS:
+		default:
+			decoratedTextBody = PresentDecoratedTextBody(ctx, g, uid, conv.GetConvID(), valid)
+		}
+		convID := conv.GetConvID()
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
-			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, convID, valid),
+			DecoratedTextBody:     decoratedTextBody,
 			BodySummary:           GetMsgSnippetBody(rawMsg),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
@@ -1989,7 +2025,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		var replyTo *chat1.UIMessage
 		if rawMsg.Outbox().ReplyTo != nil {
 			replyTo = new(chat1.UIMessage)
-			*replyTo = PresentMessageUnboxed(ctx, g, *rawMsg.Outbox().ReplyTo, uid, convID)
+			*replyTo = PresentMessageUnboxed(ctx, g, *rawMsg.Outbox().ReplyTo, uid, conv)
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:             rawMsg.Outbox().State,
@@ -2003,7 +2039,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Title:             title,
 			Filename:          filename,
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
-			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
+			FlipGameID:        presentFlipGameID(ctx, g, uid, conv.GetConvID(), rawMsg),
 			ReplyTo:           replyTo,
 		})
 	case chat1.MessageUnboxedState_ERROR:

@@ -18,6 +18,7 @@ import CustomEmoji from '../custom-emoji'
 import Emoji from '../emoji'
 import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
+import ProgressIndicator from '../progress-indicator'
 
 const linkStyle = Styles.platformStyles({
   isElectron: {
@@ -107,6 +108,23 @@ const WarningLink = (props: WarningLinkProps) => {
   )
 }
 
+type EmojiWrapperProps = {
+  emoji: RPCChatTypes.Emoji
+}
+
+const EmojiWrapper = (props: EmojiWrapperProps) => {
+  const {emoji} = props
+  if (emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
+    // TODO: figure out how to build in BigEmoji logic here
+    return <CustomEmoji size="Medium" src={emoji.source.httpsrv} alias={emoji.alias} />
+  } else if (emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str) {
+    // TODO: figure out how to build in BigEmoji logic here
+    return <Emoji emojiName={emoji.source.str} size={24} />
+  }
+  // we may want to add more cases here later if we decide to parse "stock" emoji with this
+  return null
+}
+
 export type Props = {
   json: string
   onClick?: () => void
@@ -117,6 +135,7 @@ export type Props = {
 }
 
 const ServiceDecoration = (props: Props) => {
+  const customEmojiMap = Container.useSelector(s => s.chat2.customEmojiMap)
   // Parse JSON to get the type of the decoration
   let parsed: RPCChatTypes.UITextDecoration
   try {
@@ -233,14 +252,17 @@ const ServiceDecoration = (props: Props) => {
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
-    if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
-      // TODO: figure out how to build in BigEmoji logic here
-      return <CustomEmoji size="Medium" src={parsed.emoji.source.httpsrv} alias={parsed.emoji.alias} />
-    } else if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str) {
-      // TODO: figure out how to build in BigEmoji logic here
-      return <Emoji emojiName={parsed.emoji.source.str} size={24} />
+    if (parsed.emoji.status === RPCChatTypes.UIEmojiDecorationStatus.resolving) {
+      const emoji = customEmojiMap.get(parsed.emoji.resolving.key)
+      return !emoji ? (
+        <Text type="Body" style={Styles.collapseStyles([props.styles.wrapStyle])}>
+          {`:${parsed.emoji.resolving.alias}:`}
+        </Text>
+      ) : (
+        <EmojiWrapper emoji={emoji} />
+      )
     }
-    // we may want to add more cases here later if we decide to parse "stock" emoji with this
+    return <EmojiWrapper emoji={parsed.emoji.emoji} />
   }
   return null
 }

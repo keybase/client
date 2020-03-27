@@ -94,8 +94,17 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	for index, c := range convs {
 		indexMap[c.ConvIDStr] = index
 	}
-	for ar := range b.localizeCb {
-		res[indexMap[ar.ConvLocal.GetConvID().ConvIDStr()]] = ar.ConvLocal
+	doneCb := make(chan struct{})
+	go func() {
+		for ar := range b.localizeCb {
+			res[indexMap[ar.ConvLocal.GetConvID().ConvIDStr()]] = ar.ConvLocal
+		}
+		close(doneCb)
+	}()
+	select {
+	case <-doneCb:
+	case <-ctx.Done():
+		return res, ctx.Err()
 	}
 	return res, nil
 }
@@ -441,6 +450,7 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 			// just put this right back if we canceled it
 			s.Debug(job.ctx, "localizeJobPulled: re-enqueuing canceled job")
 			s.jobQueue <- job.retry(s.G())
+			s.Debug(job.ctx, "localizeJobPulled: re-enqueueing complete")
 		}
 		if job.closeIfDone() {
 			s.Debug(job.ctx, "localizeJobPulled: all job tasks complete")

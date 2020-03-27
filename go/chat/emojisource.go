@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -37,10 +36,11 @@ type DevConvEmojiSource struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	uid     gregor1.UID
-	stopCh  chan struct{}
-	started bool
-	eg      errgroup.Group
+	uid          gregor1.UID
+	stopCh       chan struct{}
+	started      bool
+	eg           errgroup.Group
+	activeCancel context.CancelFunc
 
 	getLock     sync.Mutex
 	aliasLookup map[string]chat1.Emoji
@@ -79,6 +79,9 @@ func (s *DevConvEmojiSource) Stop(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if s.started {
 		close(s.stopCh)
+		if s.activeCancel != nil {
+			s.activeCancel()
+		}
 		s.started = false
 		go func() {
 			err := s.eg.Wait()
@@ -658,10 +661,14 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	job.convID = convID
 	job.body = body
 	job.keyMap = make(map[string]string)
+	job.crossTeams = crossTeams
 	for _, match := range matches {
 		// TODO: "cache hits" (tbd) should decorate immediately with emoji info without a load
 		resolveKey := s.makeResolveKey(convID, msgID, match.name)
-		payload := chat1.NewUIEmojiDecorationWithResolving(resolveKey)
+		payload := chat1.NewUIEmojiDecorationWithResolving(chat1.UIEmojiResolvingInfo{
+			Key:   resolveKey,
+			Alias: match.name,
+		})
 		dec := chat1.NewUITextDecorationWithEmoji(payload)
 		job.keyMap[match.name] = resolveKey
 		body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
@@ -676,14 +683,25 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 }
 
 func (s *DevConvEmojiSource) loadJob(ctx context.Context, job emojiLoadJob) (err error) {
+	// set up context
+	s.Lock()
+	if !s.started {
+		s.Unlock()
+		return nil
+	}
+	ctx, s.activeCancel = context.WithCancel(ctx)
+	s.Unlock()
+
+	ctx = globals.ChatCtx(ctx, s.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer s.Trace(ctx, func() error { return nil }, "loadJob")()
-	ctx = libkb.WithLogTag(ctx, "EMJLD")
+	s.Debug(ctx, "loadJob: uid: %s crossTeams: %d", s.uid, len(job.crossTeams))
 	emojis, err := s.Harvest(ctx, job.body, s.uid, job.convID, job.crossTeams,
 		types.EmojiSourceHarvestModeInbound)
 	if err != nil {
 		s.Debug(ctx, "loadJob: failed to harvest: %s", err)
 		return err
 	}
+	s.Debug(ctx, "loadJob: uid: %s harvested %d", s.uid, len(emojis))
 	var infos []chat1.EmojiNotifyInfo
 	for _, emoji := range emojis {
 		key, ok := job.keyMap[emoji.Alias]
@@ -704,6 +722,7 @@ func (s *DevConvEmojiSource) loadJob(ctx context.Context, job emojiLoadJob) (err
 			},
 		})
 	}
+	s.Debug(ctx, "loadJob: sending notification: uid: %s num: %d", s.uid, len(infos))
 	if len(infos) > 0 {
 		s.G().NotifyRouter.HandleEmojiInfo(ctx, infos)
 	}
@@ -712,8 +731,8 @@ func (s *DevConvEmojiSource) loadJob(ctx context.Context, job emojiLoadJob) (err
 
 func (s *DevConvEmojiSource) loadLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
+	s.Debug(ctx, "loadLoop: starting up: uid: %s", s.uid)
 	for {
-		s.Debug(ctx, "loadLoop: starting up: uid: %s", s.uid)
 		select {
 		case <-stopCh:
 			s.Debug(ctx, "loadLoop: shutting down")
@@ -724,7 +743,8 @@ func (s *DevConvEmojiSource) loadLoop(stopCh chan struct{}) error {
 					s.Debug(ctx, "loadLoop: job in convID: %s hit max attempts", job.convID)
 				} else {
 					job.attempts++
-					s.Debug(ctx, "loadLoop: job in convID: %s retrying: attempts: %d", job.attempts)
+					s.Debug(ctx, "loadLoop: job in convID: %s retrying: attempts: %d",
+						job.convID, job.attempts)
 					select {
 					case s.jobCh <- job:
 					default:

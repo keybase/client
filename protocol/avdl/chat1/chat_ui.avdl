@@ -378,8 +378,13 @@ protocol chatUi {
     EMOJI_1
   }
 
+  record UIEmojiResolvingInfo {
+    string key;
+    string alias;
+  }
+
   variant UIEmojiDecoration switch (UIEmojiDecorationStatus status) {
-    case RESOLVING: string; // a service generated key for a map in the store
+    case RESOLVING: UIEmojiResolvingInfo; // a service generated key for a map in the store
     case EMOJI: Emoji;
   }
 

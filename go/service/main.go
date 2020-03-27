@@ -431,6 +431,7 @@ func (d *Service) startChatModules() {
 		g.LiveLocationTracker.Start(context.Background(), uid)
 		g.BotCommandManager.Start(context.Background(), uid)
 		g.UIInboxLoader.Start(context.Background(), uid)
+		g.EmojiSource.Start(context.Background(), uid)
 		g.PushShutdownHook(d.stopChatModules)
 	}
 	d.purgeOldChatAttachmentData()
@@ -449,6 +450,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
 	<-d.ChatG().BotCommandManager.Stop(m.Ctx())
 	<-d.ChatG().UIInboxLoader.Stop(m.Ctx())
+	<-d.ChatG().EmojiSource.Stop(m.Ctx())
 	<-d.ChatG().JourneyCardManager.Stop(m.Ctx())
 	return nil
 }

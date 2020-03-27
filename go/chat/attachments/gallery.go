@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -101,8 +102,8 @@ func (g *Gallery) searchForLinks(ctx context.Context, uid gregor1.UID, convID ch
 }
 
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, last bool, err error) {
-	msgs, last, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts, nil)
+	conv types.RemoteConversation, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, last bool, err error) {
+	msgs, last, err := g.NextMessages(ctx, uid, conv, msgID, 1, opts, nil)
 	if err != nil {
 		return res, false, err
 	}
@@ -140,7 +141,7 @@ func (g *Gallery) getUnfurlHost(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions,
+	conv types.RemoteConversation, msgID chat1.MessageID, num int, opts NextMessageOptions,
 	uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
 	defer g.Trace(ctx, func() error { return err }, "NextMessages")()
 	defer func() {
@@ -150,6 +151,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	}()
 	var reverseFn func(chat1.ThreadView) []chat1.MessageUnboxed
 	var nextPageFn func(*chat1.Pagination) *chat1.Pagination
+	convID := conv.GetConvID()
 	pivot := msgID
 	mode := chat1.MessageIDControlMode_NEWERMESSAGES
 	if opts.BackInTime {
@@ -218,7 +220,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 			}
 			res = append(res, m)
 			if uiCh != nil {
-				uiCh <- utils.PresentMessageUnboxed(ctx, g.G(), m, uid, convID)
+				uiCh <- utils.PresentMessageUnboxed(ctx, g.G(), m, uid, conv)
 			}
 			if len(res) >= num {
 				g.Debug(ctx, "NextMessages: stopping on satisfied")

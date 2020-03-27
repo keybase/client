@@ -206,6 +206,7 @@ export type State = {
   readonly commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   readonly containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   readonly createConversationError: CreateConversationError | null
+  readonly customEmojiMap: Map<string, RPCChatTypes.Emoji>
   readonly dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   readonly draftMap: Map<Common.ConversationIDKey, string>
   readonly editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,

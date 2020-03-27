@@ -73,6 +73,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.UIInboxLoader != nil {
 		<-c.ChatG.UIInboxLoader.Stop(context.TODO())
 	}
+	if c.ChatG.EmojiSource != nil {
+		<-c.ChatG.EmojiSource.Stop(context.TODO())
+	}
 	c.TestContext.Cleanup()
 }
 
@@ -712,7 +715,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 					ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
 					ServerHeader: *inserted.ServerHeader,
 					MessageBody:  m.createBogusBody(inserted.GetMessageType()),
-				}), uid, arg.ConversationID),
+				}), uid, conv),
 		})
 		m.world.TcsByID[uid.String()].ChatG.ActivityNotifier.Activity(context.Background(),
 			uid, conv.GetTopicType(), &activity, chat1.ChatActivitySource_REMOTE)

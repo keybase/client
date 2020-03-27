@@ -140,9 +140,9 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(tv.Messages))
 
-	uiMsg := utils.PresentMessageUnboxed(context.TODO(), tc.Context(), tv.Messages[0], uid, conv.Id)
+	uiMsg := utils.PresentMessageUnboxed(context.TODO(), tc.Context(), tv.Messages[0], uid, conv)
 	require.NotNil(t, uiMsg.Valid().AssetUrlInfo)
-	uiMsg2 := utils.PresentMessageUnboxed(context.TODO(), tc.Context(), tv.Messages[1], uid, conv.Id)
+	uiMsg2 := utils.PresentMessageUnboxed(context.TODO(), tc.Context(), tv.Messages[1], uid, conv)
 	require.NotNil(t, uiMsg.Valid().AssetUrlInfo)
 
 	waitTime := 20 * time.Second

@@ -693,8 +693,12 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
+	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
 	gallery := attachments.NewGallery(h.G())
-	unboxed, _, err := gallery.NextMessage(ctx, uid, arg.ConvID, arg.MessageID,
+	unboxed, _, err := gallery.NextMessage(ctx, uid, conv, arg.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: arg.BackInTime,
 			AssetTypes: arg.AssetTypes,
@@ -706,7 +710,7 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 	var resMsg *chat1.UIMessage
 	if unboxed != nil {
 		resMsg = new(chat1.UIMessage)
-		*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), *unboxed, uid, arg.ConvID)
+		*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), *unboxed, uid, conv)
 	}
 	return chat1.GetNextAttachmentMessageLocalRes{
 		Message:          resMsg,
@@ -2604,6 +2608,10 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 	if err != nil {
 		return err
 	}
+	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
 	if err := utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapse); err != nil {
 		return err
 	}
@@ -2626,7 +2634,7 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 		// give a notification about the unfurled message
 		notif := chat1.MessagesUpdated{
 			ConvID:  arg.ConvID,
-			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), unfurledMsg, uid, arg.ConvID)},
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), unfurledMsg, uid, conv)},
 		}
 		act := chat1.NewChatActivityWithMessagesUpdated(notif)
 		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
@@ -2634,7 +2642,7 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 	} else if msg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
 		notif := chat1.MessagesUpdated{
 			ConvID:  arg.ConvID,
-			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, arg.ConvID)},
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, conv)},
 		}
 		act := chat1.NewChatActivityWithMessagesUpdated(notif)
 		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
@@ -2822,14 +2830,14 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 	default:
 		return res, errors.New("invalid gallery type")
 	}
+	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
 	var msgID chat1.MessageID
 	if arg.FromMsgID != nil {
 		msgID = *arg.FromMsgID
 	} else {
-		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			return res, err
-		}
 		msgID = conv.Conv.ReaderInfo.MaxMsgid + 1
 	}
 
@@ -2840,13 +2848,13 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		}
 	}(ctx)
 	gallery := attachments.NewGallery(h.G())
-	msgs, last, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
+	msgs, last, err := gallery.NextMessages(ctx, uid, conv, msgID, arg.Num, opts, hitCh)
 	if err != nil {
 		return res, err
 	}
 	return chat1.LoadGalleryRes{
 		Last:     last,
-		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, convID),
+		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, conv),
 	}, nil
 }
 

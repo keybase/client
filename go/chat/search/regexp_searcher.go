@@ -141,7 +141,11 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 		}
 		return hitContext
 	}
-
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		s.Debug(ctx, "Search: failed to get conv: %s", err)
+		return hits, msgHits, err
+	}
 	numHits := 0
 	numMessages := 0
 	for !pagination.Last && numHits < maxHits && numMessages < maxMessages {
@@ -178,9 +182,9 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 				}
 				nextPage = newThread
 				searchHit := chat1.ChatSearchHit{
-					BeforeMessages: getUIMsgs(ctx, s.G(), convID, uid, beforeMsgs),
-					HitMessage:     utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID),
-					AfterMessages:  getUIMsgs(ctx, s.G(), convID, uid, afterMsgs),
+					BeforeMessages: getUIMsgs(ctx, s.G(), conv, uid, beforeMsgs),
+					HitMessage:     utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, conv),
+					AfterMessages:  getUIMsgs(ctx, s.G(), conv, uid, afterMsgs),
 					Matches:        matches,
 				}
 				if uiCh != nil {

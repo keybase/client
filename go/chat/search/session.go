@@ -179,7 +179,7 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 		} else {
 			batch = msgIDs[i : i+s.opts.MaxHits]
 		}
-		hits, err = s.searchHitBatch(ctx, convID, batch, hits)
+		hits, err = s.searchHitBatch(ctx, conv, batch, hits)
 		if err != nil {
 			return nil, err
 		}
@@ -199,9 +199,9 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 	}, nil
 }
 
-func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.ConversationID, msgIDs []chat1.MessageID,
-	hits []chat1.ChatSearchHit) (res []chat1.ChatSearchHit, err error) {
-	idSet, msgs, err := s.getMsgsAndIDSet(ctx, convID, msgIDs)
+func (s *searchSession) searchHitBatch(ctx context.Context, conv types.RemoteConversation,
+	msgIDs []chat1.MessageID, hits []chat1.ChatSearchHit) (res []chat1.ChatSearchHit, err error) {
+	idSet, msgs, err := s.getMsgsAndIDSet(ctx, conv.GetConvID(), msgIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.Convers
 				if afterLimit < 0 {
 					afterLimit = 0
 				}
-				afterMessages = getUIMsgs(ctx, s.indexer.G(), convID, s.uid, msgs[afterLimit:i])
+				afterMessages = getUIMsgs(ctx, s.indexer.G(), conv, s.uid, msgs[afterLimit:i])
 			}
 
 			if s.opts.BeforeContext > 0 && i < len(msgs)-1 {
@@ -221,13 +221,13 @@ func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.Convers
 				if beforeLimit >= len(msgs) {
 					beforeLimit = len(msgs)
 				}
-				beforeMessages = getUIMsgs(ctx, s.indexer.G(), convID, s.uid, msgs[i+1:beforeLimit])
+				beforeMessages = getUIMsgs(ctx, s.indexer.G(), conv, s.uid, msgs[i+1:beforeLimit])
 			}
 
 			matches := searchMatches(msg, s.queryRe)
 			searchHit := chat1.ChatSearchHit{
 				BeforeMessages: beforeMessages,
-				HitMessage:     utils.PresentMessageUnboxed(ctx, s.indexer.G(), msg, s.uid, convID),
+				HitMessage:     utils.PresentMessageUnboxed(ctx, s.indexer.G(), msg, s.uid, conv),
 				AfterMessages:  afterMessages,
 				Matches:        matches,
 			}

@@ -491,7 +491,7 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %v", err)
 			return nil
 		}
-		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, conv.GetConvID())
+		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, *conv)
 		return &uiMsg
 	default:
 		return nil
@@ -618,7 +618,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message:         utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
+					Message:         utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, conv),
 					ModifiedMessage: g.getSupersedesTarget(ctx, uid, conv, decmsg),
 					ConvID:          nm.ConvID,
 					Conv: g.presentUIItem(ctx, conv, uid,
