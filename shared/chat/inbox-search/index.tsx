@@ -387,6 +387,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           ...Styles.globalStyles.flexBoxColumn,
           backgroundColor: Styles.globalColors.blueGrey,
+          borderRightWidth: 1,
+          borderRightColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
           contain: 'strict',
           height: '100%',
           maxWidth: inboxWidth,
