@@ -115,9 +115,6 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HeaderHoc() {
-    return require('./header-hoc').default
-  },
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },

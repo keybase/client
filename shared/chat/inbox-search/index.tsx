@@ -387,6 +387,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           ...Styles.globalStyles.flexBoxColumn,
           backgroundColor: Styles.globalColors.blueGrey,
+          borderRightColor: Styles.globalColors.black_10,
+          borderRightWidth: 1,
+          borderStyle: 'solid',
           contain: 'strict',
           height: '100%',
           maxWidth: inboxWidth,
@@ -407,12 +410,12 @@ const styles = Styles.styleSheetCreate(
       },
       openTeamContainer: Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.xtiny,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       percentContainer: Styles.platformStyles({

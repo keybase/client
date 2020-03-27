@@ -1912,17 +1912,26 @@ func (fbo *folderBranchOps) makeObfuscator() data.Obfuscator {
 func (fbo *folderBranchOps) setHeadLocked(
 	ctx context.Context, lState *kbfssync.LockState,
 	md ImmutableRootMetadata, headStatus headTrustStatus,
-	ct mdCommitType) error {
+	ct mdCommitType) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
 	isFirstHead := fbo.head == ImmutableRootMetadata{}
 	wasReadable := false
 	if isFirstHead {
-		err := fbo.setObfuscatorSecret(ctx, md.ReadOnly())
+		err = fbo.setObfuscatorSecret(ctx, md.ReadOnly())
 		if err != nil {
 			return err
 		}
+		defer func() {
+			if err != nil && fbo.head == (ImmutableRootMetadata{}) {
+				// If we didn't successfully set the head, we need to
+				// unset the secret.
+				fbo.obLock.Lock()
+				defer fbo.obLock.Unlock()
+				fbo.obSecret = nil
+			}
+		}()
 	} else {
 		if headStatus == headUntrusted {
 			panic("setHeadLocked: Trying to set an untrusted head over an existing head")
@@ -2715,7 +2724,8 @@ func ResetRootBlock(ctx context.Context, config Config,
 
 	info, plainSize, readyBlockData, err :=
 		data.ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
-			rmd.ReadOnly(), newDblock, chargedTo, config.DefaultBlockType())
+			rmd.ReadOnly(), newDblock, chargedTo, config.DefaultBlockType(),
+			cacheHashBehavior(config, config, rmd.TlfID()))
 	if err != nil {
 		return nil, data.BlockInfo{}, data.ReadyBlockData{}, err
 	}
@@ -2745,10 +2755,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 }
 
 func (fbo *folderBranchOps) cacheHashBehavior() data.BlockCacheHashBehavior {
-	if TLFJournalEnabled(fbo.config, fbo.id()) {
-		return data.SkipCacheHash
-	}
-	return data.DoCacheHash
+	return cacheHashBehavior(fbo.config, fbo.config, fbo.id())
 }
 
 func (fbo *folderBranchOps) initMDLocked(
@@ -9194,7 +9201,8 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 
 	info, _, readyBlockData, err :=
 		data.ReadyBlock(ctx, fbo.config.BlockCache(), fbo.config.BlockOps(),
-			kmd, b, chargedTo, fbo.config.DefaultBlockType())
+			kmd, b, chargedTo, fbo.config.DefaultBlockType(),
+			fbo.cacheHashBehavior())
 	if err != nil {
 		return FolderSyncEncryptedPartialPaths{}, err
 	}

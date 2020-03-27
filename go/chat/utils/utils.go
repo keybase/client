@@ -3047,3 +3047,14 @@ func GetConvParticipantUsernames(ctx context.Context, g *globals.Context, uid gr
 	}
 	return parts, nil
 }
+
+func IsDeletedConvError(err error) bool {
+	switch err.(type) {
+	case libkb.ChatBadConversationError,
+		libkb.ChatNotInTeamError,
+		libkb.ChatNotInConvError:
+		return true
+	default:
+		return false
+	}
+}

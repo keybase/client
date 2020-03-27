@@ -78,6 +78,10 @@ function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
   return HH
 }
 
+export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}) => {
+  return props.children
+}
+
 const _headerStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
