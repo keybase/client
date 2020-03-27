@@ -120,7 +120,6 @@ const suggestorKeyExtractors = {
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
-// TODO: maybe add some more data here so Kb.CustomEmoji works
 const emojiRenderer = (item: EmojiData, selected: boolean) => (
   <Kb.Box2
     direction="horizontal"
@@ -142,14 +141,7 @@ const emojiRenderer = (item: EmojiData, selected: boolean) => (
   </Kb.Box2>
 )
 const emojiTransformer = (emoji: EmojiData, _: unknown, tData: TransformerData, preview: boolean) => {
-  let toInsert: string
-  // if ((emoji as EmojiData).colons) {
-  //   toInsert = Styles.isMobile ? (emoji as BaseEmoji).native : (emoji as BaseEmoji).colons
-  // } else {
-  //   toInsert = `:${(emoji as RPCChatTypes.Emoji).alias}:`
-  // }
-  toInsert = `:${emoji.short_name}:`
-  return standardTransformer(toInsert, tData, preview)
+  return standardTransformer(`:${emoji.short_name}:`, tData, preview)
 }
 
 type InputState = {
