@@ -11025,11 +11025,11 @@ react-native-unimodules@0.7.0-rc.1:
     unimodules-sensors-interface "~4.0.0"
     unimodules-task-manager-interface "~4.0.0"
 
-"react-native-v8@git://github.com/keybase/react-native-v8#7557c145de2ba9f91ed705ec34751cb776b3ced2":
-  version "0.60.5-patch.0"
-  resolved "git://github.com/keybase/react-native-v8#7557c145de2ba9f91ed705ec34751cb776b3ced2"
+"react-native-v8@git://github.com/keybase/react-native-v8#rn_v0.61.5.3-v8_v8.80.1-2":
+  version "0.61.5-patch.3"
+  resolved "git://github.com/keybase/react-native-v8#2d51d63e12d161a7231e2d9ac7765dbaced9d695"
   dependencies:
-    v8-android "^7.5.1"
+    v8-android "^8.80.0"
 
 react-native-video@5.0.2:
   version "5.0.2"
@@ -13579,14 +13579,14 @@ uuid@^3.0.1, uuid@^3.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
-"v8-android-nointl@git://github.com/keybase/v8-android-nointl#v7.5.1":
-  version "7.5.1"
-  resolved "git://github.com/keybase/v8-android-nointl#09802382bfbd12902e69f3dc3232b00a0531c07c"
+"v8-android-nointl@git://github.com/keybase/v8-android-nointl#v8.80.1":
+  version "8.80.1"
+  resolved "git://github.com/keybase/v8-android-nointl#1c8c2e39bce555344fb13cb31f68a648023114e6"
 
-v8-android@^7.5.1:
-  version "7.5.1"
-  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-7.5.1.tgz#490288785381826d6c96323cecfb3fdbf2200424"
-  integrity sha512-FFte/j4T8UtrEd6IB8hGFZS40+kTvgoSa/+krCTBbRPij18mez2CPGyfOa+sJdCSxuXGEj7g7pzOBdtqgzdqow==
+v8-android@^8.80.0:
+  version "8.80.1"
+  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-8.80.1.tgz#ec4c9be7656445377e6c080ebc39b1ab7e95fbce"
+  integrity sha512-YtJEYC4cEr/EJjCAllQN1T+PX+XtcrCCBXJv+dLdzxxRtVKkHlf8kAxyriXUOtGmiMtgzlz+d8hQugVPdq8ZfA==
 
 v8-compile-cache@2.0.3:
   version "2.0.3"
