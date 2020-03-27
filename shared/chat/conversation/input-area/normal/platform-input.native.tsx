@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Container from '../../../../util/container'
 import {isLargeScreen} from '../../../../constants/platform'
 import {LayoutEvent} from '../../../../common-adapters/box'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
@@ -134,15 +136,20 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     this.props.setHeight(height)
   }
 
-  private insertMentionMarker = () => {
+  private insertText = (toInsert: string) => {
     if (this.input) {
       const input = this.input
       input.focus()
       input.transformText(
-        ({selection: {end, start}, text}) => standardTransformer('@', {position: {end, start}, text}, true),
+        ({selection: {end, start}, text}) =>
+          standardTransformer(toInsert, {position: {end, start}, text}, true),
         true
       )
     }
+  }
+
+  private insertMentionMarker = () => {
+    this.insertText('@')
   }
 
   private getHintText = () => {
@@ -283,6 +290,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           </Kb.Box2>
           <Buttons
             conversationIDKey={conversationIDKey}
+            insertEmoji={this.insertText}
             insertMentionMarker={this.insertMentionMarker}
             openFilePicker={this.openFilePicker}
             openMoreMenu={this.openMoreMenu}
@@ -310,6 +318,7 @@ type ButtonsProps = Pick<
   isEditing: boolean
   openMoreMenu: () => void
   toggleShowingMenu: () => void
+  insertEmoji: (emoji: string) => void
   insertMentionMarker: () => void
   openFilePicker: () => void
   onSubmit: () => void
@@ -317,8 +326,29 @@ type ButtonsProps = Pick<
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {conversationIDKey, insertMentionMarker, openFilePicker, openMoreMenu, onSubmit, onCancelEditing} = p
+  const {
+    conversationIDKey,
+    insertEmoji,
+    insertMentionMarker,
+    openFilePicker,
+    openMoreMenu,
+    onSubmit,
+    onCancelEditing,
+  } = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
+
+  const dispatch = Container.useDispatch()
+  const openEmojiPicker = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, onPickAction: insertEmoji},
+            selected: 'chatChooseEmoji',
+          },
+        ],
+      })
+    )
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.NativeTouchableWithoutFeedback onPress={toggleShowingMenu}>
@@ -353,6 +383,7 @@ const Buttons = (p: ButtonsProps) => {
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
         <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end">
+          <Kb.Icon onClick={openEmojiPicker} type="iconfont-reacji" />
           <Kb.Icon onClick={insertMentionMarker} type="iconfont-mention" />
           <Kb.Icon onClick={openFilePicker} type="iconfont-camera" />
           <AudioRecorder conversationIDKey={conversationIDKey} />

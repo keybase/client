@@ -5,13 +5,15 @@ import ConfirmForm from '../../../wallets/confirm-form'
 
 type LoadingProps = {}
 
-const PaymentsConfirmLoading = Kb.HeaderOrPopup((_: LoadingProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
-      <Kb.ProgressIndicator type="Huge" />
+const PaymentsConfirmLoading = (_: LoadingProps) => (
+  <Kb.PopupWrapper>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+        <Kb.ProgressIndicator type="Huge" />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-))
+  </Kb.PopupWrapper>
+)
 
 type ErrorProps = {
   error: string
@@ -20,15 +22,17 @@ type ErrorProps = {
   onWallet: () => void
 }
 
-const _PaymentsConfirmError = (props: ErrorProps) => {
-  if (props.errorIsNoWallet) {
-    return _PaymentsConfirmErrorNoWallet(props)
-  } else {
-    return _PaymentsConfirmErrorMisc(props)
-  }
-}
+const PaymentsConfirmError = (props: ErrorProps) => (
+  <Kb.PopupWrapper onCancel={props.onCancel}>
+    {props.errorIsNoWallet ? (
+      <PaymentsConfirmErrorNoWallet {...props} />
+    ) : (
+      <PaymentsConfirmErrorMisc {...props} />
+    )}
+  </Kb.PopupWrapper>
+)
 
-const _PaymentsConfirmErrorMisc = (props: ErrorProps) => (
+const PaymentsConfirmErrorMisc = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2
       direction="vertical"
@@ -44,7 +48,7 @@ const _PaymentsConfirmErrorMisc = (props: ErrorProps) => (
   </Kb.Box2>
 )
 
-const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
+const PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2
       direction="vertical"
@@ -65,8 +69,6 @@ const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
-
-const PaymentsConfirmError = Kb.HeaderOrPopup(_PaymentsConfirmError)
 
 type PaymentProps = {
   readonly displayAmount?: string | null

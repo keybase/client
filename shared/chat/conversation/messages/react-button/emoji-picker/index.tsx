@@ -34,10 +34,16 @@ const getEmojiSections = memoize(
 )
 
 const getFrequentSection = memoize(
-  (topReacjis: Array<string>, emojisPerLine): Section => {
+  (
+    topReacjis: Array<string>,
+    customEmojiGroups: Array<RPCChatGen.EmojiGroup>,
+    emojisPerLine: number
+  ): Section => {
     const {emojiNameMap} = _getData()
+    const customEmojiIndex = getCustomEmojiIndex(customEmojiGroups)
     const emojis = topReacjis.reduce<Array<Data.EmojiData>>((arr, shortName) => {
-      const emoji = emojiNameMap[shortName.replace(/:/g, '')]
+      const shortNameNoColons = shortName.replace(/:/g, '')
+      const emoji = emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
       if (emoji) {
         arr.push(emoji)
       }
@@ -128,20 +134,24 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) 
   // This is gonna be slow, but is probably fine until we have too many custom
   // emojis. We should switch to a prefix tree and maybe move this to Go side
   // at that point.
-  return (filter: string): Array<Data.EmojiData> =>
-    // @ts-ignore ts doesn't know Boolean filters out undefined.
-    keys
-      .filter(k => k.includes(filter))
-      .map(key => mapper.get(key))
-      .filter(Boolean)
+  return {
+    filter: (filter: string): Array<Data.EmojiData> =>
+      // @ts-ignore ts doesn't know Boolean filters out undefined.
+      keys
+        .filter(k => k.includes(filter))
+        .map(key => mapper.get(key))
+        .filter(Boolean),
+    get: (shortName: string): Data.EmojiData | undefined => mapper.get(shortName),
+  }
 })
+const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 
 const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
   const {emojiIndex, emojiNameMap} = _getData()
-  const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : () => []
+  const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
   return (filter: string): Array<Data.EmojiData> => {
     return [
-      ...customEmojiIndex(filter),
+      ...customEmojiIndex.filter(filter),
       ...emojiIndex
         // @ts-ignore type wrong?
         .search(filter, {maxResults: maxEmojiSearchResults})
@@ -169,7 +179,7 @@ const getSectionsAndBookmarks = (
 
   if (topReacjis.length) {
     bookmarks.push({iconType: 'iconfont-clock', sectionIndex: sections.length})
-    sections.push(getFrequentSection(topReacjis, emojisPerLine))
+    sections.push(getFrequentSection(topReacjis, customSections || emptyArray, emojisPerLine))
   }
 
   if (customSections?.length) {
@@ -377,3 +387,5 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default EmojiPicker
+
+const emptyArray = []
