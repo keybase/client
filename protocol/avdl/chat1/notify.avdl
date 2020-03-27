@@ -257,4 +257,12 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatParticipantsInfo(map<ConvIDStr, array<UIParticipant>> participants);
+
+  record EmojiNotifyInfo {
+    string key;
+    Emoji emoji;
+  }
+  @notify("")
+  @lint("ignore")
+  void ChatEmojiInfo(array<EmojiNotifyInfo> infos);
 }

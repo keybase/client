@@ -1718,13 +1718,15 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
 	msg chat1.MessageUnboxedValid, reactions chat1.ReactionMap) (res chat1.UIReactionMap) {
-	shouldDecorate := len(msg.Emojis) > 0
 	res.Reactions = make(map[string]chat1.UIReactionDesc, len(reactions.Reactions))
 	for key, value := range reactions.Reactions {
 		var desc chat1.UIReactionDesc
-		if shouldDecorate {
-			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
+		var crossTeams map[string]chat1.HarvestedEmoji
+		for _, reaction := range value {
+			crossTeams = reaction.CrossTeams
+			break
 		}
+		desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, msg.ServerHeader.MessageID, crossTeams)
 		desc.Users = make(map[string]chat1.Reaction)
 		for username, reaction := range value {
 			desc.Users[username] = reaction
@@ -1788,10 +1790,12 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	}
 	var body string
 	var payments []chat1.TextPayment
+	var crossTeams map[string]chat1.HarvestedEmoji
 	switch typ {
 	case chat1.MessageType_TEXT:
 		body = msgBody.Text().Body
 		payments = msgBody.Text().Payments
+		crossTeams = msgBody.Text().Emojis
 	case chat1.MessageType_FLIP:
 		body = msgBody.Flip().Text
 	case chat1.MessageType_REQUESTPAYMENT:
@@ -1809,7 +1813,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 
 	// Emojis
-	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
+	body = g.EmojiSource.Decorate(ctx, body, convID, msg.ServerHeader.MessageID, crossTeams)
 
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,

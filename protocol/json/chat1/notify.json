@@ -525,6 +525,20 @@
           "body": "ChatSyncIncrementalInfo"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiNotifyInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "Emoji",
+          "name": "emoji"
+        }
+      ]
     }
   ],
   "messages": {
@@ -986,6 +1000,20 @@
               "items": "UIParticipant"
             },
             "keys": "ConvIDStr"
+          }
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatEmojiInfo": {
+      "request": [
+        {
+          "name": "infos",
+          "type": {
+            "type": "array",
+            "items": "EmojiNotifyInfo"
           }
         }
       ],

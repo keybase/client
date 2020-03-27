@@ -132,11 +132,10 @@ func (t *basicSupersedesTransform) transformReaction(msg chat1.MessageUnboxed, s
 	reactions[superMsg.Valid().SenderUsername] = chat1.Reaction{
 		ReactionMsgID: superMsg.GetMessageID(),
 		Ctime:         superMsg.Valid().ServerHeader.Ctime,
+		CrossTeams:    superMsg.Valid().MessageBody.Reaction().Emojis,
 	}
 	reactionMap.Reactions[reactionText] = reactions
-
 	mvalid := msg.Valid()
-	mvalid.Emojis = append(mvalid.Emojis, superMsg.Valid().Emojis...)
 	mvalid.Reactions = reactionMap
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg

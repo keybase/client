@@ -1606,6 +1606,108 @@ func (o UIMaybeMentionInfo) DeepCopy() UIMaybeMentionInfo {
 	}
 }
 
+type UIEmojiDecorationStatus int
+
+const (
+	UIEmojiDecorationStatus_RESOLVING UIEmojiDecorationStatus = 0
+	UIEmojiDecorationStatus_EMOJI     UIEmojiDecorationStatus = 1
+)
+
+func (o UIEmojiDecorationStatus) DeepCopy() UIEmojiDecorationStatus { return o }
+
+var UIEmojiDecorationStatusMap = map[string]UIEmojiDecorationStatus{
+	"RESOLVING": 0,
+	"EMOJI":     1,
+}
+
+var UIEmojiDecorationStatusRevMap = map[UIEmojiDecorationStatus]string{
+	0: "RESOLVING",
+	1: "EMOJI",
+}
+
+func (e UIEmojiDecorationStatus) String() string {
+	if v, ok := UIEmojiDecorationStatusRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type UIEmojiDecoration struct {
+	Status__    UIEmojiDecorationStatus `codec:"status" json:"status"`
+	Resolving__ *string                 `codec:"resolving,omitempty" json:"resolving,omitempty"`
+	Emoji__     *Emoji                  `codec:"emoji,omitempty" json:"emoji,omitempty"`
+}
+
+func (o *UIEmojiDecoration) Status() (ret UIEmojiDecorationStatus, err error) {
+	switch o.Status__ {
+	case UIEmojiDecorationStatus_RESOLVING:
+		if o.Resolving__ == nil {
+			err = errors.New("unexpected nil value for Resolving__")
+			return ret, err
+		}
+	case UIEmojiDecorationStatus_EMOJI:
+		if o.Emoji__ == nil {
+			err = errors.New("unexpected nil value for Emoji__")
+			return ret, err
+		}
+	}
+	return o.Status__, nil
+}
+
+func (o UIEmojiDecoration) Resolving() (res string) {
+	if o.Status__ != UIEmojiDecorationStatus_RESOLVING {
+		panic("wrong case accessed")
+	}
+	if o.Resolving__ == nil {
+		return
+	}
+	return *o.Resolving__
+}
+
+func (o UIEmojiDecoration) Emoji() (res Emoji) {
+	if o.Status__ != UIEmojiDecorationStatus_EMOJI {
+		panic("wrong case accessed")
+	}
+	if o.Emoji__ == nil {
+		return
+	}
+	return *o.Emoji__
+}
+
+func NewUIEmojiDecorationWithResolving(v string) UIEmojiDecoration {
+	return UIEmojiDecoration{
+		Status__:    UIEmojiDecorationStatus_RESOLVING,
+		Resolving__: &v,
+	}
+}
+
+func NewUIEmojiDecorationWithEmoji(v Emoji) UIEmojiDecoration {
+	return UIEmojiDecoration{
+		Status__: UIEmojiDecorationStatus_EMOJI,
+		Emoji__:  &v,
+	}
+}
+
+func (o UIEmojiDecoration) DeepCopy() UIEmojiDecoration {
+	return UIEmojiDecoration{
+		Status__: o.Status__.DeepCopy(),
+		Resolving__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Resolving__),
+		Emoji__: (func(x *Emoji) *Emoji {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Emoji__),
+	}
+}
+
 type UITextDecoration struct {
 	Typ__                UITextDecorationTyp   `codec:"typ" json:"typ"`
 	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
@@ -1615,7 +1717,7 @@ type UITextDecoration struct {
 	Link__               *UILinkDecoration     `codec:"link,omitempty" json:"link,omitempty"`
 	Mailto__             *UILinkDecoration     `codec:"mailto,omitempty" json:"mailto,omitempty"`
 	Kbfspath__           *KBFSPath             `codec:"kbfspath,omitempty" json:"kbfspath,omitempty"`
-	Emoji__              *Emoji                `codec:"emoji,omitempty" json:"emoji,omitempty"`
+	Emoji__              *UIEmojiDecoration    `codec:"emoji,omitempty" json:"emoji,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1734,7 +1836,7 @@ func (o UITextDecoration) Kbfspath() (res KBFSPath) {
 	return *o.Kbfspath__
 }
 
-func (o UITextDecoration) Emoji() (res Emoji) {
+func (o UITextDecoration) Emoji() (res UIEmojiDecoration) {
 	if o.Typ__ != UITextDecorationTyp_EMOJI {
 		panic("wrong case accessed")
 	}
@@ -1793,7 +1895,7 @@ func NewUITextDecorationWithKbfspath(v KBFSPath) UITextDecoration {
 	}
 }
 
-func NewUITextDecorationWithEmoji(v Emoji) UITextDecoration {
+func NewUITextDecorationWithEmoji(v UIEmojiDecoration) UITextDecoration {
 	return UITextDecoration{
 		Typ__:   UITextDecorationTyp_EMOJI,
 		Emoji__: &v,
@@ -1852,7 +1954,7 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Kbfspath__),
-		Emoji__: (func(x *Emoji) *Emoji {
+		Emoji__: (func(x *UIEmojiDecoration) *UIEmojiDecoration {
 			if x == nil {
 				return nil
 			}

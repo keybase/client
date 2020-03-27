@@ -799,6 +799,12 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 
 type DummyEmojiSource struct{}
 
+func (DummyEmojiSource) Start(ctx context.Context, uid gregor1.UID) {}
+func (DummyEmojiSource) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
@@ -816,7 +822,7 @@ func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
+	msgID chat1.MessageID, crossTeams map[string]chat1.HarvestedEmoji) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,

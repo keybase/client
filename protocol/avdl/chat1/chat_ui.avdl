@@ -373,6 +373,16 @@ protocol chatUi {
     case NOTHING: void;
   }
 
+  enum UIEmojiDecorationStatus {
+    RESOLVING_0,
+    EMOJI_1
+  }
+
+  variant UIEmojiDecoration switch (UIEmojiDecorationStatus status) {
+    case RESOLVING: string; // a service generated key for a map in the store
+    case EMOJI: Emoji;
+  }
+
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
     case ATMENTION: string;
@@ -381,7 +391,7 @@ protocol chatUi {
     case LINK: UILinkDecoration;
     case MAILTO: UILinkDecoration;
     case KBFSPATH: KBFSPath;
-    case EMOJI: Emoji;
+    case EMOJI: UIEmojiDecoration;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

@@ -2863,7 +2863,6 @@ type MessageUnboxedValid struct {
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
-	Emojis                []HarvestedEmoji            `codec:"emojis" json:"emojis"`
 	ReplyTo               *MessageUnboxed             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	BotUsername           string                      `codec:"botUsername" json:"botUsername"`
 }
@@ -2962,17 +2961,6 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.Unfurls),
-		Emojis: (func(x []HarvestedEmoji) []HarvestedEmoji {
-			if x == nil {
-				return nil
-			}
-			ret := make([]HarvestedEmoji, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Emojis),
 		ReplyTo: (func(x *MessageUnboxed) *MessageUnboxed {
 			if x == nil {
 				return nil

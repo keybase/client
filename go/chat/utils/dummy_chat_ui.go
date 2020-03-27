@@ -232,3 +232,6 @@ func (d DummyChatNotifications) ChatParticipantsInfo(context.Context,
 	map[chat1.ConvIDStr][]chat1.UIParticipant) error {
 	return nil
 }
+func (d DummyChatNotifications) ChatEmojiInfo(context.Context, []chat1.EmojiNotifyInfo) error {
+	return nil
+}

@@ -914,6 +914,14 @@
         {
           "type": "MessageID",
           "name": "reactionMsgID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "crossTeams"
         }
       ]
     },

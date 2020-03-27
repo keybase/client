@@ -47,6 +47,10 @@ export type MessageTypes = {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly conv?: InboxUIItem | null}
     outParam: void
   }
+  'chat.1.NotifyChat.ChatEmojiInfo': {
+    inParam: {readonly infos?: Array<EmojiNotifyInfo> | null}
+    outParam: void
+  }
   'chat.1.NotifyChat.ChatIdentifyUpdate': {
     inParam: {readonly update: Keybase1.CanonicalTLFNameAndIDWithBreaks}
     outParam: void
@@ -1046,6 +1050,11 @@ export enum UICommandStatusDisplayTyp {
   error = 2,
 }
 
+export enum UIEmojiDecorationStatus {
+  resolving = 0,
+  emoji = 1,
+}
+
 export enum UIInboxBigTeamRowTyp {
   label = 1,
   channel = 2,
@@ -1188,6 +1197,7 @@ export type EmojiFetchOpts = {readonly getCreationInfo: Boolean; readonly getAli
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String} | {typ: EmojiLoadSourceTyp.str; str: String}
 export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID; readonly isAlias: Boolean}
+export type EmojiNotifyInfo = {readonly key: String; readonly emoji: Emoji}
 export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage} | {typ: EmojiRemoteSourceTyp.stockalias; stockalias: EmojiStockAlias}
 export type EmojiStockAlias = {readonly text: String; readonly username: String; readonly time: Gregor1.Time}
 export type EmojiStorage = {readonly mapping: {[key: string]: EmojiRemoteSource}}
@@ -1317,7 +1327,7 @@ export type MessageUnboxed = {state: MessageUnboxedState.valid; valid: MessageUn
 export type MessageUnboxedError = {readonly errType: MessageUnboxedErrorType; readonly errMsg: String; readonly internalErrMsg: String; readonly versionKind: VersionKind; readonly versionNumber: Int; readonly isCritical: Boolean; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: Keybase1.DeviceTypeV2; readonly messageID: MessageID; readonly messageType: MessageType; readonly ctime: Gregor1.Time; readonly isEphemeral: Boolean; readonly explodedBy?: String | null; readonly etime: Gregor1.Time; readonly botUsername: String}
 export type MessageUnboxedJourneycard = {readonly prevID: MessageID; readonly ordinal: Int; readonly cardType: JourneycardType; readonly highlightMsgID: MessageID; readonly openTeam: Boolean}
 export type MessageUnboxedPlaceholder = {readonly messageID: MessageID; readonly hidden: Boolean}
-export type MessageUnboxedValid = {readonly clientHeader: MessageClientHeaderVerified; readonly serverHeader: MessageServerHeader; readonly messageBody: MessageBody; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: Keybase1.DeviceTypeV2; readonly bodyHash: Hash; readonly headerHash: Hash; readonly headerSignature?: SignatureInfo | null; readonly verificationKey?: Bytes | null; readonly senderDeviceRevokedAt?: Gregor1.Time | null; readonly atMentionUsernames?: Array<String> | null; readonly atMentions?: Array<Gregor1.UID> | null; readonly channelMention: ChannelMention; readonly maybeMentions?: Array<MaybeMention> | null; readonly channelNameMentions?: Array<ChannelNameMention> | null; readonly reactions: ReactionMap; readonly unfurls: {[key: string]: UnfurlResult}; readonly emojis?: Array<HarvestedEmoji> | null; readonly replyTo?: MessageUnboxed | null; readonly botUsername: String}
+export type MessageUnboxedValid = {readonly clientHeader: MessageClientHeaderVerified; readonly serverHeader: MessageServerHeader; readonly messageBody: MessageBody; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: Keybase1.DeviceTypeV2; readonly bodyHash: Hash; readonly headerHash: Hash; readonly headerSignature?: SignatureInfo | null; readonly verificationKey?: Bytes | null; readonly senderDeviceRevokedAt?: Gregor1.Time | null; readonly atMentionUsernames?: Array<String> | null; readonly atMentions?: Array<Gregor1.UID> | null; readonly channelMention: ChannelMention; readonly maybeMentions?: Array<MaybeMention> | null; readonly channelNameMentions?: Array<ChannelNameMention> | null; readonly reactions: ReactionMap; readonly unfurls: {[key: string]: UnfurlResult}; readonly replyTo?: MessageUnboxed | null; readonly botUsername: String}
 export type MessageUnfurl = {readonly unfurl: UnfurlResult; readonly messageID: MessageID}
 export type MessagesUpdated = {readonly convID: ConversationID; readonly updates?: Array<UIMessage> | null}
 export type MsgBotInfo = {readonly botUID: Keybase1.UID; readonly botUsername: String}
@@ -1355,7 +1365,7 @@ export type PreviewLocation = {ltyp: PreviewLocationTyp.url; url: String} | {lty
 export type ProfileSearchConvStats = {readonly err: String; readonly convName: String; readonly minConvID: MessageID; readonly maxConvID: MessageID; readonly numMissing: Int; readonly numMessages: Int; readonly indexSizeDisk: Int; readonly indexSizeMem: Int64; readonly durationMsec: Gregor1.DurationMsec; readonly percentIndexed: Int}
 export type RateLimit = {readonly name: String; readonly callsRemaining: Int; readonly windowReset: Int; readonly maxCalls: Int}
 export type RateLimitRes = {readonly tank: String; readonly capacity: Int; readonly reset: Int; readonly gas: Int}
-export type Reaction = {readonly ctime: Gregor1.Time; readonly reactionMsgID: MessageID}
+export type Reaction = {readonly ctime: Gregor1.Time; readonly reactionMsgID: MessageID; readonly crossTeams: {[key: string]: HarvestedEmoji}}
 export type ReactionMap = {readonly reactions: {[key: string]: {[key: string]: Reaction}}}
 export type ReactionUpdate = {readonly reactions: UIReactionMap; readonly targetMsgID: MessageID}
 export type ReactionUpdateNotif = {readonly convID: ConversationID; readonly userReacjis: Keybase1.UserReacjis; readonly reactionUpdates?: Array<ReactionUpdate> | null}
@@ -1449,6 +1459,7 @@ export type UICoinFlipParticipant = {readonly uid: String; readonly deviceID: St
 export type UICoinFlipResult = {typ: UICoinFlipResultTyp.number; number: String} | {typ: UICoinFlipResultTyp.shuffle; shuffle: Array<String>} | {typ: UICoinFlipResultTyp.deck; deck: Array<Int>} | {typ: UICoinFlipResultTyp.hands; hands: Array<UICoinFlipHand>} | {typ: UICoinFlipResultTyp.coin; coin: Bool}
 export type UICoinFlipStatus = {readonly gameID: FlipGameIDStr; readonly phase: UICoinFlipPhase; readonly progressText: String; readonly resultText: String; readonly commitmentVisualization: String; readonly revealVisualization: String; readonly participants?: Array<UICoinFlipParticipant> | null; readonly errorInfo?: UICoinFlipError | null; readonly resultInfo?: UICoinFlipResult | null}
 export type UICommandMarkdown = {readonly body: String; readonly title?: String | null}
+export type UIEmojiDecoration = {status: UIEmojiDecorationStatus.resolving; resolving: String} | {status: UIEmojiDecorationStatus.emoji; emoji: Emoji}
 export type UIInboxBigTeamChannelRow = {readonly convID: ConvIDStr; readonly teamname: String; readonly channelname: String; readonly draft?: String | null; readonly isMuted: Boolean}
 export type UIInboxBigTeamLabelRow = {readonly name: String; readonly id: TLFIDStr}
 export type UIInboxBigTeamRow = {state: UIInboxBigTeamRowTyp.label; label: UIInboxBigTeamLabelRow} | {state: UIInboxBigTeamRowTyp.channel; channel: UIInboxBigTeamChannelRow}
@@ -1471,7 +1482,7 @@ export type UIReactionDesc = {readonly decorated: String; readonly users: {[key:
 export type UIReactionMap = {readonly reactions: {[key: string]: UIReactionDesc}}
 export type UIRequestInfo = {readonly amount: String; readonly amountDescription: String; readonly asset?: Stellar1.Asset | null; readonly currency?: Stellar1.OutsideCurrencyCode | null; readonly worthAtRequestTime: String; readonly status: Stellar1.RequestStatus}
 export type UITeamMention = {readonly inTeam: Boolean; readonly open: Boolean; readonly description?: String | null; readonly numMembers?: Int | null; readonly publicAdmins?: Array<String> | null; readonly convID?: ConvIDStr | null}
-export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment} | {typ: UITextDecorationTyp.atmention; atmention: String} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention} | {typ: UITextDecorationTyp.link; link: UILinkDecoration} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration} | {typ: UITextDecorationTyp.kbfspath; kbfspath: KBFSPath} | {typ: UITextDecorationTyp.emoji; emoji: Emoji}
+export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment} | {typ: UITextDecorationTyp.atmention; atmention: String} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention} | {typ: UITextDecorationTyp.link; link: UILinkDecoration} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration} | {typ: UITextDecorationTyp.kbfspath; kbfspath: KBFSPath} | {typ: UITextDecorationTyp.emoji; emoji: UIEmojiDecoration}
 export type Unfurl = {unfurlType: UnfurlType.generic; generic: UnfurlGeneric} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutube} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphy} | {unfurlType: UnfurlType.maps}
 export type UnfurlDisplay = {unfurlType: UnfurlType.generic; generic: UnfurlGenericDisplay} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeDisplay} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyDisplay} | {unfurlType: UnfurlType.maps}
 export type UnfurlGeneric = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: Asset | null; readonly image?: Asset | null; readonly publishTime?: Int | null; readonly description?: String | null; readonly mapInfo?: UnfurlGenericMapInfo | null}
@@ -1571,6 +1582,7 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatConvUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded'?: (params: MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatParticipantsInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatEmojiInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatEmojiInfo']['inParam'] & {sessionID: number}) => IncomingReturn
 }
 
 export type CustomResponseIncomingCallMap = {
@@ -1788,6 +1800,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.NotifyChat.ChatConvUpdate'
 // 'chat.1.NotifyChat.ChatWelcomeMessageLoaded'
 // 'chat.1.NotifyChat.ChatParticipantsInfo'
+// 'chat.1.NotifyChat.ChatEmojiInfo'
 // 'chat.1.remote.getInboxRemote'
 // 'chat.1.remote.getThreadRemote'
 // 'chat.1.remote.getUnreadlineRemote'

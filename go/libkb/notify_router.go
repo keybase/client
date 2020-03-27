@@ -68,6 +68,7 @@ type NotifyListener interface {
 	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
 	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay)
 	ChatParticipantsInfo(participants map[chat1.ConvIDStr][]chat1.UIParticipant)
+	ChatEmojiInfo(infos []chat1.EmojiNotifyInfo)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -191,6 +192,7 @@ func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, chat1.Wel
 func (n *NoopNotifyListener) ChatParticipantsInfo(
 	participants map[chat1.ConvIDStr][]chat1.UIParticipant) {
 }
+func (n *NoopNotifyListener) ChatEmojiInfo(infos []chat1.EmojiNotifyInfo) {}
 
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
@@ -1516,6 +1518,26 @@ func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.ChatParticipantsInfo(participants)
+	})
+}
+
+func (n *NotifyRouter) HandleEmojiInfo(ctx context.Context, infos []chat1.EmojiNotifyInfo) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			go func() {
+				_ = (chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatEmojiInfo(ctx, infos)
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.ChatEmojiInfo(infos)
 	})
 }
 

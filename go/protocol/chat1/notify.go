@@ -935,6 +935,18 @@ func (o ChatSyncResult) DeepCopy() ChatSyncResult {
 	}
 }
 
+type EmojiNotifyInfo struct {
+	Key   string `codec:"key" json:"key"`
+	Emoji Emoji  `codec:"emoji" json:"emoji"`
+}
+
+func (o EmojiNotifyInfo) DeepCopy() EmojiNotifyInfo {
+	return EmojiNotifyInfo{
+		Key:   o.Key,
+		Emoji: o.Emoji.DeepCopy(),
+	}
+}
+
 type NewChatActivityArg struct {
 	Uid      keybase1.UID       `codec:"uid" json:"uid"`
 	Activity ChatActivity       `codec:"activity" json:"activity"`
@@ -1074,6 +1086,10 @@ type ChatParticipantsInfoArg struct {
 	Participants map[ConvIDStr][]UIParticipant `codec:"participants" json:"participants"`
 }
 
+type ChatEmojiInfoArg struct {
+	Infos []EmojiNotifyInfo `codec:"infos" json:"infos"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -1100,6 +1116,7 @@ type NotifyChatInterface interface {
 	ChatConvUpdate(context.Context, ChatConvUpdateArg) error
 	ChatWelcomeMessageLoaded(context.Context, ChatWelcomeMessageLoadedArg) error
 	ChatParticipantsInfo(context.Context, map[ConvIDStr][]UIParticipant) error
+	ChatEmojiInfo(context.Context, []EmojiNotifyInfo) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1481,6 +1498,21 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 					return
 				},
 			},
+			"ChatEmojiInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatEmojiInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatEmojiInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatEmojiInfoArg)(nil), args)
+						return
+					}
+					err = i.ChatEmojiInfo(ctx, typedArgs[0].Infos)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1616,5 +1648,11 @@ func (c NotifyChatClient) ChatWelcomeMessageLoaded(ctx context.Context, __arg Ch
 func (c NotifyChatClient) ChatParticipantsInfo(ctx context.Context, participants map[ConvIDStr][]UIParticipant) (err error) {
 	__arg := ChatParticipantsInfoArg{Participants: participants}
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatParticipantsInfo", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatEmojiInfo(ctx context.Context, infos []EmojiNotifyInfo) (err error) {
+	__arg := ChatEmojiInfoArg{Infos: infos}
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatEmojiInfo", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

@@ -1188,14 +1188,27 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 }
 
 type Reaction struct {
-	Ctime         gregor1.Time `codec:"ctime" json:"ctime"`
-	ReactionMsgID MessageID    `codec:"reactionMsgID" json:"reactionMsgID"`
+	Ctime         gregor1.Time              `codec:"ctime" json:"ctime"`
+	ReactionMsgID MessageID                 `codec:"reactionMsgID" json:"reactionMsgID"`
+	CrossTeams    map[string]HarvestedEmoji `codec:"crossTeams" json:"crossTeams"`
 }
 
 func (o Reaction) DeepCopy() Reaction {
 	return Reaction{
 		Ctime:         o.Ctime.DeepCopy(),
 		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
+		CrossTeams: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.CrossTeams),
 	}
 }
 

@@ -1567,13 +1567,6 @@
           "name": "unfurls"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "HarvestedEmoji"
-          },
-          "name": "emojis"
-        },
-        {
           "type": [
             null,
             "MessageUnboxed"

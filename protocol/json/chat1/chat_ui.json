@@ -1391,6 +1391,38 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UIEmojiDecorationStatus",
+      "symbols": [
+        "RESOLVING_0",
+        "EMOJI_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIEmojiDecoration",
+      "switch": {
+        "type": "UIEmojiDecorationStatus",
+        "name": "status"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "RESOLVING",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "EMOJI",
+            "def": false
+          },
+          "body": "Emoji"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UITextDecoration",
       "switch": {
@@ -1452,7 +1484,7 @@
             "name": "EMOJI",
             "def": false
           },
-          "body": "Emoji"
+          "body": "UIEmojiDecoration"
         }
       ]
     },

@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -15,18 +16,36 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
+	"golang.org/x/sync/errgroup"
 )
+
+type emojiLoadJob struct {
+	attempts   int
+	keyMap     map[string]string
+	body       string
+	convID     chat1.ConversationID
+	crossTeams map[string]chat1.HarvestedEmoji
+}
 
 type DevConvEmojiSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+	sync.Mutex
+
+	uid     gregor1.UID
+	stopCh  chan struct{}
+	started bool
+	eg      errgroup.Group
 
 	getLock     sync.Mutex
 	aliasLookup map[string]chat1.Emoji
 	ri          func() chat1.RemoteInterface
+	jobCh       chan emojiLoadJob
 }
 
 var _ types.EmojiSource = (*DevConvEmojiSource)(nil)
@@ -36,7 +55,42 @@ func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) 
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConvEmojiSource", false),
 		ri:           ri,
+		jobCh:        make(chan emojiLoadJob, 1000),
 	}
+}
+
+func (s *DevConvEmojiSource) Start(ctx context.Context, uid gregor1.UID) {
+	defer s.Trace(ctx, func() error { return nil }, "Start")()
+	s.Lock()
+	defer s.Unlock()
+	if s.started {
+		return
+	}
+	s.stopCh = make(chan struct{})
+	s.started = true
+	s.uid = uid
+	s.eg.Go(func() error { return s.loadLoop(s.stopCh) })
+}
+
+func (s *DevConvEmojiSource) Stop(ctx context.Context) chan struct{} {
+	defer s.Trace(ctx, func() error { return nil }, "Stop")()
+	s.Lock()
+	defer s.Unlock()
+	ch := make(chan struct{})
+	if s.started {
+		close(s.stopCh)
+		s.started = false
+		go func() {
+			err := s.eg.Wait()
+			if err != nil {
+				s.Debug(ctx, "Stop: error waiting: %+v", err)
+			}
+			close(ch)
+		}()
+	} else {
+		close(ch)
+	}
+	return ch
 }
 
 func (s *DevConvEmojiSource) makeStorage(topicType chat1.TopicType) types.ConvConversationBackedStorage {
@@ -54,7 +108,6 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string, topicNameSuffix *string, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
 	var stored chat1.EmojiStorage
-	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
 	topicName := s.topicName(topicNameSuffix)
 	_, storageConv, err := storage.Get(ctx, uid, convID, topicName, &stored, true)
 	if err != nil {
@@ -81,11 +134,27 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, c
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
 }
 
+func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
+	_, ok := emoji.CodeMap()[":"+alias+":"]
+	return ok
+}
+
+func (s *DevConvEmojiSource) validateAlias(alias string) (string, error) {
+	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
+	if strings.Contains(alias, "#") {
+		return alias, errors.New("invalid character in emoji alias")
+	}
+	if s.isStockEmoji(alias) {
+		return alias, errors.New("cannot use existing stock emoji alias")
+	}
+	return alias, nil
+}
+
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
-	if strings.Contains(alias, "#") {
-		return res, errors.New("invalid character in emoji alias")
+	if alias, err = s.validateAlias(alias); err != nil {
+		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
@@ -94,8 +163,8 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
-	if strings.Contains(newAlias, "#") {
-		return res, errors.New("invalid character in emoji alias")
+	if newAlias, err = s.validateAlias(newAlias); err != nil {
+		return res, err
 	}
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
@@ -372,10 +441,13 @@ func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emoj
 			s.Debug(ctx, "parse: malformed hit: %d", len(hit))
 			continue
 		}
-		res = append(res, emojiMatch{
-			name:     body[hit[2]:hit[3]],
-			position: []int{hit[0], hit[1]},
-		})
+		name := body[hit[2]:hit[3]]
+		if !s.isStockEmoji(name) {
+			res = append(res, emojiMatch{
+				name:     name,
+				position: []int{hit[0], hit[1]},
+			})
+		}
 	}
 	return res
 }
@@ -568,37 +640,98 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	return res, nil
 }
 
+func (s *DevConvEmojiSource) makeResolveKey(convID chat1.ConversationID, msgID chat1.MessageID,
+	alias string) string {
+	return base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("er:%s:%d:%s", convID, msgID, alias)))
+}
+
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
-	if len(emojis) == 0 {
-		return body
-	}
+	msgID chat1.MessageID, crossTeams map[string]chat1.HarvestedEmoji) string {
 	matches := s.parse(ctx, body)
 	if len(matches) == 0 {
 		return body
 	}
 	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
-	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
-	for _, emoji := range emojis {
-		emojiMap[emoji.Alias] = emoji.Source
-	}
 	offset := 0
 	added := 0
+	var job emojiLoadJob
+	job.convID = convID
+	job.body = body
+	job.keyMap = make(map[string]string)
 	for _, match := range matches {
-		if source, ok := emojiMap[match.name]; ok {
-			localSource, err := s.remoteToLocalSource(ctx, source)
-			if err != nil {
-				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
-				continue
-			}
-			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
-				match.position[1]-match.position[0],
-				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
-					Alias:  match.name,
-					Source: localSource,
-				}))
-			offset += added
-		}
+		// TODO: "cache hits" (tbd) should decorate immediately with emoji info without a load
+		resolveKey := s.makeResolveKey(convID, msgID, match.name)
+		payload := chat1.NewUIEmojiDecorationWithResolving(resolveKey)
+		dec := chat1.NewUITextDecorationWithEmoji(payload)
+		job.keyMap[match.name] = resolveKey
+		body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
+			match.position[1]-match.position[0], dec)
+		offset += added
+	}
+	// only queue if we have resolving requests in play
+	if len(job.keyMap) > 0 {
+		s.jobCh <- job
 	}
 	return body
+}
+
+func (s *DevConvEmojiSource) loadJob(ctx context.Context, job emojiLoadJob) (err error) {
+	defer s.Trace(ctx, func() error { return nil }, "loadJob")()
+	ctx = libkb.WithLogTag(ctx, "EMJLD")
+	emojis, err := s.Harvest(ctx, job.body, s.uid, job.convID, job.crossTeams,
+		types.EmojiSourceHarvestModeInbound)
+	if err != nil {
+		s.Debug(ctx, "loadJob: failed to harvest: %s", err)
+		return err
+	}
+	var infos []chat1.EmojiNotifyInfo
+	for _, emoji := range emojis {
+		key, ok := job.keyMap[emoji.Alias]
+		if !ok {
+			s.Debug(ctx, "loadJob: failed to find alias in keymap, skipping")
+			continue
+		}
+		localSource, err := s.remoteToLocalSource(ctx, emoji.Source)
+		if err != nil {
+			s.Debug(ctx, "loadJob: failed to get local source, skipping")
+			continue
+		}
+		infos = append(infos, chat1.EmojiNotifyInfo{
+			Key: key,
+			Emoji: chat1.Emoji{
+				Alias:  emoji.Alias,
+				Source: localSource,
+			},
+		})
+	}
+	if len(infos) > 0 {
+		s.G().NotifyRouter.HandleEmojiInfo(ctx, infos)
+	}
+	return nil
+}
+
+func (s *DevConvEmojiSource) loadLoop(stopCh chan struct{}) error {
+	ctx := context.Background()
+	for {
+		s.Debug(ctx, "loadLoop: starting up: uid: %s", s.uid)
+		select {
+		case <-stopCh:
+			s.Debug(ctx, "loadLoop: shutting down")
+			return nil
+		case job := <-s.jobCh:
+			if err := s.loadJob(ctx, job); err != nil {
+				if job.attempts > 5 {
+					s.Debug(ctx, "loadLoop: job in convID: %s hit max attempts", job.convID)
+				} else {
+					job.attempts++
+					s.Debug(ctx, "loadLoop: job in convID: %s retrying: attempts: %d", job.attempts)
+					select {
+					case s.jobCh <- job:
+					default:
+						s.Debug(ctx, "loadLoop: failed to retry job, queue full")
+					}
+				}
+			}
+		}
+	}
 }
