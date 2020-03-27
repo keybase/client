@@ -177,14 +177,20 @@ type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
 type _GetTeamsPayload = {readonly _subscribe?: boolean; readonly forceReload?: boolean}
-type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
+type _IgnoreRequestPayload = {
+  readonly teamID: Types.TeamID
+  readonly teamname: string
+  readonly username: string
+}
 type _InviteToTeamByEmailPayload = {
   readonly invitees: string
   readonly role: Types.TeamRoleType
+  readonly teamID: Types.TeamID
   readonly teamname: string
   readonly loadingKey?: string
 }
 type _InviteToTeamByPhonePayload = {
+  readonly teamID: Types.TeamID
   readonly teamname: string
   readonly role: Types.TeamRoleType
   readonly phoneNumber: string
