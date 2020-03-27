@@ -105,8 +105,8 @@ const styles = Styles.styleSheetCreate(
           top: Styles.globalMargins.xxtiny,
         },
         isMobile: {
-          padding: 6,
           marginRight: -6,
+          padding: 6,
         },
       }),
       team: Styles.platformStyles({
