@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '../constants/platform.native'
 
 const Screenprotector = () => {
