@@ -258,6 +258,7 @@ protocol config {
   // Same as running `keybase update check` in CLI.
   void startUpdateIfNeeded();
 
+  void snoozeUpdate();
 
   /**
     Wait for client type to connect to service.

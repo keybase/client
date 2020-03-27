@@ -6,10 +6,9 @@ package keybase1
 import (
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type CurrentStatus struct {
@@ -1649,7 +1648,7 @@ func (c ConfigClient) StartUpdateIfNeeded(ctx context.Context) (err error) {
 }
 
 func (c ConfigClient) SnoozeUpdate(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.SnoozeUpdate", []interface{}{SnoozeUpdateArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.snoozeUpdate", []interface{}{SnoozeUpdateArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
