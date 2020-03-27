@@ -60,6 +60,12 @@ export default Container.connect(
       dispatch(TeamsGen.createSetPublicity({settings, teamID})),
     saveRetentionPolicy: (policy: RetentionPolicy) =>
       dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID})),
+    showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {isOpenTeam, onConfirm, teamname}, selected: 'openTeamWarning'}],
+        })
+      ),
   }),
   (stateProps, dispatchProps) => {
     return {
@@ -83,6 +89,7 @@ export default Container.connect(
         dispatchProps.savePublicity(settings)
         dispatchProps.clearError()
       },
+      showOpenTeamWarning: dispatchProps.showOpenTeamWarning,
     }
   }
 )(Settings)
