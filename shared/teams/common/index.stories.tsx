@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Sb from '../../stories/storybook'
 import ChannelsWidget from './channels-widget'
+import EnableContacts from './enable-contacts'
 import {fakeTeamID, store} from '../stories'
 
 const channelsWidgetProps = {
@@ -19,6 +20,7 @@ const load = () => {
       </Sb.MockStore>
     ))
     .add('Channels widget', () => <ChannelsWidget {...channelsWidgetProps} />)
+    .add('Enable contacts', () => <EnableContacts onClose={Sb.action('onClose')} />)
 }
 
 export default load

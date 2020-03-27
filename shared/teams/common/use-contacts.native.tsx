@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
-import {Contact} from './index.native'
+import {Contact} from '../invite-by-contact/index.native'
 import {e164ToDisplay} from '../../util/phone-numbers'
 import {NativeModules} from 'react-native'
 import logger from '../../logger'
@@ -77,6 +77,7 @@ const useContacts = () => {
   const [contacts, setContacts] = React.useState<Array<Contact>>([])
   const [region, setRegion] = React.useState('')
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
+  const [noAccessPermanent, setNoAccessPermanent] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
 
   const permStatus = Container.useSelector(s => s.settings.contacts.permissionStatus)
@@ -84,6 +85,7 @@ const useContacts = () => {
 
   React.useEffect(() => {
     if (permStatus === 'granted') {
+      setNoAccessPermanent(false)
       fetchContacts(savedRegion || '').then(
         ([contacts, region]) => {
           setContacts(contacts)
@@ -99,6 +101,7 @@ const useContacts = () => {
       )
     } else if (permStatus === 'never_ask_again') {
       setErrorMessage('Keybase does not have permission to access your contacts.')
+      setNoAccessPermanent(true)
       setLoading(false)
     }
   }, [dispatch, setErrorMessage, setContacts, permStatus, savedRegion])
@@ -108,11 +111,12 @@ const useContacts = () => {
     // whether to dispatch `createRequestContactPermissions` so we never
     // dispatch more than once.
     if (permStatus === 'unknown' || permStatus === 'undetermined') {
+      setNoAccessPermanent(false)
       dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: false}))
     }
   }, [dispatch, permStatus])
 
-  return {contacts, errorMessage, loading, region}
+  return {contacts, errorMessage, loading, noAccessPermanent, region}
 }
 
 export default useContacts
