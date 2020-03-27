@@ -221,7 +221,7 @@ func assembleBlockLocal(
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	// This call only verifies the block ID if we're not running
 	// production mode, for performance reasons.
-	if err := verifyLocalBlockID(buf, blockPtr.ID); err != nil {
+	if err := verifyLocalBlockIDMaybe(buf, blockPtr.ID); err != nil {
 		return err
 	}
 

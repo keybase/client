@@ -8,7 +8,7 @@ package libkbfs
 
 import "github.com/keybase/client/go/kbfs/kbfsblock"
 
-func verifyLocalBlockID(_ []byte, _ kbfsblock.ID) error {
+func verifyLocalBlockIDMaybe(_ []byte, _ kbfsblock.ID) error {
 	// Don't bother verifying local block IDs when we're in production
 	// mode, since it's expensive.
 	return nil
