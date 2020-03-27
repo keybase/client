@@ -257,11 +257,11 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 90,
       },
       tabBarContainer: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
         flexShrink: 0,
         minHeight: 30,
-        borderBottomColor: Styles.globalColors.black_10,
-        borderStyle: 'solid',
-        borderBottomWidth: 1,
       },
     } as const)
 )
