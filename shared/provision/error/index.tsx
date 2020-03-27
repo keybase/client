@@ -289,12 +289,8 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
 const styles = styleSheetCreate(
   () =>
     ({
-      centerText: {
-        textAlign: 'center',
-      },
       container: {
         maxWidth: 550,
-        textAlign: 'center',
       },
       header: {
         alignSelf: 'center',
