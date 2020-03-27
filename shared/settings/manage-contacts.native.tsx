@@ -15,7 +15,6 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 
 const ManageContacts = () => {
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
 
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)

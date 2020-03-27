@@ -9,9 +9,6 @@ const Screenprotector = () => {
   const [secureFlag, setSecureFlag] = React.useState<undefined | boolean>(undefined)
   const getIsMounted = Kb.useMounted()
 
-  const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-
   React.useEffect(() => {
     getSecureFlagSetting().then(secureFlag => {
       getIsMounted() && setSecureFlag(secureFlag)
