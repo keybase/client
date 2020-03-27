@@ -32,11 +32,15 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      unreadShortcut: {
-        backgroundColor: Styles.globalColors.orange_90,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
-      },
+      unreadShortcut: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.orange_90,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {height: 32},
+        isMobile: {height: 40},
+      }),
     } as const)
 )
 
