@@ -291,12 +291,12 @@ class Inbox extends React.PureComponent<T.Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      button: {width: '100%'},
       buttonBar: {
-        alignSelf: 'flex-end',
         alignItems: 'flex-end',
+        alignSelf: 'flex-end',
         justifyContent: 'flex-end',
       },
-      button: {width: '100%'},
       container: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
@@ -326,9 +326,9 @@ const styles = Styles.styleSheetCreate(
       noChatsContainer: {
         alignItems: 'center',
         justifyContent: 'flex-end',
+        paddingBottom: Styles.globalMargins.xlarge,
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
-        paddingBottom: Styles.globalMargins.xlarge,
         paddingTop: Styles.globalMargins.xlarge,
       },
     } as const)
