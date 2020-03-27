@@ -35,7 +35,7 @@ export default Container.connect(
       teamname: teamMeta.teamname,
       waitingForSavePublicity: anyWaiting(
         state,
-        Constants.teamWaitingKey(teamID),
+        Constants.teamWaitingKeyByID(teamID, state),
         Constants.retentionWaitingKey(teamID),
         Constants.settingsWaitingKey(teamID)
       ),

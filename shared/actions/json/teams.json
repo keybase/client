@@ -128,12 +128,10 @@
     "inviteToTeamByEmail": {
       "invitees": "string",
       "role": "Types.TeamRoleType",
-      "teamID": "Types.TeamID",
       "teamname": "string",
       "loadingKey?": "string"
     },
     "inviteToTeamByPhone": {
-      "teamID": "Types.TeamID",
       "teamname": "string",
       "role": "Types.TeamRoleType",
       "phoneNumber": "string",
@@ -193,7 +191,6 @@
       "inviteID?": "string"
     },
     "ignoreRequest": {
-      "teamID": "Types.TeamID",
       "teamname": "string",
       "username": "string"
     },

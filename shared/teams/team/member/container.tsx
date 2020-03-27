@@ -62,7 +62,7 @@ export default Container.connect(
       disabledReasonsForRolePicker,
       follower: state.config.followers.has(username),
       following: state.config.following.has(username),
-      loading: anyWaiting(state, Constants.teamWaitingKey(teamID)),
+      loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
       teamID,
       teamname,
       yourOperations: Constants.getCanPerform(state, teamname),

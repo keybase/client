@@ -1452,7 +1452,7 @@ export type MessageTypes = {
     outParam: SubteamListResult
   }
   'keybase.1.teams.teamIgnoreRequest': {
-    inParam: {readonly teamID: TeamID; readonly username: String}
+    inParam: {readonly name: String; readonly username: String}
     outParam: void
   }
   'keybase.1.teams.teamLeave': {
@@ -3225,7 +3225,7 @@ export type TeamInviteName = String
 export type TeamInviteSocialNetwork = String
 export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone} | {c: TeamInviteCategory.invitelink}
 export type TeamInvitee = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly role: TeamRole}
-export type TeamJoinRequest = {readonly teamID: TeamID; readonly username: String; readonly fullName: FullName; readonly ctime: UnixTime}
+export type TeamJoinRequest = {readonly name: String; readonly username: String; readonly fullName: FullName; readonly ctime: UnixTime}
 export type TeamKBFSKeyRefresher = {readonly generation: Int; readonly appType: TeamApplication}
 export type TeamLegacyTLFUpgradeChainInfo = {readonly keysetHash: TeamEncryptedKBFSKeysetHash; readonly teamGeneration: PerTeamKeyGeneration; readonly legacyGeneration: Int; readonly appType: TeamApplication}
 export type TeamList = {readonly teams?: Array<MemberInfo> | null}
