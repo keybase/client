@@ -135,7 +135,7 @@ export type AvatarCrop = {
   scaledWidth?: number
 }
 
-export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'
+export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other' | 'subteam'
 export type NewTeamWizardState = {
   teamType: TeamWizardTeamType
   name: string
@@ -143,6 +143,7 @@ export type NewTeamWizardState = {
   open: boolean
   openTeamJoinRole: TeamRoleType
   showcase: boolean
+  addYourself: boolean // for subteams
   avatarFilename?: string
   avatarCrop?: AvatarCrop
   isBig: boolean

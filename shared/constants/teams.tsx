@@ -173,6 +173,7 @@ export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   teamID: Types.noTeamID,
 }
 export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
+  addYourself: true,
   description: '',
   isBig: false,
   name: '',

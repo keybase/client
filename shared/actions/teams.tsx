@@ -1414,6 +1414,18 @@ function* getMemberSubteamDetails(
   return
 }
 
+const launchNewTeamWizardOrModal = (action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
+  if (flags.teamsRedesign) {
+    if (action.payload.subteamOf) {
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+    }
+    return TeamsGen.createStartNewTeamWizard()
+  } else {
+    return RouteTreeGen.createNavigateAppend({
+      path: [{props: {subteamOf: action.payload.subteamOf}, selected: 'teamNewTeamDialog'}],
+    })
+  }
+}
 const startNewTeamWizard = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
 const setTeamWizardTeamType = () =>
@@ -1429,6 +1441,8 @@ const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescript
   })
 const setTeamWizardAvatar = (state: TypedState) => {
   switch (state.teams.newTeamWizard.teamType) {
+    case 'subteam':
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizardSubteamMembers'}]})
     case 'friends':
     case 'other':
       return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
@@ -1549,6 +1563,7 @@ const teamsSaga = function*() {
   )
 
   // New team wizard
+  yield* Saga.chainAction(TeamsGen.launchNewTeamWizardOrModal, launchNewTeamWizardOrModal)
   yield* Saga.chainAction(TeamsGen.startNewTeamWizard, startNewTeamWizard)
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
   yield* Saga.chainAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)

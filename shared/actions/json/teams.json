@@ -141,6 +141,9 @@
     "joinTeam": {
       "teamname": "string"
     },
+    "launchNewTeamWizardOrModal": {
+      "subteamOf?": "Types.TeamID"
+    },
     "leaveTeam": {
       "teamname": "string",
       "permanent": "boolean",
@@ -413,7 +416,8 @@
       "description": "string",
       "openTeam": "boolean",
       "openTeamJoinRole": "Types.TeamRoleType",
-      "showcase": "boolean"
+      "showcase": "boolean",
+      "addYourself": "boolean"
     },
     "setTeamWizardAvatar": {
       "crop?": "Types.AvatarCrop",

@@ -28,7 +28,10 @@ export default Container.connect(
       dispatch(createAction)
       dispatch(RouteTreeGen.createNavigateUp())
     },
-    onNewTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, 'teamNewTeamDialog']})),
+    onNewTeam: () => {
+      dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))
+      dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+    },
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(NewRepo)

@@ -14,7 +14,6 @@ import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useNavigationEvents} from '../util/navigation-hooks'
-import flags from '../util/feature-flags'
 
 type OwnProps = {}
 
@@ -27,16 +26,8 @@ const useHeaderActions = (): HeaderActionProps => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   return {
-    onCreateTeam: () => {
-      if (flags.teamsRedesign) {
-        dispatch(TeamsGen.createStartNewTeamWizard())
-      } else {
-        dispatch(nav.safeNavigateAppendPayload({path: ['teamNewTeamDialog']}))
-      }
-    },
-    onJoinTeam: () => {
-      dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
-    },
+    onCreateTeam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal()),
+    onJoinTeam: () => dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']})),
   }
 }
 

@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {teamsTab} from '../../../../constants/tabs'
 
 const BuildTeam = React.memo((_: {}) => {
@@ -11,7 +12,7 @@ const BuildTeam = React.memo((_: {}) => {
 
   const onCreateTeam = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
-    dispatch(nav.safeNavigateAppendPayload({path: ['teamNewTeamDialog']}))
+    dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
   }
   const onJoinTeam = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))

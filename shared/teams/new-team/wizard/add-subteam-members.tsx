@@ -112,11 +112,13 @@ const AddSubteamMembers = () => {
             Select {allSelected ? 'none' : 'all'}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.List2
-          items={filteredMembers}
-          renderItem={renderItem}
-          itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
-        />
+        <Kb.BoxGrow>
+          <Kb.List2
+            items={filteredMembers}
+            renderItem={renderItem}
+            itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+          />
+        </Kb.BoxGrow>
       </Kb.Box2>
     </Kb.Modal>
   )
