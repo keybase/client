@@ -85,7 +85,7 @@ def VERSION_NAME = "5.4.0"
 project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
-    enableHermes: false,  // clean and rebuild if changing
+    enableHermes: KB_USEHERMES == 'true',  // clean and rebuild if changing
     enableV8: KB_USEV8 == 'true',  // clean and rebuild if changing
 ]
 
