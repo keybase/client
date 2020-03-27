@@ -89,12 +89,18 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   if (flags.teamsRedesign) {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        alignItems="flex-start"
+        style={styles.settingsContainer}
+      >
         <Kb.ScrollView>
           {isPreview ? (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
               <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
-              <Kb.Button mode="Secondary" label="Join channel" style={styles.buttonStyle} />
+              <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
             </Kb.Box2>
           ) : (
             <Notifications conversationIDKey={conversationIDKey} />
@@ -102,17 +108,19 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
           {entityType === 'channel' && channelname !== 'general' && !isPreview && (
             <Kb.Button
-              type="Danger"
+              type="Default"
               mode="Secondary"
               label="Leave channel"
               onClick={onLeaveConversation}
               style={styles.smallButton}
               waiting={spinnerForLeave}
+              icon="iconfont-leave"
+              iconColor={Styles.globalColors.blue}
             />
           )}
 
           <Kb.Text type="Header" style={styles.settingsHeader}>
-            Channel
+            Conversation
           </Kb.Text>
 
           <RetentionPicker
@@ -134,7 +142,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             {canDeleteHistory && (
               <Kb.Button
                 type="Danger"
-                fullWidth={true}
+                mode="Secondary"
                 label="Clear entire conversation"
                 onClick={onShowClearConversationDialog}
                 style={styles.buttonStyle}
