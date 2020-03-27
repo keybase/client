@@ -15,10 +15,10 @@ const activityToLabel = {
   active: 'Active',
   recently: 'Recently active',
 }
-const Activity = ({level}: {level: Types.ActivityLevel}) =>
+const Activity = ({level, style}: {level: Types.ActivityLevel; style?: Styles.StylesCrossPlatform}) =>
   // @ts-ignore none doesn't exist right now but we can fix this when we start actually plumbing this stuff
   level === 'none' ? null : (
-    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile} style={style}>
       <Kb.Icon
         type={activityToIcon[level]}
         color={level === 'active' ? Styles.globalColors.greenDark : Styles.globalColors.black_50}

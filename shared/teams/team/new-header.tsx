@@ -94,7 +94,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
-  const activityLevel = 'active' // TODO plumbing
+  const activityLevel = Container.useSelector(s => s.teams.activityLevels.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
 
   const callbacks = useHeaderCallbacks(teamID)
@@ -188,7 +188,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           {!!newMemberCount && ` · ${newMemberCount} new this week`}
         </Kb.Text>
       )}
-      <Activity level={activityLevel} />
+      <Activity level={activityLevel} style={styles.activity} />
       <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
         {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
         {yourOperations.editTeamDescription && (
@@ -344,6 +344,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      activity: {alignSelf: 'flex-start'},
       addInviteAndLinkBox: Styles.platformStyles({
         common: {
           borderColor: Styles.globalColors.black_10,
