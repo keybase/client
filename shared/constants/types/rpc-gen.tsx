@@ -219,6 +219,14 @@ export type MessageTypes = {
     inParam: {readonly newVersion: UserTeamVersion}
     outParam: void
   }
+  'keybase.1.NotifyTeam.teamTreeMembershipsDone': {
+    inParam: void
+    outParam: void
+  }
+  'keybase.1.NotifyTeam.teamTreeMembershipsPartial': {
+    inParam: {readonly membership: TeamTreeMembership}
+    outParam: void
+  }
   'keybase.1.NotifyTeambot.newTeambotKey': {
     inParam: {readonly id: TeamID; readonly generation: TeambotKeyGeneration; readonly application: TeamApplication}
     outParam: void
@@ -2652,6 +2660,11 @@ export enum TeamStatus {
   abandoned = 3,
 }
 
+export enum TeamTreeMembershipStatus {
+  ok = 0,
+  error = 1,
+}
+
 export enum TeamType {
   none = 0,
   legacy = 1,
@@ -2886,6 +2899,7 @@ export type GUIEntryFeatures = {readonly showTyping: Feature}
 export type GUIFileContext = {readonly viewType: GUIViewType; readonly contentType: String; readonly url: String}
 export type GcOptions = {readonly maxLooseRefs: Int; readonly pruneMinLooseObjects: Int; readonly pruneExpireTime: Time; readonly maxObjectPacks: Int}
 export type Generic = {readonly m: {[key: string]: Generic}; readonly a?: Array<Generic> | null; readonly s?: String | null; readonly i?: Int | null}
+export type GenericError = {readonly message: String; readonly statusCode: StatusCode}
 export type GetBlockRes = {readonly blockKey: String; readonly buf: Bytes; readonly size: Int; readonly status: BlockStatus}
 export type GetBlockSizesRes = {readonly sizes?: Array<Int> | null; readonly statuses?: Array<BlockStatus> | null}
 export type GetLockdownResponse = {readonly history?: Array<LockdownHistory> | null; readonly status: Boolean}
@@ -3259,6 +3273,9 @@ export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
 export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly usedInvites: {[key: string]: Array<TeamUsedInviteLogPoint> | null}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly bots: {[key: string]: TeamBotSettings}; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
+export type TeamTreeMembership = {readonly teamName: TeamName; readonly result: TeamTreeMembershipResult}
+export type TeamTreeMembershipResult = {s: TeamTreeMembershipStatus.ok; ok: TeamTreeMembershipValue} | {s: TeamTreeMembershipStatus.error; error: GenericError}
+export type TeamTreeMembershipValue = {readonly role: TeamRole; readonly joinTime?: Time | null; readonly increaseExpectedCountBy: Int}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
 export type TeamUsedInvite = {readonly inviteID: TeamInviteID; readonly uv: UserVersionPercentForm}
 export type TeamUsedInviteLogPoint = {readonly uv: UserVersion; readonly logPoint: Int}
@@ -3433,6 +3450,8 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyTeam.teamRoleMapChanged'?: (params: MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeam.avatarUpdated'?: (params: MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeam.teamMetadataUpdate'?: (params: MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyTeam.teamTreeMembershipsPartial'?: (params: MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyTeam.teamTreeMembershipsDone'?: (params: MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeambot.newTeambotKey'?: (params: MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeambot.teambotKeyNeeded'?: (params: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTracking.trackingChanged'?: (params: MessageTypes['keybase.1.NotifyTracking.trackingChanged']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3567,6 +3586,8 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyTeam.teamRoleMapChanged'?: (params: MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTeam.avatarUpdated'?: (params: MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTeam.teamMetadataUpdate'?: (params: MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyTeam.teamTreeMembershipsPartial'?: (params: MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyTeam.teamTreeMembershipsDone'?: (params: MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTeambot.teambotKeyNeeded'?: (params: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTracking.trackingInfo'?: (params: MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTracking.notifyUserBlocked'?: (params: MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['outParam']) => void}) => IncomingReturn
@@ -4115,6 +4136,8 @@ export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keyba
 // 'keybase.1.NotifyTeam.teamRoleMapChanged'
 // 'keybase.1.NotifyTeam.avatarUpdated'
 // 'keybase.1.NotifyTeam.teamMetadataUpdate'
+// 'keybase.1.NotifyTeam.teamTreeMembershipsPartial'
+// 'keybase.1.NotifyTeam.teamTreeMembershipsDone'
 // 'keybase.1.NotifyTeambot.newTeambotKey'
 // 'keybase.1.NotifyTeambot.teambotKeyNeeded'
 // 'keybase.1.NotifyTracking.trackingChanged'
@@ -4257,6 +4280,8 @@ export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keyba
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamName'
 // 'keybase.1.teams.ftl'
+// 'keybase.1.teams.loadTeamTreeMemberships'
+// 'keybase.1.teams.cancelLoadTeamTree'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
 // 'keybase.1.teamSearch.teamSearch'

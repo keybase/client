@@ -175,6 +175,30 @@
       "request": [],
       "response": null,
       "oneway": true
+    },
+    "teamTreeMembershipsPartial": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "membership",
+          "type": "TeamTreeMembership"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamTreeMembershipsDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

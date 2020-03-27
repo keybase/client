@@ -1405,6 +1405,15 @@ func (k *KeybaseDaemonRPC) AvatarUpdated(ctx context.Context,
 	return nil
 }
 
+func (k *KeybaseDaemonRPC) TeamTreeMembershipsPartial(context.Context,
+	keybase1.TeamTreeMembershipsPartialArg) error {
+	return nil
+}
+
+func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context, int) error {
+	return nil
+}
+
 // StartMigration implements keybase1.ImplicitTeamMigrationInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) StartMigration(ctx context.Context,

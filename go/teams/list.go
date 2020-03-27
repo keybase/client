@@ -686,12 +686,6 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 	}
 }
 
-func AdminnedTeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeUnverifiedArg) (res keybase1.TeamTreeResult, err error) {
-	target, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, arg.TeamID.IsPublic(), true /* needAdmin */)
-
-	return res, err
-}
-
 func TeamTreeUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeUnverifiedArg) (res keybase1.TeamTreeResult, err error) {
 	serverList, err := getTeamsListFromServer(ctx, g, "" /* uid */, false, /* all */
 		false /* countMembers */, false /* includeImplicitTeams */, arg.Name.RootID())

@@ -2276,6 +2276,10 @@ func TeamNameFromString(s string) (TeamName, error) {
 	return TeamName{Parts: tmp}, nil
 }
 
+func (p TeamNamePart) String() string {
+	return string(p)
+}
+
 func (t TeamName) AssertEqString(s string) error {
 	tmp, err := TeamNameFromString(s)
 	if err != nil {

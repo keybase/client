@@ -1064,21 +1064,26 @@ type teamNotifyHandler struct {
 	newlyAddedToTeam   chan keybase1.TeamID
 	teamRoleMapCh      chan keybase1.UserTeamVersion
 	metadataUpdateCh   chan struct{}
+
+	TeamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
+	TeamTreeMembershipsDoneCh    chan struct{}
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:           make(chan keybase1.TeamChangedByIDArg, 10),
-		abandonCh:          make(chan keybase1.TeamID, 10),
-		badgeCh:            make(chan keybase1.BadgeState, 10),
-		newTeamEKCh:        make(chan keybase1.NewTeamEkArg, 10),
-		newTeambotEKCh:     make(chan keybase1.NewTeambotEkArg, 10),
-		teambotEKNeededCh:  make(chan keybase1.TeambotEkNeededArg, 10),
-		newTeambotKeyCh:    make(chan keybase1.NewTeambotKeyArg, 10),
-		teambotKeyNeededCh: make(chan keybase1.TeambotKeyNeededArg, 10),
-		newlyAddedToTeam:   make(chan keybase1.TeamID, 10),
-		teamRoleMapCh:      make(chan keybase1.UserTeamVersion, 100),
-		metadataUpdateCh:   make(chan struct{}, 10),
+		changeCh:                     make(chan keybase1.TeamChangedByIDArg, 10),
+		abandonCh:                    make(chan keybase1.TeamID, 10),
+		badgeCh:                      make(chan keybase1.BadgeState, 10),
+		newTeamEKCh:                  make(chan keybase1.NewTeamEkArg, 10),
+		newTeambotEKCh:               make(chan keybase1.NewTeambotEkArg, 10),
+		teambotEKNeededCh:            make(chan keybase1.TeambotEkNeededArg, 10),
+		newTeambotKeyCh:              make(chan keybase1.NewTeambotKeyArg, 10),
+		teambotKeyNeededCh:           make(chan keybase1.TeambotKeyNeededArg, 10),
+		newlyAddedToTeam:             make(chan keybase1.TeamID, 10),
+		teamRoleMapCh:                make(chan keybase1.UserTeamVersion, 100),
+		metadataUpdateCh:             make(chan struct{}, 10),
+		TeamTreeMembershipsPartialCh: make(chan keybase1.TeamTreeMembership, 10),
+		TeamTreeMembershipsDoneCh:    make(chan struct{}, 10),
 	}
 }
 
@@ -1150,6 +1155,18 @@ func (n *teamNotifyHandler) AvatarUpdated(ctx context.Context, arg keybase1.Avat
 
 func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keybase1.UserTeamVersion) error {
 	n.teamRoleMapCh <- version
+	return nil
+}
+
+func (n *teamNotifyHandler) TeamTreeMembershipsPartial(ctx context.Context,
+	arg keybase1.TeamTreeMembershipsPartialArg) error {
+
+	n.TeamTreeMembershipsPartialCh <- arg.Membership
+	return nil
+}
+
+func (n *teamNotifyHandler) TeamTreeMembershipsDone(ctx context.Context, sessionID int) error {
+	n.TeamTreeMembershipsDoneCh <- struct{}{}
 	return nil
 }
 
@@ -2104,4 +2121,106 @@ func TestTeamHiddenGenerationRotateRace(t *testing.T) {
 
 	alice.addTeamMember(parentName.String(), bob.username, keybase1.TeamRole_ADMIN)
 	bob.waitForMetadataUpdateGregor("added back")
+}
+
+/*
+        A
+   B            C<-ADM (target load)
+           D<-RDR        E
+       F              G  H  I<-WRT
+
+	should get A, C, D, F, E, G, H, I
+*/
+
+func mustAppend(t *testing.T, a keybase1.TeamName, b string) keybase1.TeamName {
+	ret, err := a.Append(b)
+	require.NoError(t, err)
+	return ret
+}
+
+func mustCreateSubteam(t *testing.T, tc *libkb.TestContext, name keybase1.TeamName) keybase1.TeamID {
+	parent, err := name.Parent()
+	require.NoError(t, err)
+	id, err := teams.CreateSubteam(context.TODO(), tc.G, name.LastPart().String(),
+		parent, keybase1.TeamRole_NONE)
+	require.NoError(t, err)
+	return *id
+}
+
+func TestLoadTeamTreeMemberships(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("ech")
+	tt.addUser("fox")
+	ech := tt.users[0]
+	echMctx := libkb.NewMetaContextForTest(*tt.users[0].tc)
+
+	aID, aName := ech.createTeam2()
+	t.Logf("made team %s %s", aID, aName)
+	bName := mustAppend(t, aName, "bb")
+	cName := mustAppend(t, aName, "cc")
+	dName := mustAppend(t, cName, "dd")
+	eName := mustAppend(t, cName, "ee")
+	fName := mustAppend(t, dName, "ff")
+	gName := mustAppend(t, eName, "gg")
+	hName := mustAppend(t, eName, "hh")
+	iName := mustAppend(t, eName, "ii")
+
+	bId := mustCreateSubteam(t, ech.tc, bName)
+	_ = mustCreateSubteam(t, ech.tc, cName)
+	dID := mustCreateSubteam(t, ech.tc, dName)
+	_ = mustCreateSubteam(t, ech.tc, eName)
+	_ = mustCreateSubteam(t, ech.tc, fName)
+	_ = mustCreateSubteam(t, ech.tc, gName)
+	_ = mustCreateSubteam(t, ech.tc, hName)
+	iID := mustCreateSubteam(t, ech.tc, iName)
+
+	_, _, err = teams.AddMembers(context.Background(), ech.tc.G, bID,
+		[]keybase1.UserRolePair{
+			keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
+		}, nil)
+	require.NoError(t, err)
+	_, _, err = teams.AddMembers(context.Background(), ech.tc.G, dID,
+		[]keybase1.UserRolePair{
+			keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
+		}, nil)
+	require.NoError(t, err)
+	_, _, err = teams.AddMembers(context.Background(), ech.tc.G, iID,
+		[]keybase1.UserRolePair{
+			keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
+		}, nil)
+	require.NoError(t, err)
+
+	err = teams.LoadTeamTreeMemberships(echMctx, *bID, ech.username)
+	require.NoError(t, err)
+
+	want := 1
+	got := 0
+loop:
+	for {
+		select {
+		case res := <-ech.notifications.TeamTreeMembershipsPartialCh:
+			t.Logf("@@@ %s", res.TeamName)
+			got++
+			s, err := res.Result.S()
+			require.NoError(t, err)
+			switch s {
+			case keybase1.TeamTreeMembershipStatus_OK:
+				want += res.Result.Ok().IncreaseExpectedCountBy
+			case keybase1.TeamTreeMembershipStatus_ERROR:
+				t.Fatalf("Got an error while loading team: %s", res.Result.Error().Message)
+			}
+			if got == want {
+				t.Logf("@@@ Finished")
+				break loop
+			}
+		case <-time.After(10 * time.Second):
+			t.Fatalf("timed out waiting for team tree notifications")
+		}
+	}
+
+	require.Equal(t, want, 2)
+
+	// check want is needed (noe errors)
 }

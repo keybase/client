@@ -102,6 +102,15 @@ type AvatarUpdatedArg struct {
 type TeamMetadataUpdateArg struct {
 }
 
+type TeamTreeMembershipsPartialArg struct {
+	SessionID  int                `codec:"sessionID" json:"sessionID"`
+	Membership TeamTreeMembership `codec:"membership" json:"membership"`
+}
+
+type TeamTreeMembershipsDoneArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type NotifyTeamInterface interface {
 	TeamChangedByID(context.Context, TeamChangedByIDArg) error
 	TeamChangedByName(context.Context, TeamChangedByNameArg) error
@@ -112,6 +121,8 @@ type NotifyTeamInterface interface {
 	TeamRoleMapChanged(context.Context, UserTeamVersion) error
 	AvatarUpdated(context.Context, AvatarUpdatedArg) error
 	TeamMetadataUpdate(context.Context) error
+	TeamTreeMembershipsPartial(context.Context, TeamTreeMembershipsPartialArg) error
+	TeamTreeMembershipsDone(context.Context, int) error
 }
 
 func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
@@ -248,6 +259,36 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamTreeMembershipsPartial": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamTreeMembershipsPartialArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamTreeMembershipsPartialArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamTreeMembershipsPartialArg)(nil), args)
+						return
+					}
+					err = i.TeamTreeMembershipsPartial(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamTreeMembershipsDone": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamTreeMembershipsDoneArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamTreeMembershipsDoneArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamTreeMembershipsDoneArg)(nil), args)
+						return
+					}
+					err = i.TeamTreeMembershipsDone(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -303,5 +344,16 @@ func (c NotifyTeamClient) AvatarUpdated(ctx context.Context, __arg AvatarUpdated
 
 func (c NotifyTeamClient) TeamMetadataUpdate(ctx context.Context) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamMetadataUpdate", []interface{}{TeamMetadataUpdateArg{}}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyTeamClient) TeamTreeMembershipsPartial(ctx context.Context, __arg TeamTreeMembershipsPartialArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsPartial", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyTeamClient) TeamTreeMembershipsDone(ctx context.Context, sessionID int) (err error) {
+	__arg := TeamTreeMembershipsDoneArg{SessionID: sessionID}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsDone", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

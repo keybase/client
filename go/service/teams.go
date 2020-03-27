@@ -235,9 +235,9 @@ func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamLi
 	return *x, nil
 }
 
-func (h *TeamsHandler) TeamGetSubteams(ctx context.Context, arg keybase1.TeamGetSubteamsArg) (res keybase1.SubteamListResult, err error) {
+func (h *TeamsHandler) TeamGetSubteamsUnverified(ctx context.Context, arg keybase1.TeamGetSubteamsUnverifiedArg) (res keybase1.SubteamListResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetSubteams(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetSubteamsUnverified(%s)", arg.Name), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ListSubteamsUnverified(mctx, arg.Name)
 }
@@ -858,4 +858,21 @@ func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.T
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUntrustedTeamInfo(%s)", name), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetUntrustedTeamInfo(mctx, name)
+}
+
+func (h *TeamsHandler) LoadTeamTreeMemberships(ctx context.Context, arg keybase1.LoadTeamTreeMembershipsArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMemberships(%s, %s)", arg.TeamID, arg.Username), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.LoadTeamTreeMemberships(mctx, arg.TeamID, arg.Username)
+}
+
+func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
+
+	// mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return nil
+	// return teams.CancelLoadTeamTree(mctx, arg.TeamName, arg.Username)
 }

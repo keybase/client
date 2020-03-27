@@ -885,6 +885,20 @@
         "REJECTED_3",
         "REVOKED_4"
       ]
+    },
+    {
+      "type": "record",
+      "name": "GenericError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "StatusCode",
+          "name": "statusCode"
+        }
+      ]
     }
   ],
   "messages": {},
