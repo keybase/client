@@ -138,7 +138,6 @@ export type AvatarCrop = {
 export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'
 export type NewTeamWizardState = {
   teamType: TeamWizardTeamType
-  teamNameTaken: boolean
   name: string
   description: string
   open: boolean
@@ -149,6 +148,7 @@ export type NewTeamWizardState = {
   isBig: boolean
   channels?: string[]
   subteams?: string[]
+  parentTeamID?: TeamID
 }
 
 export type AddingMember = {assertion: string; role: TeamRoleType}

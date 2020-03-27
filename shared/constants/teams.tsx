@@ -179,7 +179,6 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
   open: false,
   openTeamJoinRole: 'writer',
   showcase: false,
-  teamNameTaken: false,
   teamType: 'other',
 }
 
@@ -336,7 +335,7 @@ export const userIsRoleInTeam = (
     role
   )
 }
-
+export const isBot = (type: Types.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 export const userInTeamNotBotWithInfo = (
   memberInfo: Map<string, Types.MemberInfo>,
   username: string
@@ -345,7 +344,7 @@ export const userInTeamNotBotWithInfo = (
   if (!memb) {
     return false
   }
-  return memb.type !== 'bot' && memb.type !== 'restrictedbot'
+  return !isBot(memb.type)
 }
 
 export const getEmailInviteError = (state: TypedState) => state.teams.errorInEmailInvite

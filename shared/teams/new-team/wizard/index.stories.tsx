@@ -5,6 +5,7 @@ import CreateSubteams from './create-subteams'
 import WhatKind from './team-purpose'
 import NewTeamInfo from './new-team-info'
 import MakeBigTeam from './make-big-team'
+import AddSubteamMembers from './add-subteam-members'
 import {store} from '../../stories'
 
 const load = () => {
@@ -15,6 +16,13 @@ const load = () => {
     .add('4 - Team size', () => <MakeBigTeam />)
     .add('5 - Create channels', () => <CreateChannels />)
     .add('6 - Create subteams', () => <CreateSubteams />)
+  Sb.storiesOf('Teams/New team wizard', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.teams.newTeamWizard.name = 'greenpeace.board'
+      })
+    )
+    .add('Subteam add members', () => <AddSubteamMembers />)
 }
 
 export default load
