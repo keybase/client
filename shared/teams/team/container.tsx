@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
-import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import Team from '.'
@@ -11,24 +10,20 @@ type OwnProps = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.T
 
 // TODO: when the teamsRedesign flag is removed, get rid of this connector entirely and
 // move the route prop handling and the navigation options into index.tsx
-const maybeHeaderHoc = flags.teamsRedesign ? a => a : Kb.HeaderHoc
-const Connected = Container.compose(
-  Container.connect(
-    () => ({}),
-    (dispatch: Container.TypedDispatch) => ({
-      onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    }),
-    (_, d, ownProps: OwnProps) => {
-      const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-      const initialTab = Container.getRouteProps(ownProps, 'initialTab', undefined)
-      return {
-        ...d,
-        initialTab,
-        teamID,
-      }
+const Connected = Container.connect(
+  () => ({}),
+  (dispatch: Container.TypedDispatch) => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
+  (_, d, ownProps: OwnProps) => {
+    const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
+    const initialTab = Container.getRouteProps(ownProps, 'initialTab', undefined)
+    return {
+      ...d,
+      initialTab,
+      teamID,
     }
-  ),
-  maybeHeaderHoc
+  }
 )(Team)
 
 const newNavigationOptions = () => ({

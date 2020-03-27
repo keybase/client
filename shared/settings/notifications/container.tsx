@@ -57,7 +57,6 @@ export default Container.connect(
     mobileHasPermissions: stateProps.mobileHasPermissions,
     showEmailSection: stateProps.showEmailSection,
     sound: stateProps.sound,
-    title: 'Notifications',
     waitingForResponse: stateProps.waitingForResponse,
   })
 )(ReloadableNotifications)

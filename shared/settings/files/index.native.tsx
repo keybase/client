@@ -66,36 +66,38 @@ const Files = (props: Props) => {
     Container.anyWaiting(state, Constants.setSyncOnCellularWaitingKey)
   )
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="small">
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
-        <Kb.Text type="Header">Sync</Kb.Text>
-        <Kb.Switch
-          onClick={
-            props.spaceAvailableNotificationThreshold === 0
-              ? props.onEnableSyncNotifications
-              : props.onDisableSyncNotifications
-          }
-          label="Warn when low on storage space"
-          on={props.spaceAvailableNotificationThreshold !== 0}
-          disabled={props.areSettingsLoading}
-          gapSize={Styles.globalMargins.small}
-          style={styles.switch}
-        />
-        {!!props.spaceAvailableNotificationThreshold && (
-          <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>
-        )}
-        {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
-        <Kb.Switch
-          on={syncOnCellular}
-          onClick={toggleSyncOnCellular}
-          disabled={waitingToggleSyncOnCellular}
-          label="Sync files over mobile network"
-          labelSubtitle="Syncing over Wi-Fi is always on"
-          gapSize={Styles.globalMargins.small}
-          style={styles.switch}
-        />
+    <Kb.HeaderHocWrapper title="Files" onBack={props.onBack}>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="small">
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
+          <Kb.Text type="Header">Sync</Kb.Text>
+          <Kb.Switch
+            onClick={
+              props.spaceAvailableNotificationThreshold === 0
+                ? props.onEnableSyncNotifications
+                : props.onDisableSyncNotifications
+            }
+            label="Warn when low on storage space"
+            on={props.spaceAvailableNotificationThreshold !== 0}
+            disabled={props.areSettingsLoading}
+            gapSize={Styles.globalMargins.small}
+            style={styles.switch}
+          />
+          {!!props.spaceAvailableNotificationThreshold && (
+            <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>
+          )}
+          {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
+          <Kb.Switch
+            on={syncOnCellular}
+            onClick={toggleSyncOnCellular}
+            disabled={waitingToggleSyncOnCellular}
+            label="Sync files over mobile network"
+            labelSubtitle="Syncing over Wi-Fi is always on"
+            gapSize={Styles.globalMargins.small}
+            style={styles.switch}
+          />
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </Kb.HeaderHocWrapper>
   )
 }
 
@@ -118,4 +120,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderHoc(Files)
+export default Files

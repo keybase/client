@@ -10,6 +10,7 @@ import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../../util/t
 type Props = {
   iconNumber: number
   id: Types.DeviceID
+  onBack: () => void
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
@@ -122,27 +123,29 @@ const DevicePage = (props: Props) => {
   }[device.type]
 
   return (
-    <Kb.Box2
-      alignItems="center"
-      direction="vertical"
-      gap="medium"
-      gapStart={true}
-      gapEnd={true}
-      fullWidth={true}
-      fullHeight={true}
-    >
-      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
-      <Timeline device={device} />
-      {!device.revokedAt && (
-        <Kb.Button
-          disabled={!canRevoke}
-          type="Danger"
-          label={`Revoke this ${revokeName}`}
-          onClick={showRevokeDevicePage}
-        />
-      )}
-      {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
-    </Kb.Box2>
+    <Kb.HeaderHocWrapper onBack={props.onBack}>
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        gap="medium"
+        gapStart={true}
+        gapEnd={true}
+        fullWidth={true}
+        fullHeight={true}
+      >
+        <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+        <Timeline device={device} />
+        {!device.revokedAt && (
+          <Kb.Button
+            disabled={!canRevoke}
+            type="Danger"
+            label={`Revoke this ${revokeName}`}
+            onClick={showRevokeDevicePage}
+          />
+        )}
+        {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
+      </Kb.Box2>
+    </Kb.HeaderHocWrapper>
   )
 }
 
@@ -190,4 +193,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderHoc(DevicePage)
+export default DevicePage
