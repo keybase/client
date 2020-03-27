@@ -467,6 +467,19 @@ func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1
 	}
 }
 
+func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, err error) {
+	if utils.IsDeletedConvError(err) {
+		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", err, convID, uid)
+		if err := s.Clear(ctx, convID, uid); err != nil {
+			s.Debug(ctx, "unable to Clear conv: %v", err)
+		}
+		if err := s.G().InboxSource.Clear(ctx, uid); err != nil {
+			s.Debug(ctx, "unable to Clear inbox: %v", err)
+		}
+		s.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "ConvSource#maybeNuke")
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -474,6 +487,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, continuousUpdate, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+	defer s.maybeNuke(ctx, convID, uid, err)
 
 	// Grab conversation information before pushing
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
@@ -529,6 +543,8 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, conv types.U
 		return err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+	defer s.maybeNuke(ctx, convID, uid, err)
+
 	// sanity check against conv ID
 	for _, msg := range msgs {
 		if msg.IsValid() && !msg.Valid().ClientHeader.Conv.Derivable(convID) {
@@ -616,6 +632,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return thread, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+	defer s.maybeNuke(ctx, convID, uid, err)
 
 	// Get conversation metadata
 	rconv, err := s.getConvForPull(ctx, uid, convID)
@@ -750,6 +767,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		return tv, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+	defer s.maybeNuke(ctx, convID, uid, err)
 
 	// Post process thread before returning
 	defer func() {
@@ -827,6 +845,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 		return nil, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+	defer s.maybeNuke(ctx, convID, uid, err)
 
 	// Grab local messages
 	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
@@ -889,14 +908,14 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 }
 
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
+	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) (res []chat1.MessageUnboxed, err error) {
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
+	defer s.maybeNuke(ctx, convID, uid, err)
 
-	var res []chat1.MessageUnboxed
 	var msgIDs []chat1.MessageID
 	for _, msg := range msgs {
 		msgIDs = append(msgIDs, msg.GetMessageID())
@@ -942,6 +961,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+	defer s.maybeNuke(ctx, convID, uid, err)
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
 	if err != nil { // short circuit to the server
@@ -1081,6 +1101,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	convID := conv.GetConvID()
+	defer s.maybeNuke(ctx, convID, uid, err)
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
 	if expunge.Upto == 0 {
 		// just get out of here as quickly as possible with a 0 upto
@@ -1153,6 +1174,7 @@ func (s *HybridConversationSource) fetchMaybeNotify(ctx context.Context, convID 
 
 func (s *HybridConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
+	defer s.maybeNuke(ctx, convID, uid, err)
 	if newPurgeInfo, explodedMsgs, err = s.storage.EphemeralPurge(ctx, convID, uid, purgeInfo); err != nil {
 		return newPurgeInfo, explodedMsgs, err
 	}
