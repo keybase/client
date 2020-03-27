@@ -256,6 +256,7 @@ export type State = {
   readonly unreadMap: ConversationCountMap // how many unread messages there are,
   readonly unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
   readonly userReacjis: UserReacjis
+  readonly userEmojis: Array<RPCChatTypes.Emoji> | undefined
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>

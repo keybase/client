@@ -100,6 +100,7 @@ export const makeState = (): Types.State => ({
   unreadMap: new Map(),
   unsentTextMap: new Map(),
   userReacjis: defaultUserReacjis,
+  userEmojis: undefined,
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
@@ -374,6 +375,7 @@ export const waitingKeyCreating = 'chat:creatingConvo'
 export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
 export const waitingKeyBotAdd = 'chat:botAdd'
 export const waitingKeyBotRemove = 'chat:botRemove'
+export const waitingKeyLoadingEmoji = 'chat:loadingEmoji'
 export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>

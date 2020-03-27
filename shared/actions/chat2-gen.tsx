@@ -46,6 +46,7 @@ export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
+export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
@@ -71,6 +72,7 @@ export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const loadedMutualTeams = 'chat2:loadedMutualTeams'
+export const loadedUserEmoji = 'chat2:loadedUserEmoji'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -297,6 +299,7 @@ type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
 }
+type _FetchUserEmojiPayload = void
 type _FindGeneralConvIDFromTeamIDPayload = {readonly teamID: TeamsTypes.TeamID}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -366,6 +369,7 @@ type _LoadedMutualTeamsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly teamIDs: Array<TeamsTypes.TeamID>
 }
+type _LoadedUserEmojiPayload = {readonly fetchedEmojis: RPCChatTypes.UserEmojis}
 type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
@@ -1187,6 +1191,13 @@ export const createInboxRefresh = (payload: _InboxRefreshPayload): InboxRefreshP
   type: inboxRefresh,
 })
 /**
+ * Refresh user emoji and put it in store
+ */
+export const createFetchUserEmoji = (payload: _FetchUserEmojiPayload): FetchUserEmojiPayload => ({
+  payload,
+  type: fetchUserEmoji,
+})
+/**
  * Remove an unfurl
  */
 export const createUnfurlRemove = (payload: _UnfurlRemovePayload): UnfurlRemovePayload => ({
@@ -1789,6 +1800,10 @@ export const createLoadedMutualTeams = (payload: _LoadedMutualTeamsPayload): Loa
   payload,
   type: loadedMutualTeams,
 })
+export const createLoadedUserEmoji = (payload: _LoadedUserEmojiPayload): LoadedUserEmojiPayload => ({
+  payload,
+  type: loadedUserEmoji,
+})
 export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
   payload,
   type: lockAudioRecording,
@@ -1976,6 +1991,10 @@ export type EnableAudioRecordingPayload = {
   readonly payload: _EnableAudioRecordingPayload
   readonly type: typeof enableAudioRecording
 }
+export type FetchUserEmojiPayload = {
+  readonly payload: _FetchUserEmojiPayload
+  readonly type: typeof fetchUserEmoji
+}
 export type FindGeneralConvIDFromTeamIDPayload = {
   readonly payload: _FindGeneralConvIDFromTeamIDPayload
   readonly type: typeof findGeneralConvIDFromTeamID
@@ -2063,6 +2082,10 @@ export type LoadOlderMessagesDueToScrollPayload = {
 export type LoadedMutualTeamsPayload = {
   readonly payload: _LoadedMutualTeamsPayload
   readonly type: typeof loadedMutualTeams
+}
+export type LoadedUserEmojiPayload = {
+  readonly payload: _LoadedUserEmojiPayload
+  readonly type: typeof loadedUserEmoji
 }
 export type LockAudioRecordingPayload = {
   readonly payload: _LockAudioRecordingPayload
@@ -2497,6 +2520,7 @@ export type Actions =
   | DismissJourneycardPayload
   | EditBotSettingsPayload
   | EnableAudioRecordingPayload
+  | FetchUserEmojiPayload
   | FindGeneralConvIDFromTeamIDPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
@@ -2522,6 +2546,7 @@ export type Actions =
   | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
   | LoadedMutualTeamsPayload
+  | LoadedUserEmojiPayload
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload

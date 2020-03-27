@@ -213,6 +213,8 @@ export default Container.namedConnect(
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
       typing: Constants.getTyping(state, conversationIDKey),
       unsentText,
+      userEmojis: state.chat2.userEmojis,
+      userEmojisLoading: Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji),
     }
   },
   dispatch => ({
@@ -275,6 +277,7 @@ export default Container.namedConnect(
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
     onChannelSuggestionsTriggered: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey})),
+    onFetchEmoji: () => dispatch(Chat2Gen.createFetchUserEmoji()),
     onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
@@ -332,6 +335,7 @@ export default Container.namedConnect(
         dispatchProps.onChannelSuggestionsTriggered(stateProps.conversationIDKey),
       onEditLastMessage: () =>
         dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+      onFetchEmoji: dispatchProps.onFetchEmoji,
       onFilePickerError: dispatchProps.onFilePickerError,
       onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,
@@ -405,6 +409,8 @@ export default Container.namedConnect(
       unsentTextChanged: (text: string) => {
         dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
       },
+      userEmojis: stateProps.userEmojis,
+      userEmojisLoading: stateProps.userEmojisLoading,
     }
   },
   'Input'
