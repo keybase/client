@@ -82,10 +82,17 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                 <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
               )}
 
-              <Kb.Text type="BodySmall" style={styles.helperText}>
-                Start a chat with any phone number. Your messages will unlock after your recipient signs up
-                and proves their phone number.
-              </Kb.Text>
+              {namespace == 'chat2' ? (
+                <Kb.Text type="BodySmall" style={styles.helperText}>
+                  Start a chat with any phone contact, then tell them to install Keybase. Your messages will
+                  unlock after they sign up.
+                </Kb.Text>
+              ) : (
+                <Kb.Text type="BodySmall" style={styles.helperText}>
+                  Add any phone contact, then tell them to install Keybase. They will automatically join the
+                  team after they sign up.
+                </Kb.Text>
+              )}
             </Kb.Box2>
           )}
           {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}

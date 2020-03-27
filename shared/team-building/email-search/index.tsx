@@ -82,11 +82,17 @@ const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResult
             {!Styles.isMobile && (
               <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
-
-            <Kb.Text type="BodySmall" style={styles.helperText}>
-              Start a chat with any email address. Your messages will unlock after your recipient signs up and
-              proves their email address.
-            </Kb.Text>
+            {namespace == 'chat2' ? (
+              <Kb.Text type="BodySmall" style={styles.helperText}>
+                Start a chat with any email contact, then tell them to install Keybase. Your messages will
+                unlock after they sign up.
+              </Kb.Text>
+            ) : (
+              <Kb.Text type="BodySmall" style={styles.helperText}>
+                Add any email contact, then tell them to install Keybase. They will automatically join the
+                team after they sign up.
+              </Kb.Text>
+            )}
           </Kb.Box2>
         )}
         {/* TODO: add support for multiple emails  */}

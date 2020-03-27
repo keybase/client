@@ -444,13 +444,20 @@ class TeamBuilding extends React.PureComponent<Props> {
           )}
           {this.props.namespace === 'people' ? (
             <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-              Search for anyone on {serviceIdToLabel(this.props.selectedService)}. Start a chat, then have
-              them sign up to Keybase.
+              Search for anyone on {serviceIdToLabel(this.props.selectedService)} and start a chat. Your
+              messages will unlock after they install Keybase and prove their{' '}
+              {serviceIdToLabel(this.props.selectedService)} username.
+            </Kb.Text>
+          ) : this.props.namespace === 'teams' ? (
+            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+              Add anyone from {serviceIdToLabel(this.props.selectedService)}, then tell them to install
+              Keybase. They will automatically join the team once they sign up and prove their{' '}
+              {serviceIdToLabel(this.props.selectedService)} username.
             </Kb.Text>
           ) : (
             <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-              Start a chat with anyone on {serviceIdToLabel(this.props.selectedService)}. Your messages will
-              unlock after your recipient signs up and proves their{' '}
+              Start a chat with anyone on {serviceIdToLabel(this.props.selectedService)}, then tell them to
+              install Keybase. Your messages will unlock after they sign up and prove their{' '}
               {serviceIdToLabel(this.props.selectedService)} username.
             </Kb.Text>
           )}
@@ -563,7 +570,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           />
         ) : (
           <Kb.Text type="BodySmall" style={styles.noResults}>
-            No results were found
+            Sorry, no results were found.
           </Kb.Text>
         )}
       </>
@@ -909,6 +916,7 @@ const styles = Styles.styleSheetCreate(
       }),
       noResults: {
         flex: 1,
+        textAlign: 'center',
         ...Styles.padding(Styles.globalMargins.small),
       },
       peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
