@@ -608,7 +608,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.userEmojis': {
-    inParam: {readonly convID?: ConversationID | null; readonly getCreationInfo: Boolean}
+    inParam: {readonly opts: EmojiFetchOpts; readonly convID?: ConversationID | null}
     outParam: UserEmojiRes
   }
 }
@@ -732,10 +732,12 @@ export enum ConversationStatus {
 
 export enum EmojiLoadSourceTyp {
   httpsrv = 0,
+  str = 1,
 }
 
 export enum EmojiRemoteSourceTyp {
   message = 0,
+  stockalias = 1,
 }
 
 export enum ExternalAPIKeyTyp {
@@ -1182,10 +1184,12 @@ export type EditTarget = {readonly messageID?: MessageID | null; readonly outbox
 export type Emoji = {readonly alias: String; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
 export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
 export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
+export type EmojiFetchOpts = {readonly getCreationInfo: Boolean; readonly getAliases: Boolean; readonly onlyInTeam: Boolean}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
-export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String}
-export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID}
-export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage}
+export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String} | {typ: EmojiLoadSourceTyp.str; str: String}
+export type EmojiMessage = {readonly convID: ConversationID; readonly msgID: MessageID; readonly isAlias: Boolean}
+export type EmojiRemoteSource = {typ: EmojiRemoteSourceTyp.message; message: EmojiMessage} | {typ: EmojiRemoteSourceTyp.stockalias; stockalias: EmojiStockAlias}
+export type EmojiStockAlias = {readonly text: String; readonly username: String; readonly time: Gregor1.Time}
 export type EmojiStorage = {readonly mapping: {[key: string]: EmojiRemoteSource}}
 export type EmptyRes = {readonly rateLimits?: Array<RateLimitRes> | null}
 export type EmptyStruct = {}
@@ -1757,6 +1761,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.addEmoji'
+// 'chat.1.local.addEmojiAlias'
 // 'chat.1.local.removeEmoji'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'

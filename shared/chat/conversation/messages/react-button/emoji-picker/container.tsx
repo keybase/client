@@ -79,7 +79,11 @@ const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
             conversationIDKey !== Constants.noConversationIDKey
               ? Types.keyToConversationID(conversationIDKey)
               : null,
-          getCreationInfo: false,
+          opts: {
+            getAliases: true,
+            getCreationInfo: false,
+            onlyInTeam: false,
+          },
         },
       ],
       result => {

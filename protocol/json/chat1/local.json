@@ -3970,6 +3970,24 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiFetchOpts",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "getCreationInfo"
+        },
+        {
+          "type": "boolean",
+          "name": "getAliases"
+        },
+        {
+          "type": "boolean",
+          "name": "onlyInTeam"
+        }
+      ]
     }
   ],
   "messages": {
@@ -5899,6 +5917,23 @@
       ],
       "response": "AddEmojiRes"
     },
+    "addEmojiAlias": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "newAlias",
+          "type": "string"
+        },
+        {
+          "name": "existingAlias",
+          "type": "string"
+        }
+      ],
+      "response": "AddEmojiRes"
+    },
     "removeEmoji": {
       "request": [
         {
@@ -5915,15 +5950,15 @@
     "userEmojis": {
       "request": [
         {
+          "name": "opts",
+          "type": "EmojiFetchOpts"
+        },
+        {
           "name": "convID",
           "type": [
             null,
             "ConversationID"
           ]
-        },
-        {
-          "name": "getCreationInfo",
-          "type": "boolean"
         }
       ],
       "response": "UserEmojiRes"
