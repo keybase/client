@@ -20,7 +20,7 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _onInvite: (teamname: string, teamID : Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
+    _onInvite: (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
       dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamID, teamname}))
     },
     onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
