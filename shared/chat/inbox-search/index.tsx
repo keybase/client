@@ -410,8 +410,8 @@ const styles = Styles.styleSheetCreate(
       },
       openTeamContainer: Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
         },
         isMobile: {
           paddingLeft: Styles.globalMargins.small,
