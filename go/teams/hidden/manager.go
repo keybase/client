@@ -306,17 +306,20 @@ func NewChainManagerAndInstall(g *libkb.GlobalContext) *ChainManager {
 
 func (m *ChainManager) Shutdown(mctx libkb.MetaContext) {
 	m.storage.Shutdown()
+	m.hiddenSupportStorage.Shutdown()
 }
 
 // OnLogout is called when the user logs out, which purges the LRU.
 func (m *ChainManager) OnLogout(mctx libkb.MetaContext) error {
 	m.storage.ClearMem()
+	m.hiddenSupportStorage.ClearMem()
 	return nil
 }
 
 // OnDbNuke is called when the disk cache is cleared, which purges the LRU.
 func (m *ChainManager) OnDbNuke(mctx libkb.MetaContext) error {
 	m.storage.ClearMem()
+	m.hiddenSupportStorage.ClearMem()
 	return nil
 }
 
