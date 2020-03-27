@@ -28,6 +28,21 @@ const EnableContacts = ({onClose}: {onClose: () => void}) => {
   )
 }
 
+export const useEnableContacts = (noAccess: boolean, onClose: () => void) => {
+  // Whether we show the modal === whether we don't have contact permission
+  // Except on hitting close we want it to dismiss immediately rather than
+  // assume onClose will cause us to unmount.
+  const [showingPopup, setShowingPopup] = React.useState(false)
+  React.useEffect(() => {
+    setShowingPopup(noAccess)
+  }, [noAccess])
+  const onClosePopup = () => {
+    setShowingPopup(false)
+    onClose()
+  }
+  return showingPopup ? <EnableContacts onClose={onClosePopup} /> : undefined
+}
+
 const styles = Styles.styleSheetCreate(() => ({
   container: {padding: Styles.globalMargins.small},
   header: {marginBottom: 6},
