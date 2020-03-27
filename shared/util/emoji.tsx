@@ -12,21 +12,20 @@ export type EmojiData = {
   source?: string
 }
 export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, category?: string): EmojiData {
-  if (emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
-    return {
-      category: category ?? '',
-      name: null,
-      short_name: emoji.alias,
-      short_names: [emoji.alias],
-      source: emoji.source.httpsrv,
-      unified: '',
-    }
-  }
-  return {
-    category: category ?? '',
-    name: emoji.source.str,
-    short_name: emoji.alias,
-    short_names: [emoji.alias],
-    unified: '',
-  }
+  return emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str
+    ? {
+        category: category ?? '',
+        name: null,
+        short_name: emoji.source.str,
+        short_names: [emoji.source.str, emoji.alias],
+        unified: '',
+      }
+    : {
+        category: category ?? '',
+        name: null,
+        short_name: emoji.alias,
+        short_names: [emoji.alias],
+        source: emoji.source.httpsrv,
+        unified: '',
+      }
 }
