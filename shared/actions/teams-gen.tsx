@@ -385,11 +385,15 @@ export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
 /**
- * Load team details if we are stale. _subscribe is for use by teams/subscriber only.
+ * Load team details if we are stale.
+ *
+ * `_subscribe` is for use by teams/subscriber only.
  */
 export const createLoadTeam = (payload: _LoadTeamPayload): LoadTeamPayload => ({payload, type: loadTeam})
 /**
- * Load team list if we are stale. _subscribe is for use by teams/subscriber only.
+ * Load team list if we are stale.
+ *
+ * `_subscribe` is for use by teams/subscriber only.
  */
 export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
   payload,
@@ -509,6 +513,16 @@ export const createUnsubscribeTeamDetails = (
 export const createToggleInvitesCollapsed = (
   payload: _ToggleInvitesCollapsedPayload
 ): ToggleInvitesCollapsedPayload => ({payload, type: toggleInvitesCollapsed})
+/**
+ * Tries to show a team with this name whether the user is in the team or not.
+ * For teams we are not in:
+ * - with teamsRedesign on go to external team page
+ * - with teamsRedesign off noop
+ */
+export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
+  payload,
+  type: showTeamByName,
+})
 /**
  * User has viewed this team. Clear related badges.
  */
@@ -738,10 +752,6 @@ export const createSetWelcomeMessageError = (
 export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErrorPayload => ({
   payload,
   type: settingsError,
-})
-export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
-  payload,
-  type: showTeamByName,
 })
 export const createStartNewTeamWizard = (payload: _StartNewTeamWizardPayload): StartNewTeamWizardPayload => ({
   payload,

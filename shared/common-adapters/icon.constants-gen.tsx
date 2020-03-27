@@ -218,8 +218,8 @@ export type IconType =
   | 'icon-dark-file-delete-48'
   | 'icon-dark-file-delete-64'
   | 'icon-dark-file-placeholder-32'
-  | 'icon-dark-file-saltpack-encrypted-64'
-  | 'icon-dark-file-saltpack-signed-64'
+  | 'icon-dark-file-saltpack-32'
+  | 'icon-dark-file-saltpack-64'
   | 'icon-dark-file-txt-48'
   | 'icon-dark-file-txt-64'
   | 'icon-dark-file-uploading-48'
@@ -465,8 +465,8 @@ export type IconType =
   | 'icon-file-delete-48'
   | 'icon-file-delete-64'
   | 'icon-file-placeholder-32'
-  | 'icon-file-saltpack-encrypted-64'
-  | 'icon-file-saltpack-signed-64'
+  | 'icon-file-saltpack-32'
+  | 'icon-file-saltpack-64'
   | 'icon-file-txt-48'
   | 'icon-file-txt-64'
   | 'icon-file-uploading-48'
@@ -2971,20 +2971,20 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-file-placeholder-32.png')
     },
   },
-  'icon-dark-file-saltpack-encrypted-64': {
+  'icon-dark-file-saltpack-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     get require() {
-      return require('../images/icons/icon-dark-file-saltpack-encrypted-64.png')
+      return require('../images/icons/icon-dark-file-saltpack-32.png')
     },
   },
-  'icon-dark-file-saltpack-signed-64': {
+  'icon-dark-file-saltpack-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     get require() {
-      return require('../images/icons/icon-dark-file-saltpack-signed-64.png')
+      return require('../images/icons/icon-dark-file-saltpack-64.png')
     },
   },
   'icon-dark-file-txt-48': {
@@ -5075,28 +5075,28 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-file-placeholder-32.png')
     },
   },
-  'icon-file-saltpack-encrypted-64': {
+  'icon-file-saltpack-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    nameDark: 'icon-dark-file-saltpack-encrypted-64',
+    nameDark: 'icon-dark-file-saltpack-32',
     get require() {
-      return require('../images/icons/icon-file-saltpack-encrypted-64.png')
+      return require('../images/icons/icon-file-saltpack-32.png')
     },
     get requireDark() {
-      return require('../images/icons/icon-dark-file-saltpack-encrypted-64.png')
+      return require('../images/icons/icon-dark-file-saltpack-32.png')
     },
   },
-  'icon-file-saltpack-signed-64': {
+  'icon-file-saltpack-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    nameDark: 'icon-dark-file-saltpack-signed-64',
+    nameDark: 'icon-dark-file-saltpack-64',
     get require() {
-      return require('../images/icons/icon-file-saltpack-signed-64.png')
+      return require('../images/icons/icon-file-saltpack-64.png')
     },
     get requireDark() {
-      return require('../images/icons/icon-dark-file-saltpack-signed-64.png')
+      return require('../images/icons/icon-dark-file-saltpack-64.png')
     },
   },
   'icon-file-txt-48': {

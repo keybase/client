@@ -126,6 +126,7 @@ export type Props<SectionT extends Section<any, any>> = {
   // optional and desktop only.
   desktopItemHeight?: number
   desktopHeaderHeight?: number
+  desktopOnSectionChange?: (sectionIndex: number) => void
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}

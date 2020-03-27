@@ -98,7 +98,8 @@ type _SetRecipientsPayload = {
 
 // Action Creators
 /**
- * Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions
+ * Array recipients of operations, provided via TeamBuilding.
+ * Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions
  */
 export const createSetRecipients = (payload: _SetRecipientsPayload): SetRecipientsPayload => ({
   payload,
@@ -213,7 +214,8 @@ export const createSetInputThrottled = (payload: _SetInputThrottledPayload): Set
  */
 export const createSetInput = (payload: _SetInputPayload): SetInputPayload => ({payload, type: setInput})
 /**
- * Sets options for encrypt operations. Also takkes 'hideIncludeSelf' to disable includeSelf when user includes themselves as a recipient
+ * Sets options for encrypt operations.
+ * Also takes `hideIncludeSelf` to disable includeSelf when user includes themselves as a recipient
  */
 export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): SetEncryptOptionsPayload => ({
   payload,

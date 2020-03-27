@@ -43,6 +43,7 @@ type StyleKeys =
   | 'bottom'
   | 'boxShadow'
   | 'color'
+  | 'contain'
   | 'cursor'
   | 'direction'
   | 'display'
