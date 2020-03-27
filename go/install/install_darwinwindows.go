@@ -29,3 +29,15 @@ func GetNeedUpdate() (bool, error) {
 	}
 	return needUpdate, nil
 }
+
+// SnoozeUpdate will snooze the new update (if there is one) for 24 hrs.
+func SnoozeUpdate() error {
+	updaterPath, err := UpdaterBinPath()
+	if err != nil {
+		return err
+	}
+	exec.Command(updaterPath, "need-update")
+	if err != nil {
+		return err
+	}
+}

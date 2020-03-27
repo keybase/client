@@ -6,9 +6,10 @@ package keybase1
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type CurrentStatus struct {
@@ -944,6 +945,9 @@ type GetUpdateInfoArg struct {
 type StartUpdateIfNeededArg struct {
 }
 
+type SnoozeUpdateArg struct {
+}
+
 type WaitForClientArg struct {
 	ClientType ClientType  `codec:"clientType" json:"clientType"`
 	Timeout    DurationSec `codec:"timeout" json:"timeout"`
@@ -1018,6 +1022,7 @@ type ConfigInterface interface {
 	CheckAPIServerOutOfDateWarning(context.Context) (OutOfDateInfo, error)
 	GetUpdateInfo(context.Context) (UpdateInfo, error)
 	StartUpdateIfNeeded(context.Context) error
+	SnoozeUpdate(context.Context) error
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
@@ -1339,6 +1344,16 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"snoozeUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]SnoozeUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SnoozeUpdate(ctx)
+					return
+				},
+			},
 			"waitForClient": {
 				MakeArg: func() interface{} {
 					var ret [1]WaitForClientArg
@@ -1630,6 +1645,11 @@ func (c ConfigClient) GetUpdateInfo(ctx context.Context) (res UpdateInfo, err er
 
 func (c ConfigClient) StartUpdateIfNeeded(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []interface{}{StartUpdateIfNeededArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) SnoozeUpdate(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.SnoozeUpdate", []interface{}{SnoozeUpdateArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
