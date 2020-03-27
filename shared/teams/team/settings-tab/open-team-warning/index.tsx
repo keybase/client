@@ -9,9 +9,6 @@ type Props = {
   onBack: () => void
 }
 
-const iconType = Styles.isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
-const explodeIconType = 'icon-illustration-exploding-messages-240'
-
 const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
   Styles.isMobile ? (
     <Kb.ScrollView
@@ -29,7 +26,7 @@ const OpenTeamWarning = (props: Props) => {
   return (
     <Wrapper onBack={props.onBack}>
       <Kb.Box style={styles.container}>
-        <Kb.Icon type={explodeIconType} style={styles.iconStyle} />
+        <Kb.Icon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
           Make {props.teamname} into {props.isOpenTeam ? 'an open' : 'a closed'} team?
         </Kb.Text>

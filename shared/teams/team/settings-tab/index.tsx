@@ -52,6 +52,7 @@ type NewSettings = {
   newPublicityTeam: boolean
   newOpenTeam: boolean
   newOpenTeamRole: Types.TeamRoleType
+  selectedOpenTeamRole: Types.TeamRoleType
   newRetentionPolicy: RetentionPolicy | null
 }
 
@@ -210,8 +211,8 @@ const toRolePickerPropsHelper = (state: State, setState) => ({
   },
   isRolePickerOpen: state.isRolePickerOpen,
   newOpenTeamRole: state.newOpenTeamRole,
-  onCancelRolePicker: () => setState({isRolePickerOpen: false}),
-  onConfirmRolePicker: () => setState({isRolePickerOpen: false}),
+  onCancelRolePicker: () => setState({isRolePickerOpen: false, newOpenTeamRole: state.selectedOpenTeamRole}),
+  onConfirmRolePicker: () => setState({isRolePickerOpen: false, selectedOpenTeamRole: state.newOpenTeamRole}),
   onOpenRolePicker: () => setState({isRolePickerOpen: true}),
   onSelectRole: (role: Types.TeamRoleType) =>
     setState({
@@ -238,6 +239,7 @@ export class Settings extends React.Component<Props, State> {
       publicitySettingsChanged: false,
       retentionPolicyChanged: false,
       retentionPolicyDecreased: false,
+      selectedOpenTeamRole: p.openTeamRole,
     }
   }
 
@@ -262,14 +264,16 @@ export class Settings extends React.Component<Props, State> {
       const publicitySettingsChanged =
         prevState.newIgnoreAccessRequests !== this.props.ignoreAccessRequests ||
         prevState.newOpenTeam !== this.props.openTeam ||
-        prevState.newOpenTeamRole !== this.props.openTeamRole ||
+        (!prevState.isRolePickerOpen && prevState.newOpenTeamRole !== this.props.openTeamRole) ||
         prevState.newPublicityAnyMember !== this.props.publicityAnyMember ||
         prevState.newPublicityMember !== this.props.publicityMember ||
         prevState.newPublicityTeam !== this.props.publicityTeam ||
         prevState.retentionPolicyChanged
 
       if (publicitySettingsChanged !== prevState.publicitySettingsChanged) {
-        // this.onSaveSettings()
+        if (!prevState.isRolePickerOpen) {
+          this.onSaveSettings()
+        }
         return {publicitySettingsChanged}
       }
 
@@ -279,10 +283,6 @@ export class Settings extends React.Component<Props, State> {
 
   // TODO just use real keys/setState and not this abstraction
   setBoolSettings = (key: SettingName) => (newSetting: boolean): void => {
-    // if (key == "newOpenTeam" || this.props.openTeamRole) {
-    //   this.setState({showOpenTeamWarning: true})
-    // }
-
     // @ts-ignore not sure how to type this
     this.setState({[key]: newSetting})
   }
@@ -313,11 +313,7 @@ export class Settings extends React.Component<Props, State> {
   _showOpenTeamWarning = () => {
     this.props.showOpenTeamWarning(
       !this.state.newOpenTeam,
-      () => {
-        this.setBoolSettings('newOpenTeam')
-        this.onSaveSettings()
-        // console.log("daniel hi")
-      },
+      () => this.setBoolSettings('newOpenTeam')(!this.state.newOpenTeam),
       this.props.teamname
     )
   }
