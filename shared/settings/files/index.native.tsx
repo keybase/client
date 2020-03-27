@@ -66,7 +66,7 @@ const Files = (props: Props) => {
     Container.anyWaiting(state, Constants.setSyncOnCellularWaitingKey)
   )
   return (
-    <Kb.HeaderHocWrapper title="Files" onBack={props.onBack}>
+    <Kb.HeaderHocWrapper title="Files" onBack={props.onBack} skipHeader={!Styles.isPhone}>
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
           <Kb.Text type="Header">Sync</Kb.Text>
