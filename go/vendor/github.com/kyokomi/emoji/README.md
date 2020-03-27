@@ -46,7 +46,7 @@ func main() {
 
 ## Reference
 
-- [GitHub EMOJI CHEAT SHEET](http://www.emoji-cheat-sheet.com/)
+- [unicode Emoji Charts](http://www.unicode.org/emoji/charts/emoji-list.html)
 
 ## License
 
