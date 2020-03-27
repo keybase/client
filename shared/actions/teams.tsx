@@ -180,7 +180,7 @@ const setWelcomeMessage = async (action: TeamsGen.SetWelcomeMessagePayload, logg
 }
 
 const getTeamRetentionPolicy = async (
-  state: TypedState,
+  _: TypedState,
   action: TeamsGen.GetTeamRetentionPolicyPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -189,7 +189,7 @@ const getTeamRetentionPolicy = async (
   try {
     const policy = await RPCChatTypes.localGetTeamRetentionLocalRpcPromise(
       {teamID},
-      Constants.teamWaitingKeyByID(teamID, state)
+      Constants.teamWaitingKey(teamID)
     )
     try {
       retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
@@ -205,7 +205,7 @@ const getTeamRetentionPolicy = async (
 }
 
 const saveTeamRetentionPolicy = (
-  state: TypedState,
+  _: TypedState,
   action: TeamsGen.SaveTeamRetentionPolicyPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -219,7 +219,7 @@ const saveTeamRetentionPolicy = (
     return TeamsGen.createSettingsError({error: error.desc})
   }
   return RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-    Constants.teamWaitingKeyByID(teamID, state),
+    Constants.teamWaitingKey(teamID),
     Constants.retentionWaitingKey(teamID),
   ])
 }
@@ -368,12 +368,12 @@ const reAddToTeam = async (action: TeamsGen.ReAddToTeamPayload) => {
   }
 }
 
-const editDescription = async (state: TypedState, action: TeamsGen.EditTeamDescriptionPayload) => {
+const editDescription = async (_: TypedState, action: TeamsGen.EditTeamDescriptionPayload) => {
   const {teamID, description} = action.payload
   try {
     await RPCTypes.teamsSetTeamShowcaseRpcPromise(
       {description, teamID},
-      Constants.teamWaitingKeyByID(teamID, state)
+      Constants.teamWaitingKey(teamID)
     )
   } catch (e) {
     return TeamsGen.createSetEditDescriptionError({error: e.message})
@@ -404,11 +404,11 @@ const editMembership = async (state: TypedState, action: TeamsGen.EditMembership
       role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
       username,
     },
-    [Constants.teamWaitingKeyByID(teamID, state), Constants.editMembershipWaitingKey(teamID, username)]
+    [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, username)]
   )
 }
 
-function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
+function* removeMember(_: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
   const {teamID, username} = action.payload
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
@@ -419,7 +419,7 @@ function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, 
         teamID,
         username,
       },
-      [Constants.teamWaitingKeyByID(teamID, state), Constants.removeMemberWaitingKey(teamID, username)]
+      [Constants.teamWaitingKey(teamID), Constants.removeMemberWaitingKey(teamID, username)]
     )
   } catch (err) {
     logger.error('Failed to remove member', err)
@@ -428,7 +428,7 @@ function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, 
 }
 
 function* removePendingInvite(
-  state: TypedState,
+  _: TypedState,
   action: TeamsGen.RemovePendingInvitePayload,
   logger: Saga.SagaLogger
 ) {
@@ -451,7 +451,7 @@ function* removePendingInvite(
         username: username ?? '',
       },
       [
-        Constants.teamWaitingKeyByID(teamID, state),
+        Constants.teamWaitingKey(teamID),
         // only one of (username, email, inviteID) is truth-y
         Constants.removeMemberWaitingKey(teamID, username || email || inviteID || ''),
       ]
@@ -723,9 +723,9 @@ const _leaveConversation = function*(
   }
 }
 
-function* saveChannelMembership(state: TypedState, action: TeamsGen.SaveChannelMembershipPayload) {
+function* saveChannelMembership(_: TypedState, action: TeamsGen.SaveChannelMembershipPayload) {
   const {teamID, oldChannelState, newChannelState} = action.payload
-  const waitingKey = Constants.teamWaitingKeyByID(teamID, state)
+  const waitingKey = Constants.teamWaitingKey(teamID)
 
   const calls: Array<any> = []
   for (const convIDKeyStr in newChannelState) {
@@ -811,7 +811,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
   }
 }
 
-const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberPublicityPayload) => {
+const setMemberPublicity = async (_: TypedState, action: TeamsGen.SetMemberPublicityPayload) => {
   const {teamID, showcase} = action.payload
   try {
     await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
@@ -819,7 +819,7 @@ const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberP
         isShowcased: showcase,
         teamID,
       },
-      [Constants.teamWaitingKeyByID(teamID, state), Constants.setMemberPublicityWaitingKey(teamID)]
+      [Constants.teamWaitingKey(teamID), Constants.setMemberPublicityWaitingKey(teamID)]
     )
     return
   } catch (error) {
@@ -1012,7 +1012,7 @@ const updateTopic = async (state: TypedState, action: TeamsGen.UpdateTopicPayloa
     tlfPublic: false,
   }
 
-  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKeyByID(teamID, state))
+  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKey(teamID))
   return []
 }
 
@@ -1108,7 +1108,7 @@ const updateChannelname = async (state: TypedState, action: TeamsGen.UpdateChann
   }
 }
 
-const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.DeleteChannelConfirmedPayload) => {
+const deleteChannelConfirmed = async (_: TypedState, action: TeamsGen.DeleteChannelConfirmedPayload) => {
   const {teamID, conversationIDKey} = action.payload
   // channelName is only needed for confirmation, so since we handle
   // confirmation ourselves we don't need to plumb it through.
@@ -1118,7 +1118,7 @@ const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.Delete
       confirmed: true,
       convID: ChatTypes.keyToConversationID(conversationIDKey),
     },
-    Constants.teamWaitingKeyByID(teamID, state)
+    Constants.teamWaitingKey(teamID)
   )
   return false
 }

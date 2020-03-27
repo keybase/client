@@ -20,8 +20,6 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
 export const teamWaitingKey = (teamID: Types.TeamID) => `team:${teamID}`
-//export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
-export const teamWaitingKeyByID = (teamID: Types.TeamID, _: TypedState) => teamWaitingKey(teamID)
 
 export const setMemberPublicityWaitingKey = (teamID: Types.TeamID) => `teamMemberPub:${teamID}`
 export const teamGetWaitingKey = (teamID: Types.TeamID) => `teamGet:${teamID}`
