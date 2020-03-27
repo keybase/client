@@ -131,12 +131,12 @@ const styles = Styles.styleSheetCreate(() => ({
   rowContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.clickable,
-      paddingLeft: Styles.globalMargins.xtiny,
-      paddingRight: Styles.globalMargins.xtiny,
-    },
-    isMobile: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   spinner: {

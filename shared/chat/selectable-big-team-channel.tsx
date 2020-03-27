@@ -57,7 +57,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Text
-              type="Body"
+              type="BodySemibold"
               style={Styles.collapseStyles([
                 styles.teamname,
                 {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
@@ -69,7 +69,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               {this.props.teamname}
             </Kb.Text>
             <Kb.Text
-              type="Body"
+              type="BodySemibold"
               style={Styles.collapseStyles([
                 boldOverride,
                 styles.channelname,
@@ -160,12 +160,12 @@ const styles = Styles.styleSheetCreate(
           height: rowHeight,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.xtiny,
-        },
-        isMobile: {
           paddingLeft: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       selectedText: {

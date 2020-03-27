@@ -407,12 +407,12 @@ const styles = Styles.styleSheetCreate(
       },
       openTeamContainer: Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.xtiny,
-        },
-        isMobile: {
           paddingLeft: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       percentContainer: Styles.platformStyles({
