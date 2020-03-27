@@ -66,7 +66,7 @@
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|react-gateway|@storybook|@react-navigation)"
     ],
-    "setupFiles": [ 
+    "setupFiles": [
       "<rootDir>/test/setupFiles.js"
     ],
     "setupFilesAfterEnv": [
@@ -283,7 +283,7 @@
     "prettier": "1.19.1",
     "randexp": "0.5.3",
     "react-hot-loader": "4.12.14",
-    "react-native-v8": "git://github.com/keybase/react-native-v8#7557c145de2ba9f91ed705ec34751cb776b3ced2",
+    "react-native-v8": "git://github.com/keybase/react-native-v8#rn_v0.61.5.3-v8_v8.80.1-2",
     "react-test-renderer": "16.9.0",
     "redux-logger": "3.0.6",
     "rimraf": "2.6.3",
@@ -291,7 +291,7 @@
     "terser-webpack-plugin": "2.1.0",
     "tls": "git://github.com/keybase/nullModule",
     "typescript": "3.8.1-rc",
-    "v8-android-nointl": "git://github.com/keybase/v8-android-nointl#v7.5.1",
+    "v8-android-nointl": "git://github.com/keybase/v8-android-nointl#v8.80.1",
     "webpack": "4.41.0",
     "webpack-cli": "3.3.9",
     "webpack-dashboard": "3.2.0",
