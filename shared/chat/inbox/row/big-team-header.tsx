@@ -83,18 +83,18 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       badge: {
-        height: 8,
+        height: 10,
         position: 'absolute',
-        right: Styles.isMobile ? 4 : 2,
-        top: Styles.isMobile ? 7 : 4,
-        width: 8,
+        right: Styles.isMobile ? 4 : -4,
+        top: Styles.isMobile ? 7 : -2,
+        width: 10,
       },
       badgeVisible: {
         backgroundColor: Styles.globalColors.blue,
         borderColor: Styles.globalColors.blueGrey,
-        borderRadius: Styles.borderRadius,
+        borderRadius: 5,
         borderStyle: `solid`,
-        borderWidth: 1,
+        borderWidth: 2,
       },
       showMenu: Styles.platformStyles({
         common: {
