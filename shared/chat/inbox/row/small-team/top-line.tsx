@@ -159,7 +159,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       name: {
-        paddingRight: 7,
+        paddingRight: Styles.globalMargins.tiny,
       },
       nameContainer: {
         ...Styles.globalStyles.flexBoxRow,

@@ -10,7 +10,7 @@ const UnreadShortcut = (props: Props) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.container}>
     <Kb.Box2
       direction="horizontal"
-      gap="xtiny"
+      gap="tiny"
       centerChildren={true}
       fullWidth={true}
       style={styles.unreadShortcut}

@@ -121,14 +121,15 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'center',
           flexShrink: 0,
           height: RowSizes.bigHeaderHeight,
-          paddingRight: Styles.globalMargins.tiny,
         },
         isElectron: {
           ...Styles.desktopStyles.clickable,
           paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xtiny,
         },
         isMobile: {
           paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.xsmall,
         },
       }),
       teamnameContainer: Styles.platformStyles({
