@@ -150,7 +150,6 @@ const styles = Styles.styleSheetCreate(
       },
       icon: {
         position: 'relative',
-        right: Styles.globalMargins.xtiny,
       },
       insideContainer: {
         ...Styles.globalStyles.flexBoxRow,

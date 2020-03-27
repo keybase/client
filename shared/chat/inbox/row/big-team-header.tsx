@@ -99,11 +99,14 @@ const styles = Styles.styleSheetCreate(
       showMenu: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,
-          padding: 6,
         },
         isElectron: {
           position: 'relative',
           top: Styles.globalMargins.xxtiny,
+        },
+        isMobile: {
+          padding: 6,
+          marginRight: -6,
         },
       }),
       team: Styles.platformStyles({
@@ -125,11 +128,11 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           ...Styles.desktopStyles.clickable,
           paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.xsmall,
         },
         isMobile: {
           paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       teamnameContainer: Styles.platformStyles({
