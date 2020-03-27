@@ -83,27 +83,30 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       badge: {
-        height: 8,
+        height: 10,
         position: 'absolute',
-        right: Styles.isMobile ? 4 : 2,
-        top: Styles.isMobile ? 7 : 4,
-        width: 8,
+        right: Styles.isMobile ? 4 : -4,
+        top: Styles.isMobile ? 7 : -2,
+        width: 10,
       },
       badgeVisible: {
         backgroundColor: Styles.globalColors.blue,
         borderColor: Styles.globalColors.blueGrey,
-        borderRadius: Styles.borderRadius,
+        borderRadius: 5,
         borderStyle: `solid`,
-        borderWidth: 1,
+        borderWidth: 2,
       },
       showMenu: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,
-          padding: 6,
         },
         isElectron: {
           position: 'relative',
           top: Styles.globalMargins.xxtiny,
+        },
+        isMobile: {
+          marginRight: -6,
+          padding: 6,
         },
       }),
       team: Styles.platformStyles({
@@ -121,14 +124,15 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'center',
           flexShrink: 0,
           height: RowSizes.bigHeaderHeight,
-          paddingRight: Styles.globalMargins.tiny,
         },
         isElectron: {
           ...Styles.desktopStyles.clickable,
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
         },
         isMobile: {
           paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       teamnameContainer: Styles.platformStyles({

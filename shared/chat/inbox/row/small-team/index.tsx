@@ -190,8 +190,7 @@ const styles = Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
-    paddingLeft: 8,
-    paddingRight: 8,
+    paddingLeft: Styles.globalMargins.tiny,
   },
   fastBlank: Styles.platformStyles({
     isPhone: {
@@ -206,7 +205,8 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       height: '100%',
-      paddingLeft: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
     },
     isElectron: Styles.desktopStyles.clickable,
   }),

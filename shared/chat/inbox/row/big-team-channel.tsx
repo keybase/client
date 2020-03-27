@@ -124,7 +124,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       marginLeft: Styles.globalMargins.large,
-      paddingRight: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.xsmall,
     },
     isElectron: {
       borderBottomLeftRadius: 3,
