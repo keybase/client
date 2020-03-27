@@ -392,13 +392,17 @@
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
     },
+    "setMemberActivityDetails": {
+      "activityMap": "Map<Types.TeamID, number>",
+      "username": "string"
+    },
     "getMemberSubteamDetails": {
       "teamID": "Types.TeamID",
       "username": "string"
     },
     "setMemberSubteamDetails": {
       "username": "string",
-      "memberships": "Map<Types.TeamID, Types.MemberInfo>"
+      "memberships": "Map<Types.TeamID, Types.MemberInfoWithLastActivity>"
     },
     "startNewTeamWizard": {},
     "setTeamWizardTeamType": {

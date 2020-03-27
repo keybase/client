@@ -141,7 +141,7 @@ const NewTeamInfo = () => {
                     <InlineDropdown
                       label={pluralize(selectedRole)}
                       onPress={() => setRolePickerIsOpen(!rolePickerIsOpen)}
-                      type="BodySmall"
+                      textWrapperType="BodySmall"
                     />
                   </FloatingRolePicker>
                 </Kb.Box2>

@@ -30,6 +30,8 @@ import (
 	"github.com/keybase/client/go/teams/opensearch"
 	"github.com/keybase/pipeliner"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
 type UISource interface {
@@ -3643,7 +3645,47 @@ func (h *Server) GetLastActiveAtLocal(ctx context.Context, arg chat1.GetLastActi
 	if err != nil {
 		return 0, err
 	}
-	return h.G().TeamChannelSource.GetLastActiveAt(ctx, arg.TeamID, arg.Uid, h.remoteClient())
+	uid := gregor1.UID(libkb.UsernameToUID(arg.Username).ToBytes())
+	return h.G().TeamChannelSource.GetLastActiveAt(ctx, arg.TeamID, uid, h.remoteClient())
+}
+
+func (h *Server) GetLastActiveAtMultiLocal(ctx context.Context, arg chat1.GetLastActiveAtMultiLocalArg) (res map[keybase1.TeamID]gregor1.Time, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLastActiveAtMultiLocal")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	uid := gregor1.UID(libkb.UsernameToUID(arg.Username).ToBytes())
+
+	res = map[keybase1.TeamID]gregor1.Time{}
+	resMu := sync.Mutex{}
+	sem := semaphore.NewWeighted(10)
+	eg, subctx := errgroup.WithContext(ctx)
+	for _, teamID := range arg.TeamIDs {
+		if err := sem.Acquire(subctx, 1); err != nil {
+			return nil, err
+		}
+
+		teamID := teamID
+		eg.Go(func() error {
+			defer sem.Release(1)
+
+			lastActive, err := h.G().TeamChannelSource.GetLastActiveAt(subctx, teamID, uid, h.remoteClient())
+			if err != nil {
+				return err
+			}
+			resMu.Lock()
+			res[teamID] = lastActive
+			resMu.Unlock()
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1.AddEmojiRes, err error) {
