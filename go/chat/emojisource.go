@@ -188,9 +188,7 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 		s.Debug(ctx, "Remove: failed to remove remote source: %s", err)
 		return err
 	}
-	s.Debug(ctx, "Remove: mapping size (before): %d", len(stored.Mapping))
 	delete(stored.Mapping, alias)
-	s.Debug(ctx, "Remove: mapping size (after): %d", len(stored.Mapping))
 	// take out any aliases
 	if source.IsMessage() {
 		for existingAlias, existingSource := range stored.Mapping {
