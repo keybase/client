@@ -371,10 +371,7 @@ const reAddToTeam = async (action: TeamsGen.ReAddToTeamPayload) => {
 const editDescription = async (_: TypedState, action: TeamsGen.EditTeamDescriptionPayload) => {
   const {teamID, description} = action.payload
   try {
-    await RPCTypes.teamsSetTeamShowcaseRpcPromise(
-      {description, teamID},
-      Constants.teamWaitingKey(teamID)
-    )
+    await RPCTypes.teamsSetTeamShowcaseRpcPromise({description, teamID}, Constants.teamWaitingKey(teamID))
   } catch (e) {
     return TeamsGen.createSetEditDescriptionError({error: e.message})
   }
@@ -511,10 +508,7 @@ function* inviteToTeamByPhone(
 const ignoreRequest = async (action: TeamsGen.IgnoreRequestPayload) => {
   const {teamID, username} = action.payload
   try {
-    await RPCTypes.teamsTeamIgnoreRequestRpcPromise(
-      {teamID, username},
-      Constants.teamWaitingKey(teamID)
-    )
+    await RPCTypes.teamsTeamIgnoreRequestRpcPromise({teamID, username}, Constants.teamWaitingKey(teamID))
   } catch (_) {
     // TODO handle error
   }
@@ -1085,10 +1079,9 @@ function* addTeamWithChosenChannels(
       category: Constants.chosenChannelsGregorKey,
       dtime,
     },
-    teams.map(t => Constants.teamWaitingKey(Constants.getTeamID(state,t)))
+    teams.map(t => Constants.teamWaitingKey(Constants.getTeamID(state, t)))
   )
 }
-
 
 const updateChannelname = async (state: TypedState, action: TeamsGen.UpdateChannelNamePayload) => {
   const {teamID, conversationIDKey, newChannelName} = action.payload
