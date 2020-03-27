@@ -36,7 +36,7 @@ func SnoozeUpdate() error {
 	if err != nil {
 		return err
 	}
-	exec.Command(updaterPath, "need-update")
+	exec.Command(updaterPath, "snooze")
 	if err != nil {
 		return err
 	}
