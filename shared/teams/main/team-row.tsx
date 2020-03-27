@@ -20,11 +20,12 @@ const TeamRow = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const activityLevel = Container.useSelector(s => s.teams.activityLevels.get(teamID) || 'none')
 
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
 
-  const activity = <Activity level={'recently' /* TODO plumbing for this */} />
+  const activity = <Activity level={activityLevel} />
 
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
@@ -47,12 +48,17 @@ const TeamRow = (props: Props) => {
         firstItem={firstItem}
         onClick={onViewTeam}
         icon={
-          <Kb.Box2 direction="vertical" style={Styles.globalStyles.positionRelative}>
+          <Kb.Box2
+            direction="vertical"
+            fullHeight={true}
+            centerChildren={true}
+            style={Styles.globalStyles.positionRelative}
+          >
             <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
             {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
           </Kb.Box2>
         }
-        height={Styles.isMobile ? 90 : undefined}
+        height={Styles.isMobile ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
             <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
@@ -81,7 +87,7 @@ const TeamRow = (props: Props) => {
               </Kb.Box2>
             </Kb.Box2>
             {!Styles.isMobile && (
-              <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.bodyRight}>
+              <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyRight}>
                 {activity}
               </Kb.Box2>
             )}

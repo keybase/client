@@ -680,6 +680,28 @@ function* getTeams(
   }
 }
 
+const getActivityForTeams = async (
+  action: TeamsGen.GetTeamsPayload | ConfigGen.LoadOnStartPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
+    return
+  }
+  try {
+    const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
+    const levels = new Map(
+      Object.entries(results).map(([teamID, status]) => [
+        teamID,
+        Constants.lastActiveStatusToActivityLevel[status],
+      ])
+    )
+    return TeamsGen.createSetActivityLevels({levels})
+  } catch (e) {
+    logger.error(e)
+  }
+  return
+}
+
 const checkRequestedAccess = async () => {
   const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
     {},
@@ -1476,6 +1498,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<
     ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
   >([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
+  yield* Saga.chainAction([ConfigGen.loadOnStart, TeamsGen.getTeams], getActivityForTeams)
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership

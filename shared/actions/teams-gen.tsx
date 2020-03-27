@@ -51,6 +51,7 @@ export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
+export const setActivityLevels = 'teams:setActivityLevels'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
@@ -223,6 +224,7 @@ type _SaveChannelMembershipPayload = {
   readonly newChannelState: Types.ChannelMembershipState
 }
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
+type _SetActivityLevelsPayload = {readonly levels: Map<Types.TeamID, Types.ActivityLevel>}
 type _SetAddMembersWizardIndividualRolePayload = {
   readonly assertion: string
   readonly role: Types.TeamRoleType
@@ -448,6 +450,13 @@ export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload
 export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSubteamFilterPayload => ({
   payload,
   type: setSubteamFilter,
+})
+/**
+ * Set map of activity levels for all teams.
+ */
+export const createSetActivityLevels = (payload: _SetActivityLevelsPayload): SetActivityLevelsPayload => ({
+  payload,
+  type: setActivityLevels,
 })
 /**
  * Set the role for a pending member in the add member wizard.
@@ -923,6 +932,10 @@ export type SaveTeamRetentionPolicyPayload = {
   readonly payload: _SaveTeamRetentionPolicyPayload
   readonly type: typeof saveTeamRetentionPolicy
 }
+export type SetActivityLevelsPayload = {
+  readonly payload: _SetActivityLevelsPayload
+  readonly type: typeof setActivityLevels
+}
 export type SetAddMembersWizardIndividualRolePayload = {
   readonly payload: _SetAddMembersWizardIndividualRolePayload
   readonly type: typeof setAddMembersWizardIndividualRole
@@ -1177,6 +1190,7 @@ export type Actions =
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
+  | SetActivityLevelsPayload
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetAddUserToTeamsResultsPayload

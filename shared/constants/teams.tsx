@@ -184,6 +184,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 }
 
 const emptyState: Types.State = {
+  activityLevels: new Map(),
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
@@ -896,4 +897,12 @@ export const dedupAddingMembeers = (
     }
   }
   return existing
+}
+
+export const lastActiveStatusToActivityLevel: {
+  [key in RPCChatTypes.LastActiveStatus]: Types.ActivityLevel
+} = {
+  [RPCChatTypes.LastActiveStatus.active]: 'active',
+  [RPCChatTypes.LastActiveStatus.none]: 'none',
+  [RPCChatTypes.LastActiveStatus.recentlyActive]: 'recently',
 }

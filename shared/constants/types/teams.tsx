@@ -160,6 +160,7 @@ export type AddMembersWizardState = {
 }
 
 export type State = {
+  readonly activityLevels: Map<TeamID, ActivityLevel>
   readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
