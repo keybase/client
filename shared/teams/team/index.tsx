@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as BotsGen from '../../actions/bots-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -10,6 +11,7 @@ import {memoize} from '../../util/memoize'
 import flags from '../../util/feature-flags'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import SelectionPopup from '../common/selection-popup'
+import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import TeamTabs from './tabs/container'
 import NewTeamHeader from './new-header'
 import TeamHeader from './header/container'
@@ -23,11 +25,7 @@ import {
   Section,
 } from './rows'
 
-export type Props = {
-  teamID: Types.TeamID
-  onBack?: () => void
-  initialTab?: Types.TabKey
-}
+type Props = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
 
 // keep track during session
 const lastSelectedTabs = {}
@@ -76,7 +74,8 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
 }
 
 const Team = (props: Props) => {
-  const {teamID, initialTab} = props
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const initialTab = Container.getRouteProps(props, 'initialTab', undefined)
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
@@ -84,6 +83,7 @@ const Team = (props: Props) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
+  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
   const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
   Container.useFocusBlur(undefined, onBlur)
 
@@ -171,7 +171,7 @@ const Team = (props: Props) => {
         selectedTab={
           selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
         }
-        teamID={props.teamID}
+        teamID={teamID}
       />
     </Kb.Box>
   )
@@ -179,9 +179,30 @@ const Team = (props: Props) => {
   if (flags.teamsRedesign) {
     return body
   } else {
-    return <Kb.HeaderHocWrapper onBack={props.onBack}>{body}</Kb.HeaderHocWrapper>
+    return <Kb.HeaderHocWrapper onBack={onBack}>{body}</Kb.HeaderHocWrapper>
   }
 }
+
+const newNavigationOptions = () => ({
+  headerHideBorder: true,
+})
+
+Team.navigationOptions = flags.teamsRedesign
+  ? newNavigationOptions
+  : (props: Props) => ({
+      header: null,
+      headerExpandable: true,
+      headerHideBorder: true,
+      headerRightActions: Container.isMobile
+        ? undefined
+        : () => <HeaderRightActions teamID={Container.getRouteProps(props, 'teamID', '')} />,
+      headerTitle: Container.isMobile
+        ? undefined
+        : () => <HeaderTitle teamID={Container.getRouteProps(props, 'teamID', '')} />,
+      subHeader: Container.isMobile
+        ? undefined
+        : () => <SubHeader teamID={Container.getRouteProps(props, 'teamID', '')} />,
+    })
 
 const startAnimationOffset = 40
 const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => {

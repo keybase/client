@@ -27,11 +27,12 @@ import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
 import TeamAddToTeamConfirm from './add-members-wizard/confirm'
+import Team from './team'
 import ExternalTeam from './external-team'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
-  team: {getScreen: () => require('./team/container').default},
+  team: {getScreen: (): typeof Team => require('./team').default},
   teamChannel: {
     getScreen: (): typeof TeamEditChannel => require('./channel').default,
   },
