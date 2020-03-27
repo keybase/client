@@ -65,8 +65,9 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
   ]
 }
 
-function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
+function* joinTeam(state: TypedState, action: TeamsGen.JoinTeamPayload) {
   const {teamname} = action.payload
+  const teamID = Constants.getTeamID(state, teamname)
   yield Saga.all([
     Saga.put(TeamsGen.createSetTeamJoinError({error: ''})),
     Saga.put(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''})),
@@ -75,7 +76,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
     const result: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise> = yield Saga.callUntyped(
       RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
       {tokenOrName: teamname},
-      Constants.teamWaitingKey(teamname)
+      Constants.teamWaitingKey(teamID)
     )
 
     // Success
@@ -243,7 +244,7 @@ const updateTeamRetentionPolicy = (
 }
 
 function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPayload, logger: Saga.SagaLogger) {
-  const {invitees, role, teamname, loadingKey} = action.payload
+  const {invitees, role, teamID, teamname, loadingKey} = action.payload
   if (loadingKey) {
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
@@ -254,7 +255,7 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
         name: teamname,
         role: (role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none) as any,
       },
-      [Constants.teamWaitingKey(teamname), Constants.addToTeamByEmailWaitingKey(teamname)]
+      [Constants.teamWaitingKey(teamID), Constants.addToTeamByEmailWaitingKey(teamname)]
     )
     if (res.malformed && res.malformed.length > 0) {
       const malformed = res.malformed
@@ -478,7 +479,7 @@ function* inviteToTeamByPhone(
   action: TeamsGen.InviteToTeamByPhonePayload,
   logger: Saga.SagaLogger
 ) {
-  const {teamname, role, phoneNumber, fullName = '', loadingKey} = action.payload
+  const {teamID, teamname, role, phoneNumber, fullName = '', loadingKey} = action.payload
   if (loadingKey) {
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
@@ -489,7 +490,7 @@ function* inviteToTeamByPhone(
         role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
         teamname: teamname,
       },
-      [Constants.teamWaitingKey(teamname)]
+      [Constants.teamWaitingKey(teamID)]
     )
     /* Open SMS */
     const bodyText = generateSMSBody(teamname, seitan)
@@ -508,11 +509,11 @@ function* inviteToTeamByPhone(
 }
 
 const ignoreRequest = async (action: TeamsGen.IgnoreRequestPayload) => {
-  const {teamname, username} = action.payload
+  const {teamID, username} = action.payload
   try {
     await RPCTypes.teamsTeamIgnoreRequestRpcPromise(
-      {name: teamname, username},
-      Constants.teamWaitingKey(teamname)
+      {teamID, username},
+      Constants.teamWaitingKey(teamID)
     )
   } catch (_) {
     // TODO handle error
@@ -587,7 +588,7 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
           teamID,
           username: user,
         },
-        [Constants.teamWaitingKey(team), Constants.addUserToTeamsWaitingKey(user)]
+        [Constants.teamWaitingKey(teamID), Constants.addUserToTeamsWaitingKey(user)]
       )
       teamsAddedTo.push(team)
     } catch (error) {
@@ -1034,7 +1035,7 @@ function* addTeamWithChosenChannels(
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
   let pushState: Saga.RPCPromiseType<typeof RPCTypes.gregorGetStateRpcPromise>
   try {
-    pushState = yield RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamname))
+    pushState = yield RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamID))
   } catch (err) {
     // failure getting the push state, don't bother the user with an error
     // and don't try to move forward updating the state
@@ -1084,9 +1085,10 @@ function* addTeamWithChosenChannels(
       category: Constants.chosenChannelsGregorKey,
       dtime,
     },
-    teams.map(t => Constants.teamWaitingKey(t))
+    teams.map(t => Constants.teamWaitingKey(Constants.getTeamID(state,t)))
   )
 }
+
 
 const updateChannelname = async (state: TypedState, action: TeamsGen.UpdateChannelNamePayload) => {
   const {teamID, conversationIDKey, newChannelName} = action.payload

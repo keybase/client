@@ -71,7 +71,7 @@ export default connect(
     }
   },
   (dispatch, {username, teamID}) => ({
-    _onIgnoreRequest: (teamname: string) => dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
+    _onIgnoreRequest: (teamname: string) => dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username})),
     letIn: (sendNotification: boolean, role: Types.TeamRoleType) => {
       dispatch(
         TeamsGen.createAddToTeam({
