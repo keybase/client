@@ -232,7 +232,7 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
   const numParticipants = Container.useSelector(
     s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
   )
-  const activityLevel = 'active' // TODO: plumbing
+  const activityLevel = 'recently'
   return Styles.isMobile ? (
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
@@ -272,9 +272,10 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
           </Kb.Text>
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
             <Kb.Text type="BodySmall">
-              {numMembers} {pluralize('member', numMembers)} •
+              {numMembers} {pluralize('member', numMembers)}
+              {activityLevel !== 'none' && ' • '}
             </Kb.Text>
-            <Common.Activity level="recently" />
+            <Common.Activity level={activityLevel} />
           </Kb.Box2>
         </Kb.Box2>
       }
