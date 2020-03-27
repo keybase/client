@@ -25,7 +25,6 @@ const ManageContacts = () => {
     dispatch(SettingsGen.createLoadContactImportEnabled())
   }
 
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onToggle = React.useCallback(
     () =>
       dispatch(
