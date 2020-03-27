@@ -139,6 +139,9 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, c
 
 func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
 	_, ok := emoji.CodeMap()[":"+alias+":"]
+	if !ok {
+		_, ok = emoji.CodeMap()[":"+strings.ReplaceAll(alias, "-", "_")+":"]
+	}
 	return ok
 }
 
