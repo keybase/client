@@ -1,4 +1,3 @@
-APPLICATION_EXTENSION_API_ONLY = YES
 CONFIGURATION_BUILD_DIR = ${PODS_CONFIGURATION_BUILD_DIR}/Flipper-DoubleConversion
 GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
 HEADER_SEARCH_PATHS = $(inherited) "${PODS_ROOT}/Headers/Private" "${PODS_ROOT}/Headers/Private/Flipper-DoubleConversion" "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/Flipper-DoubleConversion"

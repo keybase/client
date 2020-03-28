@@ -63,6 +63,14 @@ target 'Keybase' do
   use_unimodules!(modules_paths: ['../node_modules'])
   use_native_modules!
 
+  # Enables Flipper.
+  #
+  # Note that if you have use_frameworks! enabled, Flipper will not work and
+  # you should disable these next few lines.
+  add_flipper_pods!
+  post_install do |installer|
+    flipper_post_install(installer)
+  end
 end
 
 # # The following is needed to ensure the "archive" step works in XCode.
@@ -82,12 +90,4 @@ target 'KeybaseShare' do
   # Pods for KeybaseShare
   inherit! :search_paths
 
-  # Enables Flipper.
-  #
-  # Note that if you have use_frameworks! enabled, Flipper will not work and
-  # you should disable these next few lines.
-  add_flipper_pods!
-  post_install do |installer|
-    flipper_post_install(installer)
-  end
 end
