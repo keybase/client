@@ -9,11 +9,12 @@
 #import <AVFoundation/AVFoundation.h>
 #import <React/RCTPushNotificationManager.h>
 #import <React/RCTBundleURLProvider.h>
-#import "AppearanceRootView.h"
+#import <React/RCTRootView.h>
+#import <React/RCTLinkingManager.h>
 #import "Engine.h"
 #import "LogSend.h"
-#import <React/RCTLinkingManager.h>
 #import <keybase/keybase.h>
+
 #import "Pusher.h"
 #import "Fs.h"
 #import "Storybook.h"
@@ -80,7 +81,7 @@ static void InitializeFlipper(UIApplication *application) {
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 #if DEBUG
-  InitializeFlipper(application);
+ // InitializeFlipper(application);
 #endif
   // allow audio to be mixed
   [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
@@ -92,7 +93,7 @@ static void InitializeFlipper(UIApplication *application) {
   self.moduleRegistryAdapter = [[UMModuleRegistryAdapter alloc] initWithModuleRegistryProvider: [[UMModuleRegistryProvider alloc] init]];
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-  AppearanceRootView *rootView = [[AppearanceRootView alloc] initWithBridge:bridge
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"Keybase"
                                             initialProperties:nil];
   rootView.backgroundColor = [[UIColor alloc] initWithRed:71/255.0f green:139/255.f blue:1.0f alpha:1];

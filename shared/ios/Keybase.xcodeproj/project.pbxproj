@@ -42,8 +42,6 @@
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
 		DB6ABDAA242FA93600E9CC3E /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB6ABDA9242FA93600E9CC3E /* CoreServices.framework */; };
-		DB7C1EB62326A5F000A47A9E /* Appearance.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7C1EB52326A5F000A47A9E /* Appearance.m */; };
-		DB7C1EBA2326AA3F00A47A9E /* AppearanceRootView.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7C1EB92326AA3F00A47A9E /* AppearanceRootView.m */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
@@ -160,10 +158,6 @@
 		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
 		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DB6ABDA9242FA93600E9CC3E /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
-		DB7C1EB52326A5F000A47A9E /* Appearance.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Appearance.m; sourceTree = "<group>"; };
-		DB7C1EB72326A5FF00A47A9E /* Appearance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Appearance.h; sourceTree = "<group>"; };
-		DB7C1EB82326AA3F00A47A9E /* AppearanceRootView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppearanceRootView.h; sourceTree = "<group>"; };
-		DB7C1EB92326AA3F00A47A9E /* AppearanceRootView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppearanceRootView.m; sourceTree = "<group>"; };
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -360,10 +354,6 @@
 				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
 				DBCE36241B90F14800ECADDE /* Engine.m */,
 				DBBCC6171D9C5C6A00312652 /* main.m */,
-				DB7C1EB72326A5FF00A47A9E /* Appearance.h */,
-				DB7C1EB52326A5F000A47A9E /* Appearance.m */,
-				DB7C1EB82326AA3F00A47A9E /* AppearanceRootView.h */,
-				DB7C1EB92326AA3F00A47A9E /* AppearanceRootView.m */,
 				DB27DE561D747A6C003DE8BC /* Utils.m */,
 				DB27DE551D747A6B003DE8BC /* Utils.h */,
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
@@ -656,9 +646,7 @@
 				DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */,
 				DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */,
 				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
-				DB7C1EB62326A5F000A47A9E /* Appearance.m in Sources */,
 				A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */,
-				DB7C1EBA2326AA3F00A47A9E /* AppearanceRootView.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
 				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
 				375CA6651FFD40D300210B11 /* Storybook.m in Sources */,

@@ -2,16 +2,19 @@
 /* eslint-disable */
 import * as React from 'react'
 import {
-  StatusBar,
-  NativeModules,
-  LayoutAnimation,
-  StyleSheet,
   Keyboard,
   KeyboardAvoidingViewProps,
+  LayoutAnimation,
+  NativeEventEmitter,
+  NativeModules,
+  StatusBar,
+  StyleSheet,
   View,
 } from 'react-native'
 import {isIOS} from '../constants/platform'
 const {StatusBarManager} = NativeModules
+
+const EventEmitter = new NativeEventEmitter(StatusBarManager)
 
 class SplitAwareKeyboardAvoidingView extends React.Component<KeyboardAvoidingViewProps, State> {
   static defaultProps = {
@@ -187,7 +190,7 @@ const StatusbarAwareKeyboardAvoidingView = (p: KeyboardAvoidingViewProps) => {
 
     StatusBarManager.getHeight((response: any) => setStatusBarHeight(response.height))
 
-    const listener = StatusBar.addListener('statusBarFrameWillChange', statusBarData => {
+    const listener = EventEmitter.addListener('statusBarFrameWillChange', statusBarData => {
       setStatusBarHeight(statusBarData.frame.height)
     })
 
