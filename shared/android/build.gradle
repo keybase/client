@@ -24,7 +24,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.build:gradle:3.5.2'
         // KB: this is an old version, could look into updating
         classpath 'com.github.triplet.gradle:play-publisher:2.1.1' // To publish from gradle
         // NOTE: Do not place your application dependencies here; they belong
@@ -77,6 +77,6 @@ allprojects {
 
         google()
         jcenter()
-        maven { url 'https://jitpack.io' }
+        maven { url 'https://www.jitpack.io' }
     }
 }
