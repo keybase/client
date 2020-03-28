@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
 )
 
 type DevConvEmojiSource struct {
@@ -81,11 +82,30 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, c
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
 }
 
+func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
+	_, ok := emoji.CodeMap()[":"+alias+":"]
+	if !ok {
+		_, ok = emoji.CodeMap()[":"+strings.ReplaceAll(alias, "-", "_")+":"]
+	}
+	return ok
+}
+
+func (s *DevConvEmojiSource) validateAlias(alias string) (string, error) {
+	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
+	if strings.Contains(alias, "#") {
+		return alias, errors.New("invalid character in emoji alias")
+	}
+	if s.isStockEmoji(alias) {
+		return alias, errors.New("cannot use existing stock emoji alias")
+	}
+	return alias, nil
+}
+
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
-	if strings.Contains(alias, "#") {
-		return res, errors.New("invalid character in emoji alias")
+	if alias, err = s.validateAlias(alias); err != nil {
+		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
@@ -94,8 +114,8 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
-	if strings.Contains(newAlias, "#") {
-		return res, errors.New("invalid character in emoji alias")
+	if newAlias, err = s.validateAlias(newAlias); err != nil {
+		return res, err
 	}
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
