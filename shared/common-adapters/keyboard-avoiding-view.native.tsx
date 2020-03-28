@@ -2,7 +2,7 @@
 /* eslint-disable */
 import * as React from 'react'
 import {
-  StatusBarIOS,
+  StatusBar,
   NativeModules,
   LayoutAnimation,
   StyleSheet,
@@ -187,7 +187,7 @@ const StatusbarAwareKeyboardAvoidingView = (p: KeyboardAvoidingViewProps) => {
 
     StatusBarManager.getHeight((response: any) => setStatusBarHeight(response.height))
 
-    const listener = StatusBarIOS.addListener('statusBarFrameWillChange', statusBarData => {
+    const listener = StatusBar.addListener('statusBarFrameWillChange', statusBarData => {
       setStatusBarHeight(statusBarData.frame.height)
     })
 

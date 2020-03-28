@@ -339,14 +339,11 @@ class TeamBuilding extends React.PureComponent<Props> {
             : this.props.recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
-        // @ts-ignore RN type not plumbed. see section-list.d.ts
-        const node = ref.getNode()
-        node &&
-          node.scrollToLocation({
-            animated: false,
-            itemIndex: 0,
-            sectionIndex,
-          })
+        ref?.scrollToLocation({
+          animated: false,
+          itemIndex: 0,
+          sectionIndex,
+        })
       }
     }
   }
