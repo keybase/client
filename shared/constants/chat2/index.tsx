@@ -99,8 +99,8 @@ export const makeState = (): Types.State => ({
   unfurlPromptMap: new Map(),
   unreadMap: new Map(),
   unsentTextMap: new Map(),
+  userEmojisForAutocomplete: undefined,
   userReacjis: defaultUserReacjis,
-  userEmojis: undefined,
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({

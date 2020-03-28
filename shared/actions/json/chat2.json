@@ -934,10 +934,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "teamIDs": "Array<TeamsTypes.TeamID>"
     },
-    "fetchUserEmoji": {
-      "_description": "Refresh user emoji and put it in store"
+    "fetchUserEmojiForAutocomplete": {
+      "_description": "Refresh user emoji and put it in store for autocomplete"
     },
-    "loadedUserEmoji": {
+    "loadedUserEmojiForAutocomplete": {
       "fetchedEmojis": "RPCChatTypes.UserEmojis"
     }
   }

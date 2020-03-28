@@ -378,7 +378,7 @@ class Input extends React.Component<InputProps, InputState> {
       let userEmoji = this.props.userEmojis
         .filter(emoji => emoji.alias.toLowerCase().includes(filter))
         .map(emoji => RPCToEmojiData(emoji))
-      emojiData = emojiData.concat(userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)))
+      emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
     }
 
     return {

@@ -46,7 +46,7 @@ export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
-export const fetchUserEmoji = 'chat2:fetchUserEmoji'
+export const fetchUserEmojiForAutocomplete = 'chat2:fetchUserEmojiForAutocomplete'
 export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
@@ -72,7 +72,7 @@ export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const loadedMutualTeams = 'chat2:loadedMutualTeams'
-export const loadedUserEmoji = 'chat2:loadedUserEmoji'
+export const loadedUserEmojiForAutocomplete = 'chat2:loadedUserEmojiForAutocomplete'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -299,7 +299,7 @@ type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
 }
-type _FetchUserEmojiPayload = void
+type _FetchUserEmojiForAutocompletePayload = void
 type _FindGeneralConvIDFromTeamIDPayload = {readonly teamID: TeamsTypes.TeamID}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -369,7 +369,7 @@ type _LoadedMutualTeamsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly teamIDs: Array<TeamsTypes.TeamID>
 }
-type _LoadedUserEmojiPayload = {readonly fetchedEmojis: RPCChatTypes.UserEmojis}
+type _LoadedUserEmojiForAutocompletePayload = {readonly fetchedEmojis: RPCChatTypes.UserEmojis}
 type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
@@ -1191,12 +1191,11 @@ export const createInboxRefresh = (payload: _InboxRefreshPayload): InboxRefreshP
   type: inboxRefresh,
 })
 /**
- * Refresh user emoji and put it in store
+ * Refresh user emoji and put it in store for autocomplete
  */
-export const createFetchUserEmoji = (payload: _FetchUserEmojiPayload): FetchUserEmojiPayload => ({
-  payload,
-  type: fetchUserEmoji,
-})
+export const createFetchUserEmojiForAutocomplete = (
+  payload: _FetchUserEmojiForAutocompletePayload
+): FetchUserEmojiForAutocompletePayload => ({payload, type: fetchUserEmojiForAutocomplete})
 /**
  * Remove an unfurl
  */
@@ -1800,10 +1799,9 @@ export const createLoadedMutualTeams = (payload: _LoadedMutualTeamsPayload): Loa
   payload,
   type: loadedMutualTeams,
 })
-export const createLoadedUserEmoji = (payload: _LoadedUserEmojiPayload): LoadedUserEmojiPayload => ({
-  payload,
-  type: loadedUserEmoji,
-})
+export const createLoadedUserEmojiForAutocomplete = (
+  payload: _LoadedUserEmojiForAutocompletePayload
+): LoadedUserEmojiForAutocompletePayload => ({payload, type: loadedUserEmojiForAutocomplete})
 export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
   payload,
   type: lockAudioRecording,
@@ -1991,9 +1989,9 @@ export type EnableAudioRecordingPayload = {
   readonly payload: _EnableAudioRecordingPayload
   readonly type: typeof enableAudioRecording
 }
-export type FetchUserEmojiPayload = {
-  readonly payload: _FetchUserEmojiPayload
-  readonly type: typeof fetchUserEmoji
+export type FetchUserEmojiForAutocompletePayload = {
+  readonly payload: _FetchUserEmojiForAutocompletePayload
+  readonly type: typeof fetchUserEmojiForAutocomplete
 }
 export type FindGeneralConvIDFromTeamIDPayload = {
   readonly payload: _FindGeneralConvIDFromTeamIDPayload
@@ -2083,9 +2081,9 @@ export type LoadedMutualTeamsPayload = {
   readonly payload: _LoadedMutualTeamsPayload
   readonly type: typeof loadedMutualTeams
 }
-export type LoadedUserEmojiPayload = {
-  readonly payload: _LoadedUserEmojiPayload
-  readonly type: typeof loadedUserEmoji
+export type LoadedUserEmojiForAutocompletePayload = {
+  readonly payload: _LoadedUserEmojiForAutocompletePayload
+  readonly type: typeof loadedUserEmojiForAutocomplete
 }
 export type LockAudioRecordingPayload = {
   readonly payload: _LockAudioRecordingPayload
@@ -2520,7 +2518,7 @@ export type Actions =
   | DismissJourneycardPayload
   | EditBotSettingsPayload
   | EnableAudioRecordingPayload
-  | FetchUserEmojiPayload
+  | FetchUserEmojiForAutocompletePayload
   | FindGeneralConvIDFromTeamIDPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
@@ -2546,7 +2544,7 @@ export type Actions =
   | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
   | LoadedMutualTeamsPayload
-  | LoadedUserEmojiPayload
+  | LoadedUserEmojiForAutocompletePayload
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload

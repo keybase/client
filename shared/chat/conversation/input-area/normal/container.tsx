@@ -213,7 +213,7 @@ export default Container.namedConnect(
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
       typing: Constants.getTyping(state, conversationIDKey),
       unsentText,
-      userEmojis: state.chat2.userEmojis,
+      userEmojis: state.chat2.userEmojisForAutocomplete,
       userEmojisLoading: Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji),
     }
   },
@@ -277,7 +277,7 @@ export default Container.namedConnect(
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
     onChannelSuggestionsTriggered: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey})),
-    onFetchEmoji: () => dispatch(Chat2Gen.createFetchUserEmoji()),
+    onFetchEmoji: () => dispatch(Chat2Gen.createFetchUserEmojiForAutocomplete()),
     onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
