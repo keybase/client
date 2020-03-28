@@ -80,7 +80,7 @@ target 'KeybaseShare' do
   # use_frameworks!
 
   # Pods for KeybaseShare
-  inherit! :complete
+  inherit! :search_paths
 
   # Enables Flipper.
   #
