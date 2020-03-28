@@ -569,14 +569,14 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, con
 	return msg, nil
 }
 
-func (s *BlockingSender) handleCrossTeamEmojis(ctx context.Context, uid gregor1.UID,
+func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessagePlaintext, topicType chat1.TopicType) (chat1.MessagePlaintext, error) {
 	if topicType != chat1.TopicType_CHAT {
 		return msg, nil
 	}
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
-		s.Debug(ctx, "handleCrossTeamEmojis: failed to get body type: %s", err)
+		s.Debug(ctx, "handleEmojis: failed to get body type: %s", err)
 		return msg, nil
 	}
 	var body string
@@ -588,20 +588,18 @@ func (s *BlockingSender) handleCrossTeamEmojis(ctx context.Context, uid gregor1.
 	default:
 		return msg, nil
 	}
-	ct := make(map[string]chat1.HarvestedEmoji)
-	emojis, err := s.G().EmojiSource.Harvest(ctx, body, uid, convID, ct, types.EmojiSourceHarvestModeOutbound)
+	emojis, err := s.G().EmojiSource.Harvest(ctx, body, uid, convID)
 	if err != nil {
 		return msg, err
 	}
+	ct := make(map[string]chat1.HarvestedEmoji)
 	for _, emoji := range emojis {
-		if emoji.IsCrossTeam {
-			ct[emoji.Alias] = emoji
-		}
+		ct[emoji.Alias] = emoji
 	}
 	if len(ct) == 0 {
 		return msg, nil
 	}
-	s.Debug(ctx, "handleCrossTeamEmojis: found %d cross team emojis", len(ct))
+	s.Debug(ctx, "handleEmojis: found %d emojis", len(ct))
 	switch typ {
 	case chat1.MessageType_TEXT:
 		newBody := msg.MessageBody.Text().DeepCopy()
@@ -840,7 +838,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 
 		// Handle cross team emoji
-		if msg, err = s.handleCrossTeamEmojis(ctx, uid, convID, msg, conv.Info.Triple.TopicType); err != nil {
+		if msg, err = s.handleEmojis(ctx, uid, convID, msg, conv.Info.Triple.TopicType); err != nil {
 			s.Debug(ctx, "Prepare: error processing cross team emoji: %s", err)
 			return res, err
 		}
