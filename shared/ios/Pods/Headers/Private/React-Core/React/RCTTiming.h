@@ -1,1 +1,1 @@
-../../../../../../node_modules/react-native/React/Modules/RCTTiming.h
+../../../../../../node_modules/react-native/React/CoreModules/RCTTiming.h

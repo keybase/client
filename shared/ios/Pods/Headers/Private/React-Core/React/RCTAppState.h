@@ -1,1 +1,1 @@
-../../../../../../node_modules/react-native/React/Modules/RCTAppState.h
+../../../../../../node_modules/react-native/React/CoreModules/RCTAppState.h

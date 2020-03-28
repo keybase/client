@@ -1,1 +1,1 @@
-../../../../../../node_modules/react-native/React/Modules/RCTRedBox.h
+../../../../../../node_modules/react-native/React/CoreModules/RCTRedBox.h

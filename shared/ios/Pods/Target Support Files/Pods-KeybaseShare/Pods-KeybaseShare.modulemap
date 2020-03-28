@@ -1,0 +1,6 @@
+module Pods_KeybaseShare {
+  umbrella header "Pods-KeybaseShare-umbrella.h"
+
+  export *
+  module * { export * }
+}
