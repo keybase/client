@@ -138,13 +138,14 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		gomock.Any()).AnyTimes().Return(nil)
 	// Ignore BlockRetriever calls
 	clock := clocktest.NewTestClockNow()
-	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
+	ctlr := gomock.NewController(t)
+	mockPublisher := NewMockSubscriptionManagerPublisher(ctlr)
 	mockPublisher.EXPECT().PublishChange(gomock.Any()).AnyTimes()
 	brc := &testBlockRetrievalConfig{
 		nil, newTestLogMaker(t), config.BlockCache(), nil,
-		newTestDiskBlockCacheGetter(t, nil), newTestSyncedTlfGetterSetter(),
-		testInitModeGetter{InitDefault}, clock, NewReporterSimple(clock, 1),
-		nil, mockPublisher,
+		NewMockBlockServer(ctlr), newTestDiskBlockCacheGetter(t, nil),
+		newTestSyncedTlfGetterSetter(), testInitModeGetter{InitDefault}, clock,
+		NewReporterSimple(clock, 1), nil, mockPublisher,
 	}
 	brq := newBlockRetrievalQueue(0, 0, 0, brc, env.EmptyAppStateUpdater{})
 	config.mockBops.EXPECT().BlockRetriever().AnyTimes().Return(brq)
@@ -565,9 +566,10 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 
 func expectBlock(config *ConfigMock, kmd libkey.KeyMetadata, blockPtr data.BlockPointer, block data.Block, err error) {
 	config.mockBops.EXPECT().Get(gomock.Any(), kmdMatcher{kmd},
-		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any()).
+		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, kmd libkey.KeyMetadata,
-			blockPtr data.BlockPointer, getBlock data.Block, lifetime data.BlockCacheLifetime) {
+			blockPtr data.BlockPointer, getBlock data.Block,
+			lifetime data.BlockCacheLifetime, _ data.BranchName) {
 			getBlock.Set(block)
 			_ = config.BlockCache().Put(
 				blockPtr, kmd.TlfID(), getBlock, lifetime, data.DoCacheHash)
@@ -4698,7 +4700,8 @@ func waitForIndirectPtrBlocksInTest(
 		newBlock := block.NewEmpty()
 		t.Logf("Waiting for block %s", info.BlockPointer)
 		err := config.BlockOps().Get(
-			ctx, kmd, info.BlockPointer, newBlock, data.TransientEntry)
+			ctx, kmd, info.BlockPointer, newBlock, data.TransientEntry,
+			data.MasterBranch)
 		require.NoError(t, err)
 	}
 }

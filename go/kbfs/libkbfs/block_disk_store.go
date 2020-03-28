@@ -282,7 +282,7 @@ func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 
 	// Check integrity.
 
-	err = kbfsblock.VerifyID(data, id)
+	err = verifyLocalBlockIDMaybe(data, id)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/contacts"
+	email_utils "github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -297,6 +298,146 @@ func imptofuQueryToAssertion(ctx context.Context, typ, val string) (ret libkb.As
 	return ret, err
 }
 
+// Search result coming from `searchEmailsOrPhoneNumbers`.
+type imptofuQueryResult struct {
+	input      string
+	validInput bool
+	assertion  libkb.AssertionURL
+
+	found      bool
+	UID        keybase1.UID
+	username   string
+	fullName   string
+	serviceMap libkb.UserServiceSummary
+}
+
+type searchEmailsOrPhoneNumbersResult struct {
+	emails       []imptofuQueryResult
+	phoneNumbers []imptofuQueryResult
+}
+
+func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	phoneNumbers []keybase1.RawPhoneNumber, requireUsernames bool,
+	includeServicesSummary bool) (ret searchEmailsOrPhoneNumbersResult, err error) {
+
+	// Create assertions from e-mail addresses. Only search for the ones that
+	// actually yield a valid assertions, but return all of them in results
+	// from this function.
+	emailsToSearch := make([]keybase1.EmailAddress, 0, len(emails))
+	emailRes := make([]imptofuQueryResult, len(emails))
+	for i, email := range emails {
+		emailRes[i].input = string(email)
+		assertion, err := imptofuQueryToAssertion(mctx.Ctx(), "email", string(email))
+		if err == nil {
+			emailRes[i].validInput = true
+			emailRes[i].assertion = assertion
+			emailsToSearch = append(emailsToSearch, email)
+		} else {
+			mctx.Debug("Failed to create assertion from email: %s, skipping in search", email)
+		}
+	}
+
+	phonesToSearch := make([]keybase1.RawPhoneNumber, 0, len(phoneNumbers))
+	phoneRes := make([]imptofuQueryResult, len(phoneNumbers))
+	for i, phone := range phoneNumbers {
+		phoneRes[i].input = string(phone)
+		assertion, err := imptofuQueryToAssertion(mctx.Ctx(), "phone", string(phone))
+		if err == nil {
+			phoneRes[i].validInput = true
+			phoneRes[i].assertion = assertion
+			phonesToSearch = append(phonesToSearch, phone)
+		} else {
+			mctx.Debug("Failed to create assertion from phone number: %s, skipping in search", phone)
+		}
+	}
+
+	ret.emails = emailRes
+	ret.phoneNumbers = phoneRes
+
+	if len(emailsToSearch)+len(phonesToSearch) == 0 {
+		// Everything was invalid (or we were given two empty lists).
+		return ret, nil
+	}
+
+	lookupRes, err := h.contactsProvider.LookupAll(mctx, emailsToSearch, phonesToSearch)
+	if err != nil {
+		return ret, err
+	}
+	if len(lookupRes.Results) == 0 {
+		return ret, nil
+	}
+
+	uids := make([]keybase1.UID, 0, len(lookupRes.Results))
+	for _, v := range lookupRes.Results {
+		if v.Error == "" && v.UID.Exists() {
+			uids = append(uids, v.UID)
+		}
+	}
+
+	usernames, err := h.contactsProvider.FindUsernames(mctx, uids)
+	if err != nil {
+		if requireUsernames {
+			return ret, err
+		}
+		mctx.Warning("Cannot find usernames for search results: %s", err)
+	}
+
+	var serviceMaps map[keybase1.UID]libkb.UserServiceSummary
+	if includeServicesSummary {
+		serviceMaps, err = h.contactsProvider.FindServiceMaps(mctx, uids)
+		if err != nil {
+			mctx.Warning("Cannot get service maps for search results: %s", err)
+		}
+	}
+
+	copyResult := func(slice []imptofuQueryResult, index int, result contacts.ContactLookupResult) {
+		if result.Error != "" || result.UID.IsNil() {
+			return
+		}
+
+		row := slice[index]
+		row.found = true
+		row.UID = result.UID
+		usernamePkg, ok := usernames[result.UID]
+		if ok {
+			row.username = usernamePkg.Username
+			row.fullName = usernamePkg.Fullname
+		}
+		row.serviceMap = serviceMaps[result.UID]
+
+		assertion := row.assertion
+		if result.Coerced != "" && result.Coerced != assertion.GetValue() {
+			// Server corrected our assertion - take it instead of what we have.
+			assertion, err := imptofuQueryToAssertion(mctx.Ctx(), assertion.GetKey(), result.Coerced)
+			if err == nil {
+				row.assertion = assertion
+			} else {
+				mctx.Warning("Failed to create assertion from coerced result: %s", err)
+			}
+		}
+
+		slice[index] = row
+	}
+
+	for i, email := range emails {
+		lookupKey := contacts.MakeEmailLookupKey(email)
+		result, found := lookupRes.Results[lookupKey]
+		if found {
+			copyResult(emailRes, i, result)
+		}
+	}
+
+	for i, phone := range phoneNumbers {
+		lookupKey := contacts.MakePhoneLookupKey(phone)
+		result, found := lookupRes.Results[lookupKey]
+		if found {
+			copyResult(phoneRes, i, result)
+		}
+	}
+
+	return ret, nil
+}
+
 func (h *UserSearchHandler) imptofuSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	var emails []keybase1.EmailAddress
 	var phones []keybase1.RawPhoneNumber
@@ -310,93 +451,48 @@ func (h *UserSearchHandler) imptofuSearch(mctx libkb.MetaContext, arg keybase1.U
 		return nil, fmt.Errorf("unexpected service=%q in imptofuSearch", arg.Service)
 	}
 
-	lookupRes, err := h.contactsProvider.LookupAll(mctx, emails, phones)
+	searchRet, err := h.searchEmailsOrPhoneNumbers(mctx, emails, phones, false /* requireUsernames */, arg.IncludeServicesSummary)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(lookupRes.Results) > 0 {
-		var uids []keybase1.UID
-		for _, v := range lookupRes.Results {
-			if v.Error == "" && !v.UID.IsNil() {
-				uids = append(uids, v.UID)
-			}
-		}
-
-		usernames, err := h.contactsProvider.FindUsernames(mctx, uids)
-		if err != nil {
-			mctx.Warning("Cannot find usernames for search results: %s", err)
-		}
-		var serviceMaps map[keybase1.UID]libkb.UserServiceSummary
-		if arg.IncludeServicesSummary {
-			serviceMaps, err = h.contactsProvider.FindServiceMaps(mctx, uids)
-			if err != nil {
-				mctx.Warning("Cannot get service maps for search results: %s", err)
-			}
-		}
-
-		for _, v := range lookupRes.Results {
-			// Found a resolution
-			if v.Error != "" || v.UID.IsNil() {
-				continue
-			}
-
-			assertionValueArg := arg.Query
-			if v.Coerced != "" {
-				// Server corrected our assertion - take this instead.
-				assertionValueArg = v.Coerced
-			}
-			assertion, err := imptofuQueryToAssertion(mctx.Ctx(), arg.Service, assertionValueArg)
-			if err != nil {
-				return nil, err
-			}
-			imptofu := &keybase1.ImpTofuSearchResult{
-				Assertion:      assertion.String(),
-				AssertionKey:   assertion.GetKey(),
-				AssertionValue: assertion.GetValue(),
-			}
-			if usernames != nil {
-				if uname, found := usernames[v.UID]; found {
-					imptofu.KeybaseUsername = uname.Username
-					imptofu.PrettyName = uname.Fullname
-				}
-			}
-			var servicesSummary map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary
-			if serviceMaps != nil {
-				if smap, found := serviceMaps[v.UID]; found && len(smap) > 0 {
-					servicesSummary = make(map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary, len(smap))
-					for serviceID, username := range smap {
-						serviceName := keybase1.APIUserServiceID(serviceID)
-						servicesSummary[serviceName] = keybase1.APIUserServiceSummary{
-							ServiceName: serviceName,
-							Username:    username,
-						}
-					}
-				}
-			}
-			res = []keybase1.APIUserSearchResult{{
-				Score:           1.0,
-				Imptofu:         imptofu,
-				ServicesSummary: servicesSummary,
-			}}
-			return res, nil // return here - we only want one result
-		}
+	slice := append(searchRet.emails, searchRet.phoneNumbers...)
+	if len(slice) != 1 {
+		return nil, fmt.Errorf("Expected 1 result from `searchEmailsOrPhoneNumbers` but got %d", len(slice))
 	}
 
-	// Not resolved - add SBS result.
-	assertion, err := imptofuQueryToAssertion(mctx.Ctx(), arg.Service, arg.Query)
-	if err != nil {
-		return nil, err
+	result := slice[0]
+	if !result.validInput {
+		return nil, fmt.Errorf("Invalid input: %q", result.input)
 	}
+
 	imptofu := &keybase1.ImpTofuSearchResult{
-		Assertion:      assertion.String(),
-		AssertionKey:   assertion.GetKey(),
-		AssertionValue: assertion.GetValue(),
+		Assertion:      result.assertion.String(),
+		AssertionKey:   result.assertion.GetKey(),
+		AssertionValue: result.assertion.GetValue(),
 	}
+	var servicesSummary map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary
+	if result.found {
+		imptofu.KeybaseUsername = result.username
+		imptofu.PrettyName = result.fullName
+		if result.serviceMap != nil {
+			servicesSummary = make(map[keybase1.APIUserServiceID]keybase1.APIUserServiceSummary, len(result.serviceMap))
+			for serviceID, username := range result.serviceMap {
+				serviceName := keybase1.APIUserServiceID(serviceID)
+				servicesSummary[serviceName] = keybase1.APIUserServiceSummary{
+					ServiceName: serviceName,
+					Username:    username,
+				}
+			}
+		}
+	}
+
 	res = []keybase1.APIUserSearchResult{{
-		Score:   1.0,
-		Imptofu: imptofu,
+		Score:           1.0,
+		Imptofu:         imptofu,
+		ServicesSummary: servicesSummary,
 	}}
+
 	return res, nil
 }
 
@@ -573,4 +669,65 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 	}
 
 	return res, nil
+}
+
+func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
+	arg keybase1.BulkEmailOrPhoneSearchArg) (ret []keybase1.EmailOrPhoneNumberSearchResult, err error) {
+
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)",
+		len(arg.Emails), len(arg.PhoneNumbers)), func() error { return err })()
+
+	// Use `emails` package to split comma/newline separated list of emails
+	// into actual list of valid emails.
+	emailStrings := email_utils.ParseSeparatedEmails(mctx, arg.Emails, nil /* malformed */)
+	emails := make([]keybase1.EmailAddress, len(emailStrings))
+	for i, v := range emailStrings {
+		emails[i] = keybase1.EmailAddress(v)
+	}
+
+	// We ask callers to give us valid phone numbers as the argument even
+	// though `searchEmailsOrPhoneNumbers` could handle invalid or
+	// mis-formatted numbers as well (in theory).
+
+	// TODO: It's probably a good idea to figure out which one it is and clean
+	// this code up.
+
+	phones := make([]keybase1.RawPhoneNumber, len(arg.PhoneNumbers))
+	for i, v := range arg.PhoneNumbers {
+		phones[i] = keybase1.RawPhoneNumber(v)
+	}
+
+	searchRet, err := h.searchEmailsOrPhoneNumbers(mctx, emails, phones,
+		false /* requireUsernames */, false /* includeServiceSummary */)
+	if err != nil {
+		return ret, err
+	}
+
+	// Caller shouldn't care about the ordering here, we are mixing everything
+	// together and returning as one list.
+	all := append(searchRet.emails, searchRet.phoneNumbers...)
+	ret = make([]keybase1.EmailOrPhoneNumberSearchResult, 0, len(all))
+	for _, result := range all {
+		if !result.validInput {
+			continue
+		}
+
+		// Localize result to keybase1 type.
+		locRes := keybase1.EmailOrPhoneNumberSearchResult{
+			Input:          result.input,
+			Assertion:      result.assertion.String(),
+			AssertionKey:   result.assertion.GetKey(),
+			AssertionValue: result.assertion.GetValue(),
+		}
+		if result.found && result.username != "" {
+			locRes.FoundUser = result.found
+			locRes.Username = result.username
+			locRes.FullName = result.fullName
+		}
+
+		ret = append(ret, locRes)
+	}
+
+	return ret, nil
 }

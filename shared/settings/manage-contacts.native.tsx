@@ -15,7 +15,6 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 
 const ManageContacts = () => {
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
 
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
@@ -25,7 +24,6 @@ const ManageContacts = () => {
     dispatch(SettingsGen.createLoadContactImportEnabled())
   }
 
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onToggle = React.useCallback(
     () =>
       dispatch(
@@ -38,7 +36,6 @@ const ManageContacts = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
-      <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
         <ManageContactsBanner />
         <SettingsSection>
@@ -119,6 +116,11 @@ const ManageContactsBanner = () => {
       )}
     </>
   )
+}
+
+ManageContacts.navigationOptions = {
+  header: undefined,
+  title: 'Contacts',
 }
 
 const styles = Styles.styleSheetCreate(

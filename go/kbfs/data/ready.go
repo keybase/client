@@ -17,7 +17,7 @@ import (
 func ReadyBlock(
 	ctx context.Context, bcache BlockCache, rp ReadyProvider,
 	kmd libkey.KeyMetadata, block Block, chargedTo keybase1.UserOrTeamID,
-	bType keybase1.BlockType) (
+	bType keybase1.BlockType, hashBehavior BlockCacheHashBehavior) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	var ptr BlockPointer
 	directType := DirectBlock
@@ -25,7 +25,7 @@ func ReadyBlock(
 		directType = IndirectBlock
 	} else if fBlock, ok := block.(*FileBlock); ok {
 		// first see if we are duplicating any known blocks in this folder
-		ptr, err = bcache.CheckForKnownPtr(kmd.TlfID(), fBlock)
+		ptr, err = bcache.CheckForKnownPtr(kmd.TlfID(), fBlock, hashBehavior)
 		if err != nil {
 			return BlockInfo{}, 0, ReadyBlockData{}, err
 		}

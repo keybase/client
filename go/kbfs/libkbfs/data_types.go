@@ -463,6 +463,7 @@ const (
 	blockRequestStopPrefetchIfFull
 	blockRequestDeepSync
 	blockRequestDelayCacheCheck
+	blockRequestNonMasterBranch
 
 	// BlockRequestSolo indicates that no action should take place
 	// after fetching the block.  However, a TLF that is configured to
@@ -527,6 +528,9 @@ func (bra BlockRequestAction) String() string {
 	if bra.DelayCacheCheck() {
 		attrs = append(attrs, "delay-cache-check")
 	}
+	if bra.NonMasterBranch() {
+		attrs = append(attrs, "non-master-branch")
+	}
 
 	return strings.Join(attrs, "|")
 }
@@ -568,13 +572,15 @@ func (bra BlockRequestAction) PrefetchTracked() bool {
 // Sync returns true if the action indicates the block should go into
 // the sync cache.
 func (bra BlockRequestAction) Sync() bool {
-	return bra&blockRequestSync > 0
+	return bra&blockRequestSync > 0 && bra&blockRequestNonMasterBranch == 0
 }
 
 // DeepSync returns true if the action indicates a deep-syncing of the
 // block tree rooted at the given block.
 func (bra BlockRequestAction) DeepSync() bool {
-	// The delayed cache check doesn't affect deep-syncing.
+	// The delayed cache check doesn't affect deep-syncing.  Note that
+	// if the mnon-master branch check attribute is set, we want
+	// deep-syncing to fail.
 	return bra.WithoutDelayedCacheCheckAction() == BlockRequestWithDeepSync
 }
 
@@ -633,6 +639,18 @@ func (bra BlockRequestAction) AddPrefetch() BlockRequestAction {
 	}
 
 	return bra | blockRequestPrefetch | blockRequestTrackedInPrefetch
+}
+
+// AddNonMasterBranch returns a new action that indicates the request
+// is for a block on a non-master branch.
+func (bra BlockRequestAction) AddNonMasterBranch() BlockRequestAction {
+	return bra | blockRequestNonMasterBranch
+}
+
+// NonMasterBranch returns true if the block is being fetched for a
+// branch other than the master branch.
+func (bra BlockRequestAction) NonMasterBranch() bool {
+	return bra&blockRequestNonMasterBranch > 0
 }
 
 // CacheType returns the disk block cache type that should be used,
