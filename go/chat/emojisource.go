@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -42,21 +43,41 @@ type DevConvEmojiSource struct {
 	eg           errgroup.Group
 	activeCancel context.CancelFunc
 
-	getLock     sync.Mutex
-	aliasLookup map[string]chat1.Emoji
-	ri          func() chat1.RemoteInterface
-	jobCh       chan emojiLoadJob
+	getLock         sync.Mutex
+	aliasLookup     map[string]chat1.Emoji
+	ri              func() chat1.RemoteInterface
+	jobCh           chan emojiLoadJob
+	loadBatch       func(interface{})
+	loadBatchCancel func()
 }
 
 var _ types.EmojiSource = (*DevConvEmojiSource)(nil)
 
 func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) *DevConvEmojiSource {
-	return &DevConvEmojiSource{
+	s := &DevConvEmojiSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConvEmojiSource", false),
 		ri:           ri,
 		jobCh:        make(chan emojiLoadJob, 1000),
 	}
+	loadBatch, loadBatchCancel := libkb.ThrottleBatch(
+		func(intBatched interface{}) {
+			infos := intBatched.([]chat1.EmojiNotifyInfo)
+			s.G().NotifyRouter.HandleEmojiInfo(context.Background(), infos)
+		},
+		func(intBatched interface{}, intSingle interface{}) interface{} {
+			existing := intBatched.([]chat1.EmojiNotifyInfo)
+			newInfos := intSingle.([]chat1.EmojiNotifyInfo)
+			return append(existing, newInfos...)
+		},
+		func() interface{} {
+			return []chat1.EmojiNotifyInfo{}
+		},
+		200*time.Millisecond, true,
+	)
+	s.loadBatch = loadBatch
+	s.loadBatchCancel = loadBatchCancel
+	return s
 }
 
 func (s *DevConvEmojiSource) Start(ctx context.Context, uid gregor1.UID) {
@@ -81,6 +102,9 @@ func (s *DevConvEmojiSource) Stop(ctx context.Context) chan struct{} {
 		close(s.stopCh)
 		if s.activeCancel != nil {
 			s.activeCancel()
+		}
+		if s.loadBatchCancel != nil {
+			s.loadBatchCancel()
 		}
 		s.started = false
 		go func() {
@@ -727,7 +751,7 @@ func (s *DevConvEmojiSource) loadJob(ctx context.Context, job emojiLoadJob) (err
 	}
 	s.Debug(ctx, "loadJob: sending notification: uid: %s num: %d", s.uid, len(infos))
 	if len(infos) > 0 {
-		s.G().NotifyRouter.HandleEmojiInfo(ctx, infos)
+		s.loadBatch(infos)
 	}
 	return nil
 }
