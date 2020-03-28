@@ -443,6 +443,10 @@ func (mso modeSingleOp) TLFEditHistoryEnabled() bool {
 	return false
 }
 
+func (mso modeSingleOp) MetricsEnabled() bool {
+	return false
+}
+
 func (mso modeSingleOp) SendEditNotificationsEnabled() bool {
 	// We don't want git, or other single op writes, showing up in the
 	// notification history.

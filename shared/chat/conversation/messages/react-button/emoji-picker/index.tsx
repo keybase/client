@@ -6,6 +6,7 @@ import * as Styles from '../../../../../styles'
 import {isMobile} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
 import {memoize} from '../../../../../util/memoize'
+import {EmojiData, RPCToEmojiData} from '../../../../../util/emoji'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
@@ -18,7 +19,7 @@ const _getData = () => {
   return {categories, emojiIndex, emojiNameMap, emojiSkinTones}
 }
 
-const chunkEmojis = (emojis: Array<Data.EmojiData>, emojisPerLine: number): Array<Row> =>
+const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
   chunk(emojis, emojisPerLine).map((c: any, idx: number) => ({
     emojis: c,
     key: (c && c.length && c[0] && c[0].short_name) || String(idx),
@@ -41,7 +42,7 @@ const getFrequentSection = memoize(
   ): Section => {
     const {emojiNameMap} = _getData()
     const customEmojiIndex = getCustomEmojiIndex(customEmojiGroups)
-    const emojis = topReacjis.reduce<Array<Data.EmojiData>>((arr, shortName) => {
+    const emojis = topReacjis.reduce<Array<EmojiData>>((arr, shortName) => {
       const shortNameNoColons = shortName.replace(/:/g, '')
       const emoji = emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
       if (emoji) {
@@ -62,14 +63,14 @@ const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
 
-type Row = {emojis: Array<Data.EmojiData>; key: string}
+type Row = {emojis: Array<EmojiData>; key: string}
 type Section = _Section<Row, {title: string}>
 
 type Props = {
   topReacjis: Array<string>
   filter?: string
   onChoose: (emojiStr: string) => void
-  onHover?: (emoji: Data.EmojiData) => void
+  onHover?: (emoji: EmojiData) => void
   skinTone?: Types.EmojiSkinTone
   customSections?: RPCChatGen.EmojiGroup[]
   width: number
@@ -88,28 +89,11 @@ type Bookmark = {
 
 const emojiGroupsToEmojiArrayArray = (
   emojiGroups: Array<RPCChatGen.EmojiGroup>
-): Array<{emojis: Array<Data.EmojiData>; name: string}> =>
+): Array<{emojis: Array<EmojiData>; name: string}> =>
   emojiGroups.map(emojiGroup => ({
     emojis:
       emojiGroup.emojis
-        ?.map(e =>
-          e.source.typ === RPCChatGen.EmojiLoadSourceTyp.str
-            ? {
-                category: emojiGroup.name,
-                name: null,
-                short_name: e.source.str,
-                short_names: [e.source.str, e.alias],
-                unified: '',
-              }
-            : {
-                category: emojiGroup.name,
-                name: null,
-                short_name: e.alias,
-                short_names: [e.alias],
-                source: e.source.httpsrv,
-                unified: '',
-              }
-        )
+        ?.map(e => RPCToEmojiData(e))
         .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
     name: emojiGroup.name,
   }))
@@ -124,7 +108,7 @@ const getCustomEmojiSections = memoize(
 )
 
 const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) => {
-  const mapper = new Map<string, Data.EmojiData>()
+  const mapper = new Map<string, EmojiData>()
   emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
     emojiGroup.emojis.forEach(emoji => {
       mapper.set(emoji.short_name, emoji)
@@ -135,13 +119,13 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) 
   // emojis. We should switch to a prefix tree and maybe move this to Go side
   // at that point.
   return {
-    filter: (filter: string): Array<Data.EmojiData> =>
+    filter: (filter: string): Array<EmojiData> =>
       // @ts-ignore ts doesn't know Boolean filters out undefined.
       keys
         .filter(k => k.includes(filter))
         .map(key => mapper.get(key))
         .filter(Boolean),
-    get: (shortName: string): Data.EmojiData | undefined => mapper.get(shortName),
+    get: (shortName: string): EmojiData | undefined => mapper.get(shortName),
   }
 })
 const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
@@ -149,7 +133,7 @@ const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
   const {emojiIndex, emojiNameMap} = _getData()
   const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
-  return (filter: string): Array<Data.EmojiData> => {
+  return (filter: string): Array<EmojiData> => {
     return [
       ...customEmojiIndex.filter(filter),
       ...emojiIndex
@@ -212,7 +196,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     this.mounted = false
   }
 
-  private getEmojiSingle = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) => {
+  private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
     const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
     return (
       <Kb.ClickableBox
@@ -342,7 +326,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 }
 
-export const addSkinToneIfAvailable = (emoji: Data.EmojiData, skinTone?: Types.EmojiSkinTone) =>
+export const addSkinToneIfAvailable = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) =>
   skinTone && emoji.skin_variations?.[skinTone]
     ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
     : `:${emoji.short_name}:`

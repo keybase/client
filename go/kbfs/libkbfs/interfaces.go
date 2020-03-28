@@ -1463,8 +1463,14 @@ type BlockOps interface {
 	// object with its contents, if the logged-in user has read
 	// permission for that block. cacheLifetime controls the behavior of the
 	// write-through cache once a Get completes.
+	//
+	// TODO: Make a `BlockRequestParameters` object to encapsulate the
+	// cache lifetime and branch name, to avoid future plumbing.  Or
+	// maybe just get rid of the `Get()` method entirely and have
+	// everyone use the block retrieval queue directly.
 	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
-		block data.Block, cacheLifetime data.BlockCacheLifetime) error
+		block data.Block, cacheLifetime data.BlockCacheLifetime,
+		branch data.BranchName) error
 
 	// GetEncodedSizes gets the encoded sizes and statuses of the
 	// block associated with the given block pointers (which belongs

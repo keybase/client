@@ -2399,6 +2399,20 @@ const refreshMutualTeamsInConv = async (
   return Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []})
 }
 
+const fetchUserEmojiForAutocomplete = async () => {
+  const results = await RPCChatTypes.localUserEmojisRpcPromise(
+    {
+      opts: {
+        getAliases: true,
+        getCreationInfo: false,
+        onlyInTeam: false,
+      },
+    },
+    Constants.waitingKeyLoadingEmoji
+  )
+  return Chat2Gen.createLoadedUserEmojiForAutocomplete({fetchedEmojis: results.emojis})
+}
+
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
 
 // Helpers to nav you to the right place
@@ -3813,6 +3827,8 @@ function* chat2Saga() {
   )
 
   yield* Saga.chainAction2(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
+
+  yield* Saga.chainAction2(Chat2Gen.fetchUserEmojiForAutocomplete, fetchUserEmojiForAutocomplete)
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
   yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)

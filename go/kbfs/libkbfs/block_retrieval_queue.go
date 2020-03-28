@@ -424,8 +424,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	}
 
 	// Assemble the block from the encrypted block buffer.
-	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block, blockBuf,
-		serverHalf)
+	err = brq.config.blockGetter().assembleBlockLocal(
+		ctx, kmd, ptr, block, blockBuf, serverHalf)
 	if err == nil {
 		// Cache the block in memory.
 		_ = brq.config.BlockCache().Put(
@@ -581,7 +581,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
 	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	if brq.config.IsSyncedTlf(kmd.TlfID()) {
+	if !action.NonMasterBranch() && brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()
 	}
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)

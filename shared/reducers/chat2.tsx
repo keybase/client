@@ -1223,6 +1223,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {mutualTeamMap} = draftState
     mutualTeamMap.set(conversationIDKey, teamIDs)
   },
+  [Chat2Gen.loadedUserEmojiForAutocomplete]: (draftState, action) => {
+    let newEmojis: Array<RPCChatTypes.Emoji> = []
+    action.payload.fetchedEmojis.emojis?.map(group => {
+      group.emojis?.forEach(e => newEmojis.push(e))
+    })
+    draftState.userEmojisForAutocomplete = newEmojis
+  },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
       draftState.participantMap.set(part.conversationIDKey, part.participants)

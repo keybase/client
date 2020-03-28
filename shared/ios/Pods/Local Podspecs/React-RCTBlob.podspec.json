@@ -1,6 +1,6 @@
 {
   "name": "React-RCTBlob",
-  "version": "0.60.5",
+  "version": "0.61.5",
   "summary": "An API for displaying iOS action sheets and share sheets.",
   "homepage": "http://facebook.github.io/react-native/",
   "license": "MIT",
@@ -11,24 +11,30 @@
   },
   "source": {
     "git": "https://github.com/facebook/react-native.git",
-    "tag": "v0.60.5"
+    "tag": "v0.61.5"
   },
-  "source_files": "*.{h,m,mm}",
+  "source_files": [
+    "*.{m,mm}",
+    "RCTBlobCollector.h"
+  ],
   "preserve_paths": [
     "package.json",
     "LICENSE",
     "LICENSE-docs"
   ],
-  "header_dir": "React",
+  "header_dir": "RCTBlob",
   "dependencies": {
-    "React-Core": [
-      "0.60.5"
+    "React-Core/RCTBlobHeaders": [
+      "0.61.5"
+    ],
+    "React-Core/RCTWebSocket": [
+      "0.61.5"
     ],
     "React-RCTNetwork": [
-      "0.60.5"
+      "0.61.5"
     ],
-    "React-RCTWebSocket": [
-      "0.60.5"
+    "React-jsi": [
+      "0.61.5"
     ]
   }
 }
