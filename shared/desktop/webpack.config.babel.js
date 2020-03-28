@@ -241,7 +241,6 @@ const config = (_, {mode}) => {
     entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
     module: {rules: makeRules(true)},
     name: 'Keybase',
-    optimization: {splitChunks: {chunks: 'all'}},
     plugins: [],
     target: 'electron-main',
   })

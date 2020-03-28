@@ -1,19 +1,8 @@
 import path from 'path'
 import os from 'os'
 import * as Electron from 'electron'
-
-let fsCopy
-try {
-  fsCopy = require('fs-extra').copy
-  console.log('HAHHAHAHAHAHAAHA')
-  console.log(fsCopy)
-} catch (err) {
-  console.log('AHHHHHHHHHHHHHHHHHHHHHHH')
-  console.log(err)
-}
-
-console.log('HAHHAHAHAHAHAAHA-1')
-console.log(fsCopy)
+// @ts-ignore
+import fse from 'fs-extra'
 
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
 const target = isRenderer ? window : global
@@ -49,10 +38,7 @@ const darwinCopyToKBFSTempUploadFile = isDarwin
         })
       const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
       const dst = path.join(dir, path.basename(originalFilePath))
-      console.log('HAHHAHAHAHAHAAHA-2')
-      console.log(fsCopy)
-
-      await fsCopy(originalFilePath, dst)
+      await fse.copy(originalFilePath, dst)
       return dst
     }
   : () => {
@@ -91,7 +77,7 @@ const darwinCopyToChatTempUploadFile = isDarwin
         filename: originalFilePath,
         outboxID,
       })
-      await fsCopy(originalFilePath, dst)
+      await fse.copy(originalFilePath, dst)
       return {outboxID, path: dst}
     }
   : () => {
