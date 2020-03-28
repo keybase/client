@@ -16,9 +16,9 @@ import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
 import CustomEmoji from '../custom-emoji'
 import Emoji from '../emoji'
+import Icon from '../icon'
 import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
-import ProgressIndicator from '../progress-indicator'
 
 const linkStyle = Styles.platformStyles({
   isElectron: {
@@ -255,8 +255,14 @@ const ServiceDecoration = (props: Props) => {
     if (parsed.emoji.status === RPCChatTypes.UIEmojiDecorationStatus.resolving) {
       const emoji = customEmojiMap.get(parsed.emoji.resolving.key)
       return !emoji ? (
-        <Text type="Body" style={Styles.collapseStyles([props.styles.wrapStyle])}>
-          {`:${parsed.emoji.resolving.alias}:`}
+        <Text type="Body" style={Styles.collapseStyles([styles.emojiPending, props.styles.wrapStyle])}>
+          {`:${parsed.emoji.resolving.alias}: `}
+          <Icon
+            type="iconfont-time"
+            fontSize={12}
+            boxStyle={styles.emojiIconBoxStyle}
+            color={Styles.globalColors.black_50OrWhite}
+          />
         </Text>
       ) : (
         <EmojiWrapper emoji={emoji} />
@@ -266,5 +272,21 @@ const ServiceDecoration = (props: Props) => {
   }
   return null
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      emojiIconBoxStyle: Styles.platformStyles({
+        isElectron: {
+          display: 'inline',
+        },
+      }),
+      emojiPending: {
+        backgroundColor: Styles.globalColors.greyLight,
+        borderRadius: Styles.globalMargins.xxtiny,
+        color: Styles.globalColors.black_50OrWhite,
+      },
+    } as const)
+)
 
 export default ServiceDecoration
