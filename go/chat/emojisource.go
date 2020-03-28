@@ -80,6 +80,14 @@ func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) 
 	return s
 }
 
+func (s *DevConvEmojiSource) DisableBatcher() {
+	s.loadBatch = func(intBatched interface{}) {
+		infos := intBatched.([]chat1.EmojiNotifyInfo)
+		s.G().NotifyRouter.HandleEmojiInfo(context.Background(), infos)
+	}
+	s.loadBatchCancel = nil
+}
+
 func (s *DevConvEmojiSource) Start(ctx context.Context, uid gregor1.UID) {
 	defer s.Trace(ctx, func() error { return nil }, "Start")()
 	s.Lock()
@@ -355,6 +363,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	storage := s.makeStorage(topicType)
 	var sourceTLFID *chat1.TLFID
 	seenAliases := make(map[string]int)
+	var nq *chat1.NameQuery
 	if convID != nil {
 		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, *convID, types.InboxSourceDataSourceAll)
 		if err != nil {
@@ -362,10 +371,15 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 		}
 		sourceTLFID = new(chat1.TLFID)
 		*sourceTLFID = conv.Conv.Metadata.IdTriple.Tlfid
+		if opts.OnlyInTeam {
+			nq = new(chat1.NameQuery)
+			nq.TlfID = sourceTLFID
+		}
 	}
 	readTopicName := s.topicName(nil)
 	ibox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
+			Name:         nq,
 			TopicType:    &topicType,
 			MemberStatus: chat1.AllConversationMemberStatuses(),
 			TopicName:    &readTopicName,
@@ -375,7 +389,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	}
 	convs := ibox.Convs
 	addEmojis := func(convs []chat1.ConversationLocal, isCrossTeam bool) {
-		if opts.OnlyInTeam {
+		if opts.OnlyInTeam && isCrossTeam {
 			return
 		}
 		for _, conv := range convs {
@@ -597,10 +611,18 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
+
+	// fetch available emojis
+	getOnlyInTeam := false
+	switch mode {
+	case types.EmojiSourceHarvestModeInbound:
+		getOnlyInTeam = true
+	default:
+	}
 	emojis, _, err := s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
 		GetCreationInfo: false,
 		GetAliases:      true,
-		OnlyInTeam:      false,
+		OnlyInTeam:      getOnlyInTeam,
 	})
 	if err != nil {
 		return res, err
@@ -608,6 +630,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	if len(emojis.Emojis) == 0 && len(crossTeams) == 0 {
 		return nil, nil
 	}
+
 	groupMap := make(map[string]chat1.Emoji)
 	for _, group := range emojis.Emojis {
 		for _, emoji := range group.Emojis {

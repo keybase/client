@@ -68,6 +68,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	filename := "./testdata/ship.jpg"
 	listener0 := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	tc.Context().EmojiSource.(*DevConvEmojiSource).DisableBatcher()
 
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
@@ -223,6 +224,8 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 	listener1 := newServerChatListener()
 	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+	tc.Context().EmojiSource.(*DevConvEmojiSource).DisableBatcher()
+	tc1.Context().EmojiSource.(*DevConvEmojiSource).DisableBatcher()
 
 	aloneConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
