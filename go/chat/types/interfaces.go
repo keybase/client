@@ -619,8 +619,7 @@ type EmojiSource interface {
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
 	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
 	Decorate(ctx context.Context, body string, convID chat1.ConversationID, emojis []chat1.HarvestedEmoji) string
-	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
-		crossTeams map[string]chat1.HarvestedEmoji, mode EmojiSourceHarvestMode) ([]chat1.HarvestedEmoji, error)
+	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID) ([]chat1.HarvestedEmoji, error)
 }
 
 type ServerConnection interface {
