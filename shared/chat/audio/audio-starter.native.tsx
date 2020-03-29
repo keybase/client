@@ -53,7 +53,7 @@ const Tooltip = (props: TooltipProps) => {
 }
 
 const AudioStarter = (props: AudioStarterProps) => {
-  let longPressTimer: null | NodeJS.Timer
+  let longPressTimer: null | ReturnType<typeof setTimeout>
   const locked = React.useRef<boolean>(false)
   const tapLive = React.useRef<boolean>(false)
   const tapRef = React.useRef(null)

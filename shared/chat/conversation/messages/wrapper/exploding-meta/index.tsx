@@ -28,7 +28,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   state = {mode: 'none'} as State
   tickerID?: TickerID
   sharedTimerID?: SharedTimerID
-  forceUpdateID?: NodeJS.Timer
+  forceUpdateID?: ReturnType<typeof setTimeout>
   sharedTimerKey: string = ''
 
   componentDidMount() {

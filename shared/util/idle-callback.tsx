@@ -16,7 +16,7 @@ function immediateCallback(cb: (info: TimeoutInfo) => void): NodeJS.Immediate {
   return r
 }
 
-function timeoutFallback(cb: (info: TimeoutInfo) => void): NodeJS.Timer {
+function timeoutFallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof setTimeout> {
   return setTimeout(function() {
     cb({
       didTimeout: true,
