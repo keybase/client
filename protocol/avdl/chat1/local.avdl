@@ -73,6 +73,7 @@ protocol local {
     string body;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageDelete {

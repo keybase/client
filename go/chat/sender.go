@@ -585,6 +585,8 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 		body = msg.MessageBody.Text().Body
 	case chat1.MessageType_REACTION:
 		body = msg.MessageBody.Reaction().Body
+	case chat1.MessageType_EDIT:
+		body = msg.MessageBody.Edit().Body
 	default:
 		return msg, nil
 	}
@@ -615,6 +617,14 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 		return chat1.MessagePlaintext{
 			ClientHeader:       msg.ClientHeader,
 			MessageBody:        chat1.NewMessageBodyWithReaction(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}, nil
+	case chat1.MessageType_EDIT:
+		newBody := msg.MessageBody.Edit().DeepCopy()
+		newBody.Emojis = ct
+		return chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}, nil
 	}
