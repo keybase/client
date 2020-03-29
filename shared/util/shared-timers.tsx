@@ -23,7 +23,7 @@ type RefMap = {[K in string]: Array<Ref>}
 
 type Timer = {
   key: string
-  timeoutID: NodeJS.Timeout
+  timeoutID: ReturnType<typeof setInterval>
 }
 
 class Timers {

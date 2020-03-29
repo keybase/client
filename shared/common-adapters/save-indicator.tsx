@@ -117,7 +117,7 @@ const defaultStyle = {
 }
 
 class SaveIndicator extends React.Component<Props, State> {
-  private timeoutID?: NodeJS.Timeout
+  private timeoutID?: ReturnType<typeof setInterval>
   private clearTimeout = () => {
     if (this.timeoutID) {
       clearTimeout(this.timeoutID)

@@ -49,7 +49,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     componentWillUnmount() {
       this.stopTicker()
     }
-    private tickerID?: NodeJS.Timeout
+    private tickerID?: ReturnType<typeof setInterval>
 
     private tick = () =>
       this.setState(prevState => {

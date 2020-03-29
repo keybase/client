@@ -5,7 +5,7 @@ type TimeoutInfo = {
   timeRemaining: () => number
 }
 
-function immediateCallback(cb: (info: TimeoutInfo) => void): NodeJS.Immediate {
+function immediateCallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof setImmediate> {
   cb({didTimeout: true, timeRemaining: () => 0})
   const r = {
     _onImmediate: () => {},
