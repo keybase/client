@@ -241,7 +241,6 @@ class Inbox extends React.PureComponent<T.Props, State> {
       return false
     })
 
-    console.warn(this.props.neverLoaded, this.props.isSearching, this.props.rows.length)
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
       <NoChats onNewChat={this.props.onNewChat} />
     )
