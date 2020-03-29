@@ -113,7 +113,6 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e: Electron.Event, bounds: Bounds) => {
       e.preventDefault()
-      // @ts-ignore type broken
       setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
     mb.tray.on('double-click', (e: Electron.Event) => e.preventDefault())
@@ -121,7 +120,6 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
 
-    // @ts-ignore type broken
     mb.window && mb.window.removeAllListeners('close')
     mb.window &&
       mb.window.on('close', event => {
