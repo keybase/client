@@ -325,6 +325,24 @@ const onIncomingMessage = (
 
   if (convID && cMsg) {
     const conversationIDKey = Types.conversationIDToKey(convID)
+
+    // check for a reaction outbox notification before doing anything
+    if (
+      cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
+      cMsg.outbox.messageType == RPCChatTypes.MessageType.reaction
+    ) {
+      actions.push(
+        Chat2Gen.createToggleLocalReaction({
+          conversationIDKey,
+          decorated: cMsg.outbox.decoratedTextBody ?? '',
+          emoji: cMsg.outbox.body,
+          targetOrdinal: cMsg.outbox.supersedes,
+          username: state.config.username,
+        })
+      )
+      return actions
+    }
+
     const {containsLatestMessageMap} = state.chat2
     const shouldAddMessage = containsLatestMessageMap.get(conversationIDKey) || false
     const message = Constants.uiMessageToMessage(state, conversationIDKey, cMsg)
@@ -421,7 +439,10 @@ const chatActivityToMetasAction = (
   }
 ) => {
   const conv = payload ? payload.conv : null
-  const meta = conv && Constants.inboxUIItemToConversationMeta(state, conv)
+  if (!conv) {
+    return []
+  }
+  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
   const usernameToFullname = (conv?.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
     if (part.fullName) {
       map[part.assertion] = part.fullName
@@ -3034,19 +3055,8 @@ const toggleMessageReaction = async (
       tlfName: meta.tlfname,
       tlfPublic: false,
     })
-    return Chat2Gen.createToggleLocalReaction({
-      conversationIDKey,
-      emoji,
-      targetOrdinal: ordinal,
-      username,
-    })
-  } catch (_) {
-    return Chat2Gen.createToggleLocalReaction({
-      conversationIDKey,
-      emoji,
-      targetOrdinal: ordinal,
-      username,
-    })
+  } catch (e) {
+    logger.info(`toggleMessageReaction: failed to post` + e.message)
   }
 }
 

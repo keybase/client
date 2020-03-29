@@ -1790,6 +1790,8 @@ func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, ui
 	switch typ {
 	case chat1.MessageType_TEXT:
 		body = msgBody.Text().Body
+	case chat1.MessageType_REACTION:
+		body = msgBody.Reaction().Body
 	default:
 		return nil
 	}
@@ -1999,6 +2001,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 				title = asset.Title
 				filename = asset.Filename
 			}
+		case chat1.MessageType_REACTION:
+			body = rawMsg.Outbox().Msg.MessageBody.Reaction().Body
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
 		}
 		var replyTo *chat1.UIMessage
 		if rawMsg.Outbox().ReplyTo != nil {
@@ -2019,6 +2024,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			ReplyTo:           replyTo,
+			Supersedes:        rawMsg.Outbox().Msg.ClientHeader.Supersedes,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

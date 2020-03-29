@@ -1417,6 +1417,8 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 			if obr.Msg.ClientHeader.TlfPublic {
 				vis = keybase1.TLFVisibility_PUBLIC
 			}
+
+			// fill in reply
 			conv := newBasicUnboxConversationInfo(convID, chat1.ConversationMembersType_IMPTEAMNATIVE, nil,
 				vis)
 			msg, err := NewReplyFiller(s.G()).FillSingle(ctx, uid, conv,
@@ -1426,10 +1428,22 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 			} else {
 				obr.ReplyTo = &msg
 			}
-			if obr.Msg.Emojis, err = s.G().EmojiSource.Harvest(ctx, obr.Msg.SearchableText(),
-				uid, convID, types.EmojiHarvestModeFast); err != nil {
-				s.Debug(ctx, "outboxNotify: failed to get emojis: %s", err)
+
+			// fill in emojis
+			var emojiText string
+			switch obr.MessageType() {
+			case chat1.MessageType_TEXT:
+				emojiText = obr.Msg.MessageBody.Text().Body
+			case chat1.MessageType_REACTION:
+				emojiText = obr.Msg.MessageBody.Reaction().Body
 			}
+			if len(emojiText) > 0 {
+				if obr.Msg.Emojis, err = s.G().EmojiSource.Harvest(ctx, emojiText,
+					uid, convID, types.EmojiHarvestModeFast); err != nil {
+					s.Debug(ctx, "outboxNotify: failed to get emojis: %s", err)
+				}
+			}
+
 			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 				Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
 					uid, convID),

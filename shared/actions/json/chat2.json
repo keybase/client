@@ -272,6 +272,7 @@
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
       "conversationIDKey": "Types.ConversationIDKey",
+      "decorated": "string",
       "emoji": "string",
       "targetOrdinal": "Types.Ordinal",
       "username": "string"
