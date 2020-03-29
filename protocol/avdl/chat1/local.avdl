@@ -449,6 +449,7 @@ protocol local {
     MessageClientHeader clientHeader;
     MessageBody messageBody;
     union { null, OutboxID } supersedesOutboxID;
+    array<HarvestedEmoji> emojis;
   }
 
   record MessageUnboxedValid {

@@ -744,6 +744,7 @@ type _ToggleGiphyPrefillPayload = {readonly conversationIDKey: Types.Conversatio
 type _ToggleInboxSearchPayload = {readonly enabled: boolean}
 type _ToggleLocalReactionPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
+  readonly decorated: string
   readonly emoji: string
   readonly targetOrdinal: Types.Ordinal
   readonly username: string

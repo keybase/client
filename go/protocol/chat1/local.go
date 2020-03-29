@@ -2841,6 +2841,7 @@ type MessagePlaintext struct {
 	ClientHeader       MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	MessageBody        MessageBody         `codec:"messageBody" json:"messageBody"`
 	SupersedesOutboxID *OutboxID           `codec:"supersedesOutboxID,omitempty" json:"supersedesOutboxID,omitempty"`
+	Emojis             []HarvestedEmoji    `codec:"emojis" json:"emojis"`
 }
 
 func (o MessagePlaintext) DeepCopy() MessagePlaintext {
@@ -2854,6 +2855,17 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SupersedesOutboxID),
+		Emojis: (func(x []HarvestedEmoji) []HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make([]HarvestedEmoji, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
