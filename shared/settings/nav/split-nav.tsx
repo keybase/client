@@ -12,7 +12,7 @@ const SplitNav = (props: Props) => {
   return (
     <Kb.Box style={styles.container}>
       {Styles.isTablet && (
-        <Kb.Box style={styles.header}>
+        <>
           <SettingsItem
             icon="iconfont-nav-2-crypto"
             text="Crypto"
@@ -42,7 +42,7 @@ const SplitNav = (props: Props) => {
             onClick={() => props.onTabChange(Constants.whatsNewTab)}
           />
           <Kb.SectionDivider label="Settings" />
-        </Kb.Box>
+        </>
       )}
       <SettingsItem
         text="Your account"
@@ -113,18 +113,18 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       backgroundColor: Styles.globalColors.blueGrey,
-      paddingTop: Styles.globalMargins.small,
     },
     isElectron: {
+      paddingTop: Styles.globalMargins.small,
       width: 160,
+    },
+    isPhone: {
+      paddingTop: Styles.globalMargins.small,
     },
     isTablet: {
       width: Styles.globalStyles.shortWidth,
     },
   }),
-  header: {
-    marginTop: Styles.globalMargins.xlarge,
-  },
 }))
 
 export default SplitNav

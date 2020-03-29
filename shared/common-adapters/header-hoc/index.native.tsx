@@ -219,12 +219,12 @@ const renderAction = (action: Action, index: number): React.ReactNode =>
   )
 
 /** TODO likely deprecate this **/
-export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}) => {
-  const {customSafeAreaTopStyle, children, customSafeAreaBottomStyle} = props
+export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skipHeader?: boolean}) => {
+  const {customSafeAreaTopStyle, children, customSafeAreaBottomStyle, skipHeader} = props
   return (
     <Box style={styles.container}>
       {!!customSafeAreaTopStyle && <SafeAreaViewTop style={customSafeAreaTopStyle} />}
-      <HeaderHocHeader {...props} />
+      {!skipHeader && <HeaderHocHeader {...props} />}
       <Box style={styles.grow}>
         <Box style={styles.innerWrapper}>{children}</Box>
       </Box>
