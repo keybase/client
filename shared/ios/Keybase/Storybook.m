@@ -11,7 +11,7 @@
 #import <React/RCTBridgeModule.h>
 
 // change me to turn on storybook mode
-const BOOL IS_STORYBOOK = false;
+const BOOL IS_STORYBOOK = true;
 
 @implementation Storybook
 

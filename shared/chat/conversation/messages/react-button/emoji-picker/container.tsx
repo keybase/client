@@ -110,6 +110,7 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
+  const addEmoji = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddEmoji']}))
   return (
     <Kb.Box2
       direction="vertical"
@@ -148,7 +149,13 @@ const WrapperMobile = (props: Props) => {
         />
         <Kb.Box style={Styles.globalStyles.flexOne} />
         {!skinTonePickerExpanded && (
-          <Kb.Button mode="Secondary" small={true} label="Add emoji" style={styles.addEmojiButton} />
+          <Kb.Button
+            mode="Secondary"
+            small={true}
+            label="Add emoji"
+            onClick={addEmoji}
+            style={styles.addEmojiButton}
+          />
         )}
       </Kb.Box2>
     </Kb.Box2>
@@ -160,6 +167,11 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
+  const dispatch = Container.useDispatch()
+  const addEmoji = () => {
+    props.onDidPick?.()
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddEmoji']}))
+  }
 
   return (
     <Kb.Box
@@ -218,7 +230,7 @@ export const EmojiPickerDesktop = (props: Props) => {
             {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Button mode="Secondary" label="Add emoji" style={styles.addEmojiButton} />
+        <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
       </Kb.Box2>
     </Kb.Box>
   )
@@ -230,7 +242,7 @@ const styles = Styles.styleSheetCreate(
       addEmojiButton: Styles.platformStyles({
         common: {
           // TODO: enable this once we have the "add emoji" modal.
-          display: 'none',
+          // display: 'none',
         },
         isElectron: {
           width: 88,
