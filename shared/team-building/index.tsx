@@ -299,7 +299,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
   sectionListRef = React.createRef<Kb.SectionList<any>>()
-  componentDidMount = () => {
+  componentDidMount() {
     this.props.fetchUserRecs()
   }
 
