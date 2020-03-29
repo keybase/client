@@ -347,6 +347,7 @@ const plumbEvents = () => {
       }
       case 'rendererNewProps': {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+        // @ts-ignore type broken
         w && w.emit('KBprops', action.payload.propsStr)
         break
       }

@@ -115,6 +115,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
         duration: animationDuration,
         easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
         toValue: 100,
+        useNativeDriver: false,
       }).start()
       // insert 'EXPLODED' in sync with 'boom!' disappearing
       this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
