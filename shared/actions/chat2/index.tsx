@@ -976,7 +976,6 @@ function* loadMoreMessages(
   state: Container.TypedState,
   action:
     | Chat2Gen.NavigateToThreadPayload
-    | Chat2Gen.SelectedConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -1021,10 +1020,6 @@ function* loadMoreMessages(
       if (action.payload.pushBody && action.payload.pushBody.length > 0) {
         knownRemotes.push(action.payload.pushBody)
       }
-      break
-    case Chat2Gen.selectedConversation:
-      key = action.payload.conversationIDKey
-      reason = 'nav'
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -3680,7 +3675,6 @@ function* chat2Saga() {
   // Load the selected thread
   yield* Saga.chainGenerator<
     | Chat2Gen.NavigateToThreadPayload
-    | Chat2Gen.SelectedConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -3690,7 +3684,6 @@ function* chat2Saga() {
   >(
     [
       Chat2Gen.navigateToThread,
-      Chat2Gen.selectedConversation,
       Chat2Gen.jumpToRecent,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,

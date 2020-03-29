@@ -271,7 +271,7 @@ class Input extends React.Component<InputProps, InputState> {
   _setHeight = (inputHeight: number) =>
     this.setState(s => (s.inputHeight === inputHeight ? null : {inputHeight}))
 
-  componentDidMount = () => {
+  componentDidMount() {
     // Set lastQuote so we only inject quoted text after we mount.
     this._lastQuote = this.props.quoteCounter
 
@@ -279,7 +279,7 @@ class Input extends React.Component<InputProps, InputState> {
     this._setText(text, true)
   }
 
-  componentDidUpdate = (prevProps: InputProps) => {
+  componentDidUpdate(prevProps: InputProps) {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
       this._inputFocus()
     }
