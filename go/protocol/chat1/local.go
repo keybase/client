@@ -290,10 +290,11 @@ func (o MessageConversationMetadata) DeepCopy() MessageConversationMetadata {
 }
 
 type MessageEdit struct {
-	MessageID    MessageID          `codec:"messageID" json:"messageID"`
-	Body         string             `codec:"body" json:"body"`
-	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
-	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+	MessageID    MessageID                 `codec:"messageID" json:"messageID"`
+	Body         string                    `codec:"body" json:"body"`
+	UserMentions []KnownUserMention        `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention        `codec:"teamMentions" json:"teamMentions"`
+	Emojis       map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageEdit) DeepCopy() MessageEdit {
@@ -322,6 +323,18 @@ func (o MessageEdit) DeepCopy() MessageEdit {
 			}
 			return ret
 		})(o.TeamMentions),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 

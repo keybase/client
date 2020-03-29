@@ -1317,6 +1317,8 @@ func (b *Boxer) getEmojis(ctx context.Context, topicType chat1.TopicType, body c
 		return makeList(body.Text().Emojis)
 	case chat1.MessageType_REACTION:
 		return makeList(body.Reaction().Emojis)
+	case chat1.MessageType_EDIT:
+		return makeList(body.Edit().Emojis)
 	}
 	return res
 }
