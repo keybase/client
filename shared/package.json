@@ -62,9 +62,9 @@
   "private": true,
   "dependencies": {
     "@chardskarth/react-gateway": "3.0.3",
-    "@emotion/core": "10.0.17",
-    "@emotion/native": "10.0.14",
-    "@emotion/styled": "10.0.17",
+    "@emotion/core": "10.0.28",
+    "@emotion/native": "10.0.27",
+    "@emotion/styled": "10.0.27",
     "@msgpack/msgpack": "1.9.3",
     "@react-native-community/cameraroll": "1.2.1",
     "@react-native-community/geolocation": "2.0.2",
