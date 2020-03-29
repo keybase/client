@@ -329,7 +329,7 @@ const onIncomingMessage = (
     // check for a reaction outbox notification before doing anything
     if (
       cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
-      cMsg.outbox.messageType == RPCChatTypes.MessageType.reaction
+      cMsg.outbox.messageType === RPCChatTypes.MessageType.reaction
     ) {
       actions.push(
         Chat2Gen.createToggleLocalReaction({
