@@ -1462,6 +1462,13 @@
             "OutboxID"
           ],
           "name": "supersedesOutboxID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HarvestedEmoji"
+          },
+          "name": "emojis"
         }
       ]
     },

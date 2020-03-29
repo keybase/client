@@ -588,7 +588,7 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 	default:
 		return msg, nil
 	}
-	emojis, err := s.G().EmojiSource.Harvest(ctx, body, uid, convID)
+	emojis, err := s.G().EmojiSource.Harvest(ctx, body, uid, convID, types.EmojiHarvestModeNormal)
 	if err != nil {
 		return msg, err
 	}
@@ -1425,6 +1425,10 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 				s.Debug(ctx, "outboxNotify: failed to get replyto: %s", err)
 			} else {
 				obr.ReplyTo = &msg
+			}
+			if obr.Msg.Emojis, err = s.G().EmojiSource.Harvest(ctx, obr.Msg.SearchableText(),
+				uid, convID, types.EmojiHarvestModeFast); err != nil {
+				s.Debug(ctx, "outboxNotify: failed to get emojis: %s", err)
 			}
 			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 				Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),

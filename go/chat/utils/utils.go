@@ -1779,6 +1779,25 @@ func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
 	return body
 }
 
+func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) *string {
+	msgBody := msg.MessageBody
+	typ, err := msgBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	var body string
+	switch typ {
+	case chat1.MessageType_TEXT:
+		body = msgBody.Text().Body
+	default:
+		return nil
+	}
+	body = PresentDecoratedTextNoMentions(ctx, body)
+	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
+	return &body
+}
+
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
@@ -1964,8 +1983,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
-			decoratedBody = new(string)
-			*decoratedBody = EscapeShrugs(ctx, body)
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
 		case chat1.MessageType_FLIP:
 			body = rawMsg.Outbox().Msg.MessageBody.Flip().Text
 			decoratedBody = new(string)

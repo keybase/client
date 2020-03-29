@@ -342,10 +342,10 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 				if seen, ok := seenAliases[alias]; ok {
 					seenAliases[alias]++
 					emoji.Alias += fmt.Sprintf("#%d", seen)
-					aliasLookup[alias] = emoji
 				} else {
 					seenAliases[alias] = 2
 				}
+				aliasLookup[emoji.Alias] = emoji
 				group.Emojis = append(group.Emojis, emoji)
 			}
 			res.Emojis = append(res.Emojis, group)
@@ -502,7 +502,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID) (res []chat1.HarvestedEmoji, err error) {
+	convID chat1.ConversationID, mode types.EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	if globals.IsEmojiHarvesterCtx(ctx) {
 		s.Debug(ctx, "Harvest: in an existing harvest context, bailing")
 		return nil, nil
@@ -512,17 +512,29 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 		return nil, nil
 	}
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
-	defer s.Trace(ctx, func() error { return err }, "Harvest")()
+	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	emojis, _, err := s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
-		GetCreationInfo: false,
-		GetAliases:      true,
-		OnlyInTeam:      false,
-	})
-	if err != nil {
-		return res, err
+	s.getLock.Lock()
+	aliasMap := make(map[string]chat1.Emoji, len(s.aliasLookup))
+	for alias, emoji := range s.aliasLookup {
+		aliasMap[alias] = emoji
 	}
-	if len(emojis.Emojis) == 0 {
+	s.getLock.Unlock()
+	var emojis chat1.UserEmojis
+	switch mode {
+	case types.EmojiHarvestModeNormal:
+		emojis, _, err = s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
+			GetCreationInfo: false,
+			GetAliases:      true,
+			OnlyInTeam:      false,
+		})
+		if err != nil {
+			return res, err
+		}
+	case types.EmojiHarvestModeFast:
+		// skip this, just use alias map in fast mode
+	}
+	if len(emojis.Emojis) == 0 && len(aliasMap) == 0 {
 		return nil, nil
 	}
 	groupMap := make(map[string]chat1.Emoji)
@@ -531,12 +543,6 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 			groupMap[emoji.Alias] = emoji
 		}
 	}
-	aliasMap := make(map[string]chat1.Emoji)
-	s.getLock.Lock()
-	for alias, emoji := range s.aliasLookup {
-		aliasMap[alias] = emoji
-	}
-	s.getLock.Unlock()
 	s.Debug(ctx, "Harvest: num emojis: conv: %d alias: %d", len(groupMap), len(aliasMap))
 	for _, match := range matches {
 		// try group map first
@@ -559,14 +565,10 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 			res = append(res, resEmoji)
 		} else if emoji, ok := aliasMap[match.name]; ok {
 			// then any aliases we know about from the last Get call
-			newEmoji, err := s.syncCrossTeam(ctx, uid, chat1.HarvestedEmoji{
+			res = append(res, chat1.HarvestedEmoji{
 				Alias:  match.name,
 				Source: emoji.RemoteSource,
-			}, convID)
-			if err != nil {
-				return res, err
-			}
-			res = append(res, newEmoji)
+			})
 		}
 	}
 	return res, nil
