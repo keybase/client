@@ -3041,7 +3041,6 @@ const toggleMessageReaction = async (
   const messageID = id
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
-  const {username} = state.config
   const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
   try {
