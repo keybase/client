@@ -575,13 +575,21 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	if len(emojis) == 0 {
 		return body
 	}
 	matches := s.parse(ctx, body)
 	if len(matches) == 0 {
 		return body
+	}
+	bigEmoji := false
+	if messageType == chat1.MessageType_TEXT && len(matches) == 1 {
+		singleEmoji := matches[0]
+		// check if the emoji is the entire message (ignoring whitespace)
+		if singleEmoji.position[0] == 0 && singleEmoji.position[1] == len(strings.TrimSpace(body)) {
+			bigEmoji = true
+		}
 	}
 	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
@@ -600,6 +608,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
+					IsBig:  bigEmoji,
 					Alias:  match.name,
 					Source: localSource,
 				}))
