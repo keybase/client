@@ -214,7 +214,7 @@
     "html-webpack-plugin": "3.2.0",
     "jest": "24.9.0",
     "jest-emotion": "10.0.17",
-    "jetifier": "1.6.4",
+    "jetifier": "1.6.5",
     "json5": "2.1.0",
     "klaw-sync": "6.0.0",
     "metro-react-native-babel-preset": "0.56.0",
