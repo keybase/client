@@ -473,7 +473,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		for _, conv := range convs {
 			// If we have a conv error consider the conv invalid. Exclude
 			// the conv from out TopicNameState forcing the client to retry.
-			if conv.Error != nil {
+			if conv.Error == nil {
 				if conv.GetTopicName() == "" {
 					s.Debug(ctx, "checkTopicNameAndGetState: unnamed channel in play: %s", conv.GetConvID())
 				}
