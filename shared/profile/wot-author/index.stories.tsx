@@ -39,34 +39,25 @@ const load = () => {
             fullWidth={true}
             style={{height: 50, backgroundColor: '#cfc'}}
           ></Kb.Box2>
-          <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
+          <Kb.Box2 key="roo" direction="horizontal" alignSelf="stretch" alignItems="center">
             <Kb.Box2
+              key="colorbar"
               direction="vertical"
               alignSelf="stretch"
               style={{backgroundColor: 'blue', width: 6, flexShrink: 0}}
             ></Kb.Box2>
-            <Kb.Box2 direction="horizontal" style={{backgroundColor: '#fcb'}}>
-              {/* <Kb.RadioButton
-              // label={
-              //   <Kb.Text type="BodySmall" style={{backgroundColor: '#cfb'}}>
-              //     xdebug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug
-              //     debug debug debug debug debug debug
-              //   </Kb.Text>
-              // }
-              // label="xdebug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug"
-              selected={false}
-              onSelect={() => {}}
-              style={{
-                paddingBottom: Styles.globalMargins.tiny,
-                paddingLeft: Styles.globalMargins.small,
-                paddingTop: Styles.globalMargins.tiny,
-              }}
-            /> */}
+            <Kb.Box2 key="textholder" direction="horizontal" style={{backgroundColor: '#fcb'}}>
               <Kb.Text type="BodySmall" style={{backgroundColor: '#cbf'}}>
                 xdebug debug debug debug debug debug debug debug debug debug debug debug debug debug debug
                 debug debug debug debug debug debug debug
               </Kb.Text>
             </Kb.Box2>
+            <Kb.Box2
+              key="colorbar-right"
+              direction="vertical"
+              alignSelf="stretch"
+              style={{backgroundColor: 'red', width: 6, flexShrink: 0}}
+            ></Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
