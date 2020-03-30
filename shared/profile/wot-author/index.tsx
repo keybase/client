@@ -40,8 +40,11 @@ const WotModal = (props: WotModalProps) => {
         ),
       }}
     >
-      <Kb.Icon type="icon-illustration-wot-460-96" />
-      {props.children}
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        {/* xxx delete this box2 wrapping icon if possible */}
+        <Kb.Icon type="icon-illustration-wot-460-96" />
+        {props.children}
+      </Kb.Box2>
     </Kb.Modal>
   )
 }
@@ -120,7 +123,8 @@ export const Question2 = (props: Props) => {
   )
 }
 
-const VerificationChoice = (props: {
+// xxx do not export
+export const VerificationChoice = (props: {
   voucheeUsername: string
   verificationType: Types.WebOfTrustVerificationType
   selected: boolean
@@ -169,7 +173,11 @@ const VerificationChoice = (props: {
   }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
-      <Kb.Box2 direction="vertical" alignSelf="stretch" style={{backgroundColor: color, width: 6}}></Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        alignSelf="stretch"
+        style={{backgroundColor: color, width: 6, flexShrink: 0}}
+      ></Kb.Box2>
       <Kb.Box2 direction="horizontal" style={{backgroundColor: '#fcb'}}>
         <Kb.RadioButton
           // label={
