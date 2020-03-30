@@ -84,7 +84,10 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-      toggleButton: {position: 'absolute', bottom: height},
+      toggleButton: {
+        bottom: height,
+        position: 'absolute',
+      },
     } as const)
 )
 
