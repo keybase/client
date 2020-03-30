@@ -234,7 +234,7 @@ PODS:
     - React
   - react-native-geolocation (2.0.2):
     - React
-  - react-native-netinfo (4.2.2):
+  - react-native-netinfo (5.6.2):
     - React
   - react-native-safe-area-context (0.7.3):
     - React
@@ -571,7 +571,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 3e5e34d36d93548ae7770ee8ab7b2ae9e778f571
   react-native-contacts: b2cfcfbdd91809cb3a01a5bdc69bee2d90b19f6d
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
-  react-native-netinfo: 2bb2e5094edcfecfb340a85053608526cb20f185
+  react-native-netinfo: 73303369946c2487c600418961bfdc87748b832f
   react-native-safe-area-context: e200d4433aba6b7e60b52da5f37af11f7a0b0392
   react-native-video: d01ed7ff1e38fa7dcc6c15c94cf505e661b7bfd0
   react-native-webview: d12c8352c853e401fb6fff69a3461d0bca9f0c0b
