@@ -21,6 +21,8 @@ type OwnProps = {
   visible: boolean
 }
 
+const emptyMap = new Map()
+
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const message = ownProps.message
@@ -32,13 +34,15 @@ export default Container.connect(
     const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
     const _canPinMessage = !isTeam || (yourOperations && yourOperations.pinMessage)
     const _authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
+    const _teamMembers =
+      Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID)) || emptyMap
     return {
       _authorIsBot,
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
-      _participants: participantInfo.all,
       _teamID: meta.teamID,
+      _teamMembers: _teamMembers,
       _you: state.config.username,
       pending: !!message.transferState,
     }
@@ -132,7 +136,7 @@ export default Container.connect(
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
-    const authorInConv = stateProps._participants.includes(message.author)
+    const authorInTeam = stateProps._teamMembers.has(message.author)
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -140,7 +144,7 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
-      isKickable: isDeleteable && !!stateProps._teamID && !yourMessage && authorInConv,
+      isKickable: isDeleteable && !!stateProps._teamID && !yourMessage && authorInTeam,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,

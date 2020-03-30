@@ -24,6 +24,8 @@ export type OwnProps = {
   visible: boolean
 }
 
+const emptyMap = new Map()
+
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const yourMessage = ownProps.message.author === state.config.username
@@ -40,6 +42,8 @@ export default Container.connect(
       ownProps.message.type === 'text' &&
       (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, ownProps.message, participantInfo)
+    const _teamMembers =
+      Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID)) || emptyMap
 
     return {
       _authorIsBot: authorIsBot,
@@ -50,6 +54,7 @@ export default Container.connect(
       _mapUnfurl,
       _participants: participantInfo.all,
       _teamID: meta.teamID,
+      _teamMembers,
       _teamname: meta.teamname,
       author: ownProps.message.author,
       botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
@@ -185,7 +190,7 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const authorInConv = stateProps._participants.includes(ownProps.message.author)
+    const authorInTeam = stateProps._teamMembers.has(ownProps.message.author)
     const items: MenuItems = []
     if (stateProps._canExplodeNow) {
       items.push({
@@ -195,7 +200,7 @@ export default Container.connect(
         title: 'Explode now',
       })
     }
-    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
+    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInTeam) {
       items.push({
         danger: true,
         icon: 'iconfont-block-user',
