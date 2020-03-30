@@ -8254,7 +8254,7 @@ func TestChatSrvTeamActivity(t *testing.T) {
 		require.Equal(t, 2, len(res.Teams))
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID1])
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID2])
-		require.Equal(t, 2, len(res.Channels))
+		require.Equal(t, 4, len(res.Channels))
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc1.UiConv.ConvID])
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc2.UiConv.ConvID])
 	})
