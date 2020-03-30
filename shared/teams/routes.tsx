@@ -64,8 +64,7 @@ export const newModalRoutes = {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
   },
   openTeamWarning: {
-    getScreen: (): typeof OpenTeamWarning =>
-      require('./team/settings-tab/open-team-warning/container').default,
+    getScreen: (): typeof OpenTeamWarning => require('./team/settings-tab/open-team-warning').default,
   },
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>

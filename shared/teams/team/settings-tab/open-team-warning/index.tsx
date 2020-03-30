@@ -1,13 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as Container from '../../../../util/container'
 
-type Props = {
-  teamname: string
+type Props = Container.RouteProps<{
   isOpenTeam: boolean
+  teamname: string
+  onCancel: () => void
   onConfirm: () => void
-  onBack: () => void
-}
+}>
 
 const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
   Styles.isMobile ? (
@@ -22,17 +23,24 @@ const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => v
 
 const OpenTeamWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
+  const isOpenTeam = Container.getRouteProps(props, 'isOpenTeam', false)
+  const teamname = Container.getRouteProps(props, 'teamname', '')
+  const onConfirm = Container.getRouteProps(props, 'onConfirm', () => undefined)
+
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
   return (
-    <Wrapper onBack={props.onBack}>
+    <Wrapper onBack={onCancel}>
       <Kb.Box style={styles.container}>
         <Kb.Icon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
-          Make {props.teamname} into {props.isOpenTeam ? 'an open' : 'a closed'} team?
+          Make {teamname} into {isOpenTeam ? 'an open' : 'a closed'} team?
         </Kb.Text>
         <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
           You are about to make this team{' '}
-          {props.isOpenTeam ? 'publicly visible. Anyone will be able to join this team.' : 'private.'}
+          {isOpenTeam ? 'publicly visible. Anyone will be able to join this team.' : 'private.'}
         </Kb.Text>
         <Kb.Checkbox
           checked={enabled}
@@ -43,7 +51,7 @@ const OpenTeamWarning = (props: Props) => {
             <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
               <Kb.Text type="Body">
                 I understand that{' '}
-                {props.isOpenTeam
+                {isOpenTeam
                   ? 'anyone will be able to join this team.'
                   : 'members will only be able to join through adds or invites.'}
               </Kb.Text>
@@ -52,11 +60,11 @@ const OpenTeamWarning = (props: Props) => {
           }
         />
         <Kb.ButtonBar>
-          <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
+          <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
           <Kb.Button
             type="Danger"
-            onClick={props.onConfirm}
-            label={Styles.isMobile ? 'Confirm' : `Yes, set to ${props.isOpenTeam ? 'Open' : 'Private'}`}
+            onClick={onConfirm}
+            label={Styles.isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
             disabled={!enabled}
           />
         </Kb.ButtonBar>
