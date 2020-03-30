@@ -42,33 +42,6 @@ type Props = {
 const TextPopupMenu = (props: Props) => {
   const items: Kb.MenuItems = [
     ...(props.showDivider ? (['Divider'] as const) : []),
-    ...(props.isDeleteable
-      ? [
-          {
-            danger: true,
-            disabled: !props.onDelete,
-            icon: 'iconfont-trash',
-            onClick: props.onDelete,
-            subTitle: 'Deletes this message for everyone',
-            title: 'Delete',
-          },
-        ]
-      : []),
-    ...(props.isKickable
-      ? [
-          {
-            danger: true,
-            disabled: !props.onKick,
-            icon: 'iconfont-block-user',
-            onClick: props.onKick,
-            subTitle: 'Removes the user from the team',
-            title: 'Kick user',
-          },
-        ]
-      : []),
-    ...((props.yourMessage && (props.isDeleteable || props.isKickable)) || props.onDeleteMessageHistory
-      ? (['Divider'] as const)
-      : []),
     ...(props.onViewMap
       ? [{icon: 'iconfont-location', onClick: props.onViewMap, title: 'View on Google Maps'}]
       : []),
@@ -101,8 +74,33 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
       : []),
+    ...(props.isDeleteable
+      ? [
+          {
+            danger: true,
+            disabled: !props.onDelete,
+            icon: 'iconfont-trash',
+            onClick: props.onDelete,
+            subTitle: 'Deletes this message for everyone',
+            title: 'Delete',
+          },
+        ]
+      : []),
+    ...(props.onViewProfile || props.isKickable || !props.yourMessage ? ['Divider' as const] : []),
     ...(props.onViewProfile
       ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]
+      : []),
+    ...(props.isKickable
+      ? [
+          {
+            danger: true,
+            disabled: !props.onKick,
+            icon: 'iconfont-block-user',
+            onClick: props.onKick,
+            subTitle: 'Removes the user from the team',
+            title: 'Kick user',
+          },
+        ]
       : []),
     ...(!props.yourMessage
       ? [
