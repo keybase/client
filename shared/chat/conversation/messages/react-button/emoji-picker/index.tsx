@@ -166,6 +166,12 @@ const getSectionsAndBookmarks = (
     sections.push(getFrequentSection(topReacjis, customSections || emptyArray, emojisPerLine))
   }
 
+  getEmojiSections(emojisPerLine).forEach(section => {
+    const categoryIcon = Data.categoryIcons[section.title]
+    categoryIcon && bookmarks.push({iconType: categoryIcon, sectionIndex: sections.length})
+    sections.push(section)
+  })
+
   if (customSections?.length) {
     const bookmark = {
       coveredSectionIndices: new Set<number>(),
@@ -179,11 +185,7 @@ const getSectionsAndBookmarks = (
     bookmarks.push(bookmark)
   }
 
-  getEmojiSections(emojisPerLine).forEach(section => {
-    const categoryIcon = Data.categoryIcons[section.title]
-    categoryIcon && bookmarks.push({iconType: categoryIcon, sectionIndex: sections.length})
-    sections.push(section)
-  })
+  console.log({songgao: 'getSectionsAndBookmarks', bookmarks, sections})
 
   return {bookmarks, sections}
 }
@@ -229,7 +231,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   private getBookmarkBar = (bookmarks: Array<Bookmark>) =>
     Styles.isMobile ? null : (
-      <Kb.Box2 direction="horizontal" style={styles.bookmarkContainer}>
+      <Kb.Box2 key="bookmark" direction="horizontal" fullWidth={true} style={styles.bookmarkContainer}>
         {bookmarks.map(bookmark => {
           const isActive =
             this.state.activeSectionIndex === bookmark.sectionIndex ||
@@ -272,13 +274,6 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     // to render. Render them directly rather than going through chunkData
     // pipeline for fast list of results. Go through chunkData only
     // when the width changes to do that processing as infrequently as possible
-    if (this.props.waitingForEmoji) {
-      return (
-        <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.flexWrap])}>
-          <Kb.ProgressIndicator />
-        </Kb.Box2>
-      )
-    }
     if (this.props.filter) {
       const results = getFilterResults(this.props.filter)
       // NOTE: maxEmojiSearchResults = 50 currently. this never fills the screen
@@ -307,20 +302,27 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     return sections ? (
       <>
         {this.getBookmarkBar(bookmarks)}
-        <Kb.SectionList
-          ref={this.sectionListRef}
-          desktopItemHeight={36}
-          desktopHeaderHeight={32}
-          keyboardShouldPersistTaps="handled"
-          initialNumToRender={14}
-          sections={sections}
-          desktopOnSectionChange={sectionIndex =>
-            this.mounted && this.setState({activeSectionIndex: sectionIndex})
-          }
-          stickySectionHeadersEnabled={Styles.isMobile}
-          renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
-          renderSectionHeader={({section}) => this.getSectionHeader(section.title)}
-        />
+        <Kb.Box2
+          key="section-list-container"
+          direction="vertical"
+          fullWidth={true}
+          style={styles.sectionListContainer}
+        >
+          <Kb.SectionList
+            ref={this.sectionListRef}
+            desktopItemHeight={36}
+            desktopHeaderHeight={32}
+            keyboardShouldPersistTaps="handled"
+            initialNumToRender={14}
+            sections={sections}
+            desktopOnSectionChange={sectionIndex =>
+              this.mounted && this.setState({activeSectionIndex: sectionIndex})
+            }
+            stickySectionHeadersEnabled={Styles.isMobile}
+            renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
+            renderSectionHeader={({section}) => this.getSectionHeader(section.title)}
+          />
+        </Kb.Box2>
       </>
     ) : null
   }
@@ -366,6 +368,11 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.white,
         height: 32,
         paddingLeft: Styles.globalMargins.tiny,
+      },
+      sectionListContainer: {
+        flexGrow: 1,
+        flexShrink: 1,
+        overflow: 'hidden',
       },
     } as const)
 )
