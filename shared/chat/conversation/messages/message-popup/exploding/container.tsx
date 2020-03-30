@@ -24,8 +24,6 @@ export type OwnProps = {
   visible: boolean
 }
 
-const emptyMap = new Map()
-
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const yourMessage = ownProps.message.author === state.config.username
@@ -42,8 +40,7 @@ export default Container.connect(
       ownProps.message.type === 'text' &&
       (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, ownProps.message, participantInfo)
-    const _teamMembers =
-      Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID)) || emptyMap
+    const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
 
     return {
       _authorIsBot: authorIsBot,
@@ -190,7 +187,7 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const authorInTeam = stateProps._teamMembers.has(ownProps.message.author)
+    const authorInTeam = stateProps._teamMembers ? stateProps._teamMembers.has(message.author) : true
     const items: MenuItems = []
     if (stateProps._canExplodeNow) {
       items.push({

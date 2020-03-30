@@ -22,8 +22,6 @@ type OwnProps = {
   visible: boolean
 }
 
-const emptyMap = new Map()
-
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
@@ -39,8 +37,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
   const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
-  const _teamMembers =
-    Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID)) || emptyMap
+  const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
   return {
     _authorIsBot: authorIsBot,
     _canAdminDelete,
@@ -162,7 +159,7 @@ export default Container.namedConnect(
     const isEditable = !!(stateProps._isEditable && yourMessage)
     const canReplyPrivately = stateProps._canReplyPrivately
     const mapUnfurl = Constants.getMapUnfurl(message)
-    const authorInTeam = stateProps._teamMembers.has(message.author)
+    const authorInTeam = stateProps._teamMembers ? stateProps._teamMembers.has(message.author) : true
     const isLocation = !!mapUnfurl
     // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
     const onViewMap =

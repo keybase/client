@@ -21,8 +21,6 @@ type OwnProps = {
   visible: boolean
 }
 
-const emptyMap = new Map()
-
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const message = ownProps.message
@@ -34,8 +32,7 @@ export default Container.connect(
     const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
     const _canPinMessage = !isTeam || (yourOperations && yourOperations.pinMessage)
     const _authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
-    const _teamMembers =
-      Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID)) || emptyMap
+    const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
     return {
       _authorIsBot,
       _canAdminDelete,
@@ -136,7 +133,7 @@ export default Container.connect(
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
-    const authorInTeam = stateProps._teamMembers.has(message.author)
+    const authorInTeam = stateProps._teamMembers ? stateProps._teamMembers.has(message.author) : true
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
