@@ -1,5 +1,0 @@
-# github.com/keybase/client/go/teams
-../../go/src/github.com/keybase/client/go/teams/treeloader.go:30:44: syntax error: unexpected context, expecting comma or )
-../../go/src/github.com/keybase/client/go/teams/treeloader.go:89:57: syntax error: unexpected newline, expecting comma or )
-FAIL	github.com/keybase/client/go/systests [build failed]
-FAIL
