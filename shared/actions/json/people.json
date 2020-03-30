@@ -15,6 +15,13 @@
     "dismissAnnouncement": {
       "id": "RPCTypes.HomeScreenAnnouncementID"
     },
+    "dismissWotNotifications":{
+      "voucher": "string",
+      "vouchee": "string"
+    },
+    "badgeAppForWotNotifications": {
+      "updates": "Map<string, Types.WotUpdate>"
+    },
     "markViewed": {},
     "skipTodo": {
       "type": "Types.TodoType"

@@ -13,7 +13,10 @@
     },
     "finishedReset": {},
     "resetAccount": {
-      "_description": "Tell the server to put an account into the reset pipeline. If no password is provided, the user will need to click a confirmation link in an email or text.",
+      "_description": [
+        "Tell the server to put an account into the reset pipeline.",
+        "If no password is provided, the user will need to click a confirmation link in an email or text."
+      ],
       "password?": "HiddenString"
     },
     "resetCancelled": {

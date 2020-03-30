@@ -10,6 +10,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platforms from '../../constants/platform'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
@@ -22,7 +23,7 @@ type OutputProps = {
   operation: Types.Operations
 }
 
-type OutputBarProps = {
+type OutputActionsBarProps = {
   operation: Types.Operations
 }
 
@@ -47,7 +48,7 @@ const largeOutputLimit = 120
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
 
-  const waitingKey = Constants.getStringWaitingKey(operation)
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
@@ -56,64 +57,84 @@ export const SignedSender = (props: SignedSenderProps) => {
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
 
   const isSelfSigned = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
-  const avatarSize = isSelfSigned ? 16 : 48
+  const avatarSize = isSelfSigned ? 16 : Styles.isMobile ? 32 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
+
+  const space = Styles.isMobile ? '' : ' '
+  const signedByText = `Signed by ${isSelfSigned ? `${space}you` : ''}`
 
   if (!outputStatus || (outputStatus && outputStatus === 'error')) {
     return null
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
-      {signed && signedByUsername ? (
-        <Kb.Box2
-          direction="horizontal"
-          gap={isSelfSigned ? 'xtiny' : 'xsmall'}
-          alignItems="center"
-          style={styles.signedSender}
-        >
-          <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
+    <>
+      <Kb.Divider />
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        alignItems="center"
+        style={Styles.collapseStyles([
+          styles.signedContainer,
+          isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
+        ])}
+      >
+        {signed && signedByUsername ? (
+          <Kb.Box2
+            direction="horizontal"
+            gap={isSelfSigned ? 'xtiny' : 'xsmall'}
+            alignItems="center"
+            style={styles.signedSender}
+          >
+            <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
 
-          {isSelfSigned ? (
-            [
-              <Kb.Text key="signedByUsername" type="BodySmall">
-                Signed by {isSelfSigned ? ' you, ' : ''}
-              </Kb.Text>,
-              <Kb.ConnectedUsernames
-                key="username"
-                type={usernameType}
-                usernames={signedByUsername.stringValue()}
-                colorFollowing={true}
-                colorYou={true}
-              />,
-            ]
-          ) : (
-            <Kb.Box2 key="signedByUsername" direction="vertical">
-              <Kb.ConnectedUsernames
-                type={usernameType}
-                usernames={signedByUsername.stringValue()}
-                colorFollowing={true}
-                colorYou={true}
-              />
-              {signedByFullname && <Kb.Text type="BodySmall">{signedByFullname.stringValue()}</Kb.Text>}
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
-          <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
-          {isSelfSigned ? null : (
-            <Kb.Text key="username" type="BodySmallSemibold">
-              Anonymous sender
+            {isSelfSigned ? (
+              <Kb.Box2
+                direction="horizontal"
+                gap={isSelfSigned ? 'xtiny' : 'xsmall'}
+                style={styles.signedByText}
+              >
+                <Kb.Text key="signedByUsername" type="BodySmall">
+                  {signedByText}
+                </Kb.Text>
+                <Kb.ConnectedUsernames
+                  key="username"
+                  type={usernameType}
+                  usernames={[signedByUsername.stringValue()]}
+                  colorFollowing={true}
+                  colorYou={true}
+                />
+              </Kb.Box2>
+            ) : (
+              <Kb.Box2 key="signedByUsername" direction="vertical">
+                <Kb.ConnectedUsernames
+                  type={usernameType}
+                  usernames={[signedByUsername.stringValue()]}
+                  colorFollowing={true}
+                  colorYou={true}
+                />
+                {signedByFullname?.stringValue() ? (
+                  <Kb.Text type="BodySmall">{signedByFullname?.stringValue()}</Kb.Text>
+                ) : null}
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+        ) : (
+          <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
+            <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
+            {isSelfSigned ? null : (
+              <Kb.Text key="username" type="BodySmallSemibold">
+                Anonymous sender
+              </Kb.Text>
+            )}
+            <Kb.Text key="signedByUsername" type="BodySmall">
+              {isSelfSigned ? `Not signed (Sending anonymously)` : `(Not signed)`}
             </Kb.Text>
-          )}
-          <Kb.Text key="signedByUsername" type="BodySmall">
-            {isSelfSigned ? `Not signed (Sending anonymously)` : `(Not signed)`}
-          </Kb.Text>
-        </Kb.Box2>
-      )}
-      {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
-    </Kb.Box2>
+          </Kb.Box2>
+        )}
+        {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -138,20 +159,25 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
   const {operation} = props
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   return outputStatus && outputStatus === 'success' ? (
-    <Kb.Banner color="grey" style={styles.banner}>
+    <Kb.Banner
+      color="grey"
+      style={styles.banner}
+      textContainerStyle={styles.bannerContainer}
+      narrow={Styles.isMobile}
+    >
       {props.children}
     </Kb.Banner>
   ) : null
 }
 
-export const OutputBar = (props: OutputBarProps) => {
+export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
   const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
@@ -202,8 +228,8 @@ export const OutputBar = (props: OutputBarProps) => {
   }, [showingToast, setHideToastTimeout])
 
   return outputStatus && outputStatus === 'success' ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
-      {outputType === 'file' ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
+      {outputType === 'file' && !Styles.isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
           <Kb.Button
             mode="Secondary"
@@ -212,13 +238,18 @@ export const OutputBar = (props: OutputBarProps) => {
           />
         </Kb.ButtonBar>
       ) : (
-        <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+        <Kb.ButtonBar
+          direction="row"
+          align={Styles.isTablet ? 'center' : 'flex-start'}
+          style={styles.buttonBar}
+        >
           {canReplyInChat && signed && signedByUsername && (
             <Kb.Button
               mode="Primary"
               label="Reply in chat"
-              onClick={() => onReplyInChat(signedByUsername)}
               disabled={actionsDisabled}
+              fullWidth={Styles.isMobile}
+              onClick={() => onReplyInChat(signedByUsername)}
             />
           )}
           <Kb.Box2 direction="horizontal" ref={attachmentRef}>
@@ -227,14 +258,17 @@ export const OutputBar = (props: OutputBarProps) => {
                 Copied to clipboard
               </Kb.Text>
             </Kb.Toast>
-            <Kb.Button
-              mode="Secondary"
-              label="Copy to clipboard"
-              disabled={actionsDisabled}
-              onClick={() => copy()}
-            />
+            {Styles.isMobile && canReplyInChat ? null : (
+              <Kb.Button
+                mode={Styles.isMobile ? 'Primary' : 'Secondary'}
+                label="Copy to clipboard"
+                disabled={actionsDisabled}
+                fullWidth={Styles.isMobile}
+                onClick={() => copy()}
+              />
+            )}
           </Kb.Box2>
-          {canSaveAsText && (
+          {canSaveAsText && !Styles.isMobile && (
             <Kb.Button
               mode="Secondary"
               label="Save as TXT"
@@ -249,7 +283,7 @@ export const OutputBar = (props: OutputBarProps) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([styles.outputBarContainer, styles.outputPlaceholder])}
+      style={Styles.collapseStyles([styles.outputActionsBarContainer, styles.outputPlaceholder])}
     >
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {null}
@@ -295,9 +329,9 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   )
 }
 
-const Output = (props: OutputProps) => {
+export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
-  const textType = Constants.getOutputTextType(operation)
+  const textType = Constants.outputTextType.get(operation)
   const dispatch = Container.useDispatch()
 
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
@@ -312,7 +346,7 @@ const Output = (props: OutputProps) => {
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
   }
 
-  const waitingKey = Constants.getStringWaitingKey(operation)
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   // Output text can be 24 px when output is less that 120 characters
@@ -325,7 +359,7 @@ const Output = (props: OutputProps) => {
 
   const fileOutputTextColor =
     textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
-  const fileIcon = Constants.getOutputFileIcon(operation)
+  const fileIcon = Constants.outputFileIcon.get(operation) as IconType
   const actionsDisabled = waiting || !outputValid
 
   // Placeholder, progress, or encrypt file button
@@ -371,15 +405,18 @@ const Output = (props: OutputProps) => {
   }
 
   // Text output
+  const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-      <Kb.Text
-        type={textType === 'cipher' ? 'Terminal' : 'Body'}
-        selectable={!actionsDisabled}
-        style={Styles.collapseStyles([styles.output, outputLargeStyle])}
-      >
-        {output}
-      </Kb.Text>
+      <MobileScroll>
+        <Kb.Text
+          type={textType === 'cipher' ? 'Terminal' : 'Body'}
+          selectable={!actionsDisabled}
+          style={Styles.collapseStyles([styles.output, outputLargeStyle])}
+        >
+          {output}
+        </Kb.Text>
+      </MobileScroll>
     </Kb.Box2>
   )
 }
@@ -391,6 +428,9 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.tiny),
         minHeight: 40,
       },
+      bannerContainer: {
+        ...Styles.padding(0),
+      },
       buttonBar: {
         height: Styles.globalMargins.large,
         minHeight: Styles.globalMargins.large,
@@ -401,34 +441,84 @@ const styles = Styles.styleSheetCreate(
           ...Styles.padding(Styles.globalMargins.tiny),
           overflowY: 'auto',
         },
+        isMobile: {
+          flexShrink: 1,
+        },
       }),
       coverOutput: {...Styles.globalStyles.flexBoxCenter},
       fileOutputContainer: {...Styles.padding(Styles.globalMargins.xsmall)},
       fileOutputText: {...Styles.globalStyles.fontSemibold},
       output: Styles.platformStyles({
-        common: {color: Styles.globalColors.black},
-        isElectron: {whiteSpace: 'pre-wrap', wordBreak: 'break-word'},
+        common: {
+          color: Styles.globalColors.black,
+        },
+        isElectron: {
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small),
+        },
       }),
-      outputBarContainer: {...Styles.padding(Styles.globalMargins.tiny)},
+      outputActionsBarContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.padding(Styles.globalMargins.tiny),
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small),
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isTablet: {
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+      }),
       outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
       outputVerifiedContainer: {marginBottom: Styles.globalMargins.xlarge},
       placeholder: {color: Styles.globalColors.black_50},
       progressBar: {
         width: 200,
       },
-      signedContainer: {
-        minHeight: Styles.globalMargins.mediumLarge,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+      signedByText: {
+        alignItems: 'baseline',
       },
+      signedContainer: Styles.platformStyles({
+        common: {
+          flexShrink: 0,
+          justifyContent: 'center',
+          minHeight: Styles.globalMargins.mediumLarge,
+        },
+        isMobile: {
+          minHeight: Styles.globalMargins.large,
+        },
+      }),
+      signedContainerOther: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small),
+        },
+      }),
+      signedContainerSelf: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.tiny),
+        },
+      }),
       signedIcon: {color: Styles.globalColors.green},
-      signedSender: {...Styles.globalStyles.flexGrow},
+      signedSender: {
+        ...Styles.globalStyles.flexGrow,
+      },
       toastText: {
         color: Styles.globalColors.white,
         textAlign: 'center',
       },
     } as const)
 )
-
-export default Output

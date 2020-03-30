@@ -2548,6 +2548,20 @@ func (r *AddEmojiRes) SetRateLimits(rl []RateLimit) {
 		r.RateLimit = &rl[0]
 	}
 }
+
+func (r *RemoveEmojiRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *RemoveEmojiRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
 func (r *UserEmojiRes) GetRateLimit() (res []RateLimit) {
 	if r.RateLimit != nil {
 		res = []RateLimit{*r.RateLimit}
@@ -3084,4 +3098,24 @@ func (s SnippetDecoration) ToEmoji() string {
 	default:
 		return ""
 	}
+}
+
+func (r EmojiRemoteSource) IsMessage() bool {
+	typ, err := r.Typ()
+	if err != nil {
+		return false
+	}
+	return typ == EmojiRemoteSourceTyp_MESSAGE
+}
+
+func (r EmojiRemoteSource) IsStockAlias() bool {
+	typ, err := r.Typ()
+	if err != nil {
+		return false
+	}
+	return typ == EmojiRemoteSourceTyp_STOCKALIAS
+}
+
+func (r EmojiRemoteSource) IsAlias() bool {
+	return r.IsStockAlias() || (r.IsMessage() && r.Message().IsAlias)
 }

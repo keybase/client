@@ -17,7 +17,7 @@ export type Props = {
     }
   }
   onJoinTeam: (teamname: string) => void
-  onViewTeam: (teamID: TeamID) => void
+  onViewTeam: (teamname: string) => void
   onEdit?: () => void
 }
 
@@ -68,7 +68,7 @@ const Teams = (p: Props) =>
           key={t.name}
           {...t}
           onJoinTeam={p.onJoinTeam}
-          onViewTeam={() => p.onViewTeam(p.teamMeta[t.name].teamID)}
+          onViewTeam={() => p.onViewTeam(t.name)}
           inTeam={p.teamMeta[t.name].inTeam}
         />
       ))}

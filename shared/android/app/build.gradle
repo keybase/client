@@ -85,7 +85,7 @@ def VERSION_NAME = "5.4.0"
 project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
-    enableHermes: false,  // clean and rebuild if changing
+    enableHermes: KB_USEHERMES == 'true',  // clean and rebuild if changing
     enableV8: KB_USEV8 == 'true',  // clean and rebuild if changing
 ]
 
@@ -212,13 +212,6 @@ android {
         if (enableV8) {
             // Make sure libjsc.so does not packed in APK
             exclude "**/libjsc.so"
-        } else {
-            pickFirst '**/armeabi-v7a/libc++_shared.so'
-            pickFirst '**/x86/libc++_shared.so'
-            pickFirst '**/arm64-v8a/libc++_shared.so'
-            pickFirst '**/x86_64/libc++_shared.so'
-            pickFirst '**/x86/libjsc.so'
-            pickFirst '**/armeabi-v7a/libjsc.so'
         }
     }
 }
@@ -234,7 +227,7 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
     if (enableHermes) {
-        def hermesPath = "../../node_modules/hermesvm/android/";
+        def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
         releaseImplementation files(hermesPath + "hermes-release.aar")
     } else if (enableV8) {

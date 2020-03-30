@@ -361,9 +361,10 @@ func (dd *DirData) RemoveEntry(ctx context.Context, name PathPartString) (
 func (dd *DirData) Ready(ctx context.Context, id tlf.ID,
 	bcache BlockCache, dirtyBcache IsDirtyProvider,
 	rp ReadyProvider, bps BlockPutState,
-	topBlock *DirBlock) (map[BlockInfo]BlockPointer, error) {
+	topBlock *DirBlock, hashBehavior BlockCacheHashBehavior) (
+	map[BlockInfo]BlockPointer, error) {
 	return dd.tree.ready(
-		ctx, id, bcache, dirtyBcache, rp, bps, topBlock, nil)
+		ctx, id, bcache, dirtyBcache, rp, bps, topBlock, nil, hashBehavior)
 }
 
 // GetDirtyChildPtrs returns a set of dirty child pointers (not the

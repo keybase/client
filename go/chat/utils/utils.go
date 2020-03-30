@@ -652,7 +652,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
-// Start at the beginng of the line, space, or some hand picked artisanal
+// Start at the beginning of the line, space, or some hand picked artisanal
 // characters
 const ServiceDecorationPrefix = `(?:^|[\s([/{:;.,!?"'])`
 
@@ -1779,6 +1779,27 @@ func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
 	return body
 }
 
+func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) *string {
+	msgBody := msg.MessageBody
+	typ, err := msgBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	var body string
+	switch typ {
+	case chat1.MessageType_TEXT:
+		body = msgBody.Text().Body
+	case chat1.MessageType_REACTION:
+		body = msgBody.Reaction().Body
+	default:
+		return nil
+	}
+	body = PresentDecoratedTextNoMentions(ctx, body)
+	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
+	return &body
+}
+
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
@@ -1964,8 +1985,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
-			decoratedBody = new(string)
-			*decoratedBody = EscapeShrugs(ctx, body)
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
 		case chat1.MessageType_FLIP:
 			body = rawMsg.Outbox().Msg.MessageBody.Flip().Text
 			decoratedBody = new(string)
@@ -1981,6 +2001,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 				title = asset.Title
 				filename = asset.Filename
 			}
+		case chat1.MessageType_REACTION:
+			body = rawMsg.Outbox().Msg.MessageBody.Reaction().Body
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
 		}
 		var replyTo *chat1.UIMessage
 		if rawMsg.Outbox().ReplyTo != nil {
@@ -2001,6 +2024,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			ReplyTo:           replyTo,
+			Supersedes:        rawMsg.Outbox().Msg.ClientHeader.Supersedes,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -2544,7 +2568,7 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	origBody := body
 
 	// early out of here if there is no dot
-	if !strings.Contains(body, ".") {
+	if !(strings.Contains(body, ".") || strings.Contains(body, "://")) {
 		return body
 	}
 	shouldSkipLink := func(body string) bool {
@@ -3006,4 +3030,15 @@ func GetConvParticipantUsernames(ctx context.Context, g *globals.Context, uid gr
 		parts = append(parts, row.NormalizedUsername.String())
 	}
 	return parts, nil
+}
+
+func IsDeletedConvError(err error) bool {
+	switch err.(type) {
+	case libkb.ChatBadConversationError,
+		libkb.ChatNotInTeamError,
+		libkb.ChatNotInConvError:
+		return true
+	default:
+		return false
+	}
 }

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
 import {ModalTitle} from '../common'
@@ -22,7 +21,6 @@ const AddEmail = (props: Props) => {
   const disabled = invitees.length < 1
 
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
 
   // TODO Y2K-1556 useRPC to get assertions to pass to this action
   const onContinue = () => dispatch(TeamsGen.createAddMembersWizardPushMembers({members: []}))
@@ -32,7 +30,7 @@ const AddEmail = (props: Props) => {
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={teamname} title="Email list" />,
+        title: <ModalTitle teamID={teamID} title="Email list" />,
       }}
       allowOverflow={true}
       footer={{

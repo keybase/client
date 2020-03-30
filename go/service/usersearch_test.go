@@ -651,3 +651,292 @@ func TestUserSearchBadArgs(t *testing.T) {
 	})
 	require.Error(t, err)
 }
+
+func TestImptofuSearch(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	mockContactsProv.PhoneNumbers["+48111222332"] = contacts.MakeMockLookupUser("alice", "Alice A")
+	mockContactsProv.Emails["bob@keyba.se"] = contacts.MakeMockLookupUser("bob", "Bobby")
+
+	ret, err := searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{"+48111222332"},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 0, "0 emails in results (we didn't ask)")
+	require.Len(t, ret.phoneNumbers, 1, "1 phone number in results")
+	phoneRet := ret.phoneNumbers[0]
+	require.Equal(t, phoneRet.input, "+48111222332")
+	require.Equal(t, phoneRet.assertion.String(), "48111222332@phone")
+	require.True(t, phoneRet.found)
+	require.True(t, phoneRet.UID.Exists())
+	require.Equal(t, phoneRet.username, "alice")
+	require.Equal(t, phoneRet.fullName, "Alice A")
+
+	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{"+1555123456"},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 0, "0 emails in results (we didn't ask)")
+	require.Len(t, ret.phoneNumbers, 1, "1 phone number in results (even if it wasn't found)")
+	phoneRet = ret.phoneNumbers[0]
+	require.Equal(t, phoneRet.input, "+1555123456")
+	require.Equal(t, phoneRet.assertion.String(), "1555123456@phone")
+	require.False(t, phoneRet.found)
+	require.True(t, phoneRet.UID.IsNil())
+	require.Empty(t, phoneRet.username)
+	require.Empty(t, phoneRet.fullName)
+
+	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"bob@keyba.se"}, []keybase1.RawPhoneNumber{},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 1, "1 email in results")
+	require.Len(t, ret.phoneNumbers, 0, "0 phone numbers in results (we didn't ask)")
+	emailRet := ret.emails[0]
+	require.Equal(t, emailRet.input, "bob@keyba.se")
+	require.Equal(t, emailRet.assertion.String(), "[bob@keyba.se]@email")
+	require.True(t, emailRet.found)
+	require.True(t, emailRet.UID.Exists())
+	require.Equal(t, emailRet.username, "bob")
+	require.Equal(t, emailRet.fullName, "Bobby")
+
+	ret, err = searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"alice@keyba.se"}, []keybase1.RawPhoneNumber{},
+		true, true)
+
+	require.NoError(t, err)
+	require.Len(t, ret.emails, 1, "1 email in results")
+	require.Len(t, ret.phoneNumbers, 0, "0 phone numbers in results (we didn't ask)")
+	emailRet = ret.emails[0]
+	require.Equal(t, emailRet.input, "alice@keyba.se")
+	require.Equal(t, emailRet.assertion.String(), "[alice@keyba.se]@email")
+	require.False(t, emailRet.found)
+	require.True(t, emailRet.UID.IsNil())
+	require.Empty(t, emailRet.username)
+	require.Empty(t, emailRet.fullName)
+}
+
+func TestImptofuSearchMulti(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	mockContactsProv.PhoneNumbers["+48111222332"] = contacts.MakeMockLookupUser("alice", "Alice A")
+	mockContactsProv.PhoneNumbers["+1123456789"] = contacts.MakeMockLookupUser("lily", "")
+	mockContactsProv.Emails["bobby6@example.com"] = contacts.MakeMockLookupUser("bob", "Bobby")
+	mockContactsProv.Emails["bob@keyba.se"] = contacts.MakeMockLookupUser("bob", "Bobby")
+
+	ret, err := searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"bobby6@example.com", "bob@keyba.se", "alice@keyba.se", "alice"},
+		[]keybase1.RawPhoneNumber{"+48111222332", "+1123456789", "+44123123", "011"},
+		true, true)
+
+	require.NoError(t, err)
+
+	// Number of results is always equal to the number of inputs.
+	require.Len(t, ret.emails, 4)
+	require.Len(t, ret.phoneNumbers, 4)
+
+	for i, v := range ret.emails {
+		if i < 2 {
+			// "bobby6@example.com", "bob@keyba.se"
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.True(t, v.found)
+			require.True(t, v.UID.Exists())
+			require.Equal(t, v.username, "bob")
+			require.Equal(t, v.fullName, "Bobby")
+		} else if i == 2 {
+			// "alice@keyba.se"
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		} else if i == 3 {
+			// "alice"
+			require.False(t, v.validInput)
+			require.Nil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		}
+	}
+
+	for i, v := range ret.phoneNumbers {
+		if i < 2 {
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.True(t, v.found)
+			require.True(t, v.UID.Exists())
+			switch i {
+			case 0:
+				// "+48111222332", "+1123456789"
+				require.Equal(t, v.username, "alice")
+				require.Equal(t, v.fullName, "Alice A")
+			case 1:
+				require.Equal(t, v.username, "lily")
+				require.Equal(t, v.fullName, "")
+			}
+		} else if i == 2 {
+			// "+44123123"
+			require.True(t, v.validInput)
+			require.NotNil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		} else if i == 3 {
+			// "011"
+			require.False(t, v.validInput)
+			require.Nil(t, v.assertion)
+			require.False(t, v.found)
+			require.True(t, v.UID.IsNil())
+		}
+	}
+}
+
+func TestImptofuBadInput(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	ret, err := searchHandler.searchEmailsOrPhoneNumbers(tc.MetaContext(),
+		[]keybase1.EmailAddress{"alice"}, []keybase1.RawPhoneNumber{"test", "01234", "+1"},
+		true, true)
+
+	require.NoError(t, err)
+
+	require.Len(t, ret.emails, 1)
+	require.Len(t, ret.phoneNumbers, 3)
+	require.Equal(t, ret.emails[0].input, "alice")
+	require.Equal(t, ret.phoneNumbers[0].input, "test")
+	require.Equal(t, ret.phoneNumbers[1].input, "01234")
+	require.Equal(t, ret.phoneNumbers[2].input, "+1")
+
+	all := append(ret.emails, ret.phoneNumbers...)
+	for _, v := range all {
+		require.Equal(t, v.validInput, false)
+		require.Nil(t, v.assertion)
+		require.False(t, v.found)
+		require.True(t, v.UID.IsNil())
+		require.Empty(t, v.username)
+		require.Empty(t, v.fullName)
+	}
+}
+
+func TestBulkEmailSearch(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	emails := []string{
+		"alice@example.org",
+		"bob@example.com",
+		"no-reply@keybase.example.com",
+		"test@example.edu",
+		"hello@keybase.example.com",
+	}
+	separators := []string{
+		",", "\n", ", ", "\r\n",
+	}
+
+	query := ""
+	for i, v := range emails {
+		query += v
+		if i < len(emails)-1 {
+			query += separators[i%len(separators)]
+		}
+	}
+
+	ret, err := searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		Emails: query,
+	})
+
+	require.NoError(t, err)
+	require.Len(t, ret, len(emails))
+	for i, v := range ret {
+		require.Equal(t, v.Assertion, fmt.Sprintf("[%s]@email", emails[i]))
+		require.Equal(t, v.AssertionKey, "email")
+		require.Equal(t, v.AssertionValue, emails[i])
+
+		require.False(t, v.FoundUser)
+		require.Empty(t, v.Username)
+		require.Empty(t, v.FullName)
+	}
+
+	ret, err = searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		Emails: "Alice <alice@example.com>,Bob <bob@example.com>",
+	})
+
+	require.NoError(t, err)
+	require.Len(t, ret, 2)
+	require.Equal(t, ret[0].Input, "alice@example.com")
+	require.Equal(t, ret[0].Assertion, "[alice@example.com]@email")
+	require.Equal(t, ret[1].Input, "bob@example.com")
+	require.Equal(t, ret[1].Assertion, "[bob@example.com]@email")
+}
+
+func TestBulkEmailSearchBadInput(t *testing.T) {
+	tc := libkb.SetupTest(t, "usersearch", 1)
+	defer tc.Cleanup()
+
+	mockContactsProv := contacts.MakeMockProvider(t)
+	contactsProv := &contacts.CachedContactsProvider{
+		Provider: mockContactsProv,
+		Store:    contacts.NewContactCacheStore(tc.G),
+	}
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
+
+	emails := "\nalice:,alice@example.org, alice, x\n,  ,\n"
+	ret, err := searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		Emails: emails,
+	})
+
+	require.NoError(t, err)
+	require.Len(t, ret, 1) // there was only one valid email in there
+	require.Equal(t, ret[0].Input, "alice@example.org")
+	require.Equal(t, ret[0].Assertion, "[alice@example.org]@email")
+	require.Equal(t, ret[0].AssertionValue, "alice@example.org")
+	require.Equal(t, ret[0].AssertionKey, "email")
+	require.Equal(t, ret[0].FoundUser, false)
+	require.Equal(t, ret[0].Username, "")
+	require.Equal(t, ret[0].FullName, "")
+
+	ret, err = searchHandler.BulkEmailOrPhoneSearch(context.Background(), keybase1.BulkEmailOrPhoneSearchArg{
+		PhoneNumbers: []keybase1.PhoneNumber{"+1", "00"},
+	})
+
+	require.NoError(t, err)
+	require.Len(t, ret, 0)
+}

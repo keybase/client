@@ -160,7 +160,7 @@ renameLoop:
 		switch {
 		case err == nil:
 			continue renameLoop
-		case os.IsNotExist(err):
+		case err == errNotExist:
 		default:
 			return keybase1.OpID{}, keybase1.KBFSPath{}, err
 		}
@@ -172,7 +172,7 @@ renameLoop:
 			OverwriteExistingFiles: false,
 		})
 		switch errors.Cause(err) {
-		case os.ErrExist:
+		case errNameExists:
 			continue renameLoop
 		case nil:
 			return opid, dstPath, nil

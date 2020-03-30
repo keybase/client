@@ -7,10 +7,11 @@ import * as Types from '../../constants/types/teams'
 
 const teamID = fakeTeamID
 
-const getProps = (selectedTab: Types.TabKey) => ({
-  initialTab: selectedTab,
-  teamID,
-})
+const getProps = (selectedTab: Types.TabKey) =>
+  Sb.createNavigator({
+    initialTab: selectedTab,
+    teamID,
+  })
 
 const storeWithSelection = Container.produce(store, draftState => {
   draftState.teams.teamSelectedChannels = new Map([[teamID, new Set(['1', '2'])]])

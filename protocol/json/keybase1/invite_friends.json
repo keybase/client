@@ -21,6 +21,10 @@
         },
         {
           "type": "boolean",
+          "name": "showNumInvites"
+        },
+        {
+          "type": "boolean",
           "name": "showFire"
         }
       ]
@@ -60,7 +64,7 @@
           "name": "phones",
           "type": {
             "type": "array",
-            "items": "RawPhoneNumber"
+            "items": "PhoneNumber"
           }
         }
       ],
@@ -69,6 +73,10 @@
     "getInviteCounts": {
       "request": [],
       "response": "InviteCounts"
+    },
+    "requestInviteCounts": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

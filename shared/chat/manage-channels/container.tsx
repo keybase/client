@@ -68,7 +68,6 @@ type Props = {
   ) => void
   canCreateChannels: boolean
   canEditChannels: boolean
-  onChangeSearch: (text: string) => void
   onClose: () => void
   onCreate: () => void
   onEdit: (convID: ChatTypes.ConversationIDKey) => void
@@ -83,7 +82,7 @@ const Wrapper = (p: Props) => {
   const channelMetas = useAllChannelMetas(_teamID)
   const teamSize = Container.useSelector(state => state.teams.teamIDToMembers.get(_teamID)?.size ?? 0)
   const participantMap = Container.useSelector(state => state.chat2.participantMap)
-  const searchText = Container.useSelector(state => state.chat2.channelSearchText)
+  const [searchText, setSearchText] = React.useState('')
   const channels = getChannels(channelMetas, participantMap, searchText, teamSize)
 
   const oldChannelState = React.useMemo(
@@ -146,7 +145,7 @@ const Wrapper = (p: Props) => {
       waitingForGet={rest.waitingForGet}
       teamname={teamname}
       onEdit={rest.onEdit}
-      onChangeSearch={rest.onChangeSearch}
+      onChangeSearch={setSearchText}
       onClose={rest.onClose}
       onCreate={rest.onCreate}
       canEditChannels={rest.canEditChannels}
@@ -225,12 +224,9 @@ export default Container.connect(
       },
       onBack: () => {
         dispatch(RouteTreeGen.createNavigateUp())
-        dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
       },
-      onChangeSearch: (text: string) => dispatch(Chat2Gen.createSetChannelSearchText({text})),
       onClose: () => {
         dispatch(RouteTreeGen.createNavigateUp())
-        dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
       },
       onCreate: () =>
         dispatch(

@@ -2,15 +2,7 @@ import {emojiIndex} from 'emoji-mart'
 // @ts-ignore
 import emojidata from 'emoji-datasource'
 import groupBy from 'lodash/groupBy'
-import * as Types from '../../../../../constants/types/chat2'
-
-export type EmojiData = {
-  category: string
-  name: string | null
-  short_name: string
-  unified: string
-  skin_variations?: {[K in Types.EmojiSkinTone]: Object}
-}
+import {EmojiData} from '../../../../../util/emoji'
 
 const categorized = groupBy(emojidata, 'category')
 const sorted: typeof categorized = {}
@@ -29,6 +21,16 @@ const categoryOrder = [
   'Symbols',
   'Flags',
 ]
+export const categoryIcons = {
+  Activities: 'iconfont-basketball',
+  'Animals & Nature': 'iconfont-pawprint',
+  Flags: 'iconfont-flag',
+  'Food & Drink': 'iconfont-apple',
+  Objects: 'iconfont-music',
+  'Smileys & People': 'iconfont-emoji',
+  Symbols: 'iconfont-checkbox',
+  'Travel & Places': 'iconfont-airplane',
+}
 const categories: Array<{
   category: string
   emojis: Array<EmojiData>
@@ -53,4 +55,7 @@ const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
 export const skinTones = new Map(
   categorized['Skin Tones'].map(skinTone => [skinTone.unified, skinTone]) ?? []
 )
+
+export const defaultHoverEmoji = emojiNameMap.potato || emojidata[0]
+
 export {categories, categoryOrder, emojiIndex, emojiNameMap}

@@ -45,6 +45,7 @@ const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, 
 
 type Props = {
   currentSkinTone?: Types.EmojiSkinTone
+  onExpandChange?: (expanded: boolean) => void
   setSkinTone: (skinTone: undefined | Types.EmojiSkinTone) => void
 }
 
@@ -54,7 +55,11 @@ const reorderedSkinTones = (props: Props): Array<undefined | Types.EmojiSkinTone
     : [props.currentSkinTone, ...skinTones.filter(st => st !== props.currentSkinTone)]
 
 const SkinTonePicker = (props: Props) => {
-  const [expanded, setExpanded] = React.useState(false)
+  const [expanded, _setExpanded] = React.useState(false)
+  const setExpanded = (toSet: boolean) => {
+    _setExpanded(toSet)
+    props.onExpandChange?.(toSet)
+  }
   const optionSkinTones = reorderedSkinTones(props).map((skinTone, index) => (
     <Kb.ClickableBox
       key={index.toString()}
@@ -88,9 +93,13 @@ const SkinTonePicker = (props: Props) => {
   ) : (
     <Kb.Box style={styles.relative}>
       {expanded ? (
-        <Kb.Box2 direction="vertical" style={styles.popupContainer}>
-          {optionSkinTones}
-        </Kb.Box2>
+        <Kb.Animated to={{height: 126}} from={{height: 26}} config={reactSprintConfig}>
+          {({height}) => (
+            <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.popupContainer, {height}])}>
+              {optionSkinTones}
+            </Kb.Box2>
+          )}
+        </Kb.Animated>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
           <Kb.ClickableBox style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
@@ -155,11 +164,14 @@ const styles = Styles.styleSheetCreate(() => ({
     borderRadius: Styles.globalMargins.small,
     borderStyle: 'solid',
     borderWidth: 1,
-    marginLeft: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.xtiny - 1,
+    marginTop: Styles.globalMargins.xtiny - 1,
+    overflow: 'hidden',
     padding: Styles.globalMargins.xxtiny,
     position: 'absolute',
     zIndex: 1,
   },
   relative: {position: 'relative'},
 }))
+
+const reactSprintConfig = {clamp: true, friction: 20, tension: 210}

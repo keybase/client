@@ -2,10 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
+
+type Props = {title: string; teamID: Types.TeamID}
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-fire',
-  recently: 'iconfont-team-leave',
+  recently: 'iconfont-campfire-out',
 }
 const activityToLabel = {
   active: 'Active',
@@ -32,8 +36,13 @@ const Activity = ({level}: {level: Types.ActivityLevel}) =>
     </Kb.Box2>
   )
 
-export const ModalTitle = ({title, teamname}: {title: string; teamname: string}) =>
-  Styles.isMobile ? (
+export const ModalTitle = ({title, teamID}: Props) => {
+  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
+  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
+  const isNewTeamWizard = teamID == Types.newTeamWizardTeamID
+
+  return Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
         {teamname}
@@ -42,7 +51,14 @@ export const ModalTitle = ({title, teamname}: {title: string; teamname: string})
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
-      <Kb.Avatar size={32} teamname={teamname} style={styles.avatar} />
+      <Kb.Avatar
+        size={32}
+        teamname={teamname}
+        style={styles.avatar}
+        isTeam={true}
+        imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}
+        crop={isNewTeamWizard ? avatarCrop : undefined}
+      />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>
           {teamname}
@@ -51,6 +67,7 @@ export const ModalTitle = ({title, teamname}: {title: string; teamname: string})
       </Kb.Box2>
     </Kb.Box2>
   )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   activityActive: {

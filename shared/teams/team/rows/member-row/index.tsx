@@ -11,6 +11,7 @@ import {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/typ
 import MenuHeader from '../menu-header.new'
 
 export type Props = {
+  firstItem: boolean
   following: boolean
   fullName: string
   onBlock: () => void
@@ -71,7 +72,6 @@ export const TeamMemberRow = (props: Props) => {
   const isYou = props.you === props.username
 
   if (flags.teamsRedesign) {
-    const isOwner = props.roleType == 'owner'
     const teamID = props.teamID
 
     const dispatch = Container.useDispatch()
@@ -89,6 +89,7 @@ export const TeamMemberRow = (props: Props) => {
         onCheck={onSelect}
         key={`check-${props.username}`}
         selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
+        style={styles.widenClickableArea}
       />
     )
 
@@ -207,7 +208,7 @@ export const TeamMemberRow = (props: Props) => {
         containerStyleOverride={styles.listItemMargin}
         type="Large"
         body={body}
-        firstItem={isOwner /*TODO: make this accurate */}
+        firstItem={props.firstItem}
         style={selected ? styles.selected : undefined}
         onClick={anySelected ? () => onSelect(!selected) : props.onClick}
       />
@@ -393,4 +394,5 @@ const styles = Styles.styleSheetCreate(() => ({
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
+  widenClickableArea: {margin: -5, padding: 5},
 }))

@@ -169,7 +169,7 @@ func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.C
 		return errors.New("can't Put() a block with a non-zero refnonce")
 	}
 
-	return kbfsblock.VerifyID(buf, id)
+	return verifyLocalBlockIDMaybe(buf, id)
 }
 
 // doPut consolidates the put logic for implementing both the Put and PutAgain interface.

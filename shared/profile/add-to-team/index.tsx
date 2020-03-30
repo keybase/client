@@ -38,11 +38,8 @@ export type AddToTeamProps = {
   title: string
   addUserToTeamsResults: string
   addUserToTeamsState: Types.AddUserToTeamsState
-  customComponent?: React.ElementType | null
-  headerStyle?: Styles.StylesCrossPlatform
   loadTeamList: () => void
   onBack: () => void
-  onCancel?: () => void
   teamProfileAddList: Array<Types.TeamProfileAddList>
   them: string
   waiting: boolean
@@ -98,98 +95,101 @@ class AddToTeam extends React.Component<Props> {
   render() {
     const selectedTeamCount = this.props.selectedTeams.size
     return (
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        {this.props.addUserToTeamsState === 'failed' && (
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            noShrink={true}
-            style={styles.addUserToTeamsResultsBox}
-          >
-            <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" negative={true}>
-              {this.props.addUserToTeamsResults}
-            </Kb.Text>
-          </Kb.Box2>
-        )}
-        {!Styles.isMobile && (
-          <Kb.Box2 direction="horizontal" style={{paddingBottom: Styles.globalMargins.large}}>
-            <Kb.Text type="Header">Add</Kb.Text>
-            <Kb.Avatar
-              isTeam={false}
-              size={16}
-              style={{marginLeft: Styles.globalMargins.tiny, marginRight: 2}}
-              username={this.props.them}
-            />
-            <Kb.Text type="Header">{this.props.them} to...</Kb.Text>
-          </Kb.Box2>
-        )}
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        {Styles.isMobile && <Kb.HeaderHocHeader leftAction="back" title={this.props.title} />}
+        <Kb.Box2 direction="vertical" style={styles.container}>
+          {this.props.addUserToTeamsState === 'failed' && (
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              noShrink={true}
+              style={styles.addUserToTeamsResultsBox}
+            >
+              <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" negative={true}>
+                {this.props.addUserToTeamsResults}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+          {!Styles.isMobile && (
+            <Kb.Box2 direction="horizontal" style={{paddingBottom: Styles.globalMargins.large}}>
+              <Kb.Text type="Header">Add</Kb.Text>
+              <Kb.Avatar
+                isTeam={false}
+                size={16}
+                style={{marginLeft: Styles.globalMargins.tiny, marginRight: 2}}
+                username={this.props.them}
+              />
+              <Kb.Text type="Header">{this.props.them} to...</Kb.Text>
+            </Kb.Box2>
+          )}
 
-        <Kb.ScrollView style={{width: '100%'}}>
-          <Kb.Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
-            {!this.props.waiting ? (
-              this.props.teamProfileAddList.length > 0 ? (
-                this.props.teamProfileAddList.map(team => (
-                  <TeamRow
-                    canAddThem={!team.disabledReason}
-                    checked={this.props.selectedTeams.has(team.teamName)}
-                    disabledReason={team.disabledReason}
-                    key={team.teamName}
-                    name={team.teamName}
-                    isOpen={team.open}
-                    onCheck={selected => this.props.onToggle(team.teamName, selected)}
-                    them={this.props.them}
-                  />
-                ))
+          <Kb.ScrollView style={{width: '100%'}}>
+            <Kb.Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
+              {!this.props.waiting ? (
+                this.props.teamProfileAddList.length > 0 ? (
+                  this.props.teamProfileAddList.map(team => (
+                    <TeamRow
+                      canAddThem={!team.disabledReason}
+                      checked={this.props.selectedTeams.has(team.teamName)}
+                      disabledReason={team.disabledReason}
+                      key={team.teamName}
+                      name={team.teamName}
+                      isOpen={team.open}
+                      onCheck={selected => this.props.onToggle(team.teamName, selected)}
+                      them={this.props.them}
+                    />
+                  ))
+                ) : (
+                  <Kb.Box2 direction="vertical" centerChildren={true}>
+                    <Kb.Text center={true} type="Body">
+                      Looks like you haven't joined any teams yet yourself!
+                    </Kb.Text>
+                    <Kb.Text center={true} type="Body">
+                      You can join teams over in the Teams tab.
+                    </Kb.Text>
+                  </Kb.Box2>
+                )
               ) : (
                 <Kb.Box2 direction="vertical" centerChildren={true}>
-                  <Kb.Text center={true} type="Body">
-                    Looks like you haven't joined any teams yet yourself!
-                  </Kb.Text>
-                  <Kb.Text center={true} type="Body">
-                    You can join teams over in the Teams tab.
-                  </Kb.Text>
+                  <Kb.ProgressIndicator style={{width: 64}} />
                 </Kb.Box2>
-              )
-            ) : (
-              <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.ProgressIndicator style={{width: 64}} />
-              </Kb.Box2>
-            )}
+              )}
+            </Kb.Box2>
+          </Kb.ScrollView>
+          <Kb.Box2 direction="horizontal" style={styles.addToTeam}>
+            <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
+              {this.props.them} will be added as a
+            </Kb.Text>
+            <FloatingRolePicker
+              selectedRole={this.props.selectedRole}
+              onSelectRole={this.props.onSelectRole}
+              floatingContainerStyle={styles.floatingRolePicker}
+              footerComponent={this.props.footerComponent}
+              onConfirm={this.props.onConfirmRolePicker}
+              onCancel={this.props.onCancelRolePicker}
+              position="top center"
+              open={this.props.isRolePickerOpen}
+              disabledRoles={this.props.disabledReasonsForRolePicker}
+            >
+              <InlineDropdown
+                textWrapperType="BodySmall"
+                label={this.props.selectedRole}
+                onPress={this.props.onOpenRolePicker}
+              />
+            </FloatingRolePicker>
           </Kb.Box2>
-        </Kb.ScrollView>
-        <Kb.Box2 direction="horizontal" style={styles.addToTeam}>
-          <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
-            {this.props.them} will be added as a
-          </Kb.Text>
-          <FloatingRolePicker
-            selectedRole={this.props.selectedRole}
-            onSelectRole={this.props.onSelectRole}
-            floatingContainerStyle={styles.floatingRolePicker}
-            footerComponent={this.props.footerComponent}
-            onConfirm={this.props.onConfirmRolePicker}
-            onCancel={this.props.onCancelRolePicker}
-            position="top center"
-            open={this.props.isRolePickerOpen}
-            disabledRoles={this.props.disabledReasonsForRolePicker}
-          >
-            <InlineDropdown
-              type="BodySmall"
-              label={this.props.selectedRole}
-              onPress={this.props.onOpenRolePicker}
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            {!Styles.isMobile && <Kb.Button type="Dim" onClick={this.props.onBack} label="Cancel" />}
+            <Kb.WaitingButton
+              disabled={selectedTeamCount === 0}
+              fullWidth={Styles.isMobile}
+              style={styles.addButton}
+              onClick={this.props.onSave}
+              label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+              waitingKey={Constants.addUserToTeamsWaitingKey(this.props.them)}
             />
-          </FloatingRolePicker>
+          </Kb.ButtonBar>
         </Kb.Box2>
-        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          {!Styles.isMobile && <Kb.Button type="Dim" onClick={this.props.onBack} label="Cancel" />}
-          <Kb.WaitingButton
-            disabled={selectedTeamCount === 0}
-            fullWidth={Styles.isMobile}
-            style={styles.addButton}
-            onClick={this.props.onSave}
-            label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-            waitingKey={Constants.addUserToTeamsWaitingKey(this.props.them)}
-          />
-        </Kb.ButtonBar>
       </Kb.Box2>
     )
   }

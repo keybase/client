@@ -75,4 +75,24 @@ protocol userSearch {
 
     array<APIUserSearchResult> userSearch(string query, string service, int maxResults,
         boolean includeServicesSummary, boolean includeContacts);
+
+    // -----------
+
+    record EmailOrPhoneNumberSearchResult {
+        string input;
+        string assertion; // entire assertion ("[foo@keyba.se]@email", "48784123123@phone")
+        string assertionValue; // name ("foo@keyba.se")
+        string assertionKey; // service ("phone"/"email)
+
+        boolean foundUser;
+        string username;
+        string fullName;
+    }
+
+    // Given a bulk list of emails (in misc. formatting as long as emails are
+    // split by comma or newline and individual e-mails are understood by net/mail
+    // go package), and a list of phone numbers, do a Keybase user search. As a
+    // side-effect, Keybase assertion will be returned for each valid email and
+    // phone number.
+    array<EmailOrPhoneNumberSearchResult> bulkEmailOrPhoneSearch(int sessionID, string emails, array<PhoneNumber> phoneNumbers, boolean checkContacts);
 }

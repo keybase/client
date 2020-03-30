@@ -7,8 +7,8 @@ import (
 
 var self access.Username = "tuxbot"
 
-var tuxbotAdmins = []access.Username{self, "mikem", "modalduality",
-	"cjb", "jzila", "patrick", "songgao", "strib", "joshblum", "mlsteele"}
+var tuxbotAdmins = []access.Username{self, "max", "mikem", "modalduality", "cjb", "jzila",
+	"patrick", "songgao", "strib", "joshblum", "mlsteele"}
 
 func SimpleTuxbotACL(infoChannel chat1.ChatChannel) access.ACL {
 	return access.NewConstantACL(map[chat1.ChatChannel][]access.Username{

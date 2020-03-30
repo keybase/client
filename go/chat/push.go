@@ -656,9 +656,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d", nm.ConvID, nm.MsgID)
 
 			uid := m.UID().Bytes()
-			if _, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
+			if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
+			activity = new(chat1.ChatActivity)
+			*activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
+				MsgID:  nm.MsgID,
+				ConvID: nm.ConvID,
+				Conv:   g.presentUIItem(ctx, conv, uid, utils.PresentParticipantsModeSkip),
+			})
 		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
 			if err = dec.Decode(&nm); err != nil {
@@ -711,7 +717,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			// If the topic type is DEV, skip the localization step
 			var inbox types.Inbox
 			switch nm.TopicType {
-			case chat1.TopicType_CHAT, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI:
+			case chat1.TopicType_CHAT, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI,
+				chat1.TopicType_EMOJICROSS:
 				if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 					types.InboxSourceDataSourceRemoteOnly,
 					nil, &chat1.GetInboxLocalQuery{
@@ -866,11 +873,12 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 			if cm.TopicType != chat1.TopicType_CHAT {
 				continue
 			}
-			if _, ok := convMap[cm.ConvID.ConvIDStr()]; !ok {
-				convMap[cm.ConvID.ConvIDStr()] = []chat1.MemberInfo{}
+			convIDStr := cm.ConvID.ConvIDStr()
+			if _, ok := convMap[convIDStr]; !ok {
+				convMap[convIDStr] = []chat1.MemberInfo{}
 			}
 			if uname, ok := uidMap[cm.Uid.String()]; ok {
-				convMap[cm.ConvID.ConvIDStr()] = append(convMap[cm.ConvID.ConvIDStr()], chat1.MemberInfo{
+				convMap[convIDStr] = append(convMap[convIDStr], chat1.MemberInfo{
 					Member: uname,
 					Status: status,
 				})

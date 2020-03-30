@@ -89,52 +89,53 @@ type State = {
   filter: string
 }
 
-class _ProofsList extends React.Component<Props, State> {
+class ProofsList extends React.Component<Props, State> {
   state = {filter: ''}
   _onSetFilter = filter => this.setState({filter})
   render() {
     return (
-      <Kb.Box style={styles.mobileFlex}>
-        <Kb.Box2 direction="vertical" style={styles.container}>
-          {!Styles.isMobile && (
-            <Kb.Text center={true} type="Header" style={styles.header}>
-              Prove your...
-            </Kb.Text>
-          )}
-          <Kb.Box style={styles.inputContainer}>
-            <Kb.Icon
-              type="iconfont-search"
-              color={Styles.globalColors.black_50}
-              fontSize={Styles.isMobile ? 20 : 16}
-            />
-            <Kb.PlainInput
-              autoFocus={true}
-              placeholder={`Search ${this.props.providers.length} platforms`}
-              placeholderColor={Styles.globalColors.black_50}
-              flexable={true}
-              multiline={false}
-              onChangeText={this._onSetFilter}
-              type="text"
-              style={styles.text}
-              value={this.state.filter}
-            />
-          </Kb.Box>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-            <Providers {...this.props} filter={this.state.filter} />
-            <Kb.Divider />
+      <Kb.PopupWrapper onCancel={this.props.onCancel}>
+        <Kb.Box style={styles.mobileFlex}>
+          <Kb.Box2 direction="vertical" style={styles.container}>
+            {!Styles.isMobile && (
+              <Kb.Text center={true} type="Header" style={styles.header}>
+                Prove your...
+              </Kb.Text>
+            )}
+            <Kb.Box style={styles.inputContainer}>
+              <Kb.Icon
+                type="iconfont-search"
+                color={Styles.globalColors.black_50}
+                fontSize={Styles.isMobile ? 20 : 16}
+              />
+              <Kb.PlainInput
+                autoFocus={true}
+                placeholder={`Search ${this.props.providers.length} platforms`}
+                placeholderColor={Styles.globalColors.black_50}
+                flexable={true}
+                multiline={false}
+                onChangeText={this._onSetFilter}
+                type="text"
+                style={styles.text}
+                value={this.state.filter}
+              />
+            </Kb.Box>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+              <Providers {...this.props} filter={this.state.filter} />
+              <Kb.Divider />
+            </Kb.Box2>
+            <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
+              <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
+              <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
+                Learn how to list your platform here
+              </Kb.Text>
+            </HoverBox>
           </Kb.Box2>
-          <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
-            <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
-            <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
-              Learn how to list your platform here
-            </Kb.Text>
-          </HoverBox>
-        </Kb.Box2>
-      </Kb.Box>
+        </Kb.Box>
+      </Kb.PopupWrapper>
     )
   }
 }
-const ProofsList = Kb.HeaderOrPopup(_ProofsList)
 
 const rightColumnStyle = Styles.platformStyles({
   isElectron: {

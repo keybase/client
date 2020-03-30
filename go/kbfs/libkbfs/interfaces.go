@@ -145,6 +145,12 @@ type settingsDBGetter interface {
 	GetSettingsDB() *SettingsDB
 }
 
+type subscriptionManagerGetter interface {
+	// SubscriptionManager returns a subscription manager that can be used to
+	// subscribe to events.
+	SubscriptionManager() SubscriptionManager
+}
+
 type subscriptionManagerPublisherGetter interface {
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
@@ -1457,8 +1463,14 @@ type BlockOps interface {
 	// object with its contents, if the logged-in user has read
 	// permission for that block. cacheLifetime controls the behavior of the
 	// write-through cache once a Get completes.
+	//
+	// TODO: Make a `BlockRequestParameters` object to encapsulate the
+	// cache lifetime and branch name, to avoid future plumbing.  Or
+	// maybe just get rid of the `Get()` method entirely and have
+	// everyone use the block retrieval queue directly.
 	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
-		block data.Block, cacheLifetime data.BlockCacheLifetime) error
+		block data.Block, cacheLifetime data.BlockCacheLifetime,
+		branch data.BranchName) error
 
 	// GetEncodedSizes gets the encoded sizes and statuses of the
 	// block associated with the given block pointers (which belongs
@@ -2124,6 +2136,11 @@ type SubscriptionManagerPublisher interface {
 	PublishChange(topic keybase1.SubscriptionTopic)
 }
 
+type kbContextGetter interface {
+	// KbContext returns the Keybase Context.
+	KbContext() Context
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -2307,16 +2324,15 @@ type Config interface {
 	// "mobile", "vlog1", "vlog2", etc.
 	VLogLevel() string
 
-	// SubscriptionManager returns a subscription manager that can be used to
-	// subscribe to events.
-	SubscriptionManager() SubscriptionManager
+	subscriptionManagerGetter
+
 	// SubscriptionManagerPublisher retursn a publisher that can be used to
 	// publish events to the subscription manager.
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 	// KbEnv returns the *libkb.Env.
 	KbEnv() *libkb.Env
-	// KbContext returns the Keybase Context.
-	KbContext() Context
+
+	kbContextGetter
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

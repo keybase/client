@@ -50,49 +50,51 @@ class EditProfile extends React.Component<Props, State> {
   // TODO use NewInput when that supports better border radius changes
   render() {
     return (
-      <Kb.ScrollView>
-        <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-          {Styles.isMobile ? null : (
-            <Kb.Text type="Header" style={styles.header}>
-              Edit Profile
-            </Kb.Text>
-          )}
-          <Kb.RoundedBox side="top">
-            <Kb.PlainInput
-              value={this.state.fullname}
-              placeholder="Full name"
-              autoFocus={true}
-              onChangeText={this._updateFullname}
+      <Kb.PopupWrapper onCancel={this.props.onCancel} title={this.props.title}>
+        <Kb.ScrollView>
+          <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+            {Styles.isMobile ? null : (
+              <Kb.Text type="Header" style={styles.header}>
+                Edit Profile
+              </Kb.Text>
+            )}
+            <Kb.RoundedBox side="top">
+              <Kb.PlainInput
+                value={this.state.fullname}
+                placeholder="Full name"
+                autoFocus={true}
+                onChangeText={this._updateFullname}
+              />
+            </Kb.RoundedBox>
+            <Kb.RoundedBox side="middle">
+              <Kb.PlainInput
+                value={this.state.bio}
+                placeholder="Bio"
+                multiline={true}
+                rowsMin={7}
+                rowsMax={7}
+                onChangeText={this._updateBio}
+              />
+            </Kb.RoundedBox>
+            <Kb.RoundedBox side="bottom">
+              <Kb.PlainInput
+                value={this.state.location}
+                placeholder="Location"
+                onChangeText={this._updateLocation}
+                onEnterKeyDown={this._submit}
+              />
+            </Kb.RoundedBox>
+            <Kb.Box2 direction="vertical" style={styles.gap} />
+            <Kb.WaitingButton
+              waitingKey={Constants.waitingKey}
+              label="Save"
+              disabled={this._disabled()}
+              onClick={this._submit}
             />
-          </Kb.RoundedBox>
-          <Kb.RoundedBox side="middle">
-            <Kb.PlainInput
-              value={this.state.bio}
-              placeholder="Bio"
-              multiline={true}
-              rowsMin={7}
-              rowsMax={7}
-              onChangeText={this._updateBio}
-            />
-          </Kb.RoundedBox>
-          <Kb.RoundedBox side="bottom">
-            <Kb.PlainInput
-              value={this.state.location}
-              placeholder="Location"
-              onChangeText={this._updateLocation}
-              onEnterKeyDown={this._submit}
-            />
-          </Kb.RoundedBox>
-          <Kb.Box2 direction="vertical" style={styles.gap} />
-          <Kb.WaitingButton
-            waitingKey={Constants.waitingKey}
-            label="Save"
-            disabled={this._disabled()}
-            onClick={this._submit}
-          />
-          {this.state.bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
-        </Kb.Box2>
-      </Kb.ScrollView>
+            {this.state.bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
+          </Kb.Box2>
+        </Kb.ScrollView>
+      </Kb.PopupWrapper>
     )
   }
 }
@@ -114,4 +116,4 @@ const styles = Styles.styleSheetCreate(() => ({
   header: {marginBottom: Styles.globalMargins.small},
 }))
 
-export default Kb.HeaderOrPopupWithHeader(EditProfile)
+export default EditProfile

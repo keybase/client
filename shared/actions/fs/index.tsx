@@ -229,6 +229,7 @@ const loadSettings = async () => {
         loaded: true,
         sfmiBannerDismissed: settings.sfmiBannerDismissed,
         spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
+        syncOnCellular: settings.syncOnCellular,
       },
     })
   } catch {

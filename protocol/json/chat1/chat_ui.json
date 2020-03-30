@@ -1158,6 +1158,10 @@
           "name": "replyTo"
         },
         {
+          "type": "MessageID",
+          "name": "supersedes"
+        },
+        {
           "type": "string",
           "name": "filename"
         },

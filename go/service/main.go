@@ -182,6 +182,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.ContactsProtocol(NewContactsHandler(xp, g, contactsProv)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
+		keybase1.InviteFriendsProtocol(NewInviteFriendsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
 		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, contactsProv)),
@@ -378,6 +379,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundBoxAuditRetry()
 	d.runBackgroundBoxAuditScheduler()
 	d.runBackgroundContactSync()
+	d.runBackgroundInviteFriendsPoll()
 	d.runTLFUpgrade()
 	d.runTrackerLoader(ctx)
 	d.runRuntimeStats(ctx)
@@ -773,18 +775,22 @@ func (d *Service) slowChecks() {
 		return nil
 	})
 	go func() {
-		// Do this once fast
-		if err := d.deviceCloneSelfCheck(); err != nil {
-			d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
-		}
 		ctx := context.Background()
 		m := libkb.NewMetaContext(ctx, d.G()).WithLogTag("SLOWCHK")
+		// Do this once fast
+		if err := d.deviceCloneSelfCheck(); err != nil {
+			m.Debug("deviceCloneSelfCheck error: %s", err)
+		}
 		for {
 			<-ticker.C
 			m.Debug("+ slow checks loop")
 			m.Debug("| checking if current device should log out")
 			if err := m.LogoutSelfCheck(); err != nil {
 				m.Debug("LogoutSelfCheck error: %s", err)
+			}
+			if m.G().MobileNetState.State().IsLimited() {
+				m.Debug("| skipping clone check, limited net state")
+				continue
 			}
 			m.Debug("| checking if current device is a clone")
 			if err := d.deviceCloneSelfCheck(); err != nil {
@@ -902,6 +908,23 @@ func (d *Service) runBackgroundContactSync() {
 
 	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping background ContactSync")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundInviteFriendsPoll() {
+	eng := engine.NewInviteFriendsPollBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background InviteFriendsPoll error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
+		d.G().Log.Debug("stopping background InviteFriendsPoll")
 		eng.Shutdown()
 		return nil
 	})

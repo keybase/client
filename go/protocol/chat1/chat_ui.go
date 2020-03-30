@@ -1114,6 +1114,7 @@ type UIMessageOutbox struct {
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
 	FlipGameID        *FlipGameIDStr  `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	Supersedes        MessageID       `codec:"supersedes" json:"supersedes"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -1149,8 +1150,9 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
-		Filename: o.Filename,
-		Title:    o.Title,
+		Supersedes: o.Supersedes.DeepCopy(),
+		Filename:   o.Filename,
+		Title:      o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

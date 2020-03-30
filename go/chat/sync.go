@@ -501,6 +501,12 @@ func (s *Syncer) GetSelectedConversation() chat1.ConversationID {
 	return s.lastLoadedConv
 }
 
+func (s *Syncer) IsSelectedConversation(convID chat1.ConversationID) bool {
+	s.lastLoadedLock.Lock()
+	defer s.lastLoadedLock.Unlock()
+	return s.lastLoadedConv.Eq(convID)
+}
+
 func (s *Syncer) SelectConversation(ctx context.Context, convID chat1.ConversationID) {
 	s.lastLoadedLock.Lock()
 	defer s.lastLoadedLock.Unlock()

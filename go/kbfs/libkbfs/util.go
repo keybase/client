@@ -427,3 +427,15 @@ func MakeDiskBlockServer(config Config, serverRootDir string) BlockServer {
 	bserverLog := config.MakeLogger("BSD")
 	return NewBlockServerDir(config.Codec(), bserverLog, blockPath)
 }
+
+func cacheHashBehavior(
+	bsGetter blockServerGetter, modeGetter initModeGetter,
+	id tlf.ID) data.BlockCacheHashBehavior {
+	if modeGetter.Mode().IsSingleOp() || TLFJournalEnabled(bsGetter, id) {
+		// If the journal is enabled, or single-op mode is enabled
+		// (which implies either local or journal writes), then skip
+		// any known-ptr block hash computations.
+		return data.SkipCacheHash
+	}
+	return data.DoCacheHash
+}

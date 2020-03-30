@@ -179,4 +179,4 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderOnMobile(Devices)
+export default Devices

@@ -1,6 +1,7 @@
 import * as TeamBuildingConstants from './team-building'
 import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/crypto'
+import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {RPCError} from '../util/errors'
@@ -37,6 +38,12 @@ export const decryptTab = 'decryptTab'
 export const signTab = 'signTab'
 export const verifyTab = 'verifyTab'
 
+// Output route keys - Mobile onlye
+export const encryptOutput = 'encryptOutput'
+export const decryptOutput = 'decryptOutput'
+export const signOutput = 'signOutput'
+export const verifyOutput = 'verifyOutput'
+
 export const TabTitles: {[k in Types.CryptoSubTab]: Types.TabTitles} = {
   decryptTab: 'Decrypt',
   encryptTab: 'Encrypt',
@@ -46,22 +53,30 @@ export const TabTitles: {[k in Types.CryptoSubTab]: Types.TabTitles} = {
 
 export const Tabs: Array<Types.Tab> = [
   {
+    description: 'Encrypt to anyone, even if they’re not on Keybase yet.',
     icon: 'iconfont-lock',
+    illustration: 'icon-encrypt-64',
     tab: encryptTab,
     title: TabTitles[encryptTab],
   },
   {
+    description: 'Decrypt messages encrypted with Saltpack.',
     icon: 'iconfont-unlock',
+    illustration: 'icon-decrypt-64',
     tab: decryptTab,
     title: TabTitles[decryptTab],
   },
   {
+    description: 'Add your cryptographic signature to a message.',
     icon: 'iconfont-check',
+    illustration: 'icon-sign-64',
     tab: signTab,
     title: TabTitles[signTab],
   },
   {
+    description: 'Verify a signed message.',
     icon: 'iconfont-verify',
+    illustration: 'icon-verify-64',
     tab: verifyTab,
     title: TabTitles[verifyTab],
   },
@@ -81,70 +96,87 @@ export const Operations: {[key: string]: Types.Operations} = {
   Verify: 'verify',
 }
 
-const operationToInputPlaceholder: {[k in Types.Operations]: string} = {
-  decrypt: 'Enter ciphertext, drop an encrypted file or folder, or',
-  encrypt: 'Enter text, drop a file or folder, or',
-  sign: 'Enter text, drop a file or folder, or',
-  verify: 'Enter a signed message, drop a signed file or folder, or',
-}
+export const infoMessage: Map<Types.Operations, string> = new Map([
+  ['decrypt', ''],
+  ['encrypt', "Encrypt to anyone, even if they're not on Keybase yet."],
+  ['sign', 'Add your cryptographic signature to a message or file.'],
+  ['verify', ''],
+])
 
-const operationToInputTextType: {[k in Types.Operations]: Types.TextType} = {
-  decrypt: 'cipher',
-  encrypt: 'plain',
-  sign: 'plain',
-  verify: 'cipher',
-} as const
+export const inputPlaceholder: Map<Types.Operations, string> = new Map([
+  [
+    'decrypt',
+    Platform.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
+  ],
+  ['encrypt', Platform.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
+  ['sign', Platform.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
+  [
+    'verify',
+    Platform.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
+  ],
+])
 
-const operationToOutputTextType: {[k in Types.Operations]: Types.TextType} = {
-  decrypt: 'plain',
-  encrypt: 'cipher',
-  sign: 'cipher',
-  verify: 'plain',
-} as const
+export const inputTextType: Map<Types.Operations, Types.TextType> = new Map([
+  ['decrypt', 'cipher'],
+  ['encrypt', 'plain'],
+  ['sign', 'plain'],
+  ['verify', 'cipher'],
+])
 
-const operationToInputFileIcon: {[k in Types.Operations]: IconType} = {
-  decrypt: 'icon-file-saltpack-encrypted-64',
-  encrypt: 'icon-file-64',
-  sign: 'icon-file-64',
-  verify: 'icon-file-saltpack-signed-64',
-} as const
+export const outputTextType: Map<Types.Operations, Types.TextType> = new Map([
+  ['decrypt', 'plain'],
+  ['encrypt', 'cipher'],
+  ['sign', 'cipher'],
+  ['verify', 'plain'],
+] as const)
 
-const operationToOutputFileIcon: {[k in Types.Operations]: IconType} = {
-  decrypt: 'icon-file-64',
-  encrypt: 'icon-file-saltpack-encrypted-64',
-  sign: 'icon-file-saltpack-signed-64',
-  verify: 'icon-file-64',
-} as const
+export const inputFileIcon: Map<Types.Operations, IconType> = new Map([
+  ['decrypt', 'icon-file-saltpack-64'],
+  ['encrypt', 'icon-file-64'],
+  ['sign', 'icon-file-64'],
+  ['verify', 'icon-file-saltpack-64'],
+])
 
-const operationToStringWaitingKey: {[k in Types.Operations]: Types.StringWaitingKey} = {
-  decrypt: decryptStringWaitingKey,
-  encrypt: encryptStringWaitingKey,
-  sign: signStringWaitingKey,
-  verify: verifyStringWaitingKey,
-} as const
+export const outputFileIcon: Map<Types.Operations, IconType> = new Map([
+  ['decrypt', 'icon-file-64'],
+  ['encrypt', 'icon-file-saltpack-64'],
+  ['sign', 'icon-file-saltpack-64'],
+  ['verify', 'icon-file-64'],
+])
 
-const operationToFileWaitingKey: {[k in Types.Operations]: Types.FileWaitingKey} = {
-  decrypt: decryptFileWaitingKey,
-  encrypt: encryptFileWaitingKey,
-  sign: signFileWaitingKey,
-  verify: verifyFileWaitingKey,
-} as const
+export const stringWaitingKey: Map<Types.Operations, Types.StringWaitingKey> = new Map([
+  ['decrypt', decryptStringWaitingKey],
+  ['encrypt', encryptStringWaitingKey],
+  ['sign', signStringWaitingKey],
+  ['verify', verifyStringWaitingKey],
+])
 
-const operationToAllowInputFolders: {[k in Types.Operations]: boolean} = {
-  decrypt: false,
-  encrypt: true,
-  sign: true,
-  verify: false,
-} as const
+export const fileWaitingKey: Map<Types.Operations, Types.FileWaitingKey> = new Map([
+  ['decrypt', decryptFileWaitingKey],
+  ['encrypt', encryptFileWaitingKey],
+  ['sign', signFileWaitingKey],
+  ['verify', verifyFileWaitingKey],
+])
 
-export const getInputPlaceholder = (operation: Types.Operations) => operationToInputPlaceholder[operation]
-export const getInputTextType = (operation: Types.Operations) => operationToInputTextType[operation]
-export const getOutputTextType = (operation: Types.Operations) => operationToOutputTextType[operation]
-export const getInputFileIcon = (operation: Types.Operations) => operationToInputFileIcon[operation]
-export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
-export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
-export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
-export const getAllowInputFolders = (operation: Types.Operations) => operationToAllowInputFolders[operation]
+export const allowInputFolders: Map<Types.Operations, boolean> = new Map([
+  ['decrypt', false],
+  ['encrypt', true],
+  ['sign', true],
+  ['verify', false],
+])
+
+export const outputRoute: Map<Types.Operations, Types.CryptoOutputRoute> = new Map([
+  ['decrypt', decryptOutput],
+  ['encrypt', encryptOutput],
+  ['sign', signOutput],
+  ['verify', verifyOutput],
+])
+
+export const saltpackEncryptedExtension = '.encrypted.saltpack'
+export const saltpackSignedExtension = '.signed.saltpack'
+export const isPathSaltpackEncrypted = (path: string) => path.endsWith(saltpackEncryptedExtension)
+export const isPathSaltpackSigned = (path: string) => path.endsWith(saltpackSignedExtension)
+export const isPathSaltpack = (path: string) => isPathSaltpackEncrypted(path) || isPathSaltpackSigned(path)
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`

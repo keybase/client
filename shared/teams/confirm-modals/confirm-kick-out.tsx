@@ -40,7 +40,7 @@ const ConfirmKickOut = (props: Props) => {
   const [subteams, subteamIDs] = Container.useSelector(state => getSubteamNames(state, teamID))
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
-    [],
+    members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
   )
   const waiting = Container.useAnyWaiting(...waitingKeys)

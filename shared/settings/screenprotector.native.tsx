@@ -1,16 +1,11 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '../constants/platform.native'
 
 const Screenprotector = () => {
   const [secureFlag, setSecureFlag] = React.useState<undefined | boolean>(undefined)
   const getIsMounted = Kb.useMounted()
-
-  const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
 
   React.useEffect(() => {
     getSecureFlagSetting().then(secureFlag => {
@@ -32,7 +27,6 @@ const Screenprotector = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.HeaderHocHeader onBack={onBack} title="Screen Protector" />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.Checkbox
           label="Disable App switcher preview and screenshots"
@@ -43,6 +37,11 @@ const Screenprotector = () => {
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+Screenprotector.navigationOptions = {
+  header: undefined,
+  title: 'Screen Protector',
 }
 
 const styles = Styles.styleSheetCreate(() => ({

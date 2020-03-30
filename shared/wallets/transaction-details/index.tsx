@@ -51,7 +51,6 @@ export type NotLoadingProps = {
   statusDetail: string
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null
-  title: string
   transactionID?: string
   you: string
   yourRole: Types.Role
@@ -67,7 +66,6 @@ export type Props =
       loading: true
       onBack: () => void
       onLoadPaymentDetail: () => void
-      title: string
     }
 
 type PartyAccountProps = {
@@ -336,207 +334,209 @@ const TransactionDetails = (props: NotLoadingProps) => {
           : Constants.shortenAccountID(issuerAccountID))
 
   return (
-    <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
-      <Kb.Divider />
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        <Transaction
-          approxWorth={props.approxWorth}
-          amountUser={props.amountUser}
-          amountXLM={props.amountXLM}
-          counterparty={props.counterparty}
-          counterpartyType={props.counterpartyType}
-          fromAirdrop={props.fromAirdrop}
-          detailView={true}
-          memo={props.memo}
-          onCancelPayment={undefined}
-          onCancelPaymentWaitingKey=""
-          onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
-          readState="read"
-          selectableText={true}
-          sourceAmount={props.sourceAmount}
-          sourceAsset={props.sourceAsset}
-          status={props.status}
-          statusDetail={props.statusDetail}
-          timestamp={props.timestamp}
-          unread={false}
-          yourRole={props.yourRole}
-          issuerDescription={props.issuerDescription}
-          isAdvanced={props.isAdvanced}
-          summaryAdvanced={props.summaryAdvanced}
-          trustline={props.trustline}
-        />
-      </Kb.Box2>
-      <Kb.Divider />
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        {hasNontrivialPath && (
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
-            <PaymentPath
-              sourceAmount={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
-              sourceIssuer={sourceIssuer}
-              pathIntermediate={props.pathIntermediate}
-              destinationIssuer={destinationIssuer}
-              destinationAmount={props.amountXLM}
-            />
-          </Kb.Box2>
-        )}
-
-        {hasNontrivialPath && (
-          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
-            <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
-              <ConvertedCurrencyLabel
-                amount={1}
-                assetCode={props.sourceAsset}
-                issuerDescription={sourceIssuer}
-              />
-              <Kb.Box2
-                direction="horizontal"
-                alignSelf="flex-start"
-                centerChildren={true}
-                style={styles.equals}
-              >
-                <Kb.Text type="BodyBig">=</Kb.Text>
-              </Kb.Box2>
-              <ConvertedCurrencyLabel
-                amount={props.sourceConvRate}
-                assetCode={props.assetCode}
-                issuerDescription={destinationIssuer}
+    <Kb.HeaderHocWrapper title="Transaction details" onBack={props.onBack}>
+      <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
+        <Kb.Divider />
+        <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+          <Transaction
+            approxWorth={props.approxWorth}
+            amountUser={props.amountUser}
+            amountXLM={props.amountXLM}
+            counterparty={props.counterparty}
+            counterpartyType={props.counterpartyType}
+            fromAirdrop={props.fromAirdrop}
+            detailView={true}
+            memo={props.memo}
+            onCancelPayment={undefined}
+            onCancelPaymentWaitingKey=""
+            onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
+            readState="read"
+            selectableText={true}
+            sourceAmount={props.sourceAmount}
+            sourceAsset={props.sourceAsset}
+            status={props.status}
+            statusDetail={props.statusDetail}
+            timestamp={props.timestamp}
+            unread={false}
+            yourRole={props.yourRole}
+            issuerDescription={props.issuerDescription}
+            isAdvanced={props.isAdvanced}
+            summaryAdvanced={props.summaryAdvanced}
+            trustline={props.trustline}
+          />
+        </Kb.Box2>
+        <Kb.Divider />
+        <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+          {hasNontrivialPath && (
+            <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
+              <PaymentPath
+                sourceAmount={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
+                sourceIssuer={sourceIssuer}
+                pathIntermediate={props.pathIntermediate}
+                destinationIssuer={destinationIssuer}
+                destinationAmount={props.amountXLM}
               />
             </Kb.Box2>
-          </Kb.Box2>
-        )}
-
-        {!!sender && (
-          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
-            {sender}
-          </Kb.Box2>
-        )}
-
-        {!!receiver && (
-          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
-            {receiver}
-          </Kb.Box2>
-        )}
-
-        {props.issuerAccountID && (
-          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Asset issuer:</Kb.Text>
-            <Kb.Text selectable={true} style={styles.transactionID} type="BodySemibold">
-              {props.issuerDescription}
-            </Kb.Text>
-            <Kb.Text selectable={true} style={styles.transactionID} type="Body">
-              {props.issuerAccountID}
-            </Kb.Text>
-          </Kb.Box2>
-        )}
-
-        {props.operations && props.operations.length && !(props.trustline && props.operations.length <= 1) && (
-          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
-            {props.operations.map((op, i) => (
-              <Kb.Text key={i} selectable={true} style={styles.operation} type="Body">
-                {i + 1}. {op}
-              </Kb.Text>
-            ))}
-          </Kb.Box2>
-        )}
-
-        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>
-          <Kb.WithTooltip
-            containerStyle={styles.statusBox}
-            tooltip={
-              props.status === 'claimable'
-                ? `${props.counterparty} hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
-                : ''
-            }
-            textStyle={styles.tooltipText}
-            multiline={true}
-          >
-            <Kb.Icon
-              color={colorForStatus(props.status)}
-              sizeType="Small"
-              style={styles.statusIcon}
-              type={
-                ['error', 'canceled'].includes(props.status)
-                  ? 'iconfont-remove'
-                  : props.status === 'completed'
-                  ? 'iconfont-success'
-                  : 'iconfont-clock'
-              }
-            />
-            <Kb.Text
-              style={Styles.collapseStyles([
-                styles.statusText,
-                {color: colorForStatus(props.status), marginLeft: Styles.globalMargins.xtiny},
-              ])}
-              type="Body"
-            >
-              {descriptionForStatus(props.status, props.yourRole)}
-            </Kb.Text>
-          </Kb.WithTooltip>
-          {props.status !== 'error' && (
-            <TimestampLine error="" selectableText={true} timestamp={props.timestamp} />
           )}
-          {props.status === 'error' && (
-            <Kb.Text type="BodySmallError" selectable={true}>
-              {props.statusDetail}
-            </Kb.Text>
-          )}
-        </Kb.Box2>
 
-        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Public memo:</Kb.Text>
-          <Kb.Text selectable={true} type="Body">
-            {props.publicMemo}
-          </Kb.Text>
-          {!!props.publicMemo &&
-            props.yourRole === 'receiverOnly' &&
-            props.counterpartyType === 'stellarPublicKey' && (
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
-                <Kb.Text type="BodySmallSemibold" style={styles.warningBannerText}>
-                  Watch out for phishing attacks and dangerous websites.
-                </Kb.Text>
+          {hasNontrivialPath && (
+            <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
+              <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+                <ConvertedCurrencyLabel
+                  amount={1}
+                  assetCode={props.sourceAsset}
+                  issuerDescription={sourceIssuer}
+                />
+                <Kb.Box2
+                  direction="horizontal"
+                  alignSelf="flex-start"
+                  centerChildren={true}
+                  style={styles.equals}
+                >
+                  <Kb.Text type="BodyBig">=</Kb.Text>
+                </Kb.Box2>
+                <ConvertedCurrencyLabel
+                  amount={props.sourceConvRate}
+                  assetCode={props.assetCode}
+                  issuerDescription={destinationIssuer}
+                />
               </Kb.Box2>
+            </Kb.Box2>
+          )}
+
+          {!!sender && (
+            <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
+              {sender}
+            </Kb.Box2>
+          )}
+
+          {!!receiver && (
+            <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
+              {receiver}
+            </Kb.Box2>
+          )}
+
+          {props.issuerAccountID && (
+            <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Asset issuer:</Kb.Text>
+              <Kb.Text selectable={true} style={styles.transactionID} type="BodySemibold">
+                {props.issuerDescription}
+              </Kb.Text>
+              <Kb.Text selectable={true} style={styles.transactionID} type="Body">
+                {props.issuerAccountID}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+
+          {props.operations && props.operations.length && !(props.trustline && props.operations.length <= 1) && (
+            <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
+              {props.operations.map((op, i) => (
+                <Kb.Text key={i} selectable={true} style={styles.operation} type="Body">
+                  {i + 1}. {op}
+                </Kb.Text>
+              ))}
+            </Kb.Box2>
+          )}
+
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>
+            <Kb.WithTooltip
+              containerStyle={styles.statusBox}
+              tooltip={
+                props.status === 'claimable'
+                  ? `${props.counterparty} hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
+                  : ''
+              }
+              textStyle={styles.tooltipText}
+              multiline={true}
+            >
+              <Kb.Icon
+                color={colorForStatus(props.status)}
+                sizeType="Small"
+                style={styles.statusIcon}
+                type={
+                  ['error', 'canceled'].includes(props.status)
+                    ? 'iconfont-remove'
+                    : props.status === 'completed'
+                    ? 'iconfont-success'
+                    : 'iconfont-clock'
+                }
+              />
+              <Kb.Text
+                style={Styles.collapseStyles([
+                  styles.statusText,
+                  {color: colorForStatus(props.status), marginLeft: Styles.globalMargins.xtiny},
+                ])}
+                type="Body"
+              >
+                {descriptionForStatus(props.status, props.yourRole)}
+              </Kb.Text>
+            </Kb.WithTooltip>
+            {props.status !== 'error' && (
+              <TimestampLine error="" selectableText={true} timestamp={props.timestamp} />
             )}
-        </Kb.Box2>
+            {props.status === 'error' && (
+              <Kb.Text type="BodySmallError" selectable={true}>
+                {props.statusDetail}
+              </Kb.Text>
+            )}
+          </Kb.Box2>
 
-        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Fee:</Kb.Text>
-          <Kb.Text selectable={true} type="Body">
-            {props.feeChargedDescription}
-          </Kb.Text>
-        </Kb.Box2>
-
-        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Transaction ID:</Kb.Text>
-          <Kb.Text selectable={true} style={styles.transactionID} type="Body">
-            {props.transactionID}
-          </Kb.Text>
-          {props.onViewTransaction && (
-            <Kb.Text onClick={props.onViewTransaction} type="BodySmallPrimaryLink">
-              View transaction
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Public memo:</Kb.Text>
+            <Kb.Text selectable={true} type="Body">
+              {props.publicMemo}
             </Kb.Text>
+            {!!props.publicMemo &&
+              props.yourRole === 'receiverOnly' &&
+              props.counterpartyType === 'stellarPublicKey' && (
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
+                  <Kb.Text type="BodySmallSemibold" style={styles.warningBannerText}>
+                    Watch out for phishing attacks and dangerous websites.
+                  </Kb.Text>
+                </Kb.Box2>
+              )}
+          </Kb.Box2>
+
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Fee:</Kb.Text>
+            <Kb.Text selectable={true} type="Body">
+              {props.feeChargedDescription}
+            </Kb.Text>
+          </Kb.Box2>
+
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Transaction ID:</Kb.Text>
+            <Kb.Text selectable={true} style={styles.transactionID} type="Body">
+              {props.transactionID}
+            </Kb.Text>
+            {props.onViewTransaction && (
+              <Kb.Text onClick={props.onViewTransaction} type="BodySmallPrimaryLink">
+                View transaction
+              </Kb.Text>
+            )}
+          </Kb.Box2>
+          {props.onCancelPayment && (
+            <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true} style={styles.buttonBox}>
+              <Kb.WaitingButton
+                waitingKey={props.onCancelPaymentWaitingKey}
+                type="Danger"
+                mode="Secondary"
+                label="Cancel transaction"
+                onClick={props.onCancelPayment}
+                small={true}
+                style={styles.button}
+              />
+            </Kb.Box2>
           )}
         </Kb.Box2>
-        {props.onCancelPayment && (
-          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true} style={styles.buttonBox}>
-            <Kb.WaitingButton
-              waitingKey={props.onCancelPaymentWaitingKey}
-              type="Danger"
-              mode="Secondary"
-              label="Cancel transaction"
-              onClick={props.onCancelPayment}
-              small={true}
-              style={styles.button}
-            />
-          </Kb.Box2>
-        )}
-      </Kb.Box2>
-    </Kb.ScrollView>
+      </Kb.ScrollView>
+    </Kb.HeaderHocWrapper>
   )
 }
 
@@ -544,7 +544,7 @@ function isNotLoadingProps(props: Props): props is NotLoadingProps {
   return !props.loading
 }
 
-class LoadTransactionDetails extends React.Component<Props> {
+class LoadTransactionDetails extends React.Component<NotLoadingProps /*Props TODO fix*/> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
   }
@@ -568,9 +568,11 @@ class LoadTransactionDetails extends React.Component<Props> {
   render() {
     if (this.props.loading) {
       return (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-          <Kb.ProgressIndicator style={styles.progressIndicator} />
-        </Kb.Box2>
+        <Kb.HeaderHocWrapper title="Transaction details" onBack={this.props.onBack}>
+          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+            <Kb.ProgressIndicator style={styles.progressIndicator} />
+          </Kb.Box2>
+        </Kb.HeaderHocWrapper>
       )
     }
     const props = this.props as NotLoadingProps

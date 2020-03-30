@@ -173,7 +173,8 @@
         "CHAT_1",
         "DEV_2",
         "KBFSFILEEDIT_3",
-        "EMOJI_4"
+        "EMOJI_4",
+        "EMOJICROSS_5"
       ],
       "go": "nostring"
     },
@@ -1518,7 +1519,8 @@
         "INDEXED_SEARCH_7",
         "KBFSFILEACTIVITY_8",
         "COINFLIP_9",
-        "BOTCOMMANDS_10"
+        "BOTCOMMANDS_10",
+        "EMOJISOURCE_11"
       ]
     },
     {
@@ -1866,6 +1868,10 @@
         {
           "type": "Hash",
           "name": "encHash"
+        },
+        {
+          "type": "Hash",
+          "name": "ptHash"
         },
         {
           "type": "bytes",

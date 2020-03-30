@@ -53,6 +53,8 @@ export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelco
 export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
 export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username: string) =>
   `loadSubteamMemberships:${teamID};${username}`
+export const loadSubteamActivityWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `loadSubteamActivity:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
 export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
@@ -216,6 +218,7 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
+  teamMemberToLastActivity: new Map(),
   teamMemberToSubteams: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
@@ -675,7 +678,7 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
         isOpen: state.teams.newTeamWizard.open,
         memberCount: 0,
         showcasing: state.teams.newTeamWizard.showcase,
-        teamname: state.teams.newTeamWizard.name,
+        teamname: state.teams.newTeamWizard.name == '' ? 'New team' : state.teams.newTeamWizard.name,
       })
     : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
@@ -684,6 +687,12 @@ export const getTeamMembership = (
   teamID: Types.TeamID,
   username: string
 ): Types.MemberInfo | null => state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
+
+export const getTeamMemberLastActivity = (
+  state: TypedState,
+  teamID: Types.TeamID,
+  username: string
+): number | null => state.teams.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
 
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>

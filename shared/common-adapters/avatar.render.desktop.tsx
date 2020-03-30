@@ -2,6 +2,7 @@ import Icon, {IconType} from './icon'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {Props, AvatarSize} from './avatar.render'
+import {AVATAR_SIZE} from '../common-adapters/avatar'
 import flags from '../util/feature-flags'
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
@@ -17,6 +18,11 @@ const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
 
 const Avatar = (props: Props) => {
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
+
+  const scaledAvatarRatio = props.size / AVATAR_SIZE
+  const avatarScaledWidth =
+    props.crop && props.crop.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
+
   return (
     <div
       className={Styles.classNames('avatar', avatarSizeClasName)}
@@ -36,11 +42,28 @@ const Avatar = (props: Props) => {
           <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
         </div>
       )}
-      {!!props.url && (
+      {!!props.url && props.crop == undefined && (
         <div
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
           style={{
             backgroundImage: props.url,
+            opacity:
+              props.opacity === undefined || props.opacity === 1
+                ? props.blocked
+                  ? 1
+                  : undefined
+                : props.opacity,
+          }}
+        />
+      )}
+      {!!props.url && props.crop && props.crop?.offsetLeft && props.crop?.offsetTop && (
+        <img
+          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          style={{
+            backgroundImage: props.url,
+            backgroundPositionX: props.crop?.offsetLeft * scaledAvatarRatio,
+            backgroundPositionY: props.crop?.offsetTop * scaledAvatarRatio,
+            backgroundSize: `${avatarScaledWidth}px auto`,
             opacity:
               props.opacity === undefined || props.opacity === 1
                 ? props.blocked
@@ -113,6 +136,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         display: 'flex',
         justifyContent: 'center',
+        zIndex: 1,
       },
     } as const)
 )

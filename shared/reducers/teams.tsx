@@ -265,6 +265,14 @@ export default Container.makeReducer<
       draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
     })
   },
+  [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
+    action.payload.activityMap.forEach((lastActivity, teamID) => {
+      if (!draftState.teamMemberToLastActivity.has(teamID)) {
+        draftState.teamMemberToLastActivity.set(teamID, new Map())
+      }
+      draftState.teamMemberToLastActivity.get(teamID)?.set(action.payload.username, lastActivity)
+    })
+  },
   [TeamsGen.startNewTeamWizard]: draftState => {
     draftState.newTeamWizard = Constants.newTeamWizardEmptyState
   },

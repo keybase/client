@@ -9,6 +9,7 @@ import Text from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
 import WaitingButton from '../../../common-adapters/waiting-button'
 import {Position} from '../../../common-adapters/relative-popup-hoc.types'
+import flags from '../../../util/feature-flags'
 
 const Kb = {
   Box2,
@@ -92,14 +93,16 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
                 mode="Secondary"
               />
             )}
-            {this.props.inTeam ? (
+            {/* With teamsRedesign we have external team page, always show view team button */}
+            {(this.props.inTeam || flags.teamsRedesign) && (
               <Kb.WaitingButton
                 waitingKey={Constants.waitingKey}
                 label="View team"
                 onClick={this._onViewTeam}
                 mode="Secondary"
               />
-            ) : (
+            )}
+            {!this.props.inTeam && (
               <Kb.WaitingButton
                 waitingKey={Constants.waitingKey}
                 label={

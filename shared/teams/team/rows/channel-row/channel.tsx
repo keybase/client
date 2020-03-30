@@ -59,6 +59,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       onCheck={onSelect}
       key={`check-${channel.channelname}`}
       selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
+      style={styles.widenClickableArea}
     />
   )
   const membersText = hasAllMembers
@@ -143,6 +144,7 @@ const styles = Styles.styleSheetCreate(
       listItemMargin: {marginLeft: 0},
       mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
       selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
+      widenClickableArea: {margin: -5, padding: 5},
     } as const)
 )
 

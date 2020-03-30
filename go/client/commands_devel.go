@@ -42,7 +42,9 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatKBFSUpgrade(cl, g),
 		newCmdChatProfileSearchDev(cl, g),
 		newCmdChatAddEmoji(cl, g),
+		newCmdChatAddEmojiAlias(cl, g),
 		newCmdChatListEmoji(cl, g),
+		newCmdChatRemoveEmoji(cl, g),
 	}
 }
 
@@ -76,9 +78,6 @@ func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 	return []cli.Command{
 		NewCmdSimpleFSUpgrade(cl, g),
 		NewCmdSimpleFSForceConflict(cl, g),
-		NewCmdSimpleFSSearch(cl, g),
-		NewCmdSimpleFSResetIndex(cl, g),
-		NewCmdSimpleFSIndexProgress(cl, g),
 	}
 }
 

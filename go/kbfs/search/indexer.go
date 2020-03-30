@@ -1080,9 +1080,9 @@ func (i *Indexer) doIncrementalIndex(
 	ctx context.Context, m tlfMessage, indexedRev, newRev kbfsmd.Revision) (
 	err error) {
 	i.log.CDebugf(
-		ctx, "Incremental index %s: d -> %d", m.tlfID, indexedRev, newRev)
+		ctx, "Incremental index %s: %d -> %d", m.tlfID, indexedRev, newRev)
 	defer func() {
-		i.log.CDebugf(ctx, "Incremental index %s: d -> %d: %+v",
+		i.log.CDebugf(ctx, "Incremental index %s: %d -> %d: %+v",
 			m.tlfID, indexedRev, newRev, err)
 	}()
 
