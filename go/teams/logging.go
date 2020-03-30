@@ -7,8 +7,7 @@ type ctxKeyType string
 const ctxKeySuppressLogging = ctxKeyType("sl")
 
 func ShouldSuppressLogging(ctx context.Context) bool {
-	v, _ := ctx.Value(ctxKeySuppressLogging).(bool)
-	return v
+	return false
 }
 
 func WithSuppressLogging(ctx context.Context, suppress bool) context.Context {

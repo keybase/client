@@ -2,6 +2,7 @@ package systests
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 	"time"
@@ -2148,51 +2149,114 @@ func mustCreateSubteam(t *testing.T, tc *libkb.TestContext, name keybase1.TeamNa
 }
 
 func TestLoadTeamTreeMemberships(t *testing.T) {
-	tt := newTeamTester(t)
-	defer tt.cleanup()
+	var err error
 
-	tt.addUser("ech")
-	tt.addUser("fox")
-	ech := tt.users[0]
-	echMctx := libkb.NewMetaContextForTest(*tt.users[0].tc)
+	t.Logf("@@@ START")
 
-	aID, aName := ech.createTeam2()
-	t.Logf("made team %s %s", aID, aName)
-	bName := mustAppend(t, aName, "bb")
-	cName := mustAppend(t, aName, "cc")
-	dName := mustAppend(t, cName, "dd")
-	eName := mustAppend(t, cName, "ee")
-	fName := mustAppend(t, dName, "ff")
-	gName := mustAppend(t, eName, "gg")
-	hName := mustAppend(t, eName, "hh")
-	iName := mustAppend(t, eName, "ii")
-
-	bId := mustCreateSubteam(t, ech.tc, bName)
-	_ = mustCreateSubteam(t, ech.tc, cName)
-	dID := mustCreateSubteam(t, ech.tc, dName)
-	_ = mustCreateSubteam(t, ech.tc, eName)
-	_ = mustCreateSubteam(t, ech.tc, fName)
-	_ = mustCreateSubteam(t, ech.tc, gName)
-	_ = mustCreateSubteam(t, ech.tc, hName)
-	iID := mustCreateSubteam(t, ech.tc, iName)
-
-	_, _, err = teams.AddMembers(context.Background(), ech.tc.G, bID,
-		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
-		}, nil)
-	require.NoError(t, err)
-	_, _, err = teams.AddMembers(context.Background(), ech.tc.G, dID,
-		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
-		}, nil)
-	require.NoError(t, err)
-	_, _, err = teams.AddMembers(context.Background(), ech.tc.G, iID,
-		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
-		}, nil)
+	tc1 := setupTest(t, "ppa")
+	defer tc1.Cleanup()
+	tcClient := cloneContext(tc1)
+	defer tcClient.Cleanup()
+	_, err = startNewService(tcClient)
 	require.NoError(t, err)
 
-	err = teams.LoadTeamTreeMemberships(echMctx, *bID, ech.username)
+	rand.Seed(time.Now().Unix())
+	provisionUI := &testRecoverUIProvision{
+		username:   "ech_cd847c27ac",
+		paperkey:   "grace spell release tribe cushion rocket arctic guide essence process glow diamond left",
+		deviceName: fmt.Sprintf("%d", rand.Int()),
+	}
+	ui := genericUI{
+		g:           tcClient.G,
+		LoginUI:     provisionUI,
+		ProvisionUI: provisionUI,
+		SecretUI:    provisionUI,
+	}
+	tcClient.G.SetUI(&ui)
+	login := client.NewCmdLoginRunner(tcClient.G)
+	t.Logf("@@@ MID")
+	err = login.Run()
+	require.NoError(t, err)
+	t.Logf("@@@ %s", tcClient.G.Env.GetUsername())
+	echMctx := libkb.NewMetaContextForTest(*tcClient)
+	cID := keybase1.TeamID("88c9c7619263f20ae5065e56ffcb9425")
+	foxUsername := "fox_ad44e42a99"
+
+	cli, xp, err := client.GetRPCClientWithContext(tcClient.G)
+	require.NoError(t, err)
+	notifications := newTeamNotifyHandler()
+	srv := rpc.NewServer(xp, nil)
+	err = srv.Register(keybase1.NotifyTeamProtocol(notifications))
+	require.NoError(t, err)
+	err = srv.Register(keybase1.NotifyBadgesProtocol(notifications))
+	require.NoError(t, err)
+	err = srv.Register(keybase1.NotifyEphemeralProtocol(notifications))
+	require.NoError(t, err)
+	err = srv.Register(keybase1.NotifyTeambotProtocol(notifications))
+	require.NoError(t, err)
+	ncli := keybase1.NotifyCtlClient{Cli: cli}
+	err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+		Team:      true,
+		Badges:    true,
+		Ephemeral: true,
+		Teambot:   true,
+	})
+	require.NoError(t, err)
+	echNotifications := notifications
+	t.Logf("@@@ EZR")
+
+	// tt := newTeamTester(t)
+	// defer tt.cleanup()
+
+	// tt.addUserWithPaper("ech")
+	// tt.addUser("fox")
+	// ech := tt.users[0]
+	// fox := tt.users[1]
+	// // echMctx := libkb.NewMetaContextForTest(*tt.users[0].tc)
+
+	// aID, aName := ech.createTeam2()
+	// t.Logf("made team %s %s", aID, aName)
+	// bName := mustAppend(t, aName, "bb")
+	// cName := mustAppend(t, aName, "cc")
+	// dName := mustAppend(t, cName, "dd")
+	// eName := mustAppend(t, cName, "ee")
+	// fName := mustAppend(t, dName, "ff")
+	// gName := mustAppend(t, eName, "gg")
+	// hName := mustAppend(t, eName, "hh")
+	// iName := mustAppend(t, eName, "ii")
+
+	// _ = mustCreateSubteam(t, ech.tc, bName)
+	// cID := mustCreateSubteam(t, ech.tc, cName)
+	// dID := mustCreateSubteam(t, ech.tc, dName)
+	// _ = mustCreateSubteam(t, ech.tc, eName)
+	// _ = mustCreateSubteam(t, ech.tc, fName)
+	// _ = mustCreateSubteam(t, ech.tc, gName)
+	// _ = mustCreateSubteam(t, ech.tc, hName)
+	// iID := mustCreateSubteam(t, ech.tc, iName)
+
+	// var err error
+
+	// _, _, err = teams.AddMembers(context.Background(), ech.tc.G, cID,
+	// 	[]keybase1.UserRolePair{
+	// 		keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
+	// 	}, nil)
+	// require.NoError(t, err)
+	// _, _, err = teams.AddMembers(context.Background(), ech.tc.G, dID,
+	// 	[]keybase1.UserRolePair{
+	// 		keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
+	// 	}, nil)
+	// require.NoError(t, err)
+	// _, _, err = teams.AddMembers(context.Background(), ech.tc.G, iID,
+	// 	[]keybase1.UserRolePair{
+	// 		keybase1.UserRolePair{Assertion: ech.username, Role: keybase1.TeamRole_ADMIN},
+	// 	}, nil)
+	// require.NoError(t, err)
+
+	// t.Logf("@@@ echpaper %s", ech.backupKey.secret)
+	// t.Logf("@@@ foxuser %s", fox.username)
+	// t.Logf("@@@ cID %s", cID)
+
+	err = teams.LoadTeamTreeMemberships(echMctx, cID, foxUsername)
 	require.NoError(t, err)
 
 	want := 1
@@ -2200,7 +2264,7 @@ func TestLoadTeamTreeMemberships(t *testing.T) {
 loop:
 	for {
 		select {
-		case res := <-ech.notifications.TeamTreeMembershipsPartialCh:
+		case res := <-echNotifications.TeamTreeMembershipsPartialCh:
 			t.Logf("@@@ %s", res.TeamName)
 			got++
 			s, err := res.Result.S()
@@ -2220,7 +2284,8 @@ loop:
 		}
 	}
 
-	require.Equal(t, want, 2)
+	require.Equal(t, 7, want)
+	t.Logf("@@@ END")
 
 	// check want is needed (noe errors)
 }
