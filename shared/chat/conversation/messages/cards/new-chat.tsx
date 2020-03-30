@@ -61,7 +61,7 @@ const NewCard = (outerProps: Props) => {
               {props.label}
             </Kb.Text>
             <Kb.Icon
-              color={Styles.globalColors.blueLighterOrWhite}
+              color={Styles.globalColors.blueLighter}
               sizeType="Tiny"
               type="iconfont-arrow-right"
               className="hover_contained_color_white"
