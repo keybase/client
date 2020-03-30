@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 // NewCmdUpdate are commands for supporting the updater
@@ -26,6 +27,7 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 			newCmdUpdateCheck(cl, g), // Deprecated
 			newCmdUpdateCheckInUse(cl, g),
 			newCmdUpdateNotify(cl, g),
+			newCmdUpdateSnooze(cl, g),
 		},
 	}
 }
@@ -166,4 +168,47 @@ func (v *cmdUpdateNotify) Run() error {
 	default:
 		return fmt.Errorf("Unrecognized event: %s", v.event)
 	}
+}
+func newCmdUpdateSnooze(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:  "snooze",
+		Usage: "Snooze update",
+		Action: func(c *cli.Context) {
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(newCmdUpdateSnoozeRunner(g), "snooze", c)
+		}}
+}
+
+type cmdUpdateSnooze struct {
+	libkb.Contextified
+}
+
+func newCmdUpdateSnoozeRunner(g *libkb.GlobalContext) *cmdUpdateSnooze {
+	return &cmdUpdateSnooze{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *cmdUpdateSnooze) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		API:    true,
+		Config: true,
+	}
+}
+
+func (v *cmdUpdateSnooze) ParseArgv(ctx *cli.Context) error {
+	return nil
+}
+
+func (v *cmdUpdateSnooze) Run() error {
+	config, err := GetConfigClient(v.G())
+	if err != nil {
+		return err
+	}
+	if err := config.SnoozeUpdate(context.Background()); err != nil {
+		v.G().Log.Errorf("Error snoozing: %s", err)
+		return err
+	}
+	return nil
 }

@@ -39,7 +39,5 @@ func SnoozeUpdate(mctx libkb.MetaContext) error {
 		return err
 	}
 	exec.Command(updaterPath, "snooze")
-	if err != nil {
-		return err
-	}
+	return nil
 }
