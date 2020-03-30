@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
+import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as Types from '../../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../../constants/types/teams'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
@@ -29,6 +30,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const yourOperations = getCanPerformByID(state, meta.teamID)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
+  const _label = Constants.getConversationLabel(state, meta, true)
   let _canPinMessage = message.type === 'text'
   if (_canPinMessage && meta.teamname) {
     _canPinMessage = yourOperations && yourOperations.pinMessage
@@ -45,6 +47,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _canReplyPrivately,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
+    _label,
     _participants: participantInfo.all,
     _teamID: meta.teamID,
     _teamname: meta.teamname,
@@ -70,6 +73,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       dispatch(ConfigGen.createCopyToClipboard({text: message.text.stringValue()}))
     }
   },
+  _onCopyLink: (label: string, message: Types.Message) =>
+    dispatch(
+      ConfigGen.createCopyToClipboard({text: DeeplinksConstants.linkFromConvAndMessage(label, message.id)})
+    ),
   _onDelete: (message: Types.Message) =>
     dispatch(
       Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
@@ -179,6 +186,7 @@ export default Container.namedConnect(
       isTeam: !!stateProps._teamname,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,
+      onCopyLink: () => dispatchProps._onCopyLink(stateProps._label, message),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDeleteMessageHistory: stateProps._canDeleteHistory
         ? () => dispatchProps._onDeleteMessageHistory(message)

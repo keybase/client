@@ -1151,6 +1151,22 @@ function* loadMoreMessages(
       )
     }
 
+    if (
+      action.type === Chat2Gen.navigateToThread &&
+      action.payload.highlightMessageID &&
+      action.payload.conversationIDKey
+    ) {
+      actions.push(
+        Saga.put(
+          Chat2Gen.createLoadMessagesCentered({
+            conversationIDKey: action.payload.conversationIDKey,
+            highlightMode: 'flash',
+            messageID: action.payload.highlightMessageID,
+          })
+        )
+      )
+    }
+
     return actions
   }
 
@@ -1858,7 +1874,10 @@ const previewConversationPersonMakesAConversation = (action: Chat2Gen.PreviewCon
         conversationIDKey: Constants.pendingWaitingConversationIDKey,
         reason: 'justCreated',
       }),
-      Chat2Gen.createCreateConversation({participants}),
+      Chat2Gen.createCreateConversation({
+        highlightMessageID: action.payload.highlightMessageID,
+        participants,
+      }),
     ]
   )
 }
@@ -1896,17 +1915,15 @@ const previewConversationTeam = async (
   state: Container.TypedState,
   action: Chat2Gen.PreviewConversationPayload
 ) => {
-  const {conversationIDKey, teamname, reason} = action.payload
+  const {conversationIDKey, highlightMessageID, teamname, reason} = action.payload
   if (conversationIDKey) {
     if (reason === 'messageLink' || reason === 'teamMention' || reason === 'channelHeader') {
       // Add preview channel to inbox
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
       })
-      return Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'previewResolved'})
     }
-
-    return Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'previewResolved'})
+    return Chat2Gen.createNavigateToThread({conversationIDKey, highlightMessageID, reason: 'previewResolved'})
   }
 
   if (!teamname) {
@@ -2834,7 +2851,13 @@ function* createConversation(
       if (participants.length > 0) {
         yield Saga.put(Chat2Gen.createSetParticipants({participants}))
       }
-      yield Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'justCreated'}))
+      yield Saga.put(
+        Chat2Gen.createNavigateToThread({
+          conversationIDKey,
+          highlightMessageID: action.payload.highlightMessageID,
+          reason: 'justCreated',
+        })
+      )
     }
   } catch (_error) {
     const error = _error as RPCError
@@ -2855,6 +2878,7 @@ function* createConversation(
     yield Saga.put(
       Chat2Gen.createNavigateToThread({
         conversationIDKey: Constants.pendingErrorConversationIDKey,
+        highlightMessageID: action.payload.highlightMessageID,
         reason: 'justCreated',
       })
     )

@@ -601,6 +601,7 @@ export {
   getBotCommands,
   getCommands,
   getConversationIDKeyMetasToLoad,
+  getConversationLabel,
   getEffectiveRetentionPolicy,
   getGeneralChannelForBigTeam,
   getMeta,
