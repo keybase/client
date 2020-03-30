@@ -502,9 +502,12 @@ function* inviteToTeamByPhone(
 }
 
 const ignoreRequest = async (action: TeamsGen.IgnoreRequestPayload) => {
-  const {teamID, username} = action.payload
+  const {teamID, teamname, username} = action.payload
   try {
-    await RPCTypes.teamsTeamIgnoreRequestRpcPromise({teamID, username}, Constants.teamWaitingKey(teamID))
+    await RPCTypes.teamsTeamIgnoreRequestRpcPromise(
+      {name: teamname, username},
+      Constants.teamWaitingKey(teamID)
+    )
   } catch (_) {
     // TODO handle error
   }
