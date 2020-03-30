@@ -40,7 +40,14 @@ const WotModal = (props: WotModalProps) => {
         ),
       }}
     >
-      <Kb.Icon type="icon-illustration-wot-460-96" />
+      <Kb.Box2
+        direction="vertical"
+        alignSelf="stretch"
+        alignItems="stretch"
+        style={{backgroundColor: Styles.globalColors.green}}
+      >
+        <Kb.Icon type="icon-illustration-wot-460-96" />
+      </Kb.Box2>
       {props.children}
     </Kb.Modal>
   )
@@ -90,13 +97,9 @@ export const Question2 = (props: Props) => {
         alignItems="stretch"
         style={Styles.collapseStyles([styles.sidePadding, styles.outside])}
       >
-        <Kb.Box2
-          direction="horizontal"
-          alignItems="center"
-          style={{paddingBottom: Styles.globalMargins.small}}
-        >
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.outsideBox}>
           <Kb.Avatar username={props.voucheeUsername} size={48} />
-          <Kb.Text type="BodySemibold" style={{paddingLeft: Styles.globalMargins.tiny}}>
+          <Kb.Text type="BodySemibold" style={styles.idInner}>
             How do you know{' '}
             <Kb.ConnectedUsernames
               usernames={props.voucheeUsername}
@@ -117,7 +120,7 @@ export const Question2 = (props: Props) => {
           maxLength={statementLimit}
         />
         <Kb.Text type="BodySmall" style={styles.approveNote}>
-          cecileb will be able to approve or suggest edits to what you’ve written.
+          {props.voucheeUsername} will be able to approve or suggest edits to what you’ve written.
         </Kb.Text>
       </Kb.Box2>
     </WotModal>
@@ -130,45 +133,78 @@ const VerificationChoice = (props: {
   selected: boolean
   onSelect: () => void
 }) => {
-  let text = <Kb.Text type="Body">Do not choose this option</Kb.Text>
+  const textStyle = Styles.globalStyles.flexOne
+  let text = (
+    <Kb.Text type="Body" style={textStyle}>
+      Do not choose this option
+    </Kb.Text>
+  )
   let color: string = Styles.globalColors.white
   switch (props.verificationType) {
     case 'in_person':
       text = (
-        <Kb.Text type="Body">
+        <Kb.Text type="Body" style={textStyle}>
           {props.voucheeUsername} told me their username <Kb.Text type="BodyBold">in person</Kb.Text>
         </Kb.Text>
       )
       color = Styles.globalColors.greenDark
       break
     case 'video':
-      text = <Kb.Text type="Body">{props.voucheeUsername} told me their username over video</Kb.Text>
+      text = (
+        <Kb.Text type="Body" style={textStyle}>
+          {props.voucheeUsername} told me their username over video
+        </Kb.Text>
+      )
       color = '#56fff5'
       break
     case 'audio':
-      text = <Kb.Text type="Body">{props.voucheeUsername} told me their username over audio</Kb.Text>
+      text = (
+        <Kb.Text type="Body" style={textStyle}>
+          {props.voucheeUsername} told me their username over audio
+        </Kb.Text>
+      )
       color = Styles.globalColors.blueLight
       break
     case 'proofs':
-      text = <Kb.Text type="Body">I know one of {props.voucheeUsername}'s proofs</Kb.Text>
+      text = (
+        <Kb.Text type="Body" style={textStyle}>
+          I know one of {props.voucheeUsername}'s proofs
+        </Kb.Text>
+      )
       color = Styles.globalColors.blueLight
       break
     case 'other_chat':
-      text = <Kb.Text type="Body">{props.voucheeUsername} texted me their username</Kb.Text>
+      text = (
+        <Kb.Text type="Body" style={textStyle}>
+          {props.voucheeUsername} texted me their username
+        </Kb.Text>
+      )
       color = Styles.globalColors.yellow
       break
     case 'familiar':
-      text = <Kb.Text type="Body">We are longtime Keybase friends</Kb.Text>
+      text = (
+        <Kb.Text type="Body" style={textStyle}>
+          We are longtime Keybase friends
+        </Kb.Text>
+      )
       color = Styles.globalColors.yellow
       break
     case 'other':
-      text = <Kb.Text type="Body">Other</Kb.Text>
+      text = (
+        <Kb.Text type="Body" style={textStyle}>
+          Other
+        </Kb.Text>
+      )
       color = Styles.globalColors.yellowDark
       break
   }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
-      <Kb.Box2 direction="vertical" alignSelf="stretch" style={{backgroundColor: color, width: 6}}></Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        alignSelf="stretch"
+        style={{backgroundColor: color, flexShrink: 0, width: 6}}
+      />
       <Kb.RadioButton
         label={text}
         selected={props.selected}
@@ -185,13 +221,18 @@ const styles = Styles.styleSheetCreate(
       approveNote: {paddingTop: Styles.globalMargins.tiny},
       buttonBar: {minHeight: undefined},
       choiceRadio: {
+        flex: 1,
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.tiny,
       },
       id: {paddingBottom: Styles.globalMargins.tiny, paddingTop: Styles.globalMargins.tiny},
-      idInner: {paddingLeft: Styles.globalMargins.tiny},
+      idInner: {
+        flex: 1,
+        paddingLeft: Styles.globalMargins.tiny,
+      },
       outside: {paddingTop: Styles.globalMargins.tiny},
+      outsideBox: {paddingBottom: Styles.globalMargins.small},
       sidePadding: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
     } as const)
 )

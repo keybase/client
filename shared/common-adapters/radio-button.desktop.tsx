@@ -18,6 +18,7 @@ const StyledRadio: any = Styles.styled.div(
     marginRight: RADIOBUTTON_MARGIN,
     position: 'relative',
     width: RADIOBUTTON_SIZE,
+    flex: 'none',
   }),
   // @ts-ignore
   ({disabled, selected}) => ({
