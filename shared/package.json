@@ -112,7 +112,6 @@
     "react-native-fast-image": "7.0.2",
     "react-native-gesture-handler": "1.5.2",
     "react-native-iphone-x-helper": "1.2.1",
-    "react-native-mime-types": "2.2.1",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#nojima/keybase-fixes-off-master",
     "react-native-reanimated": "1.2.0",
     "react-native-safe-area-context": "0.7.3",
