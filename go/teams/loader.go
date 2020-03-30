@@ -470,20 +470,19 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 	if arg.reason != "" {
 		ctx = libkb.WithLogTag(ctx, "LT2") // Load team recursive
 	}
+	mctx := libkb.NewMetaContext(ctx, l.G())
+
 	traceLabel := fmt.Sprintf("TeamLoader#load2(%v, public:%v)", arg.teamID, arg.public)
 	if len(arg.reason) > 0 {
 		traceLabel = traceLabel + " '" + arg.reason + "'"
 	}
 
 	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
-	defer func() {
-		if err != nil {
-			mctx := libkb.NewMetaContext(ctx, l.G())
-			mctx.Debug("Clearing support hidden chain flag for team %s because of error %v in team loader (load2)", arg.teamID, err)
-			mctx.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(mctx, arg.teamID)
-		}
-	}()
 	ret, err = l.load2Inner(ctx, arg)
+	if err != nil {
+		mctx.Debug("Clearing support hidden chain flag for team %s because of error %v in team loader (load2)", arg.teamID, err)
+		mctx.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(mctx, arg.teamID)
+	}
 	return ret, err
 }
 
