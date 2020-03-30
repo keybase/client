@@ -583,6 +583,13 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	if len(matches) == 0 {
 		return body
 	}
+	bigEmoji := false
+	if len(matches) == 1 {
+		singleEmoji := matches[0]
+		if singleEmoji.position[0] == 0 && singleEmoji.position[1] == len(strings.TrimSpace(body)) {
+			bigEmoji = true
+		}
+	}
 	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
 	for _, emoji := range emojis {
@@ -600,6 +607,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
+					IsBig:  bigEmoji,
 					Alias:  match.name,
 					Source: localSource,
 				}))

@@ -122,6 +122,10 @@
         },
         {
           "type": "boolean",
+          "name": "isBig"
+        },
+        {
+          "type": "boolean",
           "name": "isCrossTeam"
         },
         {
@@ -151,6 +155,10 @@
         {
           "type": "string",
           "name": "alias"
+        },
+        {
+          "type": "boolean",
+          "name": "isBig"
         },
         {
           "type": "boolean",
