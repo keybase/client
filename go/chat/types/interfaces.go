@@ -618,7 +618,7 @@ type EmojiSource interface {
 		newAlias, existingAlias string) (chat1.EmojiRemoteSource, error)
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
 	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
-	Decorate(ctx context.Context, body string, convID chat1.ConversationID, emojis []chat1.HarvestedEmoji) string
+	Decorate(ctx context.Context, body string, convID chat1.ConversationID, emojis []chat1.HarvestedEmoji, parseBig bool) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 }
