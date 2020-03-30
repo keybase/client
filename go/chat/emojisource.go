@@ -586,6 +586,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	bigEmoji := false
 	if parseBig && len(matches) == 1 {
 		singleEmoji := matches[0]
+		// check if the emoji is the entire message (ignoring whitespace)
 		if singleEmoji.position[0] == 0 && singleEmoji.position[1] == len(strings.TrimSpace(body)) {
 			bigEmoji = true
 		}
