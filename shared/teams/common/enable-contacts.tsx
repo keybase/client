@@ -16,7 +16,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
   const dispatch = Container.useDispatch()
   const onOpenSettings = () => dispatch(ConfigGen.createOpenAppSettings())
 
-  const [showingPopup, setShowingPopup] = React.useState(false)
+  const [showingPopup, setShowingPopup] = React.useState(noAccess)
   React.useEffect(() => {
     setShowingPopup(noAccess)
   }, [noAccess])
