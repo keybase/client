@@ -133,7 +133,7 @@
     "rn-fetch-blob": "0.11.1",
     "semver": "6.2.0",
     "shallowequal": "1.1.0",
-    "simple-markdown": "0.7.1",
+    "simple-markdown": "0.7.2",
     "typedarray-to-buffer": "3.1.5",
     "unidecode": "0.1.8",
     "url-parse": "1.4.7",
