@@ -65,9 +65,15 @@ const NewTeamInfo = () => {
   }, [teamname, name.length, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus])
 
   const [description, setDescription] = React.useState(teamWizardState.description)
-  const [openTeam, setOpenTeam] = React.useState(
+  const [openTeam, _setOpenTeam] = React.useState(
     teamWizardState.name ? teamWizardState.open : teamWizardState.teamType === 'community'
   )
+  const setOpenTeam = () => {
+    if (Styles.isMobile) {
+      Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+    }
+    _setOpenTeam(!openTeam)
+  }
   const [addYourself, setAddYourself] = React.useState(teamWizardState.addYourself)
   const [showcase, setShowcase] = React.useState(
     teamWizardState.name
@@ -166,11 +172,17 @@ const NewTeamInfo = () => {
 
         <Kb.Checkbox
           labelComponent={
-            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.tallEnoughBox}>
+            <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.globalStyles.flexOne}>
               <Kb.Text type="Body">Make it an open team</Kb.Text>
               <Kb.Text type="BodySmall">Anyone can join without admin approval.</Kb.Text>
-              {openTeam && (
-                <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
+              {(!Styles.isMobile || openTeam) && (
+                <Kb.Box2
+                  direction="horizontal"
+                  gap="xtiny"
+                  alignSelf="flex-start"
+                  alignItems="center"
+                  className={Styles.classNames('hideableDropdown', {hidden: !openTeam})}
+                >
                   <Kb.Text type="BodySmall">People will join as</Kb.Text>
                   <FloatingRolePicker
                     confirmLabel={`Let people in as ${pluralize(selectedRole)}`}
@@ -192,7 +204,7 @@ const NewTeamInfo = () => {
             </Kb.Box2>
           }
           checked={openTeam}
-          onCheck={v => (rolePickerIsOpen ? undefined : setOpenTeam(v))}
+          onCheck={rolePickerIsOpen ? () => {} : setOpenTeam}
         />
         {teamWizardState.teamType === 'subteam' && (
           <Kb.Checkbox onCheck={setAddYourself} checked={addYourself} label="Add yourself to the team" />
@@ -231,11 +243,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   subteamNameInput: Styles.padding(Styles.globalMargins.tiny),
-  tallEnoughBox: Styles.platformStyles({
-    common: {flexShrink: 1},
-    isElectron: {height: 48},
-    isMobile: {height: 80},
-  }),
   wordBreak: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

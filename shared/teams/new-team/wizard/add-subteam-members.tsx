@@ -7,6 +7,7 @@ import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import {pluralize} from '../../../util/string'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {useTeamDetailsSubscribe} from '../../subscriber'
 
 const AddSubteamMembers = () => {
   const dispatch = Container.useDispatch()
@@ -20,10 +21,10 @@ const AddSubteamMembers = () => {
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
 
-  // TODO: populate this
   const parentTeamID = Container.useSelector(
     state => state.teams.newTeamWizard.parentTeamID ?? Types.noTeamID
   )
+  useTeamDetailsSubscribe(parentTeamID)
   const parentTeamName = Container.useSelector(state => Constants.getTeamMeta(state, parentTeamID).teamname)
   const parentMembersMap = Container.useSelector(
     state => Constants.getTeamDetails(state, parentTeamID).members
@@ -50,14 +51,16 @@ const AddSubteamMembers = () => {
       body={
         <Kb.Box2 direction="vertical">
           <Kb.ConnectedUsernames type="BodySemibold" usernames={[m.username]} />
-          <Kb.Text type="BodySmall">{m.fullName}</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {m.fullName}
+          </Kb.Text>
         </Kb.Box2>
       }
       action={
         <Kb.CheckCircle
           checked={selectedMembers.has(m.username)}
           onCheck={check => {
-            // TODO: ensure performance
+            // TODO: ensure performance (see Y2K-1666)
             check ? selectedMembers.add(m.username) : selectedMembers.delete(m.username)
             setSelectedMembers(new Set([...selectedMembers]))
           }}

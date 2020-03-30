@@ -29,7 +29,7 @@ export default Container.connect(
       dispatch(RouteTreeGen.createNavigateUp())
     },
     onNewTeam: () => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))
+      dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
       dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
     },
   }),
