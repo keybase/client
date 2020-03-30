@@ -13,7 +13,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID,
+type getMessagesFunc func(context.Context, chat1.ConversationID, gregor1.UID, []chat1.MessageID,
 	*chat1.GetThreadReason, func() chat1.RemoteInterface) ([]chat1.MessageUnboxed, error)
 
 type basicSupersedesTransformOpts struct {
@@ -253,7 +253,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	// If there are no superseding messages we still need to run
 	// the bottom loop to filter out messages deleted by retention.
 	if len(superMsgIDs) > 0 {
-		msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs, nil, nil)
+		msgs, err := t.messagesFunc(ctx, conv.GetConvID(), uid, superMsgIDs, nil, nil)
 		if err != nil {
 			return nil, err
 		}

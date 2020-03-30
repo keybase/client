@@ -35,7 +35,7 @@ func (f *fillerReplyMsgs) fill(ctx context.Context, uid gregor1.UID, conv types.
 	if len(msgIDs) == 0 {
 		return nil, nil
 	}
-	return f.fetcher(ctx, conv, uid, msgIDs, nil, nil)
+	return f.fetcher(ctx, conv.GetConvID(), uid, msgIDs, nil, nil)
 }
 
 func LocalOnlyReplyFill(enabled bool) func(*ReplyFiller) {
@@ -66,9 +66,9 @@ func (f *ReplyFiller) SetLocalOnlyReplyFill(enabled bool) {
 	f.localOnly = enabled
 }
 
-func (f *ReplyFiller) localFetcher(ctx context.Context, conv types.UnboxConversationInfo,
+func (f *ReplyFiller) localFetcher(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, _ *chat1.GetThreadReason, _ func() chat1.RemoteInterface) (res []chat1.MessageUnboxed, err error) {
-	msgs, err := storage.New(f.G(), nil).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
+	msgs, err := storage.New(f.G(), nil).FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
 	}

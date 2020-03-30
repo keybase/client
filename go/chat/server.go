@@ -2493,8 +2493,8 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err != nil {
 			return err
 		}
-		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.Conv, uid, []chat1.MessageID{arg.MsgID}, nil,
-			nil)
+		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid, []chat1.MessageID{arg.MsgID},
+			nil, nil)
 		if err != nil {
 			return err
 		}

@@ -358,12 +358,12 @@ func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.Conve
 	return nil
 }
 
-func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
+func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason,
 	customRi func() chat1.RemoteInterface) ([]chat1.MessageUnboxed, error) {
 
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
-		ConversationID: conv.GetConvID(),
+		ConversationID: convID,
 		MessageIDs:     msgIDs,
 		ThreadReason:   threadReason,
 	})
@@ -371,6 +371,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.U
 		return nil, err
 	}
 
+	conv := newBasicUnboxConversationInfo(convID, rres.MembersType, nil, rres.Visibility)
 	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, conv)
 	if err != nil {
 		return nil, err
@@ -580,7 +581,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 		return nil
 	}
 	// Fetch all missing messages from server, and sub in the real ones into the placeholder slots
-	msgs, err := s.GetMessages(ctx, conv, uid, msgIDs, &reason, customRi)
+	msgs, err := s.GetMessages(ctx, conv.GetConvID(), uid, msgIDs, &reason, customRi)
 	if err != nil {
 		s.Debug(ctx, "resolveHoles: failed to get missing messages: %s", err.Error())
 		return err
@@ -773,10 +774,10 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	defer func() {
 		if err == nil {
 			superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
-			superXform.SetMessagesFunc(func(ctx context.Context, conv types.UnboxConversationInfo,
+			superXform.SetMessagesFunc(func(ctx context.Context, convID chat1.ConversationID,
 				uid gregor1.UID, msgIDs []chat1.MessageID,
 				_ *chat1.GetThreadReason, _ func() chat1.RemoteInterface) (res []chat1.MessageUnboxed, err error) {
-				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
+				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, convID, uid, msgIDs)
 				if err != nil {
 					return nil, err
 				}
@@ -835,12 +836,11 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 	return s.storage.ClearAll(ctx, convID, uid)
 }
 
-func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
+func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason,
 	customRi func() chat1.RemoteInterface) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
-		conv.GetConvID(), len(msgIDs))()
-	convID := conv.GetConvID()
+		convID, len(msgIDs))()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
 	}
@@ -876,6 +876,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 		}
 
 		// Unbox all the remote messages
+		conv := newBasicUnboxConversationInfo(convID, rmsgs.MembersType, nil, rmsgs.Visibility)
 		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, conv)
 		if err != nil {
 			return nil, err

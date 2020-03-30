@@ -347,19 +347,19 @@ func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID
 
 func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
-	conv, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return nil, err
-	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := g.ConvSource.GetMessages(ctx, conv.Conv, uid, msgIDs, reason, nil)
+	messages, err := g.ConvSource.GetMessages(ctx, convID, uid, msgIDs, reason, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
+		conv, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			return nil, err
+		}
 		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages, nil, nil, nil)
 		if err != nil {
 			return nil, err
