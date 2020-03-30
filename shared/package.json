@@ -215,7 +215,7 @@
     "jest": "24.9.0",
     "jest-emotion": "10.0.17",
     "jetifier": "1.6.4",
-    "json5": "2.1.0",
+    "json5": "2.1.2",
     "klaw-sync": "6.0.0",
     "metro-react-native-babel-preset": "0.56.0",
     "minimist": "1.2.5",
