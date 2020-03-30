@@ -832,7 +832,10 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 }
 
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.ClearAll(ctx, convID, uid)
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(s.storage.ClearAll(ctx, convID, uid))
+	epick.Push(s.G().Indexer.Clear(ctx, uid, convID))
+	return epick.Error()
 }
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,

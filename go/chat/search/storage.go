@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
+	"strings"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -838,6 +839,28 @@ func (s *store) ClearMemory() {
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
 	s.diskStorage.Cancel()
+}
+
+func (s *store) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
+	prefix := libkb.DbKey{
+		Typ: libkb.DBChatIndex,
+	}.ToBytes()
+	dbKeys, err := s.G().LocalChatDb.KeysWithPrefixes(prefix)
+	if err != nil {
+		return fmt.Errorf("could not get KeysWithPrefixes: %v", err)
+	}
+	epick := libkb.FirstErrorPicker{}
+	mdKey := metadataKey(uid, convID)
+	tokKey := fmt.Sprintf("tm:%s:%s:", uid, convID)
+	for dbKey := range dbKeys {
+		if dbKey.Typ == libkb.DBChatIndex &&
+			(strings.HasPrefix(dbKey.Key, mdKey.Key) ||
+				strings.HasPrefix(dbKey.Key, tokKey)) {
+			epick.Push(s.G().LocalChatDb.Delete(dbKey))
+		}
+	}
+	s.ClearMemory()
+	return epick.Error()
 }
 
 func (s *store) Flush() error {

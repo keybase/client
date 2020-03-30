@@ -522,6 +522,9 @@ func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.Conversatio
 func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error) {
 	return 0, nil
 }
+func (d DummyIndexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
+	return nil
+}
 
 type DummyNativeVideoHelper struct{}
 
