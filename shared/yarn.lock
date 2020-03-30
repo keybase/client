@@ -10995,10 +10995,10 @@ react-native-audio@4.3.0:
   resolved "https://registry.yarnpkg.com/react-native-audio/-/react-native-audio-4.3.0.tgz#fae22b81f6a4dda706fd4837d0c6a89c66cf2e7e"
   integrity sha512-QQYq28eSJy+y/Ukvry0AkbwMVELAj+LcEwCVRH+7sKLqlnoBBxGd4ilhgJHjwOiC70192LueGbjXJjPPEwW3iA==
 
-react-native-contacts@5.0.3:
-  version "5.0.3"
-  resolved "https://registry.yarnpkg.com/react-native-contacts/-/react-native-contacts-5.0.3.tgz#8f240e7dd09e654c1ca37f151534909a7cf8e272"
-  integrity sha512-fxHcUj5VzwoWrC5UihiH3qCesSUcc6RAov5QecdJ/x2i8bG39Eg5WoCdNFzvlKRALLSABj70pVcj5DdiW/qlgw==
+react-native-contacts@5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-contacts/-/react-native-contacts-5.1.0.tgz#94ba9a94f3de2211b812d2dbd268c472441a6684"
+  integrity sha512-mLX9XWLiwmZ5C4iInODEaupzWmkVv3/oRDLcecqFCAvMhJ9cgnxuWvVKE9nMFGUwRIZN+KWjjJJ97/OxvErA7g==
 
 react-native-fast-image@7.0.2:
   version "7.0.2"

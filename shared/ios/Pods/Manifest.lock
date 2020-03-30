@@ -230,7 +230,7 @@ PODS:
   - React-jsinspector (0.61.5)
   - react-native-cameraroll (1.2.1):
     - React
-  - react-native-contacts (5.0.3):
+  - react-native-contacts (5.1.0):
     - React
   - react-native-geolocation (2.0.2):
     - React
@@ -569,7 +569,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: d5525f9ed5f782fdbacb64b9b01a43a9323d2386
   React-jsinspector: fa0ecc501688c3c4c34f28834a76302233e29dc0
   react-native-cameraroll: 3e5e34d36d93548ae7770ee8ab7b2ae9e778f571
-  react-native-contacts: b2cfcfbdd91809cb3a01a5bdc69bee2d90b19f6d
+  react-native-contacts: be6cde1ffc9c0196fbb57d987b9d40f12b85989c
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-netinfo: 2bb2e5094edcfecfb340a85053608526cb20f185
   react-native-safe-area-context: e200d4433aba6b7e60b52da5f37af11f7a0b0392
