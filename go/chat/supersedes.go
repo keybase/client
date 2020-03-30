@@ -310,7 +310,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				continue
 			}
 			if newMsg.GetMessageID() < deleteHistoryUpto &&
-				chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
+				chat1.IsDeletableByDeleteHistoryMessageType(newMsg.GetMessageType()) {
 				t.Debug(ctx, "skipping: %d because it was deleted by delete history", msg.GetMessageID())
 				xformDelete(msg.GetMessageID())
 				continue

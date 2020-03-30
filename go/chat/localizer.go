@@ -796,7 +796,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		// Fetch max messages unboxed, using either a custom function or through
 		// the conversation source configured in the global context
 		var summaries []chat1.MessageSummary
-		snippetSummary, err := utils.PickLatestMessageSummary(conversationRemote, chat1.SnippetChatMessageTypes())
+		snippetSummary, err := utils.PickLatestMessageSummary(conversationRemote, chat1.SnippetMessageTypes())
 		if err == nil {
 			summaries = append(summaries, snippetSummary)
 		}
@@ -860,7 +860,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	s.Debug(ctx, "localizing %d max msgs", len(maxMsgs))
 	for _, mm := range maxMsgs {
 		if mm.IsValid() &&
-			utils.IsSnippetChatMessageType(mm.GetMessageType()) &&
+			chat1.IsSnippetMessageType(mm.GetMessageType()) &&
 			(conversationLocal.Info.SnippetMsg == nil ||
 				conversationLocal.Info.SnippetMsg.GetMessageID() < mm.GetMessageID()) {
 			conversationLocal.Info.SnippetMsg = new(chat1.MessageUnboxed)

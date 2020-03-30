@@ -677,7 +677,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 		if !msg.IsValid() {
 			continue
 		}
-		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
+		if !chat1.IsDeletableByDeleteHistoryMessageType(msg.GetMessageType()) {
 			continue
 		}
 		if msg.Valid().MessageBody.IsNil() {
@@ -828,7 +828,7 @@ func (s *Storage) applyExpunge(ctx context.Context, conv types.UnboxConversation
 	var writeback, allPurged []chat1.MessageUnboxed
 	for _, msg := range rc.Result() {
 		mtype := msg.GetMessageType()
-		if !chat1.IsDeletableByDeleteHistory(mtype) {
+		if !chat1.IsDeletableByDeleteHistoryMessageType(mtype) {
 			// Skip message types that cannot be deleted this way
 			continue
 		}
@@ -1171,7 +1171,7 @@ func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.Conversati
 			return nil, nil
 		}
 		// return the first non-deleted visible message we have
-		if msg.IsValidFull() && utils.IsVisibleChatMessageType(msg.GetMessageType()) {
+		if msg.IsValidFull() && chat1.IsVisibleMessageType(msg.GetMessageType()) {
 			return &unreadlineID, nil
 		}
 	}

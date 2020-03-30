@@ -436,28 +436,8 @@ func checkMessageTypeQual(messageType chat1.MessageType, l []chat1.MessageType) 
 	return false
 }
 
-func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
-	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
-}
-
-func IsSnippetChatMessageType(messageType chat1.MessageType) bool {
-	return checkMessageTypeQual(messageType, chat1.SnippetChatMessageTypes())
-}
-
-func IsBadgeableMessageType(messageType chat1.MessageType) bool {
-	return checkMessageTypeQual(messageType, chat1.BadgeableMessageTypes())
-}
-
-func IsNonEmptyConvMessageType(messageType chat1.MessageType) bool {
-	return checkMessageTypeQual(messageType, chat1.NonEmptyConvMessageTypes())
-}
-
-func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
-	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
-}
-
 func IsDeleteableByDeleteMessageType(valid chat1.MessageUnboxedValid) bool {
-	if !checkMessageTypeQual(valid.ClientHeader.MessageType, chat1.DeletableMessageTypesByDelete()) {
+	if !chat1.IsDeletableByDeleteMessageType(valid.ClientHeader.MessageType) {
 		return false
 	}
 	if !valid.MessageBody.IsType(chat1.MessageType_SYSTEM) {
@@ -492,7 +472,7 @@ func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gre
 	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 		return false
 	default:
-		return IsVisibleChatMessageType(messageType)
+		return chat1.IsVisibleMessageType(messageType)
 	}
 }
 
@@ -894,7 +874,7 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 		return false
 	default:
 		for _, msg := range conv.MaxMsgSummaries {
-			if IsNonEmptyConvMessageType(msg.GetMessageType()) {
+			if chat1.IsNonEmptyConvMessageType(msg.GetMessageType()) {
 				return false
 			}
 		}
@@ -958,7 +938,7 @@ func GetConvLastSendTime(rc types.RemoteConversation) gregor1.Time {
 func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 	conv := rc.Conv
 	var summaries []chat1.MessageSummary
-	for _, typ := range chat1.VisibleChatMessageTypes() {
+	for _, typ := range chat1.VisibleMessageTypes() {
 		summary, err := conv.GetMaxMessage(typ)
 		if err == nil {
 			summaries = append(summaries, summary)
@@ -1011,7 +991,7 @@ func PickLatestMessageSummary(conv MessageSummaryContainer, typs []chat1.Message
 }
 
 func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
-	msg, err := PickLatestMessageSummary(conv, chat1.VisibleChatMessageTypes())
+	msg, err := PickLatestMessageSummary(conv, chat1.VisibleMessageTypes())
 	if err != nil {
 		return conv.ReaderInfo.Mtime
 	}
@@ -1970,7 +1950,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
 			IsDeleteable:          IsDeleteableByDeleteMessageType(valid),
-			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
+			IsEditable:            chat1.IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			ReplyTo:               replyTo,
 			PinnedMessageID:       pinnedMessageID,
 			BotUsername:           valid.BotUsername,
@@ -2880,7 +2860,7 @@ func supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMe
 		for _, conv := range convs {
 			if superseder.ConversationID.Eq(conv.GetConvID()) {
 				for _, msg := range conv.Conv.MaxMsgSummaries {
-					if IsNonEmptyConvMessageType(msg.GetMessageType()) {
+					if chat1.IsNonEmptyConvMessageType(msg.GetMessageType()) {
 						return true
 					}
 				}

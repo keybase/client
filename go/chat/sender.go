@@ -399,10 +399,10 @@ func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 
-	if chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+	if chat1.IsEphemeralNonSupersederMessageType(msg.ClientHeader.MessageType) {
 		// Leave whatever was previously set
 		return msg.ClientHeader.EphemeralMetadata, nil
-	} else if !chat1.IsEphemeralSupersederType(msg.ClientHeader.MessageType) {
+	} else if !chat1.IsEphemeralSupersederMessageType(msg.ClientHeader.MessageType) {
 		// clear out any defaults, this msg is a non-ephemeral type
 		return nil, nil
 	}
@@ -862,7 +862,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 		// If no ephemeral data set, then let's double check to make sure no exploding policy
 		// or Gregor state should set it
-		if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+		if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederMessageType(msg.ClientHeader.MessageType) {
 			s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
 			elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
 			if err != nil {

@@ -56,7 +56,7 @@ func PullTranscript(mctx libkb.MetaContext, convSource types.ConversationSource,
 	uidBytes := gregor1.UID(mctx.CurrentUID().ToBytes())
 	chatQuery := &chat1.GetThreadQuery{
 		MarkAsRead:   false,
-		MessageTypes: chat1.VisibleChatMessageTypes(),
+		MessageTypes: chat1.VisibleMessageTypes(),
 	}
 
 	var next []byte
