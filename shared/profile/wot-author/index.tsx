@@ -19,7 +19,6 @@ type WotModalProps = {
 
 // PICNIC-1059 Keep in sync with server limit (yet to be implemented)
 const statementLimit = 700
-const otherLimit = 200
 
 const WotModal = (props: WotModalProps) => {
   return (
