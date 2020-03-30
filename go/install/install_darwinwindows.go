@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 // GetNeedUpdate returns true if updater says we have a new update available.
@@ -31,7 +33,7 @@ func GetNeedUpdate() (bool, error) {
 }
 
 // SnoozeUpdate will snooze the new update (if there is one) for 24 hrs.
-func SnoozeUpdate() error {
+func SnoozeUpdate(mctx libkb.MetaContext) error {
 	updaterPath, err := UpdaterBinPath()
 	if err != nil {
 		return err

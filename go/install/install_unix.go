@@ -180,3 +180,9 @@ func WatchdogLogPath(string) (string, error) {
 func SystemLogPath() string {
 	return ""
 }
+
+// SnoozeUpdate will snooze all updates indefinitely
+func SnoozeUpdate(mctx libkb.MetaContext) error {
+	mctx.G().Env.GetConfigWriter().SetSnoozeUpdates(true)
+	return nil
+}

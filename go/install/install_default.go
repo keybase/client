@@ -32,8 +32,3 @@ func StartUpdateIfNeeded(context.Context, logger.Logger) error {
 func GetNeedUpdate() (bool, error) {
 	return false, nil
 }
-
-// SnoozeUpdate will snooze the new update (if there is one) for 24 hrs.
-func SnoozeUpdate() error {
-	return nil
-}
