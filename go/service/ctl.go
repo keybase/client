@@ -160,6 +160,7 @@ func (c *CtlHandler) DbKeysWithPrefixes(ctx context.Context, arg keybase1.DbKeys
 		return nil, err
 	}
 
+	ret = make([]keybase1.DbKey, 0, len(res))
 	for k := range res {
 		ret = append(ret, keybase1.DbKey{
 			DbType:  arg.Prefix.DbType,
