@@ -497,9 +497,7 @@ export const getConversationLabel = (
   if (conv.teamType === 'small') {
     return alwaysIncludeChannelName ? conv.teamname + '#' + conv.channelname : conv.teamname
   }
-  console.warn('getConversationLabel', state, conv)
   const participantInfo = getParticipantInfo(state, conv.conversationIDKey)
-  console.warn(participantInfo)
   return getRowParticipants(participantInfo, '').join(',')
 }
 
