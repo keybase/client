@@ -8226,7 +8226,7 @@ func TestChatSrvTeamActivity(t *testing.T) {
 
 		tc := ctc.as(t, users[0])
 		topicName := "zjoinonsend"
-		_, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+		nc1, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
 			chat1.NewConversationLocalArg{
 				TlfName:       created.TlfName,
 				TopicName:     &topicName,
@@ -8235,7 +8235,7 @@ func TestChatSrvTeamActivity(t *testing.T) {
 				MembersType:   mt,
 			})
 		require.NoError(t, err)
-		_, err = tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+		nc2, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
 			chat1.NewConversationLocalArg{
 				TlfName:       created2.TlfName,
 				TopicName:     &topicName,
@@ -8251,9 +8251,12 @@ func TestChatSrvTeamActivity(t *testing.T) {
 
 		res, err := tc.chatLocalHandler().GetLastActiveForTeams(context.TODO())
 		require.NoError(t, err)
-		require.Equal(t, 2, len(res))
-		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID1])
-		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID2])
+		require.Equal(t, 2, len(res.Teams))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID1])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID2])
+		require.Equal(t, 2, len(res.Channels))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc1.UiConv.ConvID])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc2.UiConv.ConvID])
 	})
 }
 

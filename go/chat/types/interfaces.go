@@ -294,7 +294,7 @@ type MobileAppState interface {
 
 type TeamChannelSource interface {
 	GetLastActiveForTLF(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) (gregor1.Time, error)
-	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error)
+	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (chat1.LastActiveTimeAll, error)
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)

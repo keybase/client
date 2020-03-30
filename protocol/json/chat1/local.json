@@ -3930,6 +3930,50 @@
     },
     {
       "type": "record",
+      "name": "LastActiveTimeAll",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "gregor1.Time",
+            "keys": "TLFIDStr"
+          },
+          "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "gregor1.Time",
+            "keys": "ConvIDStr"
+          },
+          "name": "channels"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LastActiveStatusAll",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "LastActiveStatus",
+            "keys": "TLFIDStr"
+          },
+          "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LastActiveStatus",
+            "keys": "ConvIDStr"
+          },
+          "name": "channels"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AddEmojiRes",
       "fields": [
         {
@@ -5843,11 +5887,7 @@
     },
     "getLastActiveForTeams": {
       "request": [],
-      "response": {
-        "type": "map",
-        "values": "LastActiveStatus",
-        "keys": "TLFIDStr"
-      }
+      "response": "LastActiveStatusAll"
     },
     "getRecentJoinsLocal": {
       "request": [

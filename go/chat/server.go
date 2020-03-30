@@ -3584,20 +3584,24 @@ func (h *Server) GetLastActiveForTLF(ctx context.Context, tlfIDStr chat1.TLFIDSt
 	return utils.ToLastActiveStatus(mtime), nil
 }
 
-func (h *Server) GetLastActiveForTeams(ctx context.Context) (res map[chat1.TLFIDStr]chat1.LastActiveStatus, err error) {
+func (h *Server) GetLastActiveForTeams(ctx context.Context) (res chat1.LastActiveStatusAll, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetLastActiveForTeams")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	teamActivity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
+	activity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	res = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
-	for tlfID, mtime := range teamActivity {
-		res[tlfID] = utils.ToLastActiveStatus(mtime)
+	res.Teams = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
+	res.Channels = make(map[chat1.ConvIDStr]chat1.LastActiveStatus)
+	for tlfID, mtime := range activity.Teams {
+		res.Teams[tlfID] = utils.ToLastActiveStatus(mtime)
+	}
+	for convID, mtime := range activity.Channels {
+		res.Channels[convID] = utils.ToLastActiveStatus(mtime)
 	}
 	return res, nil
 }

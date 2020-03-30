@@ -377,7 +377,7 @@ export type MessageTypes = {
   }
   'chat.1.local.getLastActiveForTeams': {
     inParam: void
-    outParam: {[key: string]: LastActiveStatus}
+    outParam: LastActiveStatusAll
   }
   'chat.1.local.getMutualTeamsLocal': {
     inParam: {readonly usernames?: Array<String> | null}
@@ -1269,6 +1269,8 @@ export type KBFSImpteamUpgradeUpdate = {readonly convID: ConversationID; readonl
 export type KBFSPath = {readonly startIndex: Int; readonly rawPath: String; readonly standardPath: String; readonly pathInfo: Keybase1.KBFSPathInfo}
 export type KnownTeamMention = {readonly name: String; readonly channel: String}
 export type KnownUserMention = {readonly text: String; readonly uid: Gregor1.UID}
+export type LastActiveStatusAll = {readonly teams: {[key: string]: LastActiveStatus}; readonly channels: {[key: string]: LastActiveStatus}}
+export type LastActiveTimeAll = {readonly teams: {[key: string]: Gregor1.Time}; readonly channels: {[key: string]: Gregor1.Time}}
 export type ListBotCommandsLocalRes = {readonly commands?: Array<UserBotCommandOutput> | null; readonly rateLimits?: Array<RateLimit> | null}
 export type ListCommandsRes = {readonly commands?: Array<UserBotCommandOutput> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type LiveLocation = {readonly endTime: Gregor1.Time}
