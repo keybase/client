@@ -20,7 +20,7 @@ const load = () => {
       </Sb.MockStore>
     ))
     .add('Channels widget', () => <ChannelsWidget {...channelsWidgetProps} />)
-    .add('Enable contacts', () => <EnableContactsPopup onClose={Sb.action('onClose')} />)
+    .add('Enable contacts', () => <EnableContactsPopup noAccess={true} onClose={Sb.action('onClose')} />)
 }
 
 export default load

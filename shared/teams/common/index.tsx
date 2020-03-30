@@ -1,7 +1,7 @@
 import * as React from 'react'
 export {default as ParticipantMeta} from './meta'
 export {default as Activity, ModalTitle} from './activity'
-export {default as EnableContactsPopup, useEnableContactsPopup} from './enable-contacts'
+export {default as EnableContactsPopup} from './enable-contacts'
 
 export const usePhoneNumberList = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])

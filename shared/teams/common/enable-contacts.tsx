@@ -4,10 +4,28 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 
-const EnableContactsPopup = ({onClose}: {onClose: () => void}) => {
+/**
+ * Popup explaining that Keybase doesn't have contact permissions with a link to
+ * app permissions settings.
+ * @param noAccess Whether we've been denied contact permissions permanently and
+ * the user needs to correct it in settings.
+ * @param onClose What to do on close button click in addition to closing this
+ * popup.
+ */
+const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: () => void}) => {
   const dispatch = Container.useDispatch()
   const onOpenSettings = () => dispatch(ConfigGen.createOpenAppSettings())
-  return (
+
+  const [showingPopup, setShowingPopup] = React.useState(false)
+  React.useEffect(() => {
+    setShowingPopup(noAccess)
+  }, [noAccess])
+  const onClosePopup = () => {
+    setShowingPopup(false)
+    onClose()
+  }
+
+  return showingPopup ? (
     <Kb.MobilePopup>
       <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -21,26 +39,11 @@ const EnableContactsPopup = ({onClose}: {onClose: () => void}) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <Kb.Button label="Open phone settings" onClick={onOpenSettings} fullWidth={true} />
-          <Kb.Button label="Close" type="Dim" onClick={onClose} fullWidth={true} />
+          <Kb.Button label="Close" type="Dim" onClick={onClosePopup} fullWidth={true} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.MobilePopup>
-  )
-}
-
-export const useEnableContactsPopup = (noAccess: boolean, onClose: () => void) => {
-  // Whether we show the modal === whether we don't have contact permission
-  // Except on hitting close we want it to dismiss immediately rather than
-  // assume onClose will cause us to unmount.
-  const [showingPopup, setShowingPopup] = React.useState(false)
-  React.useEffect(() => {
-    setShowingPopup(noAccess)
-  }, [noAccess])
-  const onClosePopup = () => {
-    setShowingPopup(false)
-    onClose()
-  }
-  return showingPopup ? <EnableContactsPopup onClose={onClosePopup} /> : null
+  ) : null
 }
 
 const styles = Styles.styleSheetCreate(() => ({
