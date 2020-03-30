@@ -575,7 +575,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji, parseBig bool) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	if len(emojis) == 0 {
 		return body
 	}
@@ -584,7 +584,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 		return body
 	}
 	bigEmoji := false
-	if parseBig && len(matches) == 1 {
+	if messageType == chat1.MessageType_TEXT && len(matches) == 1 {
 		singleEmoji := matches[0]
 		// check if the emoji is the entire message (ignoring whitespace)
 		if singleEmoji.position[0] == 0 && singleEmoji.position[1] == len(strings.TrimSpace(body)) {

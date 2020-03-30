@@ -817,7 +817,7 @@ func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji, parseBig bool) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
