@@ -1,68 +1,49 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {CSSTransition} from 'react-transition-group'
 import {UploadProps} from './upload'
-
-const patternImage = 'upload-pattern-80.png'
+import './upload.css'
 
 const height = 40
 
-const easing = 'cubic-bezier(.13,.72,.31,.95)'
-
-const realCSS = `
-@keyframes slideUp {
-  from { background-position-y: 0; }
-  to {background-position-y: 200%; }
-}
-.upload-animation-loop {
-  animation: slideUp 2s linear infinite normal;
-  background-repeat: repeat;
-  background-image: ${Styles.backgroundURL(patternImage)};
-}
-.upload-animation-enter {
-  top: ${height}px;
-}
-.upload-animation-enter-active {
-  top: 0;
-  transition: all .3s ${easing};
-}
-.upload-animation-exit {
-  top: 0;
-}
-.upload-animation-exit-active {
-  top: ${height}px;
-  transition: all .3s ${easing};
-}
-`
-
-const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => (
-  <>
-    {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
-    <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        centerChildren={true}
-        className="upload-animation-loop"
-        style={styles.stylesBox}
-      >
-        <style>{realCSS}</style>
-        <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
-          {files
-            ? fileName
-              ? `Encrypting and updating ${fileName}...`
-              : `Encrypting and updating ${files} items...`
-            : totalSyncingBytes
-            ? 'Encrypting and updating items...'
-            : 'Done!'}
-        </Kb.Text>
-        {!!(timeLeft && timeLeft.length) && (
-          <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
+const Upload = React.memo(
+  ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
+    const backgroundImage = React.useMemo(() => Styles.backgroundURL('upload-pattern-80.png'), [])
+    return (
+      <>
+        {!!debugToggleShow && (
+          <Kb.Button
+            onClick={debugToggleShow}
+            label="Toggle"
+            style={{position: 'absolute', bottom: height}}
+          />
         )}
-      </Kb.Box2>
-    </CSSTransition>
-  </>
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          className="upload-animation-loop"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.stylesBox,
+            {backgroundImage, position: 'absolute', bottom: showing ? 0 : -height},
+          ])}
+        >
+          <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
+            {files
+              ? fileName
+                ? `Encrypting and updating ${fileName}...`
+                : `Encrypting and updating ${files} items...`
+              : totalSyncingBytes
+              ? 'Encrypting and updating items...'
+              : 'Done!'}
+          </Kb.Text>
+          {!!(timeLeft && timeLeft.length) && (
+            <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
+          )}
+        </Kb.Box2>
+      </>
+    )
+  }
 )
 
 const styles = Styles.styleSheetCreate(
