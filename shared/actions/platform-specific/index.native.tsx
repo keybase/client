@@ -33,7 +33,7 @@ import NetInfo from '@react-native-community/netinfo'
 // @ts-ignore
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
-import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
+import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
@@ -319,6 +319,16 @@ function* setupNetInfoWatcher() {
   while (true) {
     const status = yield Saga.take(channel)
     yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status !== 'none', type: status}))
+  }
+}
+
+function* getStartupDetailsFromInitialShare() {
+  if (isAndroid) {
+    const fileUrl = yield NativeModules.KeybaseEngine.getInitialShareFileUrl()
+    const text = yield NativeModules.KeybaseEngine.getInitialShareText()
+    return {fileUrl, text}
+  } else {
+    return null
   }
 }
 

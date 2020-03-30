@@ -374,17 +374,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 }
 
-function* getStartupDetailsFromInitialShare() {
-  if (isAndroid) {
-    const fileUrl = yield NativeModules.KeybaseEngine.getInitialShareFileUrl()
-    const text = yield NativeModules.KeybaseEngine.getInitialShareText()
-    return {fileUrl, text}
-  } else {
-    return null
-  }
-}
-
-function* getStartupDetailsFromInitialPush() {
+export function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
     push: isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
     pushTimeout: Saga.delay(10),
@@ -447,4 +437,3 @@ function* pushSaga() {
 }
 
 export default pushSaga
-export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}
