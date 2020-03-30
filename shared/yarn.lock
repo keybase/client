@@ -1282,6 +1282,11 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
+"@msgpack/msgpack@1.12.0":
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-1.12.0.tgz#bdcf20ae2ea48d9bc029f0f1ea6b9a011b3ce73e"
+  integrity sha512-7X4+Mt/TAmxhIR+Hryz0ykxnE9YC3sRH+HhcJ//1l7Z0aJD6YFCkD8UpFzXgpWBlAmybG4cnNVdd2GO6Gh8Pbg==
+
 "@msgpack/msgpack@1.9.3":
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-1.9.3.tgz#2196023f65a1d77261f950c356e3a4491faf1601"

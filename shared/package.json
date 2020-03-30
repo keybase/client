@@ -65,7 +65,7 @@
     "@emotion/core": "10.0.17",
     "@emotion/native": "10.0.14",
     "@emotion/styled": "10.0.17",
-    "@msgpack/msgpack": "1.9.3",
+    "@msgpack/msgpack": "1.12.0",
     "@react-native-community/cameraroll": "1.2.1",
     "@react-native-community/geolocation": "2.0.2",
     "@react-native-community/netinfo": "4.2.2",
