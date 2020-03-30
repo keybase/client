@@ -25,7 +25,7 @@ var decorateEnd = "$<kb$"
 
 func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID, emoji string) {
-	msg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, msgID, true, nil)
+	msg, err := tc.Context().ConvSource.GetMessage(ctx, conv.Id, uid, msgID, nil, nil, true)
 	require.NoError(t, err)
 	require.True(t, msg.IsValid())
 	require.Equal(t, 1, len(msg.Valid().Emojis))
@@ -116,11 +116,13 @@ func TestEmojiSourceBasic(t *testing.T) {
 	checkEmoji(ctx, t, tc, uid, conv, msgID, "party_parrot")
 
 	t.Logf("remove")
-	_, err = GetMessage(ctx, tc.Context(), uid, source.Message().ConvID, source.Message().MsgID, true, nil)
+	_, err = tc.Context().ConvSource.GetMessage(ctx, source.Message().ConvID, uid, source.Message().MsgID,
+		nil, nil, true)
 	require.NoError(t, err)
 	require.NoError(t, tc.Context().EmojiSource.Remove(ctx, uid, conv.Id, "party_parrot"))
 	require.True(t, source.IsMessage())
-	_, err = GetMessage(ctx, tc.Context(), uid, source.Message().ConvID, source.Message().MsgID, true, nil)
+	_, err = tc.Context().ConvSource.GetMessage(ctx, source.Message().ConvID, uid, source.Message().MsgID,
+		nil, nil, true)
 	require.Error(t, err)
 	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
 		GetCreationInfo: true,

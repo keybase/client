@@ -2489,16 +2489,8 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		return err
 	}
 	fetchAndUnfurl := func() error {
-		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			return err
-		}
-		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid, []chat1.MessageID{arg.MsgID},
-			nil, nil)
-		if err != nil {
-			return err
-		}
-		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
+		msgs, err := h.G().ConvSource.GetMessages(ctx, arg.ConvID, uid, []chat1.MessageID{arg.MsgID},
+			nil, nil, true)
 		if err != nil {
 			return err
 		}
@@ -2592,7 +2584,7 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 	if err := utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapse); err != nil {
 		return err
 	}
-	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid, arg.MsgID, nil, nil, true)
 	if err != nil {
 		h.Debug(ctx, "ToggleMessageCollapse: failed to get message: %s", err)
 		return nil
@@ -2602,8 +2594,8 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 		return nil
 	}
 	if msg.Valid().MessageBody.IsType(chat1.MessageType_UNFURL) {
-		unfurledMsg, err := GetMessage(ctx, h.G(), uid, arg.ConvID,
-			msg.Valid().MessageBody.Unfurl().MessageID, true, nil)
+		unfurledMsg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid,
+			msg.Valid().MessageBody.Unfurl().MessageID, nil, nil, true)
 		if err != nil {
 			h.Debug(ctx, "ToggleMessageCollapse: failed to get unfurl base message: %s", err)
 			return nil
@@ -3032,7 +3024,7 @@ func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res c
 	if err != nil {
 		return res, err
 	}
-	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid, arg.MsgID, nil, nil, true)
 	if err != nil {
 		return res, err
 	}

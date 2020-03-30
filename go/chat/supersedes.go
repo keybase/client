@@ -14,7 +14,7 @@ import (
 )
 
 type getMessagesFunc func(context.Context, chat1.ConversationID, gregor1.UID, []chat1.MessageID,
-	*chat1.GetThreadReason, func() chat1.RemoteInterface) ([]chat1.MessageUnboxed, error)
+	*chat1.GetThreadReason, func() chat1.RemoteInterface, bool) ([]chat1.MessageUnboxed, error)
 
 type basicSupersedesTransformOpts struct {
 	UseDeletePlaceholders bool
@@ -196,8 +196,9 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 }
 
 func (t *basicSupersedesTransform) Run(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) (newMsgs []chat1.MessageUnboxed, err error) {
-	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Run(%s)", conv.GetConvID()))()
+	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
+	maxDeletedUpTo *chat1.MessageID) (newMsgs []chat1.MessageUnboxed, err error) {
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Run(%s)", convID))()
 	originalMsgsMap := make(map[chat1.MessageID]chat1.MessageUnboxed, len(originalMsgs))
 	for _, msg := range originalMsgs {
 		originalMsgsMap[msg.GetMessageID()] = msg
@@ -253,7 +254,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	// If there are no superseding messages we still need to run
 	// the bottom loop to filter out messages deleted by retention.
 	if len(superMsgIDs) > 0 {
-		msgs, err := t.messagesFunc(ctx, conv.GetConvID(), uid, superMsgIDs, nil, nil)
+		msgs, err := t.messagesFunc(ctx, convID, uid, superMsgIDs, nil, nil, false)
 		if err != nil {
 			return nil, err
 		}
@@ -320,8 +321,10 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				// locally but not superseded by anything.  Could have been
 				// deleted by a delete-history, retention expunge, or was an
 				// exploding message.
-				if newMsg.IsValid() && (!newMsg.IsEphemeral() || newMsg.HideExplosion(conv.GetMaxDeletedUpTo(), time.Now())) {
-					t.Debug(ctx, "skipping: %d because it was deleted or a long exploded ephemeral message", msg.GetMessageID())
+				if newMsg.IsValid() && (!newMsg.IsEphemeral() ||
+					(maxDeletedUpTo != nil && newMsg.HideExplosion(*maxDeletedUpTo, time.Now()))) {
+					t.Debug(ctx, "skipping: %d because it was deleted or a long exploded ephemeral message",
+						msg.GetMessageID())
 					xformDelete(msg.GetMessageID())
 					continue
 				}

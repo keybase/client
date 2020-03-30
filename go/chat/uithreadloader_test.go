@@ -104,7 +104,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
 	_, err = tc.Context().ConvSource.GetMessages(ctx, convFull.Conv.GetConvID(), uid,
-		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, nil, nil)
+		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, nil, nil, false)
 	require.NoError(t, err)
 
 	_, err = tc.Context().ParticipantsSource.Get(ctx, uid, conv.Id, types.InboxSourceDataSourceAll)

@@ -378,8 +378,8 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
 	reason := chat1.GetThreadReason_PREPARE
-	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes,
-		&reason)
+	messages, err := s.G().ConvSource.GetMessages(ctx, convID, uid, []chat1.MessageID{msgID},
+		&reason, nil, resolveSupersedes)
 	if err != nil {
 		return mvalid, err
 	}
@@ -1265,12 +1265,10 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
-		if convLocal != nil {
-			unboxedMsg, err = NewReplyFiller(s.G()).FillSingle(ctx, boxed.ClientHeader.Sender, *convLocal,
-				unboxedMsg)
-			if err != nil {
-				s.Debug(ctx, "Send: failed to fill reply: %s", err)
-			}
+		unboxedMsg, err = NewReplyFiller(s.G()).FillSingle(ctx, boxed.ClientHeader.Sender, convID,
+			unboxedMsg)
+		if err != nil {
+			s.Debug(ctx, "Send: failed to fill reply: %s", err)
 		}
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender,
@@ -1423,15 +1421,9 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 		storage.NewMessageNotifier(func(ctx context.Context, obr chat1.OutboxRecord) {
 			uid := obr.Msg.ClientHeader.Sender
 			convID := obr.ConvID
-			vis := keybase1.TLFVisibility_PRIVATE
-			if obr.Msg.ClientHeader.TlfPublic {
-				vis = keybase1.TLFVisibility_PUBLIC
-			}
 
 			// fill in reply
-			conv := newBasicUnboxConversationInfo(convID, chat1.ConversationMembersType_IMPTEAMNATIVE, nil,
-				vis)
-			msg, err := NewReplyFiller(s.G()).FillSingle(ctx, uid, conv,
+			msg, err := NewReplyFiller(s.G()).FillSingle(ctx, uid, convID,
 				chat1.NewMessageUnboxedWithOutbox(obr))
 			if err != nil {
 				s.Debug(ctx, "outboxNotify: failed to get replyto: %s", err)

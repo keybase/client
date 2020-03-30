@@ -282,12 +282,12 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
-	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes, reason)
+	return h.G().ConvSource.GetMessages(ctx, convID, uid, msgIDs, reason, nil, resolveSupersedes)
 }
 
 func (h *Helper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
-	return GetMessage(ctx, h.G(), uid, convID, msgID, resolveSupersedes, reason)
+	return h.G().ConvSource.GetMessage(ctx, convID, uid, msgID, reason, nil, resolveSupersedes)
 }
 
 func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
@@ -331,41 +331,6 @@ func (h *Helper) InTeam(ctx context.Context, uid gregor1.UID, teamID keybase1.Te
 		return false, err
 	}
 	return len(ibox.ConvsUnverified) > 0, nil
-}
-
-func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
-	msgs, err := GetMessages(ctx, g, uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, reason)
-	if err != nil {
-		return chat1.MessageUnboxed{}, err
-	}
-	if len(msgs) != 1 {
-		return chat1.MessageUnboxed{}, errors.New("message not found")
-	}
-	return msgs[0], nil
-}
-
-func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
-
-	// use ConvSource to get the messages, to try the cache first
-	messages, err := g.ConvSource.GetMessages(ctx, convID, uid, msgIDs, reason, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// unless arg says not to, transform the superseded messages
-	if resolveSupersedes {
-		conv, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			return nil, err
-		}
-		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages, nil, nil, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return messages, nil
 }
 
 type sendHelper struct {

@@ -5,7 +5,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -27,7 +26,7 @@ func (f *fillerReplyMsgs) add(msgID chat1.MessageID) {
 	f.msgIDs[msgID] = true
 }
 
-func (f *fillerReplyMsgs) fill(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo) (res []chat1.MessageUnboxed, err error) {
+func (f *fillerReplyMsgs) fill(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res []chat1.MessageUnboxed, err error) {
 	var msgIDs []chat1.MessageID
 	for msgID := range f.msgIDs {
 		msgIDs = append(msgIDs, msgID)
@@ -35,7 +34,7 @@ func (f *fillerReplyMsgs) fill(ctx context.Context, uid gregor1.UID, conv types.
 	if len(msgIDs) == 0 {
 		return nil, nil
 	}
-	return f.fetcher(ctx, conv.GetConvID(), uid, msgIDs, nil, nil)
+	return f.fetcher(ctx, convID, uid, msgIDs, nil, nil, false)
 }
 
 func LocalOnlyReplyFill(enabled bool) func(*ReplyFiller) {
@@ -67,7 +66,8 @@ func (f *ReplyFiller) SetLocalOnlyReplyFill(enabled bool) {
 }
 
 func (f *ReplyFiller) localFetcher(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID, _ *chat1.GetThreadReason, _ func() chat1.RemoteInterface) (res []chat1.MessageUnboxed, err error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, _ *chat1.GetThreadReason, _ func() chat1.RemoteInterface,
+	_ bool) (res []chat1.MessageUnboxed, err error) {
 	msgs, err := storage.New(f.G(), nil).FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
@@ -103,9 +103,9 @@ func (f *ReplyFiller) getReplyTo(msg chat1.MessageUnboxed) *chat1.MessageID {
 	return nil
 }
 
-func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo,
+func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err error) {
-	msgs, err := f.Fill(ctx, uid, conv, []chat1.MessageUnboxed{msg})
+	msgs, err := f.Fill(ctx, uid, convID, []chat1.MessageUnboxed{msg})
 	if err != nil {
 		return res, err
 	}
@@ -115,9 +115,9 @@ func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, conv type
 	return msgs[0], nil
 }
 
-func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo,
+func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
-	defer f.Trace(ctx, func() error { return err }, "Fill: %s", conv.GetConvID())()
+	defer f.Trace(ctx, func() error { return err }, "Fill: %s", convID)()
 	// Gather up the message IDs we need
 	repliedToMsgIDsLocal := newFillerReplyMsgs(f.localFetcher)
 	repliedToMsgIDsRemote := newFillerReplyMsgs(f.G().ConvSource.GetMessages)
@@ -143,12 +143,12 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 	}
 
 	// Fetch messages
-	localMsgs, err := repliedToMsgIDsLocal.fill(ctx, uid, conv)
+	localMsgs, err := repliedToMsgIDsLocal.fill(ctx, uid, convID)
 	if err != nil {
 		f.Debug(ctx, "Fill: failed to get local messages: %s", err)
 		return res, err
 	}
-	remoteMsgs, err := repliedToMsgIDsRemote.fill(ctx, uid, conv)
+	remoteMsgs, err := repliedToMsgIDsRemote.fill(ctx, uid, convID)
 	if err != nil {
 		f.Debug(ctx, "Fill: failed to get remote messages: %s", err)
 		return res, err
@@ -157,7 +157,7 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 	transform := newBasicSupersedesTransform(f.G(), basicSupersedesTransformOpts{
 		UseDeletePlaceholders: true,
 	})
-	allMsgs, err := transform.Run(ctx, conv, uid, origMsgs)
+	allMsgs, err := transform.Run(ctx, convID, uid, origMsgs, nil)
 	if err != nil {
 		f.Debug(ctx, "Fill: failed to supersede replies: %s", err)
 		return res, err
