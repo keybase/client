@@ -290,7 +290,7 @@ PODS:
     - React
     - SDWebImage (~> 5.0)
     - SDWebImageWebPCoder (~> 0.2.3)
-  - RNGestureHandler (1.5.2):
+  - RNGestureHandler (1.6.1):
     - React
   - RNReanimated (1.2.0):
     - React
@@ -589,7 +589,7 @@ SPEC CHECKSUMS:
   rn-fetch-blob: 2509def10b0fd8ff10e22da284264be34b2231f6
   RNAudio: cae2991f2dccb75163f260b60da8051717b959fa
   RNFastImage: 9b0c22643872bb7494c8d87bbbb66cc4c0d9e7a2
-  RNGestureHandler: 946a7691e41df61e2c4b1884deab41a4cdc3afff
+  RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNReanimated: 1b52415c4302f198cb581282a0166690bad62c43
   RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
   SDWebImage: 4eabf2fa6695c95c47724214417a9c036c965e4a

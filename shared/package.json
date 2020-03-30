@@ -110,7 +110,7 @@
     "react-native-audio": "4.3.0",
     "react-native-contacts": "5.0.3",
     "react-native-fast-image": "7.0.2",
-    "react-native-gesture-handler": "1.5.2",
+    "react-native-gesture-handler": "1.6.1",
     "react-native-iphone-x-helper": "1.2.1",
     "react-native-mime-types": "2.2.1",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#nojima/keybase-fixes-off-master",
