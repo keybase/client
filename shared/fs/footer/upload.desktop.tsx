@@ -6,41 +6,52 @@ import './upload.css'
 
 const height = 40
 
+type DrawState = 'showing' | 'hiding' | 'hidden'
 const Upload = React.memo(
   ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
-    const backgroundImage = React.useMemo(() => Styles.backgroundURL('upload-pattern-80.png'), [])
+    const [drawState, setDrawState] = React.useState<DrawState>(showing ? 'showing' : 'hidden')
+    React.useEffect(() => {
+      let id: undefined | ReturnType<typeof setTimeout>
+      if (showing) {
+        setDrawState('showing')
+      } else {
+        setDrawState('hiding')
+        id = setTimeout(() => {
+          setDrawState('hidden')
+        }, 300)
+      }
+      return () => {
+        id && clearTimeout(id)
+      }
+    }, [showing])
+
     return (
       <>
         {!!debugToggleShow && (
-          <Kb.Button
-            onClick={debugToggleShow}
-            label="Toggle"
-            style={{position: 'absolute', bottom: height}}
-          />
+          <Kb.Button onClick={debugToggleShow} label="Toggle" style={styles.toggleButton} />
         )}
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          className="upload-animation-loop"
-          fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.stylesBox,
-            {backgroundImage, position: 'absolute', bottom: showing ? 0 : -height},
-          ])}
-        >
-          <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
-            {files
-              ? fileName
-                ? `Encrypting and updating ${fileName}...`
-                : `Encrypting and updating ${files} items...`
-              : totalSyncingBytes
-              ? 'Encrypting and updating items...'
-              : 'Done!'}
-          </Kb.Text>
-          {!!(timeLeft && timeLeft.length) && (
-            <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
-          )}
-        </Kb.Box2>
+        {drawState !== 'hidden' && (
+          <Kb.Box2
+            direction="vertical"
+            centerChildren={true}
+            className="upload-animation-loop"
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.stylesBox, {bottom: showing ? 0 : -height}])}
+          >
+            <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
+              {files
+                ? fileName
+                  ? `Encrypting and updating ${fileName}...`
+                  : `Encrypting and updating ${files} items...`
+                : totalSyncingBytes
+                ? 'Encrypting and updating items...'
+                : 'Done!'}
+            </Kb.Text>
+            {!!(timeLeft && timeLeft.length) && (
+              <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
+            )}
+          </Kb.Box2>
+        )}
       </>
     )
   }
@@ -49,13 +60,17 @@ const Upload = React.memo(
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      stylesBox: {
-        flexShrink: 0, // need this to be whole in menubar
-        height,
-        maxHeight: height,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.medium,
-      },
+      stylesBox: Styles.platformStyles({
+        isElectron: {
+          backgroundImage: Styles.backgroundURL('upload-pattern-80.png'),
+          flexShrink: 0, // need this to be whole in menubar
+          height,
+          maxHeight: height,
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+          position: 'absolute',
+        },
+      }),
       stylesText: {
         color: Styles.globalColors.whiteOrWhite,
       },
@@ -69,6 +84,7 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
+      toggleButton: {position: 'absolute', bottom: height},
     } as const)
 )
 
