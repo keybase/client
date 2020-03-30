@@ -94,7 +94,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
-  const activityLevel = Container.useSelector(s => s.teams.activityLevels.get(teamID) || 'none')
+  const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
 
   const callbacks = useHeaderCallbacks(teamID)

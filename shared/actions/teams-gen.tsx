@@ -224,7 +224,7 @@ type _SaveChannelMembershipPayload = {
   readonly newChannelState: Types.ChannelMembershipState
 }
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
-type _SetActivityLevelsPayload = {readonly levels: Map<Types.TeamID, Types.ActivityLevel>}
+type _SetActivityLevelsPayload = {readonly levels: Types.ActivityLevels}
 type _SetAddMembersWizardIndividualRolePayload = {
   readonly assertion: string
   readonly role: Types.TeamRoleType

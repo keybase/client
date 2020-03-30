@@ -184,7 +184,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 }
 
 const emptyState: Types.State = {
-  activityLevels: new Map(),
+  activityLevels: {channels: new Map(), teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',

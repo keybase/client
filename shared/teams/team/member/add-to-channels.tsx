@@ -232,7 +232,9 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
   const numParticipants = Container.useSelector(
     s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
   )
-  const activityLevel = 'recently'
+  const activityLevel = Container.useSelector(
+    s => s.teams.activityLevels.channels.get(conversationIDKey) || 'none'
+  )
   return Styles.isMobile ? (
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">

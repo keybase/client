@@ -20,7 +20,7 @@ const TeamRow = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const activityLevel = Container.useSelector(s => s.teams.activityLevels.get(teamID) || 'none')
+  const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
 
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))

@@ -435,7 +435,7 @@
     },
     "setActivityLevels": {
       "_description": "Set map of activity levels for all teams.",
-      "levels": "Map<Types.TeamID, Types.ActivityLevel>"
+      "levels": "Types.ActivityLevels"
     }
   }
 }

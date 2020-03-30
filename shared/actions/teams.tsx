@@ -689,13 +689,19 @@ const getActivityForTeams = async (
   }
   try {
     const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
-    const levels = new Map(
-      Object.entries(results).map(([teamID, status]) => [
+    const teams = new Map(
+      Object.entries(results.teams).map(([teamID, status]) => [
         teamID,
         Constants.lastActiveStatusToActivityLevel[status],
       ])
     )
-    return TeamsGen.createSetActivityLevels({levels})
+    const channels = new Map(
+      Object.entries(results.channels).map(([conversationIDKey, status]) => [
+        conversationIDKey,
+        Constants.lastActiveStatusToActivityLevel[status],
+      ])
+    )
+    return TeamsGen.createSetActivityLevels({levels: {channels, teams}})
   } catch (e) {
     logger.error(e)
   }
