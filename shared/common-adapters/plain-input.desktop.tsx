@@ -251,17 +251,17 @@ class PlainInput extends React.PureComponent<InternalProps> {
     return this.props.multiline ? this._getMultilineProps() : this._getSinglelineProps()
   }
 
-  componentDidMount = () => {
+  componentDidMount() {
     this.props.globalCaptureKeypress && this._registerBodyEvents(true)
   }
 
-  componentDidUpdate = (prevProps: InternalProps) => {
+  componentDidUpdate(prevProps: InternalProps) {
     if (this.props.globalCaptureKeypress !== prevProps.globalCaptureKeypress) {
       this._registerBodyEvents(!!this.props.globalCaptureKeypress)
     }
   }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this._registerBodyEvents(false)
     this.mounted = false
   }
