@@ -20,6 +20,9 @@ PODS:
   - EXImagePicker (7.0.0):
     - UMCore
     - UMFileSystemInterface
+  - EXMediaLibrary (7.0.0):
+    - UMCore
+    - UMPermissionsInterface
   - EXPermissions (7.0.0):
     - UMCore
     - UMPermissionsInterface
@@ -228,8 +231,6 @@ PODS:
     - React-cxxreact (= 0.61.5)
     - React-jsi (= 0.61.5)
   - React-jsinspector (0.61.5)
-  - react-native-cameraroll (1.2.1):
-    - React
   - react-native-contacts (5.0.3):
     - React
   - react-native-geolocation (2.0.2):
@@ -328,6 +329,7 @@ DEPENDENCIES:
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXHaptics (from `../node_modules/expo-haptics/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
+  - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - EXSMS (from `../node_modules/expo-sms/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -347,7 +349,6 @@ DEPENDENCIES:
   - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
-  - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
   - react-native-contacts (from `../node_modules/react-native-contacts`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -417,6 +418,9 @@ EXTERNAL SOURCES:
   EXImagePicker:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-image-picker/ios"
+  EXMediaLibrary:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-media-library/ios"
   EXPermissions:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-permissions/ios"
@@ -453,8 +457,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsiexecutor"
   React-jsinspector:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
-  react-native-cameraroll:
-    :path: "../node_modules/@react-native-community/cameraroll"
   react-native-contacts:
     :path: "../node_modules/react-native-contacts"
   react-native-geolocation:
@@ -550,6 +552,7 @@ SPEC CHECKSUMS:
   EXFileSystem: 7e53a2c30a2eb6987ba6d5158ab908f947523228
   EXHaptics: 9279b288e4bd10ca159442269790492a8819f917
   EXImagePicker: 63549baa9487f4b99c03163c5639ddede4c7be4e
+  EXMediaLibrary: 6ebeb433efd9065c0a6dbce80e53ce63fe23c300
   EXPermissions: df10ad83df2f6b647aec304619354f8ab48d5f63
   EXSMS: c5df5f35228de7f1f4b16da5e53f48af63b768e4
   FBLazyVector: aaeaf388755e4f29cd74acbc9e3b8da6d807c37f
@@ -568,7 +571,6 @@ SPEC CHECKSUMS:
   React-jsi: cb2cd74d7ccf4cffb071a46833613edc79cdf8f7
   React-jsiexecutor: d5525f9ed5f782fdbacb64b9b01a43a9323d2386
   React-jsinspector: fa0ecc501688c3c4c34f28834a76302233e29dc0
-  react-native-cameraroll: 3e5e34d36d93548ae7770ee8ab7b2ae9e778f571
   react-native-contacts: b2cfcfbdd91809cb3a01a5bdc69bee2d90b19f6d
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-netinfo: 2bb2e5094edcfecfb340a85053608526cb20f185

@@ -1317,11 +1317,6 @@
     react-lifecycles-compat "^3.0.4"
     warning "^3.0.0"
 
-"@react-native-community/cameraroll@1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cameraroll/-/cameraroll-1.2.1.tgz#68ae3a1de07dd5db8ce9d898057f30c1585c7f1d"
-  integrity sha512-dMvzCano5/ltQYbF4AOEHe0vaW3Owt05S4y+gJ6PlBp2/YfQAVv7XNgvsvF2CKz4oPKuZAOchENDV/J+nbMbWg==
-
 "@react-native-community/cli-debugger-ui@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/cli-debugger-ui/-/cli-debugger-ui-3.0.0.tgz#d01d08d1e5ddc1633d82c7d84d48fff07bd39416"
@@ -5860,6 +5855,11 @@ expo-image-picker@7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-7.0.0.tgz#e4a5a52bd6f9655f75ecf3cc866aa9bb0c99e24b"
   integrity sha512-LeGdAqbeuB2KsT369ns1kDtCGbyDCmY2gIFlf/rsD3+UmagRFX9emZLGPEnUNdCWXoctSejjFwxDnCUtpvL6yw==
+
+expo-media-library@7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-7.0.0.tgz#67b1fe55ed530ff44db7433446d2f47ab8681c55"
+  integrity sha512-qGqgvG5WS0OCbORMixUnkbPM+QgGsEfmuYFs/Xh5cGtqWDib+laVfe0qlee4BJ+h0F7n2rLFUnVxCFib0e5qQA==
 
 expo-permissions@7.0.0, expo-permissions@~7.0.0:
   version "7.0.0"
