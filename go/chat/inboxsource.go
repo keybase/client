@@ -542,7 +542,24 @@ func (s *HybridInboxSource) createInbox() *storage.Inbox {
 		storage.LayoutChangedNotifier(s.G().UIInboxLoader))
 }
 
-func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Clear(%v)", uid)()
+	defer s.PerfTrace(ctx, func() error { return err }, "Clear(%v)", uid)()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Clearing inbox for %s", uid)
+		} else {
+			message = fmt.Sprintf("Failed to clear inbox %s", uid)
+		}
+		s.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_CLEARINBOX,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
+
 	return s.createInbox().Clear(ctx, uid)
 }
 
