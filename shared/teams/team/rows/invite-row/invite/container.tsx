@@ -7,8 +7,10 @@ import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
 type OwnProps = {
   id: string
   teamID: TeamID
+  firstItem: boolean
 }
 
+// TODO: when removing flags.teamsRedesign, move this into the component itself
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
@@ -32,9 +34,9 @@ export default Container.connect(
       [...(stateProps._invites || [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
     if (!user) {
       // loading
-      return {label: '', onCancelInvite: () => {}, role: 'reader'} as const
+      return {firstItem: ownProps.firstItem, label: '', onCancelInvite: () => {}, role: 'reader'} as const
     }
-    let onCancelInvite
+    let onCancelInvite: undefined | (() => void)
     if (user.email) {
       onCancelInvite = () =>
         dispatchProps._onCancelInvite({
@@ -53,12 +55,19 @@ export default Container.connect(
     }
     // TODO: can we just do this by invite ID always?
 
+    let label = user.username || user.name || user.email || user.phone
+    let subLabel = user.name ? user.phone || user.email : undefined
+    const re = /(.+) \((.+)\)/
+    if (!subLabel && re.test(label)) {
+      const match = re.exec(label)!
+      label = match[1]
+      subLabel = match[2]
+    }
+
     return {
-      label:
-        (user.email && `[${user.email}]@email`) ||
-        user.username ||
-        user.name ||
-        (user.phone && `${user.phone}@phone`),
+      firstItem: ownProps.firstItem,
+      label,
+      subLabel,
       onCancelInvite,
       role: user.role,
     }

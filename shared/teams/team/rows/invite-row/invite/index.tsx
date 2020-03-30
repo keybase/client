@@ -7,8 +7,10 @@ import flags from '../../../../../util/feature-flags'
 
 export type Props = {
   label: string
+  subLabel?: string
   onCancelInvite?: () => void
   role: TeamRoleType
+  firstItem: boolean
 }
 
 const TeamInviteRowOld = (props: Props) => {
@@ -38,7 +40,8 @@ const TeamInviteRowOld = (props: Props) => {
 }
 
 const TeamInviteRowNew = (props: Props) => {
-  const {onCancelInvite, role, label} = props
+  const {onCancelInvite, role, label, firstItem, subLabel} = props
+  const text2 = subLabel ? (role ? `${subLabel} · ${typeToLabel[role]}` : subLabel) : typeToLabel[role]
   return (
     <Kb.ListItem2
       type="Small"
@@ -49,13 +52,13 @@ const TeamInviteRowNew = (props: Props) => {
             <Kb.Text type="BodySemibold" lineClamp={1}>
               {label}
             </Kb.Text>
-            {!!role && <Kb.Text type="BodySmall">{typeToLabel[role]}</Kb.Text>}
+            {!!text2 && <Kb.Text type="BodySmall">{text2}</Kb.Text>}
           </Kb.Box2>
         </Kb.Box2>
       }
       action={<TeamInviteMenu onCancelInvite={onCancelInvite} />}
       onlyShowActionOnHover="fade"
-      firstItem={true /* TODO */}
+      firstItem={firstItem}
     />
   )
 }
