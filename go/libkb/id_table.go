@@ -133,6 +133,7 @@ func CanonicalProofName(t TypedChainLink) string {
 type WotVouchChainLink struct {
 	GenericChainLink
 	ExpansionID string
+	Revocations []keybase1.SigID
 }
 
 func (cl *WotVouchChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
@@ -148,6 +149,7 @@ func ParseWotVouch(base GenericChainLink) (ret *WotVouchChainLink, err error) {
 	return &WotVouchChainLink{
 		GenericChainLink: base,
 		ExpansionID:      expansionID,
+		Revocations:      base.GetRevocations(),
 	}, nil
 }
 
