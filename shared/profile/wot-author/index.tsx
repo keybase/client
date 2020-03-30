@@ -170,14 +170,30 @@ const VerificationChoice = (props: {
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
       <Kb.Box2 direction="vertical" alignSelf="stretch" style={{backgroundColor: color, width: 6}}></Kb.Box2>
-      <Kb.Box2 direction="horizontal" alignItems="center" style={{flex: 1}}>
+      <Kb.Box2 direction="horizontal" style={{backgroundColor: '#fcb'}}>
         <Kb.RadioButton
-          label={text}
+          // label={
+          //   <Kb.Text type="BodySmall" style={{backgroundColor: '#cfb'}}>
+          //     xdebug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug
+          //     debug debug debug debug debug debug
+          //   </Kb.Text>
+          // }
+          label="xdebug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug"
           selected={props.selected}
           onSelect={props.onSelect}
           style={styles.choiceRadio}
         />
+        {/* <Kb.Text type="BodySmall" style={{backgroundColor: '#cbf'}}>
+          xdebug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug
+          debug debug debug debug debug debug
+        </Kb.Text> */}
       </Kb.Box2>
+      {/* <Kb.RadioButton
+        label={text}
+        selected={props.selected}
+        onSelect={props.onSelect}
+        style={styles.choiceRadio}
+      /> */}
     </Kb.Box2>
   )
 }
