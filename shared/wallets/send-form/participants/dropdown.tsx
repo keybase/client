@@ -47,7 +47,6 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
     contents={props.account.contents}
     isDefault={props.account.isDefault}
     showWalletIcon={false}
-    center={true}
     fullWidth={true}
     style={styles.dropdownEntry}
   />
@@ -55,9 +54,10 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
 
 const styles = Styles.styleSheetCreate(() => ({
   dropdownEntry: {
-    padding: Styles.globalMargins.xtiny,
+    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.xsmall),
   },
   selectedEntry: {
+    alignItems: 'center',
     paddingLeft: Styles.globalMargins.xsmall,
   },
   spinner: Styles.platformStyles({
