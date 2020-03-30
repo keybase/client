@@ -3,10 +3,19 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
-import {Contact} from '../invite-by-contact/index.native'
 import {e164ToDisplay} from '../../util/phone-numbers'
 import {NativeModules} from 'react-native'
 import logger from '../../logger'
+
+// Contact info coming from the native contacts library.
+export type Contact = {
+  id: string // unique per-contact ID
+  name: string
+  pictureUri?: string
+  type: 'phone' | 'email'
+  value: string
+  valueFormatted?: string
+}
 
 // for sorting
 const strcmp = (a, b) => (a === b ? 0 : a > b ? 1 : -1)

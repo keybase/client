@@ -4,8 +4,8 @@ import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import useContacts from '../common/use-contacts.native'
-import {Contact, ContactRowProps, InviteByContact} from './index.native'
+import useContacts, {Contact} from '../common/use-contacts.native'
+import {ContactRowProps, InviteByContact} from './index.native'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
