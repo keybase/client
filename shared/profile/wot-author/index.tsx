@@ -90,13 +90,9 @@ export const Question2 = (props: Props) => {
         alignItems="stretch"
         style={Styles.collapseStyles([styles.sidePadding, styles.outside])}
       >
-        <Kb.Box2
-          direction="horizontal"
-          alignItems="center"
-          style={{paddingBottom: Styles.globalMargins.small}}
-        >
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.outsideBox}>
           <Kb.Avatar username={props.voucheeUsername} size={48} />
-          <Kb.Text type="BodySemibold" style={{paddingLeft: Styles.globalMargins.tiny}}>
+          <Kb.Text type="BodySemibold" style={styles.idInner}>
             How do you know{' '}
             <Kb.ConnectedUsernames
               usernames={props.voucheeUsername}
@@ -142,7 +138,12 @@ const VerificationChoice = (props: {
       color = Styles.globalColors.greenDark
       break
     case 'video':
-      text = <Kb.Text type="Body">{props.voucheeUsername} told me their username over video</Kb.Text>
+      // text = <Kb.Text type="Body">{props.voucheeUsername} told me their username over video</Kb.Text> // xxx
+      text = (
+        <Kb.Text type="Body">
+          {props.voucheeUsername} told me their username over video testing words that go too far
+        </Kb.Text>
+      )
       color = '#56fff5'
       break
     case 'audio':
@@ -169,12 +170,14 @@ const VerificationChoice = (props: {
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
       <Kb.Box2 direction="vertical" alignSelf="stretch" style={{backgroundColor: color, width: 6}}></Kb.Box2>
-      <Kb.RadioButton
-        label={text}
-        selected={props.selected}
-        onSelect={props.onSelect}
-        style={styles.choiceRadio}
-      />
+      <Kb.Box2 direction="horizontal" alignItems="center" style={{flex: 1}}>
+        <Kb.RadioButton
+          label={text}
+          selected={props.selected}
+          onSelect={props.onSelect}
+          style={styles.choiceRadio}
+        />
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -190,8 +193,9 @@ const styles = Styles.styleSheetCreate(
         paddingTop: Styles.globalMargins.tiny,
       },
       id: {paddingBottom: Styles.globalMargins.tiny, paddingTop: Styles.globalMargins.tiny},
-      idInner: {paddingLeft: Styles.globalMargins.tiny},
+      idInner: {paddingLeft: Styles.globalMargins.tiny, flex: 1},
       outside: {paddingTop: Styles.globalMargins.tiny},
+      outsideBox: {paddingBottom: Styles.globalMargins.small},
       sidePadding: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
     } as const)
 )

@@ -51,6 +51,10 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     <RadioOuterCircle disabled={disabled} selected={selected}>
       <RadioInnerCircle selected={selected} />
     </RadioOuterCircle>
+    {/* <Kb.Text type="BodySmall">
+      xdebug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug
+      debug debug debug debug debug
+    </Kb.Text> */}
     {typeof label === 'string' ? (
       <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
         {label}
