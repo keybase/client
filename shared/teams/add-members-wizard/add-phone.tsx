@@ -2,12 +2,16 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as RPCGen from '../../constants/types/rpc-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle, usePhoneNumberList} from '../common'
 
+const waitingKey = 'phoneLookup'
+
 const AddPhone = () => {
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const [error, setError] = React.useState('')
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -15,6 +19,7 @@ const AddPhone = () => {
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
+  const waiting = Container.useAnyWaiting(waitingKey)
 
   const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
 
@@ -24,13 +29,25 @@ const AddPhone = () => {
     }
   }, [defaultCountry, dispatch])
 
-  // TODO Y2K-1557 useRPC to get associated usernames if they exist
-  const onContinue = () =>
-    dispatch(
-      TeamsGen.createAddMembersWizardPushMembers({
-        members: phoneNumbers.map(pn => ({assertion: `${pn.phoneNumber}@phone`, role: 'writer'})),
-      })
+  const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const onContinue = () => {
+    setError('')
+    emailsToAssertionsRPC(
+      [{emails: '', phoneNumbers: phoneNumbers.map(pn => pn.phoneNumber)}, waitingKey],
+      r =>
+        r?.length
+          ? dispatch(
+              TeamsGen.createAddMembersWizardPushMembers({
+                members: r.map(m => ({
+                  assertion: m.foundUser ? `${m.username}+${m.assertion}` : m.assertion,
+                  role: 'writer',
+                })),
+              })
+            )
+          : setError('You must enter at least one valid phone number.'),
+      err => setError(err.message)
     )
+  }
 
   return (
     <Kb.Modal
@@ -42,8 +59,25 @@ const AddPhone = () => {
       }}
       allowOverflow={true}
       footer={{
-        content: <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />,
+        content: (
+          <Kb.Button
+            waiting={waiting}
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+          />
+        ),
       }}
+      banners={
+        error
+          ? [
+              <Kb.Banner color="red" key="err">
+                {error}
+              </Kb.Banner>,
+            ]
+          : undefined
+      }
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>

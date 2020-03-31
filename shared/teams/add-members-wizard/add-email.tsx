@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
+import * as RPCGen from '../../constants/types/rpc-gen'
 import {ModalTitle} from '../common'
 
 type Props = {
@@ -11,19 +12,40 @@ type Props = {
   errorMessage: string
 }
 
+const waitingKey = 'emailLookup'
+
 const AddEmail = (props: Props) => {
   const [invitees, setInvitees] = React.useState('')
+  const [error, setError] = React.useState('')
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
 
   const disabled = invitees.length < 1
+  const waiting = Container.useAnyWaiting(waitingKey)
 
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
 
-  // TODO Y2K-1556 useRPC to get assertions to pass to this action
-  const onContinue = () => dispatch(TeamsGen.createAddMembersWizardPushMembers({members: []}))
+  const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const onContinue = () => {
+    setError('')
+    emailsToAssertionsRPC(
+      [{emails: invitees}, waitingKey],
+      r =>
+        r?.length
+          ? dispatch(
+              TeamsGen.createAddMembersWizardPushMembers({
+                members: r.map(m => ({
+                  assertion: m.foundUser ? `${m.username}+${m.assertion}` : m.assertion,
+                  role: 'writer',
+                })),
+              })
+            )
+          : setError('You must enter at least one valid email address.'),
+      err => setError(err.message)
+    )
+  }
 
   return (
     <Kb.Modal
@@ -34,8 +56,25 @@ const AddEmail = (props: Props) => {
       }}
       allowOverflow={true}
       footer={{
-        content: <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />,
+        content: (
+          <Kb.Button
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+            waiting={waiting}
+          />
+        ),
       }}
+      banners={
+        error
+          ? [
+              <Kb.Banner color="red" key="err">
+                {error}
+              </Kb.Banner>,
+            ]
+          : undefined
+      }
     >
       <Kb.Box2
         direction="vertical"
