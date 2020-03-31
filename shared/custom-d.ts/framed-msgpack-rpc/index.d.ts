@@ -15,6 +15,7 @@ declare module 'framed-msgpack-rpc' {
       invoke(
         i: {
           program: string
+          ctype: number
           method: string
           args: [Object]
           notify: boolean
