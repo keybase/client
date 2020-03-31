@@ -248,7 +248,7 @@ func (s *DevConvEmojiSource) creationInfo(ctx context.Context, uid gregor1.UID,
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		msg := remote.Message()
-		sourceMsg, err := GetMessage(ctx, s.G(), uid, msg.ConvID, msg.MsgID, false, &reason)
+		sourceMsg, err := s.G().ConvSource.GetMessage(ctx, msg.ConvID, uid, msg.MsgID, &reason, nil, false)
 		if err != nil {
 			return res, err
 		}
@@ -410,12 +410,14 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 		return false
 	}
 	reason := chat1.GetThreadReason_EMOJISOURCE
-	lmsg, err := GetMessage(ctx, s.G(), uid, l.Message().ConvID, l.Message().MsgID, false, &reason)
+	lmsg, err := s.G().ConvSource.GetMessage(ctx, l.Message().ConvID, uid, l.Message().MsgID, &reason,
+		nil, false)
 	if err != nil {
 		s.Debug(ctx, "versionMatch: failed to get lmsg: %s", err)
 		return false
 	}
-	rmsg, err := GetMessage(ctx, s.G(), uid, r.Message().ConvID, r.Message().MsgID, false, &reason)
+	rmsg, err := s.G().ConvSource.GetMessage(ctx, r.Message().ConvID, uid, r.Message().MsgID, &reason,
+		nil, false)
 	if err != nil {
 		s.Debug(ctx, "versionMatch: failed to get rmsg: %s", err)
 		return false

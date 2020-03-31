@@ -92,16 +92,18 @@ type ConversationSource interface {
 		reason chat1.GetThreadReason, query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
 	PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
 		query *chat1.GetThreadQuery, maxPages *int) (chat1.ThreadView, error)
-	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
-		reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface) ([]chat1.MessageUnboxed, error)
+	GetMessage(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID,
+		reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface, resolveSupersedes bool) (chat1.MessageUnboxed, error)
+	GetMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgIDs []chat1.MessageID,
+		reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
-	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
+	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
-		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
+		replyFiller ReplyFiller, maxDeletedUpTo *chat1.MessageID) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) error
 	EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error)
@@ -565,12 +567,12 @@ type BotCommandManager interface {
 }
 
 type SupersedesTransform interface {
-	Run(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID,
-		originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
+	Run(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		originalMsgs []chat1.MessageUnboxed, maxDeletedUpTo *chat1.MessageID) ([]chat1.MessageUnboxed, error)
 }
 
 type ReplyFiller interface {
-	Fill(ctx context.Context, uid gregor1.UID, conv UnboxConversationInfo,
+	Fill(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
