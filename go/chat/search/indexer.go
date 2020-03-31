@@ -541,7 +541,8 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
-		msgs, err := idx.G().ConvSource.GetMessages(ctx, rconv, idx.uid, missingIDs, &reason, nil)
+		msgs, err := idx.G().ConvSource.GetMessages(ctx, rconv.GetConvID(), idx.uid, missingIDs, &reason,
+			nil, false)
 		if err != nil {
 			if utils.IsPermanentErr(err) {
 				return 0, err
