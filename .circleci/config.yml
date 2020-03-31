@@ -24,6 +24,9 @@ jobs:
     - run:
         working_directory: shared
         command: yarn run rn-gobuild-android
+    - run:
+        working_directory: shared
+        command: yarn jetify
 
     - run: ls -la $GOPATH/src/github.com/keybase/client/shared/android/keybaselib/keybaselib.aar
 

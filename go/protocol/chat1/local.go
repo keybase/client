@@ -290,10 +290,11 @@ func (o MessageConversationMetadata) DeepCopy() MessageConversationMetadata {
 }
 
 type MessageEdit struct {
-	MessageID    MessageID          `codec:"messageID" json:"messageID"`
-	Body         string             `codec:"body" json:"body"`
-	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
-	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+	MessageID    MessageID                 `codec:"messageID" json:"messageID"`
+	Body         string                    `codec:"body" json:"body"`
+	UserMentions []KnownUserMention        `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention        `codec:"teamMentions" json:"teamMentions"`
+	Emojis       map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageEdit) DeepCopy() MessageEdit {
@@ -322,6 +323,18 @@ func (o MessageEdit) DeepCopy() MessageEdit {
 			}
 			return ret
 		})(o.TeamMentions),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -2828,6 +2841,7 @@ type MessagePlaintext struct {
 	ClientHeader       MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	MessageBody        MessageBody         `codec:"messageBody" json:"messageBody"`
 	SupersedesOutboxID *OutboxID           `codec:"supersedesOutboxID,omitempty" json:"supersedesOutboxID,omitempty"`
+	Emojis             []HarvestedEmoji    `codec:"emojis" json:"emojis"`
 }
 
 func (o MessagePlaintext) DeepCopy() MessagePlaintext {
@@ -2841,6 +2855,17 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SupersedesOutboxID),
+		Emojis: (func(x []HarvestedEmoji) []HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make([]HarvestedEmoji, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -6169,6 +6194,74 @@ func (o SetDefaultTeamChannelsLocalRes) DeepCopy() SetDefaultTeamChannelsLocalRe
 	}
 }
 
+type LastActiveTimeAll struct {
+	Teams    map[TLFIDStr]gregor1.Time  `codec:"teams" json:"teams"`
+	Channels map[ConvIDStr]gregor1.Time `codec:"channels" json:"channels"`
+}
+
+func (o LastActiveTimeAll) DeepCopy() LastActiveTimeAll {
+	return LastActiveTimeAll{
+		Teams: (func(x map[TLFIDStr]gregor1.Time) map[TLFIDStr]gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TLFIDStr]gregor1.Time, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Channels: (func(x map[ConvIDStr]gregor1.Time) map[ConvIDStr]gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[ConvIDStr]gregor1.Time, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Channels),
+	}
+}
+
+type LastActiveStatusAll struct {
+	Teams    map[TLFIDStr]LastActiveStatus  `codec:"teams" json:"teams"`
+	Channels map[ConvIDStr]LastActiveStatus `codec:"channels" json:"channels"`
+}
+
+func (o LastActiveStatusAll) DeepCopy() LastActiveStatusAll {
+	return LastActiveStatusAll{
+		Teams: (func(x map[TLFIDStr]LastActiveStatus) map[TLFIDStr]LastActiveStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TLFIDStr]LastActiveStatus, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Channels: (func(x map[ConvIDStr]LastActiveStatus) map[ConvIDStr]LastActiveStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[ConvIDStr]LastActiveStatus, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Channels),
+	}
+}
+
 type AddEmojiRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
@@ -6996,7 +7089,7 @@ type LocalInterface interface {
 	GetDefaultTeamChannelsLocal(context.Context, string) (GetDefaultTeamChannelsLocalRes, error)
 	SetDefaultTeamChannelsLocal(context.Context, SetDefaultTeamChannelsLocalArg) (SetDefaultTeamChannelsLocalRes, error)
 	GetLastActiveForTLF(context.Context, TLFIDStr) (LastActiveStatus, error)
-	GetLastActiveForTeams(context.Context) (map[TLFIDStr]LastActiveStatus, error)
+	GetLastActiveForTeams(context.Context) (LastActiveStatusAll, error)
 	GetRecentJoinsLocal(context.Context, ConversationID) (int, error)
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
@@ -9246,7 +9339,7 @@ func (c LocalClient) GetLastActiveForTLF(ctx context.Context, tlfID TLFIDStr) (r
 	return
 }
 
-func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res map[TLFIDStr]LastActiveStatus, err error) {
+func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res LastActiveStatusAll, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTeams", []interface{}{GetLastActiveForTeamsArg{}}, &res, 0*time.Millisecond)
 	return
 }

@@ -108,7 +108,7 @@ const ShowcaseTeamOffer = (props: Props) => {
               membercount={teamMeta.memberCount}
               onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
               showcased={teamMeta.showcasing}
-              waiting={!!props.waiting[teamWaitingKey(teamMeta.teamname)]}
+              waiting={!!props.waiting[teamWaitingKey(teamMeta.id)]}
             />
           ))}
         </Kb.ScrollView>

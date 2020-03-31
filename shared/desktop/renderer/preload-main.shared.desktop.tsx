@@ -1,7 +1,8 @@
 import path from 'path'
 import os from 'os'
-import {promises as fs} from 'fs'
 import * as Electron from 'electron'
+// @ts-ignore
+import fse from 'fs-extra'
 
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
 const target = isRenderer ? window : global
@@ -37,7 +38,7 @@ const darwinCopyToKBFSTempUploadFile = isDarwin
         })
       const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
       const dst = path.join(dir, path.basename(originalFilePath))
-      await fs.copyFile(originalFilePath, dst)
+      await fse.copy(originalFilePath, dst)
       return dst
     }
   : () => {
@@ -76,7 +77,7 @@ const darwinCopyToChatTempUploadFile = isDarwin
         filename: originalFilePath,
         outboxID,
       })
-      await fs.copyFile(originalFilePath, dst)
+      await fse.copy(originalFilePath, dst)
       return {outboxID, path: dst}
     }
   : () => {
@@ -167,7 +168,7 @@ target.KB = {
     extname: path.extname,
     join: path.join,
     resolve: path.resolve,
-    sep: path.sep,
+    sep: path.sep as any,
   },
   process: kbProcess,
   // punycode, // used by a dep

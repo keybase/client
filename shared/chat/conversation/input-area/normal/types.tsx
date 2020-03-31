@@ -29,6 +29,7 @@ type CommonProps = {
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
   onChannelSuggestionsTriggered: () => void
+  onFetchEmoji: () => void
   prependText: string | null
   quoteCounter: number
   quoteText: string
@@ -69,6 +70,8 @@ export type InputProps = {
   suggestCommands: Array<RPCChatTypes.ConversationCommand>
   suggestBotCommands: Array<RPCChatTypes.ConversationCommand>
   suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  userEmojis?: Array<RPCChatTypes.Emoji>
+  userEmojisLoading: boolean
 } & CommonProps
 
 export type PlatformInputProps = {

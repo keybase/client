@@ -377,7 +377,10 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", arg.Filename), func() error { return err })()
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	return avatars.UploadImage(mctx, arg.Filename, nil /* teamname */, arg.Crop)
+	if err := avatars.UploadImage(mctx, arg.Filename, nil /* teamname */, arg.Crop); err != nil {
+		return err
+	}
+	return h.G().GetAvatarLoader().ClearCacheForName(mctx, h.G().Env.GetUsername().String(), avatars.AllFormats)
 }
 
 func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProofSuggestionsRes, err error) {

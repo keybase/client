@@ -21,7 +21,7 @@
 @interface SDAnimatedImageView : UIImageView
 
 /**
- Current display frame image.
+ Current display frame image. This value is KVO Compliance.
  */
 @property (nonatomic, strong, readonly, nullable) UIImage *currentFrame;
 /**
@@ -43,6 +43,15 @@
  This class override UIImageView's `animationRepeatCount` property on iOS, use this property as well.
  */
 @property (nonatomic, assign) NSInteger animationRepeatCount;
+/**
+ The animation playback rate. Default is 1.0.
+ `1.0` means the normal speed.
+ `0.0` means stopping the animation.
+ `0.0-1.0` means the slow speed.
+ `> 1.0` means the fast speed.
+ `< 0.0` is not supported currently and stop animation. (may support reverse playback in the future)
+ */
+@property (nonatomic, assign) double playbackRate;
 /**
  Provide a max buffer size by bytes. This is used to adjust frame buffer count and can be useful when the decoding cost is expensive (such as Animated WebP software decoding). Default is 0.
  `0` means automatically adjust by calculating current memory usage.
@@ -72,13 +81,12 @@
  */
 @property (nonatomic, assign) BOOL resetFrameIndexWhenStopped;
 
-#if SD_UIKIT
 /**
  You can specify a runloop mode to let it rendering.
- Default is NSRunLoopCommonModes on multi-core iOS device, NSDefaultRunLoopMode on single-core iOS device
+ Default is NSRunLoopCommonModes on multi-core device, NSDefaultRunLoopMode on single-core device
+ @note This is useful for some cases, for example, always specify NSDefaultRunLoopMode, if you want to pause the animation when user scroll (for Mac user, drag the mouse or touchpad)
  */
 @property (nonatomic, copy, nonnull) NSRunLoopMode runLoopMode;
-#endif
 @end
 
 #endif

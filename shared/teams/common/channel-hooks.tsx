@@ -57,7 +57,7 @@ export const useChannelMeta = (
   const getInboxItem = Container.useRPC(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise)
   const [conv, setConv] = React.useState<RPCChatTypes.InboxUIItem | null>(null)
 
-  const waitingKey = Container.useSelector(state => Constants.teamWaitingKeyByID(teamID, state))
+  const waitingKey = Constants.teamWaitingKey(teamID)
 
   React.useEffect(() => {
     getInboxItem(

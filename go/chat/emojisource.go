@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
 )
 
 type DevConvEmojiSource struct {
@@ -81,11 +82,30 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, c
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
 }
 
+func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
+	_, ok := emoji.CodeMap()[":"+alias+":"]
+	if !ok {
+		_, ok = emoji.CodeMap()[":"+strings.ReplaceAll(alias, "-", "_")+":"]
+	}
+	return ok
+}
+
+func (s *DevConvEmojiSource) validateAlias(alias string) (string, error) {
+	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
+	if strings.Contains(alias, "#") {
+		return alias, errors.New("invalid character in emoji alias")
+	}
+	if s.isStockEmoji(alias) {
+		return alias, errors.New("cannot use existing stock emoji alias")
+	}
+	return alias, nil
+}
+
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
-	if strings.Contains(alias, "#") {
-		return res, errors.New("invalid character in emoji alias")
+	if alias, err = s.validateAlias(alias); err != nil {
+		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
 	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
@@ -94,8 +114,8 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
-	if strings.Contains(newAlias, "#") {
-		return res, errors.New("invalid character in emoji alias")
+	if newAlias, err = s.validateAlias(newAlias); err != nil {
+		return res, err
 	}
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
@@ -228,7 +248,7 @@ func (s *DevConvEmojiSource) creationInfo(ctx context.Context, uid gregor1.UID,
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		msg := remote.Message()
-		sourceMsg, err := GetMessage(ctx, s.G(), uid, msg.ConvID, msg.MsgID, false, &reason)
+		sourceMsg, err := s.G().ConvSource.GetMessage(ctx, msg.ConvID, uid, msg.MsgID, &reason, nil, false)
 		if err != nil {
 			return res, err
 		}
@@ -322,10 +342,10 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 				if seen, ok := seenAliases[alias]; ok {
 					seenAliases[alias]++
 					emoji.Alias += fmt.Sprintf("#%d", seen)
-					aliasLookup[alias] = emoji
 				} else {
 					seenAliases[alias] = 2
 				}
+				aliasLookup[emoji.Alias] = emoji
 				group.Emojis = append(group.Emojis, emoji)
 			}
 			res.Emojis = append(res.Emojis, group)
@@ -390,12 +410,14 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 		return false
 	}
 	reason := chat1.GetThreadReason_EMOJISOURCE
-	lmsg, err := GetMessage(ctx, s.G(), uid, l.Message().ConvID, l.Message().MsgID, false, &reason)
+	lmsg, err := s.G().ConvSource.GetMessage(ctx, l.Message().ConvID, uid, l.Message().MsgID, &reason,
+		nil, false)
 	if err != nil {
 		s.Debug(ctx, "versionMatch: failed to get lmsg: %s", err)
 		return false
 	}
-	rmsg, err := GetMessage(ctx, s.G(), uid, r.Message().ConvID, r.Message().MsgID, false, &reason)
+	rmsg, err := s.G().ConvSource.GetMessage(ctx, r.Message().ConvID, uid, r.Message().MsgID, &reason,
+		nil, false)
 	if err != nil {
 		s.Debug(ctx, "versionMatch: failed to get rmsg: %s", err)
 		return false
@@ -482,8 +504,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, crossTeams map[string]chat1.HarvestedEmoji,
-	mode types.EmojiSourceHarvestMode) (res []chat1.HarvestedEmoji, err error) {
+	convID chat1.ConversationID, mode types.EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	if globals.IsEmojiHarvesterCtx(ctx) {
 		s.Debug(ctx, "Harvest: in an existing harvest context, bailing")
 		return nil, nil
@@ -495,15 +516,27 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	emojis, _, err := s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
-		GetCreationInfo: false,
-		GetAliases:      true,
-		OnlyInTeam:      false,
-	})
-	if err != nil {
-		return res, err
+	s.getLock.Lock()
+	aliasMap := make(map[string]chat1.Emoji, len(s.aliasLookup))
+	for alias, emoji := range s.aliasLookup {
+		aliasMap[alias] = emoji
 	}
-	if len(emojis.Emojis) == 0 && len(crossTeams) == 0 {
+	s.getLock.Unlock()
+	var emojis chat1.UserEmojis
+	switch mode {
+	case types.EmojiHarvestModeNormal:
+		emojis, _, err = s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
+			GetCreationInfo: false,
+			GetAliases:      true,
+			OnlyInTeam:      false,
+		})
+		if err != nil {
+			return res, err
+		}
+	case types.EmojiHarvestModeFast:
+		// skip this, just use alias map in fast mode
+	}
+	if len(emojis.Emojis) == 0 && len(aliasMap) == 0 {
 		return nil, nil
 	}
 	groupMap := make(map[string]chat1.Emoji)
@@ -512,24 +545,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 			groupMap[emoji.Alias] = emoji
 		}
 	}
-	crossTeamMap := make(map[string]chat1.HarvestedEmoji)
-	aliasMap := make(map[string]chat1.Emoji)
-	switch mode {
-	case types.EmojiSourceHarvestModeInbound:
-		for _, emoji := range crossTeams {
-			crossTeamMap[emoji.Alias] = emoji
-		}
-	case types.EmojiSourceHarvestModeOutbound:
-		s.getLock.Lock()
-		for alias, emoji := range s.aliasLookup {
-			aliasMap[alias] = emoji
-		}
-		s.getLock.Unlock()
-	default:
-		return nil, errors.New("unknown harvest mode")
-	}
-	s.Debug(ctx, "Harvest: num emojis: conv: %d crossTeam: %d alias: %d", len(groupMap), len(crossTeamMap),
-		len(aliasMap))
+	s.Debug(ctx, "Harvest: num emojis: conv: %d alias: %d", len(groupMap), len(aliasMap))
 	for _, match := range matches {
 		// try group map first
 		if emoji, ok := groupMap[match.name]; ok {
@@ -549,33 +565,33 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 				}
 			}
 			res = append(res, resEmoji)
-		} else if emoji, ok := crossTeamMap[match.name]; ok {
-			// then known cross teams
-			emoji.IsCrossTeam = true
-			res = append(res, emoji)
 		} else if emoji, ok := aliasMap[match.name]; ok {
 			// then any aliases we know about from the last Get call
-			newEmoji, err := s.syncCrossTeam(ctx, uid, chat1.HarvestedEmoji{
+			res = append(res, chat1.HarvestedEmoji{
 				Alias:  match.name,
 				Source: emoji.RemoteSource,
-			}, convID)
-			if err != nil {
-				return res, err
-			}
-			res = append(res, newEmoji)
+			})
 		}
 	}
 	return res, nil
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	if len(emojis) == 0 {
 		return body
 	}
 	matches := s.parse(ctx, body)
 	if len(matches) == 0 {
 		return body
+	}
+	bigEmoji := false
+	if messageType == chat1.MessageType_TEXT && len(matches) == 1 {
+		singleEmoji := matches[0]
+		// check if the emoji is the entire message (ignoring whitespace)
+		if singleEmoji.position[0] == 0 && singleEmoji.position[1] == len(strings.TrimSpace(body)) {
+			bigEmoji = true
+		}
 	}
 	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
@@ -594,6 +610,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
+					IsBig:  bigEmoji,
 					Alias:  match.name,
 					Source: localSource,
 				}))

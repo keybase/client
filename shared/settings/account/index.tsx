@@ -168,7 +168,7 @@ const AccountSettings = (props: Props) => (
     reloadOnMount={true}
     waitingKeys={[Constants.loadSettingsWaitingKey]}
   >
-    <Kb.HeaderHocWrapper onBack={props.onBack} title="Your account">
+    <Kb.HeaderHocWrapper onBack={props.onBack} skipHeader={!Styles.isPhone} title="Your account">
       <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
         {props.addedEmail && (
           <Kb.Banner color="yellow" onClose={props.onClearAddedEmail}>

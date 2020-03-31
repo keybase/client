@@ -29,7 +29,6 @@ const commands = {
   postinstall: {
     code: () => {
       fixModules()
-      fixTypes()
       checkFSEvents()
       clearTSCache()
       patcher()
@@ -48,25 +47,7 @@ const checkFSEvents = () => {
   }
 }
 
-const fixTypes = () => {
-  // couldn't figure out an effective way to patch this file up, so just blowing it away
-  const files = ['@types/react-native/index.d.ts']
-
-  files.forEach(file => {
-    const p = path.resolve(__dirname, '..', '..', 'node_modules', file)
-    try {
-      fs.unlinkSync(p)
-    } catch (_) {}
-  })
-
-  try {
-    fs.copyFileSync(
-      path.resolve(__dirname, '..', '..', 'override-d.ts', 'react-native', 'kb-custom'),
-      path.resolve(__dirname, '..', '..', 'node_modules', '@types', 'react-native', 'index.d.ts')
-    )
-  } catch (_) {}
-}
-
+// TODO use patch
 const fixUnimodules = () => {
   const root = path.resolve(
     __dirname,
@@ -88,8 +69,6 @@ const fixUnimodules = () => {
 function fixModules() {
   if (process.platform !== 'win32') {
     fixUnimodules()
-    // run jetify to fix android deps
-    exec('yarn jetify', null, null)
   }
 
   // storybook uses react-docgen which really cr*ps itself with flow

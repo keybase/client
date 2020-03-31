@@ -10,61 +10,24 @@
 
 #if SD_UIKIT || SD_MAC
 
+#import "SDAnimatedImagePlayer.h"
 #import "UIImage+Metadata.h"
 #import "NSImage+Compatibility.h"
-#import "SDWeakProxy.h"
 #import "SDInternalMacros.h"
-#import <mach/mach.h>
-#import <objc/runtime.h>
-
-#if SD_MAC
-#import <CoreVideo/CoreVideo.h>
-static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext);
-#endif
-
-static NSUInteger SDDeviceTotalMemory() {
-    return (NSUInteger)[[NSProcessInfo processInfo] physicalMemory];
-}
-
-static NSUInteger SDDeviceFreeMemory() {
-    mach_port_t host_port = mach_host_self();
-    mach_msg_type_number_t host_size = sizeof(vm_statistics_data_t) / sizeof(integer_t);
-    vm_size_t page_size;
-    vm_statistics_data_t vm_stat;
-    kern_return_t kern;
-    
-    kern = host_page_size(host_port, &page_size);
-    if (kern != KERN_SUCCESS) return 0;
-    kern = host_statistics(host_port, HOST_VM_INFO, (host_info_t)&vm_stat, &host_size);
-    if (kern != KERN_SUCCESS) return 0;
-    return vm_stat.free_count * page_size;
-}
+#import "objc/runtime.h"
 
 @interface SDAnimatedImageView () <CALayerDelegate> {
-    NSRunLoopMode _runLoopMode;
     BOOL _initFinished; // Extra flag to mark the `commonInit` is called
+    NSRunLoopMode _runLoopMode;
+    double _playbackRate;
 }
 
 @property (nonatomic, strong, readwrite) UIImage *currentFrame;
 @property (nonatomic, assign, readwrite) NSUInteger currentFrameIndex;
 @property (nonatomic, assign, readwrite) NSUInteger currentLoopCount;
-@property (nonatomic, assign) NSUInteger totalFrameCount;
-@property (nonatomic, assign) NSUInteger totalLoopCount;
-@property (nonatomic, strong) UIImage<SDAnimatedImage> *animatedImage;
-@property (nonatomic, strong) NSMutableDictionary<NSNumber *, UIImage *> *frameBuffer;
-@property (nonatomic, assign) NSTimeInterval currentTime;
-@property (nonatomic, assign) BOOL bufferMiss;
 @property (nonatomic, assign) BOOL shouldAnimate;
 @property (nonatomic, assign) BOOL isProgressive;
-@property (nonatomic, assign) NSUInteger maxBufferCount;
-@property (nonatomic, strong) NSOperationQueue *fetchQueue;
-@property (nonatomic, strong) dispatch_semaphore_t lock;
-@property (nonatomic, assign) CGFloat animatedImageScale;
-#if SD_MAC
-@property (nonatomic, assign) CVDisplayLinkRef displayLink;
-#else
-@property (nonatomic, strong) CADisplayLink *displayLink;
-#endif
+@property (nonatomic,strong) SDAnimatedImagePlayer *player; // The animation player.
 @property (nonatomic) CALayer *imageViewLayer; // The actual rendering layer.
 
 @end
@@ -131,59 +94,12 @@ static NSUInteger SDDeviceFreeMemory() {
     // So the properties which rely on this order, should using lazy-evaluation or do extra check in `setImage:`.
     self.shouldCustomLoopCount = NO;
     self.shouldIncrementalLoad = YES;
+    self.playbackRate = 1.0;
 #if SD_MAC
     self.wantsLayer = YES;
 #endif
-#if SD_UIKIT
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
-#endif
     // Mark commonInit finished
     _initFinished = YES;
-}
-
-- (void)resetAnimatedImage
-{
-    self.animatedImage = nil;
-    self.totalFrameCount = 0;
-    self.totalLoopCount = 0;
-    // reset current state
-    [self resetCurrentFrameIndex];
-    self.shouldAnimate = NO;
-    self.isProgressive = NO;
-    self.maxBufferCount = 0;
-    self.animatedImageScale = 1;
-    [_fetchQueue cancelAllOperations];
-    // clear buffer cache
-    [self clearFrameBuffer];
-}
-
-- (void)resetProgressiveImage
-{
-    self.animatedImage = nil;
-    self.totalFrameCount = 0;
-    self.totalLoopCount = 0;
-    // preserve current state
-    self.shouldAnimate = NO;
-    self.isProgressive = YES;
-    self.maxBufferCount = 0;
-    self.animatedImageScale = 1;
-    // preserve buffer cache
-}
-
-- (void)resetCurrentFrameIndex
-{
-    self.currentFrame = nil;
-    self.currentFrameIndex = 0;
-    self.currentLoopCount = 0;
-    self.currentTime = 0;
-    self.bufferMiss = NO;
-}
-
-- (void)clearFrameBuffer
-{
-    SD_LOCK(self.lock);
-    [_frameBuffer removeAllObjects];
-    SD_UNLOCK(self.lock);
 }
 
 #pragma mark - Accessors
@@ -198,71 +114,83 @@ static NSUInteger SDDeviceFreeMemory() {
     // Check Progressive rendering
     [self updateIsProgressiveWithImage:image];
     
-    if (self.isProgressive) {
-        // Reset all value, but keep current state
-        [self resetProgressiveImage];
-    } else {
+    if (!self.isProgressive) {
         // Stop animating
-        [self stopAnimating];
-        // Reset all value
-        [self resetAnimatedImage];
+        self.player = nil;
+        self.currentFrame = nil;
+        self.currentFrameIndex = 0;
+        self.currentLoopCount = 0;
     }
     
     // We need call super method to keep function. This will impliedly call `setNeedsDisplay`. But we have no way to avoid this when using animated image. So we call `setNeedsDisplay` again at the end.
     super.image = image;
     if ([image.class conformsToProtocol:@protocol(SDAnimatedImage)]) {
-        NSUInteger animatedImageFrameCount = ((UIImage<SDAnimatedImage> *)image).animatedImageFrameCount;
-        // Check the frame count
-        if (animatedImageFrameCount <= 1) {
+        if (!self.player) {
+            id<SDAnimatedImageProvider> provider;
+            // Check progressive loading
+            if (self.isProgressive) {
+                provider = [self progressiveAnimatedCoderForImage:image];
+            } else {
+                provider = (id<SDAnimatedImage>)image;
+            }
+            // Create animted player
+            self.player = [SDAnimatedImagePlayer playerWithProvider:provider];
+        } else {
+            // Update Frame Count
+            self.player.totalFrameCount = [(id<SDAnimatedImage>)image animatedImageFrameCount];
+        }
+        
+        if (!self.player) {
+            // animated player nil means the image format is not supported, or frame count <= 1
             return;
         }
-        // If progressive rendering is disabled but animated image is incremental. Only show poster image
-        if (!self.isProgressive && image.sd_isIncremental) {
-            return;
+        
+        // Custom Loop Count
+        if (self.shouldCustomLoopCount) {
+            self.player.totalLoopCount = self.animationRepeatCount;
         }
-        self.animatedImage = (UIImage<SDAnimatedImage> *)image;
-        self.totalFrameCount = animatedImageFrameCount;
-        // Get the current frame and loop count.
-        self.totalLoopCount = self.animatedImage.animatedImageLoopCount;
-        // Get the scale
-        self.animatedImageScale = image.scale;
-        if (!self.isProgressive) {
-            self.currentFrame = image;
-            SD_LOCK(self.lock);
-            self.frameBuffer[@(self.currentFrameIndex)] = self.currentFrame;
-            SD_UNLOCK(self.lock);
-        }
+        
+        // RunLoop Mode
+        self.player.runLoopMode = self.runLoopMode;
+        
+        // Play Rate
+        self.player.playbackRate = self.playbackRate;
+        
+        // Setup handler
+        @weakify(self);
+        self.player.animationFrameHandler = ^(NSUInteger index, UIImage * frame) {
+            @strongify(self);
+            self.currentFrameIndex = index;
+            self.currentFrame = frame;
+            [self.imageViewLayer setNeedsDisplay];
+        };
+        self.player.animationLoopHandler = ^(NSUInteger loopCount) {
+            @strongify(self);
+            self.currentLoopCount = loopCount;
+            // Progressive image reach the current last frame index. Keep the state and pause animating. Wait for later restart
+            if (self.isProgressive) {
+                NSUInteger lastFrameIndex = self.player.totalFrameCount;
+                [self.player seekToFrameAtIndex:lastFrameIndex loopCount:0];
+                [self.player pausePlaying];
+            }
+        };
         
         // Ensure disabled highlighting; it's not supported (see `-setHighlighted:`).
         super.highlighted = NO;
         
-        // Calculate max buffer size
-        [self calculateMaxBufferCount];
-        // Update should animate
-        [self updateShouldAnimate];
-        if (self.shouldAnimate) {
-            [self startAnimating];
-        }
+        // Start animating
+        [self startAnimating];
 
         [self.imageViewLayer setNeedsDisplay];
     }
 }
 
-#if SD_UIKIT
+#pragma mark - Configuration
+
 - (void)setRunLoopMode:(NSRunLoopMode)runLoopMode
 {
-    if ([_runLoopMode isEqual:runLoopMode]) {
-        return;
-    }
-    if (_displayLink) {
-        if (_runLoopMode) {
-            [_displayLink removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:_runLoopMode];
-        }
-        if (runLoopMode.length > 0) {
-            [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:runLoopMode];
-        }
-    }
     _runLoopMode = [runLoopMode copy];
+    self.player.runLoopMode = runLoopMode;
 }
 
 - (NSRunLoopMode)runLoopMode
@@ -272,99 +200,32 @@ static NSUInteger SDDeviceFreeMemory() {
     }
     return _runLoopMode;
 }
-#endif
 
-- (BOOL)shouldIncrementalLoad {
++ (NSString *)defaultRunLoopMode {
+    // Key off `activeProcessorCount` (as opposed to `processorCount`) since the system could shut down cores in certain situations.
+    return [NSProcessInfo processInfo].activeProcessorCount > 1 ? NSRunLoopCommonModes : NSDefaultRunLoopMode;
+}
+
+- (void)setPlaybackRate:(double)playbackRate
+{
+    _playbackRate = playbackRate;
+    self.player.playbackRate = playbackRate;
+}
+
+- (double)playbackRate
+{
+    if (!_initFinished) {
+        return 1.0; // Defaults to 1.0
+    }
+    return _playbackRate;
+}
+
+- (BOOL)shouldIncrementalLoad
+{
     if (!_initFinished) {
         return YES; // Defaults to YES
     }
     return _initFinished;
-}
-
-#pragma mark - Private
-- (NSOperationQueue *)fetchQueue
-{
-    if (!_fetchQueue) {
-        _fetchQueue = [[NSOperationQueue alloc] init];
-        _fetchQueue.maxConcurrentOperationCount = 1;
-    }
-    return _fetchQueue;
-}
-
-- (NSMutableDictionary<NSNumber *,UIImage *> *)frameBuffer
-{
-    if (!_frameBuffer) {
-        _frameBuffer = [NSMutableDictionary dictionary];
-    }
-    return _frameBuffer;
-}
-
-- (dispatch_semaphore_t)lock {
-    if (!_lock) {
-        _lock = dispatch_semaphore_create(1);
-    }
-    return _lock;
-}
-
-#if SD_MAC
-- (CVDisplayLinkRef)displayLink
-{
-    if (!_displayLink) {
-        CVReturn error = CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
-        if (error) {
-            return NULL;
-        }
-        CVDisplayLinkSetOutputCallback(_displayLink, DisplayLinkCallback, (__bridge void *)self);
-    }
-    return _displayLink;
-}
-#else
-- (CADisplayLink *)displayLink
-{
-    if (!_displayLink) {
-        // It is important to note the use of a weak proxy here to avoid a retain cycle. `-displayLinkWithTarget:selector:`
-        // will retain its target until it is invalidated. We use a weak proxy so that the image view will get deallocated
-        // independent of the display link's lifetime. Upon image view deallocation, we invalidate the display
-        // link which will lead to the deallocation of both the display link and the weak proxy.
-        SDWeakProxy *weakProxy = [SDWeakProxy proxyWithTarget:self];
-        _displayLink = [CADisplayLink displayLinkWithTarget:weakProxy selector:@selector(displayDidRefresh:)];
-        [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.runLoopMode];
-    }
-    return _displayLink;
-}
-#endif
-
-#pragma mark - Life Cycle
-
-- (void)dealloc
-{
-    // Removes the display link from all run loop modes.
-#if SD_MAC
-    if (_displayLink) {
-        CVDisplayLinkRelease(_displayLink);
-        _displayLink = NULL;
-    }
-#else
-    [_displayLink invalidate];
-    _displayLink = nil;
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
-#endif
-}
-
-- (void)didReceiveMemoryWarning:(NSNotification *)notification {
-    [_fetchQueue cancelAllOperations];
-    [_fetchQueue addOperationWithBlock:^{
-        NSNumber *currentFrameIndex = @(self.currentFrameIndex);
-        SD_LOCK(self.lock);
-        NSArray *keys = self.frameBuffer.allKeys;
-        // only keep the next frame for later rendering
-        for (NSNumber * key in keys) {
-            if (![key isEqualToNumber:currentFrameIndex]) {
-                [self.frameBuffer removeObjectForKey:key];
-            }
-        }
-        SD_UNLOCK(self.lock);
-    }];
 }
 
 #pragma mark - UIView Method Overrides
@@ -445,14 +306,26 @@ static NSUInteger SDDeviceFreeMemory() {
 #pragma mark - UIImageView Method Overrides
 #pragma mark Image Data
 
+- (void)setAnimationRepeatCount:(NSInteger)animationRepeatCount
+{
+#if SD_UIKIT
+    [super setAnimationRepeatCount:animationRepeatCount];
+#else
+    _animationRepeatCount = animationRepeatCount;
+#endif
+    
+    if (self.shouldCustomLoopCount) {
+        self.player.totalLoopCount = animationRepeatCount;
+    }
+}
+
 - (void)startAnimating
 {
-    if (self.animatedImage) {
-#if SD_MAC
-        CVDisplayLinkStart(self.displayLink);
-#else
-        self.displayLink.paused = NO;
-#endif
+    if (self.player) {
+        [self updateShouldAnimate];
+        if (self.shouldAnimate) {
+            [self.player startPlaying];
+        }
     } else {
 #if SD_UIKIT
         [super startAnimating];
@@ -462,19 +335,14 @@ static NSUInteger SDDeviceFreeMemory() {
 
 - (void)stopAnimating
 {
-    if (self.animatedImage) {
-        [_fetchQueue cancelAllOperations];
-        // Using `_displayLink` here because when UIImageView dealloc, it may trigger `[self stopAnimating]`, we already release the display link in SDAnimatedImageView's dealloc method.
-#if SD_MAC
-        CVDisplayLinkStop(_displayLink);
-#else
-        _displayLink.paused = YES;
-#endif
+    if (self.player) {
         if (self.resetFrameIndexWhenStopped) {
-            [self resetCurrentFrameIndex];
+            [self.player stopPlaying];
+        } else {
+            [self.player pausePlaying];
         }
         if (self.clearBufferWhenStopped) {
-            [self clearFrameBuffer];
+            [self.player clearFrameBuffer];
         }
     } else {
 #if SD_UIKIT
@@ -483,22 +351,16 @@ static NSUInteger SDDeviceFreeMemory() {
     }
 }
 
+#if SD_UIKIT
 - (BOOL)isAnimating
 {
-    BOOL isAnimating = NO;
-    if (self.animatedImage) {
-#if SD_MAC
-        isAnimating = CVDisplayLinkIsRunning(self.displayLink);
-#else
-        isAnimating = !self.displayLink.isPaused;
-#endif
+    if (self.player) {
+        return self.player.isPlaying;
     } else {
-#if SD_UIKIT
-        isAnimating = [super isAnimating];
-#endif
+        return [super isAnimating];
     }
-    return isAnimating;
 }
+#endif
 
 #if SD_MAC
 - (void)setAnimates:(BOOL)animates
@@ -517,7 +379,7 @@ static NSUInteger SDDeviceFreeMemory() {
 - (void)setHighlighted:(BOOL)highlighted
 {
     // Highlighted image is unsupported for animated images, but implementing it breaks the image view when embedded in a UICollectionViewCell.
-    if (!self.animatedImage) {
+    if (!self.player) {
         [super setHighlighted:highlighted];
     }
 }
@@ -535,7 +397,7 @@ static NSUInteger SDDeviceFreeMemory() {
 #else
     BOOL isVisible = self.window && self.superview && ![self isHidden] && self.alpha > 0.0;
 #endif
-    self.shouldAnimate = self.animatedImage && self.totalFrameCount > 1 && isVisible;
+    self.shouldAnimate = self.player && isVisible;
 }
 
 // Update progressive status only after `setImage:` call.
@@ -548,170 +410,32 @@ static NSUInteger SDDeviceFreeMemory() {
     }
     // We must use `image.class conformsToProtocol:` instead of `image conformsToProtocol:` here
     // Because UIKit on macOS, using internal hard-coded override method, which returns NO
-    if ([image.class conformsToProtocol:@protocol(SDAnimatedImage)] && image.sd_isIncremental) {
+    id<SDAnimatedImageCoder> currentAnimatedCoder = [self progressiveAnimatedCoderForImage:image];
+    if (currentAnimatedCoder) {
         UIImage *previousImage = self.image;
-        if ([previousImage.class conformsToProtocol:@protocol(SDAnimatedImage)] && previousImage.sd_isIncremental) {
-            NSData *previousData = [((UIImage<SDAnimatedImage> *)previousImage) animatedImageData];
-            NSData *currentData = [((UIImage<SDAnimatedImage> *)image) animatedImageData];
-            // Check whether to use progressive rendering or not
-            if (!previousData || !currentData) {
-                // Early return
-                return;
-            }
-            
-            // Warning: normally the `previousData` is same instance as `currentData` because our `SDAnimatedImage` class share the same `coder` instance internally. But there may be a race condition, that later retrived `currentData` is already been updated and it's not the same instance as `previousData`.
-            // And for protocol extensible design, we should not assume `SDAnimatedImage` protocol implementations always share same instance. So both of two reasons, we need that `rangeOfData` check.
-            if ([currentData isEqualToData:previousData]) {
-                // If current data is the same data (or instance) as previous data
-                self.isProgressive = YES;
-            } else if (currentData.length > previousData.length) {
-                // If current data is appended by previous data, use `NSDataSearchAnchored`, search is limited to start of currentData
-                NSRange range = [currentData rangeOfData:previousData options:NSDataSearchAnchored range:NSMakeRange(0, previousData.length)];
-                if (range.location != NSNotFound) {
-                    // Contains hole previous data and they start with the same beginning
-                    self.isProgressive = YES;
-                }
-            }
-        } else {
-            // Previous image is not progressive, so start progressive rendering
+        if (!previousImage) {
+            // If current animated coder supports progressive, and no previous image to check, start progressive loading
             self.isProgressive = YES;
+        } else {
+            id<SDAnimatedImageCoder> previousAnimatedCoder = [self progressiveAnimatedCoderForImage:previousImage];
+            if (previousAnimatedCoder == currentAnimatedCoder) {
+                // If current animated coder is the same as previous, start progressive loading
+                self.isProgressive = YES;
+            }
         }
     }
 }
 
-#if SD_MAC
-- (void)displayDidRefresh:(CVDisplayLinkRef)displayLink duration:(NSTimeInterval)duration
-#else
-- (void)displayDidRefresh:(CADisplayLink *)displayLink
-#endif
+// Check if image can represent a `Progressive Animated Image` during loading
+- (id<SDAnimatedImageCoder, SDProgressiveImageCoder>)progressiveAnimatedCoderForImage:(UIImage *)image
 {
-    // If for some reason a wild call makes it through when we shouldn't be animating, bail.
-    // Early return!
-    if (!self.shouldAnimate) {
-        return;
-    }
-    // Calculate refresh duration
-#if SD_UIKIT
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    NSTimeInterval duration = displayLink.duration * displayLink.frameInterval;
-#pragma clang diagnostic pop
-#endif
-    NSUInteger totalFrameCount = self.totalFrameCount;
-    NSUInteger currentFrameIndex = self.currentFrameIndex;
-    NSUInteger nextFrameIndex = (currentFrameIndex + 1) % totalFrameCount;
-    
-    // Check if we have the frame buffer firstly to improve performance
-    if (!self.bufferMiss) {
-        // Then check if timestamp is reached
-        self.currentTime += duration;
-        NSTimeInterval currentDuration = [self.animatedImage animatedImageDurationAtIndex:currentFrameIndex];
-        if (self.currentTime < currentDuration) {
-            // Current frame timestamp not reached, return
-            return;
-        }
-        self.currentTime -= currentDuration;
-        NSTimeInterval nextDuration = [self.animatedImage animatedImageDurationAtIndex:nextFrameIndex];
-        if (self.currentTime > nextDuration) {
-            // Do not skip frame
-            self.currentTime = nextDuration;
+    if ([image.class conformsToProtocol:@protocol(SDAnimatedImage)] && image.sd_isIncremental && [image respondsToSelector:@selector(animatedCoder)]) {
+        id<SDAnimatedImageCoder> animatedCoder = [(id<SDAnimatedImage>)image animatedCoder];
+        if ([animatedCoder conformsToProtocol:@protocol(SDProgressiveImageCoder)]) {
+            return (id<SDAnimatedImageCoder, SDProgressiveImageCoder>)animatedCoder;
         }
     }
-    
-    // Update the current frame
-    UIImage *currentFrame;
-    UIImage *fetchFrame;
-    SD_LOCK(self.lock);
-    currentFrame = self.frameBuffer[@(currentFrameIndex)];
-    fetchFrame = currentFrame ? self.frameBuffer[@(nextFrameIndex)] : nil;
-    SD_UNLOCK(self.lock);
-    BOOL bufferFull = NO;
-    if (currentFrame) {
-        SD_LOCK(self.lock);
-        // Remove the frame buffer if need
-        if (self.frameBuffer.count > self.maxBufferCount) {
-            self.frameBuffer[@(currentFrameIndex)] = nil;
-        }
-        // Check whether we can stop fetch
-        if (self.frameBuffer.count == totalFrameCount) {
-            bufferFull = YES;
-        }
-        SD_UNLOCK(self.lock);
-        self.currentFrame = currentFrame;
-        self.currentFrameIndex = nextFrameIndex;
-        self.bufferMiss = NO;
-        [self.imageViewLayer setNeedsDisplay];
-    } else {
-        self.bufferMiss = YES;
-    }
-    
-    // Update the loop count when last frame rendered
-    if (nextFrameIndex == 0 && !self.bufferMiss) {
-        // Progressive image reach the current last frame index. Keep the state and stop animating. Wait for later restart
-        if (self.isProgressive) {
-            // Recovery the current frame index and removed frame buffer (See above)
-            self.currentFrameIndex = currentFrameIndex;
-            SD_LOCK(self.lock);
-            self.frameBuffer[@(currentFrameIndex)] = self.currentFrame;
-            SD_UNLOCK(self.lock);
-            [self stopAnimating];
-            return;
-        }
-        // Update the loop count
-        self.currentLoopCount++;
-        // if reached the max loop count, stop animating, 0 means loop indefinitely
-        NSUInteger maxLoopCount = self.shouldCustomLoopCount ? self.animationRepeatCount : self.totalLoopCount;
-        if (maxLoopCount != 0 && (self.currentLoopCount >= maxLoopCount)) {
-            [self stopAnimating];
-            return;
-        }
-    }
-    
-    // Check if we should prefetch next frame or current frame
-    NSUInteger fetchFrameIndex;
-    if (self.bufferMiss) {
-        // When buffer miss, means the decode speed is slower than render speed, we fetch current miss frame
-        fetchFrameIndex = currentFrameIndex;
-    } else {
-        // Or, most cases, the decode speed is faster than render speed, we fetch next frame
-        fetchFrameIndex = nextFrameIndex;
-    }
-    
-    if (!fetchFrame && !bufferFull && self.fetchQueue.operationCount == 0) {
-        // Prefetch next frame in background queue
-        UIImage<SDAnimatedImage> *animatedImage = self.animatedImage;
-        @weakify(self);
-        NSOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
-            @strongify(self);
-            if (!self) {
-                return;
-            }
-            UIImage *frame = [animatedImage animatedImageFrameAtIndex:fetchFrameIndex];
-
-            BOOL isAnimating = NO;
-#if SD_MAC
-            isAnimating = CVDisplayLinkIsRunning(self.displayLink);
-#else
-            isAnimating = !self.displayLink.isPaused;
-#endif
-            if (isAnimating) {
-                SD_LOCK(self.lock);
-                self.frameBuffer[@(fetchFrameIndex)] = frame;
-                SD_UNLOCK(self.lock);
-            }
-            // Ensure when self dealloc, it dealloced on the main queue (UIKit/AppKit rule)
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self class];
-            });
-        }];
-        [self.fetchQueue addOperation:operation];
-    }
-}
-
-+ (NSString *)defaultRunLoopMode
-{
-    // Key off `activeProcessorCount` (as opposed to `processorCount`) since the system could shut down cores in certain situations.
-    return [NSProcessInfo processInfo].activeProcessorCount > 1 ? NSRunLoopCommonModes : NSDefaultRunLoopMode;
+    return nil;
 }
 
 
@@ -720,9 +444,10 @@ static NSUInteger SDDeviceFreeMemory() {
 
 - (void)displayLayer:(CALayer *)layer
 {
-    if (self.currentFrame) {
-        layer.contentsScale = self.animatedImageScale;
-        layer.contents = (__bridge id)self.currentFrame.CGImage;
+    UIImage *currentFrame = self.currentFrame;
+    if (currentFrame) {
+        layer.contentsScale = currentFrame.scale;
+        layer.contents = (__bridge id)currentFrame.CGImage;
     }
 }
 
@@ -760,45 +485,6 @@ static NSUInteger SDDeviceFreeMemory() {
 
 #endif
 
-
-#pragma mark - Util
-- (void)calculateMaxBufferCount {
-    NSUInteger bytes = CGImageGetBytesPerRow(self.currentFrame.CGImage) * CGImageGetHeight(self.currentFrame.CGImage);
-    if (bytes == 0) bytes = 1024;
-    
-    NSUInteger max = 0;
-    if (self.maxBufferSize > 0) {
-        max = self.maxBufferSize;
-    } else {
-        // Calculate based on current memory, these factors are by experience
-        NSUInteger total = SDDeviceTotalMemory();
-        NSUInteger free = SDDeviceFreeMemory();
-        max = MIN(total * 0.2, free * 0.6);
-    }
-    
-    NSUInteger maxBufferCount = (double)max / (double)bytes;
-    if (!maxBufferCount) {
-        // At least 1 frame
-        maxBufferCount = 1;
-    }
-    
-    self.maxBufferCount = maxBufferCount;
-}
-
 @end
-
-#if SD_MAC
-static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) {
-    // Calculate refresh duration
-    NSTimeInterval duration = (double)inOutputTime->videoRefreshPeriod / ((double)inOutputTime->videoTimeScale * inOutputTime->rateScalar);
-    // CVDisplayLink callback is not on main queue
-    SDAnimatedImageView *imageView = (__bridge SDAnimatedImageView *)displayLinkContext;
-    __weak SDAnimatedImageView *weakImageView = imageView;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [weakImageView displayDidRefresh:displayLink duration:duration];
-    });
-    return kCVReturnSuccess;
-}
-#endif
 
 #endif

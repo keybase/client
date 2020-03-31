@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -344,6 +345,228 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(vouches))
 	t.Log("bob cannot see it")
+}
+
+func TestWebOfTrustRevoke(t *testing.T) {
+	var err error
+	tcAlice := SetupEngineTest(t, "wot")
+	defer tcAlice.Cleanup()
+	tcBob := SetupEngineTest(t, "wot")
+	defer tcBob.Cleanup()
+	alice := CreateAndSignupFakeUser(tcAlice, "wot")
+	uisA := libkb.UIs{
+		LogUI:    tcAlice.G.UI.GetLogUI(),
+		SecretUI: alice.NewSecretUI(),
+	}
+	mctxA := NewMetaContextForTest(tcAlice).WithUIs(uisA)
+	bob := CreateAndSignupFakeUser(tcBob, "wot")
+	uisB := libkb.UIs{
+		LogUI:    tcBob.G.UI.GetLogUI(),
+		SecretUI: bob.NewSecretUI(),
+	}
+	mctxB := NewMetaContextForTest(tcBob).WithUIs(uisB)
+	aliceName := alice.NormalizedUsername().String()
+	bobName := bob.NormalizedUsername().String()
+	t.Logf("alice: %s and bob: %s exist", aliceName, bobName)
+	sigVersion := libkb.GetDefaultSigVersion(tcAlice.G)
+	trackUser(tcBob, bob, alice.NormalizedUsername(), sigVersion)
+	trackUser(tcAlice, alice, bob.NormalizedUsername(), sigVersion)
+	err = bob.LoadUser(tcBob)
+	require.NoError(tcBob.T, err)
+	err = alice.LoadUser(tcAlice)
+	require.NoError(tcAlice.T, err)
+	t.Log("alice and bob follow each other")
+
+	bobVouchesForAlice := func(version int) {
+		vouchTexts := []string{fmt.Sprintf("alice is wondibar v%d", version)}
+		arg := &WotVouchArg{
+			Vouchee:    alice.User.ToUserVersion(),
+			VouchTexts: vouchTexts,
+			Confidence: confidence,
+		}
+		eng := NewWotVouch(tcBob.G, arg)
+		err = RunEngine2(mctxB, eng)
+		require.NoError(t, err)
+	}
+	aliceAccepts := func(sigID keybase1.SigID) error {
+		arg := &WotReactArg{
+			Voucher:  bob.User.ToUserVersion(),
+			Proof:    sigID,
+			Reaction: keybase1.WotReactionType_ACCEPT,
+		}
+		eng := NewWotReact(tcAlice.G, arg)
+		return RunEngine2(mctxA, eng)
+	}
+	aliceRejects := func(sigID keybase1.SigID) error {
+		arg := &WotReactArg{
+			Voucher:  bob.User.ToUserVersion(),
+			Proof:    sigID,
+			Reaction: keybase1.WotReactionType_REJECT,
+		}
+		eng := NewWotReact(tcAlice.G, arg)
+		return RunEngine2(mctxA, eng)
+	}
+	assertFetch := func(mctx libkb.MetaContext, version int, expectedStatus keybase1.WotStatusType) keybase1.WotVouch {
+		vouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Voucher: bobName, Vouchee: aliceName})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(vouches))
+		vouch := vouches[0]
+		require.Equal(t, expectedStatus, vouch.Status)
+		require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
+		require.Equal(t, alice.User.GetUID(), vouch.Vouchee.Uid)
+		expectedVouchText := []string{fmt.Sprintf("alice is wondibar v%d", version)}
+		require.Equal(t, expectedVouchText, vouch.VouchTexts)
+		require.NotNil(t, vouch.Confidence)
+		return vouch
+	}
+	revokeSig := func(mctx libkb.MetaContext, sigID string) {
+		eng := NewRevokeSigsEngine(mctx.G(), []string{sigID})
+		err := RunEngine2(mctx, eng)
+		require.NoError(t, err)
+	}
+
+	// bob vouches for alice
+	vouchVersion := 1
+	bobVouchesForAlice(vouchVersion)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	wotVouchOne := assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	t.Log("bob vouches for alice and everything looks good")
+
+	// bob revokes the attestation
+	revokeSig(mctxB, wotVouchOne.VouchProof.String())
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_REVOKED)
+	_ = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_REVOKED)
+	t.Log("bob revokes the chainlink with the attestation, and it comes back `revoked` for both of them")
+
+	// bob vouches again
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	wotVouchTwo := assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+
+	// alice cannot accept the revoked proof
+	err = aliceAccepts(wotVouchOne.VouchProof)
+	require.Error(t, err)
+	// alice accepts the new proposed proof
+	err = aliceAccepts(wotVouchTwo.VouchProof)
+	require.NoError(t, err)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_ACCEPTED)
+	_ = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_ACCEPTED)
+
+	// alice revokes her acceptance
+	err = alice.LoadUser(tcAlice)
+	require.NoError(t, err)
+	aliceLastLink := alice.User.GetLastLink()
+	tlink, w := libkb.NewTypedChainLink(aliceLastLink)
+	require.Nil(t, w)
+	reactionLink, ok := tlink.(*libkb.WotReactChainLink)
+	require.True(t, ok)
+	revokeSig(mctxA, reactionLink.GetSigID().String())
+	// it goes back to proposed
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	_ = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	// and now she accepts it and it looks accepted to both of them
+	err = aliceAccepts(wotVouchTwo.VouchProof)
+	require.NoError(t, err)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_ACCEPTED)
+	_ = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_ACCEPTED)
+
+	// bob revokes and it shows up as revoked
+	revokeSig(mctxB, wotVouchTwo.VouchProof.String())
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_REVOKED)
+	_ = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_REVOKED)
+
+	///////////
+	// VouchWithRevoke
+	///////////
+	assertUserLastLinkIsVouchWithRevoke := func(user *FakeUser, tc libkb.TestContext) *libkb.WotVouchChainLink {
+		err := user.LoadUser(tc)
+		require.NoError(t, err)
+		lastLink := user.User.GetLastLink()
+		tlink, warning := libkb.NewTypedChainLink(lastLink)
+		require.Nil(t, warning)
+		vouchLink, ok := tlink.(*libkb.WotVouchChainLink)
+		require.True(t, ok)
+		require.Equal(t, 1, len(vouchLink.Revocations))
+		return vouchLink
+	}
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	vouchToRevoke := assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	// another vouch on top of an unrevoked previous one should be of type vouchWithRevoke
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	vouchToAccept := assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	vwrLink := assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
+	require.Contains(t, vwrLink.Revocations, vouchToRevoke.VouchProof)
+	err = aliceAccepts(vouchToRevoke.VouchProof)
+	require.Error(t, err)
+
+	// can vouchWithRevoke an accepted vouch, and then accept it
+	err = aliceAccepts(vouchToAccept.VouchProof)
+	vouchToRevoke = vouchToAccept
+	require.NoError(t, err)
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	vouchToAccept = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	_ = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	vwrLink = assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
+	require.Contains(t, vwrLink.Revocations, vouchToRevoke.VouchProof)
+	err = aliceAccepts(vouchToAccept.VouchProof)
+	require.NoError(t, err)
+	// it is significant that bob has not loaded alice between these two steps
+	// see comment in sig_chain.go#GetLinkFromSigID
+	err = aliceRejects(vouchToAccept.VouchProof)
+	require.NoError(t, err)
+
+	// can vouchWithRevoke a rejected vouch, and then accept it
+	vouchToRevoke = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_REJECTED)
+	bobVouchesForAlice(vouchVersion)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	vwrLink = assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
+	require.Contains(t, vwrLink.Revocations, vouchToRevoke.VouchProof)
+	err = aliceAccepts(vouchToAccept.VouchProof)
+	require.NoError(t, err)
+
+	// confirm that vouch and vouchWithRevoke links are not stubbed by the server
+	// by checking that, when they are not the last link in someone's chain (which is always unstubbed),
+	// an unstubbed load is successful, and subsequently, those vouches are reactable.
+	// ------------------------------------------
+	// create a new user
+	tcCharlie := SetupEngineTest(t, "wot")
+	defer tcCharlie.Cleanup()
+	charlie := CreateAndSignupFakeUser(tcCharlie, "wot")
+	// clear out so our next vouch link doesn't have a revoke
+	revokeSig(mctxB, vouchToAccept.VouchProof.String())
+
+	assertVouchLinkLoadsCleanly := func(vouchToAccept keybase1.WotVouch) {
+		// add two stubbable links to the end of bob's chain
+		trackUser(tcBob, bob, charlie.NormalizedUsername(), sigVersion)
+		require.NoError(t, runUntrack(tcBob, bob, charlie.NormalizedUsername().String(), sigVersion))
+		// wipe alice so the load is definitely uncached
+		_, err := mctxA.G().LocalDb.Nuke()
+		require.NoError(t, err)
+		// alice can do a normal stubbed load of bob (there are no problems with vouch links being stubbed)
+		_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tcAlice.G, bobName))
+		require.NoError(t, err)
+		// alice can still react to this link after having done a stubbed load
+		err = aliceAccepts(vouchToAccept.VouchProof)
+		require.NoError(t, err)
+	}
+	// a vouch link buried inside a sigchain does not cause loading/stubbing issues
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	assertVouchLinkLoadsCleanly(vouchToAccept)
+	// a vouch_with_revoke link buried inside a sigchain does not cause loading/stubbing issues
+	vouchVersion++
+	bobVouchesForAlice(vouchVersion)
+	_ = assertUserLastLinkIsVouchWithRevoke(bob, tcBob)
+	vouchToAccept = assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	assertVouchLinkLoadsCleanly(vouchToAccept)
 }
 
 // perhaps revisit after Y2K-1494

@@ -159,7 +159,13 @@ export type AddMembersWizardState = {
   teamID: TeamID
 }
 
+export type ActivityLevels = {
+  channels: Map<ConversationIDKey, ActivityLevel>
+  teams: Map<TeamID, ActivityLevel>
+}
+
 export type State = {
+  readonly activityLevels: ActivityLevels
   readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string

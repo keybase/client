@@ -1723,7 +1723,7 @@ func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID
 	for key, value := range reactions.Reactions {
 		var desc chat1.UIReactionDesc
 		if shouldDecorate {
-			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
+			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, chat1.MessageType_REACTION, msg.Emojis)
 		}
 		desc.Users = make(map[string]chat1.Reaction)
 		for username, reaction := range value {
@@ -1779,6 +1779,27 @@ func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
 	return body
 }
 
+func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) *string {
+	msgBody := msg.MessageBody
+	typ, err := msgBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	var body string
+	switch typ {
+	case chat1.MessageType_TEXT:
+		body = msgBody.Text().Body
+	case chat1.MessageType_REACTION:
+		body = msgBody.Reaction().Body
+	default:
+		return nil
+	}
+	body = PresentDecoratedTextNoMentions(ctx, body)
+	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis)
+	return &body
+}
+
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
@@ -1809,7 +1830,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 
 	// Emojis
-	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
+	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis)
 
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
@@ -1964,8 +1985,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
-			decoratedBody = new(string)
-			*decoratedBody = EscapeShrugs(ctx, body)
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
 		case chat1.MessageType_FLIP:
 			body = rawMsg.Outbox().Msg.MessageBody.Flip().Text
 			decoratedBody = new(string)
@@ -1981,6 +2001,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 				title = asset.Title
 				filename = asset.Filename
 			}
+		case chat1.MessageType_REACTION:
+			body = rawMsg.Outbox().Msg.MessageBody.Reaction().Body
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
 		}
 		var replyTo *chat1.UIMessage
 		if rawMsg.Outbox().ReplyTo != nil {
@@ -2001,6 +2024,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			ReplyTo:           replyTo,
+			Supersedes:        rawMsg.Outbox().Msg.ClientHeader.Supersedes,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

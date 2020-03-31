@@ -13,6 +13,7 @@ import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
+import {EmojiData} from '../../../../../util/emoji'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -157,7 +158,7 @@ const WrapperMobile = (props: Props) => {
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<Data.EmojiData>(Data.defaultHoverEmoji)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
 
   return (
@@ -182,19 +183,16 @@ export const EmojiPickerDesktop = (props: Props) => {
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
-      <Kb.Box style={styles.emojiContainer}>
-        {waiting && <Kb.ProgressIndicator />}
-        <EmojiPicker
-          topReacjis={topReacjis}
-          filter={filter}
-          onChoose={onAddReaction}
-          onHover={setHoveredEmoji}
-          width={336}
-          skinTone={currentSkinTone}
-          customSections={customEmojiGroups}
-          waitingForEmoji={waiting}
-        />
-      </Kb.Box>
+      <EmojiPicker
+        topReacjis={topReacjis}
+        filter={filter}
+        onChoose={onAddReaction}
+        onHover={setHoveredEmoji}
+        width={336}
+        skinTone={currentSkinTone}
+        customSections={customEmojiGroups}
+        waitingForEmoji={waiting}
+      />
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -256,13 +254,9 @@ const styles = Styles.styleSheetCreate(
         minHeight: 561,
         width: 336,
       },
-      emojiContainer: {
-        flex: 1,
-        flexGrow: 1,
-        overflow: 'hidden',
-      },
       footerContainer: Styles.platformStyles({
         common: {
+          flexShrink: 0,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
         },

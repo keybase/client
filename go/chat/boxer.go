@@ -690,12 +690,6 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	// Get at mention usernames
 	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, conv, body)
-	// Get emojis
-	var emojis []chat1.HarvestedEmoji
-	emojis, ierr = b.getEmojis(ctx, conv, body, clientHeader.Conv.TopicType)
-	if ierr != nil {
-		return nil, ierr
-	}
 
 	ierr = b.compareHeadersMBV1(ctx, boxed.ClientHeader, clientHeader)
 	if ierr != nil {
@@ -721,7 +715,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		ChannelNameMentions:   channelNameMentions,
 		MaybeMentions:         maybeRes,
 		BotUsername:           b.getBotInfoLocal(ctx, clientHeader.BotUID),
-		Emojis:                emojis,
+		Emojis:                b.getEmojis(ctx, clientHeader.Conv.TopicType, body),
 	}, nil
 }
 
@@ -990,12 +984,6 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	// Get at mention usernames
 	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, conv, body)
-	// Get emojis
-	var emojis []chat1.HarvestedEmoji
-	emojis, ierr = b.getEmojis(ctx, conv, body, clientHeader.Conv.TopicType)
-	if ierr != nil {
-		return nil, ierr
-	}
 
 	clientHeader.HasPairwiseMacs = len(boxed.ClientHeader.PairwiseMacs) > 0
 
@@ -1018,7 +1006,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		ChannelNameMentions:   channelNameMentions,
 		MaybeMentions:         maybeRes,
 		BotUsername:           b.getBotInfoLocal(ctx, clientHeader.BotUID),
-		Emojis:                emojis,
+		Emojis:                b.getEmojis(ctx, clientHeader.Conv.TopicType, body),
 	}, nil
 }
 
@@ -1309,38 +1297,30 @@ func (b *Boxer) getBotInfoLocal(ctx context.Context, uid *gregor1.UID) string {
 	return username
 }
 
-func (b *Boxer) getEmojis(ctx context.Context, conv types.UnboxConversationInfo, body chat1.MessageBody,
-	topicType chat1.TopicType) ([]chat1.HarvestedEmoji, types.UnboxingError) {
+func (b *Boxer) getEmojis(ctx context.Context, topicType chat1.TopicType, body chat1.MessageBody) (res []chat1.HarvestedEmoji) {
 	if topicType != chat1.TopicType_CHAT {
-		return nil, nil
+		return nil
 	}
-	uid := gregor1.UID(b.G().GetEnv().GetUID().ToBytes())
 	typ, err := body.MessageType()
 	if err != nil {
-		return nil, nil
+		return nil
+	}
+	makeList := func(m map[string]chat1.HarvestedEmoji) (l []chat1.HarvestedEmoji) {
+		l = make([]chat1.HarvestedEmoji, 0, len(m))
+		for _, e := range m {
+			l = append(l, e)
+		}
+		return l
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
-		text := body.Text()
-		emojis, err := b.G().EmojiSource.Harvest(ctx, text.Body, uid, conv.GetConvID(), text.Emojis,
-			types.EmojiSourceHarvestModeInbound)
-		if err != nil {
-			return nil, NewTransientUnboxingError(err)
-		}
-		b.Debug(ctx, "getEmojis: found %d emojis (text)", len(emojis))
-		return emojis, nil
+		return makeList(body.Text().Emojis)
 	case chat1.MessageType_REACTION:
-		reaction := body.Reaction()
-		emojis, err := b.G().EmojiSource.Harvest(ctx, reaction.Body, uid, conv.GetConvID(), reaction.Emojis,
-			types.EmojiSourceHarvestModeInbound)
-		if err != nil {
-			return nil, NewTransientUnboxingError(err)
-		}
-		b.Debug(ctx, "getEmojis: found %d emojis (reaction)", len(emojis))
-		return emojis, nil
-	default:
+		return makeList(body.Reaction().Emojis)
+	case chat1.MessageType_EDIT:
+		return makeList(body.Edit().Emojis)
 	}
-	return nil, nil
+	return res
 }
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
