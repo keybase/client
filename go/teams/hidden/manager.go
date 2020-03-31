@@ -57,6 +57,18 @@ func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybas
 	return supportsHiddenState.State, nil
 }
 
+func ShouldClearSupportFlagOnError(err error) bool {
+	if err == nil {
+		return false
+	}
+	switch err.(type) {
+	case libkb.APINetError:
+		return false
+	default:
+		return true
+	}
+}
+
 func (m *ChainManager) ClearSupportFlagIfFalse(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 	mctx.Debug("ChainManager#ClearSupportFlagIfFalse(%v)", teamID)
 	m.hiddenSupportStorage.ClearEntryIfFalse(mctx, teamID)

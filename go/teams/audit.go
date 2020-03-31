@@ -156,7 +156,7 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 	defer lock.Release(m.Ctx())
 
 	err = a.auditLocked(m, id, headMerkleSeqno, chain, hiddenChain, maxSeqno, maxHiddenSeqno, lastMerkleRoot, auditMode)
-	if err != nil {
+	if hidden.ShouldClearSupportFlagOnError(err) {
 		m.Debug("Clearing support hidden chain flag for team %s because of error %v in Auditor", id, err)
 		m.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(m, id)
 	}
