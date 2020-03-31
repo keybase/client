@@ -432,6 +432,10 @@
     "teamSeen": {
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
+    },
+    "setActivityLevels": {
+      "_description": "Set map of activity levels for all teams.",
+      "levels": "Types.ActivityLevels"
     }
   }
 }
