@@ -3,7 +3,6 @@ package avatars
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -450,6 +449,11 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 
 func (c *FullCachingSource) dispatchPopulateFromRes(m libkb.MetaContext, res keybase1.LoadAvatarsRes,
 	spec avatarLoadSpec) {
+	c.Lock()
+	defer c.Unlock()
+	if !c.started {
+		return
+	}
 	for name, rec := range res.Picmap {
 		for format, url := range rec {
 			if url != "" {
@@ -589,21 +593,11 @@ func (c *FullCachingSource) clearName(m libkb.MetaContext, name string, formats 
 
 func (c *FullCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer m.TraceTimed("FullCachingSource.LoadUsers", func() error { return err })()
-	c.Lock()
-	defer c.Unlock()
-	if !c.started {
-		return res, errors.New("Avatar source not running")
-	}
 	return c.loadNames(m, usernames, formats, true)
 }
 
 func (c *FullCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer m.TraceTimed("FullCachingSource.LoadTeams", func() error { return err })()
-	c.Lock()
-	defer c.Unlock()
-	if !c.started {
-		return res, errors.New("Avatar source not running")
-	}
 	return c.loadNames(m, teams, formats, false)
 }
 
