@@ -54,7 +54,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
         disabled={props.waiting}
         selected={
           props.selected.description && !props.waiting ? (
-            <Kb.Text center={true} type="BodyBig">
+            <Kb.Text type="BodyBig" style={styles.selectedText}>
               {props.selected.description}
             </Kb.Text>
           ) : (
@@ -89,6 +89,10 @@ const styles = Styles.styleSheetCreate(() => ({
   promptContainer: {
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
+  },
+  selectedText: {
+    paddingLeft: Styles.globalMargins.xsmall,
+    width: '100%',
   },
   toastText: {color: Styles.globalColors.white},
 }))

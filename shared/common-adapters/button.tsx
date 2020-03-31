@@ -230,8 +230,8 @@ const typeToColorName = {
   Dim: 'black',
 }
 
-const smallHeight = Styles.isMobile ? 32 : 28
-const regularHeight = Styles.isMobile ? 40 : 32
+export const smallHeight = Styles.isMobile ? 32 : 28
+export const regularHeight = Styles.isMobile ? 40 : 32
 
 const common = () =>
   Styles.platformStyles({

@@ -15,17 +15,23 @@ const makeDropdownItems = (currencies: Array<Types.Currency>, currency: Types.Cu
     </Kb.Box2>,
   ]
   // spread the List into an array with [...]
-  return items.concat([...currencies].map(s => makeDropdownItem(s, s.code === currency.code)))
+  return items.concat([...currencies].map(s => makeDropdownItem(s, s.code === currency.code, false, true)))
 }
 
-const makeDropdownItem = (item: Types.Currency, isSelected: boolean, waiting?: boolean) => (
-  <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
+const makeDropdownItem = (
+  item: Types.Currency,
+  isSelected: boolean,
+  waiting?: boolean,
+  isListItem?: boolean
+) => (
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    key={item.code}
+    style={Styles.collapseStyles([styles.itemContainer, isListItem && styles.listItemContainer])}
+  >
     {item.description && !waiting ? (
-      <Kb.Text
-        center={true}
-        type="BodyBig"
-        style={Styles.collapseStyles([isSelected && styles.itemSelected])}
-      >
+      <Kb.Text type="BodyBig" style={Styles.collapseStyles([isSelected && styles.itemSelected])}>
         {item.description}
       </Kb.Text>
     ) : (
@@ -65,7 +71,9 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.xtiny,
       },
       dropdownHeader: {padding: Styles.globalMargins.xsmall},
+      itemContainer: {paddingLeft: Styles.globalMargins.xsmall},
       itemSelected: {color: Styles.globalColors.blueDark},
+      listItemContainer: {justifyContent: 'center', width: '100%'},
       progressIndicator: {
         height: 17,
         width: 17,
