@@ -1311,7 +1311,7 @@ function* teamBuildingSaga() {
 }
 
 async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Saga.SagaLogger) {
-  const {teamname, initialTab, addMembers} = action.payload
+  const {teamname, initialTab, addMembers, join} = action.payload
   let teamID: string
   try {
     teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
@@ -1319,8 +1319,22 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
     logger.info(`team="${teamname}" cannot be loaded:`, err)
     if (flags.teamsRedesign) {
       // navigate to team page for team we're not in
-      logger.info('showing external team page')
-      return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]})
+      logger.info(`showing external team page, join=${join}`)
+      return [
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]}),
+        ...(join
+          ? [
+              RouteTreeGen.createNavigateAppend({
+                path: [
+                  {
+                    props: {initialTeamname: teamname},
+                    selected: 'teamJoinTeamDialog',
+                  },
+                ],
+              }),
+            ]
+          : []),
+      ]
     }
     return null
   }

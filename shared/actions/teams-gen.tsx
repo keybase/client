@@ -341,6 +341,7 @@ type _SettingsErrorPayload = {readonly error: string}
 type _ShowTeamByNamePayload = {
   readonly teamname: string
   readonly initialTab?: Types.TabKey
+  readonly join?: boolean
   readonly addMembers?: boolean
 }
 type _StartAddMembersWizardPayload = {readonly teamID: Types.TeamID}

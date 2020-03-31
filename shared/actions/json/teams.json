@@ -393,6 +393,7 @@
       ],
       "teamname": "string",
       "initialTab?": "Types.TabKey",
+      "join?": "boolean",
       "addMembers?": "boolean"
     },
     "setMemberActivityDetails": {
