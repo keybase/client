@@ -552,3 +552,26 @@ func NewMissingReaderKeyMaskError(gen keybase1.PerTeamKeyGeneration, app keybase
 func (e MissingReaderKeyMaskError) Error() string {
 	return fmt.Sprintf("missing reader key mask for gen:%v app:%v", e.gen, e.app)
 }
+
+type MapAncestorsError struct {
+	err error
+
+	// failedLoadingAtAncestorIdx indicates the team the MapTeamAncestors load failed at.
+	// So if it failed loading the initial team passed in, failedLoadingAtAncestorIdx=0.
+	// Each successive parent team adds one to the index. So if the team tree were
+	// A.B.C.D.E and MapTeamAncestors was called on D, and the function failed at B,
+	// failed=2.
+	failedLoadingAtAncestorIdx int
+}
+
+func NewMapAncestorsError(err error, failedLoadingAtAncestorIdx int) error {
+	return &MapAncestorsError{err, failedLoadingAtAncestorIdx}
+}
+
+func (e *MapAncestorsError) Error() string {
+	return fmt.Sprintf("failed to load ancestor %d during load: %s", e.err)
+}
+
+func (e *MapAncestorsError) Unwrap() error {
+	return e.err
+}

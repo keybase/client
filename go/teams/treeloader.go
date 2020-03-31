@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sync/errgroup"
@@ -21,100 +23,139 @@ func LoadTeamTreeMemberships(mctx libkb.MetaContext, teamID keybase1.TeamID,
 		return err
 	}
 
-	go loadTeamTreeMembershipsRecursive(mctx, teamID, target.Name(), uv)
-
-
-	handleAncestor := func(t keybase1.TeamSigChainState) error {
-		notifyTeamTreeMembershipResult
-	}
-
-	// err = mctx.G().GetTeamLoader().MapTeamAncestors(mctx.Ctx(), func(t keybase1.TeamSigChainState) error {
-
-	// })
-
-	// func (l *TeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) (err error) {
-
-
+	isInitial := true
+	includeAncestor := true
+	go loadTeamTreeMembershipsRecursive(mctx, teamID, target.Name(), uv, isInitial, includeAncestor)
 
 	return nil
 }
 
-// add time tracing
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
 
-// todo parents
+// add time tracing
 
 // todo cancelling
 
 // We pass teamName so we can give an intelligible error if the load fails.
 // Not guaranteed to notify partials in any order, except that done will be last.
-func notifyTeamTreeMembershipResult(teamName keybase1.TeamName, res keybase1.TeamTreeMembershipResult) {
+func notifyTeamTreeMembershipResult(mctx libkb.MetaContext, teamName keybase1.TeamName,
+	res keybase1.TeamTreeMembershipResult) {
 	mctx.G().NotifyRouter.HandleTeamTreeMembershipsPartial(mctx.Ctx(), keybase1.TeamTreeMembership{
 		TeamName: teamName,
 		Result:   res,
 	})
 }
 
-func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
+// notification order still a problem...what if subteam notif comes before parent saying how many
+// more?
+
+func loadTeamAncestorsMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	teamName keybase1.TeamName, uv keybase1.UserVersion) {
+
+	handleAncestor := func(t keybase1.TeamSigChainState, teamName keybase1.TeamName) error {
+		includeAncestor := true
+		res := sigchainStateToTeamTreeMembership(&t, uv, includeAncestor)
+		notifyTeamTreeMembershipResult(mctx, teamName, res)
+		return nil
+	}
+	// put entire thing in a goroutine, also do the additionalneeded thing
+	err := mctx.G().GetTeamLoader().MapTeamAncestors(
+		mctx.Ctx(), handleAncestor, teamID, "LoadTeamTreeMemberships", nil)
+	switch e := err.(type) {
+	case nil:
+	case *MapAncestorsError:
+		idx := maxInt(0, teamName.Depth()-1-e.failedLoadingAtAncestorIdx)
+		name := keybase1.TeamName{Parts: teamName.Parts[:idx+1]}
+		notifyTeamTreeMembershipResult(mctx, name, makeLoadTeamTreeErrorResult(err))
+	default:
+		// Not sure where the error failed: prompt to reload the entire thing
+		notifyTeamTreeMembershipResult(mctx, teamName, makeLoadTeamTreeErrorResult(err))
+	}
+}
+
+// Inclusive
+func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	teamName keybase1.TeamName, uv keybase1.UserVersion, isInitial bool, includeAncestor bool) {
 	mctx.Warning("@@@ loadRecursive %s", teamName)
 
-	node, res := loadTeamTreeMembershipsSingle(mctx, teamID, uv)
-	notifyTeamTreeMembershipResult(teamname, res)
-	if res.S() == keybase1.TeamTreeMembershipResultStatus_ERROR {
+	node, res := loadTeamTreeMembershipsSingle(mctx, teamID, uv, false)
+	notifyTeamTreeMembershipResult(mctx, teamName, res)
+	s, _ := res.S()
+	if s == keybase1.TeamTreeMembershipStatus_ERROR {
 		return
 	}
 
 	// do we need to subteam.SharedSecret()? see teams/teams.go:loadAllTransitvieSubteams
 
-	// var _ errgroup.Group
-	// ctx := mctx.Ctx()
-	// for _, idAndName := range node.chain().ListSubteams() {
-	// 	loadTeamTreeMembershipsRecursive(mctx.WithContext(ctx), idAndName.Id, idAndName.Name, uv)
-	// }
-
 	eg, ctx := errgroup.WithContext(mctx.Ctx())
+
+	// Load ancestors
+	if isInitial {
+		eg.Go(func() error {
+			loadTeamAncestorsMembershipsRecursive(mctx, teamID, teamName, uv)
+			return nil
+		})
+	}
+	// Load subtree
 	// Because we load parents before children, the child's load can use the cached parent's team
 	// so we only make one team/get per team.
 	for _, idAndName := range node.chain().ListSubteams() {
 		idAndName := idAndName
 		// This is technically unbounded but assuming subteam spread isn't too high, should be ok.
 		eg.Go(func() error {
-			loadTeamTreeMembershipsRecursive(mctx.WithContext(ctx), idAndName.Id, idAndName.Name, uv)
+			isInitial = false
+			includeAncestor = false
+			loadTeamTreeMembershipsRecursive(
+				mctx.WithContext(ctx), idAndName.Id, idAndName.Name, uv, isInitial, includeAncestor,
+			)
 			// handle errors ourselves, we don't want the load to be short-circuited if one load fails
 			return nil
 		})
 	}
 	eg.Wait()
-
 }
 
 // is there lock contention with loading parent teams? or does cache work out
 
-func makeLoadTeamTreeErrorResult(err error) keybase1.TeamTreeMembershipResult{
-	return keybase1.TeamTreeMembershipResultWithError(
-			keybase1.GenericError{Message:fmt.Sprintf("%s", err)}
-		)
+func makeLoadTeamTreeErrorResult(err error) keybase1.TeamTreeMembershipResult {
+	return keybase1.NewTeamTreeMembershipResultWithError(
+		keybase1.GenericError{Message: fmt.Sprintf("%s", err)},
+	)
 }
 
 func loadTeamTreeMembershipsSingle(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	uv keybase1.UserVersion) (team *Team, res keybase1.TeamTreeMembershipResult) {
+	uv keybase1.UserVersion, includeAncestor bool) (team *Team, res keybase1.TeamTreeMembershipResult) {
 
-	team, err = GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+	team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
 	if err != nil {
 		return team, makeLoadTeamTreeErrorResult(err)
 	}
 
-	role, err := team.MemberRole(mctx.Ctx(), uv)
-	if err != nil {
-		return team, makeLoadTeamTreeErrorResult(err)
-	}
+	return team, sigchainStateToTeamTreeMembership(&team.chain().inner, uv, includeAncestor)
+}
+
+func sigchainStateToTeamTreeMembership(
+	s *keybase1.TeamSigChainState,
+	uv keybase1.UserVersion,
+	includeAncestor bool,
+) (res keybase1.TeamTreeMembershipResult) {
+	role := s.UserRole(uv)
 	var joinTime *keybase1.Time
-	if t, err := team.UserLastJoinTime(uv); err == nil {
+	if t, err := s.GetUserLastJoinTime(uv); err == nil {
 		joinTime = &t
 	}
-	return team, keybase1.NewTeamTreeMembershipResultWithOk(keybase1.TeamTreeMembershipValue{
+	increase := len(s.ListSubteams())
+	if includeAncestor && s.NameDepth > 1 {
+		increase += 1
+	}
+	return keybase1.NewTeamTreeMembershipResultWithOk(keybase1.TeamTreeMembershipValue{
 		Role:                    role,
 		JoinTime:                joinTime,
-		IncreaseExpectedCountBy: len(team.chain().ListSubteams()),
+		IncreaseExpectedCountBy: len(s.ListSubteams()),
 	})
 }
