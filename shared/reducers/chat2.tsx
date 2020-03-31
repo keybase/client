@@ -1044,14 +1044,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.typingMap = typingMap
   },
   [Chat2Gen.toggleLocalReaction]: (draftState, action) => {
-    const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
+    const {conversationIDKey, decorated, emoji, targetOrdinal, username} = action.payload
     const {messageMap} = draftState
 
     const m = messageMap.get(conversationIDKey)?.get(targetOrdinal)
     if (m && Constants.isMessageWithReactions(m)) {
       const reactions = m.reactions
       const rs = {
-        decorated: reactions.get(emoji)?.decorated ?? '',
+        decorated: reactions.get(emoji)?.decorated ?? decorated,
         users: reactions.get(emoji)?.users ?? new Set(),
       }
       reactions.set(emoji, rs)

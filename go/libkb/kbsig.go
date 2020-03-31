@@ -698,10 +698,11 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	return ret, nil
 }
 
-func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte) (*ProofMetadataRes, error) {
+func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte, merkleRoot *MerkleRoot, sigIDToRevoke *keybase1.SigID) (*ProofMetadataRes, error) {
 	md := ProofMetadata{
 		Me:                  u,
 		LinkType:            LinkTypeWotVouch,
+		MerkleRoot:          merkleRoot,
 		SigningKey:          signingKey,
 		SigVersion:          sigVersion,
 		IgnoreIfUnsupported: true,
@@ -714,6 +715,18 @@ func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion Si
 	body := ret.J.AtKey("body")
 	if err := body.SetKey("wot_vouch", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
 		return nil, err
+	}
+
+	if sigIDToRevoke != nil {
+		revokeSection := jsonw.NewDictionary()
+		err := revokeSection.SetKey("sig_id", jsonw.NewString(sigIDToRevoke.String()))
+		if err != nil {
+			return nil, err
+		}
+		err = body.SetKey("revoke", revokeSection)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return ret, nil

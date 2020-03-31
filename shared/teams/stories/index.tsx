@@ -21,6 +21,18 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
   }
   draftState.teams = {
     ...Constants.makeState(),
+    activityLevels: {
+      channels: new Map([
+        ['0', 'recently'],
+        ['3', 'active'],
+        ['9', 'recently'],
+      ]),
+      teams: new Map([
+        [fakeTeamID, 'none'],
+        [teamID2, 'recently'],
+        [teamID3, 'active'],
+      ]),
+    },
     newTeamWizard: {
       ...draftState.teams.newTeamWizard,
       name: 'greenpeace',

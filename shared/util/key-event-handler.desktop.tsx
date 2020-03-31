@@ -27,11 +27,11 @@ const KeyEventHandlerWrapper = (props: Props) => (
 )
 
 class KeyEventHandler extends React.Component<Props & HandlerProps> {
-  componentDidMount = () => {
+  componentDidMount() {
     this.props.add(this)
   }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.props.remove(this)
   }
 
@@ -51,7 +51,7 @@ class KeyEventHandler extends React.Component<Props & HandlerProps> {
 class GlobalKeyEventHandler extends React.Component<GlobalProps> {
   _stack: Array<KeyEventHandler> = []
 
-  componentDidMount = () => {
+  componentDidMount() {
     const body = document.body
     if (!body) {
       return
@@ -60,7 +60,7 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
     body.addEventListener('keypress', this._handleKeyPress)
   }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     const body = document.body
     if (!body) {
       return

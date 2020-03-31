@@ -299,6 +299,7 @@ protocol chatUi {
     boolean isEphemeral;
     union { null, FlipGameIDStr} flipGameID;
     union { null, UIMessage } replyTo;
+    MessageID supersedes;
 
     // For attachments
     string filename;

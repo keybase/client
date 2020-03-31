@@ -10,7 +10,7 @@ type Props = {
 }
 
 const Display = (props: Props) => (
-  <Kb.HeaderHocWrapper onBack={props.onBack} title="Display">
+  <Kb.HeaderHocWrapper onBack={props.onBack} skipHeader={!Styles.isPhone} title="Display">
     <Kb.ScrollView style={styles.scrollview}>
       <Kb.Box style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true}>

@@ -43,11 +43,11 @@ class Input extends Component<Props, State> {
     this.timeoutIds = []
   }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.timeoutIds.forEach(clearTimeout)
   }
 
-  componentDidUpdate = (prevProps: Props) => {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
       this.clearText()
     }

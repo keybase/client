@@ -106,7 +106,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
             let title = ''
             switch (this.props.teamPolicy.type) {
               case 'retain':
-                title = 'Team default (Never auto-delete)'
+                title = 'Team default (Never)'
                 break
               case 'expire':
               case 'explode':
@@ -327,7 +327,7 @@ const policyToLabel = (p: RetentionPolicy, parent: RetentionPolicy | null) => {
       }
       switch (parent.type) {
         case 'retain':
-          text = 'Team default (Never auto-delete)'
+          text = 'Team default (Never)'
           break
         case 'expire':
         case 'explode':

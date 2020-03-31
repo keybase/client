@@ -40,6 +40,7 @@ export default Container.connect(
       ownProps.message.type === 'text' &&
       (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, ownProps.message, participantInfo)
+    const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
 
     return {
       _authorIsBot: authorIsBot,
@@ -50,6 +51,7 @@ export default Container.connect(
       _mapUnfurl,
       _participants: participantInfo.all,
       _teamID: meta.teamID,
+      _teamMembers,
       _teamname: meta.teamname,
       author: ownProps.message.author,
       botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
@@ -185,7 +187,8 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const authorInConv = stateProps._participants.includes(ownProps.message.author)
+    const message = ownProps.message
+    const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     const items: MenuItems = []
     if (stateProps._canExplodeNow) {
       items.push({
@@ -195,7 +198,7 @@ export default Container.connect(
         title: 'Explode now',
       })
     }
-    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
+    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInTeam) {
       items.push({
         danger: true,
         icon: 'iconfont-block-user',
@@ -211,7 +214,6 @@ export default Container.connect(
         title: 'Add a reaction',
       })
     }
-    const message = ownProps.message
     if (message.type === 'attachment') {
       if (Container.isMobile) {
         if (message.attachmentType === 'image') {

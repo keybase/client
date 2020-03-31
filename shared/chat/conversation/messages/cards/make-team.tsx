@@ -34,12 +34,12 @@ const MakeTeam = ({conversationIDKey}: Props) => {
             <Kb.Text
               type="BodySmallSemiboldPrimaryLink"
               style={styles.link}
-              className="color_whiteOrWhite hover_contained_color_white"
+              className="color_greenLightOrWhite hover_contained_color_white"
             >
               Enter a team name
             </Kb.Text>
             <Kb.Icon
-              color={Styles.globalColors.whiteOrWhite}
+              color={Styles.globalColors.greenLight}
               sizeType="Tiny"
               type="iconfont-arrow-right"
               className="hover_contained_color_white"
@@ -86,7 +86,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         paddingRight: Styles.globalMargins.small,
       },
-      link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
+      link: {color: Styles.isMobile ? Styles.globalColors.greenLight : undefined},
       textContainer: {padding: Styles.globalMargins.medium},
     } as const)
 )

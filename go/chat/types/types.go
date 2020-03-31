@@ -382,6 +382,13 @@ type ParticipantResult struct {
 	Err  error
 }
 
+type EmojiHarvestMode int
+
+const (
+	EmojiHarvestModeNormal EmojiHarvestMode = iota
+	EmojiHarvestModeFast
+)
+
 type DummyAttachmentFetcher struct{}
 
 var _ AttachmentFetcher = (*DummyAttachmentFetcher)(nil)
@@ -810,10 +817,10 @@ func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID) (res []chat1.HarvestedEmoji, err error) {
+	convID chat1.ConversationID, mode EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	return res, err
 }

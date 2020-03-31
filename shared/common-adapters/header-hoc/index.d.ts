@@ -52,7 +52,9 @@ type HeaderHocProps = Props
 /**
  * Short term use this instead of the hoc as a regular component
  */
-export declare class HeaderHocWrapper extends React.Component<Props & {children: React.ReactNode}> {}
+export declare class HeaderHocWrapper extends React.Component<
+  Props & {children: React.ReactNode; skipHeader?: boolean}
+> {}
 export declare class HeaderHocHeader extends React.Component<HeaderHocProps> {}
 export declare class LeftAction extends React.Component<LeftActionProps> {}
 // HeaderHoc is deprecated. navigationOptions should be used instead.

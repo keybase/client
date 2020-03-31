@@ -130,7 +130,7 @@ class Chat extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.HeaderHocWrapper onBack={this.props.onBack} title="Chat">
+      <Kb.HeaderHocWrapper onBack={this.props.onBack} skipHeader={!Styles.isPhone} title="Chat">
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.ScrollView>
             <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
