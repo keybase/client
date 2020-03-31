@@ -35,6 +35,7 @@ type UIInboxSmallTeamRow struct {
 	Name              string            `codec:"name" json:"name"`
 	Time              gregor1.Time      `codec:"time" json:"time"`
 	Snippet           *string           `codec:"snippet,omitempty" json:"snippet,omitempty"`
+	SnippetDecorated  *string           `codec:"snippetDecorated,omitempty" json:"snippetDecorated,omitempty"`
 	SnippetDecoration SnippetDecoration `codec:"snippetDecoration" json:"snippetDecoration"`
 	Draft             *string           `codec:"draft,omitempty" json:"draft,omitempty"`
 	IsMuted           bool              `codec:"isMuted" json:"isMuted"`
@@ -53,6 +54,13 @@ func (o UIInboxSmallTeamRow) DeepCopy() UIInboxSmallTeamRow {
 			tmp := (*x)
 			return &tmp
 		})(o.Snippet),
+		SnippetDecorated: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.SnippetDecorated),
 		SnippetDecoration: o.SnippetDecoration.DeepCopy(),
 		Draft: (func(x *string) *string {
 			if x == nil {
@@ -539,6 +547,7 @@ type InboxUIItem struct {
 	IsDefaultConv     bool                          `codec:"isDefaultConv" json:"isDefaultConv"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
+	SnippetDecorated  string                        `codec:"snippetDecorated" json:"snippetDecorated"`
 	SnippetDecoration SnippetDecoration             `codec:"snippetDecoration" json:"snippetDecoration"`
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
@@ -581,6 +590,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		IsDefaultConv:     o.IsDefaultConv,
 		Name:              o.Name,
 		Snippet:           o.Snippet,
+		SnippetDecorated:  o.SnippetDecorated,
 		SnippetDecoration: o.SnippetDecoration.DeepCopy(),
 		Channel:           o.Channel,
 		Headline:          o.Headline,

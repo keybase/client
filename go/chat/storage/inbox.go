@@ -450,13 +450,14 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			continue
 		}
 		topicName := convLocal.Info.TopicName
-		snippetDecoration, snippet := utils.GetConvSnippet(convLocal,
+		snippetDecoration, snippet, snippetDecorated := utils.GetConvSnippet(ctx, i.G(), convLocal,
 			i.G().GetEnv().GetUsername().String())
 		rcm := &types.RemoteConversationMetadata{
 			Name:              convLocal.Info.TlfName,
 			TopicName:         topicName,
 			Headline:          convLocal.Info.Headline,
 			Snippet:           snippet,
+			SnippetDecorated:  snippetDecorated,
 			SnippetDecoration: snippetDecoration,
 		}
 		switch convLocal.GetMembersType() {

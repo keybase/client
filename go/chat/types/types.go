@@ -90,6 +90,7 @@ type RemoteConversationMetadata struct {
 	Name               string                  `codec:"n"`
 	TopicName          string                  `codec:"t"`
 	Snippet            string                  `codec:"s"`
+	SnippetDecorated   string                  `codec:"sd"`
 	SnippetDecoration  chat1.SnippetDecoration `codec:"d"`
 	Headline           string                  `codec:"h"`
 	WriterNames        []string                `codec:"w"`

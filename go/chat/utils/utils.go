@@ -1042,14 +1042,15 @@ func GetRemoteConvDisplayName(rc types.RemoteConversation) string {
 	}
 }
 
-func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (chat1.SnippetDecoration, string) {
+func GetConvSnippet(ctx context.Context, g *globals.Context, conv chat1.ConversationLocal,
+	currentUsername string) (chat1.SnippetDecoration, string, string) {
 
 	if conv.Info.SnippetMsg == nil {
-		return chat1.SnippetDecoration_NONE, ""
+		return chat1.SnippetDecoration_NONE, "", ""
 	}
 	msg := *conv.Info.SnippetMsg
 
-	return GetMsgSnippet(msg, conv, currentUsername)
+	return GetMsgSnippet(ctx, g, msg, conv, currentUsername)
 }
 
 func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (chat1.MessageSummary, error) {
@@ -1130,13 +1131,16 @@ func getMsgSnippetDecoration(msg chat1.MessageUnboxed) chat1.SnippetDecoration {
 	return chat1.SnippetDecoration_NONE
 }
 
-func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
-	defer func() {
-		snippet = EscapeShrugs(context.TODO(), snippet)
-	}()
+func GetMsgSnippetBody(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) (snippet, snippetDecorated string) {
 	if !(msg.IsValidFull() || msg.IsOutbox()) {
-		return ""
+		return "", ""
 	}
+	defer func() {
+		if len(snippetDecorated) == 0 {
+			snippetDecorated = snippet
+		}
+	}()
 	var msgBody chat1.MessageBody
 	if msg.IsValid() {
 		msgBody = msg.Valid().MessageBody
@@ -1145,20 +1149,22 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 	}
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return msgBody.Text().Body
+		return msgBody.Text().Body,
+			PresentDecoratedSnippet(ctx, g, msgBody.Text().Body, convID, msg.GetMessageType(),
+				msg.Valid().Emojis)
 	case chat1.MessageType_EDIT:
-		return msgBody.Edit().Body
+		return msgBody.Edit().Body, ""
 	case chat1.MessageType_FLIP:
-		return msgBody.Flip().Text
+		return msgBody.Flip().Text, ""
 	case chat1.MessageType_PIN:
-		return "Pinned message"
+		return "Pinned message", ""
 	case chat1.MessageType_ATTACHMENT:
 		obj := msgBody.Attachment().Object
 		title := obj.Title
 		if len(title) == 0 {
 			atyp, err := obj.Metadata.AssetType()
 			if err != nil {
-				return "???"
+				return "???", ""
 			}
 			switch atyp {
 			case chat1.AssetMetadataType_IMAGE:
@@ -1178,23 +1184,29 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 				}
 			}
 		}
-		return title
+		return title, ""
 	case chat1.MessageType_SYSTEM:
-		return msgBody.System().String()
+		return msgBody.System().String(), ""
 	case chat1.MessageType_REQUESTPAYMENT:
-		return "Payment requested"
+		return "Payment requested", ""
 	case chat1.MessageType_SENDPAYMENT:
-		return "Payment sent"
+		return "Payment sent", ""
 	case chat1.MessageType_HEADLINE:
-		return msgBody.Headline().String()
+		return msgBody.Headline().String(), ""
 	}
-	return ""
+	return "", ""
 }
 
-func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) (decoration chat1.SnippetDecoration, snippet string) {
+func GetMsgSnippet(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
+	conv chat1.ConversationLocal, currentUsername string) (decoration chat1.SnippetDecoration, snippet string, snippetDecorated string) {
 	if !(msg.IsValid() || msg.IsOutbox()) {
-		return chat1.SnippetDecoration_NONE, ""
+		return chat1.SnippetDecoration_NONE, "", ""
 	}
+	defer func() {
+		if len(snippetDecorated) == 0 {
+			snippetDecorated = snippet
+		}
+	}()
 
 	var senderUsername string
 	if msg.IsValid() {
@@ -1208,9 +1220,10 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	// assigns a ctime.
 	if msg.IsValid() && !msg.IsValidFull() {
 		if msg.Valid().IsEphemeral() && msg.Valid().IsEphemeralExpired(time.Now()) {
-			return chat1.SnippetDecoration_EXPLODED_MESSAGE, fmt.Sprintf("%s ----------------------------", senderPrefix)
+			return chat1.SnippetDecoration_EXPLODED_MESSAGE,
+				fmt.Sprintf("%s ----------------------------", senderPrefix), ""
 		}
-		return chat1.SnippetDecoration_NONE, ""
+		return chat1.SnippetDecoration_NONE, "", ""
 	}
 
 	if msg.IsOutbox() && msg.Outbox().IsBadgable() {
@@ -1223,15 +1236,15 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	} else {
 		decoration = getMsgSnippetDecoration(msg)
 	}
-	snippet = GetMsgSnippetBody(msg)
+	snippet, snippetDecorated = GetMsgSnippetBody(ctx, g, conv.GetConvID(), msg)
 	if snippet == "" {
 		decoration = chat1.SnippetDecoration_NONE
 	}
-	return decoration, senderPrefix + snippet
+	return decoration, senderPrefix + snippet, senderPrefix + snippetDecorated
 }
 
-// We don't want to display the contents of an exploding message in notifications
-func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string,
+func GetDesktopNotificationSnippet(ctx context.Context, g *globals.Context,
+	conv *chat1.ConversationLocal, currentUsername string,
 	fromMsg *chat1.MessageUnboxed, plaintextDesktopDisabled bool) string {
 	if conv == nil {
 		return ""
@@ -1276,7 +1289,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 		}
 		return emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
 	default:
-		decoration, snippetBody := GetMsgSnippet(msg, *conv, currentUsername)
+		decoration, snippetBody, _ := GetMsgSnippet(ctx, g, msg, *conv, currentUsername)
 		return fmt.Sprintf("%s %s", decoration.ToEmoji(), snippetBody)
 	}
 }
@@ -1296,6 +1309,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	if useSnippet && rc.LocalMetadata != nil {
 		res.SnippetDecoration = rc.LocalMetadata.SnippetDecoration
 		res.Snippet = &rc.LocalMetadata.Snippet
+		res.SnippetDecorated = &rc.LocalMetadata.SnippetDecorated
 	}
 	res.Draft = rc.LocalDraft
 	res.IsMuted = rc.Conv.Metadata.Status == chat1.ConversationStatus_MUTED
@@ -1446,7 +1460,8 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.IsDefaultConv = rawConv.Info.IsDefaultConv
 	res.Name = rawConv.Info.TlfName
-	res.SnippetDecoration, res.Snippet = GetConvSnippet(rawConv, g.GetEnv().GetUsername().String())
+	res.SnippetDecoration, res.Snippet, res.SnippetDecorated =
+		GetConvSnippet(ctx, g, rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
@@ -1779,6 +1794,13 @@ func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
 	return body
 }
 
+func PresentDecoratedSnippet(ctx context.Context, g *globals.Context, body string,
+	convID chat1.ConversationID, msgType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
+	body = EscapeForDecorate(ctx, body)
+	body = EscapeShrugs(ctx, body)
+	return g.EmojiSource.Decorate(ctx, body, convID, msgType, emojis)
+}
+
 func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) *string {
 	msgBody := msg.MessageBody
@@ -1941,13 +1963,14 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			*pinnedMessageID = valid.MessageBody.Pin().MsgID
 		}
 		loadTeamMentions(ctx, g, uid, valid)
+		bodySummary, _ := GetMsgSnippetBody(ctx, g, convID, rawMsg)
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
 			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, convID, valid),
-			BodySummary:           GetMsgSnippetBody(rawMsg),
+			BodySummary:           bodySummary,
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,
