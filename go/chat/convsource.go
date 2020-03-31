@@ -873,7 +873,7 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 			Ctime:     keybase1.ToTime(start),
 		})
 	}()
-	if (s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String()))) && s.G().UIRouter != nil {
+	if s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String())) {
 		ui, err := s.G().UIRouter.GetLogUI()
 		if err == nil && ui != nil {
 			ui.Critical("Clearing conv")
