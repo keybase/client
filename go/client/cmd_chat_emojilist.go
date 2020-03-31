@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -36,7 +37,13 @@ func (c *CmdChatListEmoji) Run() error {
 	if err != nil {
 		return err
 	}
-	res, err := cli.UserEmojis(ctx, nil)
+	res, err := cli.UserEmojis(ctx, chat1.UserEmojisArg{
+		Opts: chat1.EmojiFetchOpts{
+			GetCreationInfo: true,
+			GetAliases:      true,
+		},
+		ConvID: nil,
+	})
 	if err != nil {
 		return err
 	}
@@ -50,10 +57,18 @@ func (c *CmdChatListEmoji) Run() error {
 			case chat1.EmojiRemoteSourceTyp_MESSAGE:
 				source = fmt.Sprintf("convID: %s msgID: %d", emoji.RemoteSource.Message().ConvID,
 					emoji.RemoteSource.Message().MsgID)
+			case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
+				source = emoji.RemoteSource.Stockalias().Text
 			default:
 				source = "???"
 			}
-			dui.Printf("%s src: %s\n", emoji.Alias, source)
+			var creator string
+			var timeStr string
+			if emoji.CreationInfo != nil {
+				creator = emoji.CreationInfo.Username
+				timeStr = emoji.CreationInfo.Time.Time().Format(time.UnixDate)
+			}
+			dui.Printf("%s creator: %s time: %s src: %s\n", emoji.Alias, creator, timeStr, source)
 		}
 	}
 	return nil

@@ -93,7 +93,7 @@ const SkinTonePicker = (props: Props) => {
   ) : (
     <Kb.Box style={styles.relative}>
       {expanded ? (
-        <Kb.Animated to={{height: 126}} from={{height: 26}} config={reactSprintConfigStiff}>
+        <Kb.Animated to={{height: 126}} from={{height: 26}} config={reactSprintConfig}>
           {({height}) => (
             <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.popupContainer, {height}])}>
               {optionSkinTones}
@@ -174,4 +174,4 @@ const styles = Styles.styleSheetCreate(() => ({
   relative: {position: 'relative'},
 }))
 
-const reactSprintConfigStiff = {friction: 20, tension: 210}
+const reactSprintConfig = {clamp: true, friction: 20, tension: 210}

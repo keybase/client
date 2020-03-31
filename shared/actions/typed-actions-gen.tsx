@@ -250,6 +250,8 @@ export type TypedActionsMap = {
   'chat2:addToMessageMap': chat2.AddToMessageMapPayload
   'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
   'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
+  'chat2:fetchUserEmojiForAutocomplete': chat2.FetchUserEmojiForAutocompletePayload
+  'chat2:loadedUserEmojiForAutocomplete': chat2.LoadedUserEmojiForAutocompletePayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -986,6 +988,7 @@ export type TypedActionsMap = {
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
+  'teams:setMemberActivityDetails': teams.SetMemberActivityDetailsPayload
   'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
   'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
   'teams:startNewTeamWizard': teams.StartNewTeamWizardPayload

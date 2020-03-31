@@ -8288,8 +8288,8 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		uid1 := gregor1.UID(users[0].User.GetUID().ToBytes())
-		uid2 := gregor1.UID(users[1].User.GetUID().ToBytes())
+		username1 := users[0].User.GetName()
+		username2 := users[1].User.GetName()
 		tc := ctc.as(t, users[0])
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -8297,17 +8297,17 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		}))
 
 		teamID := keybase1.TeamID(created.Triple.Tlfid.String())
-		t.Logf("teamID: %v, uid1: %v, uid2: %v", teamID, users[0].User.GetUID(), users[1].User.GetUID())
+		t.Logf("teamID: %v, username1: %v, username2: %v", teamID, username1, username2)
 		lastActiveAt, err := tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid1,
+			TeamID:   teamID,
+			Username: username1,
 		})
 		require.NoError(t, err)
 		require.NotZero(t, lastActiveAt)
 
 		lastActiveAt, err = tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid2,
+			TeamID:   teamID,
+			Username: username2,
 		})
 		require.NoError(t, err)
 		require.Zero(t, lastActiveAt)
@@ -8316,8 +8316,8 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 			Body: "HI",
 		}))
 		lastActiveAt, err = tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid2,
+			TeamID:   teamID,
+			Username: username2,
 		})
 		require.NoError(t, err)
 		require.Zero(t, lastActiveAt)
@@ -8325,8 +8325,8 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		err = tc.h.G().TeamChannelSource.OnDbNuke(tc.m)
 		require.NoError(t, err)
 		lastActiveAt, err = tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid2,
+			TeamID:   teamID,
+			Username: username2,
 		})
 		require.NoError(t, err)
 		require.NotZero(t, lastActiveAt)

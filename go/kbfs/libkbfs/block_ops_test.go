@@ -368,7 +368,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	err = bops.Get(ctx, kmd2,
 		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: keyGen, Context: bCtx},
-		decryptedBlock, data.NoCacheEntry)
+		decryptedBlock, data.NoCacheEntry, data.MasterBranch)
 	require.NoError(t, err)
 	require.Equal(t, block, decryptedBlock)
 }
@@ -396,7 +396,7 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 	err = bops.Get(ctx, kmd,
 		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, data.NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry, data.MasterBranch)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 }
 
@@ -446,7 +446,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	err = bops.Get(ctx, kmd,
 		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, data.NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry, data.MasterBranch)
 	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
 }
 
@@ -478,7 +478,7 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 	err = bops.Get(ctx, kmd,
 		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen + 1, Context: bCtx},
-		&decryptedBlock, data.NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry, data.MasterBranch)
 	require.EqualError(t, err, fmt.Sprintf(
 		"no key for block decryption (keygen=%d)", latestKeyGen+1))
 }
@@ -551,7 +551,7 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	err = bops.Get(ctx, kmd,
 		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, data.NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry, data.MasterBranch)
 	require.Equal(t, decodeErr, err)
 }
 
@@ -594,7 +594,7 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	err = bops.Get(ctx, kmd,
 		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, data.NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry, data.MasterBranch)
 	require.EqualError(t, err, "could not decrypt block")
 }
 

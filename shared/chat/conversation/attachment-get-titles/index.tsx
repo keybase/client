@@ -71,58 +71,60 @@ class GetTitles extends React.Component<Props, State> {
     if (!info) return null
 
     return (
-      <Kb.Box2 direction="vertical" style={styles.containerOuter} fullHeight={true} fullWidth={true}>
-        <Kb.ScrollView style={styles.scrollView} contentContainerStyle={Styles.globalStyles.fullHeight}>
-          <Kb.Box2
-            alignItems="center"
-            direction="vertical"
-            fullHeight={true}
-            fullWidth={true}
-            style={styles.container}
-          >
-            <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
-              {info.type === 'image' ? (
-                <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
-              ) : (
-                <Kb.Icon type="icon-file-uploading-48" />
-              )}
-            </Kb.Box2>
-            {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
-              <Kb.Box2 direction="vertical" style={styles.filename}>
-                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-                <Kb.Text type="BodySmall" center={true}>
-                  {info.filename} ({this.state.index + 1} of {this.props.pathAndInfos.length})
-                </Kb.Text>
+      <Kb.PopupWrapper onCancel={this.props.onCancel}>
+        <Kb.Box2 direction="vertical" style={styles.containerOuter} fullHeight={true} fullWidth={true}>
+          <Kb.ScrollView style={styles.scrollView} contentContainerStyle={Styles.globalStyles.fullHeight}>
+            <Kb.Box2
+              alignItems="center"
+              direction="vertical"
+              fullHeight={true}
+              fullWidth={true}
+              style={styles.container}
+            >
+              <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
+                {info.type === 'image' ? (
+                  <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+                ) : (
+                  <Kb.Icon type="icon-file-uploading-48" />
+                )}
               </Kb.Box2>
-            )}
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-              <Kb.PlainInput
-                style={styles.input}
-                autoFocus={true}
-                autoCorrect={true}
-                placeholder={titleHint}
-                multiline={true}
-                rowsMin={2}
-                padding="tiny"
-                value={this.state.titles[this.state.index]}
-                onEnterKeyDown={this._onNext}
-                onChangeText={this._updateTitle}
-                selectTextOnFocus={true}
-              />
+              {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
+                <Kb.Box2 direction="vertical" style={styles.filename}>
+                  <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+                  <Kb.Text type="BodySmall" center={true}>
+                    {info.filename} ({this.state.index + 1} of {this.props.pathAndInfos.length})
+                  </Kb.Text>
+                </Kb.Box2>
+              )}
+              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+                <Kb.PlainInput
+                  style={styles.input}
+                  autoFocus={true}
+                  autoCorrect={true}
+                  placeholder={titleHint}
+                  multiline={true}
+                  rowsMin={2}
+                  padding="tiny"
+                  value={this.state.titles[this.state.index]}
+                  onEnterKeyDown={this._onNext}
+                  onChangeText={this._updateTitle}
+                  selectTextOnFocus={true}
+                />
+              </Kb.Box2>
             </Kb.Box2>
-          </Kb.Box2>
-        </Kb.ScrollView>
-        <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {!Styles.isMobile && (
-            <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
-          )}
-          {this._isLast() ? (
-            <Kb.WaitingButton fullWidth={true} waitingKey={null} onClick={this._onNext} label="Send" />
-          ) : (
-            <Kb.Button fullWidth={true} onClick={this._onNext} label="Next" />
-          )}
-        </Kb.ButtonBar>
-      </Kb.Box2>
+          </Kb.ScrollView>
+          <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
+            {!Styles.isMobile && (
+              <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
+            )}
+            {this._isLast() ? (
+              <Kb.WaitingButton fullWidth={true} waitingKey={null} onClick={this._onNext} label="Send" />
+            ) : (
+              <Kb.Button fullWidth={true} onClick={this._onNext} label="Next" />
+            )}
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      </Kb.PopupWrapper>
     )
   }
 }
@@ -219,4 +221,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderOrPopup(GetTitles)
+export default GetTitles

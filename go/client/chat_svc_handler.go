@@ -51,6 +51,7 @@ type ChatServiceHandler interface {
 	GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply
 	ListMembersV1(context.Context, listMembersOptionsV1) Reply
 	EmojiAddV1(context.Context, emojiAddOptionsV1) Reply
+	EmojiAddAliasV1(context.Context, emojiAddAliasOptionsV1) Reply
 	EmojiRemoveV1(context.Context, emojiRemoveOptionsV1) Reply
 	EmojiListV1(context.Context) Reply
 }
@@ -1345,12 +1346,36 @@ func (c *chatServiceHandler) EmojiAddV1(ctx context.Context, opts emojiAddOption
 	return Reply{Result: res}
 }
 
+func (c *chatServiceHandler) EmojiAddAliasV1(ctx context.Context, opts emojiAddAliasOptionsV1) Reply {
+	conv, _, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	chatClient, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := chatClient.AddEmojiAlias(ctx, chat1.AddEmojiAliasArg{
+		ConvID:        conv.GetConvID(),
+		NewAlias:      opts.NewAlias,
+		ExistingAlias: opts.ExistingAlias,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
 func (c *chatServiceHandler) EmojiListV1(ctx context.Context) Reply {
 	chatClient, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-	res, err := chatClient.UserEmojis(ctx, nil)
+	res, err := chatClient.UserEmojis(ctx, chat1.UserEmojisArg{
+		Opts: chat1.EmojiFetchOpts{
+			GetCreationInfo: true,
+		},
+	})
 	if err != nil {
 		return c.errReply(err)
 	}

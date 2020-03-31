@@ -4,7 +4,7 @@ import * as React from 'react'
 import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import * as Container from '../util/container'
-import AboutTab from './about-container'
+import AboutTab from './about'
 import AdvancedTab from './advanced'
 import ChatTab from './chat/container'
 import DevicesTab from '../devices/container'
@@ -36,7 +36,7 @@ import SettingsRoot from '.'
 const subRoutes = {
   [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
   [Constants.gitTab]: {getScreen: (): typeof GitTab => require('../git/container').default},
-  [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
+  [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about').default},
   [Constants.advancedTab]: {
     getScreen: (): typeof AdvancedTab => require('./advanced').default,
   },
@@ -142,6 +142,7 @@ const SettingsSubNavigator = createNavigator(
 )
 
 SettingsSubNavigator.navigationOptions = {
+  header: undefined,
   title: 'More',
 }
 

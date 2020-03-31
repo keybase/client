@@ -18,7 +18,6 @@ export default Container.connect(
   }),
   (dispatch, ownProps: OwnProps) => ({
     loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => {
       const isTeam = !!Container.getRouteProps(ownProps, 'isTeam', false)

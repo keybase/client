@@ -94,8 +94,17 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	for index, c := range convs {
 		indexMap[c.ConvIDStr] = index
 	}
-	for ar := range b.localizeCb {
-		res[indexMap[ar.ConvLocal.GetConvID().ConvIDStr()]] = ar.ConvLocal
+	doneCb := make(chan struct{})
+	go func() {
+		for ar := range b.localizeCb {
+			res[indexMap[ar.ConvLocal.GetConvID().ConvIDStr()]] = ar.ConvLocal
+		}
+		close(doneCb)
+	}()
+	select {
+	case <-doneCb:
+	case <-ctx.Done():
+		return res, ctx.Err()
 	}
 	return res, nil
 }

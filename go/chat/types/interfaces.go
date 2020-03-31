@@ -242,6 +242,7 @@ type Syncer interface {
 		updates []chat1.ConversationStaleUpdate, immediate bool)
 	SelectConversation(ctx context.Context, convID chat1.ConversationID)
 	GetSelectedConversation() chat1.ConversationID
+	IsSelectedConversation(chat1.ConversationID) bool
 	Shutdown()
 }
 
@@ -613,11 +614,13 @@ type ParticipantSource interface {
 
 type EmojiSource interface {
 	Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias, filename string) (chat1.EmojiRemoteSource, error)
+	AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		newAlias, existingAlias string) (chat1.EmojiRemoteSource, error)
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
-	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error)
+	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
 	Decorate(ctx context.Context, body string, convID chat1.ConversationID, emojis []chat1.HarvestedEmoji) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
-		crossTeams map[string]chat1.HarvestedEmoji, mode EmojiSourceHarvestMode) ([]chat1.HarvestedEmoji, error)
+		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 }
 
 type ServerConnection interface {

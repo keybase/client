@@ -418,8 +418,12 @@ func (b *BlockServerRemote) Get(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
 				id, tlfID, context, len(buf), err)
 		} else {
-			// But don't cache it if it's archived data.
-			if res.Status == keybase1.BlockStatus_ARCHIVED {
+			// But don't cache it if it's archived data, except if
+			// it's going to the sync cache.  Blocks marked for the
+			// sync cache must be cached, otherwise prefetching will
+			// never complete.
+			if res.Status == keybase1.BlockStatus_ARCHIVED &&
+				cacheType != DiskBlockSyncCache {
 				return
 			}
 

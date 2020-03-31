@@ -35,7 +35,7 @@ export default connect(
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onEnterPaperkey: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['enterPaperkey']})),
+    onEnterPaperkey: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['chatEnterPaperkey']})),
     onRekey: () => dispatch(createOpenPopup()),
     onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   }),

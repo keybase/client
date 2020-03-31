@@ -1033,7 +1033,7 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 		}
 	} else {
 		block = data.NewFileBlock().(*data.FileBlock)
-		err = assembleBlock(
+		err = assembleBlockLocal(
 			ctx, fbo.config.keyGetter(), fbo.config.Codec(),
 			fbo.config.Crypto(), kmd, config.Paths.Ptr, block,
 			config.Paths.Buf, config.Paths.ServerHalf)
@@ -1713,16 +1713,23 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 	}
 }
 
+func (fbo *folderBranchOps) isSyncedTlf() bool {
+	return fbo.branch() == data.MasterBranch && fbo.config.IsSyncedTlf(fbo.id())
+}
+
 func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
 	ptr := rmd.Data().Dir.BlockPointer
 	action := fbo.config.Mode().DefaultBlockRequestAction().
 		AddStopPrefetchIfFull()
-	if !action.prefetch() && fbo.config.IsSyncedTlf(fbo.id()) {
+	if !action.prefetch() && fbo.isSyncedTlf() {
 		// Explicitly add the prefetch action for synced folders when
 		// getting the root block, since in some modes (like
 		// constrained) the prefetch action isn't set by default.
 		action = action.AddPrefetch()
+	}
+	if fbo.branch() != data.MasterBranch {
+		action = action.AddNonMasterBranch()
 	}
 
 	return fbo.config.BlockOps().BlockRetriever().Request(
@@ -1765,7 +1772,7 @@ func (fbo *folderBranchOps) waitForRootBlockFetchAndSyncIfNeeded(
 		return data.ZeroPtr, nil, err
 	}
 
-	if fbo.config.IsSyncedTlf(rmd.TlfID()) {
+	if fbo.isSyncedTlf() {
 		fbo.syncedTlfObservers.fullSyncStarted(
 			ctx, fbo.id(), rmd.Revision(), waitCh)
 	}
@@ -1912,17 +1919,26 @@ func (fbo *folderBranchOps) makeObfuscator() data.Obfuscator {
 func (fbo *folderBranchOps) setHeadLocked(
 	ctx context.Context, lState *kbfssync.LockState,
 	md ImmutableRootMetadata, headStatus headTrustStatus,
-	ct mdCommitType) error {
+	ct mdCommitType) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
 	isFirstHead := fbo.head == ImmutableRootMetadata{}
 	wasReadable := false
 	if isFirstHead {
-		err := fbo.setObfuscatorSecret(ctx, md.ReadOnly())
+		err = fbo.setObfuscatorSecret(ctx, md.ReadOnly())
 		if err != nil {
 			return err
 		}
+		defer func() {
+			if err != nil && fbo.head == (ImmutableRootMetadata{}) {
+				// If we didn't successfully set the head, we need to
+				// unset the secret.
+				fbo.obLock.Lock()
+				defer fbo.obLock.Unlock()
+				fbo.obSecret = nil
+			}
+		}()
 	} else {
 		if headStatus == headUntrusted {
 			panic("setHeadLocked: Trying to set an untrusted head over an existing head")
@@ -2685,7 +2701,7 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 		}
 	}()
 	cacheType := DiskBlockAnyCache
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		cacheType = DiskBlockSyncCache
 	}
 	ptrsToDelete, err := doBlockPuts(
@@ -2715,7 +2731,8 @@ func ResetRootBlock(ctx context.Context, config Config,
 
 	info, plainSize, readyBlockData, err :=
 		data.ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
-			rmd.ReadOnly(), newDblock, chargedTo, config.DefaultBlockType())
+			rmd.ReadOnly(), newDblock, chargedTo, config.DefaultBlockType(),
+			cacheHashBehavior(config, config, rmd.TlfID()))
 	if err != nil {
 		return nil, data.BlockInfo{}, data.ReadyBlockData{}, err
 	}
@@ -2745,10 +2762,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 }
 
 func (fbo *folderBranchOps) cacheHashBehavior() data.BlockCacheHashBehavior {
-	if TLFJournalEnabled(fbo.config, fbo.id()) {
-		return data.SkipCacheHash
-	}
-	return data.DoCacheHash
+	return cacheHashBehavior(fbo.config, fbo.config, fbo.id())
 }
 
 func (fbo *folderBranchOps) initMDLocked(
@@ -2835,7 +2849,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	cacheType := DiskBlockAnyCache
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		cacheType = DiskBlockSyncCache
 	}
 	if err = PutBlockCheckLimitErrs(
@@ -3255,7 +3269,7 @@ func (fbo *folderBranchOps) transformReadError(
 		return err
 	}
 
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		fbo.log.CWarningf(ctx,
 			"Got unexpected read error on a synced TLF: %+v", err)
 		return err
@@ -6252,7 +6266,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	// Put all the blocks.
 	cacheType := DiskBlockAnyCache
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	if fbo.isSyncedTlf() {
 		cacheType = DiskBlockSyncCache
 	}
 	blocksToRemove, err = doBlockPuts(
@@ -9194,7 +9208,8 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 
 	info, _, readyBlockData, err :=
 		data.ReadyBlock(ctx, fbo.config.BlockCache(), fbo.config.BlockOps(),
-			kmd, b, chargedTo, fbo.config.DefaultBlockType())
+			kmd, b, chargedTo, fbo.config.DefaultBlockType(),
+			fbo.cacheHashBehavior())
 	if err != nil {
 		return FolderSyncEncryptedPartialPaths{}, err
 	}

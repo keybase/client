@@ -105,6 +105,12 @@ func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
 	return nil
 }
 
+func (bg *fakeBlockGetter) assembleBlockLocal(ctx context.Context,
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	return bg.assembleBlock(ctx, kmd, ptr, block, buf, serverHalf)
+}
+
 func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	t.Log("Test the basic ability of a worker to return a block.")
 	bg := newFakeBlockGetter(false)

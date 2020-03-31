@@ -20,4 +20,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderHoc(NoConversation)
+export default NoConversation

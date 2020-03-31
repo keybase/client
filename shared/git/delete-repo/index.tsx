@@ -8,7 +8,6 @@ export type Props = {
   name: string
   onDelete: (notifyTeam: boolean) => void
   onClose: () => void
-  title?: string
   waitingKey: string
 }
 
@@ -43,78 +42,82 @@ class DeleteRepo extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.ScrollView>
-        <Kb.Box style={styles.container}>
-          {!!this.props.error && (
-            <Kb.Box style={styles.error}>
-              <Kb.Text type="Body" negative={true}>
-                {this.props.error.message}
+      <Kb.PopupWrapper onCancel={this.props.onClose} title="Delete repo?">
+        <Kb.ScrollView>
+          <Kb.Box style={styles.container}>
+            {!!this.props.error && (
+              <Kb.Box style={styles.error}>
+                <Kb.Text type="Body" negative={true}>
+                  {this.props.error.message}
+                </Kb.Text>
+              </Kb.Box>
+            )}
+            <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
+              Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}
+              repository?
+            </Kb.Text>
+            <Kb.Icon
+              type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'}
+            />
+            <Kb.Box style={styles.avatarBox}>
+              {!!this.props.teamname && (
+                <Kb.Avatar
+                  isTeam={true}
+                  teamname={this.props.teamname}
+                  size={16}
+                  style={{marginRight: Styles.globalMargins.xtiny}}
+                />
+              )}
+              <Kb.Text
+                type="BodySemibold"
+                style={{color: Styles.globalColors.redDark, textDecorationLine: 'line-through'}}
+              >
+                {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Kb.Text>
             </Kb.Box>
-          )}
-          <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
-            Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}
-            repository?
-          </Kb.Text>
-          <Kb.Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
-          <Kb.Box style={styles.avatarBox}>
+            <Kb.Text center={true} type="Body" style={{marginBottom: Styles.globalMargins.medium}}>
+              {this.props.teamname
+                ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
+                : 'This will permanently delete your remote files and history. This action cannot be undone.'}
+            </Kb.Text>
+            <Kb.Text style={styles.confirm} type="BodySemibold">
+              Enter the name of the repository to&nbsp;confirm:
+            </Kb.Text>
+            <Kb.LabeledInput
+              autoFocus={true}
+              value={this.state.name}
+              onChangeText={name => this.setState({name})}
+              onEnterKeyDown={this._onSubmit}
+              placeholder="Name of the repository"
+            />
             {!!this.props.teamname && (
-              <Kb.Avatar
-                isTeam={true}
-                teamname={this.props.teamname}
-                size={16}
-                style={{marginRight: Styles.globalMargins.xtiny}}
+              <Kb.Checkbox
+                label="Notify the team"
+                checked={this.state.notifyTeam}
+                onCheck={notifyTeam => this.setState({notifyTeam})}
+                style={styles.checkbox}
               />
             )}
-            <Kb.Text
-              type="BodySemibold"
-              style={{color: Styles.globalColors.redDark, textDecorationLine: 'line-through'}}
-            >
-              {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
-            </Kb.Text>
+            <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+              <Kb.WaitingButton
+                type="Dim"
+                onClick={this.props.onClose}
+                label="Cancel"
+                style={{marginRight: Styles.globalMargins.tiny}}
+                waitingKey={this.props.waitingKey}
+                onlyDisable={true}
+              />
+              <Kb.WaitingButton
+                type="Danger"
+                onClick={this._onSubmit}
+                label={Styles.isMobile ? 'Delete' : 'Delete this repository'}
+                disabled={!this._matchesName()}
+                waitingKey={this.props.waitingKey}
+              />
+            </Kb.ButtonBar>
           </Kb.Box>
-          <Kb.Text center={true} type="Body" style={{marginBottom: Styles.globalMargins.medium}}>
-            {this.props.teamname
-              ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
-              : 'This will permanently delete your remote files and history. This action cannot be undone.'}
-          </Kb.Text>
-          <Kb.Text style={styles.confirm} type="BodySemibold">
-            Enter the name of the repository to&nbsp;confirm:
-          </Kb.Text>
-          <Kb.LabeledInput
-            autoFocus={true}
-            value={this.state.name}
-            onChangeText={name => this.setState({name})}
-            onEnterKeyDown={this._onSubmit}
-            placeholder="Name of the repository"
-          />
-          {!!this.props.teamname && (
-            <Kb.Checkbox
-              label="Notify the team"
-              checked={this.state.notifyTeam}
-              onCheck={notifyTeam => this.setState({notifyTeam})}
-              style={styles.checkbox}
-            />
-          )}
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              type="Dim"
-              onClick={this.props.onClose}
-              label="Cancel"
-              style={{marginRight: Styles.globalMargins.tiny}}
-              waitingKey={this.props.waitingKey}
-              onlyDisable={true}
-            />
-            <Kb.WaitingButton
-              type="Danger"
-              onClick={this._onSubmit}
-              label={Styles.isMobile ? 'Delete' : 'Delete this repository'}
-              disabled={!this._matchesName()}
-              waitingKey={this.props.waitingKey}
-            />
-          </Kb.ButtonBar>
-        </Kb.Box>
-      </Kb.ScrollView>
+        </Kb.ScrollView>
+      </Kb.PopupWrapper>
     )
   }
 }
@@ -160,4 +163,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Kb.HeaderOrPopup(DeleteRepo)
+export default DeleteRepo

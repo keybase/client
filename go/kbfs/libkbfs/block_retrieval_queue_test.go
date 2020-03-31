@@ -29,6 +29,7 @@ type testBlockRetrievalConfig struct {
 	logMaker
 	testCache data.BlockCache
 	bg        blockGetter
+	bs        BlockServer
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
@@ -41,13 +42,15 @@ type testBlockRetrievalConfig struct {
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	dbc DiskBlockCache) *testBlockRetrievalConfig {
 	clock := clocktest.NewTestClockNow()
-	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
+	ctlr := gomock.NewController(t)
+	mockPublisher := NewMockSubscriptionManagerPublisher(ctlr)
 	mockPublisher.EXPECT().PublishChange(gomock.Any()).AnyTimes()
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
 		newTestLogMakerWithVDebug(t, libkb.VLog2String),
 		data.NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
 		bg,
+		NewMockBlockServer(ctlr),
 		newTestDiskBlockCacheGetter(t, dbc),
 		newTestSyncedTlfGetterSetter(),
 		testInitModeGetter{InitDefault},
@@ -76,6 +79,10 @@ func (c testBlockRetrievalConfig) Reporter() Reporter {
 
 func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 	return c.bg
+}
+
+func (c testBlockRetrievalConfig) BlockServer() BlockServer {
+	return c.bs
 }
 
 func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {

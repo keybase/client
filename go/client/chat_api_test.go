@@ -46,6 +46,7 @@ type handlerTracker struct {
 	getDeviceInfoV1     int
 	listMembersV1       int
 	emojiAddV1          int
+	emojiAddAliasV1     int
 	emojiListV1         int
 	emojiRemoveV1       int
 }
@@ -203,6 +204,11 @@ func (h *handlerTracker) EmojiAddV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) EmojiAddAliasV1(context.Context, Call, io.Writer) error {
+	h.emojiAddAliasV1++
+	return nil
+}
+
 func (h *handlerTracker) EmojiListV1(context.Context, Call, io.Writer) error {
 	h.emojiListV1++
 	return nil
@@ -343,6 +349,10 @@ func (c *chatEcho) ListMembersV1(context.Context, listMembersOptionsV1) Reply {
 }
 
 func (c *chatEcho) EmojiAddV1(context.Context, emojiAddOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiAddAliasV1(context.Context, emojiAddAliasOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

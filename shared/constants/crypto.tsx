@@ -131,16 +131,16 @@ export const outputTextType: Map<Types.Operations, Types.TextType> = new Map([
 ] as const)
 
 export const inputFileIcon: Map<Types.Operations, IconType> = new Map([
-  ['decrypt', 'icon-file-saltpack-encrypted-64'],
+  ['decrypt', 'icon-file-saltpack-64'],
   ['encrypt', 'icon-file-64'],
   ['sign', 'icon-file-64'],
-  ['verify', 'icon-file-saltpack-signed-64'],
+  ['verify', 'icon-file-saltpack-64'],
 ])
 
 export const outputFileIcon: Map<Types.Operations, IconType> = new Map([
   ['decrypt', 'icon-file-64'],
-  ['encrypt', 'icon-file-saltpack-encrypted-64'],
-  ['sign', 'icon-file-saltpack-signed-64'],
+  ['encrypt', 'icon-file-saltpack-64'],
+  ['sign', 'icon-file-saltpack-64'],
   ['verify', 'icon-file-64'],
 ])
 
@@ -171,6 +171,12 @@ export const outputRoute: Map<Types.Operations, Types.CryptoOutputRoute> = new M
   ['sign', signOutput],
   ['verify', verifyOutput],
 ])
+
+export const saltpackEncryptedExtension = '.encrypted.saltpack'
+export const saltpackSignedExtension = '.signed.saltpack'
+export const isPathSaltpackEncrypted = (path: string) => path.endsWith(saltpackEncryptedExtension)
+export const isPathSaltpackSigned = (path: string) => path.endsWith(saltpackSignedExtension)
+export const isPathSaltpack = (path: string) => isPathSaltpackEncrypted(path) || isPathSaltpackSigned(path)
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`

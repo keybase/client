@@ -4,6 +4,11 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "../gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -11,7 +16,8 @@
       "type": "enum",
       "name": "EmojiLoadSourceTyp",
       "symbols": [
-        "HTTPSRV_0"
+        "HTTPSRV_0",
+        "STR_1"
       ]
     },
     {
@@ -28,6 +34,13 @@
             "def": false
           },
           "body": "string"
+        },
+        {
+          "label": {
+            "name": "STR",
+            "def": false
+          },
+          "body": "string"
         }
       ]
     },
@@ -35,7 +48,8 @@
       "type": "enum",
       "name": "EmojiRemoteSourceTyp",
       "symbols": [
-        "MESSAGE_0"
+        "MESSAGE_0",
+        "STOCKALIAS_1"
       ]
     },
     {
@@ -49,6 +63,28 @@
         {
           "type": "MessageID",
           "name": "msgID"
+        },
+        {
+          "type": "boolean",
+          "name": "isAlias"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiStockAlias",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
         }
       ]
     },
@@ -66,6 +102,13 @@
             "def": false
           },
           "body": "EmojiMessage"
+        },
+        {
+          "label": {
+            "name": "STOCKALIAS",
+            "def": false
+          },
+          "body": "EmojiStockAlias"
         }
       ]
     },
@@ -89,6 +132,20 @@
     },
     {
       "type": "record",
+      "name": "EmojiCreationInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Emoji",
       "fields": [
         {
@@ -106,6 +163,13 @@
         {
           "type": "EmojiRemoteSource",
           "name": "remoteSource"
+        },
+        {
+          "type": [
+            null,
+            "EmojiCreationInfo"
+          ],
+          "name": "creationInfo"
         }
       ]
     },

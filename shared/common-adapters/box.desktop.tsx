@@ -83,7 +83,7 @@ const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
       ]
         .filter(Boolean)
         .join(' ')}
-      style={(style as unknown) as React.CSSProperties}
+      style={(Styles.collapseStyles([style]) as unknown) as React.CSSProperties}
     >
       {gappedChildren}
     </div>

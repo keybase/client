@@ -122,7 +122,7 @@ function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionD
   return (
     (desc._description
       ? `/**
-     * ${desc._description}
+     * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
      */
     `
       : '') +

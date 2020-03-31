@@ -330,7 +330,7 @@ const EmojiPicker = ({
       <Kb.Box style={styles.emojiPickerContainer}>
         <EmojiPickerDesktop
           conversationIDKey={conversationIDKey}
-          onPick={onClick}
+          onPickAction={onClick}
           onDidPick={emojiPickerToggle}
         />
       </Kb.Box>

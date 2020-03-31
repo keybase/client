@@ -3107,3 +3107,15 @@ func (r EmojiRemoteSource) IsMessage() bool {
 	}
 	return typ == EmojiRemoteSourceTyp_MESSAGE
 }
+
+func (r EmojiRemoteSource) IsStockAlias() bool {
+	typ, err := r.Typ()
+	if err != nil {
+		return false
+	}
+	return typ == EmojiRemoteSourceTyp_STOCKALIAS
+}
+
+func (r EmojiRemoteSource) IsAlias() bool {
+	return r.IsStockAlias() || (r.IsMessage() && r.Message().IsAlias)
+}

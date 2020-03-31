@@ -18,7 +18,9 @@ type _SetKeybaseLinkErrorPayload = {readonly error: string}
 
 // Action Creators
 /**
- * Fired after OS notifies Electron that an associated Saltpack file has been opened. Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile.
+ * Fired after OS notifies Electron that an associated Saltpack file has been opened.
+ *
+ * Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile.
  */
 export const createSaltpackFileOpen = (payload: _SaltpackFileOpenPayload): SaltpackFileOpenPayload => ({
   payload,

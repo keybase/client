@@ -37,18 +37,18 @@ func (m *MockBlockCache) EXPECT() *MockBlockCacheMockRecorder {
 }
 
 // CheckForKnownPtr mocks base method.
-func (m *MockBlockCache) CheckForKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock) (data.BlockPointer, error) {
+func (m *MockBlockCache) CheckForKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock, arg2 data.BlockCacheHashBehavior) (data.BlockPointer, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckForKnownPtr", arg0, arg1)
+	ret := m.ctrl.Call(m, "CheckForKnownPtr", arg0, arg1, arg2)
 	ret0, _ := ret[0].(data.BlockPointer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CheckForKnownPtr indicates an expected call of CheckForKnownPtr.
-func (mr *MockBlockCacheMockRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockBlockCacheMockRecorder) CheckForKnownPtr(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckForKnownPtr", reflect.TypeOf((*MockBlockCache)(nil).CheckForKnownPtr), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckForKnownPtr", reflect.TypeOf((*MockBlockCache)(nil).CheckForKnownPtr), arg0, arg1, arg2)
 }
 
 // DeleteKnownPtr mocks base method.

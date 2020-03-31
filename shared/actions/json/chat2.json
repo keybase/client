@@ -9,8 +9,8 @@
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
-    // Selected a conversation (used by nav only)
     "selectedConversation": {
+      "_description": "Selected a conversation (used by nav only)",
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "deselectedConversation": {
@@ -19,18 +19,21 @@
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // Got an error while creating a conversation.
     "conversationErrored": {
+      "_description": "Got an error while creating a conversation.",
       "allowedUsers": "Array<string>",
       "code": "number",
       "disallowedUsers": "Array<string>",
       "message": "string"
     },
-    // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
-    // fromAReset means you were in a reset kbfs convo and you want to make a new one
-    // Chatting from external places in the app should usually call this
-    // if you want to preview a team chat (and add it to the inbox use selectConversation instead)
+
     "previewConversation": {
+      "_description": [
+        "Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)",
+        "fromAReset means you were in a reset kbfs convo and you want to make a new one",
+        "Chatting from external places in the app should usually call this",
+        "if you want to preview a team chat (and add it to the inbox use selectConversation instead)"
+      ],
       "participants?": "Array<string>",
       "teamname?": "string",
       "channelname?": "string",
@@ -69,14 +72,14 @@
       "_description": "Where we want our focus for keypresses",
       "nextFocus": "Types.Focus"
     },
-    // Update our badges in the nav
     "badgesUpdated": {
+      "_description": "Update our badges in the nav",
       "bigTeamBadgeCount": "number",
       "conversations": "Array<RPCTypes.BadgeConversationInfo>",
       "smallTeamBadgeCount": "number"
     },
-    // Refresh the inbox
     "inboxRefresh": {
+      "_description": "Refresh the inbox",
       "reason": [
         "'bootstrap'",
         "'componentNeverLoaded'",
@@ -91,19 +94,20 @@
         "'shareConfigSearch'"
       ]
     },
-    // We want to unbox an inbox row
     "metaNeedsUpdating": {
+      "_description": "We want to unbox an inbox row",
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string"
     },
-    // Internal action: pull more metas from the queue to request
-    "metaHandleQueue": {},
-    // About to try and unbox some inbox rows
+    "metaHandleQueue": {
+      "_description": "Internal action: pull more metas from the queue to request"
+    },
     "metaRequestingTrusted": {
+      "_description": "About to try and unbox some inbox rows",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    // Actually unboxing
     "metaRequestTrusted": {
+      "_description": "Actually unboxing",
       "force?": "boolean",
       "noWaiting?": "boolean",
       "reason": [
@@ -123,8 +127,8 @@
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    // Got some new inbox rows
     "metasReceived": {
+      "_description": "Got some new inbox rows",
       "metas": "Array<Types.ConversationMeta>",
       "removals?": "Array<Types.ConversationIDKey>", // convs to remove
       "fromInboxRefresh?": "boolean", // If true from an inbox refresh
@@ -132,27 +136,31 @@
     },
     "clearMetas": {},
     "clearMessages": {},
-    // Got some inbox errors
     "metaReceivedError": {
+      "_description": "Got some inbox errors",
       "conversationIDKey": "Types.ConversationIDKey",
       "error": "RPCChatTypes.InboxUIItemError | null",
       "username": "string | null"
     },
-    // We got a status update saying it was blocked or ignored
     "metaDelete": {
+      "_description": "We got a status update saying it was blocked or ignored",
       "conversationIDKey": "Types.ConversationIDKey",
       "selectSomethingElse": "boolean"
     },
-    // We updated our view of a thread
     "updateMoreToLoad": {
+      "_description": "We updated our view of a thread",
       "conversationIDKey": "Types.ConversationIDKey",
       "moreToLoad": "boolean"
     },
-    // Add a new message
     "messagesAdd": {
-      // sent = we sent it
-      // incoming = a streaming message
-      // threadLoad = we're loading more messages on select / scroll
+      "_description": [
+        "Add a new message",
+        "",
+        "Context types:",
+        "- sent = we sent it",
+        "- incoming = a streaming message",
+        "- threadLoad = we're loading more messages on select / scroll"
+      ],
       "context": [
         "{type: 'sent'}",
         "{type: 'incoming'}",
@@ -164,38 +172,38 @@
       "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
       "forceContainsLatestCalc?": "boolean"
     },
-    // Got an error sending a message
     "messageErrored": {
+      "_description": "Got an error sending a message",
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
       "errorTyp": "number | null",
       "outboxID": "Types.OutboxID"
     },
-    // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
+      "_description": "Start editing a message / or edit the last message / or clear editing",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal | null",
       "editLastUser?": "string"
     },
-    // Start quoting a message / or clear quoting
     "messageSetQuoting": {
+      "_description": "Start quoting a message / or clear quoting",
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "targetConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Reply privately to a message with quoting
     "messageReplyPrivately": {
+      "_description": "Reply privately to a message with quoting",
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Submit an edit to the daemon
     "messageEdit": {
+      "_description": "Submit an edit to the daemon",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "text": "HiddenString"
     },
-    // Update a message which changed
     "messageWasEdited": {
+      "_description": "Update a message which changed",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "text": "HiddenString",
@@ -208,8 +216,8 @@
       "ordinal": "Types.Ordinal",
       "text": "HiddenString"
     },
-    // Mark a message as deleted
     "messagesWereDeleted": {
+      "_description": "Mark a message as deleted",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageIDs?": "Array<RPCChatTypes.MessageID>",
       "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
@@ -222,17 +230,17 @@
       "messageIDs": "Array<RPCChatTypes.MessageID>",
       "explodedBy?": "string"
     },
-    // Delete a message
     "messageDelete": {
+      "_description": "Delete a message",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Deletes all messages
     "messageDeleteHistory": {
+      "_description": "Deletes all messages",
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
+      "_description": "Load some more messages for a conversation",
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "loadNewerMessagesDueToScroll": {
@@ -243,14 +251,14 @@
       "messageID": "Types.MessageID",
       "highlightMode": "Types.CenterOrdinalHighlightMode"
     },
-    // Show a desktop notification
     "desktopNotification": {
+      "_description": "Show a desktop notification",
       "conversationIDKey": "Types.ConversationIDKey",
       "author": "string",
       "body": "string"
     },
-    // Send a text message
     "messageSend": {
+      "_description": "Send a text message",
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString",
       "replyTo?": "Types.MessageID",
@@ -264,6 +272,7 @@
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
       "conversationIDKey": "Types.ConversationIDKey",
+      "decorated": "string",
       "emoji": "string",
       "targetOrdinal": "Types.Ordinal",
       "username": "string"
@@ -279,8 +288,8 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
     },
-    // Resend a message
     "messageRetry": {
+      "_description": "Resend a message",
       "conversationIDKey": "Types.ConversationIDKey",
       "outboxID": "Types.OutboxID"
     },
@@ -298,48 +307,48 @@
     "openFolder": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // If an implied team chat member resets you can start a new chat w/o any reset people
     "resetChatWithoutThem": {
+      "_description": "If an implied team chat member resets you can start a new chat w/o any reset people",
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // If an implied team chat member resets you can add them back in
     "resetLetThemIn": {
+      "_description": "If an implied team chat member resets you can add them back in",
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
     },
-    // The user has selected an attachment with a preview
     "attachmentPreviewSelect": {
+      "_description": "The user has selected an attachment with a preview",
       "message": "Types.MessageAttachment"
     },
-    // We want to save an attachment to the local disk
     "attachmentDownload": {
+      "_description": "We want to save an attachment to the local disk",
       "message": "Types.Message"
     },
-    // Saving an attachment to mobile storage
     "attachmentMobileSave": {
+      "_description": "Saving an attachment to mobile storage",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Saving an attachment to mobile storage has finished
     "attachmentMobileSaved": {
+      "_description": "Saving an attachment to mobile storage has finished",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Update the loading bars
     "attachmentLoading": {
+      "_description": "Update the loading bars",
       "conversationIDKey": "Types.ConversationIDKey",
       "message": "Types.Message",
       "ratio": "number", // 0-1
       "isPreview": "boolean"
     },
-    // We saved an attachment to the local disk
     "attachmentDownloaded": {
+      "_description": "We saved an attachment to the local disk",
       "message": "Types.Message",
       "error?": "string",
       "path?": "string"
     },
-    // We want to upload some attachments
     "attachmentsUpload": {
+      "_description": "We want to upload some attachments",
       "conversationIDKey": "Types.ConversationIDKey",
       "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>",
@@ -350,46 +359,53 @@
       "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>"
     },
-    // Update progress on an upload
     "attachmentUploading": {
+      "_description": "Update progress on an upload",
       "conversationIDKey": "Types.ConversationIDKey",
       "outboxID": "Types.OutboxID",
       "ratio": "number" // 0-1
     },
-    // We're done uploading
     "attachmentUploaded": {
+      "_description": "We're done uploading",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Image data pasted into a conversation
     "attachmentPasted": {
+      "_description": "Image data pasted into a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "data": "Buffer"
     },
-    // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {
+      "_description": [
+        "We got an uploaded attachment.",
+        "While online this is like an edit of the placeholder"
+      ],
       "conversationIDKey": "Types.ConversationIDKey",
       "placeholderID": "RPCChatTypes.MessageID",
       "message": "Types.MessageAttachment"
     },
-    // Tell server we're typing
     "sendTyping": {
+      "_description": "Tell server we're typing",
       "conversationIDKey": "Types.ConversationIDKey",
       "typing": "boolean"
     },
-    // On startup we're automatically loading a thread sometimes. When we first view it we should
-    // go through our marking as read logic
     "markInitiallyLoadedThreadAsRead": {
+      "_description": [
+        "On startup we're automatically loading a thread sometimes.",
+        "When we first view it we should go through our marking as read logic"
+      ],
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // Server told us a conversation is out of date
     "markConversationsStale": {
+      "_description": "Server told us a conversation is out of date",
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "updateType": "RPCChatTypes.StaleUpdateType"
     },
-    // Navigation helpers. Nav is slightly different on mobile / desktop
-    "navigateToInbox": {},
+    "navigateToInbox": {
+      "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
+    },
     "navigateToThread": {
+      "_description": "Navigation helper. Nav is slightly different on mobile / desktop.",
       "conversationIDKey": "Types.ConversationIDKey",
       // why this happened, sometimes there's different side effects
       "reason": [
@@ -423,40 +439,40 @@
       ],
       "pushBody?": "string"
     },
-    // Share to external app on mobile
     "messageAttachmentNativeShare": {
+      "_description": "Share to external app on mobile",
       "message": "Types.Message"
     },
-    // Save on mobile (camera roll)
     "messageAttachmentNativeSave": {
+      "_description": "Save on mobile (camera roll)",
       "message": "Types.Message"
     },
-    // We're changing the notification settings
     "updateNotificationSettings": {
+      "_description": "We're changing the notification settings",
       "conversationIDKey": "Types.ConversationIDKey",
       "notificationsDesktop": "Types.NotificationsType",
       "notificationsMobile": "Types.NotificationsType",
       "notificationsGlobalIgnoreMentions": "boolean"
     },
-    // We get new notification settings
     "notificationSettingsUpdated": {
+      "_description": "We get new notification settings",
       "conversationIDKey": "Types.ConversationIDKey",
       "settings": "RPCChatTypes.ConversationNotificationInfo"
     },
-    // Block a conversation
     "blockConversation": {
+      "_description": "Block a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
     },
-    // Hide a conversation until future activity
     "hideConversation": {
+      "_description": "Hide a conversation until future activity",
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "unhideConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // Conversation was loaded and is offline
     "setConversationOffline": {
+      "_description": "Conversation was loaded and is offline",
       "conversationIDKey": "Types.ConversationIDKey",
       "offline": "boolean"
     },
@@ -918,6 +934,12 @@
     "loadedMutualTeams": {
       "conversationIDKey": "Types.ConversationIDKey",
       "teamIDs": "Array<TeamsTypes.TeamID>"
+    },
+    "fetchUserEmojiForAutocomplete": {
+      "_description": "Refresh user emoji and put it in store for autocomplete"
+    },
+    "loadedUserEmojiForAutocomplete": {
+      "fetchedEmojis": "RPCChatTypes.UserEmojis"
     }
   }
 }

@@ -9,6 +9,7 @@ export type Props = {
   onStartChat: () => void
   profileUrl: string
   serviceId: ServiceId
+  title: string
   username: string
 }
 

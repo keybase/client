@@ -432,7 +432,8 @@ export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload): Val
   type: validateSecretKey,
 })
 /**
- * Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.
+ * Cancel a payment. Valid for payments of status 'claimable'.
+ * If showAccount is true, nav to the currently selected account when done.
  */
 export const createCancelPayment = (payload: _CancelPaymentPayload): CancelPaymentPayload => ({
   payload,
@@ -555,7 +556,9 @@ export const createAssetWithdraw = (payload: _AssetWithdrawPayload): AssetWithdr
   type: assetWithdraw,
 })
 /**
- * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
+ * Initialize and navigate to the send or request form.
+ *
+ * See docs for `setBuilding*` for param semantics.
  */
 export const createOpenSendRequestForm = (
   payload: _OpenSendRequestFormPayload = Object.freeze({})

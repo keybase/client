@@ -161,7 +161,9 @@ type BlockCache interface {
 	// associated with that ID, including key and data versions.
 	// If no ID is known, return an uninitialized BlockPointer and
 	// a nil error.
-	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
+	CheckForKnownPtr(
+		tlf tlf.ID, block *FileBlock, hashBehavior BlockCacheHashBehavior) (
+		BlockPointer, error)
 	// DeleteTransient removes the transient entry for the given
 	// ID from the cache, as well as any cached IDs so the block
 	// won't be reused.

@@ -102,7 +102,7 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 	}
 
 	// If the update is for a big team we are not currently viewing, don't bother sending it
-	if teamType == chat1.TeamType_COMPLEX && !convID.Eq(t.G().Syncer.GetSelectedConversation()) {
+	if teamType == chat1.TeamType_COMPLEX && !t.G().Syncer.IsSelectedConversation(convID) {
 		return
 	}
 
