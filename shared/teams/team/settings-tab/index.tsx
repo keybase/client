@@ -13,6 +13,7 @@ import {renderWelcomeMessage} from '../../../chat/conversation/messages/cards/te
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
 import flags from '../../../util/feature-flags'
+import DefaultChannels from './default-channels'
 
 type Props = {
   canShowcase: boolean
@@ -351,6 +352,11 @@ export class Settings extends React.Component<Props, State> {
             teamID={this.props.teamID}
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
+        )}
+        {flags.teamsRedesign && this.props.isBigTeam && (
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <DefaultChannels teamID={this.props.teamID} />
+          </Kb.Box2>
         )}
         {flags.teamsRedesign &&
           this.props.yourOperations.editTeamDescription &&

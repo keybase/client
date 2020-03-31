@@ -159,6 +159,11 @@ export type AddMembersWizardState = {
   teamID: TeamID
 }
 
+export type ChannelNameID = {
+  channelname: string
+  conversationIDKey: ConversationIDKey
+}
+
 export type ActivityLevels = {
   channels: Map<ConversationIDKey, ActivityLevel>
   teams: Map<TeamID, ActivityLevel>

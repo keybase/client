@@ -1355,12 +1355,12 @@ protocol local {
     array<InboxUIItem> convs;
     union { null, RateLimit } rateLimit;
   }
-  GetDefaultTeamChannelsLocalRes getDefaultTeamChannelsLocal(string teamName);
+  GetDefaultTeamChannelsLocalRes getDefaultTeamChannelsLocal(keybase1.TeamID teamID);
 
   record SetDefaultTeamChannelsLocalRes {
     union { null, RateLimit } rateLimit;
   }
-  SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(string teamName, array<ConvIDStr> convs);
+  SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(keybase1.TeamID teamID, array<ConvIDStr> convs);
 
   LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
   record LastActiveTimeAll {

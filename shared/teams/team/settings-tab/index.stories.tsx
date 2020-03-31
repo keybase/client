@@ -92,7 +92,14 @@ const load = () => {
     .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Channel popup', () => <ChannelPopup {...channelPopupProps} />)
     .add('Channel popup w/disabled', () => (
-      <ChannelPopup {...channelPopupProps} disabledChannels={['hellos', 'soups', 'team-sqawk']} />
+      <ChannelPopup
+        {...channelPopupProps}
+        disabledChannels={[
+          {channelname: 'hellos', conversationIDKey: '2'},
+          {channelname: 'soups', conversationIDKey: '5'},
+          {channelname: 'team-sqawk', conversationIDKey: '11'},
+        ]}
+      />
     ))
 }
 

@@ -3495,20 +3495,16 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 	return getWelcomeMessage(ctx, h.G(), h.remoteClient, uid, teamID)
 }
 
-func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamName string) (res chat1.GetDefaultTeamChannelsLocalRes, err error) {
+func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetDefaultTeamChannelsLocalRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetDefaultTeamChannelsLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetDefaultTeamChannelsLocal %v", teamID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx, teamName, false)
-	if err != nil {
-		return res, err
-	}
 
-	resp, err := h.remoteClient().GetDefaultTeamChannels(ctx, keybase1.TeamID(nameInfo.ID.String()))
+	resp, err := h.remoteClient().GetDefaultTeamChannels(ctx, teamID)
 	if err != nil {
 		return res, err
 	}
@@ -3532,13 +3528,9 @@ func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamName strin
 
 func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetDefaultTeamChannelsLocalArg) (res chat1.SetDefaultTeamChannelsLocalRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetDefaultTeamChannelsLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("SetDefaultTeamChannelsLocal: %v", arg.TeamID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	_, err = utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx, arg.TeamName, false)
 	if err != nil {
 		return res, err
 	}
@@ -3552,7 +3544,7 @@ func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetD
 		convs = append(convs, convID)
 	}
 	_, err = h.remoteClient().SetDefaultTeamChannels(ctx, chat1.SetDefaultTeamChannelsArg{
-		TeamID: keybase1.TeamID(nameInfo.ID.String()),
+		TeamID: arg.TeamID,
 		Convs:  convs,
 	})
 	return res, err
