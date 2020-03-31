@@ -25,6 +25,8 @@ const getTeamTakenMessage = (status: number): string => {
   }
 }
 
+const cannotJoinAsOwner = {owner: 'People cannot automatically join open teams as owners'}
+
 const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -106,7 +108,13 @@ const NewTeamInfo = () => {
       header={{
         leftButton:
           teamWizardState.teamType === 'subteam' ? (
-            undefined
+            Styles.isMobile ? (
+              <Kb.Text type="BodyBigLink" onClick={onClose}>
+                Cancel
+              </Kb.Text>
+            ) : (
+              undefined
+            )
           ) : (
             <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
           ),
@@ -192,6 +200,7 @@ const NewTeamInfo = () => {
                     onConfirm={() => setRolePickerIsOpen(false)}
                     position="bottom center"
                     open={rolePickerIsOpen}
+                    disabledReasons={cannotJoinAsOwner}
                   >
                     <InlineDropdown
                       label={pluralize(selectedRole)}
