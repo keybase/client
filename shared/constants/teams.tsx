@@ -410,8 +410,13 @@ export const getDisabledReasonsForRolePicker = (
   const members: Map<string, Types.MemberInfo> =
     teamDetails.members || state.teams.teamIDToMembers.get(teamID) || new Map()
   const teamname = teamMeta.teamname
-  const member = typeof membersToModify === 'string' ? members.get(membersToModify) : undefined
-  const theyAreOwner = member?.type === 'owner'
+  let theyAreOwner = false
+  if (typeof membersToModify === 'string') {
+    const member = members.get(membersToModify)
+    theyAreOwner = member?.type === 'owner'
+  } else if (Array.isArray(membersToModify)) {
+    theyAreOwner = membersToModify.some(username => members.get(username)?.type === 'owner')
+  }
   const you = members.get(state.config.username)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you?.type ?? 'reader'
@@ -422,7 +427,11 @@ export const getDisabledReasonsForRolePicker = (
       return subteamsCannotHaveOwners
     }
     if (yourRole !== 'owner') {
-      return onlyOwnersCanTurnTeamMembersIntoOwners
+      return theyAreOwner
+        ? isSubteam(teamname)
+          ? anotherRoleChangeSub
+          : anotherRoleChangeNotSub
+        : onlyOwnersCanTurnTeamMembersIntoOwners
     }
     const modifyingSelf =
       membersToModify === state.config.username ||

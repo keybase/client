@@ -282,19 +282,26 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
   const currentRole = allSameOrNull(roles)
   const [role, setRole] = React.useState(currentRole ?? null)
 
-  const [showingPicker, setShowingPicker] = React.useState(false)
+  const [showingPicker, _setShowingPicker] = React.useState(false)
+  const setShowingPicker = (show: boolean) => {
+    if (show) {
+      setRole(currentRole ?? null)
+    }
+    _setShowingPicker(show)
+  }
 
   const waiting = Container.useAnyWaiting(
     ...members.map(username => Constants.editMembershipWaitingKey(teamID, username))
   )
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
-    wasWaiting && !waiting && showingPicker && setShowingPicker(false)
-  }, [waiting, wasWaiting, showingPicker, setShowingPicker])
+    wasWaiting && !waiting && showingPicker && _setShowingPicker(false)
+  }, [waiting, wasWaiting, showingPicker, _setShowingPicker])
 
   const disabledReasons = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, teamID, members)
   )
+  const disableButton = disabledReasons.admin !== undefined
   const onChangeRoles = role =>
     members.forEach(username => dispatch(TeamsGen.createEditMembership({role, teamID, username})))
 
@@ -314,8 +321,10 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
       <Kb.Button
         label="Edit role"
         mode="Secondary"
+        disabled={disableButton}
         onClick={() => setShowingPicker(!showingPicker)}
         fullWidth={Styles.isMobile}
+        tooltip={disableButton ? disabledReasons.admin : undefined}
       />
     </FloatingRolePicker>
   )
