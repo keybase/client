@@ -535,7 +535,7 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 			bufReader := attachments.NewBufReadResetter(buf.Bytes())
 			if err := attachments.GIFToPNG(ctx, bufReader, w); err != nil {
 				r.Debug(ctx, "serveAttachment: not a gif in no animation mode: %s", err)
-				bufReader.Reset()
+				_ = bufReader.Reset()
 				if _, err := io.Copy(w, bufReader); err != nil {
 					r.makeError(ctx, w, http.StatusInternalServerError, "failed to write attachment: %s", err)
 					return
