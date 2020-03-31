@@ -4,8 +4,10 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
+import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
@@ -17,7 +19,7 @@ import logger from '../../logger'
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
-  const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
+  const {teamID, addingMembers, defaultChannels} = Container.useSelector(s => s.teams.addMembersWizard)
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
@@ -34,6 +36,7 @@ const AddMembersConfirm = () => {
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const addToChannels = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const onComplete = fromNewTeamWizard
     ? () => dispatch(TeamsGen.createFinishNewTeamWizard())
     : () => {
@@ -52,7 +55,28 @@ const AddMembersConfirm = () => {
           ],
           _ => {
             // TODO handle users not added?
-            dispatch(TeamsGen.createFinishAddMembersWizard())
+            if (defaultChannels) {
+              addToChannels(
+                [
+                  {
+                    conversations: defaultChannels
+                      .filter(c => c.channelname !== 'general')
+                      .map(c => ChatTypes.keyToConversationID(c.conversationIDKey)),
+                    usernames: addingMembers.map(m => m.assertion),
+                  },
+                ],
+                () => {
+                  dispatch(TeamsGen.createFinishAddMembersWizard())
+                },
+                err => {
+                  setWaiting(false)
+                  logger.error(err.message)
+                  setError(err.message)
+                }
+              )
+            } else {
+              dispatch(TeamsGen.createFinishAddMembersWizard())
+            }
           },
           err => {
             setWaiting(false)
