@@ -192,6 +192,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   }
 
   _flatten = memoize((sections: ReadonlyArray<T>) => {
+    this._sectionIndexToFlatIndex = []
     this._flat = (sections || []).reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
       const flatSectionIndex = arr.length
       this._sectionIndexToFlatIndex.push(flatSectionIndex)

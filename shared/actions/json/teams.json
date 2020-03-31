@@ -392,13 +392,17 @@
       "initialTab?": "Types.TabKey",
       "addMembers?": "boolean"
     },
+    "setMemberActivityDetails": {
+      "activityMap": "Map<Types.TeamID, number>",
+      "username": "string"
+    },
     "getMemberSubteamDetails": {
       "teamID": "Types.TeamID",
       "username": "string"
     },
     "setMemberSubteamDetails": {
       "username": "string",
-      "memberships": "Map<Types.TeamID, Types.MemberInfo>"
+      "memberships": "Map<Types.TeamID, Types.MemberInfoWithLastActivity>"
     },
     "startNewTeamWizard": {},
     "setTeamWizardTeamType": {
@@ -428,6 +432,10 @@
     "teamSeen": {
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
+    },
+    "setActivityLevels": {
+      "_description": "Set map of activity levels for all teams.",
+      "levels": "Types.ActivityLevels"
     }
   }
 }

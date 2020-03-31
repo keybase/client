@@ -106,8 +106,8 @@ const load = () => {
     .add('InlineDropdown', () => (
       <Box style={styles.container}>
         <Box style={styles.space} />
-        <InlineDropdown label="Pick" type="Body" onPress={Sb.action('onPress')} />
-        <InlineDropdown label="Pick" type="BodySmall" onPress={Sb.action('onPress')} />
+        <InlineDropdown label="Pick" textWrapperType="Body" onPress={Sb.action('onPress')} />
+        <InlineDropdown label="Pick" textWrapperType="BodySmall" onPress={Sb.action('onPress')} />
         <Box style={styles.space} />
       </Box>
     ))

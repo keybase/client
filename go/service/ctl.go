@@ -52,7 +52,9 @@ func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	return c.G().ConfigReload()
 }
 
-func (c *CtlHandler) DbClean(ctx context.Context, arg keybase1.DbCleanArg) error {
+func (c *CtlHandler) DbClean(ctx context.Context, arg keybase1.DbCleanArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.TraceTimed("DbClean", func() error { return err })()
 	switch arg.DbType {
 	case keybase1.DbType_MAIN:
 		return c.G().LocalDb.Clean(arg.Force)
@@ -63,7 +65,9 @@ func (c *CtlHandler) DbClean(ctx context.Context, arg keybase1.DbCleanArg) error
 	}
 }
 
-func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
+func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.TraceTimed("DbNuke", func() error { return err })()
 	logui := c.getLogUI(sessionID)
 
 	fn, err := c.G().LocalDb.Nuke()
@@ -82,7 +86,6 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 
 	// Now drop caches, since we had the DB's state in-memory too.
 	c.G().FlushCaches()
-	mctx := libkb.NewMetaContext(ctx, c.G())
 	c.G().CallDbNukeHooks(mctx)
 	return nil
 }
@@ -93,7 +96,9 @@ func (c *CtlHandler) AppExit(_ context.Context, sessionID int) error {
 	return nil
 }
 
-func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err error) {
+func (c *CtlHandler) DbDelete(ctx context.Context, arg keybase1.DbDeleteArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.TraceTimed("DbDelete", func() error { return err })()
 	key := libkb.ImportDbKey(arg.Key)
 
 	switch arg.Key.DbType {
@@ -115,11 +120,12 @@ func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err 
 	return nil
 }
 
-func (c *CtlHandler) DbGet(_ context.Context, arg keybase1.DbGetArg) (*keybase1.DbValue, error) {
+func (c *CtlHandler) DbGet(ctx context.Context, arg keybase1.DbGetArg) (ret *keybase1.DbValue, err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.TraceTimed("DbGet", func() error { return err })()
 	key := libkb.ImportDbKey(arg.Key)
 	var res []byte
 	var found bool
-	var err error
 	switch arg.Key.DbType {
 	case keybase1.DbType_MAIN:
 		res, found, err = c.G().LocalDb.GetRaw(key)
@@ -138,7 +144,9 @@ func (c *CtlHandler) DbGet(_ context.Context, arg keybase1.DbGetArg) (*keybase1.
 	return &val, nil
 }
 
-func (c *CtlHandler) DbKeysWithPrefixes(_ context.Context, arg keybase1.DbKeysWithPrefixesArg) (ret []keybase1.DbKey, err error) {
+func (c *CtlHandler) DbKeysWithPrefixes(ctx context.Context, arg keybase1.DbKeysWithPrefixesArg) (ret []keybase1.DbKey, err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.TraceTimed("DbKeysWithPrefixes", func() error { return err })()
 	var res libkb.DBKeySet
 	switch arg.Prefix.DbType {
 	case keybase1.DbType_MAIN:
@@ -152,6 +160,7 @@ func (c *CtlHandler) DbKeysWithPrefixes(_ context.Context, arg keybase1.DbKeysWi
 		return nil, err
 	}
 
+	ret = make([]keybase1.DbKey, 0, len(res))
 	for k := range res {
 		ret = append(ret, keybase1.DbKey{
 			DbType:  arg.Prefix.DbType,
@@ -163,7 +172,9 @@ func (c *CtlHandler) DbKeysWithPrefixes(_ context.Context, arg keybase1.DbKeysWi
 	return ret, nil
 }
 
-func (c *CtlHandler) DbPut(_ context.Context, arg keybase1.DbPutArg) (err error) {
+func (c *CtlHandler) DbPut(ctx context.Context, arg keybase1.DbPutArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.TraceTimed("DbPut", func() error { return err })()
 	key := libkb.ImportDbKey(arg.Key)
 
 	switch arg.Key.DbType {

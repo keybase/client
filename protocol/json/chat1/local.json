@@ -255,6 +255,14 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -1462,6 +1470,13 @@
             "OutboxID"
           ],
           "name": "supersedesOutboxID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HarvestedEmoji"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -3930,6 +3945,50 @@
     },
     {
       "type": "record",
+      "name": "LastActiveTimeAll",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "gregor1.Time",
+            "keys": "TLFIDStr"
+          },
+          "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "gregor1.Time",
+            "keys": "ConvIDStr"
+          },
+          "name": "channels"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LastActiveStatusAll",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "LastActiveStatus",
+            "keys": "TLFIDStr"
+          },
+          "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LastActiveStatus",
+            "keys": "ConvIDStr"
+          },
+          "name": "channels"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AddEmojiRes",
       "fields": [
         {
@@ -3968,6 +4027,24 @@
             "RateLimit"
           ],
           "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiFetchOpts",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "getCreationInfo"
+        },
+        {
+          "type": "boolean",
+          "name": "getAliases"
+        },
+        {
+          "type": "boolean",
+          "name": "onlyInTeam"
         }
       ]
     }
@@ -5825,11 +5902,7 @@
     },
     "getLastActiveForTeams": {
       "request": [],
-      "response": {
-        "type": "map",
-        "values": "LastActiveStatus",
-        "keys": "TLFIDStr"
-      }
+      "response": "LastActiveStatusAll"
     },
     "getRecentJoinsLocal": {
       "request": [
@@ -5856,11 +5929,31 @@
           "type": "keybase1.TeamID"
         },
         {
-          "name": "uid",
-          "type": "gregor1.UID"
+          "name": "username",
+          "type": "string"
         }
       ],
       "response": "gregor1.Time"
+    },
+    "getLastActiveAtMultiLocal": {
+      "request": [
+        {
+          "name": "teamIDs",
+          "type": {
+            "type": "array",
+            "items": "keybase1.TeamID"
+          }
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "map",
+        "values": "gregor1.Time",
+        "keys": "keybase1.TeamID"
+      }
     },
     "addEmoji": {
       "request": [
@@ -5874,6 +5967,23 @@
         },
         {
           "name": "filename",
+          "type": "string"
+        }
+      ],
+      "response": "AddEmojiRes"
+    },
+    "addEmojiAlias": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "newAlias",
+          "type": "string"
+        },
+        {
+          "name": "existingAlias",
           "type": "string"
         }
       ],
@@ -5895,15 +6005,15 @@
     "userEmojis": {
       "request": [
         {
+          "name": "opts",
+          "type": "EmojiFetchOpts"
+        },
+        {
           "name": "convID",
           "type": [
             null,
             "ConversationID"
           ]
-        },
-        {
-          "name": "getCreationInfo",
-          "type": "boolean"
         }
       ],
       "response": "UserEmojiRes"

@@ -193,7 +193,7 @@ func (c *TeamChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1
 }
 
 func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType) (
-	res map[chat1.TLFIDStr]gregor1.Time, err error) {
+	res chat1.LastActiveTimeAll, err error) {
 	defer c.Trace(ctx, func() error { return err },
 		fmt.Sprintf("GetLastActiveForTeams: topicType: %v", topicType))()
 
@@ -207,16 +207,20 @@ func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid grego
 			SkipBgLoads:      true,
 		})
 	byTLFID := make(map[chat1.TLFIDStr][]types.RemoteConversation)
+	channels := make(map[chat1.ConvIDStr]gregor1.Time)
 	for _, conv := range inbox.ConvsUnverified {
 		rc := conv
 		tlfID := rc.Conv.Metadata.IdTriple.Tlfid.TLFIDStr()
 		byTLFID[tlfID] = append(byTLFID[tlfID], rc)
+		channels[rc.ConvIDStr] = utils.GetConvMtime(rc)
 	}
-	res = make(map[chat1.TLFIDStr]gregor1.Time)
+	teams := make(map[chat1.TLFIDStr]gregor1.Time)
 	for tlfID, rcs := range byTLFID {
 		sort.Sort(utils.RemoteConvByMtime(rcs))
-		res[tlfID] = utils.GetConvMtime(rcs[0])
+		teams[tlfID] = channels[rcs[0].ConvIDStr]
 	}
+	res.Teams = teams
+	res.Channels = channels
 	return res, nil
 }
 
@@ -281,8 +285,8 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 		if err != nil {
 			continue
 		}
-		unboxeds, err := c.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{msg.GetMessageID()},
-			nil, nil)
+		unboxeds, err := c.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid,
+			[]chat1.MessageID{msg.GetMessageID()}, nil, nil, false)
 		if err != nil {
 			c.Debug(ctx, "GetChannelsTopicName: failed to unbox metadata message for: convID: %s err: %s",
 				conv.GetConvID(), err)

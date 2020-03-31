@@ -2,7 +2,11 @@ package chat
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
+	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
@@ -16,9 +20,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var decorateBegin = "$>kb$"
+var decorateEnd = "$<kb$"
+
 func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID, emoji string) {
-	msg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, msgID, true, nil)
+	msg, err := tc.Context().ConvSource.GetMessage(ctx, conv.Id, uid, msgID, nil, nil, true)
 	require.NoError(t, err)
 	require.True(t, msg.IsValid())
 	require.Equal(t, 1, len(msg.Valid().Emojis))
@@ -28,6 +35,21 @@ func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	require.NotNil(t, uimsg.Valid().DecoratedTextBody)
 	checker := regexp.MustCompile(utils.ServiceDecorationPrefix)
 	require.True(t, checker.Match([]byte(*uimsg.Valid().DecoratedTextBody)))
+	payload := strings.ReplaceAll(*uimsg.Valid().DecoratedTextBody, decorateBegin, "")
+	payload = strings.ReplaceAll(payload, decorateEnd, "")
+	t.Logf("payload: %s", payload)
+	dat, err := base64.StdEncoding.DecodeString(payload)
+	require.NoError(t, err)
+	var dec chat1.UITextDecoration
+	require.NoError(t, json.Unmarshal(dat, &dec))
+	typ, err := dec.Typ()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UITextDecorationTyp_EMOJI, typ)
+	require.True(t, dec.Emoji().Source.IsHTTPSrv())
+	resp, err := http.Get(dec.Emoji().Source.Httpsrv())
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestEmojiSourceBasic(t *testing.T) {
@@ -68,7 +90,10 @@ func TestEmojiSourceBasic(t *testing.T) {
 	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot2", filename)
 	require.NoError(t, err)
 
-	res, err := tc.Context().EmojiSource.Get(ctx, uid, nil, true)
+	res, err := tc.Context().EmojiSource.Get(ctx, uid, nil, chat1.EmojiFetchOpts{
+		GetCreationInfo: true,
+		GetAliases:      true,
+	})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res.Emojis))
 	for _, group := range res.Emojis {
@@ -86,18 +111,23 @@ func TestEmojiSourceBasic(t *testing.T) {
 
 	t.Logf("decorate")
 	msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "ITS TIME :party_parrot:!",
+		Body: ":party_parrot:",
 	}))
 	checkEmoji(ctx, t, tc, uid, conv, msgID, "party_parrot")
 
 	t.Logf("remove")
-	_, err = GetMessage(ctx, tc.Context(), uid, source.Message().ConvID, source.Message().MsgID, true, nil)
+	_, err = tc.Context().ConvSource.GetMessage(ctx, source.Message().ConvID, uid, source.Message().MsgID,
+		nil, nil, true)
 	require.NoError(t, err)
 	require.NoError(t, tc.Context().EmojiSource.Remove(ctx, uid, conv.Id, "party_parrot"))
 	require.True(t, source.IsMessage())
-	_, err = GetMessage(ctx, tc.Context(), uid, source.Message().ConvID, source.Message().MsgID, true, nil)
+	_, err = tc.Context().ConvSource.GetMessage(ctx, source.Message().ConvID, uid, source.Message().MsgID,
+		nil, nil, true)
 	require.Error(t, err)
-	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, true)
+	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
+		GetCreationInfo: true,
+		GetAliases:      true,
+	})
 	require.NoError(t, err)
 	checked := false
 	for _, group := range res.Emojis {
@@ -107,6 +137,63 @@ func TestEmojiSourceBasic(t *testing.T) {
 		}
 	}
 	require.True(t, checked)
+
+	t.Logf("alias")
+	_, err = tc.Context().EmojiSource.AddAlias(ctx, uid, conv.Id, "mike2", "mike")
+	require.NoError(t, err)
+	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
+		GetCreationInfo: true,
+		GetAliases:      true,
+	})
+	require.NoError(t, err)
+	checked = false
+	for _, group := range res.Emojis {
+		if group.Name == conv.TlfName {
+			require.Equal(t, 2, len(group.Emojis))
+			checked = true
+		}
+	}
+	require.True(t, checked)
+	msgID = mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike2:",
+	}))
+	checkEmoji(ctx, t, tc, uid, conv, msgID, "mike2")
+	require.NoError(t, tc.Context().EmojiSource.Remove(ctx, uid, conv.Id, "mike2"))
+	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
+		GetCreationInfo: true,
+		GetAliases:      true,
+	})
+	require.NoError(t, err)
+	checked = false
+	for _, group := range res.Emojis {
+		if group.Name == conv.TlfName {
+			t.Logf("emojis: %+v", group.Emojis)
+			require.Equal(t, 1, len(group.Emojis))
+			checked = true
+		}
+	}
+	require.True(t, checked)
+	msgID = mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike:",
+	}))
+	checkEmoji(ctx, t, tc, uid, conv, msgID, "mike")
+	_, err = tc.Context().EmojiSource.AddAlias(ctx, uid, conv.Id, "mike2", "mike")
+	require.NoError(t, err)
+	require.NoError(t, tc.Context().EmojiSource.Remove(ctx, uid, conv.Id, "mike"))
+	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
+		GetCreationInfo: true,
+		GetAliases:      true,
+	})
+	require.NoError(t, err)
+	checked = false
+	for _, group := range res.Emojis {
+		if group.Name == conv.TlfName {
+			require.Zero(t, len(group.Emojis))
+			checked = true
+		}
+	}
+	require.True(t, checked)
+
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
@@ -117,21 +204,27 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 
 	users := ctc.users()
 	uid := users[0].User.GetUID().ToBytes()
-	uid1 := users[0].User.GetUID().ToBytes()
+	uid1 := gregor1.UID(users[1].User.GetUID().ToBytes())
 	tc := ctc.world.Tcs[users[0].Username]
 	tc1 := ctc.world.Tcs[users[1].Username]
 	ctx := ctc.as(t, users[0]).startCtx
 	ctx1 := ctc.as(t, users[1]).startCtx
 	ri := ctc.as(t, users[0]).ri
+	ri1 := ctc.as(t, users[1]).ri
 	store := attachments.NewStoreTesting(tc.Context(), nil)
 	fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
+
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
 		manager.NewSrv(tc.Context().ExternalG()),
 		fetcher, func() chat1.RemoteInterface { return ri })
+	tc1.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc1.Context(),
+		manager.NewSrv(tc1.Context().ExternalG()),
+		fetcher, func() chat1.RemoteInterface { return ri1 })
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
 	filename := "./testdata/ship.jpg"
+	t.Logf("uid1: %s", uid1)
 
 	aloneConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
@@ -145,7 +238,7 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	require.NoError(t, err)
 
 	msgID := mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "ITS TIME :party_parrot:!",
+		Body: ":party_parrot:",
 	}))
 	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot")
 
@@ -153,7 +246,7 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename)
 	require.NoError(t, err)
 	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "ITS TIME :party_parrot#2:!",
+		Body: ":party_parrot#2:",
 	}))
 	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot#2")
 }

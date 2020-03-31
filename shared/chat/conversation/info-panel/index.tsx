@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import flags from '../../../util/feature-flags'
-import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
@@ -25,7 +24,7 @@ type InfoPanelProps = {
   smallTeam: boolean
   teamname?: string
   yourRole: MaybeTeamRoleType
-} & HeaderHocProps
+}
 
 export class InfoPanel extends React.PureComponent<InfoPanelProps> {
   private getTabs = (): Array<TabType<Panel>> => {

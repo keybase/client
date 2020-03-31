@@ -122,7 +122,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 
 	if voucheeUser == nil || voucheeUser.GetUID() != serverVouch.Vouchee {
 		// load vouchee
-		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee))
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee).WithStubMode(StubModeUnstubbed))
 		if err != nil {
 			return res, fmt.Errorf("error loading vouchee: %s", err.Error())
 		}
@@ -164,7 +164,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 	case wotVouchLink.revoked:
 		status = keybase1.WotStatusType_REVOKED
 	case wotReactLink != nil && wotReactLink.revoked:
-		status = keybase1.WotStatusType_REVOKED
+		status = keybase1.WotStatusType_PROPOSED
 	case !hasReaction:
 		status = keybase1.WotStatusType_PROPOSED
 	case reactionStatus == keybase1.WotReactionType_ACCEPT:

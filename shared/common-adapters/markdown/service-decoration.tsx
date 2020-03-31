@@ -15,6 +15,7 @@ import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
 import CustomEmoji from '../custom-emoji'
+import Emoji from '../emoji'
 import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
 
@@ -233,8 +234,15 @@ const ServiceDecoration = (props: Props) => {
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
     if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
-      // TODO: figure out how to build in BigEmoji logic here
-      return <CustomEmoji size="Medium" src={parsed.emoji.source.httpsrv} alias={parsed.emoji.alias} />
+      return (
+        <CustomEmoji
+          size={parsed.emoji.isBig ? 'Big' : 'Medium'}
+          src={parsed.emoji.source.httpsrv}
+          alias={parsed.emoji.alias}
+        />
+      )
+    } else if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str) {
+      return <Emoji emojiName={parsed.emoji.source.str} size={parsed.emoji.isBig ? 32 : 24} />
     }
     // we may want to add more cases here later if we decide to parse "stock" emoji with this
   }

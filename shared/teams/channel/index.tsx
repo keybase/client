@@ -18,6 +18,7 @@ import ChannelHeader from './header'
 import {TabKey} from './tabs'
 import ChannelMemberRow from './rows/member-row'
 import BotRow from '../team/rows/bot-row/bot/container'
+import SettingsList from '../../chat/conversation/info-panel/settings'
 
 export type OwnProps = Container.RouteProps<{
   teamID: Types.TeamID
@@ -107,6 +108,7 @@ const Channel = (props: OwnProps) => {
   )
   const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const teamMembers = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector
   )
@@ -183,6 +185,20 @@ const Channel = (props: OwnProps) => {
     }
     case 'attachments':
       sections.push(...attachmentSections)
+      break
+    case 'settings':
+      sections.push({
+        data: ['settings'],
+        key: 'settings',
+        renderItem: () => (
+          <SettingsList
+            conversationIDKey={conversationIDKey}
+            isPreview={isPreview}
+            renderTabs={() => undefined}
+            commonSections={[]}
+          />
+        ),
+      })
   }
 
   const renderSectionHeader = ({section}) =>

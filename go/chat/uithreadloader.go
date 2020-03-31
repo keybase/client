@@ -974,8 +974,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 					continue
 				}
 				var ierr error
-				if changed, ierr = t.G().ConvSource.TransformSupersedes(ctx, rconv.Conv, uid, changed,
-					query, nil, nil); ierr != nil {
+				maxDeletedUpTo := rconv.GetMaxDeletedUpTo()
+				if changed, ierr = t.G().ConvSource.TransformSupersedes(ctx, convID, uid, changed,
+					query, nil, nil, &maxDeletedUpTo); ierr != nil {
 					return ierr
 				}
 				notif := chat1.MessagesUpdated{

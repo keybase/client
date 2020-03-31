@@ -40,6 +40,7 @@ type blockRetrievalPartialConfig interface {
 	data.Versioner
 	logMaker
 	blockCacher
+	blockServerGetter
 	diskBlockCacheGetter
 	syncedTlfGetterSetter
 	initModeGetter
@@ -348,15 +349,18 @@ func (brq *blockRetrievalQueue) setPrefetchStatus(
 	return nil
 }
 
+func (brq *blockRetrievalQueue) cacheHashBehavior(
+	tlfID tlf.ID) data.BlockCacheHashBehavior {
+	return cacheHashBehavior(brq.config, brq.config, tlfID)
+}
+
 // PutInCaches implements the BlockRetriever interface for
 // BlockRetrievalQueue.
 func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	ptr data.BlockPointer, tlfID tlf.ID, block data.Block, lifetime data.BlockCacheLifetime,
 	prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) (err error) {
-	// TODO: plumb through whether journaling is enabled for this TLF,
-	// to set the right cache behavior.
 	err = brq.config.BlockCache().Put(
-		ptr, tlfID, block, lifetime, data.DoCacheHash)
+		ptr, tlfID, block, lifetime, brq.cacheHashBehavior(tlfID))
 	switch err.(type) {
 	case nil:
 	case data.CachePutCacheFullError:
@@ -420,14 +424,13 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	}
 
 	// Assemble the block from the encrypted block buffer.
-	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block, blockBuf,
-		serverHalf)
+	err = brq.config.blockGetter().assembleBlockLocal(
+		ctx, kmd, ptr, block, blockBuf, serverHalf)
 	if err == nil {
-		// Cache the block in memory.  TODO: plumb through whether
-		// journaling is enabled for this TLF, to set the right cache
-		// behavior.
+		// Cache the block in memory.
 		_ = brq.config.BlockCache().Put(
-			ptr, kmd.TlfID(), block, data.TransientEntry, data.DoCacheHash)
+			ptr, kmd.TlfID(), block, data.TransientEntry,
+			brq.cacheHashBehavior(kmd.TlfID()))
 	}
 	return prefetchStatus, err
 }
@@ -578,7 +581,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
 	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	if brq.config.IsSyncedTlf(kmd.TlfID()) {
+	if !action.NonMasterBranch() && brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()
 	}
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)

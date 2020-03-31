@@ -45,7 +45,10 @@ export default namedConnect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
+              props: {
+                conversationIDKey: ownProps.conversationIDKey,
+                onPickAddToMessageOrdinal: ownProps.ordinal,
+              },
               selected: 'chatChooseEmoji',
             },
           ],

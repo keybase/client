@@ -142,14 +142,17 @@ class ProxySettings extends React.Component<Props, State> {
   }
 }
 
+// TODO liklely use PopupWrapper
 const ProxySettingsPopup = (props: Props) => {
   if (Styles.isMobile) {
     return (
-      <Kb.Box style={styles.popupBox}>
-        <Kb.Box style={styles.proxySettingPopupBox}>
-          <ProxySettings {...props} />
+      <Kb.HeaderHocWrapper onBack={props.onBack}>
+        <Kb.Box style={styles.popupBox}>
+          <Kb.Box style={styles.proxySettingPopupBox}>
+            <ProxySettings {...props} />
+          </Kb.Box>
         </Kb.Box>
-      </Kb.Box>
+      </Kb.HeaderHocWrapper>
     )
   }
   return (

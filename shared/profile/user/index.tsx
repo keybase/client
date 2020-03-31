@@ -499,9 +499,9 @@ class User extends React.Component<Props, State> {
       <Kb.Reloadable
         reloadOnMount={true}
         onReload={this.props.onReload}
-        onBack={this.props.onBack}
         waitingKeys={[Constants.profileLoadWaitingKey]}
         errorFilter={this._errorFilter}
+        style={styles.reloadable}
       >
         <Kb.Box2
           direction="vertical"
@@ -677,6 +677,9 @@ export const styles = Styles.styleSheetCreate(() => ({
       padding: Styles.globalMargins.tiny,
     },
   }),
+  reloadable: {
+    paddingTop: Styles.isMobile ? 60 : 0,
+  },
   search: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_10,

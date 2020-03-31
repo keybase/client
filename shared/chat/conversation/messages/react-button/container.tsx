@@ -101,7 +101,7 @@ const mapDispatchToProps = (
   onOpenEmojiPicker: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, ordinal}, selected: 'chatChooseEmoji'}],
+        path: [{props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal}, selected: 'chatChooseEmoji'}],
       })
     ),
 })

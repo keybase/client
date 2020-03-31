@@ -34,6 +34,7 @@ const (
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
 	SigchainV2TypeWalletStellar               SigchainV2Type = 15
 	SigchainV2TypeWotVouch                    SigchainV2Type = 16
+	SigchainV2TypeWotVouchWithRevoke          SigchainV2Type = 17
 	SigchainV2TypeWotReact                    SigchainV2Type = 18
 
 	// Team link types
@@ -104,6 +105,7 @@ func (t SigchainV2Type) IsSupportedUserType() bool {
 		SigchainV2TypeSubkey,
 		SigchainV2TypePGPUpdate,
 		SigchainV2TypePerUserKey,
+		SigchainV2TypeWotVouchWithRevoke,
 		SigchainV2TypeWalletStellar:
 		return true
 	default:
@@ -549,7 +551,11 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 	case string(LinkTypeWalletStellar):
 		ret = SigchainV2TypeWalletStellar
 	case string(LinkTypeWotVouch):
-		ret = SigchainV2TypeWotVouch
+		if hasRevocations {
+			ret = SigchainV2TypeWotVouchWithRevoke
+		} else {
+			ret = SigchainV2TypeWotVouch
+		}
 	case string(LinkTypeWotReact):
 		ret = SigchainV2TypeWotReact
 	default:

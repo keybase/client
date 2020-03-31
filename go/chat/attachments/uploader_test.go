@@ -82,6 +82,32 @@ func (m *mockDeliverer) Stop(context.Context) chan struct{} {
 	return ch
 }
 
+type mockInboxSource struct {
+	types.InboxSource
+}
+
+func (m mockInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
+	dataSource types.InboxSourceDataSourceTyp, rquery *chat1.GetInboxQuery) (types.Inbox, error) {
+	return types.Inbox{
+		ConvsUnverified: []types.RemoteConversation{{
+			Conv: chat1.Conversation{
+				Metadata: chat1.ConversationMetadata{
+					ConversationID: chat1.ConversationID([]byte{0, 1, 0}),
+					IdTriple: chat1.ConversationIDTriple{
+						TopicType: chat1.TopicType_CHAT,
+					},
+				},
+			},
+		},
+		},
+	}, nil
+}
+func (m mockInboxSource) Stop(context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
 func TestAttachmentUploader(t *testing.T) {
 	world := kbtest.NewChatMockWorld(t, "uploader", 1)
 	defer world.Cleanup()
@@ -95,6 +121,7 @@ func TestAttachmentUploader(t *testing.T) {
 	ri := mockRemote{}
 	deliverer := newMockDeliverer()
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	g.InboxSource = mockInboxSource{}
 	g.ActivityNotifier = notifier
 	g.MessageDeliverer = deliverer
 	getRi := func() chat1.RemoteInterface { return ri }

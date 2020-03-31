@@ -1000,7 +1000,8 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 // info from any readied block to its corresponding old block pointer.
 func (fd *FileData) Ready(ctx context.Context, id tlf.ID,
 	bcache BlockCache, dirtyBcache IsDirtyProvider,
-	rp ReadyProvider, bps BlockPutState, topBlock *FileBlock, df *DirtyFile) (
+	rp ReadyProvider, bps BlockPutState, topBlock *FileBlock, df *DirtyFile,
+	hashBehavior BlockCacheHashBehavior) (
 	map[BlockInfo]BlockPointer, error) {
 	return fd.tree.ready(
 		ctx, id, bcache, dirtyBcache, rp, bps, topBlock,
@@ -1009,7 +1010,7 @@ func (fd *FileData) Ready(ctx context.Context, id tlf.ID,
 				return func() error { return df.setBlockSynced(ptr) }
 			}
 			return nil
-		})
+		}, hashBehavior)
 }
 
 // GetIndirectFileBlockInfosWithTopBlock returns the block infos
@@ -1252,7 +1253,8 @@ func (fd *FileData) DeepCopy(ctx context.Context, dataVer Ver) (
 // the BlockInfos for all children.
 func (fd *FileData) UndupChildrenInCopy(ctx context.Context,
 	bcache BlockCache, rp ReadyProvider, bps BlockPutState,
-	topBlock *FileBlock) ([]BlockInfo, error) {
+	topBlock *FileBlock, hashBehavior BlockCacheHashBehavior) (
+	[]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil
 	}
@@ -1285,7 +1287,7 @@ func (fd *FileData) UndupChildrenInCopy(ctx context.Context,
 	}
 
 	newInfos, err := fd.tree.readyHelper(
-		ctx, fd.tree.file.Tlf, bcache, rp, bps, pfr, nil)
+		ctx, fd.tree.file.Tlf, bcache, rp, bps, pfr, nil, hashBehavior)
 	if err != nil {
 		return nil, err
 	}
@@ -1303,7 +1305,8 @@ func (fd *FileData) UndupChildrenInCopy(ctx context.Context,
 // BlockInfos for all non-leaf children.
 func (fd *FileData) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	bcache BlockCache, rp ReadyProvider, bps BlockPutState,
-	topBlock *FileBlock) ([]BlockInfo, error) {
+	topBlock *FileBlock, hashBehavior BlockCacheHashBehavior) (
+	[]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil
 	}
@@ -1322,7 +1325,7 @@ func (fd *FileData) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	}
 
 	newInfos, err := fd.tree.readyHelper(
-		ctx, fd.tree.file.Tlf, bcache, rp, bps, pfr, nil)
+		ctx, fd.tree.file.Tlf, bcache, rp, bps, pfr, nil, hashBehavior)
 	if err != nil {
 		return nil, err
 	}

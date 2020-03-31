@@ -190,25 +190,16 @@ const TrustlineDesktop = (props: Props) => {
   )
 }
 
-const TrustlineMobile = Kb.HeaderHoc<BodyProps>(Body)
+const TrustlineMobile = p => {
+  const {onDone, ...rest} = p
+  return (
+    <Kb.HeaderHocWrapper borderless={true} title="Trustlines" rightActionLabel="Done" onRightAction={onDone}>
+      <Body {...rest} />
+    </Kb.HeaderHocWrapper>
+  )
+}
 
-const Trustline = Styles.isMobile
-  ? (props: Props) => {
-      const {onDone, ...rest} = props
-      const bodyProps = rest as BodyProps
-      return (
-        <TrustlineMobile
-          borderless={true}
-          title="Trustlines"
-          rightActionLabel="Done"
-          onRightAction={props.onDone}
-          {...bodyProps}
-        />
-      )
-    }
-  : TrustlineDesktop
-
-export default Trustline
+export default Styles.isMobile ? TrustlineMobile : TrustlineDesktop
 
 const styles = Styles.styleSheetCreate(() => ({
   body: {

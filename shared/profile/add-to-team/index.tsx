@@ -172,7 +172,7 @@ class AddToTeam extends React.Component<Props> {
               disabledRoles={this.props.disabledReasonsForRolePicker}
             >
               <InlineDropdown
-                type="BodySmall"
+                textWrapperType="BodySmall"
                 label={this.props.selectedRole}
                 onPress={this.props.onOpenRolePicker}
               />

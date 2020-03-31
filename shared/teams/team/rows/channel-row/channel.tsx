@@ -29,6 +29,9 @@ const ChannelRow = (props: ChannelRowProps) => {
   )
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
+  const activityLevel = Container.useSelector(
+    state => state.teams.activityLevels.channels.get(channel.conversationIDKey) || 'none'
+  )
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -76,8 +79,8 @@ const ChannelRow = (props: ChannelRowProps) => {
         </Kb.Text>
         <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
           <Kb.Text type="BodySmall">{membersText}</Kb.Text>
-          {!Styles.isMobile && <Kb.Text type="BodySmall">·</Kb.Text>}
-          <Activity level="active" />
+          {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
+          <Activity level={activityLevel} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>

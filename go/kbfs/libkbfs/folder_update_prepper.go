@@ -48,13 +48,17 @@ func (fup *folderUpdatePrepper) nowUnixNano() int64 {
 	return fup.config.Clock().Now().UnixNano()
 }
 
+func (fup *folderUpdatePrepper) cacheHashBehavior() data.BlockCacheHashBehavior {
+	return fup.blocks.cacheHashBehavior()
+}
+
 func (fup *folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
 	kmd libkey.KeyMetadata, currBlock data.Block, chargedTo keybase1.UserOrTeamID,
 	bps blockPutState, bType keybase1.BlockType) (
 	info data.BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
 		data.ReadyBlock(ctx, fup.config.BlockCache(), fup.config.BlockOps(),
-			kmd, currBlock, chargedTo, bType)
+			kmd, currBlock, chargedTo, bType, fup.cacheHashBehavior())
 	if err != nil {
 		return data.BlockInfo{}, 0, err
 	}
@@ -146,8 +150,9 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	}
 
 	// Ready all the child blocks.
-	infos, err := fd.Ready(ctx, fup.id(), fup.config.BlockCache(),
-		dirtyBcache, fup.config.BlockOps(), bps, block, df)
+	infos, err := fd.Ready(
+		ctx, fup.id(), fup.config.BlockCache(), dirtyBcache,
+		fup.config.BlockOps(), bps, block, df, fup.cacheHashBehavior())
 	if err != nil {
 		return err
 	}
@@ -249,7 +254,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			newInfos, err := currDD.Ready(
 				ctx, fup.id(), fup.config.BlockCache(),
 				isDirtyWithDBM{dbm, fup.config.DirtyBlockCache()},
-				fup.config.BlockOps(), bps, currBlock.(*data.DirBlock))
+				fup.config.BlockOps(), bps, currBlock.(*data.DirBlock),
+				fup.cacheHashBehavior())
 			if err != nil {
 				return data.Path{}, data.DirEntry{}, err
 			}

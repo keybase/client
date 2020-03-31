@@ -50,7 +50,7 @@ const Avatar = (props: Props) => {
             opacity:
               props.opacity === undefined || props.opacity === 1
                 ? props.blocked
-                  ? 0.1
+                  ? 1
                   : undefined
                 : props.opacity,
           }}
@@ -136,6 +136,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         display: 'flex',
         justifyContent: 'center',
+        zIndex: 1,
       },
     } as const)
 )

@@ -17,6 +17,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
+import * as WaitingGen from './waiting-gen'
 import * as Router2Constants from '../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
@@ -679,6 +680,34 @@ function* getTeams(
   }
 }
 
+const getActivityForTeams = async (
+  action: TeamsGen.GetTeamsPayload | ConfigGen.LoadOnStartPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
+    return
+  }
+  try {
+    const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
+    const teams = new Map(
+      Object.entries(results.teams).map(([teamID, status]) => [
+        teamID,
+        Constants.lastActiveStatusToActivityLevel[status],
+      ])
+    )
+    const channels = new Map(
+      Object.entries(results.channels).map(([conversationIDKey, status]) => [
+        conversationIDKey,
+        Constants.lastActiveStatusToActivityLevel[status],
+      ])
+    )
+    return TeamsGen.createSetActivityLevels({levels: {channels, teams}})
+  } catch (e) {
+    logger.error(e)
+  }
+  return
+}
+
 const checkRequestedAccess = async () => {
   const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
     {},
@@ -1335,39 +1364,82 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
-async function getMemberSubteamDetails(
+function* getMemberSubteamDetails(
+  _: TypedState,
   action: TeamsGen.GetMemberSubteamDetailsPayload,
   logger: Saga.SagaLogger
 ) {
   const {teamID, username} = action.payload
 
-  let memberships: RPCTypes.AnnotatedSubteamMemberDetails[]
+  // We start by fetching the memberships and processing them...
+  let subteamIDs = []
+  const membershipsWaitingKey = Constants.loadSubteamMembershipsWaitingKey(teamID, username)
   try {
-    const lookup = await RPCTypes.teamsGetUserSubteamMembershipsRpcPromise(
-      {
-        teamID,
-        username,
-      },
-      Constants.loadSubteamMembershipsWaitingKey(teamID, username)
-    )
-    if (!lookup) {
-      logger.info(`getMemberSubteamDetails: retrieved no results for ${teamID}:${username}`)
-      return null
+    yield Saga.put(WaitingGen.createIncrementWaiting({key: membershipsWaitingKey}))
+    const memberships = yield RPCTypes.teamsGetUserSubteamMembershipsRpcPromise({
+      teamID,
+      username,
+    })
+    if (!memberships) {
+      throw new Error(`retrieved no results for ${teamID}:${username}`)
     }
-    memberships = lookup
+
+    subteamIDs = memberships.map(membership => membership.teamID)
+
+    const res = new Map<string, Types.MemberInfoWithLastActivity>()
+    for (const membership of memberships) {
+      res.set(membership.teamID, Constants.subteamDetailsToMemberInfo(username, membership))
+    }
+    yield Saga.put(
+      TeamsGen.createSetMemberSubteamDetails({
+        memberships: res,
+        username,
+      })
+    )
   } catch (e) {
     logger.info(`getMemberSubteamDetails: unable to get details for ${teamID}:${username}: ${e.toString()}`)
-    return null
+  } finally {
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: membershipsWaitingKey}))
   }
 
-  const res = new Map<string, Types.MemberInfo>()
-  for (const membership of memberships) {
-    res.set(membership.teamID, Constants.subteamDetailsToMemberInfo(username, membership))
+  if (subteamIDs.length > 0) {
+    try {
+      yield Saga.put(
+        WaitingGen.createBatchChangeWaiting({
+          changes: subteamIDs.map(id => ({
+            increment: true,
+            key: Constants.loadSubteamActivityWaitingKey(id, username),
+          })),
+        })
+      )
+
+      const activityMap = yield RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise({
+        teamIDs: subteamIDs,
+        username,
+      })
+      yield Saga.put(
+        TeamsGen.createSetMemberActivityDetails({
+          activityMap: new Map(Object.entries(activityMap)),
+          username,
+        })
+      )
+    } catch (e) {
+      logger.info(
+        `getMemberSubteamDetails: unable to get activity for ${teamID}:${username}: ${e.toString()}`
+      )
+    } finally {
+      yield Saga.put(
+        WaitingGen.createBatchChangeWaiting({
+          changes: subteamIDs.map(id => ({
+            increment: false,
+            key: Constants.loadSubteamActivityWaitingKey(id, username),
+          })),
+        })
+      )
+    }
   }
-  return TeamsGen.createSetMemberSubteamDetails({
-    memberships: res,
-    username,
-  })
+
+  return
 }
 
 const startNewTeamWizard = () =>
@@ -1432,6 +1504,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<
     ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
   >([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
+  yield* Saga.chainAction([ConfigGen.loadOnStart, TeamsGen.getTeams], getActivityForTeams)
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership
@@ -1499,7 +1572,10 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
   yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
-  yield* Saga.chainAction(TeamsGen.getMemberSubteamDetails, getMemberSubteamDetails)
+  yield* Saga.chainGenerator<TeamsGen.GetMemberSubteamDetailsPayload>(
+    TeamsGen.getMemberSubteamDetails,
+    getMemberSubteamDetails
+  )
 
   // New team wizard
   yield* Saga.chainAction(TeamsGen.startNewTeamWizard, startNewTeamWizard)

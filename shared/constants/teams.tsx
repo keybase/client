@@ -53,6 +53,8 @@ export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelco
 export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
 export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username: string) =>
   `loadSubteamMemberships:${teamID};${username}`
+export const loadSubteamActivityWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `loadSubteamActivity:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
 export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
@@ -182,6 +184,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 }
 
 const emptyState: Types.State = {
+  activityLevels: {channels: new Map(), teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
@@ -216,6 +219,7 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
+  teamMemberToLastActivity: new Map(),
   teamMemberToSubteams: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
@@ -685,6 +689,12 @@ export const getTeamMembership = (
   username: string
 ): Types.MemberInfo | null => state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
 
+export const getTeamMemberLastActivity = (
+  state: TypedState,
+  teamID: Types.TeamID,
+  username: string
+): number | null => state.teams.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
+
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
 ): Map<Types.TeamID, Types.TeamMeta> => {
@@ -887,4 +897,12 @@ export const dedupAddingMembeers = (
     }
   }
   return existing
+}
+
+export const lastActiveStatusToActivityLevel: {
+  [key in RPCChatTypes.LastActiveStatus]: Types.ActivityLevel
+} = {
+  [RPCChatTypes.LastActiveStatus.active]: 'active',
+  [RPCChatTypes.LastActiveStatus.none]: 'none',
+  [RPCChatTypes.LastActiveStatus.recentlyActive]: 'recently',
 }

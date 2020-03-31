@@ -290,10 +290,11 @@ func (o MessageConversationMetadata) DeepCopy() MessageConversationMetadata {
 }
 
 type MessageEdit struct {
-	MessageID    MessageID          `codec:"messageID" json:"messageID"`
-	Body         string             `codec:"body" json:"body"`
-	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
-	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+	MessageID    MessageID                 `codec:"messageID" json:"messageID"`
+	Body         string                    `codec:"body" json:"body"`
+	UserMentions []KnownUserMention        `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention        `codec:"teamMentions" json:"teamMentions"`
+	Emojis       map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageEdit) DeepCopy() MessageEdit {
@@ -322,6 +323,18 @@ func (o MessageEdit) DeepCopy() MessageEdit {
 			}
 			return ret
 		})(o.TeamMentions),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -2828,6 +2841,7 @@ type MessagePlaintext struct {
 	ClientHeader       MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	MessageBody        MessageBody         `codec:"messageBody" json:"messageBody"`
 	SupersedesOutboxID *OutboxID           `codec:"supersedesOutboxID,omitempty" json:"supersedesOutboxID,omitempty"`
+	Emojis             []HarvestedEmoji    `codec:"emojis" json:"emojis"`
 }
 
 func (o MessagePlaintext) DeepCopy() MessagePlaintext {
@@ -2841,6 +2855,17 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SupersedesOutboxID),
+		Emojis: (func(x []HarvestedEmoji) []HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make([]HarvestedEmoji, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -6169,6 +6194,74 @@ func (o SetDefaultTeamChannelsLocalRes) DeepCopy() SetDefaultTeamChannelsLocalRe
 	}
 }
 
+type LastActiveTimeAll struct {
+	Teams    map[TLFIDStr]gregor1.Time  `codec:"teams" json:"teams"`
+	Channels map[ConvIDStr]gregor1.Time `codec:"channels" json:"channels"`
+}
+
+func (o LastActiveTimeAll) DeepCopy() LastActiveTimeAll {
+	return LastActiveTimeAll{
+		Teams: (func(x map[TLFIDStr]gregor1.Time) map[TLFIDStr]gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TLFIDStr]gregor1.Time, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Channels: (func(x map[ConvIDStr]gregor1.Time) map[ConvIDStr]gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[ConvIDStr]gregor1.Time, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Channels),
+	}
+}
+
+type LastActiveStatusAll struct {
+	Teams    map[TLFIDStr]LastActiveStatus  `codec:"teams" json:"teams"`
+	Channels map[ConvIDStr]LastActiveStatus `codec:"channels" json:"channels"`
+}
+
+func (o LastActiveStatusAll) DeepCopy() LastActiveStatusAll {
+	return LastActiveStatusAll{
+		Teams: (func(x map[TLFIDStr]LastActiveStatus) map[TLFIDStr]LastActiveStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TLFIDStr]LastActiveStatus, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Channels: (func(x map[ConvIDStr]LastActiveStatus) map[ConvIDStr]LastActiveStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[ConvIDStr]LastActiveStatus, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Channels),
+	}
+}
+
 type AddEmojiRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
@@ -6216,6 +6309,20 @@ func (o UserEmojiRes) DeepCopy() UserEmojiRes {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.RateLimit),
+	}
+}
+
+type EmojiFetchOpts struct {
+	GetCreationInfo bool `codec:"getCreationInfo" json:"getCreationInfo"`
+	GetAliases      bool `codec:"getAliases" json:"getAliases"`
+	OnlyInTeam      bool `codec:"onlyInTeam" json:"onlyInTeam"`
+}
+
+func (o EmojiFetchOpts) DeepCopy() EmojiFetchOpts {
+	return EmojiFetchOpts{
+		GetCreationInfo: o.GetCreationInfo,
+		GetAliases:      o.GetAliases,
+		OnlyInTeam:      o.OnlyInTeam,
 	}
 }
 
@@ -6844,8 +6951,13 @@ type RefreshParticipantsArg struct {
 }
 
 type GetLastActiveAtLocalArg struct {
-	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
-	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+	TeamID   keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Username string          `codec:"username" json:"username"`
+}
+
+type GetLastActiveAtMultiLocalArg struct {
+	TeamIDs  []keybase1.TeamID `codec:"teamIDs" json:"teamIDs"`
+	Username string            `codec:"username" json:"username"`
 }
 
 type AddEmojiArg struct {
@@ -6854,14 +6966,20 @@ type AddEmojiArg struct {
 	Filename string         `codec:"filename" json:"filename"`
 }
 
+type AddEmojiAliasArg struct {
+	ConvID        ConversationID `codec:"convID" json:"convID"`
+	NewAlias      string         `codec:"newAlias" json:"newAlias"`
+	ExistingAlias string         `codec:"existingAlias" json:"existingAlias"`
+}
+
 type RemoveEmojiArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 	Alias  string         `codec:"alias" json:"alias"`
 }
 
 type UserEmojisArg struct {
-	ConvID          *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
-	GetCreationInfo bool            `codec:"getCreationInfo" json:"getCreationInfo"`
+	Opts   EmojiFetchOpts  `codec:"opts" json:"opts"`
+	ConvID *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
 type LocalInterface interface {
@@ -6971,11 +7089,13 @@ type LocalInterface interface {
 	GetDefaultTeamChannelsLocal(context.Context, keybase1.TeamID) (GetDefaultTeamChannelsLocalRes, error)
 	SetDefaultTeamChannelsLocal(context.Context, SetDefaultTeamChannelsLocalArg) (SetDefaultTeamChannelsLocalRes, error)
 	GetLastActiveForTLF(context.Context, TLFIDStr) (LastActiveStatus, error)
-	GetLastActiveForTeams(context.Context) (map[TLFIDStr]LastActiveStatus, error)
+	GetLastActiveForTeams(context.Context) (LastActiveStatusAll, error)
 	GetRecentJoinsLocal(context.Context, ConversationID) (int, error)
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
+	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
+	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiRes, error)
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
 }
@@ -8579,6 +8699,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getLastActiveAtMultiLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveAtMultiLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveAtMultiLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveAtMultiLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveAtMultiLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"addEmoji": {
 				MakeArg: func() interface{} {
 					var ret [1]AddEmojiArg
@@ -8591,6 +8726,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.AddEmoji(ctx, typedArgs[0])
+					return
+				},
+			},
+			"addEmojiAlias": {
+				MakeArg: func() interface{} {
+					var ret [1]AddEmojiAliasArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddEmojiAliasArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddEmojiAliasArg)(nil), args)
+						return
+					}
+					ret, err = i.AddEmojiAlias(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9189,7 +9339,7 @@ func (c LocalClient) GetLastActiveForTLF(ctx context.Context, tlfID TLFIDStr) (r
 	return
 }
 
-func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res map[TLFIDStr]LastActiveStatus, err error) {
+func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res LastActiveStatusAll, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTeams", []interface{}{GetLastActiveForTeamsArg{}}, &res, 0*time.Millisecond)
 	return
 }
@@ -9211,8 +9361,18 @@ func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActi
 	return
 }
 
+func (c LocalClient) GetLastActiveAtMultiLocal(ctx context.Context, __arg GetLastActiveAtMultiLocalArg) (res map[keybase1.TeamID]gregor1.Time, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtMultiLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c LocalClient) AddEmoji(ctx context.Context, __arg AddEmojiArg) (res AddEmojiRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addEmoji", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) AddEmojiAlias(ctx context.Context, __arg AddEmojiAliasArg) (res AddEmojiRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.addEmojiAlias", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

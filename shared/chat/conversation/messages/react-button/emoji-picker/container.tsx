@@ -13,42 +13,36 @@ import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
+import {EmojiData} from '../../../../../util/emoji'
 
 type Props = {
-  conversationIDKey?: Types.ConversationIDKey
-  onDidPick: () => void
-  onPick:
-    | ((emoji: string) => void)
-    | {
-        conversationIDKey: Types.ConversationIDKey
-        ordinal: Types.Ordinal
-      }
+  conversationIDKey: Types.ConversationIDKey
+  onDidPick?: () => void
+  onPickAddToMessageOrdinal?: Types.Ordinal
+  onPickAction?: (emoji: string) => void
 }
 
-type RoutableProps = Container.RouteProps<{
-  conversationIDKey: Types.ConversationIDKey
-  onDidPick: () => void
-  ordinal: Types.Ordinal
-}>
+type RoutableProps = Container.RouteProps<Props>
 
-const useReacji = ({onPick, onDidPick}: Props) => {
+const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
   const dispatch = Container.useDispatch()
   const onAddReaction = React.useCallback(
     (emoji: string) => {
-      typeof onPick === 'function'
-        ? onPick(emoji)
-        : dispatch(
-            Chat2Gen.createToggleMessageReaction({
-              conversationIDKey: onPick.conversationIDKey,
-              emoji,
-              ordinal: onPick.ordinal,
-            })
-          )
-      onDidPick()
+      if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
+        dispatch(
+          Chat2Gen.createToggleMessageReaction({
+            conversationIDKey: conversationIDKey,
+            emoji,
+            ordinal: onPickAddToMessageOrdinal,
+          })
+        )
+      }
+      onPickAction?.(emoji)
+      onDidPick?.()
     },
-    [dispatch, onPick, onDidPick]
+    [dispatch, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
   )
   return {
     filter,
@@ -72,7 +66,7 @@ const useSkinTone = () => {
   )
   return {currentSkinTone, setSkinTone}
 }
-const useCustomReacji = (conversationIDKey: Types.ConversationIDKey | undefined) => {
+const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
   const getUserEmoji = Container.useRPC(RPCChatGen.localUserEmojisRpcPromise)
   const [customEmojiGroups, setCustomEmojiGroups] = React.useState<RPCChatGen.EmojiGroup[]>([])
   const [waiting, setWaiting] = React.useState(true)
@@ -82,8 +76,15 @@ const useCustomReacji = (conversationIDKey: Types.ConversationIDKey | undefined)
     getUserEmoji(
       [
         {
-          convID: conversationIDKey ? Types.keyToConversationID(conversationIDKey) : null,
-          getCreationInfo: false,
+          convID:
+            conversationIDKey !== Constants.noConversationIDKey
+              ? Types.keyToConversationID(conversationIDKey)
+              : null,
+          opts: {
+            getAliases: true,
+            getCreationInfo: false,
+            onlyInTeam: false,
+          },
         },
       ],
       result => {
@@ -157,7 +158,7 @@ const WrapperMobile = (props: Props) => {
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<Data.EmojiData>(Data.defaultHoverEmoji)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
 
   return (
@@ -182,19 +183,16 @@ export const EmojiPickerDesktop = (props: Props) => {
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
-      <Kb.Box style={styles.emojiContainer}>
-        {waiting && <Kb.ProgressIndicator />}
-        <EmojiPicker
-          topReacjis={topReacjis}
-          filter={filter}
-          onChoose={onAddReaction}
-          onHover={setHoveredEmoji}
-          width={336}
-          skinTone={currentSkinTone}
-          customSections={customEmojiGroups}
-          waitingForEmoji={waiting}
-        />
-      </Kb.Box>
+      <EmojiPicker
+        topReacjis={topReacjis}
+        filter={filter}
+        onChoose={onAddReaction}
+        onHover={setHoveredEmoji}
+        width={336}
+        skinTone={currentSkinTone}
+        customSections={customEmojiGroups}
+        waitingForEmoji={waiting}
+      />
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -256,13 +254,9 @@ const styles = Styles.styleSheetCreate(
         minHeight: 561,
         width: 336,
       },
-      emojiContainer: {
-        flex: 1,
-        flexGrow: 1,
-        overflow: 'hidden',
-      },
       footerContainer: Styles.platformStyles({
         common: {
+          flexShrink: 0,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
         },
@@ -299,14 +293,27 @@ export const Routable = (routableProps: RoutableProps) => {
     'conversationIDKey',
     Constants.noConversationIDKey
   )
-  const ordinal = Container.getRouteProps(routableProps, 'ordinal', Types.numberToOrdinal(0))
+  const onPickAction = Container.getRouteProps(routableProps, 'onPickAction', undefined)
+  const onPickAddToMessageOrdinal = Container.getRouteProps(
+    routableProps,
+    'onPickAddToMessageOrdinal',
+    undefined
+  )
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
+  const _onDidPick = Container.getRouteProps(routableProps, 'onDidPick', undefined)
+  const onDidPick = _onDidPick
+    ? () => {
+        _onDidPick()
+        navigateUp()
+      }
+    : navigateUp
   return (
     <WrapperMobile
       conversationIDKey={conversationIDKey}
-      onPick={{conversationIDKey, ordinal}}
-      onDidPick={navigateUp}
+      onPickAction={onPickAction}
+      onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}
+      onDidPick={onDidPick}
     />
   )
 }

@@ -51,6 +51,7 @@ export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
+export const setActivityLevels = 'teams:setActivityLevels'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
@@ -59,6 +60,7 @@ export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
+export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMemberSubteamDetails = 'teams:setMemberSubteamDetails'
 export const setMembers = 'teams:setMembers'
@@ -222,6 +224,7 @@ type _SaveChannelMembershipPayload = {
   readonly newChannelState: Types.ChannelMembershipState
 }
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
+type _SetActivityLevelsPayload = {readonly levels: Types.ActivityLevels}
 type _SetAddMembersWizardIndividualRolePayload = {
   readonly assertion: string
   readonly role: Types.TeamRoleType
@@ -238,10 +241,14 @@ type _SetChannelSelectedPayload = {
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
+type _SetMemberActivityDetailsPayload = {
+  readonly activityMap: Map<Types.TeamID, number>
+  readonly username: string
+}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
 type _SetMemberSubteamDetailsPayload = {
   readonly username: string
-  readonly memberships: Map<Types.TeamID, Types.MemberInfo>
+  readonly memberships: Map<Types.TeamID, Types.MemberInfoWithLastActivity>
 }
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
@@ -445,6 +452,13 @@ export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSu
   type: setSubteamFilter,
 })
 /**
+ * Set map of activity levels for all teams.
+ */
+export const createSetActivityLevels = (payload: _SetActivityLevelsPayload): SetActivityLevelsPayload => ({
+  payload,
+  type: setActivityLevels,
+})
+/**
  * Set the role for a pending member in the add member wizard.
  */
 export const createSetAddMembersWizardIndividualRole = (
@@ -643,6 +657,9 @@ export const createSetEmailInviteError = (
 export const createSetJustFinishedAddMembersWizard = (
   payload: _SetJustFinishedAddMembersWizardPayload
 ): SetJustFinishedAddMembersWizardPayload => ({payload, type: setJustFinishedAddMembersWizard})
+export const createSetMemberActivityDetails = (
+  payload: _SetMemberActivityDetailsPayload
+): SetMemberActivityDetailsPayload => ({payload, type: setMemberActivityDetails})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload): SetMemberPublicityPayload => ({
   payload,
   type: setMemberPublicity,
@@ -915,6 +932,10 @@ export type SaveTeamRetentionPolicyPayload = {
   readonly payload: _SaveTeamRetentionPolicyPayload
   readonly type: typeof saveTeamRetentionPolicy
 }
+export type SetActivityLevelsPayload = {
+  readonly payload: _SetActivityLevelsPayload
+  readonly type: typeof setActivityLevels
+}
 export type SetAddMembersWizardIndividualRolePayload = {
   readonly payload: _SetAddMembersWizardIndividualRolePayload
   readonly type: typeof setAddMembersWizardIndividualRole
@@ -946,6 +967,10 @@ export type SetEmailInviteErrorPayload = {
 export type SetJustFinishedAddMembersWizardPayload = {
   readonly payload: _SetJustFinishedAddMembersWizardPayload
   readonly type: typeof setJustFinishedAddMembersWizard
+}
+export type SetMemberActivityDetailsPayload = {
+  readonly payload: _SetMemberActivityDetailsPayload
+  readonly type: typeof setMemberActivityDetails
 }
 export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
@@ -1165,6 +1190,7 @@ export type Actions =
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
+  | SetActivityLevelsPayload
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetAddUserToTeamsResultsPayload
@@ -1173,6 +1199,7 @@ export type Actions =
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
+  | SetMemberActivityDetailsPayload
   | SetMemberPublicityPayload
   | SetMemberSubteamDetailsPayload
   | SetMembersPayload

@@ -1357,9 +1357,18 @@ func (c *ConfigLocal) cleanSyncBlockCacheForTlfInBackgroundLocked(
 
 func (c *ConfigLocal) cleanSyncBlockCache() {
 	ctx := context.Background()
-	err := c.DiskBlockCache().WaitUntilStarted(DiskBlockSyncCache)
+	dbc := c.DiskBlockCache()
+	log := c.MakeLogger("")
+	if dbc == nil {
+		// This could happen if there's a race with the caches being
+		// reset multiple times in a row.  Hopefully the next reset
+		// will clean the caches properly.
+		log.CDebugf(ctx, "No cache set; skipping sync cleaning")
+		return
+	}
+	err := dbc.WaitUntilStarted(DiskBlockSyncCache)
 	if err != nil {
-		c.MakeLogger("").CDebugf(
+		log.CDebugf(
 			ctx, "Disk block cache failed to start; can't clean: %+v", err)
 		return
 	}
@@ -1372,7 +1381,7 @@ func (c *ConfigLocal) cleanSyncBlockCache() {
 		// us from reading the sync config DB on startup.  In that
 		// case, the `syncedTlfs` map will be nil, but we don't want
 		// to delete all the synced blocks.
-		c.MakeLogger("").CDebugf(
+		log.CDebugf(
 			ctx, "Re-loading synced TLF list for cleaning")
 
 		err := c.loadSyncedTlfsLocked()
@@ -1384,14 +1393,14 @@ func (c *ConfigLocal) cleanSyncBlockCache() {
 		c.lock.Lock()
 	}
 	if c.syncedTlfs == nil {
-		c.MakeLogger("").CDebugf(
+		log.CDebugf(
 			ctx, "Couldn't load synced TLF list for cleaning; giving up")
 		return
 	}
 
 	cacheTlfIDs, err := c.diskBlockCache.GetTlfIDs(ctx, DiskBlockSyncCache)
 	if err != nil {
-		c.MakeLogger("").CDebugf(
+		log.CDebugf(
 			ctx, "Disk block cache can't get TLF IDs; can't clean: %+v", err)
 		return
 	}

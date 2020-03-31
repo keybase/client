@@ -77,7 +77,7 @@ func (bps *blockPutStateDisk) GetBlock(
 	} else {
 		block = data.NewFileBlock()
 	}
-	err = assembleBlock(
+	err = assembleBlockLocal(
 		ctx, bps.config.keyGetter(), bps.config.Codec(),
 		bps.config.cryptoPure(), bps.kmd, blockPtr, block, blockData,
 		serverHalf)

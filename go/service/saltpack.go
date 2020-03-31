@@ -367,6 +367,7 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 	}
 
 	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
+	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
@@ -407,8 +408,6 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 		}
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
-
-	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	return keybase1.SaltpackEncryptFileResult{
 		UsedUnresolvedSBS:      usedSBS,
@@ -518,6 +517,7 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 	}
 
 	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
+	defer h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
@@ -556,8 +556,6 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 		}
 		return "", err
 	}
-
-	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
 
 	return outFilename, nil
 }
@@ -855,7 +853,6 @@ func newSourceFile(g *libkb.GlobalContext, op keybase1.SaltpackOperationType, fi
 	sf.G().NotifyRouter.HandleSaltpackOperationStart(context.Background(), sf.op, sf.filename)
 	sf.prog = progress.NewProgressWriterWithUpdateDuration(sf.reporter, s.Size(), 80*time.Millisecond)
 	sf.r = io.TeeReader(bufio.NewReader(f), sf.prog)
-
 	return sf, nil
 }
 

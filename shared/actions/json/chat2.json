@@ -272,6 +272,7 @@
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
       "conversationIDKey": "Types.ConversationIDKey",
+      "decorated": "string",
       "emoji": "string",
       "targetOrdinal": "Types.Ordinal",
       "username": "string"
@@ -933,6 +934,12 @@
     "loadedMutualTeams": {
       "conversationIDKey": "Types.ConversationIDKey",
       "teamIDs": "Array<TeamsTypes.TeamID>"
+    },
+    "fetchUserEmojiForAutocomplete": {
+      "_description": "Refresh user emoji and put it in store for autocomplete"
+    },
+    "loadedUserEmojiForAutocomplete": {
+      "fetchedEmojis": "RPCChatTypes.UserEmojis"
     }
   }
 }

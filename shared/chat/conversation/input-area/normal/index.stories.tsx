@@ -111,6 +111,7 @@ const InputContainer = (props: Props) => {
     onCancelReply: Sb.action('onCancelReply'),
     onChannelSuggestionsTriggered: Sb.action('onChannelSuggestionsTriggered'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
+    onFetchEmoji: Sb.action('onFetchEmoji'),
     onFilePickerError: Sb.action('onFilePickerError'),
     onGiphyToggle: Sb.action('onGiphyToggle'),
     onRequestScrollDown: Sb.action('onRequestScrollDown'),
@@ -178,6 +179,8 @@ const InputContainer = (props: Props) => {
     ],
     unsentText: null,
     unsentTextChanged: Sb.action('unsentTextChanged'),
+    userEmojis: [],
+    userEmojisLoading: true,
   }
 
   return (
