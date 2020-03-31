@@ -842,20 +842,20 @@ func (s *store) ClearMemory() {
 }
 
 func (s *store) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
-	prefix := libkb.DbKey{
+	mdKey := metadataKey(uid, convID)
+	tokKey := libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-	}.ToBytes()
-	dbKeys, err := s.G().LocalChatDb.KeysWithPrefixes(prefix)
+		Key: fmt.Sprintf("tm:%s:%s:", uid, convID),
+	}
+	dbKeys, err := s.G().LocalChatDb.KeysWithPrefixes(mdKey.ToBytes(), tokKey.ToBytes())
 	if err != nil {
 		return fmt.Errorf("could not get KeysWithPrefixes: %v", err)
 	}
 	epick := libkb.FirstErrorPicker{}
-	mdKey := metadataKey(uid, convID)
-	tokKey := fmt.Sprintf("tm:%s:%s:", uid, convID)
 	for dbKey := range dbKeys {
 		if dbKey.Typ == libkb.DBChatIndex &&
 			(strings.HasPrefix(dbKey.Key, mdKey.Key) ||
-				strings.HasPrefix(dbKey.Key, tokKey)) {
+				strings.HasPrefix(dbKey.Key, tokKey.Key)) {
 			epick.Push(s.G().LocalChatDb.Delete(dbKey))
 		}
 	}
