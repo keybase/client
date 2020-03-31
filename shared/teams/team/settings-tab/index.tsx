@@ -144,7 +144,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.publicitySettings} alignSelf="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newOpenTeam}
         labelComponent={
