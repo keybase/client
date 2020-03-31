@@ -27,9 +27,9 @@ type Props = {
   openTeam: boolean
   openTeamRole: Types.TeamRoleType
   savePublicity: (arg0: Types.PublicitySettings, arg1: boolean, arg2: RetentionPolicy | null) => void
+  showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) => void
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
-  waitingForSavePublicity: boolean
   waitingForWelcomeMessage: boolean
   welcomeMessage?: RPCChatTypes.WelcomeMessageDisplay
   loadWelcomeMessage: () => void
@@ -53,6 +53,7 @@ type NewSettings = {
   newPublicityTeam: boolean
   newOpenTeam: boolean
   newOpenTeamRole: Types.TeamRoleType
+  selectedOpenTeamRole: Types.TeamRoleType
   newRetentionPolicy: RetentionPolicy | null
 }
 
@@ -138,13 +139,13 @@ const PublicityTeam = (props: SettingProps) =>
     </Kb.Box2>
   ) : null
 
-const OpenTeam = (props: SettingProps & RolePickerProps) => {
+const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => void}) => {
   if (!props.yourOperations.changeOpenTeam) {
     return null
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.publicitySettings} alignSelf="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newOpenTeam}
         labelComponent={
@@ -178,7 +179,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
             </Kb.Box2>
           </Kb.Box2>
         }
-        onCheck={props.isRolePickerOpen ? null : props.setBoolSettings('newOpenTeam')}
+        onCheck={props.isRolePickerOpen ? null : props.showWarning}
       />
     </Kb.Box2>
   )
@@ -211,8 +212,8 @@ const toRolePickerPropsHelper = (state: State, setState) => ({
   },
   isRolePickerOpen: state.isRolePickerOpen,
   newOpenTeamRole: state.newOpenTeamRole,
-  onCancelRolePicker: () => setState({isRolePickerOpen: false}),
-  onConfirmRolePicker: () => setState({isRolePickerOpen: false}),
+  onCancelRolePicker: () => setState({isRolePickerOpen: false, newOpenTeamRole: state.selectedOpenTeamRole}),
+  onConfirmRolePicker: () => setState({isRolePickerOpen: false, selectedOpenTeamRole: state.newOpenTeamRole}),
   onOpenRolePicker: () => setState({isRolePickerOpen: true}),
   onSelectRole: (role: Types.TeamRoleType) =>
     setState({
@@ -239,6 +240,7 @@ export class Settings extends React.Component<Props, State> {
       publicitySettingsChanged: false,
       retentionPolicyChanged: false,
       retentionPolicyDecreased: false,
+      selectedOpenTeamRole: p.openTeamRole,
     }
   }
 
@@ -263,15 +265,20 @@ export class Settings extends React.Component<Props, State> {
       const publicitySettingsChanged =
         prevState.newIgnoreAccessRequests !== this.props.ignoreAccessRequests ||
         prevState.newOpenTeam !== this.props.openTeam ||
-        prevState.newOpenTeamRole !== this.props.openTeamRole ||
+        (!prevState.isRolePickerOpen && prevState.newOpenTeamRole !== this.props.openTeamRole) ||
         prevState.newPublicityAnyMember !== this.props.publicityAnyMember ||
         prevState.newPublicityMember !== this.props.publicityMember ||
         prevState.newPublicityTeam !== this.props.publicityTeam ||
         prevState.retentionPolicyChanged
 
-      return publicitySettingsChanged !== prevState.publicitySettingsChanged
-        ? {publicitySettingsChanged}
-        : null
+      if (publicitySettingsChanged !== prevState.publicitySettingsChanged) {
+        if (!prevState.isRolePickerOpen) {
+          this.onSaveSettings()
+        }
+        return {publicitySettingsChanged}
+      }
+
+      return null
     })
   }
 
@@ -304,6 +311,14 @@ export class Settings extends React.Component<Props, State> {
     this.setState({newRetentionPolicy, retentionPolicyChanged, retentionPolicyDecreased})
   }
 
+  _showOpenTeamWarning = () => {
+    this.props.showOpenTeamWarning(
+      !this.state.newOpenTeam,
+      () => this.setBoolSettings('newOpenTeam')(!this.state.newOpenTeam),
+      this.props.teamname
+    )
+  }
+
   render() {
     const rolePickerProps = toRolePickerPropsHelper(this.state, s => this.setState(s))
     const submenuProps: SettingProps = {
@@ -324,7 +339,7 @@ export class Settings extends React.Component<Props, State> {
             </Kb.Box2>
             <PublicityAnyMember {...submenuProps} />
             <PublicityTeam {...submenuProps} />
-            <OpenTeam {...submenuProps} {...rolePickerProps} />
+            <OpenTeam {...submenuProps} {...rolePickerProps} showWarning={this._showOpenTeamWarning} />
             <IgnoreAccessRequests {...submenuProps} />
           </>
         )}
@@ -338,14 +353,6 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
-        <Kb.Box2 direction="horizontal" style={styles.button}>
-          <Kb.Button
-            label="Save"
-            onClick={this.onSaveSettings}
-            disabled={!this.state.publicitySettingsChanged}
-            waiting={this.props.waitingForSavePublicity}
-          />
-        </Kb.Box2>
         {flags.teamsRedesign && this.props.isBigTeam && (
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <DefaultChannels teamID={this.props.teamID} />

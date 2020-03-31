@@ -33,12 +33,6 @@ export default Container.connect(
       publicityTeam,
       teamID,
       teamname: teamMeta.teamname,
-      waitingForSavePublicity: anyWaiting(
-        state,
-        Constants.teamWaitingKey(teamID),
-        Constants.retentionWaitingKey(teamID),
-        Constants.settingsWaitingKey(teamID)
-      ),
       waitingForWelcomeMessage: anyWaiting(state, Constants.loadWelcomeMessageWaitingKey(teamID)),
       welcomeMessage: welcomeMessage || undefined,
       yourOperations: Constants.getCanPerformByID(state, teamID),
@@ -66,6 +60,12 @@ export default Container.connect(
       dispatch(TeamsGen.createSetPublicity({settings, teamID})),
     saveRetentionPolicy: (policy: RetentionPolicy) =>
       dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID})),
+    showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {isOpenTeam, onConfirm, teamname}, selected: 'openTeamWarning'}],
+        })
+      ),
   }),
   (stateProps, dispatchProps) => {
     return {
@@ -89,6 +89,7 @@ export default Container.connect(
         dispatchProps.savePublicity(settings)
         dispatchProps.clearError()
       },
+      showOpenTeamWarning: dispatchProps.showOpenTeamWarning,
     }
   }
 )(Settings)

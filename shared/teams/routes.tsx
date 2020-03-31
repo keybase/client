@@ -2,6 +2,7 @@ import TeamMember from './team/member/container'
 import TeamMemberNew from './team/member/index.new'
 import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
+import OpenTeamWarning from './team/settings-tab/open-team-warning'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
@@ -62,6 +63,9 @@ export const newModalRoutes = {
   ...addWizardRoutes,
   contactRestricted: {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
+  },
+  openTeamWarning: {
+    getScreen: (): typeof OpenTeamWarning => require('./team/settings-tab/open-team-warning').default,
   },
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>

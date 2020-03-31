@@ -19,9 +19,9 @@ const commonProps = {
   publicityMember: true,
   publicityTeam: true,
   savePublicity: Sb.action('savePublicity'),
+  showOpenTeamWarning: Sb.action('showOpenTeamWarning'),
   teamID: '1234',
   teamname: 'myteam',
-  waitingForSavePublicity: false,
   waitingForWelcomeMessage: false,
   welcomeMessage: {display: '', raw: '', set: false},
   yourOperations: {
