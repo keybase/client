@@ -136,7 +136,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   try {
     await requestPermissionsToWrite()
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await MediaLibrary.saveToLibraryAsync(fileURL, saveType)
+    await MediaLibrary.saveToLibraryAsync(fileURL)
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
