@@ -39,7 +39,7 @@ export default Container.connect(
       _canDeleteHistory,
       _canPinMessage,
       _teamID: meta.teamID,
-      _teamMembers: _teamMembers,
+      _teamMembers,
       _you: state.config.username,
       pending: !!message.transferState,
     }
@@ -133,7 +133,7 @@ export default Container.connect(
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
-    const authorInTeam = stateProps._teamMembers ? stateProps._teamMembers.has(message.author) : true
+    const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     return {
       attachTo: ownProps.attachTo,
       author: message.author,

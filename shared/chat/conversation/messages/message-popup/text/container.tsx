@@ -159,7 +159,7 @@ export default Container.namedConnect(
     const isEditable = !!(stateProps._isEditable && yourMessage)
     const canReplyPrivately = stateProps._canReplyPrivately
     const mapUnfurl = Constants.getMapUnfurl(message)
-    const authorInTeam = stateProps._teamMembers ? stateProps._teamMembers.has(message.author) : true
+    const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     const isLocation = !!mapUnfurl
     // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
     const onViewMap =

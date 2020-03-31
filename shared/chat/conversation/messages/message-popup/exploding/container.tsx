@@ -187,7 +187,8 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const authorInTeam = stateProps._teamMembers ? stateProps._teamMembers.has(message.author) : true
+    const message = ownProps.message
+    const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     const items: MenuItems = []
     if (stateProps._canExplodeNow) {
       items.push({
@@ -213,7 +214,6 @@ export default Container.connect(
         title: 'Add a reaction',
       })
     }
-    const message = ownProps.message
     if (message.type === 'attachment') {
       if (Container.isMobile) {
         if (message.attachmentType === 'image') {
