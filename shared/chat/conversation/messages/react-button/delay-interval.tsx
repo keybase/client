@@ -5,8 +5,8 @@ class DelayInterval {
   _intervalMS: number
   _delayMS: number
 
-  _intervalID?: NodeJS.Timer
-  _delayID?: NodeJS.Timer
+  _intervalID?: ReturnType<typeof setTimeout>
+  _delayID?: ReturnType<typeof setTimeout>
 
   constructor(intervalMS: number, delayMS: number) {
     this._intervalMS = intervalMS

@@ -59,8 +59,8 @@ class SendIndicator extends React.Component<Props, State> {
     this.state = state
   }
 
-  encryptingTimeoutID?: NodeJS.Timeout
-  sentTimeoutID?: NodeJS.Timeout
+  encryptingTimeoutID?: ReturnType<typeof setInterval>
+  sentTimeoutID?: ReturnType<typeof setInterval>
 
   _setStatus(animationStatus: AnimationStatus) {
     this.setState({animationStatus})

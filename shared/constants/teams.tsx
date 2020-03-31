@@ -19,12 +19,8 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
 // Add granularity as necessary
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
-export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
-export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
-  // TODO: eventually, delete teamWaitingKey and then change this to only use the ID
-  const teamname = getTeamNameFromID(state, teamID) ?? ''
-  return teamWaitingKey(teamname)
-}
+export const teamWaitingKey = (teamID: Types.TeamID) => `team:${teamID}`
+
 export const setMemberPublicityWaitingKey = (teamID: Types.TeamID) => `teamMemberPub:${teamID}`
 export const teamGetWaitingKey = (teamID: Types.TeamID) => `teamGet:${teamID}`
 export const teamTarsWaitingKey = (teamID: Types.TeamID) => `teamTars:${teamID}`
@@ -184,6 +180,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 }
 
 const emptyState: Types.State = {
+  activityLevels: {channels: new Map(), teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
@@ -896,4 +893,12 @@ export const dedupAddingMembeers = (
     }
   }
   return existing
+}
+
+export const lastActiveStatusToActivityLevel: {
+  [key in RPCChatTypes.LastActiveStatus]: Types.ActivityLevel
+} = {
+  [RPCChatTypes.LastActiveStatus.active]: 'active',
+  [RPCChatTypes.LastActiveStatus.none]: 'none',
+  [RPCChatTypes.LastActiveStatus.recentlyActive]: 'recently',
 }

@@ -128,10 +128,12 @@
     "inviteToTeamByEmail": {
       "invitees": "string",
       "role": "Types.TeamRoleType",
+      "teamID": "Types.TeamID",
       "teamname": "string",
       "loadingKey?": "string"
     },
     "inviteToTeamByPhone": {
+      "teamID": "Types.TeamID",
       "teamname": "string",
       "role": "Types.TeamRoleType",
       "phoneNumber": "string",
@@ -191,6 +193,7 @@
       "inviteID?": "string"
     },
     "ignoreRequest": {
+      "teamID": "Types.TeamID",
       "teamname": "string",
       "username": "string"
     },
@@ -432,6 +435,10 @@
     "teamSeen": {
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
+    },
+    "setActivityLevels": {
+      "_description": "Set map of activity levels for all teams.",
+      "levels": "Types.ActivityLevels"
     }
   }
 }

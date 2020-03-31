@@ -234,8 +234,10 @@ func (o NewConversationRemoteRes) DeepCopy() NewConversationRemoteRes {
 }
 
 type GetMessagesRemoteRes struct {
-	Msgs      []MessageBoxed `codec:"msgs" json:"msgs"`
-	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Msgs        []MessageBoxed          `codec:"msgs" json:"msgs"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	Visibility  keybase1.TLFVisibility  `codec:"visibility" json:"visibility"`
+	RateLimit   *RateLimit              `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetMessagesRemoteRes) DeepCopy() GetMessagesRemoteRes {
@@ -251,6 +253,8 @@ func (o GetMessagesRemoteRes) DeepCopy() GetMessagesRemoteRes {
 			}
 			return ret
 		})(o.Msgs),
+		MembersType: o.MembersType.DeepCopy(),
+		Visibility:  o.Visibility.DeepCopy(),
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil

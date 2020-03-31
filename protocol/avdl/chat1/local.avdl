@@ -1363,7 +1363,15 @@ protocol local {
   SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(string teamName, array<ConvIDStr> convs);
 
   LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
-  map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
+  record LastActiveTimeAll {
+    map<TLFIDStr, gregor1.Time> teams;
+    map<ConvIDStr, gregor1.Time> channels;
+  }
+  record LastActiveStatusAll {
+    map<TLFIDStr, LastActiveStatus> teams; // top level active status for teams
+    map<ConvIDStr, LastActiveStatus> channels; // active status for all team channels
+  }
+  LastActiveStatusAll getLastActiveForTeams();
 
   int getRecentJoinsLocal(ConversationID convID);
 

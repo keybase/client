@@ -126,4 +126,13 @@ func TestWotNotifications(t *testing.T) {
 		badges := getBadgeState(t, bob)
 		return len(badges.WotUpdates) == 0
 	})
+
+	// vouch_with_revoke resets the state of the attestation to PROPOSED
+	aliceVouchesForBob()
+	bobAccepts()
+	aliceVouchesForBob()
+	wotUpdate = getWotUpdate(bob)
+	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_PROPOSED)
+	require.Equal(t, wotUpdate.Voucher, alice.username)
+	require.Equal(t, wotUpdate.Vouchee, bob.username)
 }

@@ -153,7 +153,7 @@ const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 
 class Flame extends React.Component<{}, {color: string; timer: number; width: number}> {
   state = {color: randColor(), timer: 0, width: randWidth()}
-  intervalID?: NodeJS.Timer
+  intervalID?: ReturnType<typeof setTimeout>
 
   componentDidMount() {
     this.intervalID = setInterval(this._randomize, 100)

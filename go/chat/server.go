@@ -2489,16 +2489,8 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		return err
 	}
 	fetchAndUnfurl := func() error {
-		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			return err
-		}
-		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.Conv, uid, []chat1.MessageID{arg.MsgID}, nil,
-			nil)
-		if err != nil {
-			return err
-		}
-		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
+		msgs, err := h.G().ConvSource.GetMessages(ctx, arg.ConvID, uid, []chat1.MessageID{arg.MsgID},
+			nil, nil, true)
 		if err != nil {
 			return err
 		}
@@ -2592,7 +2584,7 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 	if err := utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapse); err != nil {
 		return err
 	}
-	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid, arg.MsgID, nil, nil, true)
 	if err != nil {
 		h.Debug(ctx, "ToggleMessageCollapse: failed to get message: %s", err)
 		return nil
@@ -2602,8 +2594,8 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 		return nil
 	}
 	if msg.Valid().MessageBody.IsType(chat1.MessageType_UNFURL) {
-		unfurledMsg, err := GetMessage(ctx, h.G(), uid, arg.ConvID,
-			msg.Valid().MessageBody.Unfurl().MessageID, true, nil)
+		unfurledMsg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid,
+			msg.Valid().MessageBody.Unfurl().MessageID, nil, nil, true)
 		if err != nil {
 			h.Debug(ctx, "ToggleMessageCollapse: failed to get unfurl base message: %s", err)
 			return nil
@@ -3032,7 +3024,7 @@ func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res c
 	if err != nil {
 		return res, err
 	}
-	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid, arg.MsgID, nil, nil, true)
 	if err != nil {
 		return res, err
 	}
@@ -3584,20 +3576,24 @@ func (h *Server) GetLastActiveForTLF(ctx context.Context, tlfIDStr chat1.TLFIDSt
 	return utils.ToLastActiveStatus(mtime), nil
 }
 
-func (h *Server) GetLastActiveForTeams(ctx context.Context) (res map[chat1.TLFIDStr]chat1.LastActiveStatus, err error) {
+func (h *Server) GetLastActiveForTeams(ctx context.Context) (res chat1.LastActiveStatusAll, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetLastActiveForTeams")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	teamActivity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
+	activity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	res = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
-	for tlfID, mtime := range teamActivity {
-		res[tlfID] = utils.ToLastActiveStatus(mtime)
+	res.Teams = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
+	res.Channels = make(map[chat1.ConvIDStr]chat1.LastActiveStatus)
+	for tlfID, mtime := range activity.Teams {
+		res.Teams[tlfID] = utils.ToLastActiveStatus(mtime)
+	}
+	for convID, mtime := range activity.Channels {
+		res.Channels[convID] = utils.ToLastActiveStatus(mtime)
 	}
 	return res, nil
 }
