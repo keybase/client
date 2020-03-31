@@ -19,6 +19,8 @@
   "chat.1.local.findGeneralConvFromTeamID": {"promise": true},
   "chat.1.local.getBotMemberSettings": {"promise": true},
   "chat.1.local.getChannelMembershipsLocal": {"promise": true},
+  "chat.1.local.getDefaultTeamChannelsLocal": {"promise": true},
+  "chat.1.local.setDefaultTeamChannelsLocal": {"promise": true},
   "chat.1.local.getGlobalAppNotificationSettingsLocal": {"promise": true},
   "chat.1.local.getInboxAndUnboxUILocal": {"promise": true},
   "chat.1.local.getInboxNonblockLocal": {"engineSaga": true},

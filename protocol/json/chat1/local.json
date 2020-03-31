@@ -5869,8 +5869,8 @@
     "getDefaultTeamChannelsLocal": {
       "request": [
         {
-          "name": "teamName",
-          "type": "string"
+          "name": "teamID",
+          "type": "keybase1.TeamID"
         }
       ],
       "response": "GetDefaultTeamChannelsLocalRes"
@@ -5878,8 +5878,8 @@
     "setDefaultTeamChannelsLocal": {
       "request": [
         {
-          "name": "teamName",
-          "type": "string"
+          "name": "teamID",
+          "type": "keybase1.TeamID"
         },
         {
           "name": "convs",
