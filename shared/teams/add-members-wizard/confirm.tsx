@@ -10,7 +10,7 @@ import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../action
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
-import {ModalTitle} from '../common'
+import {ModalTitle, ChannelsWidget} from '../common'
 import {pluralize} from '../../util/string'
 import logger from '../../logger'
 
@@ -311,14 +311,39 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   )
 }
 
+// keep it in the module so we don't reload if we loop back to this page
+// let defaultChannelsCache: null | {channels: Array<Types.ChannelNameID>; teamID: Types.TeamID} = null
+// const emptyArray = []
 const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
+  const [changing, setChanging] = React.useState(false)
+  // React.useEffect(() => {
+  //   if (_defaultChannels.length) {
+  //     defaultChannelsCache = {
+  //       channels: _defaultChannels,
+  //       teamID,
+  //     }
+  //   }
+  // }, [_defaultChannels, teamID])
+  // const defaultChannels = _defaultChannels.length
+  //   ? _defaultChannels
+  //   : defaultChannelsCache?.teamID === teamID
+  //   ? defaultChannelsCache.channels
+  //   : emptyArray
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {defaultChannelsWaiting ? (
           <Kb.ProgressIndicator />
+        ) : changing ? (
+          <ChannelsWidget
+            disableGeneral={true}
+            teamID={teamID}
+            channels={defaultChannels}
+            onAddChannel={() => {}}
+            onRemoveChannel={() => {}}
+          />
         ) : (
           <>
             <Kb.Text type="BodySmall">
@@ -333,7 +358,10 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
                   {index === defaultChannels.length - 2 && <Kb.Text type="BodySmall"> and </Kb.Text>}
                 </Kb.Text>
               ))}
-              . <Kb.Text type="BodySmallPrimaryLink">Change this</Kb.Text>
+              .{' '}
+              <Kb.Text type="BodySmallPrimaryLink" onClick={() => setChanging(true)}>
+                Change this
+              </Kb.Text>
             </Kb.Text>
           </>
         )}
