@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
-import * as Flow from '../../util/flow'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as SettingsGen from '../settings-gen'
@@ -128,7 +127,7 @@ function* startOutOfDateCheckLoop() {
     const action = yield checkForUpdate()
     yield Saga.put(action)
     // Only want to make a single check on mobile
-    if (isMobile) {
+    if (Platform.isMobile) {
       return
     }
     yield Saga.delay(updateCheckInterval)

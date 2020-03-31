@@ -80,7 +80,12 @@ const initialState: DeserializeProps = {
     httpSrvAddress: '',
     httpSrvToken: '',
     loggedIn: false,
-    updateInfo: undefined,
+    updateInfo: {
+      critical: undefined,
+      status: 'ok',
+      suggested: undefined,
+      updating: false,
+    },
     username: '',
   },
   conversationsToSend: [],

@@ -23,11 +23,11 @@ export type Props = {
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
   kbfsEnabled: boolean
-  updateStart: () => void
+  updateStart?: () => void
   onHideDiskSpaceBanner: () => void
   onRekey: (path: string) => void
   onRetrySync: () => void
-  openApp: (tab?: string) => void
+  openApp: (tab?: Tabs.AppTab) => void
   updateInfo?: ConfigTypes.UpdateInfo
   showInFinder: () => void
   quit: () => void
