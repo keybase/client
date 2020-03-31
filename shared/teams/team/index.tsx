@@ -23,6 +23,7 @@ import {
   useSubteamsSections,
   useChannelsSections,
   Section,
+  useEmojiSections,
 } from './rows'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
@@ -113,6 +114,7 @@ const Team = (props: Props) => {
   const invitesSections = useInvitesSections(teamID, teamDetails)
   const channelsSections = useChannelsSections(teamID, selectedTab === 'channels')
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
+  const emojiSections = useEmojiSections(teamID)
 
   switch (selectedTab) {
     case 'members':
@@ -135,6 +137,9 @@ const Team = (props: Props) => {
       break
     case 'subteams':
       sections.push(...subteamsSections)
+      break
+    case 'emoji':
+      sections.push(...emojiSections)
       break
   }
 
