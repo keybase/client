@@ -60,6 +60,10 @@ func (f fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
 	return nil, nil
 }
 
+func (f fakeUIRouter) GetLogUI() (libkb.LogUI, error) {
+	return nil, nil
+}
+
 func (f fakeUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
 	return nil
 }

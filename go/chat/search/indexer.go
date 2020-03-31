@@ -684,6 +684,8 @@ func (idx *Indexer) convsPrioritySorted(ctx context.Context,
 func (idx *Indexer) Search(ctx context.Context, query, origQuery string,
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
+	ui, err := idx.G().UIRouter.GetLogUI()
+	ui.Critical("INDEXER")
 	defer func() {
 		// get a selective sync to run after the search completes even if we
 		// errored.

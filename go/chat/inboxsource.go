@@ -559,6 +559,12 @@ func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) (err err
 			Ctime:     keybase1.ToTime(start),
 		})
 	}()
+	if s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String())) {
+		ui, err := s.G().UIRouter.GetLogUI()
+		if err == nil && ui != nil {
+			ui.Critical("Clearing inbox")
+		}
+	}
 
 	return s.createInbox().Clear(ctx, uid)
 }

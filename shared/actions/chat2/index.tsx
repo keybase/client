@@ -36,6 +36,7 @@ import {isIOS} from '../../constants/platform'
 const onConnect = async () => {
   try {
     await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
+    await RPCTypes.delegateUiCtlRegisterLogUIRpcPromise()
     console.log('Registered Chat UI')
   } catch (error) {
     console.warn('Error in registering Chat UI:', error)
