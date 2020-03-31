@@ -61,7 +61,7 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	config.SetBlockOps(bops)
 
 	bsplit, err := data.NewBlockSplitterSimpleExact(

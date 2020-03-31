@@ -77,6 +77,13 @@ else
   interactive_args=()
 fi
 
+if [ -n "${KEYBASE_RELEASE:-}" ]; then
+    if [ "${KEYBASE_TEST_CODE_SIGNING_KEY:-}" = "1" ]; then
+        echo "cannot use test code signing key for a release"
+        exit 1
+    fi
+fi
+
 echo '=== docker ==='
 sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \

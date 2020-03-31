@@ -76,6 +76,9 @@ module.exports = {
   get CopyableText() {
     return Index.CopyableText
   },
+  get CustomEmoji() {
+    return Index.CustomEmoji
+  },
   get DesktopStyle() {
     return Index.DesktopStyle
   },
@@ -120,9 +123,6 @@ module.exports = {
   },
   get HeaderHocHeader() {
     return Index.HeaderHocHeader
-  },
-  get HeaderOnMobile() {
-    return Index.HeaderOnMobile
   },
   get HeaderOrPopup() {
     return Index.HeaderOrPopup

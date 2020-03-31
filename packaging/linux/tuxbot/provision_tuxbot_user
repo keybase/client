@@ -16,8 +16,11 @@ git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase
 systemctl --user link "$TUXBOTD/tuxbot.service"
 systemctl --user link "$TUXBOTD/nightly.service"
 systemctl --user link "$TUXBOTD/nightly.timer"
+systemctl --user link "$TUXBOTD/docker-cleanup.service"
+systemctl --user link "$TUXBOTD/docker-cleanup.timer"
 systemctl --user daemon-reload
 systemctl --user enable "$TUXBOTD/nightly.timer"
+systemctl --user enable "$TUXBOTD/docker-cleanup.timer"
 
 keybase config set -b enable_bot_lite_mode true
 keybase config set kbfs.mode constrained

@@ -1,21 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
-import {
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  padding,
-  styleSheetCreate,
-  platformStyles,
-} from '../../styles'
+import * as Styles from '../../styles'
 import {isIOS, isTablet} from '../../constants/platform'
 import {Props} from '.'
 import {parseUri} from '../../util/expo-image-picker'
 
-const {width: screenWidth} = Kb.NativeDimensions.get('window')
-
 const avatar_size = (): number => {
-  const big = screenWidth - globalMargins.medium * 2
+  const big = Styles.dimensionWidth - Styles.globalMargins.medium * 2
   if (isTablet) {
     return Math.min(500, big)
   } else {
@@ -94,20 +85,19 @@ class AvatarUpload extends React.Component<Props> {
     const uri =
       this.props.image && this.props.image.cancelled === false ? parseUri(this.props.image, true) : null
     return (
-      <Kb.StandardScreen
-        onCancel={this.props.onClose}
-        onBack={this.props.wizard ? this.props.onBack : undefined}
-        scrollEnabled={false}
-        style={styles.standardScreen}
-        title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
-      >
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.HeaderHocHeader
+          onCancel={this.props.onClose}
+          onBack={this.props.wizard ? this.props.onBack : undefined}
+          title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
+        />
         {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={
               isIOS
                 ? null
-                : collapseStyles([
+                : Styles.collapseStyles([
                     styles.zoomContainer,
                     {
                       borderRadius: this.props.teamname ? 32 : avatar_size(),
@@ -126,7 +116,7 @@ class AvatarUpload extends React.Component<Props> {
               showsVerticalScrollIndicator={false}
               style={
                 isIOS
-                  ? collapseStyles([
+                  ? Styles.collapseStyles([
                       styles.zoomContainer,
                       {
                         borderRadius: this.props.teamname ? 32 : avatar_size(),
@@ -152,28 +142,28 @@ class AvatarUpload extends React.Component<Props> {
             />
           </Kb.ButtonBar>
         </Kb.Box>
-      </Kb.StandardScreen>
+      </Kb.Box2>
     )
   }
 }
 
-const styles = styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
       button: {
-        marginTop: globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
         width: '100%',
       },
       container: {
-        ...padding(0, globalMargins.medium),
-        marginBottom: globalMargins.small,
-        marginTop: globalMargins.small,
+        ...Styles.padding(0, Styles.globalMargins.medium),
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
       },
-      standardScreen: {...padding(0)},
-      zoomContainer: platformStyles({
+      standardScreen: {...Styles.padding(0), flexGrow: 1},
+      zoomContainer: Styles.platformStyles({
         common: {
-          backgroundColor: globalColors.grey,
-          marginBottom: globalMargins.tiny,
+          backgroundColor: Styles.globalColors.grey,
+          marginBottom: Styles.globalMargins.tiny,
           overflow: 'hidden',
           position: 'relative',
         },

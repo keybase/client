@@ -7,38 +7,36 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
+import {IconType} from '../../common-adapters/icon.constants-gen'
+import capitalize from 'lodash/capitalize'
 import HiddenString from '../../util/hidden-string'
 
 const {electron} = KB
 const {showOpenDialog} = electron.dialog
 
-type InputProps = {
+type CommonProps = {
   operation: Types.Operations
 }
 
-type TextProps = {
+type TextProps = CommonProps & {
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
-  operation: Types.Operations
   value: string
 }
 
-type FileProps = {
+type FileProps = CommonProps & {
   path: string
   size?: number
-  operation: Types.Operations
   onClearFiles: () => void
 }
 
-type DragAndDropProps = {
-  operation: Types.Operations
+type DragAndDropProps = CommonProps & {
   prompt: string
   children: React.ReactNode
 }
 
-type OperationBannerProps = {
-  operation: Types.Operations
-  infoMessage?: string
+type RunOperationProps = CommonProps & {
+  children?: React.ReactNode
 }
 
 // Tese magic numbers set the width of the single line `textarea` such that the
@@ -62,8 +60,8 @@ const operationToEmptyInputWidth = {
  */
 export const TextInput = (props: TextProps) => {
   const {value, operation, onChangeText, onSetFile} = props
-  const textType = Constants.getInputTextType(operation)
-  const placeholder = Constants.getInputPlaceholder(operation)
+  const textType = Constants.inputTextType.get(operation)
+  const placeholder = Constants.inputPlaceholder.get(operation)
   const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
@@ -88,60 +86,69 @@ export const TextInput = (props: TextProps) => {
     onSetFile(path)
   }
 
+  // Styling
+  const rowsMax = Styles.isMobile ? undefined : value ? undefined : 1
+  const growAndScroll = !Styles.isMobile
+  const inputStyle = Styles.collapseStyles([
+    styles.input,
+    value ? styles.inputFull : styles.inputEmpty,
+    !value && !Styles.isMobile && {width: emptyWidth},
+  ])
+  const inputContainerStyle = value ? styles.inputContainer : styles.inputContainerEmpty
+
+  const browseButton = value ? null : (
+    <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
+      browse
+    </Kb.Text>
+  )
+  const clearButton = value ? (
+    <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+      <Kb.Text type="BodySmallPrimaryLink" onClick={() => onChangeText('')}>
+        Clear
+      </Kb.Text>
+    </Kb.Box2>
+  ) : null
+
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
         <Kb.Box2
-          direction="horizontal"
-          fullWidth={!!value}
-          fullHeight={!!value}
+          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
           alignItems="flex-start"
           alignSelf="flex-start"
+          fullWidth={Styles.isMobile || !!value}
+          fullHeight={Styles.isMobile || !!value}
           style={styles.inputAndFilePickerContainer}
         >
           <Kb.NewInput
             value={value}
             placeholder={placeholder}
             multiline={true}
-            rowsMax={value ? undefined : 1}
             autoFocus={true}
             allowKeyboardEvents={true}
             hideBorder={true}
-            growAndScroll={true}
+            rowsMax={rowsMax}
+            growAndScroll={growAndScroll}
             padding="tiny"
-            containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
-            style={Styles.collapseStyles([
-              styles.input,
-              value ? styles.inputFull : styles.inputEmpty,
-              !value && {width: emptyWidth},
-            ])}
+            containerStyle={inputContainerStyle}
+            style={inputStyle}
             textType={textType === 'cipher' ? 'Terminal' : 'Body'}
             placeholderTextType="Body"
             onChangeText={onChangeText}
             ref={inputRef}
           />
-          {!value && (
-            <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
-              browse
-            </Kb.Text>
-          )}
+          {!Styles.isMobile && browseButton}
         </Kb.Box2>
       </Kb.Box2>
-      {value && (
-        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
-          <Kb.Text type="BodySmallPrimaryLink" onClick={() => onChangeText('')}>
-            Clear
-          </Kb.Text>
-        </Kb.Box2>
-      )}
+      {!Styles.isMobile && clearButton}
     </Kb.Box>
   )
 }
 
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
-  const fileIcon = Constants.getInputFileIcon(operation)
-  const waitingKey = Constants.getFileWaitingKey(operation)
+  const fileIcon = Constants.inputFileIcon.get(operation) as IconType
+  const waitingKey = Constants.fileWaitingKey.get(operation) as Types.FileWaitingKey
   const waiting = Container.useAnyWaiting(waitingKey)
 
   return (
@@ -178,7 +185,7 @@ export const FileInput = (props: FileProps) => {
   )
 }
 
-export const Input = (props: InputProps) => {
+export const Input = (props: CommonProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
 
@@ -229,7 +236,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
   }
 
-  const allowFolders = Constants.getAllowInputFolders(props.operation)
+  const allowFolders = Constants.allowInputFolders.get(operation) as boolean
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -247,8 +254,9 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   )
 }
 
-export const OperationBanner = (props: OperationBannerProps) => {
-  const {operation, infoMessage} = props
+export const OperationBanner = (props: CommonProps) => {
+  const {operation} = props
+  const infoMessage = Constants.infoMessage.get(operation)
   const errorMessage = Container.useSelector(state => state.crypto[operation].errorMessage.stringValue())
   const warningMessage = Container.useSelector(state => state.crypto[operation].warningMessage.stringValue())
 
@@ -276,6 +284,38 @@ export const OperationBanner = (props: OperationBannerProps) => {
   )
 }
 
+// Mobile only
+export const InputActionsBar = (props: RunOperationProps) => {
+  const {operation, children} = props
+  const dispatch = Container.useDispatch()
+  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
+
+  const operationTitle = capitalize(operation)
+
+  const onRunOperation = () => {
+    dispatch(CryptoGen.createRunTextOperation({operation}))
+  }
+
+  return Styles.isMobile ? (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      gap={Styles.isTablet ? 'small' : 'tiny'}
+      style={styles.inputActionsBarContainer}
+    >
+      {children}
+      <Kb.WaitingButton
+        mode="Primary"
+        waitingKey={waitingKey}
+        label={operationTitle}
+        fullWidth={true}
+        onClick={onRunOperation}
+      />
+    </Kb.Box2>
+  ) : null
+}
+
+const inputShrinkRatio = 2
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -290,14 +330,23 @@ const styles = Styles.styleSheetCreate(
       commonContainer: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.positionRelative,
-        flexShrink: 2,
+        flexShrink: inputShrinkRatio,
       },
-      containerInputFocus: {
-        ...Styles.globalStyles.flexGrow,
-        ...Styles.globalStyles.fullHeight,
-        display: 'flex',
-        flexShrink: 2,
-      },
+      containerInputFocus: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexGrow,
+          ...Styles.globalStyles.fullHeight,
+          display: 'flex',
+        },
+        isElectron: {
+          flexShrink: inputShrinkRatio,
+        },
+        isMobile: {
+          flexShrink: 1,
+          // Give space on mobile for Recipients divider
+          marginTop: 1,
+        },
+      }),
       fileContainer: {
         alignSelf: 'flex-start',
         ...Styles.padding(Styles.globalMargins.small),
@@ -305,36 +354,75 @@ const styles = Styles.styleSheetCreate(
       hidden: {
         display: 'none',
       },
-      input: {
-        color: Styles.globalColors.black,
-      },
-      inputAndFilePickerContainer: {
-        paddingBottom: 0,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: 0,
-        paddingTop: Styles.globalMargins.tiny,
-      },
-      inputContainer: {
-        // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
-        ...Styles.globalStyles.fullHeight,
-        alignItems: 'stretch',
-        padding: 0,
-      },
-      inputContainerEmpty: {
-        padding: 0,
-      },
-      inputEmpty: Styles.platformStyles({
+      input: Styles.platformStyles({
         common: {
-          ...Styles.padding(0),
-          minHeight: 'initial',
+          color: Styles.globalColors.black,
         },
-        isElectron: {
-          overflowY: 'hidden',
+        isMobile: {
+          ...Styles.globalStyles.fullHeight,
         },
       }),
-      inputFull: {
-        padding: 0,
-        paddingRight: 46,
-      },
+      inputActionsBarContainer: Styles.platformStyles({
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small),
+          alignItems: 'flex-start',
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+      }),
+      inputAndFilePickerContainer: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: 0,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: 0,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      inputContainer: Styles.platformStyles({
+        isElectron: {
+          // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
+          ...Styles.globalStyles.fullHeight,
+          alignItems: 'stretch',
+          padding: 0,
+        },
+        isMobile: {
+          ...Styles.globalStyles.fullHeight,
+          ...Styles.padding(0),
+        },
+      }),
+      inputContainerEmpty: Styles.platformStyles({
+        isElectron: {
+          ...Styles.padding(0),
+        },
+        isMobile: {
+          ...Styles.globalStyles.fullHeight,
+          ...Styles.padding(0),
+        },
+      }),
+      inputEmpty: Styles.platformStyles({
+        isElectron: {
+          ...Styles.padding(0),
+          minHeight: 'initial',
+          overflowY: 'hidden',
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+      }),
+      inputFull: Styles.platformStyles({
+        common: {
+          ...Styles.padding(0),
+        },
+        isElectron: {
+          paddingRight: 46,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.xsmall,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+      }),
     } as const)
 )

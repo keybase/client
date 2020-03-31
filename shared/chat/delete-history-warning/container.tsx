@@ -10,7 +10,6 @@ type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey
 export default Container.connect(
   () => ({}),
   (dispatch, ownProps: OwnProps) => ({
-    onBack: Container.isMobile ? null : () => dispatch(RouteTreeGen.createNavigateUp()),
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onDeleteHistory: () => {
       const conversationIDKey = Container.getRouteProps(
@@ -23,7 +22,6 @@ export default Container.connect(
     },
   }),
   (_, dispatchProps, __: OwnProps) => ({
-    onBack: dispatchProps.onBack,
     onCancel: dispatchProps.onCancel,
     onDeleteHistory: dispatchProps.onDeleteHistory,
   })

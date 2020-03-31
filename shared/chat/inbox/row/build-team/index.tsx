@@ -31,7 +31,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       backgroundColor: Styles.globalColors.blueGrey,
       flexShrink: 0,
-      padding: Styles.globalMargins.small,
+      padding: Styles.globalMargins.xsmall,
       width: '100%',
     },
     isMobile: {

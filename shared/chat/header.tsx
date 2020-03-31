@@ -31,36 +31,25 @@ type Props = {
   fullName?: string
 }
 
-const descColor = Styles.globalColors.black_50
-
-const descStyleMobile = {
-  color: descColor,
-  fontSize: 13,
-  lineHeight: 17,
-}
-const descStyleDesktop = {
-  fontSize: 13,
-  lineHeight: '17px',
-  wordBreak: 'break-all',
-} as const // approximates BodySmall since markdown does not support text type
-const descStyle = Container.isMobile ? descStyleMobile : descStyleDesktop
-
-const descStyleOverride = {
-  del: descStyle,
-  em: descStyle,
-  fence: descStyle,
-  inlineCode: descStyle,
-  kbfsPath: descStyle,
-  link: descStyle,
-  mailto: descStyle,
-  paragraph: descStyle,
-  preview: descStyle,
-  strong: descStyle,
-} as any
-
 const Header = (p: Props) => {
   const {desc, canEditDesc, isTeam, participants, fullName, channel, showActions, muted, username} = p
   const {onToggleInfoPanel, onToggleThreadSearch, unMuteConversation, onOpenFolder} = p
+  const descStyleOverride = React.useMemo(
+    () => ({
+      del: styles.markdownOverride,
+      em: styles.markdownOverride,
+      fence: styles.markdownOverride,
+      inlineCode: styles.markdownOverride,
+      kbfsPath: styles.markdownOverride,
+      link: styles.markdownOverride,
+      mailto: styles.markdownOverride,
+      paragraph: styles.markdownOverride,
+      preview: styles.markdownOverride,
+      strong: styles.markdownOverride,
+    }),
+    []
+  )
+
   let description = !!desc && (
     <Kb.Markdown
       smallStandaloneEmoji={true}
@@ -232,7 +221,7 @@ const styles = Styles.styleSheetCreate(
       },
       desc: {
         ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-        color: descColor,
+        color: Styles.globalColors.black_50,
       },
       descriptionContainer: {
         height: 17,
@@ -256,6 +245,14 @@ const styles = Styles.styleSheetCreate(
       left: Styles.platformStyles({
         isElectron: {minWidth: 260},
         isTablet: {paddingLeft: Styles.globalMargins.small, width: '30%'},
+      }),
+      markdownOverride: Styles.platformStyles({
+        common: {
+          fontSize: 13,
+          lineHeight: 17,
+        },
+        isElectron: {wordBreak: 'break-all'},
+        isMobile: {color: Styles.globalColors.black_50},
       }),
       right: Styles.platformStyles({
         common: {

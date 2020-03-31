@@ -86,6 +86,7 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 	mvalid.SenderDeviceName = superMsg.Valid().SenderDeviceName
 	mvalid.SenderDeviceType = superMsg.Valid().SenderDeviceType
 	mvalid.ServerHeader.SupersededBy = superMsg.GetMessageID()
+	mvalid.Emojis = append(mvalid.Emojis, superMsg.Valid().Emojis...)
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg
 }

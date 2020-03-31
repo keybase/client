@@ -950,6 +950,40 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ResetConversationMember",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetResetConversationsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ResetConversationMember"
+          },
+          "name": "resetConvs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1707,6 +1741,10 @@
         }
       ],
       "response": "GetLastActiveAtRes"
+    },
+    "getResetConversations": {
+      "request": [],
+      "response": "GetResetConversationsRes"
     }
   },
   "namespace": "chat.1",

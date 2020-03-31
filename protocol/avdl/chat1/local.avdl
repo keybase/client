@@ -61,6 +61,7 @@ protocol local {
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
     union { null, LiveLocation } liveLocation;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageConversationMetadata {
@@ -72,6 +73,7 @@ protocol local {
     string body;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageDelete {
@@ -222,6 +224,8 @@ protocol local {
      string body; // emoji reaction :+1:
      @mpackkey("t") @jsonkey("t")
      union { null, gregor1.UID } targetUID;
+     @mpackkey("e") @jsonkey("e")
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageSendPayment {
@@ -445,6 +449,7 @@ protocol local {
     MessageClientHeader clientHeader;
     MessageBody messageBody;
     union { null, OutboxID } supersedesOutboxID;
+    array<HarvestedEmoji> emojis;
   }
 
   record MessageUnboxedValid {
@@ -1365,16 +1370,27 @@ protocol local {
   // queue up a refresh of participants, this will result in notifications to the UI with the data
   // from local and remote sources
   void refreshParticipants(ConversationID convID);
-  gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, gregor1.UID uid);
+  gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, string username);
+  map<keybase1.TeamID, gregor1.Time> getLastActiveAtMultiLocal(array<keybase1.TeamID> teamIDs, string username);
 
   // Emoji
   record AddEmojiRes {
     union { null, RateLimit } rateLimit;
   }
   AddEmojiRes addEmoji(ConversationID convID, string alias, string filename);
+  AddEmojiRes addEmojiAlias(ConversationID convID, string newAlias, string existingAlias);
+   record RemoveEmojiRes {
+    union { null, RateLimit } rateLimit;
+  }
+  RemoveEmojiRes removeEmoji(ConversationID convID, string alias);
   record UserEmojiRes {
     UserEmojis emojis; 
     union { null, RateLimit } rateLimit;
   }
-  UserEmojiRes userEmojis();
+  record EmojiFetchOpts {
+    boolean getCreationInfo;
+    boolean getAliases;
+    boolean onlyInTeam;
+  }
+  UserEmojiRes userEmojis(EmojiFetchOpts opts, union { null, ConversationID } convID);
 }

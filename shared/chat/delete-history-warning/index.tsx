@@ -3,13 +3,13 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  onBack: (() => void) | null
   onCancel: () => void
   onDeleteHistory: () => void
 }
 
 const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
   <Kb.MaybePopup onClose={onCancel}>
+    {Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.padding, styles.box])}>
       <Kb.Icon type={Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
       <Kb.Text style={{padding: Styles.globalMargins.small}} type="Header">
@@ -77,4 +77,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderOnMobile(DeleteHistoryWarning)
+export default DeleteHistoryWarning

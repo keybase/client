@@ -13,6 +13,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -38,6 +39,7 @@ type prefetcherConfig interface {
 	clockGetter
 	reporterGetter
 	settingsDBGetter
+	subscriptionManagerGetter
 	subscriptionManagerPublisherGetter
 }
 
@@ -114,10 +116,11 @@ type cancelTlfPrefetch struct {
 }
 
 type blockPrefetcher struct {
-	ctx    context.Context
-	config prefetcherConfig
-	log    logger.Logger
-	vlog   *libkb.VDebugLog
+	ctx             context.Context
+	config          prefetcherConfig
+	log             logger.Logger
+	vlog            *libkb.VDebugLog
+	appStateUpdater env.AppStateUpdater
 
 	makeNewBackOff func() backoff.BackOff
 
@@ -172,11 +175,13 @@ func defaultBackOffForPrefetcher() backoff.BackOff {
 
 func newBlockPrefetcher(retriever BlockRetriever,
 	config prefetcherConfig, testSyncCh <-chan struct{},
-	testDoneCh chan<- struct{}) *blockPrefetcher {
+	testDoneCh chan<- struct{},
+	appStateUpdater env.AppStateUpdater) *blockPrefetcher {
 	closedCh := make(chan struct{})
 	close(closedCh)
 	p := &blockPrefetcher{
 		config:                config,
+		appStateUpdater:       appStateUpdater,
 		makeNewBackOff:        defaultBackOffForPrefetcher,
 		retriever:             retriever,
 		prefetchRequestCh:     NewInfiniteChannelWrapper(),
@@ -186,7 +191,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		prefetchStatusCh:      NewInfiniteChannelWrapper(),
 		inFlightFetches:       NewInfiniteChannelWrapper(),
 		shutdownCh:            make(chan struct{}),
-		almostDoneCh:          make(chan struct{}, 1),
+		almostDoneCh:          make(chan struct{}),
 		doneCh:                make(chan struct{}),
 		prefetches:            make(map[kbfsblock.ID]*prefetch),
 		queuedPrefetchHandles: make(map[data.BlockPointer]queuedPrefetch),
@@ -601,7 +606,7 @@ top:
 		ch := chInterface.(<-chan error)
 		<-ch
 	}
-	p.almostDoneCh <- struct{}{}
+	close(p.almostDoneCh)
 }
 
 // calculatePriority returns either a base priority for an unsynced TLF or a
@@ -1299,6 +1304,78 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 	}
 }
 
+func (p *blockPrefetcher) handleAppStateChange(
+	appState *keybase1.MobileAppState) {
+	// Pause the prefetcher on cell connections.
+	for *appState != keybase1.MobileAppState_FOREGROUND {
+		p.log.CDebugf(
+			context.TODO(), "Pausing prefetcher while backgrounded")
+		select {
+		case *appState = <-p.appStateUpdater.NextAppStateUpdate(
+			appState):
+		case req := <-p.prefetchStatusCh.Out():
+			p.handleStatusRequest(req.(*prefetchStatusRequest))
+			continue
+		case <-p.almostDoneCh:
+			return
+		}
+	}
+}
+
+type prefetcherSubscriber struct {
+	ch chan<- struct{}
+}
+
+func (ps prefetcherSubscriber) OnPathChange(
+	_ SubscriptionID, _ string, _ keybase1.PathSubscriptionTopic) {
+}
+
+func (ps prefetcherSubscriber) OnNonPathChange(
+	_ SubscriptionID, _ keybase1.SubscriptionTopic) {
+	select {
+	case ps.ch <- struct{}{}:
+	default:
+	}
+}
+
+func (p *blockPrefetcher) handleNetStateChange(
+	netState *keybase1.MobileNetworkState, subCh <-chan struct{}) {
+	for *netState != keybase1.MobileNetworkState_CELLULAR {
+		return
+	}
+
+	for *netState == keybase1.MobileNetworkState_CELLULAR {
+		// Default to not syncing while on a cell network.
+		syncOnCellular := false
+		db := p.config.GetSettingsDB()
+		if db != nil {
+			s, err := db.Settings(context.TODO())
+			if err == nil {
+				syncOnCellular = s.SyncOnCellular
+			}
+		}
+
+		if syncOnCellular {
+			// Can ignore this network change.
+			break
+		}
+
+		p.log.CDebugf(
+			context.TODO(), "Pausing prefetcher on cell network")
+		select {
+		case *netState = <-p.appStateUpdater.NextNetworkStateUpdate(
+			netState):
+		case <-subCh:
+			p.log.CDebugf(context.TODO(), "Settings changed")
+		case req := <-p.prefetchStatusCh.Out():
+			p.handleStatusRequest(req.(*prefetchStatusRequest))
+			continue
+		case <-p.almostDoneCh:
+			return
+		}
+	}
+}
+
 // run prefetches blocks.
 // E.g. a synced prefetch:
 // a -> {b -> {c, d}, e -> {f, g}}:
@@ -1349,6 +1426,29 @@ func (p *blockPrefetcher) run(
 	isShuttingDown := false
 	var shuttingDownCh <-chan interface{}
 	first := true
+	appState := keybase1.MobileAppState_FOREGROUND
+	netState := keybase1.MobileNetworkState_NONE
+
+	// Subscribe to settings updates while waiting for the network to
+	// change.
+	subMan := p.config.SubscriptionManager()
+	var subCh chan struct{}
+	if subMan != nil {
+		subCh = make(chan struct{}, 1)
+
+		const prefetcherSubKey = "prefetcherSettings"
+		sub := subMan.Subscriber(prefetcherSubscriber{subCh})
+		err := sub.SubscribeNonPath(
+			context.TODO(), prefetcherSubKey,
+			keybase1.SubscriptionTopic_SETTINGS, nil)
+		if err != nil {
+			p.log.CDebugf(
+				context.TODO(), "Error subscribing to settings: %+v", err)
+		} else {
+			defer sub.Unsubscribe(context.TODO(), prefetcherSubKey)
+		}
+	}
+
 	for {
 		if !first && testDoneCh != nil && !isShuttingDown {
 			testDoneCh <- struct{}{}
@@ -1377,6 +1477,13 @@ func (p *blockPrefetcher) run(
 			p.log.Debug("shutting down, clearing in flight fetches")
 			ch := chInterface.(<-chan error)
 			<-ch
+		case appState = <-p.appStateUpdater.NextAppStateUpdate(&appState):
+			p.handleAppStateChange(&appState)
+		case netState = <-p.appStateUpdater.NextNetworkStateUpdate(&netState):
+			p.handleNetStateChange(&netState, subCh)
+		case <-subCh:
+			// Settings have changed, so recheck the network state.
+			netState = keybase1.MobileNetworkState_NONE
 		case ptrInt := <-p.prefetchCancelCh.Out():
 			ptr := ptrInt.(data.BlockPointer)
 			pre, ok := p.prefetches[ptr.ID]

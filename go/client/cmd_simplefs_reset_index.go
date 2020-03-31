@@ -21,7 +21,7 @@ type CmdSimpleFSResetIndex struct {
 func NewCmdSimpleFSResetIndex(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "reset-index",
-		Usage: "delete all local index storage, and resets the indexer",
+		Usage: "[disabled] delete all local index storage, and resets the indexer",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSResetIndex{
 				Contextified: libkb.NewContextified(g)}, "reset-index", c)

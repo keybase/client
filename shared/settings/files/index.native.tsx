@@ -1,6 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/fs'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import {Props} from '.'
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
@@ -50,30 +53,60 @@ class ThresholdDropdown extends React.PureComponent<
   }
 }
 
-const Files = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
-      <Kb.Text type="Header">Sync</Kb.Text>
-      <Kb.Checkbox
-        onCheck={
-          props.spaceAvailableNotificationThreshold === 0
-            ? props.onEnableSyncNotifications
-            : props.onDisableSyncNotifications
-        }
-        label="Warn when low on storage space"
-        checked={props.spaceAvailableNotificationThreshold !== 0}
-        disabled={props.areSettingsLoading}
-        style={styles.syncNotificationCheckbox}
-      />
-      {!!props.spaceAvailableNotificationThreshold && <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>}
-      {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
-    </Kb.Box2>
-  </Kb.Box2>
-)
+const Files = (props: Props) => {
+  const syncOnCellular = Container.useSelector(state => state.fs.settings.syncOnCellular)
+  const toggleSyncOnCellular = () =>
+    RPCTypes.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
+      {
+        syncOnCellular: !syncOnCellular,
+      },
+      Constants.setSyncOnCellularWaitingKey
+    )
+  const waitingToggleSyncOnCellular = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.setSyncOnCellularWaitingKey)
+  )
+  return (
+    <Kb.HeaderHocWrapper title="Files" onBack={props.onBack} skipHeader={!Styles.isPhone}>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="small">
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
+          <Kb.Text type="Header">Sync</Kb.Text>
+          <Kb.Switch
+            onClick={
+              props.spaceAvailableNotificationThreshold === 0
+                ? props.onEnableSyncNotifications
+                : props.onDisableSyncNotifications
+            }
+            label="Warn when low on storage space"
+            on={props.spaceAvailableNotificationThreshold !== 0}
+            disabled={props.areSettingsLoading}
+            gapSize={Styles.globalMargins.small}
+            style={styles.switch}
+          />
+          {!!props.spaceAvailableNotificationThreshold && (
+            <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>
+          )}
+          {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
+          <Kb.Switch
+            on={syncOnCellular}
+            onClick={toggleSyncOnCellular}
+            disabled={waitingToggleSyncOnCellular}
+            label="Sync files over mobile network"
+            labelSubtitle="Syncing over Wi-Fi is always on"
+            gapSize={Styles.globalMargins.small}
+            style={styles.switch}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.HeaderHocWrapper>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      switch: {
+        marginTop: Styles.globalMargins.small,
+      },
       syncContent: Styles.platformStyles({
         common: {
           paddingLeft: Styles.globalMargins.xsmall,
@@ -84,10 +117,7 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 410,
         },
       }),
-      syncNotificationCheckbox: {
-        alignItems: 'center',
-      },
     } as const)
 )
 
-export default Kb.HeaderHoc(Files)
+export default Files

@@ -20,47 +20,49 @@ const AddDevice = (props: Props) => {
   const onAddPhone = useSafeCallback(props.onAddPhone, {onlyOnce})
   const onAddPaperKey = useSafeCallback(props.onAddPaperKey, {onlyOnce})
   return (
-    <Kb.ScrollView alwaysBounceVertical={false}>
-      <Kb.Box2
-        direction="vertical"
-        gap="medium"
-        alignItems="center"
-        style={styles.container}
-        gapStart={true}
-        gapEnd={true}
-      >
-        <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-          {!Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
-          <Kb.Text type="Body" center={true}>
-            Protect your account by having more devices and paper keys.
-          </Kb.Text>
-        </Kb.Box2>
+    <Kb.PopupWrapper onCancel={props.onCancel}>
+      <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2
-          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-          gap="mediumLarge"
-          style={styles.deviceOptions}
+          direction="vertical"
+          gap="medium"
+          alignItems="center"
+          style={styles.container}
+          gapStart={true}
           gapEnd={true}
         >
-          <DeviceOption
-            iconNumber={props.iconNumbers.desktop}
-            onClick={onAddComputer}
-            type="computer"
-            highlight={props.highlight && props.highlight.includes('computer')}
-          />
-          <DeviceOption
-            iconNumber={props.iconNumbers.mobile}
-            onClick={onAddPhone}
-            type="phone"
-            highlight={props.highlight && props.highlight.includes('phone')}
-          />
-          <DeviceOption
-            onClick={onAddPaperKey}
-            type="paper key"
-            highlight={props.highlight && props.highlight.includes('paper key')}
-          />
+          <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
+            {!Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
+            <Kb.Text type="Body" center={true}>
+              Protect your account by having more devices and paper keys.
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2
+            direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+            gap="mediumLarge"
+            style={styles.deviceOptions}
+            gapEnd={true}
+          >
+            <DeviceOption
+              iconNumber={props.iconNumbers.desktop}
+              onClick={onAddComputer}
+              type="computer"
+              highlight={props.highlight && props.highlight.includes('computer')}
+            />
+            <DeviceOption
+              iconNumber={props.iconNumbers.mobile}
+              onClick={onAddPhone}
+              type="phone"
+              highlight={props.highlight && props.highlight.includes('phone')}
+            />
+            <DeviceOption
+              onClick={onAddPaperKey}
+              type="paper key"
+              highlight={props.highlight && props.highlight.includes('paper key')}
+            />
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-    </Kb.ScrollView>
+      </Kb.ScrollView>
+    </Kb.PopupWrapper>
   )
 }
 
@@ -130,4 +132,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default Kb.HeaderOrPopup(AddDevice)
+export default AddDevice

@@ -46,7 +46,7 @@ type anchorInteractor struct {
 	asset          stellar1.Asset
 	authToken      string
 	httpGetClient  func(mctx libkb.MetaContext, url, authToken string) (code int, body []byte, err error)
-	httpPostClient func(mctx libkb.MetaContext, url string, data url.Values) (code int, body []byte, err error)
+	httpPostClient func(mctx libkb.MetaContext, url, authToken string, data url.Values) (code int, body []byte, err error)
 }
 
 // newAnchorInteractor creates an anchorInteractor for an account to interact
@@ -72,6 +72,13 @@ func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetAction
 	if err := a.checkAssetForDeposit(mctx); err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
+	if a.asset.UseSep24 {
+		return a.depositSep24(mctx)
+	}
+	return a.depositSep6(mctx)
+}
+
+func (a *anchorInteractor) depositSep6(mctx libkb.MetaContext) (stellar1.AssetActionResultLocal, error) {
 	u, err := a.checkURL(mctx, "deposit")
 	if err != nil {
 		return stellar1.AssetActionResultLocal{}, err
@@ -86,11 +93,31 @@ func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetAction
 	return a.get(mctx, u, &okResponse)
 }
 
+func (a *anchorInteractor) depositSep24(mctx libkb.MetaContext) (stellar1.AssetActionResultLocal, error) {
+	u, err := a.checkURL(mctx, "/transactions/deposit/interactive")
+	if err != nil {
+		return stellar1.AssetActionResultLocal{}, err
+	}
+
+	v := url.Values{}
+	v.Set("account", a.accountID.String())
+	v.Set("asset_code", a.asset.Code)
+
+	return a.postSep24(mctx, u, v)
+}
+
 // Withdraw runs the withdraw action for accountID on the transfer server for asset.
 func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActionResultLocal, error) {
 	if err := a.checkAssetForWithdraw(mctx); err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
+	if a.asset.UseSep24 {
+		return a.withdrawSep24(mctx)
+	}
+	return a.withdrawSep6(mctx)
+}
+
+func (a *anchorInteractor) withdrawSep6(mctx libkb.MetaContext) (stellar1.AssetActionResultLocal, error) {
 	u, err := a.checkURL(mctx, "withdraw")
 	if err != nil {
 		return stellar1.AssetActionResultLocal{}, err
@@ -111,11 +138,27 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 	return a.get(mctx, u, &okResponse)
 }
 
+func (a *anchorInteractor) withdrawSep24(mctx libkb.MetaContext) (stellar1.AssetActionResultLocal, error) {
+	u, err := a.checkURL(mctx, "/transactions/withdraw/interactive")
+	if err != nil {
+		return stellar1.AssetActionResultLocal{}, err
+	}
+
+	v := url.Values{}
+	v.Set("asset_code", a.asset.Code)
+	v.Set("account", a.accountID.String())
+
+	return a.postSep24(mctx, u, v)
+}
+
 // checkAssetForDeposit sanity-checks the asset to make sure it is verified
 // and looks like the transfer server actions are supported.
 func (a *anchorInteractor) checkAssetForDeposit(mctx libkb.MetaContext) error {
 	if err := a.checkAssetCommon(mctx); err != nil {
 		return err
+	}
+	if !a.asset.ShowDepositButton {
+		return errors.New("deposit not enabled for asset")
 	}
 	if a.asset.DepositReqAuth {
 		if a.asset.AuthEndpoint == "" {
@@ -136,6 +179,9 @@ func (a *anchorInteractor) checkAssetForDeposit(mctx libkb.MetaContext) error {
 func (a *anchorInteractor) checkAssetForWithdraw(mctx libkb.MetaContext) error {
 	if err := a.checkAssetCommon(mctx); err != nil {
 		return err
+	}
+	if !a.asset.ShowWithdrawButton {
+		return errors.New("withdraw not enabled for asset")
 	}
 	if a.asset.WithdrawReqAuth {
 		if a.asset.AuthEndpoint == "" {
@@ -172,10 +218,6 @@ func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url
 		return nil, err
 	}
 	u.Path = path.Join(u.Path, action)
-
-	if !a.domainMatches(u.Host) {
-		return nil, errors.New("transfer server hostname does not match asset hostname")
-	}
 
 	if u.Scheme != "https" {
 		return nil, errors.New("transfer server URL is not https")
@@ -224,6 +266,16 @@ type forbiddenResponse struct {
 	URL   string `json:"url"`
 	ID    string `json:"id"`
 	Error string `json:"error"`
+}
+
+type okSep24Response struct {
+	Type string `json:"type"`
+	URL  string `json:"url"`
+	ID   string `json:"id"`
+}
+
+func (r *okSep24Response) String() string {
+	return r.URL
 }
 
 // get performs the http GET requests and parses the result.
@@ -276,6 +328,44 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 	}
 }
 
+// postSep24 performs the http POST request for interactive deposit/withdraw and
+// parses the result.
+func (a *anchorInteractor) postSep24(mctx libkb.MetaContext, u *url.URL, data url.Values) (stellar1.AssetActionResultLocal, error) {
+	mctx.Debug("performing http POST (sep24) to %s", u)
+	code, body, err := a.httpPostClient(mctx, u.String(), a.authToken, data)
+	if err != nil {
+		mctx.Debug("POST failed: %s", err)
+		return stellar1.AssetActionResultLocal{}, err
+	}
+
+	switch code {
+	case http.StatusOK:
+		var resp okSep24Response
+		if err := json.Unmarshal(body, &resp); err != nil {
+			mctx.Debug("json unmarshal of 200 response failed: %s", err)
+			return stellar1.AssetActionResultLocal{}, err
+		}
+		if resp.Type == "interactive_customer_info_needed" {
+			_, err = url.Parse(resp.URL)
+			if err != nil {
+				mctx.Debug("invalid URL received from anchor: %s", resp.URL)
+				return stellar1.AssetActionResultLocal{}, errors.New("invalid URL received from anchor")
+			}
+			return stellar1.AssetActionResultLocal{ExternalUrl: &resp.URL}, nil
+		}
+		mctx.Debug("unhandled anchor response for %s: %+v", u, resp)
+		return stellar1.AssetActionResultLocal{}, errors.New("unhandled asset anchor http response")
+	default:
+		mctx.Debug("unhandled anchor response code for %s: %d", u, code)
+		mctx.Debug("unhandled anchor response body for %s: %s", u, string(body))
+		return stellar1.AssetActionResultLocal{},
+			ErrAnchor{
+				Code:    ErrAnchorCodeBadStatus,
+				Message: fmt.Sprintf("Unknown asset anchor HTTP response code %d", code),
+			}
+	}
+}
+
 // httpGet is the live version of httpGetClient that is used
 // by default.
 func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
@@ -310,7 +400,7 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 
 // httpPost is the live version of httpPostClient that is used
 // by default.
-func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
+func httpPost(mctx libkb.MetaContext, url, authToken string, data url.Values) (int, []byte, error) {
 	client := http.Client{
 		Timeout: 10 * time.Second,
 		Transport: libkb.NewInstrumentedRoundTripper(mctx.G(),
@@ -322,6 +412,10 @@ func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte,
 		return 0, nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	if authToken != "" {
+		req.Header.Add("Authorization", "Bearer "+authToken)
+	}
 
 	res, err := client.Do(req.WithContext(mctx.Ctx()))
 	if err != nil {
@@ -353,9 +447,6 @@ func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
 	u, err := url.ParseRequestURI(a.asset.AuthEndpoint)
 	if err != nil {
 		return err
-	}
-	if !a.domainMatches(u.Host) {
-		return errors.New("auth endpoint domain does not match asset")
 	}
 	if u.Scheme != "https" {
 		return errors.New("auth endpoint is not https")
@@ -436,7 +527,7 @@ func (a *anchorInteractor) getAuthToken(mctx libkb.MetaContext) error {
 
 	data := url.Values{}
 	data.Set("transaction", signed)
-	code, body, err = a.httpPostClient(mctx, a.asset.AuthEndpoint, data)
+	code, body, err = a.httpPostClient(mctx, a.asset.AuthEndpoint, "", data)
 	if err != nil {
 		return err
 	}

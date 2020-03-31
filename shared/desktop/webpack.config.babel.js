@@ -47,7 +47,7 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga|react-gateway))|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|react-redux|redux-saga|react-gateway))|\/dist\/)/,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
@@ -241,7 +241,6 @@ const config = (_, {mode}) => {
     entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
     module: {rules: makeRules(true)},
     name: 'Keybase',
-    optimization: {splitChunks: {chunks: 'all'}},
     plugins: [],
     target: 'electron-main',
   })

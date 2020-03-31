@@ -3,13 +3,13 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"net/mail"
 	"strings"
 	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/avatars"
+	email_utils "github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -714,31 +714,18 @@ func InviteEmailPhoneMember(ctx context.Context, g *libkb.GlobalContext, teamID 
 
 func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (res keybase1.BulkRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
-	unparsedEmailList := splitBulk(emails)
-	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(unparsedEmailList))
 
+	mctx.Debug("parsing email list for team %q", teamname)
+
+	actx := mctx.G().MakeAssertionContext(mctx)
+
+	emailList := email_utils.ParseSeparatedEmails(mctx, emails, &res.Malformed)
 	var toAdd []keybase1.UserRolePair
-
-	for _, email := range unparsedEmailList {
-		addr, parseErr := mail.ParseAddress(email)
-		if parseErr != nil {
-			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
+	for _, email := range emailList {
+		assertion, err := libkb.ParseAssertionURLKeyValue(actx, "email", email, false /* strict */)
+		if err != nil {
 			res.Malformed = append(res.Malformed, email)
-			continue
-		}
-
-		// API server side of this only accepts x.yy domain name:
-		parts := strings.Split(addr.Address, ".")
-		if len(parts[len(parts)-1]) < 2 {
-			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q", teamname, email)
-			res.Malformed = append(res.Malformed, email)
-			continue
-		}
-
-		assertion, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
-		if parseErr != nil {
-			g.Log.CDebugf(ctx, "team %q: skipping malformed email %q; could not parse into assertion: %s", teamname, email, parseErr)
-			res.Malformed = append(res.Malformed, email)
+			mctx.Debug("Failed to create assertion from email %q: %s", email, err)
 			continue
 		}
 		toAdd = append(toAdd, keybase1.UserRolePair{Assertion: assertion.String(), Role: role})
@@ -1908,18 +1895,6 @@ func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID
 		}
 	}
 	return err
-}
-
-// splitBulk splits on newline or comma.
-func splitBulk(s string) []string {
-	f := func(c rune) bool {
-		return c == '\n' || c == ','
-	}
-	split := strings.FieldsFunc(s, f)
-	for i, s := range split {
-		split[i] = strings.TrimSpace(s)
-	}
-	return split
 }
 
 func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKey, error) {

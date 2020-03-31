@@ -6,7 +6,6 @@ import * as Constants from '../../constants/teams'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
-import {HeaderOrPopup} from '../../common-adapters'
 
 type OwnProps = {}
 
@@ -38,11 +37,9 @@ export default Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     return {
       ...dispatchProps,
-      customCancelText: 'Close',
       onCancel: () => dispatchProps.onCancel(stateProps._you),
       teams: Constants.sortTeamsByName(stateProps.teamMeta),
-      title: 'Feature your teams',
       waiting: stateProps._waiting,
     }
   }
-)(HeaderOrPopup(Render))
+)(Render)

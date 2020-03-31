@@ -52,6 +52,9 @@ export type MemberInfo = {
   type: TeamRoleType
   username: string
 }
+export type MemberInfoWithLastActivity = MemberInfo & {
+  lastActivity?: number
+}
 
 export type InviteInfo = {
   email: string
@@ -125,6 +128,13 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
+export type AvatarCrop = {
+  crop: RPCTypes.ImageCropRect
+  offsetLeft?: number
+  offsetTop?: number
+  scaledWidth?: number
+}
+
 export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'
 export type NewTeamWizardState = {
   teamType: TeamWizardTeamType
@@ -135,7 +145,7 @@ export type NewTeamWizardState = {
   openTeamJoinRole: TeamRoleType
   showcase: boolean
   avatarFilename?: string
-  avatarCrop?: RPCTypes.ImageCropRect
+  avatarCrop?: AvatarCrop
   isBig: boolean
   channels?: string[]
   subteams?: string[]
@@ -188,6 +198,7 @@ export type State = {
   readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   readonly teamMemberToSubteams: Map<TeamID, Map<string, MemberInfo>>
+  readonly teamMemberToLastActivity: Map<TeamID, Map<string, number>>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   readonly teamnames: Set<Teamname> // TODO remove

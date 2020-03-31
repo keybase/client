@@ -40,7 +40,7 @@ const ConfirmKickOut = (props: Props) => {
   const [subteams, subteamIDs] = Container.useSelector(state => getSubteamNames(state, teamID))
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
-    [],
+    members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
   )
   const waiting = Container.useAnyWaiting(...waitingKeys)
@@ -97,7 +97,7 @@ const ConfirmKickOut = (props: Props) => {
             They will lose access to all the {teamname} chats and folders, and they won’t be able to get back
             unless an admin invites them.
           </Kb.Text>
-          {subteams.length && (
+          {!!subteams.length && (
             <Kb.Checkbox
               checked={subteamsToo}
               onCheck={setSubteamsToo}

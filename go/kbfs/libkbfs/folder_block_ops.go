@@ -256,6 +256,10 @@ func (fbo *folderBlockOps) branch() data.BranchName {
 	return fbo.folderBranch.Branch
 }
 
+func (fbo *folderBlockOps) isSyncedTlf() bool {
+	return fbo.branch() == data.MasterBranch && fbo.config.IsSyncedTlf(fbo.id())
+}
+
 // GetState returns the overall block state of this TLF.
 func (fbo *folderBlockOps) GetState(
 	lState *kbfssync.LockState) overallBlockState {
@@ -309,7 +313,7 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizesLocked(ctx context.Context,
 			}
 			if diskBCache := fbo.config.DiskBlockCache(); diskBCache != nil {
 				cacheType := DiskBlockAnyCache
-				if fbo.config.IsSyncedTlf(fbo.id()) {
+				if fbo.isSyncedTlf() {
 					cacheType = DiskBlockSyncCache
 				}
 				if buf, _, _, err := diskBCache.Get(
@@ -421,7 +425,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 			// downstream prefetches are triggered correctly according to
 			// the new on-demand fetch priority.
 			action := fbo.config.Mode().DefaultBlockRequestAction()
-			if fbo.config.IsSyncedTlf(fbo.id()) {
+			if fbo.isSyncedTlf() {
 				action = action.AddSync()
 			}
 			prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(), ptr)
@@ -458,10 +462,10 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	var err error
 	if rtype != data.BlockReadParallel && rtype != data.BlockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*kbfssync.LockState) {
-			err = bops.Get(ctx, kmd, ptr, block, lifetime)
+			err = bops.Get(ctx, kmd, ptr, block, lifetime, fbo.branch())
 		})
 	} else {
-		err = bops.Get(ctx, kmd, ptr, block, lifetime)
+		err = bops.Get(ctx, kmd, ptr, block, lifetime, fbo.branch())
 	}
 	if err != nil {
 		return nil, err
@@ -872,6 +876,10 @@ func (fbo *folderBlockOps) deepCopyFileLocked(
 	return fd.DeepCopy(ctx, dataVer)
 }
 
+func (fbo *folderBlockOps) cacheHashBehavior() data.BlockCacheHashBehavior {
+	return cacheHashBehavior(fbo.config, fbo.config, fbo.id())
+}
+
 func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	lState *kbfssync.LockState, kmd libkey.KeyMetadata, file data.Path, bps blockPutState,
 	dirtyBcache data.DirtyBlockCacheSimple, topBlock *data.FileBlock) (
@@ -885,7 +893,7 @@ func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	fd := fbo.newFileDataWithCache(
 		lState, file, chargedTo, kmd, dirtyBcache)
 	return fd.UndupChildrenInCopy(ctx, fbo.config.BlockCache(),
-		fbo.config.BlockOps(), bps, topBlock)
+		fbo.config.BlockOps(), bps, topBlock, fbo.cacheHashBehavior())
 }
 
 func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
@@ -902,7 +910,7 @@ func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	fd := fbo.newFileDataWithCache(
 		lState, file, chargedTo, kmd, dirtyBcache)
 	return fd.ReadyNonLeafBlocksInCopy(ctx, fbo.config.BlockCache(),
-		fbo.config.BlockOps(), bps, topBlock)
+		fbo.config.BlockOps(), bps, topBlock, fbo.cacheHashBehavior())
 }
 
 // getDirLocked retrieves the block pointed to by the tail pointer of
@@ -2810,7 +2818,8 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 
 	// Ready all children blocks, if any.
 	oldPtrs, err := fd.Ready(ctx, fbo.id(), fbo.config.BlockCache(),
-		fbo.config.DirtyBlockCache(), fbo.config.BlockOps(), si.bps, fblock, df)
+		fbo.config.DirtyBlockCache(), fbo.config.BlockOps(), si.bps, fblock, df,
+		fbo.cacheHashBehavior())
 	if err != nil {
 		return nil, nil, syncState, nil, err
 	}
@@ -3541,9 +3550,13 @@ func (fbo *folderBlockOps) updatePointer(kmd libkey.KeyMetadata, oldPtr data.Blo
 		}
 
 		// No need to cache because it's already cached.
+		action := fbo.config.Mode().DefaultBlockRequestAction()
+		if fbo.branch() != data.MasterBranch {
+			action = action.AddNonMasterBranch()
+		}
 		_ = fbo.config.BlockOps().BlockRetriever().Request(
 			ctx, updatePointerPrefetchPriority, kmd, newPtr, block.NewEmpty(),
-			lifetime, fbo.config.Mode().DefaultBlockRequestAction())
+			lifetime, action)
 	}
 	// Cancel any prefetches for the old pointer from the prefetcher.
 	fbo.config.BlockOps().Prefetcher().CancelPrefetch(oldPtr)

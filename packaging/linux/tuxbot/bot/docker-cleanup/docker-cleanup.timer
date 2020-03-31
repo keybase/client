@@ -1,0 +1,9 @@
+[Unit]
+Description=clean up docker tags a few hours after nightly builds
+
+[Timer]
+OnCalendar=Mon-Fri 13:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

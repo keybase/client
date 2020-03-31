@@ -211,7 +211,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   }
 
   render() {
-    if (!Styles.isMobile) {
+    if (!isMobile) {
       this.desktopItems = menuItems(countryData(), this.state.filter, this.onSelectMenu)
       return (
         <Kb.FloatingMenu
@@ -260,6 +260,7 @@ type Props = {
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onEnterKeyDown?: () => void
   onClear?: () => void
+  small?: boolean // default is true on desktop and false on mobile
   style?: Styles.StylesCrossPlatform
 }
 
@@ -437,14 +438,21 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
     this.phoneInputRef.current && this.phoneInputRef.current.focus()
   }
 
+  private isSmall = () => {
+    return this.props.small ?? !Styles.isMobile
+  }
+
   private renderCountrySelector = () => {
     if (this.state.country === undefined) {
       return null
     }
 
-    if (Styles.isMobile) {
+    if (!this.isSmall()) {
       return (
-        <Kb.Text type="BodySemibold" style={styles.countrySelector}>
+        <Kb.Text
+          type="BodySemibold"
+          style={Styles.collapseStyles([styles.countrySelector, styles.countrySelectorBig])}
+        >
           {!this.state.country
             ? !this.state.prefix
               ? '- Pick a country -'
@@ -492,8 +500,11 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
     if (this.state.country === undefined) {
       return (
         <Kb.Box2
-          direction={isMobile ? 'vertical' : 'horizontal'}
-          style={Styles.collapseStyles([styles.container, styles.containerLoading])}
+          direction={this.isSmall() ? 'horizontal' : 'vertical'}
+          style={Styles.collapseStyles([
+            this.isSmall() ? styles.containerSmall : styles.containerBig,
+            styles.containerLoading,
+          ])}
         >
           <Kb.ProgressIndicator type="Small" />
         </Kb.Box2>
@@ -502,15 +513,25 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
 
     return (
       <Kb.Box2
-        direction={isMobile ? 'vertical' : 'horizontal'}
-        style={Styles.collapseStyles([styles.container, !isMobile && this.state.focused && styles.highlight])}
+        direction={this.isSmall() ? 'horizontal' : 'vertical'}
+        style={Styles.collapseStyles([
+          this.isSmall() ? styles.containerSmall : styles.containerBig,
+          this.isSmall() && this.state.focused && styles.highlight,
+        ])}
       >
         <Kb.Box2
           alignItems="center"
           direction="horizontal"
-          style={Styles.collapseStyles([styles.countrySelectorRow, styles.fakeInput])}
+          style={
+            this.isSmall()
+              ? undefined
+              : Styles.collapseStyles([styles.countrySelectorRowBig, styles.fakeInputBig])
+          }
         >
-          <Kb.ClickableBox onClick={this.toggleShowingMenu} style={styles.fullWidth}>
+          <Kb.ClickableBox
+            onClick={this.toggleShowingMenu}
+            style={this.isSmall() ? styles.fullWidthDesktopOnly : styles.fullWidth}
+          >
             <Kb.Box2
               direction="horizontal"
               style={styles.countrySelectorContainer}
@@ -523,18 +544,26 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
             </Kb.Box2>
           </Kb.ClickableBox>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : undefined} style={styles.fullWidth}>
-          {isMobile && (
+        <Kb.Box2
+          direction="horizontal"
+          gap={this.isSmall() ? undefined : 'tiny'}
+          fullWidth={true}
+          style={this.isSmall() ? Styles.globalStyles.flexOne : undefined}
+        >
+          {!this.isSmall() && (
             <Kb.Box2
               alignItems="center"
               direction="horizontal"
-              style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
+              style={Styles.collapseStyles([styles.prefixContainer, !this.isSmall() && styles.fakeInputBig])}
             >
               <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
                 {'+'}
               </Kb.Text>
               <Kb.PlainInput
-                style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
+                style={Styles.collapseStyles([
+                  this.isSmall() ? styles.plainInputSmall : styles.plainInputBig,
+                  styles.prefixInput,
+                ])}
                 flexable={true}
                 keyboardType={isIOS ? 'number-pad' : 'numeric'}
                 onChangeText={x => this.reformatPrefix(x, false)}
@@ -550,13 +579,13 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
             direction="horizontal"
             style={Styles.collapseStyles([
               styles.phoneNumberContainer,
-              styles.fakeInput,
-              isMobile && this.state.focused && styles.highlight,
+              !this.isSmall() && styles.fakeInputBig,
+              !this.isSmall() && this.state.focused && styles.highlight,
             ])}
           >
             <Kb.PlainInput
               autoFocus={this.props.autoFocus}
-              style={styles.plainInput}
+              style={this.isSmall() ? styles.plainInputSmall : styles.plainInputBig}
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}
               placeholder={getPlaceholder(this.state.country)}
@@ -595,21 +624,22 @@ const styles = Styles.styleSheetCreate(
       clearIcon: {
         marginRight: Styles.globalMargins.tiny,
       },
-      container: Styles.platformStyles({
-        isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
-          borderRadius: Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          height: 38,
-          width: '100%',
-        },
-      }),
+      containerBig: {
+        width: '100%',
+      },
       containerLoading: {
         alignItems: 'center',
         display: 'flex',
         justifyContent: 'center',
+      },
+      containerSmall: {
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: Styles.borderRadius,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        height: 38,
+        width: '100%',
       },
       countryLayout: {
         maxHeight: 200,
@@ -627,41 +657,30 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 0,
         },
       }),
-      countrySelector: Styles.platformStyles({
-        common: {
-          marginRight: Styles.globalMargins.xtiny,
-        },
-        isMobile: {
-          flexGrow: 1,
-        },
-      }),
-      countrySelectorContainer: Styles.platformStyles({
-        common: {
-          ...Styles.padding(0, Styles.globalMargins.xsmall),
-        },
-        isElectron: {
-          borderRightColor: Styles.globalColors.black_10,
-          borderRightWidth: '1px',
-          borderStyle: 'solid',
-          height: 36,
-        },
-      }),
-      countrySelectorRow: Styles.platformStyles({
-        isMobile: {
-          marginBottom: Styles.globalMargins.tiny,
-        },
-      }),
-      fakeInput: Styles.platformStyles({
-        isMobile: {
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
-          borderRadius: Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          height: 48,
-        },
-      }),
+      countrySelector: {marginRight: Styles.globalMargins.xtiny},
+      countrySelectorBig: {
+        flexGrow: 1,
+      },
+      countrySelectorContainer: {
+        ...Styles.padding(0, Styles.globalMargins.xsmall),
+        borderRightColor: Styles.globalColors.black_10,
+        borderRightWidth: 1,
+        borderStyle: 'solid',
+        height: 36,
+      },
+      countrySelectorRowBig: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      fakeInputBig: {
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: Styles.borderRadius,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        height: 48,
+      },
       fullWidth: {width: '100%'},
+      fullWidthDesktopOnly: Styles.platformStyles({isElectron: {width: '100%'}}),
       highlight: {borderColor: Styles.globalColors.blue, borderWidth: 1},
       menuItem: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
@@ -669,19 +688,16 @@ const styles = Styles.styleSheetCreate(
       phoneNumberContainer: {
         flexGrow: 1,
       },
-      plainInput: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.transparent,
-        },
-        isElectron: {
-          ...Styles.padding(0, Styles.globalMargins.xsmall),
-          height: 36,
-        },
-        isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small),
-          height: 48,
-        },
-      }),
+      plainInputBig: {
+        ...Styles.padding(0, Styles.globalMargins.small),
+        backgroundColor: Styles.globalColors.transparent,
+        height: 48,
+      },
+      plainInputSmall: {
+        ...Styles.padding(0, Styles.globalMargins.xsmall),
+        backgroundColor: Styles.globalColors.transparent,
+        height: 36,
+      },
       prefixContainer: {
         flexGrow: 0,
       },

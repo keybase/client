@@ -76,6 +76,9 @@ module.exports = {
   get CopyableText() {
     return require('./copyable-text').default
   },
+  get CustomEmoji() {
+    return require('./custom-emoji').default
+  },
   get DelayedMounting() {
     return require('./delayed-mounting').default
   },
@@ -112,20 +115,11 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HeaderHoc() {
-    return require('./header-hoc').default
-  },
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },
-  get HeaderOnMobile() {
-    return require('./header-on-mobile').default
-  },
-  get HeaderOrPopup() {
-    return require('./header-or-popup').default
-  },
-  get HeaderOrPopupWithHeader() {
-    return require('./header-or-popup').HeaderOrPopupWithHeader
+  get HeaderHocWrapper() {
+    return require('./header-hoc').HeaderHocWrapper
   },
   get HotKey() {
     return require('./hot-key').HotKey
@@ -229,6 +223,9 @@ module.exports = {
   get PopupHeaderText() {
     return require('./popup-header-text').default
   },
+  get PopupWrapper() {
+    return require('./header-or-popup').PopupWrapper
+  },
   get ProfileCard() {
     return require('./profile-card').default
   },
@@ -279,9 +276,6 @@ module.exports = {
   },
   get SimpleToast() {
     return require('./simple-toast').default
-  },
-  get StandardScreen() {
-    return require('./standard-screen').default
   },
   get Switch() {
     return require('./switch').default

@@ -8,16 +8,18 @@ type Props = React.PropsWithChildren<{
 }>
 
 const Modal = ({children, onCancel, skipButton}: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-    <Kb.Box2 direction="vertical" style={styles.content} fullWidth={true} alignItems="center">
-      {children}
-    </Kb.Box2>
-    {onCancel && !skipButton && (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
-        <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
+  <Kb.PopupWrapper onCancel={onCancel}>
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="vertical" style={styles.content} fullWidth={true} alignItems="center">
+        {children}
       </Kb.Box2>
-    )}
-  </Kb.Box2>
+      {onCancel && !skipButton && (
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
+          <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  </Kb.PopupWrapper>
 )
 
 const styles = Styles.styleSheetCreate(
@@ -39,4 +41,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderOrPopup(Modal)
+export default Modal

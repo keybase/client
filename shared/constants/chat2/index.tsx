@@ -45,7 +45,6 @@ export const makeState = (): Types.State => ({
   botSearchResults: new Map(),
   botSettings: new Map(),
   botTeamRoleInConvMap: new Map(),
-  channelSearchText: '',
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
@@ -100,6 +99,7 @@ export const makeState = (): Types.State => ({
   unfurlPromptMap: new Map(),
   unreadMap: new Map(),
   unsentTextMap: new Map(),
+  userEmojisForAutocomplete: undefined,
   userReacjis: defaultUserReacjis,
 })
 
@@ -375,6 +375,7 @@ export const waitingKeyCreating = 'chat:creatingConvo'
 export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
 export const waitingKeyBotAdd = 'chat:botAdd'
 export const waitingKeyBotRemove = 'chat:botRemove'
+export const waitingKeyLoadingEmoji = 'chat:loadingEmoji'
 export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
@@ -402,9 +403,9 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
 export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
-  let mode = state.chat2.explodingModeLocks.get(c) || null
-  if (mode === null) {
-    mode = state.chat2.explodingModes.get(c) || 0
+  let mode = state.chat2.explodingModeLocks.get(c)
+  if (mode === undefined) {
+    mode = state.chat2.explodingModes.get(c) ?? 0
   }
   const meta = getMeta(state, c)
   const convRetention = getEffectiveRetentionPolicy(meta)
@@ -412,7 +413,7 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
   return mode || 0
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
-  (state.chat2.explodingModeLocks.get(c) || null) !== null
+  state.chat2.explodingModeLocks.get(c) !== undefined
 
 export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')

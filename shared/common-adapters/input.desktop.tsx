@@ -22,12 +22,12 @@ class Input extends React.PureComponent<Props, State> {
     this._input = ref
   }
 
-  componentDidMount = () => {
+  componentDidMount() {
     this._autoResize()
     this.props.autoFocus && this.focus()
   }
 
-  componentDidUpdate = (prevProps: Props) => {
+  componentDidUpdate(prevProps: Props) {
     if (!this.props.uncontrolled && this.props.value !== prevProps.value) {
       this._autoResize()
     }

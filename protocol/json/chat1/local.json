@@ -209,6 +209,14 @@
             "LiveLocation"
           ],
           "name": "liveLocation"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -247,6 +255,14 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -750,6 +766,16 @@
           "name": "targetUID",
           "mpackkey": "t",
           "jsonkey": "t"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis",
+          "mpackkey": "e",
+          "jsonkey": "e"
         }
       ]
     },
@@ -1444,6 +1470,13 @@
             "OutboxID"
           ],
           "name": "supersedesOutboxID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HarvestedEmoji"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -3925,6 +3958,19 @@
     },
     {
       "type": "record",
+      "name": "RemoveEmojiRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserEmojiRes",
       "fields": [
         {
@@ -3937,6 +3983,24 @@
             "RateLimit"
           ],
           "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiFetchOpts",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "getCreationInfo"
+        },
+        {
+          "type": "boolean",
+          "name": "getAliases"
+        },
+        {
+          "type": "boolean",
+          "name": "onlyInTeam"
         }
       ]
     }
@@ -5825,11 +5889,31 @@
           "type": "keybase1.TeamID"
         },
         {
-          "name": "uid",
-          "type": "gregor1.UID"
+          "name": "username",
+          "type": "string"
         }
       ],
       "response": "gregor1.Time"
+    },
+    "getLastActiveAtMultiLocal": {
+      "request": [
+        {
+          "name": "teamIDs",
+          "type": {
+            "type": "array",
+            "items": "keybase1.TeamID"
+          }
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "map",
+        "values": "gregor1.Time",
+        "keys": "keybase1.TeamID"
+      }
     },
     "addEmoji": {
       "request": [
@@ -5848,8 +5932,50 @@
       ],
       "response": "AddEmojiRes"
     },
+    "addEmojiAlias": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "newAlias",
+          "type": "string"
+        },
+        {
+          "name": "existingAlias",
+          "type": "string"
+        }
+      ],
+      "response": "AddEmojiRes"
+    },
+    "removeEmoji": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "alias",
+          "type": "string"
+        }
+      ],
+      "response": "RemoveEmojiRes"
+    },
     "userEmojis": {
-      "request": [],
+      "request": [
+        {
+          "name": "opts",
+          "type": "EmojiFetchOpts"
+        },
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "ConversationID"
+          ]
+        }
+      ],
       "response": "UserEmojiRes"
     }
   },

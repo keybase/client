@@ -13,6 +13,7 @@ import {anyWaiting} from '../../../../constants/waiting'
 type OwnProps = {
   teamID: Types.TeamID
   username: string
+  firstItem: boolean
 }
 
 const blankInfo = Constants.initialMemberInfo
@@ -74,7 +75,8 @@ export default connect(
           : Tracker2Gen.createShowUser({asTracker: true, username})
       ),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    firstItem: ownProps.firstItem,
     following: stateProps.following,
     fullName: stateProps.fullName,
     onBlock: dispatchProps.onBlock,

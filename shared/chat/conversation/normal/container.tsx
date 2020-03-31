@@ -44,6 +44,14 @@ const NormalWrapper = React.memo(
       setScrollListUpCounter(scrollListUpCounter + 1)
     }, [setScrollListUpCounter, scrollListUpCounter])
 
+    // on desktop on convo change focus input
+    const {conversationIDKey} = props
+    React.useEffect(() => {
+      if (!Container.isMobile) {
+        setFocusInputCounter(c => c + 1)
+      }
+    }, [conversationIDKey])
+
     return (
       <Normal
         {...props}

@@ -150,7 +150,6 @@ const styles = Styles.styleSheetCreate(
       },
       icon: {
         position: 'relative',
-        right: Styles.globalMargins.xtiny,
       },
       insideContainer: {
         ...Styles.globalStyles.flexBoxRow,
@@ -159,7 +158,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       name: {
-        paddingRight: 7,
+        paddingRight: Styles.globalMargins.tiny,
       },
       nameContainer: {
         ...Styles.globalStyles.flexBoxRow,

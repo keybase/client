@@ -53,6 +53,8 @@ const (
 	methodListMembers         = "listmembers"
 	methodEmojiAdd            = "emojiadd"
 	methodEmojiList           = "emojilist"
+	methodEmojiRemove         = "emojiremove"
+	methodEmojiAddAlias       = "emojiaddalias"
 )
 
 // ChatAPIHandler can handle all of the chat json api methods.
@@ -88,7 +90,9 @@ type ChatAPIHandler interface {
 	GetDeviceInfoV1(context.Context, Call, io.Writer) error
 	ListMembersV1(context.Context, Call, io.Writer) error
 	EmojiAddV1(context.Context, Call, io.Writer) error
+	EmojiAddAliasV1(context.Context, Call, io.Writer) error
 	EmojiListV1(context.Context, Call, io.Writer) error
+	EmojiRemoveV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -1115,6 +1119,64 @@ func (a *ChatAPI) EmojiAddV1(ctx context.Context, c Call, w io.Writer) error {
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.EmojiAddV1(ctx, opts), w)
+}
+
+type emojiAddAliasOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	NewAlias       string          `json:"new_alias"`
+	ExistingAlias  string          `json:"existing_alias"`
+}
+
+func (r emojiAddAliasOptionsV1) Check() error {
+	if len(r.NewAlias) == 0 {
+		return errors.New("must specify a new alias")
+	}
+	if len(r.ExistingAlias) == 0 {
+		return errors.New("must specify an existing alias")
+	}
+	return checkChannelConv(methodEmojiAddAlias, r.Channel, r.ConversationID)
+}
+
+func (a *ChatAPI) EmojiAddAliasV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodEmojiAddAlias, err: errors.New("empty options")}
+	}
+	var opts emojiAddAliasOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.EmojiAddAliasV1(ctx, opts), w)
+}
+
+type emojiRemoveOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	Alias          string
+}
+
+func (r emojiRemoveOptionsV1) Check() error {
+	if len(r.Alias) == 0 {
+		return errors.New("must specify an alias")
+	}
+	return checkChannelConv(methodEmojiRemove, r.Channel, r.ConversationID)
+}
+
+func (a *ChatAPI) EmojiRemoveV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodEmojiRemove, err: errors.New("empty options")}
+	}
+	var opts emojiRemoveOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.EmojiRemoveV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) EmojiListV1(ctx context.Context, c Call, w io.Writer) error {

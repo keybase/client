@@ -10,19 +10,12 @@ type Props = {
   onRename: (newName: string) => void
   onSuccess: () => void
   teamname: string
-  title: string
   waiting: boolean
 }
 
 const invalidChars = /[^a-zA-Z0-9_]/
 
-class RenameTeam extends React.Component<
-  Props,
-  {
-    error: string
-    newName: string
-  }
-> {
+class RenameTeam extends React.Component<Props, {error: string; newName: string}> {
   state = {error: '', newName: ''}
   _prefix = ''
   _originalName = ''
@@ -76,76 +69,78 @@ class RenameTeam extends React.Component<
 
   render() {
     return (
-      <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
-        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
-          <Kb.Avatar teamname={this.props.teamname} size={Styles.isMobile ? 64 : 48} />
-          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
-            {!Styles.isMobile && (
-              <Kb.Text type="Header" center={true}>
-                Rename {this.props.teamname}
+      <Kb.PopupWrapper onCancel={this.props.onCancel} title="Rename subteam">
+        <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
+          <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
+            <Kb.Avatar teamname={this.props.teamname} size={Styles.isMobile ? 64 : 48} />
+            <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
+              {!Styles.isMobile && (
+                <Kb.Text type="Header" center={true}>
+                  Rename {this.props.teamname}
+                </Kb.Text>
+              )}
+              <Kb.Text type="BodySmall" center={true}>
+                Subteam of {this._prefix}
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+          <Kb.Box2
+            direction="vertical"
+            centerChildren={true}
+            gap="tiny"
+            alignItems="flex-start"
+            fullWidth={true}
+            style={styles.body}
+          >
+            <Kb.Box2
+              direction="horizontal"
+              style={Styles.collapseStyles([
+                styles.inputContainer,
+                this.props.error && styles.inputContainerError,
+              ])}
+              fullWidth={true}
+            >
+              <Kb.PlainInput
+                autoFocus={true}
+                disabled={this.props.waiting}
+                onChangeText={this._onChangeText}
+                onEnterKeyDown={this._onRename}
+                textType="BodySemibold"
+                flexable={true}
+                maxLength={16}
+                placeholder={this._originalName}
+              />
+            </Kb.Box2>
+            {(!!this.state.error || !!this.props.error) && (
+              <Kb.Text type="BodySmall" style={styles.error}>
+                {this.state.error || this.props.error}
               </Kb.Text>
             )}
-            <Kb.Text type="BodySmall" center={true}>
-              Subteam of {this._prefix}
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          gap="tiny"
-          alignItems="flex-start"
-          fullWidth={true}
-          style={styles.body}
-        >
-          <Kb.Box2
-            direction="horizontal"
-            style={Styles.collapseStyles([
-              styles.inputContainer,
-              this.props.error && styles.inputContainerError,
-            ])}
-            fullWidth={true}
-          >
-            <Kb.PlainInput
-              autoFocus={true}
-              disabled={this.props.waiting}
-              onChangeText={this._onChangeText}
-              onEnterKeyDown={this._onRename}
-              textType="BodySemibold"
-              flexable={true}
-              maxLength={16}
-              placeholder={this._originalName}
-            />
-          </Kb.Box2>
-          {(!!this.state.error || !!this.props.error) && (
-            <Kb.Text type="BodySmall" style={styles.error}>
-              {this.state.error || this.props.error}
-            </Kb.Text>
-          )}
-          {this.state.newName ? (
-            <Kb.Text type="BodySmall">
-              This team will be named{' '}
-              <Kb.Text type="BodySmallSemibold">
-                {this._prefix}.{this.state.newName.toLowerCase()}
+            {this.state.newName ? (
+              <Kb.Text type="BodySmall">
+                This team will be named{' '}
+                <Kb.Text type="BodySmallSemibold">
+                  {this._prefix}.{this.state.newName.toLowerCase()}
+                </Kb.Text>
               </Kb.Text>
-            </Kb.Text>
-          ) : (
-            <Kb.Text type="BodySmall">Write a name to see a preview.</Kb.Text>
-          )}
+            ) : (
+              <Kb.Text type="BodySmall">Write a name to see a preview.</Kb.Text>
+            )}
+          </Kb.Box2>
+          <Kb.ButtonBar direction="row" style={styles.buttonBar}>
+            {!Styles.isMobile && (
+              <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} style={styles.button} />
+            )}
+            <Kb.Button
+              label="Rename"
+              onClick={this._onRename}
+              style={styles.button}
+              disabled={this._disabled()}
+              waiting={this.props.waiting}
+            />
+          </Kb.ButtonBar>
         </Kb.Box2>
-        <Kb.ButtonBar direction="row" style={styles.buttonBar}>
-          {!Styles.isMobile && (
-            <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} style={styles.button} />
-          )}
-          <Kb.Button
-            label="Rename"
-            onClick={this._onRename}
-            style={styles.button}
-            disabled={this._disabled()}
-            waiting={this.props.waiting}
-          />
-        </Kb.ButtonBar>
-      </Kb.Box2>
+      </Kb.PopupWrapper>
     )
   }
 }
@@ -201,4 +196,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderOrPopupWithHeader(RenameTeam)
+export default RenameTeam

@@ -1051,6 +1051,10 @@ func (m *ChatRemoteMock) GetLastActiveAt(ctx context.Context, arg chat1.GetLastA
 	return res, errors.New("GetLastActiveAt not mocked")
 }
 
+func (m *ChatRemoteMock) GetResetConversations(ctx context.Context) (res chat1.GetResetConversationsRes, err error) {
+	return res, errors.New("GetResetConversations not mocked")
+}
+
 func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res *keybase1.TeamID, err error) {
 	return res, errors.New("TeamIDOfConv not mocked")
 }

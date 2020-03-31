@@ -102,6 +102,7 @@ const commonProps = {
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
+  teamID: undefined,
   teamname: '',
 }
 

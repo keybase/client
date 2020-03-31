@@ -468,6 +468,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		u.Debug(ctx, "upload: no pending preview, generating one: %s", err)
 		if pre, err = PreprocessAsset(ctx, u.G(), u.DebugLabeler, src, filename, u.G().NativeVideoHelper,
 			callerPreview); err != nil {
+			u.Debug(ctx, "upload: failed to preprocess: %s", err)
 			return res, err
 		}
 		if pre.Preview != nil {
@@ -547,6 +548,19 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			case <-bgctx.Done():
 				return bgctx.Err()
 			}
+
+			// check to make sure this isn't an emoji conv, and if so just abort
+			conv, err := utils.GetUnverifiedConv(bgctx, u.G(), uid, convID, types.InboxSourceDataSourceAll)
+			if err != nil {
+				return err
+			}
+			switch conv.GetTopicType() {
+			case chat1.TopicType_EMOJI, chat1.TopicType_EMOJICROSS:
+				u.Debug(bgctx, "upload: skipping preview upload in emoji conv")
+				return nil
+			default:
+			}
+
 			// copy the params so as not to mess with the main params above
 			previewParams := s3params
 

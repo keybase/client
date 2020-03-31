@@ -12,6 +12,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
@@ -28,29 +29,34 @@ type testBlockRetrievalConfig struct {
 	logMaker
 	testCache data.BlockCache
 	bg        blockGetter
+	bs        BlockServer
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock                       Clock
-	reporter                    Reporter
-	subsciptionManagerPublisher SubscriptionManagerPublisher
+	clock                        Clock
+	reporter                     Reporter
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	dbc DiskBlockCache) *testBlockRetrievalConfig {
 	clock := clocktest.NewTestClockNow()
-	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
+	ctlr := gomock.NewController(t)
+	mockPublisher := NewMockSubscriptionManagerPublisher(ctlr)
 	mockPublisher.EXPECT().PublishChange(gomock.Any()).AnyTimes()
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
 		newTestLogMakerWithVDebug(t, libkb.VLog2String),
 		data.NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
 		bg,
+		NewMockBlockServer(ctlr),
 		newTestDiskBlockCacheGetter(t, dbc),
 		newTestSyncedTlfGetterSetter(),
 		testInitModeGetter{InitDefault},
 		clock,
 		NewReporterSimple(clock, 1),
+		nil,
 		mockPublisher,
 	}
 }
@@ -75,12 +81,20 @@ func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 	return c.bg
 }
 
+func (c testBlockRetrievalConfig) BlockServer() BlockServer {
+	return c.bs
+}
+
 func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
 	return nil
 }
 
+func (c testBlockRetrievalConfig) SubscriptionManager() SubscriptionManager {
+	return c.subscriptionManager
+}
+
 func (c testBlockRetrievalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
-	return c.subsciptionManagerPublisher
+	return c.subscriptionManagerPublisher
 }
 
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
@@ -106,7 +120,8 @@ func makeKMD() libkey.KeyMetadata {
 
 func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
 	q := newBlockRetrievalQueue(
-		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil),
+		env.EmptyAppStateUpdater{})
 	<-q.TogglePrefetcher(false, nil, nil)
 	return q
 }

@@ -60,7 +60,8 @@ export const createStartAccountReset = (payload: _StartAccountResetPayload): Sta
   type: startAccountReset,
 })
 /**
- * Tell the server to put an account into the reset pipeline. If no password is provided, the user will need to click a confirmation link in an email or text.
+ * Tell the server to put an account into the reset pipeline.
+ * If no password is provided, the user will need to click a confirmation link in an email or text.
  */
 export const createResetAccount = (
   payload: _ResetAccountPayload = Object.freeze({})

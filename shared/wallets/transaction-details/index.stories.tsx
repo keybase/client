@@ -47,7 +47,6 @@ const props = {
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
-  title: 'Transaction details',
   transactionID: '998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591',
   you: 'cjb',
   yourAccountName: '',
@@ -67,6 +66,7 @@ const partialAsset = {
   showWithdrawButton: false,
   transferServer: '',
   type: '',
+  useSep24: false,
   withdrawButtonText: '',
   withdrawReqAuth: false,
   withdrawType: '',
@@ -183,11 +183,11 @@ const load = () => {
       />
     ))
     .add('Loading', () => (
+      // @ts-ignore
       <TransactionDetails
-        loading={true}
+        loading={true as any}
         onBack={Sb.action('onBack')}
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
-        title="Transaction Details"
       />
     ))
     .add('Received from Stellar account with warning', () => (

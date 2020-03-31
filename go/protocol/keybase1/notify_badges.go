@@ -110,7 +110,7 @@ type BadgeState struct {
 	DeletedTeams              []DeletedTeamInfo       `codec:"deletedTeams" json:"deletedTeams"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
-	WotUpdates                []WotUpdate             `codec:"wotUpdates" json:"wotUpdates"`
+	WotUpdates                map[string]WotUpdate    `codec:"wotUpdates" json:"wotUpdates"`
 	ResetState                ResetState              `codec:"resetState" json:"resetState"`
 }
 
@@ -214,14 +214,15 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.UnreadWalletAccounts),
-		WotUpdates: (func(x []WotUpdate) []WotUpdate {
+		WotUpdates: (func(x map[string]WotUpdate) map[string]WotUpdate {
 			if x == nil {
 				return nil
 			}
-			ret := make([]WotUpdate, len(x))
-			for i, v := range x {
+			ret := make(map[string]WotUpdate, len(x))
+			for k, v := range x {
+				kCopy := k
 				vCopy := v.DeepCopy()
-				ret[i] = vCopy
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.WotUpdates),

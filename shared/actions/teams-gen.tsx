@@ -59,6 +59,7 @@ export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
+export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMemberSubteamDetails = 'teams:setMemberSubteamDetails'
 export const setMembers = 'teams:setMembers'
@@ -238,10 +239,14 @@ type _SetChannelSelectedPayload = {
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
+type _SetMemberActivityDetailsPayload = {
+  readonly activityMap: Map<Types.TeamID, number>
+  readonly username: string
+}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
 type _SetMemberSubteamDetailsPayload = {
   readonly username: string
-  readonly memberships: Map<Types.TeamID, Types.MemberInfo>
+  readonly memberships: Map<Types.TeamID, Types.MemberInfoWithLastActivity>
 }
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
@@ -296,7 +301,7 @@ type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
-type _SetTeamWizardAvatarPayload = {readonly crop?: RPCTypes.ImageCropRect; readonly filename?: string}
+type _SetTeamWizardAvatarPayload = {readonly crop?: Types.AvatarCrop; readonly filename?: string}
 type _SetTeamWizardChannelsPayload = {readonly channels: Array<string>}
 type _SetTeamWizardNameDescriptionPayload = {
   readonly teamname: string
@@ -385,11 +390,15 @@ export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
 /**
- * Load team details if we are stale. _subscribe is for use by teams/subscriber only.
+ * Load team details if we are stale.
+ *
+ * `_subscribe` is for use by teams/subscriber only.
  */
 export const createLoadTeam = (payload: _LoadTeamPayload): LoadTeamPayload => ({payload, type: loadTeam})
 /**
- * Load team list if we are stale. _subscribe is for use by teams/subscriber only.
+ * Load team list if we are stale.
+ *
+ * `_subscribe` is for use by teams/subscriber only.
  */
 export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
   payload,
@@ -510,6 +519,16 @@ export const createToggleInvitesCollapsed = (
   payload: _ToggleInvitesCollapsedPayload
 ): ToggleInvitesCollapsedPayload => ({payload, type: toggleInvitesCollapsed})
 /**
+ * Tries to show a team with this name whether the user is in the team or not.
+ * For teams we are not in:
+ * - with teamsRedesign on go to external team page
+ * - with teamsRedesign off noop
+ */
+export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
+  payload,
+  type: showTeamByName,
+})
+/**
  * User has viewed this team. Clear related badges.
  */
 export const createTeamSeen = (payload: _TeamSeenPayload): TeamSeenPayload => ({payload, type: teamSeen})
@@ -629,6 +648,9 @@ export const createSetEmailInviteError = (
 export const createSetJustFinishedAddMembersWizard = (
   payload: _SetJustFinishedAddMembersWizardPayload
 ): SetJustFinishedAddMembersWizardPayload => ({payload, type: setJustFinishedAddMembersWizard})
+export const createSetMemberActivityDetails = (
+  payload: _SetMemberActivityDetailsPayload
+): SetMemberActivityDetailsPayload => ({payload, type: setMemberActivityDetails})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload): SetMemberPublicityPayload => ({
   payload,
   type: setMemberPublicity,
@@ -738,10 +760,6 @@ export const createSetWelcomeMessageError = (
 export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErrorPayload => ({
   payload,
   type: settingsError,
-})
-export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
-  payload,
-  type: showTeamByName,
 })
 export const createStartNewTeamWizard = (payload: _StartNewTeamWizardPayload): StartNewTeamWizardPayload => ({
   payload,
@@ -936,6 +954,10 @@ export type SetEmailInviteErrorPayload = {
 export type SetJustFinishedAddMembersWizardPayload = {
   readonly payload: _SetJustFinishedAddMembersWizardPayload
   readonly type: typeof setJustFinishedAddMembersWizard
+}
+export type SetMemberActivityDetailsPayload = {
+  readonly payload: _SetMemberActivityDetailsPayload
+  readonly type: typeof setMemberActivityDetails
 }
 export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
@@ -1163,6 +1185,7 @@ export type Actions =
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
+  | SetMemberActivityDetailsPayload
   | SetMemberPublicityPayload
   | SetMemberSubteamDetailsPayload
   | SetMembersPayload

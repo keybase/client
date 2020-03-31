@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -471,7 +472,8 @@ func encryptMDPrivateData(
 	return nil
 }
 
-func getFileBlockForMD(ctx context.Context, bcache data.BlockCacheSimple, bops BlockOps,
+func getFileBlockForMD(
+	ctx context.Context, bcache data.BlockCacheSimple, bops BlockOps,
 	ptr data.BlockPointer, tlfID tlf.ID, rmdWithKeys libkey.KeyMetadata) (
 	*data.FileBlock, error) {
 	// We don't have a convenient way to fetch the block from here via
@@ -481,7 +483,15 @@ func getFileBlockForMD(ctx context.Context, bcache data.BlockCacheSimple, bops B
 	block, err := bcache.Get(ptr)
 	if err != nil {
 		block = data.NewFileBlock()
-		if err := bops.Get(ctx, rmdWithKeys, ptr, block, data.TransientEntry); err != nil {
+		// TODO: eventually we should plumb the correct branch name
+		// here, but that would impact a huge number of functions that
+		// fetch MD.  For now, the worst thing that can happen is that
+		// MD blocks for historical MD revisions sneak their way into
+		// the sync cache.
+		branch := data.MasterBranch
+		if err := bops.Get(
+			ctx, rmdWithKeys, ptr, block, data.TransientEntry,
+			branch); err != nil {
 			return nil, err
 		}
 	}
@@ -989,6 +999,18 @@ func GetChangesBetweenRevisions(
 	for _, itemSlice := range items {
 		changes = append(changes, itemSlice...)
 	}
+
+	// Renames should always go at the end, since if there's a pointer
+	// change for the renamed thing (e.g., because it was a directory
+	// that changed or a file that was written), we need to process
+	// that pointer change before the rename.
+	sort.SliceStable(changes, func(i, j int) bool {
+		if changes[i].Type != ChangeTypeRename &&
+			changes[j].Type == ChangeTypeRename {
+			return true
+		}
+		return false
+	})
 
 	return changes, refSize, nil
 }
