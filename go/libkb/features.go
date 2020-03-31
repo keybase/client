@@ -81,7 +81,6 @@ const (
 // contain so that they are prefetched the first time the set is used.
 func getInitialFeatures() []Feature {
 	return []Feature{
-		FeatureFTL,
 		FeatureBoxAuditor,
 		ExperimentalGenericProofs,
 		FeatureCheckForHiddenChainSupport,
