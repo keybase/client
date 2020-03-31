@@ -10,7 +10,8 @@ import {pluralize} from '../../../util/string'
 
 type Props = Container.RouteProps<{
   teamID: Types.TeamID
-  conversationIDKey?: ChatTypes.ConversationIDKey // undefined means use the currently selected channels in the store
+  // undefined means use the currently selected channels in the store (under the channel tab of the team page)
+  conversationIDKey: ChatTypes.ConversationIDKey | undefined
 }>
 
 const Header = () => (

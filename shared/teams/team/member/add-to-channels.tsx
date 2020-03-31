@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
+import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
@@ -13,9 +14,8 @@ import {memoize} from '../../../util/memoize'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = Container.RouteProps<{
-  mode: 'self' | 'others'
   teamID: Types.TeamID
-  usernames?: Array<string>
+  usernames: Array<string> | undefined // undefined means the user themself
 }>
 
 const getChannelsForList = memoize(
@@ -39,10 +39,9 @@ const AddToChannels = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const mode = Container.getRouteProps(props, 'mode', 'self')
   const myUsername = Container.useSelector(state => state.config.username)
-  const usernames =
-    Container.getRouteProps(props, 'usernames', undefined) ?? mode === 'self' ? [myUsername] : []
+  const usernames = Container.getRouteProps(props, 'usernames', undefined) ?? [myUsername]
+  const mode = Container.getRouteProps(props, 'usernames', undefined) ? 'others' : 'self'
 
   const {channelMetas, loadingChannels} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetasFiltered, channelMetaGeneral} = getChannelsForList(channelMetas)
@@ -123,7 +122,6 @@ const AddToChannels = (props: Props) => {
           <ChannelRow
             key={item.channelMeta.channelname}
             channelMeta={item.channelMeta}
-            numMembers={item.numMembers}
             selected={
               selected.has(item.channelMeta.conversationIDKey) ||
               item.channelMeta.conversationIDKey === channelMetaGeneral.conversationIDKey
@@ -140,6 +138,7 @@ const AddToChannels = (props: Props) => {
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
   return (
     <Kb.Modal
+      mode="DefaultFullHeight"
       header={{
         hideBorder: Styles.isMobile,
         leftButton: Styles.isMobile ? (
@@ -229,7 +228,7 @@ const HeaderRow = ({mode, onCreate, onSelectAll, onSelectNone}) => (
   >
     <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
     {mode === 'self' ? (
-      <Kb.Box />
+      <Kb.Box /> // box so that the other item aligns to the left
     ) : (
       <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
         {onSelectAll ? 'Select all' : 'Clear'}
@@ -241,10 +240,13 @@ const HeaderRow = ({mode, onCreate, onSelectAll, onSelectNone}) => (
 const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const isAdmin = false
+
+  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, meta.teamID))
+  const isAdmin = yourOperations.deleteChannel
   const inChannel = meta.membershipType === 'active'
-  const onEditChannel = () => {} // TODO: show another modal with a back button to here
+
   const actionProps = {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}
+  const onEditChannel = () => {} // TODO: show another modal with a back button to here
   const onAdministrate = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamChannel'}]}))
   const onDelete = () =>
@@ -284,9 +286,9 @@ const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
         <Kb.Button
           type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
           mode={inChannel ? 'Secondary' : 'Primary'}
-          label={!inChannel ? 'Join' : buttonMousedOver ? 'Leave' : 'In'}
-          icon={buttonMousedOver || !inChannel ? undefined : 'iconfont-check'}
-          iconSizeType={buttonMousedOver || !inChannel ? undefined : 'Tiny'}
+          label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
+          icon={inChannel && !buttonMousedOver ? 'iconfont-check' : undefined}
+          iconSizeType={inChannel && !buttonMousedOver ? 'Tiny' : undefined}
           onMouseEnter={Styles.isMobile ? undefined : () => setMouseover(true)}
           onMouseLeave={Styles.isMobile ? undefined : () => setMouseover(false)}
           onMouseDown={
@@ -306,17 +308,7 @@ const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
       <Kb.Button
         icon="iconfont-ellipsis"
         iconColor={Styles.globalColors.black_50}
-        // TODO: this isn't working on desktop
-        onClick={Styles.isMobile ? toggleShowingPopup : undefined}
-        onMouseDown={
-          Styles.isMobile
-            ? undefined
-            : evt => {
-                // using onMouseDown so we can prevent blurring the search filter
-                evt.preventDefault()
-                toggleShowingPopup()
-              }
-        }
+        onClick={toggleShowingPopup}
         ref={popupAnchor}
         small={true}
         mode="Secondary"
@@ -326,15 +318,14 @@ const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
 }
 type ChannelRowProps = {
   channelMeta: ChatTypes.ConversationMeta
-  numMembers: number
   selected: boolean
   onSelect: () => void
   mode: 'self' | 'others'
 }
-const ChannelRow = ({channelMeta, mode, numMembers, selected, onSelect}: ChannelRowProps) => {
+const ChannelRow = ({channelMeta, mode, selected, onSelect}: ChannelRowProps) => {
   const selfMode = mode === 'self'
   const numParticipants = Container.useSelector(
-    s => ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey).all.length
+    s => ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey).name.length
   )
   const activityLevel = 'active' // TODO: plumbing
   return Styles.isMobile ? (
@@ -397,7 +388,7 @@ const ChannelRow = ({channelMeta, mode, numMembers, selected, onSelect}: Channel
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
             {!selfMode && (
               <Kb.Text type="BodySmall">
-                {numMembers} {pluralize('member', numMembers)} •
+                {numParticipants} {pluralize('member', numParticipants)} •
               </Kb.Text>
             )}
             <Common.Activity level={activityLevel} />
