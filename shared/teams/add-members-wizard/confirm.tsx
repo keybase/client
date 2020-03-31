@@ -317,6 +317,10 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const defaultChannelsFromStore = Container.useSelector(s => s.teams.addMembersWizard.defaultChannels)
   const onChangeFromDefault = () =>
     dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: defaultChannels}))
+  const onAdd = (toAdd: Array<Types.ChannelNameID>) =>
+    dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd}))
+  const onRemove = (toRemove: Types.ChannelNameID) =>
+    dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toRemove}))
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
@@ -328,8 +332,8 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
             disableGeneral={true}
             teamID={teamID}
             channels={defaultChannelsFromStore}
-            onAddChannel={() => {}}
-            onRemoveChannel={() => {}}
+            onAddChannel={onAdd}
+            onRemoveChannel={onRemove}
           />
         ) : (
           <>
