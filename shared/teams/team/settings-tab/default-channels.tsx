@@ -75,7 +75,7 @@ const DefaultChannels = (props: Props) => {
         {waiting && <Kb.ProgressIndicator />}
       </Kb.Box2>
       {canEdit ? (
-        <>
+        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmall">Define which channels new members will be added to.</Kb.Text>
           <ChannelsWidget
             teamID={teamID}
@@ -84,7 +84,7 @@ const DefaultChannels = (props: Props) => {
             onAddChannel={onAdd}
             onRemoveChannel={onRemove}
           />
-        </>
+        </Kb.Box2>
       ) : (
         <Kb.Text type="BodySmall">
           New members will be added to{' '}
