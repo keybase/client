@@ -75,9 +75,6 @@ function rpcLog(info: {method: string; reason: string; extra?: Object; type: str
   )
 }
 
-const COMPRESSION_TYPE_NONE = 0
-const COMPRESSION_TYPE_GZIP = 1
-
 type InvokeArgs = {
   program: string
   ctype: number
@@ -179,7 +176,7 @@ class TransportShared extends RobustTransport {
   // Override RobustTransport.invoke.
   invoke(arg: InvokeArgs, cb: any) {
     if (arg.ctype == undefined) {
-      arg.ctype = COMPRESSION_TYPE_GZIP // default to gzip compression
+      arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
     }
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,

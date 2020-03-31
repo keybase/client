@@ -9,6 +9,11 @@ declare module 'framed-msgpack-rpc' {
     set_opt(k: string, v: any): void
   }
 
+  export const dispatch: {
+    COMPRESSION_TYPE_NONE: number
+    COMPRESSION_TYPE_GZIP: number
+  }
+
   export namespace transport {
     class RobustTransport {
       constructor(options: Object)
