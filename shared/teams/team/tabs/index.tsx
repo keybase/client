@@ -36,6 +36,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     // TODO: should we not show bots if there are no bots and you have no permissions?
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
+    {title: 'emoji' as const},
     {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
   ]
 

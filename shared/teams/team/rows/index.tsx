@@ -1,9 +1,13 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
+import * as Chat2Types from '../../../constants/types/chat2'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
+import * as Chat2Constants from '../../../constants/chat2'
 import {Section as _Section} from '../../../common-adapters/section-list'
 import flags from '../../../util/feature-flags'
 import {useAllChannelMetas} from '../../common/channel-hooks'
@@ -13,6 +17,7 @@ import {BotRow, AddBotRow} from './bot-row'
 import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
+import {EmojiItemRow, EmojiAddRow} from './emoji-row'
 import LoadingRow from './loading'
 import EmptyRow from './empty-row'
 
@@ -179,6 +184,83 @@ export const useSubteamsSections = (
     sections.push(makeSingleRow('subteam-none', () => <EmptyRow teamID={teamID} type="subteams" />))
   } else if (!subteams.length) {
     sections.push(makeSingleRow('subteam-none', () => <SubteamNoneRow />))
+  }
+  return sections
+}
+
+const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
+  const [conversationIDKey, setConversationIDKey] = React.useState(Chat2Constants.noConversationIDKey)
+  const generalConvID = Container.useSelector(
+    (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
+  )
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (!conversationIDKey && teamID) {
+      if (!generalConvID) {
+        dispatch(Chat2Gen.createFindGeneralConvIDFromTeamID({teamID}))
+      } else {
+        setConversationIDKey(generalConvID)
+      }
+    }
+  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  return conversationIDKey
+}
+
+export const useEmojiSections = (
+  teamID: Types.TeamID
+  // details: Types.TeamDetails,
+  // yourOperations: Types.TeamOperations
+): Array<Section> => {
+  const convID = useGeneralConversationIDKey(teamID)
+  const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
+  const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
+  const [waiting, setWaiting] = React.useState(true)
+
+  React.useEffect(() => {
+    setWaiting(true)
+    if (convID) {
+      console.warn(convID)
+      getUserEmoji(
+        [
+          {
+            convID: Chat2Types.keyToConversationID(convID),
+            opts: {
+              getAliases: true,
+              getCreationInfo: true,
+              onlyInTeam: true,
+            },
+          },
+        ],
+        result => {
+          let emojis: Array<RPCChatTypes.Emoji> = []
+          result.emojis.emojis?.forEach(g => {
+            emojis = emojis.concat(g.emojis ?? [])
+          })
+          setCustomEmoji(emojis)
+          setWaiting(false)
+        },
+        _ => {
+          setCustomEmoji([])
+          setWaiting(false)
+        }
+      )
+    } else {
+      setWaiting(false)
+    }
+  }, [convID, getUserEmoji])
+  const sections: Array<Section> = []
+  sections.push({
+    data: ['emoji-add'],
+    key: 'emoji-add',
+    renderItem: () => <EmojiAddRow teamID={teamID} />,
+  })
+
+  if (!waiting && customEmoji) {
+    sections.push({
+      data: customEmoji,
+      key: 'emoji-item',
+      renderItem: ({item}) => <EmojiItemRow emoji={item} />,
+    })
   }
   return sections
 }
