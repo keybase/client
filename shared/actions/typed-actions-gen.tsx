@@ -1000,6 +1000,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'teams:teamSeen': teams.TeamSeenPayload
+  'teams:setActivityLevels': teams.SetActivityLevelsPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
