@@ -185,8 +185,6 @@ const getSectionsAndBookmarks = (
     bookmarks.push(bookmark)
   }
 
-  console.log({songgao: 'getSectionsAndBookmarks', bookmarks, sections})
-
   return {bookmarks, sections}
 }
 
