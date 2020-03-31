@@ -13,6 +13,7 @@ import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import LoadingRow from './loading'
+import useContacts from '../../invite-by-contact/use-contacts'
 
 export type Section = _Section<
   any,
@@ -75,6 +76,8 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   const collapsed = invitesCollapsed.has(teamID)
   const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
 
+  const {contacts} = useContacts()
+
   const sections: Array<Section> = []
 
   let empty = true
@@ -101,7 +104,9 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
       data: collapsed ? [] : [...details.invites].sort(sortInvites),
       key: 'member-invites',
       onToggleCollapsed,
-      renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index == 0} />,
+      renderItem: ({index, item}) => (
+        <InviteRow teamID={teamID} id={item.id} firstItem={index == 0} contacts={contacts} />
+      ),
       title: `Invitations (${details.invites.size})`,
     })
   }
