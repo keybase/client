@@ -532,9 +532,11 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 				r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
 				return
 			}
-			if err := attachments.GIFToPNG(ctx, &buf, w); err != nil {
+			bufReader := attachments.NewBufReadResetter(buf.Bytes())
+			if err := attachments.GIFToPNG(ctx, bufReader, w); err != nil {
 				r.Debug(ctx, "serveAttachment: not a gif in no animation mode: %s", err)
-				if _, err := io.Copy(w, &buf); err != nil {
+				bufReader.Reset()
+				if _, err := io.Copy(w, bufReader); err != nil {
 					r.makeError(ctx, w, http.StatusInternalServerError, "failed to write attachment: %s", err)
 					return
 				}
