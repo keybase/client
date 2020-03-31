@@ -207,9 +207,9 @@ export const getStatusCodeMessage = (
   const causeStatusCodeToMessage: any = {
     [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
     [RPCTypes.StatusCode
-      .scdecryptionkeynotfound]: `Your message couldn't be decrypted, because no suitable key was found.`,
+      .scdecryptionkeynotfound]: `This message was encrypted for someone else or for a key you don't have.`,
     [RPCTypes.StatusCode
-      .scverificationkeynotfound]: `Your message couldn't be verified, because no suitable key was found.`,
+      .scverificationkeynotfound]: `This message couldn't be verified, because the signing key wasn't recognized.`,
     [RPCTypes.StatusCode.scwrongcryptomsgtype]: `This Saltpack format is unexpected.` + wrongTypeHelpText,
   } as const
 
