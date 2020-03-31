@@ -13,7 +13,7 @@ type State = {
 
 class GlobalError extends React.Component<Props, State> {
   state: State
-  timerID?: NodeJS.Timer
+  timerID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
     super(props)

@@ -128,10 +128,12 @@
     "inviteToTeamByEmail": {
       "invitees": "string",
       "role": "Types.TeamRoleType",
+      "teamID": "Types.TeamID",
       "teamname": "string",
       "loadingKey?": "string"
     },
     "inviteToTeamByPhone": {
+      "teamID": "Types.TeamID",
       "teamname": "string",
       "role": "Types.TeamRoleType",
       "phoneNumber": "string",
@@ -140,6 +142,9 @@
     },
     "joinTeam": {
       "teamname": "string"
+    },
+    "launchNewTeamWizardOrModal": {
+      "subteamOf?": "Types.TeamID"
     },
     "leaveTeam": {
       "teamname": "string",
@@ -191,6 +196,7 @@
       "inviteID?": "string"
     },
     "ignoreRequest": {
+      "teamID": "Types.TeamID",
       "teamname": "string",
       "username": "string"
     },
@@ -413,7 +419,8 @@
       "description": "string",
       "openTeam": "boolean",
       "openTeamJoinRole": "Types.TeamRoleType",
-      "showcase": "boolean"
+      "showcase": "boolean",
+      "addYourself": "boolean"
     },
     "setTeamWizardAvatar": {
       "crop?": "Types.AvatarCrop",
@@ -432,6 +439,10 @@
     "teamSeen": {
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
+    },
+    "setActivityLevels": {
+      "_description": "Set map of activity levels for all teams.",
+      "levels": "Types.ActivityLevels"
     }
   }
 }

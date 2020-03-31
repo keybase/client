@@ -168,7 +168,7 @@ target.KB = {
     extname: path.extname,
     join: path.join,
     resolve: path.resolve,
-    sep: path.sep,
+    sep: path.sep as any,
   },
   process: kbProcess,
   // punycode, // used by a dep

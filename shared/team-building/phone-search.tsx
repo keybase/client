@@ -58,7 +58,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   return (
     <>
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.flexGrow}>
           <Kb.PhoneInput
             // Supply a key to force reset the PhoneInput state after a user is added
             key={phoneInputKey}
@@ -67,12 +67,36 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             onChangeNumber={onChangeNumberCb}
             onEnterKeyDown={_onContinue}
           />
-          {!!user && canSubmit && !!user.serviceMap.keybase && (
+          {!!user && canSubmit && !!user.serviceMap.keybase ? (
             <UserMatchMention username={user.serviceMap.keybase} />
+          ) : (
+            <Kb.Box2
+              alignSelf="center"
+              centerChildren={!Styles.isMobile}
+              direction="vertical"
+              fullWidth={true}
+              gap="tiny"
+              style={styles.emptyContainer}
+            >
+              {!Styles.isMobile && (
+                <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
+              )}
+
+              {namespace == 'chat2' ? (
+                <Kb.Text type="BodySmall" style={styles.helperText}>
+                  Start a chat with any phone contact, then tell them to install Keybase. Your messages will
+                  unlock after they sign up.
+                </Kb.Text>
+              ) : (
+                <Kb.Text type="BodySmall" style={styles.helperText}>
+                  Add any phone contact, then tell them to install Keybase. They will automatically join the
+                  team after they sign up.
+                </Kb.Text>
+              )}
+            </Kb.Box2>
           )}
           {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
-        <Kb.Box style={styles.spaceFillingBox} />
         <ContinueButton label={props.continueLabel} onClick={_onContinue} disabled={!canSubmit} />
       </Kb.Box2>
     </>
@@ -113,8 +137,25 @@ const styles = Styles.styleSheetCreate(
           zIndex: -1,
         },
       }),
+      emptyContainer: Styles.platformStyles({
+        common: {flex: 1},
+        isElectron: {
+          maxWidth: 290,
+          paddingBottom: 40,
+        },
+        isMobile: {maxWidth: '90%'},
+      }),
+      flexGrow: {
+        flex: 1,
+      },
+      helperText: Styles.platformStyles({
+        common: {textAlign: 'center'},
+        isMobile: {
+          paddingBottom: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
+        },
+      }),
       loading: {alignSelf: 'center'},
-      spaceFillingBox: {flexGrow: 1},
       userMatchMention: {
         alignSelf: 'flex-start',
         justifyContent: 'center',

@@ -36,7 +36,7 @@ class FeedbackContainer extends React.Component<Props, State> {
   }
 
   private mounted = false
-  private timeoutID?: NodeJS.Timer
+  private timeoutID?: ReturnType<typeof setTimeout>
 
   state = {
     sendError: null,

@@ -62,26 +62,6 @@ func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybas
 	return appKey, nil
 }
 
-// shouldFallbackToSlowLoadAfterFTLError returns trues if the given error should result
-// in a retry via slow loading. Right now, it only happens if the server tells us
-// that our FTL is outdated, or FTL is feature-flagged off on the server.
-func shouldFallbackToSlowLoadAfterFTLError(m libkb.MetaContext, err error) bool {
-	if err == nil {
-		return false
-	}
-	switch tErr := err.(type) {
-	case libkb.TeamFTLOutdatedError:
-		m.Debug("Our FTL implementation is too old; falling back to slow loader (%v)", err)
-		return true
-	case libkb.FeatureFlagError:
-		if tErr.Feature() == libkb.FeatureFTL {
-			m.Debug("FTL feature-flagged off on the server, falling back to regular loader")
-			return true
-		}
-	}
-	return false
-}
-
 func encryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType) (res types.CryptKey, ni types.NameInfo, err error) {
 	ftlRes, err := getKeyViaFTL(m, name, tlfID, membersType, 0)
@@ -393,18 +373,8 @@ func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, te
 		fmt.Sprintf("EncryptionKey(%s,%s,%v,%v)", name, teamID, public, botUID))()
 
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
-	if botUID == nil && !public &&
-		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureFTL) {
-		res, ni, err = encryptionKeyViaFTL(mctx, name, teamID, membersType)
-		if shouldFallbackToSlowLoadAfterFTLError(mctx, err) {
-			// Some FTL errors should not kill the whole operation; let's
-			// clear them out and allow regular, slow loading to happen.
-			// This is basically a server-side kill switch for some versions
-			// of FTL, if we should determine they are buggy.
-			err = nil
-		} else {
-			return res, ni, err
-		}
+	if botUID == nil && !public {
+		return encryptionKeyViaFTL(mctx, name, teamID, membersType)
 	}
 
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
@@ -434,15 +404,8 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 			keyGeneration, kbfsEncrypted, botUID))()
 
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
-	if botUID == nil && !kbfsEncrypted && !public &&
-		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureFTL) {
-		res, err = decryptionKeyViaFTL(mctx, teamID, membersType, keyGeneration)
-		if shouldFallbackToSlowLoadAfterFTLError(mctx, err) {
-			// See comment above in EncryptionKey()
-			err = nil
-		} else {
-			return res, err
-		}
+	if botUID == nil && !kbfsEncrypted && !public {
+		return decryptionKeyViaFTL(mctx, teamID, membersType, keyGeneration)
 	}
 
 	team, err := loadTeamForDecryption(mctx, t.loader, name, teamID, membersType, public,
@@ -772,15 +735,8 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 		fmt.Sprintf("DecryptionKey(%s,%s,%v,%d,%v,%v)", name, teamID, public, keyGeneration, kbfsEncrypted, botUID))()
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
 
-	if botUID == nil && !kbfsEncrypted && !public &&
-		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureFTL) {
-		res, err = decryptionKeyViaFTL(mctx, teamID, membersType, keyGeneration)
-		if shouldFallbackToSlowLoadAfterFTLError(mctx, err) {
-			// See comment above in EncryptionKey()
-			err = nil
-		} else {
-			return res, err
-		}
+	if botUID == nil && !kbfsEncrypted && !public {
+		return decryptionKeyViaFTL(mctx, teamID, membersType, keyGeneration)
 	}
 
 	team, err := loadTeamForDecryption(mctx, t.loader, name, teamID, membersType, public,

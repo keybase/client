@@ -1723,7 +1723,7 @@ func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID
 	for key, value := range reactions.Reactions {
 		var desc chat1.UIReactionDesc
 		if shouldDecorate {
-			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, msg.Emojis)
+			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, chat1.MessageType_REACTION, msg.Emojis)
 		}
 		desc.Users = make(map[string]chat1.Reaction)
 		for username, reaction := range value {
@@ -1796,7 +1796,7 @@ func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, ui
 		return nil
 	}
 	body = PresentDecoratedTextNoMentions(ctx, body)
-	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
+	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis)
 	return &body
 }
 
@@ -1830,7 +1830,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 
 	// Emojis
-	body = g.EmojiSource.Decorate(ctx, body, convID, msg.Emojis)
+	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis)
 
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,

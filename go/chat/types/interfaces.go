@@ -92,16 +92,18 @@ type ConversationSource interface {
 		reason chat1.GetThreadReason, query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
 	PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
 		query *chat1.GetThreadQuery, maxPages *int) (chat1.ThreadView, error)
-	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
-		reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface) ([]chat1.MessageUnboxed, error)
+	GetMessage(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID,
+		reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface, resolveSupersedes bool) (chat1.MessageUnboxed, error)
+	GetMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgIDs []chat1.MessageID,
+		reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
-	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
+	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
-		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
+		replyFiller ReplyFiller, maxDeletedUpTo *chat1.MessageID) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) error
 	EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error)
@@ -294,7 +296,7 @@ type MobileAppState interface {
 
 type TeamChannelSource interface {
 	GetLastActiveForTLF(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) (gregor1.Time, error)
-	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error)
+	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (chat1.LastActiveTimeAll, error)
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)
@@ -565,12 +567,12 @@ type BotCommandManager interface {
 }
 
 type SupersedesTransform interface {
-	Run(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID,
-		originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
+	Run(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		originalMsgs []chat1.MessageUnboxed, maxDeletedUpTo *chat1.MessageID) ([]chat1.MessageUnboxed, error)
 }
 
 type ReplyFiller interface {
-	Fill(ctx context.Context, uid gregor1.UID, conv UnboxConversationInfo,
+	Fill(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
@@ -618,7 +620,7 @@ type EmojiSource interface {
 		newAlias, existingAlias string) (chat1.EmojiRemoteSource, error)
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
 	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
-	Decorate(ctx context.Context, body string, convID chat1.ConversationID, emojis []chat1.HarvestedEmoji) string
+	Decorate(ctx context.Context, body string, convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 }

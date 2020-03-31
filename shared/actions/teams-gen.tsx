@@ -39,6 +39,7 @@ export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
+export const launchNewTeamWizardOrModal = 'teams:launchNewTeamWizardOrModal'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
@@ -51,6 +52,7 @@ export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
+export const setActivityLevels = 'teams:setActivityLevels'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
@@ -177,14 +179,20 @@ type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
 type _GetTeamsPayload = {readonly _subscribe?: boolean; readonly forceReload?: boolean}
-type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
+type _IgnoreRequestPayload = {
+  readonly teamID: Types.TeamID
+  readonly teamname: string
+  readonly username: string
+}
 type _InviteToTeamByEmailPayload = {
   readonly invitees: string
   readonly role: Types.TeamRoleType
+  readonly teamID: Types.TeamID
   readonly teamname: string
   readonly loadingKey?: string
 }
 type _InviteToTeamByPhonePayload = {
+  readonly teamID: Types.TeamID
   readonly teamname: string
   readonly role: Types.TeamRoleType
   readonly phoneNumber: string
@@ -192,6 +200,7 @@ type _InviteToTeamByPhonePayload = {
   readonly loadingKey?: string
 }
 type _JoinTeamPayload = {readonly teamname: string}
+type _LaunchNewTeamWizardOrModalPayload = {readonly subteamOf?: Types.TeamID}
 type _LeaveTeamPayload = {
   readonly teamname: string
   readonly permanent: boolean
@@ -223,6 +232,7 @@ type _SaveChannelMembershipPayload = {
   readonly newChannelState: Types.ChannelMembershipState
 }
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
+type _SetActivityLevelsPayload = {readonly levels: Types.ActivityLevels}
 type _SetAddMembersWizardIndividualRolePayload = {
   readonly assertion: string
   readonly role: Types.TeamRoleType
@@ -309,6 +319,7 @@ type _SetTeamWizardNameDescriptionPayload = {
   readonly openTeam: boolean
   readonly openTeamJoinRole: Types.TeamRoleType
   readonly showcase: boolean
+  readonly addYourself: boolean
 }
 type _SetTeamWizardSubteamsPayload = {readonly subteams: Array<string>}
 type _SetTeamWizardTeamSizePayload = {readonly isBig: boolean}
@@ -448,6 +459,13 @@ export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload
 export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSubteamFilterPayload => ({
   payload,
   type: setSubteamFilter,
+})
+/**
+ * Set map of activity levels for all teams.
+ */
+export const createSetActivityLevels = (payload: _SetActivityLevelsPayload): SetActivityLevelsPayload => ({
+  payload,
+  type: setActivityLevels,
 })
 /**
  * Set the role for a pending member in the add member wizard.
@@ -614,6 +632,9 @@ export const createInviteToTeamByPhone = (
   payload: _InviteToTeamByPhonePayload
 ): InviteToTeamByPhonePayload => ({payload, type: inviteToTeamByPhone})
 export const createJoinTeam = (payload: _JoinTeamPayload): JoinTeamPayload => ({payload, type: joinTeam})
+export const createLaunchNewTeamWizardOrModal = (
+  payload: _LaunchNewTeamWizardOrModalPayload = Object.freeze({})
+): LaunchNewTeamWizardOrModalPayload => ({payload, type: launchNewTeamWizardOrModal})
 export const createLeaveTeam = (payload: _LeaveTeamPayload): LeaveTeamPayload => ({payload, type: leaveTeam})
 export const createReAddToTeam = (payload: _ReAddToTeamPayload): ReAddToTeamPayload => ({
   payload,
@@ -893,6 +914,10 @@ export type InviteToTeamByPhonePayload = {
   readonly type: typeof inviteToTeamByPhone
 }
 export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type: typeof joinTeam}
+export type LaunchNewTeamWizardOrModalPayload = {
+  readonly payload: _LaunchNewTeamWizardOrModalPayload
+  readonly type: typeof launchNewTeamWizardOrModal
+}
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
 export type LoadTeamPayload = {readonly payload: _LoadTeamPayload; readonly type: typeof loadTeam}
@@ -922,6 +947,10 @@ export type SaveChannelMembershipPayload = {
 export type SaveTeamRetentionPolicyPayload = {
   readonly payload: _SaveTeamRetentionPolicyPayload
   readonly type: typeof saveTeamRetentionPolicy
+}
+export type SetActivityLevelsPayload = {
+  readonly payload: _SetActivityLevelsPayload
+  readonly type: typeof setActivityLevels
 }
 export type SetAddMembersWizardIndividualRolePayload = {
   readonly payload: _SetAddMembersWizardIndividualRolePayload
@@ -1165,6 +1194,7 @@ export type Actions =
   | InviteToTeamByEmailPayload
   | InviteToTeamByPhonePayload
   | JoinTeamPayload
+  | LaunchNewTeamWizardOrModalPayload
   | LeaveTeamPayload
   | LeftTeamPayload
   | LoadTeamPayload
@@ -1177,6 +1207,7 @@ export type Actions =
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
+  | SetActivityLevelsPayload
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetAddUserToTeamsResultsPayload

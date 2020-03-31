@@ -2,6 +2,7 @@ import TeamMember from './team/member/container'
 import TeamMemberNew from './team/member/index.new'
 import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
+import OpenTeamWarning from './team/settings-tab/open-team-warning'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
@@ -23,6 +24,7 @@ import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
 import TeamWizardTeamSize from './new-team/wizard/make-big-team'
 import TeamWizardChannels from './new-team/wizard/create-channels'
 import TeamWizardSubteams from './new-team/wizard/create-subteams'
+import TeamWizardSubteamMembers from './new-team/wizard/add-subteam-members'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
@@ -62,6 +64,9 @@ export const newModalRoutes = {
   ...addWizardRoutes,
   contactRestricted: {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
+  },
+  openTeamWarning: {
+    getScreen: (): typeof OpenTeamWarning => require('./team/settings-tab/open-team-warning').default,
   },
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>
@@ -117,6 +122,10 @@ export const newModalRoutes = {
   },
   teamWizard6Subteams: {
     getScreen: (): typeof TeamWizardSubteams => require('./new-team/wizard/create-subteams').default,
+  },
+  teamWizardSubteamMembers: {
+    getScreen: (): typeof TeamWizardSubteamMembers =>
+      require('./new-team/wizard/add-subteam-members').default,
   },
   teamsContactsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,

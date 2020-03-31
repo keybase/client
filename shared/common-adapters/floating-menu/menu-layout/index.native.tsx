@@ -23,6 +23,7 @@ type MenuRowProps = {
 } & MenuItem
 
 const itemContainerHeight = 48
+const itemContainerHeightWithSubTitle = itemContainerHeight + 18 // lineHeight of subTitle
 
 const MenuRow = (props: MenuRowProps) => (
   <NativeTouchableOpacity
@@ -34,6 +35,7 @@ const MenuRow = (props: MenuRowProps) => (
     style={Styles.collapseStyles([
       styles.itemContainer,
       !props.unWrapped && styles.itemContainerWrapped,
+      !!props.subTitle && styles.itemContainerWithSubTitle,
       props.backgroundColor && {backgroundColor: props.backgroundColor},
     ])}
   >
@@ -90,9 +92,7 @@ const MenuRow = (props: MenuRowProps) => (
 )
 
 const MenuLayout = (props: MenuLayoutProps) => {
-  const menuItemsNoDividers: MenuItem[] = props.items.filter((x): x is MenuItem =>
-    x ? x !== 'Divider' : false
-  )
+  const menuItemsWithDividers = props.items.filter((x): x is MenuItem | 'Divider' => x !== null)
   const beginningDivider = props.items[0] === 'Divider'
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
 
@@ -118,17 +118,23 @@ const MenuLayout = (props: MenuLayoutProps) => {
           style={Styles.collapseStyles([styles.scrollView, firstIsUnWrapped && styles.firstIsUnWrapped])}
           contentContainerStyle={styles.menuGroup}
         >
-          {menuItemsNoDividers.map((mi, idx) => (
-            <MenuRow
-              key={mi.title}
-              {...mi}
-              index={idx}
-              numItems={menuItemsNoDividers.length}
-              onHidden={props.closeOnClick ? props.onHidden : undefined}
-              textColor={props.textColor}
-              backgroundColor={props.backgroundColor}
-            />
-          ))}
+          {menuItemsWithDividers.map((mi, idx) =>
+            mi === 'Divider' ? (
+              idx !== 0 && idx !== props.items.length ? (
+                <Divider style={styles.dividerInScrolleView} />
+              ) : null
+            ) : (
+              <MenuRow
+                key={mi.title}
+                {...mi}
+                index={idx}
+                numItems={menuItemsWithDividers.length}
+                onHidden={props.closeOnClick ? props.onHidden : undefined}
+                textColor={props.textColor}
+                backgroundColor={props.backgroundColor}
+              />
+            )
+          )}
         </ScrollView>
         <Divider style={styles.divider} />
         <Box style={Styles.collapseStyles([styles.menuGroup, props.listStyle])}>
@@ -169,6 +175,10 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: Styles.globalMargins.tiny,
       },
+      dividerInScrolleView: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
       firstIsUnWrapped: {paddingTop: 0},
       flexOne: {
         flex: 1,
@@ -193,6 +203,9 @@ const styles = Styles.styleSheetCreate(
         height: itemContainerHeight,
         justifyContent: 'center',
         position: 'relative',
+      },
+      itemContainerWithSubTitle: {
+        height: itemContainerHeightWithSubTitle,
       },
       itemContainerWrapped: {
         paddingBottom: Styles.globalMargins.tiny,
@@ -225,8 +238,8 @@ const styles = Styles.styleSheetCreate(
       },
       scrollView: {
         flexGrow: 1,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
       },
     } as const)
 )

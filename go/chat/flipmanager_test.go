@@ -420,7 +420,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		res1 := consumeFlipToResult(t, ui1, listener1, strGameID, 2)
 		require.Equal(t, res, res1)
 
-		hostMsg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, 2, true, nil)
+		hostMsg, err := tc.Context().ConvSource.GetMessage(ctx, conv.Id, uid, 2, nil, nil, true)
 		require.NoError(t, err)
 		require.True(t, hostMsg.IsValid())
 		body := hostMsg.Valid().MessageBody

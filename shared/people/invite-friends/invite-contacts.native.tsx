@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import {Section as _Section} from '../../common-adapters/section-list'
-import useContacts from '../../teams/invite-by-contact/use-contacts.native'
-import {Contact} from '../../teams/invite-by-contact/index.native'
+import useContacts, {Contact} from '../../teams/common/use-contacts.native'
+import {EnableContactsPopup} from '../../teams/common'
 import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
@@ -215,6 +215,7 @@ const InviteContacts = () => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
       />
+      <EnableContactsPopup noAccess={contactInfo.noAccessPermanent} onClose={navUp} />
     </Kb.Modal>
   )
 }

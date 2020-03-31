@@ -38,6 +38,7 @@ protocol emoji {
 
   record HarvestedEmoji {
     string alias;
+    boolean isBig;
     boolean isCrossTeam;
     EmojiRemoteSource source;
   }
@@ -49,6 +50,7 @@ protocol emoji {
 
   record Emoji {
     string alias;
+    boolean isBig;
     boolean isCrossTeam;
     EmojiLoadSource source;
     EmojiRemoteSource remoteSource;

@@ -188,27 +188,39 @@ func NewJourneyCardManagerSingleUser(g *globals.Context, ri func() chat1.RemoteI
 	}
 }
 
-func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) bool {
+func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) (enabled bool) {
 	if cc.G().GetEnv().GetDebugJourneycard() {
 		return true
 	}
 	if cc.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureJourneycard) {
 		return true
 	}
-	ogCtx := ctx
 	// G.FeatureFlags seems like the kind of system that might hang on a bad network.
 	// PickCard is supposed to be lightning fast, so impose a timeout on FeatureFlags.
-	ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
-	defer cancel()
-	enabled, err := cc.G().FeatureFlags.EnabledWithError(cc.MetaContext(ctx), libkb.FeatureJourneycard)
-	if err != nil {
-		// Send one out in a goroutine to get the goods for next time.
-		ctx, cancel2 := context.WithTimeout(globals.BackgroundChatCtx(ogCtx, cc.G()), 10*time.Second)
-		defer cancel2()
-		go cc.G().FeatureFlags.Enabled(cc.MetaContext(ctx), libkb.FeatureJourneycard)
-		return false
+	var err error
+	type enabledAndError struct {
+		enabled bool
+		err     error
 	}
-	return enabled
+	ret := make(chan enabledAndError)
+	go func() {
+		enabled, err = cc.G().FeatureFlags.EnabledWithError(cc.MetaContext(ctx), libkb.FeatureJourneycard)
+		ret <- enabledAndError{enabled: enabled, err: err}
+	}()
+
+	select {
+	case <-time.After(100 * time.Millisecond):
+		cc.Debug(ctx, "JourneyCardManagerSingleUser#checkFeature timed out: returning false")
+		return false
+	case enabledAndErrorRet := <-ret:
+		if enabledAndErrorRet.err != nil {
+			cc.Debug(ctx, "JourneyCardManagerSingleUser#checkFeature errored out (returning false): %v", err)
+			return false
+		}
+		enabled = enabledAndErrorRet.enabled
+		cc.Debug(ctx, "JourneyCardManagerSingleUser#checkFeature succeeded: %v", enabled)
+		return enabled
+	}
 }
 
 // Choose a journey card to show in the conversation.

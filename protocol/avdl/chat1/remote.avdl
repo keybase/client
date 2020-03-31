@@ -98,6 +98,8 @@ protocol remote {
 
   record GetMessagesRemoteRes {
     array<MessageBoxed> msgs;
+    ConversationMembersType membersType;
+    keybase1.TLFVisibility visibility;
     union { null, RateLimit } rateLimit;
   }
 

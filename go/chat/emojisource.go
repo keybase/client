@@ -248,7 +248,7 @@ func (s *DevConvEmojiSource) creationInfo(ctx context.Context, uid gregor1.UID,
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		msg := remote.Message()
-		sourceMsg, err := GetMessage(ctx, s.G(), uid, msg.ConvID, msg.MsgID, false, &reason)
+		sourceMsg, err := s.G().ConvSource.GetMessage(ctx, msg.ConvID, uid, msg.MsgID, &reason, nil, false)
 		if err != nil {
 			return res, err
 		}
@@ -410,12 +410,14 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 		return false
 	}
 	reason := chat1.GetThreadReason_EMOJISOURCE
-	lmsg, err := GetMessage(ctx, s.G(), uid, l.Message().ConvID, l.Message().MsgID, false, &reason)
+	lmsg, err := s.G().ConvSource.GetMessage(ctx, l.Message().ConvID, uid, l.Message().MsgID, &reason,
+		nil, false)
 	if err != nil {
 		s.Debug(ctx, "versionMatch: failed to get lmsg: %s", err)
 		return false
 	}
-	rmsg, err := GetMessage(ctx, s.G(), uid, r.Message().ConvID, r.Message().MsgID, false, &reason)
+	rmsg, err := s.G().ConvSource.GetMessage(ctx, r.Message().ConvID, uid, r.Message().MsgID, &reason,
+		nil, false)
 	if err != nil {
 		s.Debug(ctx, "versionMatch: failed to get rmsg: %s", err)
 		return false
@@ -575,13 +577,21 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	if len(emojis) == 0 {
 		return body
 	}
 	matches := s.parse(ctx, body)
 	if len(matches) == 0 {
 		return body
+	}
+	bigEmoji := false
+	if messageType == chat1.MessageType_TEXT && len(matches) == 1 {
+		singleEmoji := matches[0]
+		// check if the emoji is the entire message (ignoring whitespace)
+		if singleEmoji.position[0] == 0 && singleEmoji.position[1] == len(strings.TrimSpace(body)) {
+			bigEmoji = true
+		}
 	}
 	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
@@ -600,6 +610,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
+					IsBig:  bigEmoji,
 					Alias:  match.name,
 					Source: localSource,
 				}))
