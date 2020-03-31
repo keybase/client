@@ -11,6 +11,7 @@ import NavHeaderTitle from '../../nav-header/title'
 
 type Props = {
   index: number
+  isShare: boolean
   parentPath: Types.Path
   targetName: string
   onCancel?: () => void
@@ -82,7 +83,7 @@ const DestinationPicker = (props: Props) => {
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
-              Copy here
+              {props.isShare ? 'Save here' : 'Copy here'}
             </Kb.Text>
           </Kb.ClickableBox>
         )}
@@ -104,19 +105,21 @@ const DestinationPicker = (props: Props) => {
           <Rows path={props.parentPath} destinationPickerIndex={props.index} />
         )}
         {Styles.isMobile && <Kb.Divider key="dfooter" />}
-        <Kb.Box2
-          key="footer"
-          direction="horizontal"
-          centerChildren={true}
-          fullWidth={true}
-          style={styles.footer}
-        >
-          {Styles.isMobile ? (
-            <NewFolder onNewFolder={props.onNewFolder} />
-          ) : (
-            <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
-          )}
-        </Kb.Box2>
+        {(!Styles.isMobile || props.onNewFolder) && (
+          <Kb.Box2
+            key="footer"
+            direction="horizontal"
+            centerChildren={true}
+            fullWidth={true}
+            style={styles.footer}
+          >
+            {Styles.isMobile ? (
+              <NewFolder onNewFolder={props.onNewFolder} />
+            ) : (
+              <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+            )}
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.PopupWrapper>
   )
