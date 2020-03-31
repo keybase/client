@@ -5,10 +5,43 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 export const fakeTeamID = 'fakeTeamID'
 const teamID2 = 'faketeamID2'
 const teamID3 = 'faketeamID3'
+const teamID4 = 'faketeamID4'
+export const greenpeace = teamID4
 const subteam1 = 'subteam1'
 const subteam2 = 'subteam2'
 export const fakeTeamIDs = [fakeTeamID, teamID2, teamID3]
-
+const names = [
+  'Ted Tonks',
+  'Vernon Dursley',
+  'Mundungus Fletcher',
+  'Vincent Crabbe',
+  'Cho Chang',
+  'Gregorovitch',
+  'Merope Gaunt',
+  'Katie Bell',
+  'Corban Yaxley',
+  'Sirius Black',
+  'Bellatrix Lestrange',
+  'Cedric Diggory',
+  'Salazar Slytherin',
+  'Morfin Gaunt',
+  'Sturgis Podmore',
+  'Aberforth Dumbledore',
+  'Mafalda Hopkirk',
+  'Augusta Longbottom',
+  'Padma Patil',
+  'Amycus Carrow',
+  'Ludo Bagman',
+  'Pius Thicknesse',
+  'Quirinus Quirrell',
+  'Dean Thomas',
+  'Draco Malfoy',
+  'Marcus Flint',
+  'Lord Voldemort',
+  'Minerva McGonagall',
+  'Hermione Granger',
+  'Marietta Edgecombe',
+]
 export const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
   draftState.chat2.inboxLayout = {
     bigTeams: [
@@ -36,6 +69,7 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
     newTeamWizard: {
       ...draftState.teams.newTeamWizard,
       name: 'greenpeace',
+      parentTeamID: teamID4,
     },
     teamDetails: new Map([
       [
@@ -61,11 +95,24 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
           ]),
         },
       ],
+      [
+        teamID4,
+        {
+          ...Constants.emptyTeamDetails,
+          members: new Map(
+            names.map(n => [
+              n.toLowerCase().split(' ')[0],
+              {fullName: n, status: 'active', type: 'writer', username: n.toLowerCase().split(' ')[0]},
+            ])
+          ),
+        },
+      ],
     ]),
     teamMeta: new Map([
       [fakeTeamID, Constants.makeTeamMeta({memberCount: 32, teamname: 'keybase_storybook'})],
       [teamID2, Constants.makeTeamMeta({isOpen: true, memberCount: 11947, teamname: 'fan_club'})],
       [teamID3, Constants.makeTeamMeta({isOpen: false, memberCount: 234, teamname: 'club_penguin'})],
+      [teamID4, Constants.makeTeamMeta({isOpen: false, memberCount: 30, teamname: 'greenpeace'})],
       [
         subteam1,
         Constants.makeTeamMeta({isOpen: true, memberCount: 980, teamname: 'keybase_storybook.friends'}),

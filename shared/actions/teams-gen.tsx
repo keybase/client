@@ -39,6 +39,7 @@ export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
+export const launchNewTeamWizardOrModal = 'teams:launchNewTeamWizardOrModal'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
@@ -199,6 +200,7 @@ type _InviteToTeamByPhonePayload = {
   readonly loadingKey?: string
 }
 type _JoinTeamPayload = {readonly teamname: string}
+type _LaunchNewTeamWizardOrModalPayload = {readonly subteamOf?: Types.TeamID}
 type _LeaveTeamPayload = {
   readonly teamname: string
   readonly permanent: boolean
@@ -317,6 +319,7 @@ type _SetTeamWizardNameDescriptionPayload = {
   readonly openTeam: boolean
   readonly openTeamJoinRole: Types.TeamRoleType
   readonly showcase: boolean
+  readonly addYourself: boolean
 }
 type _SetTeamWizardSubteamsPayload = {readonly subteams: Array<string>}
 type _SetTeamWizardTeamSizePayload = {readonly isBig: boolean}
@@ -629,6 +632,9 @@ export const createInviteToTeamByPhone = (
   payload: _InviteToTeamByPhonePayload
 ): InviteToTeamByPhonePayload => ({payload, type: inviteToTeamByPhone})
 export const createJoinTeam = (payload: _JoinTeamPayload): JoinTeamPayload => ({payload, type: joinTeam})
+export const createLaunchNewTeamWizardOrModal = (
+  payload: _LaunchNewTeamWizardOrModalPayload = Object.freeze({})
+): LaunchNewTeamWizardOrModalPayload => ({payload, type: launchNewTeamWizardOrModal})
 export const createLeaveTeam = (payload: _LeaveTeamPayload): LeaveTeamPayload => ({payload, type: leaveTeam})
 export const createReAddToTeam = (payload: _ReAddToTeamPayload): ReAddToTeamPayload => ({
   payload,
@@ -908,6 +914,10 @@ export type InviteToTeamByPhonePayload = {
   readonly type: typeof inviteToTeamByPhone
 }
 export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type: typeof joinTeam}
+export type LaunchNewTeamWizardOrModalPayload = {
+  readonly payload: _LaunchNewTeamWizardOrModalPayload
+  readonly type: typeof launchNewTeamWizardOrModal
+}
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
 export type LoadTeamPayload = {readonly payload: _LoadTeamPayload; readonly type: typeof loadTeam}
@@ -1184,6 +1194,7 @@ export type Actions =
   | InviteToTeamByEmailPayload
   | InviteToTeamByPhonePayload
   | JoinTeamPayload
+  | LaunchNewTeamWizardOrModalPayload
   | LeaveTeamPayload
   | LeftTeamPayload
   | LoadTeamPayload
