@@ -62,9 +62,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   spinner: Styles.platformStyles({
     isElectron: {
-      height: 20,
-      marginRight: Styles.globalMargins.small,
-      width: 20,
+      height: 16,
+      marginRight: Styles.globalMargins.tiny,
+      width: 16,
     },
     isMobile: {
       height: 28,
