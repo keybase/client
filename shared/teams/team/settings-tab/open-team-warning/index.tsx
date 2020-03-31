@@ -109,4 +109,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Kb.HeaderOnMobile(OpenTeamWarning)
+export default OpenTeamWarning
