@@ -200,7 +200,7 @@ const NewTeamInfo = () => {
                     onConfirm={() => setRolePickerIsOpen(false)}
                     position="bottom center"
                     open={rolePickerIsOpen}
-                    disabledReasons={cannotJoinAsOwner}
+                    disabledRoles={cannotJoinAsOwner}
                   >
                     <InlineDropdown
                       label={pluralize(selectedRole)}
