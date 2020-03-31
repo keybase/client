@@ -1138,7 +1138,7 @@ func GetMsgSnippetBody(ctx context.Context, g *globals.Context, convID chat1.Con
 	}
 	defer func() {
 		if len(snippetDecorated) == 0 {
-			snippetDecorated = snippet
+			snippetDecorated = EscapeShrugs(ctx, snippet)
 		}
 	}()
 	var msgBody chat1.MessageBody

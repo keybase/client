@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 31
+const inboxVersion = 32
 
 type InboxFlushMode int
 
