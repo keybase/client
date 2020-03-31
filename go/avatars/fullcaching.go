@@ -3,6 +3,7 @@ package avatars
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -87,6 +88,8 @@ func (l lruEntry) GetPath() string {
 
 type FullCachingSource struct {
 	libkb.Contextified
+	sync.Mutex
+	started              bool
 	diskLRU              *lru.DiskLRU
 	diskLRUCleanerCancel context.CancelFunc
 	staleThreshold       time.Duration
@@ -201,24 +204,38 @@ func (c *FullCachingSource) makeRemoteFetchRequests(reqs []remoteFetchArg,
 	}
 }
 
-func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
-	go c.monitorAppState(m)
+func (c *FullCachingSource) StartBackgroundTasks(mctx libkb.MetaContext) {
+	defer mctx.TraceTimed("FullCachingSource.StartBackgroundTasks", func() error { return nil })()
+	c.Lock()
+	defer c.Unlock()
+	if c.started {
+		return
+	}
+	c.started = true
+	go c.monitorAppState(mctx)
 	c.populateCacheCh = make(chan populateArg, 100)
 	for i := 0; i < 10; i++ {
-		go c.populateCacheWorker(m)
+		go c.populateCacheWorker(mctx)
 	}
-	m, cancel := m.WithContextCancel()
+	mctx, cancel := mctx.WithContextCancel()
 	c.diskLRUCleanerCancel = cancel
-	go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
+	go lru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(mctx), 10*time.Second)
 }
 
-func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
+func (c *FullCachingSource) StopBackgroundTasks(mctx libkb.MetaContext) {
+	defer mctx.TraceTimed("FullCachingSource.StopBackgroundTasks", func() error { return nil })()
+	c.Lock()
+	defer c.Unlock()
+	if !c.started {
+		return
+	}
+	c.started = false
 	close(c.populateCacheCh)
 	if c.diskLRUCleanerCancel != nil {
 		c.diskLRUCleanerCancel()
 	}
-	if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
-		c.debug(m, "StopBackgroundTasks: unable to flush diskLRU %v", err)
+	if err := c.diskLRU.Flush(mctx.Ctx(), mctx.G()); err != nil {
+		c.debug(mctx, "StopBackgroundTasks: unable to flush diskLRU %v", err)
 	}
 }
 
@@ -572,11 +589,21 @@ func (c *FullCachingSource) clearName(m libkb.MetaContext, name string, formats 
 
 func (c *FullCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer m.TraceTimed("FullCachingSource.LoadUsers", func() error { return err })()
+	c.Lock()
+	defer c.Unlock()
+	if !c.started {
+		return res, errors.New("Avatar source not running")
+	}
 	return c.loadNames(m, usernames, formats, true)
 }
 
 func (c *FullCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer m.TraceTimed("FullCachingSource.LoadTeams", func() error { return err })()
+	c.Lock()
+	defer c.Unlock()
+	if !c.started {
+		return res, errors.New("Avatar source not running")
+	}
 	return c.loadNames(m, teams, formats, false)
 }
 
