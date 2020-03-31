@@ -39,7 +39,8 @@ const AddPhone = () => {
           ? dispatch(
               TeamsGen.createAddMembersWizardPushMembers({
                 members: r.map(m => ({
-                  assertion: m.foundUser ? `${m.username}+${m.assertion}` : m.assertion,
+                  assertion: m.foundUser ? m.username : m.assertion,
+                  note: m.foundUser ? m.assertionValue : undefined,
                   role: 'writer',
                 })),
               })

@@ -288,15 +288,22 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={Styles.globalStyles.flexOne}>
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.memberPill}>
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames
           type="BodySemibold"
+          inline={true}
           lineClamp={1}
           usernames={[props.assertion]}
-          containerStyle={Styles.globalStyles.flexOne}
-          style={Styles.globalStyles.flexOne}
+          colorFollowing={true}
+          containerStyle={styles.flexShrink}
+          style={styles.flexShrink}
         />
+        {props.note && (
+          <Kb.Text lineClamp={1} type="BodySemibold" style={styles.flexDefinitelyShrink}>
+            ({props.note})
+          </Kb.Text>
+        )}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
         {showDropdown && (
@@ -358,6 +365,9 @@ const styles = Styles.styleSheetCreate(() => ({
   controls: {
     justifyContent: 'space-between',
   },
+  flexDefinitelyShrink: {flexShrink: 100},
+  flexShrink: {flexShrink: 1},
+  memberPill: {flex: 1, width: 0},
   setIndividuallyBox: Styles.padding(Styles.globalMargins.small),
 }))
 
