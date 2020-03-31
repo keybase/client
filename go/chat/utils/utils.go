@@ -1621,7 +1621,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 		}
 		if hasFullURL {
 			var cached bool
-			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
+			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false, false)
 			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx, asset)
 			if err != nil {
 				cached = false
@@ -1629,7 +1629,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 			info.FullUrlCached = cached
 		}
 		if hasPreviewURL {
-			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
+			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true, false)
 		}
 		atyp, err := asset.Metadata.AssetType()
 		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {
@@ -1739,7 +1739,8 @@ func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, convID
 	for key, value := range reactions.Reactions {
 		var desc chat1.UIReactionDesc
 		if shouldDecorate {
-			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, chat1.MessageType_REACTION, msg.Emojis)
+			desc.Decorated = g.EmojiSource.Decorate(ctx, key, convID, chat1.MessageType_REACTION, msg.Emojis,
+				false)
 		}
 		desc.Users = make(map[string]chat1.Reaction)
 		for username, reaction := range value {
@@ -1799,7 +1800,7 @@ func PresentDecoratedSnippet(ctx context.Context, g *globals.Context, body strin
 	convID chat1.ConversationID, msgType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
-	return g.EmojiSource.Decorate(ctx, body, convID, msgType, emojis)
+	return g.EmojiSource.Decorate(ctx, body, convID, msgType, emojis, true)
 }
 
 func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
@@ -1819,7 +1820,7 @@ func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, ui
 		return nil
 	}
 	body = PresentDecoratedTextNoMentions(ctx, body)
-	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis)
+	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis, false)
 	return &body
 }
 
@@ -1853,7 +1854,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 
 	// Emojis
-	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis)
+	body = g.EmojiSource.Decorate(ctx, body, convID, typ, msg.Emojis, false)
 
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,

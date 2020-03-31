@@ -138,7 +138,7 @@ func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload i
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview bool) string {
+	preview, noAnim bool) string {
 	r.Lock()
 	defer r.Unlock()
 	defer r.Trace(ctx, func() error { return nil }, "GetURL(%s,%d)", convID, msgID)()
@@ -146,7 +146,7 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		ConvID: convID,
 		MsgID:  msgID,
 	})
-	url += fmt.Sprintf("&prev=%v", preview)
+	url += fmt.Sprintf("&prev=%v&noanim=%v", preview, noAnim)
 	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
 	return url
 }
@@ -481,8 +481,12 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 	defer r.Trace(ctx, func() error { return nil }, "serveAttachment")()
 	key := req.URL.Query().Get("key")
 	preview := false
+	noAnim := false
 	if "true" == req.URL.Query().Get("prev") {
 		preview = true
+	}
+	if "true" == req.URL.Query().Get("noanim") {
+		noAnim = true
 	}
 	r.Lock()
 	pairInt, ok := r.urlMap.Get(key)
@@ -521,9 +525,25 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 		}
 		http.ServeContent(w, req, asset.Filename, time.Time{}, rs)
 	} else {
-		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-			return
+		// no animation mode is intended to transform GIF images into single frame versions
+		if noAnim {
+			var buf bytes.Buffer
+			if err := r.fetcher.FetchAttachment(ctx, &buf, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+				r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+				return
+			}
+			if err := attachments.GIFToPNG(ctx, &buf, w); err != nil {
+				r.Debug(ctx, "serveAttachment: not a gif in no animation mode: %s", err)
+				if _, err := io.Copy(w, &buf); err != nil {
+					r.makeError(ctx, w, http.StatusInternalServerError, "failed to write attachment: %s", err)
+					return
+				}
+			}
+		} else {
+			if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+				r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+				return
+			}
 		}
 	}
 }
