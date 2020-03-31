@@ -85,6 +85,7 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
 Text.displayName = 'IconText'
 
 type ImageProps = {
+  resizeMode?: Props['resizeMode']
   style?: Props['style']
   source: any
 }
@@ -109,7 +110,7 @@ const Image = React.forwardRef<NativeImage, ImageProps>((p, ref) => {
     }
   }
 
-  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} resizeMode="contain" />
+  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} resizeMode={p.resizeMode} />
 })
 Image.displayName = 'IconImage'
 
@@ -157,6 +158,7 @@ const Icon = React.memo<Props>(
     } else {
       icon = (
         <Image
+          resizeMode={p.resizeMode || 'contain'}
           source={(Styles.isDarkMode() && iconMeta[iconType].requireDark) || iconMeta[iconType].require}
           style={hasContainer ? null : p.style}
           ref={wrap ? undefined : ref}

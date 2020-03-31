@@ -3,16 +3,23 @@ import * as TeamsTypes from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import * as Container from '../../util/container'
 import * as FsTypes from '../../constants/types/fs'
+import * as ChatTypes from '../../constants/types/chat2'
+import * as ChatConstants from '../../constants/chat2'
+import {pluralize} from '../../util/string'
+import useRPC from '../../util/use-rpc'
 import pickFiles from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
 
 const pickEmojisPromise = () => pickFiles('Select emoji images to upload')
 
 type Props = {
-  teamID: TeamsTypes.TeamID
+  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: TeamsTypes.TeamID // not supported yet
 }
+type RoutableProps = Container.RouteProps<Props>
 
 const filePathToDefaultAlias = (path: string) => {
   const name = FsTypes.getLocalPathName(path)
@@ -20,7 +27,55 @@ const filePathToDefaultAlias = (path: string) => {
   return kebabCase(lastDot > 0 ? name.slice(0, lastDot) : name)
 }
 
-const useEmojisToAdd = () => {
+const useDoAddEmojis = (
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  emojisToAdd: Array<EmojiToAdd>,
+  setErrors: (errors: Map<string, string>) => void,
+  removeFilePath: (toRemove: Set<string> | string) => void
+) => {
+  const dispatch = Container.useDispatch()
+  const addEmojisRpc = useRPC(RPCChatGen.localAddEmojisRpcPromise)
+  const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
+  const [bannerError, setBannerError] = React.useState('')
+  const doAddEmojis =
+    conversationIDKey !== ChatConstants.noConversationIDKey
+      ? () => {
+          setWaitingAddEmojis(true)
+          addEmojisRpc(
+            [
+              {
+                alias: emojisToAdd.map(e => e.alias),
+                convID: ChatTypes.keyToConversationID(conversationIDKey),
+                filename: emojisToAdd.map(e => e.path),
+              },
+            ],
+            res => {
+              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
+
+              if (!failedFilenamesKeys.length) {
+                dispatch(RouteTreeGen.createClearModals())
+              }
+
+              res.successFilenames && removeFilePath(new Set(res.successFilenames))
+              setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key]])))
+              setBannerError(
+                `Failed to add ${failedFilenamesKeys.length} ${pluralize(
+                  'emojis',
+                  failedFilenamesKeys.length
+                )}.`
+              )
+              setWaitingAddEmojis(false)
+            },
+            err => {
+              throw err
+            }
+          )
+        }
+      : undefined
+  return {bannerError, doAddEmojis, waitingAddEmojis}
+}
+
+const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
   const [filePaths, setFilePaths] = React.useState<Array<string>>([])
 
   const aliasMap = React.useRef(new Map<string, string>()).current
@@ -34,18 +89,26 @@ const useEmojisToAdd = () => {
       paths.forEach(path => aliasMap.get(path) ?? aliasMap.set(path, filePathToDefaultAlias(path)))
       aliasMapChanged()
       setFilePaths([...filePaths, ...paths])
-      console.log({songgao: 'addFiles', paths})
     },
     [filePaths, aliasMap, aliasMapChanged, setFilePaths]
   )
   const clearFiles = React.useCallback(() => setFilePaths([]), [setFilePaths])
 
-  const [errors] = React.useState(new Map<string, string>())
+  const removeFilePath = React.useCallback(
+    (toRemove: Set<string> | string) =>
+      setFilePaths(filePaths =>
+        typeof toRemove === 'string'
+          ? filePaths.filter(filePath => toRemove !== filePath)
+          : filePaths.filter(filePath => !toRemove.has(filePath))
+      ),
+    [setFilePaths]
+  )
+
+  const [errors, setErrors] = React.useState(new Map<string, string>())
 
   const emojisToAdd = React.useMemo(() => {
     // @ts-ignore
     const makeLinterhappy = aliasMapChangeCounter
-    console.log({songgao: 'emojisToAdd', filePaths})
 
     return filePaths.map(path => ({
       alias: aliasMap.get(path) || '',
@@ -57,16 +120,35 @@ const useEmojisToAdd = () => {
       path,
     }))
   }, [aliasMapChangeCounter, errors, filePaths, aliasMap, aliasMapChanged])
-  return {addFiles, clearFiles, emojisToAdd}
+
+  const {bannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
+    conversationIDKey,
+    emojisToAdd,
+    setErrors,
+    removeFilePath
+  )
+
+  return {
+    addFiles,
+    bannerError,
+    clearFiles,
+    doAddEmojis,
+    emojisToAdd,
+    removeFilePath,
+    waitingAddEmojis,
+  }
 }
 
 const debug = true
 
-const AddEmojiModal = (props: Props) => {
-  const {addFiles, clearFiles, emojisToAdd} = useEmojisToAdd()
+export const AddEmojiModal = (props: Props) => {
+  const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
+    props.conversationIDKey
+  )
   const pick = () => pickEmojisPromise().then(addFiles)
   return !emojisToAdd.length ? (
     <Modal
+      bannerError=""
       footerButtonLabel={Styles.isMobile ? 'Choose Images' : debug ? 'Add for debug' : undefined}
       footerButtonOnClick={
         Styles.isMobile
@@ -80,21 +162,33 @@ const AddEmojiModal = (props: Props) => {
     </Modal>
   ) : (
     <Modal
+      bannerError={bannerError}
       footerButtonLabel="Add emoji"
-      footerButtonOnClick={() => {}}
-      backButtonOnClick={() => clearFiles([])}
+      footerButtonOnClick={doAddEmojis}
+      footerButtonWaiting={waitingAddEmojis}
+      backButtonOnClick={() => clearFiles()}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>
   )
 }
 
-export default AddEmojiModal
+export default (routableProps: RoutableProps) => {
+  const conversationIDKey = Container.getRouteProps(
+    routableProps,
+    'conversationIDKey',
+    ChatConstants.noConversationIDKey
+  )
+  const teamID = Container.getRouteProps(routableProps, 'teamID', TeamsTypes.noTeamID)
+  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
+}
 
 type ModalProps = {
+  bannerError: string
   children: React.ReactNode
   footerButtonLabel?: string
   footerButtonOnClick?: () => void
+  footerButtonWaiting?: boolean
   backButtonOnClick?: () => void
 }
 
@@ -121,9 +215,21 @@ const Modal = (props: ModalProps) => {
             <Kb.Text type="Header">Add emoji</Kb.Text>
           </Kb.Box2>
         )}
-        <Kb.Icon type="icon-illustration-emoji-add-460-96" />
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
+          <Kb.Icon
+            type="icon-illustration-emoji-add-460-96"
+            resizeMode="cover"
+            noContainer={true}
+            style={styles.bannerImage}
+          />
+          {!!props.bannerError && (
+            <Kb.Banner color="red" style={styles.bannerError}>
+              {props.bannerError}
+            </Kb.Banner>
+          )}
+        </Kb.Box2>
         {props.children}
-        {props.footerButtonLabel && (
+        {props.footerButtonLabel && props.footerButtonOnClick && (
           <Kb.Box2
             direction="vertical"
             centerChildren={true}
@@ -136,6 +242,7 @@ const Modal = (props: ModalProps) => {
               label={props.footerButtonLabel}
               fullWidth={true}
               onClick={props.footerButtonOnClick}
+              waiting={props.footerButtonWaiting}
             />
           </Kb.Box2>
         )}
@@ -149,15 +256,12 @@ const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const onDragOver = e => e.dataTransfer.types.includes('Files') && setDragOver(true)
   const onDragLeave = () => setDragOver(false)
   const onDrop = e => {
-    console.log({songgao: 'onDrop', types: e.dataTransfer.types})
     if (!e.dataTransfer.types.includes('Files')) {
-      console.log({songgao: 'onDrop not includes', types: e.dataTransfer.types})
       return
     }
     const filesToAdd = [...e.dataTransfer.files]
       .filter(file => file.type.startsWith('image/') && typeof file.path === 'string')
       .map(file => file.path)
-    console.log({songgao: 'onDrop', filesToAdd, files: e.dataTransfer.files})
     filesToAdd.length && addFiles(filesToAdd)
     setDragOver(false)
   }
@@ -230,12 +334,14 @@ type EmojiToAddOrAddRow =
       type: 'emoji'
       emojiToAdd: EmojiToAdd
       height: number
+      key: string
       offset: number
     }
   | {
       type: 'add'
       add: () => any
       height: number
+      key: string
       offset: number
     }
 
@@ -247,27 +353,34 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
       </Kb.ClickableBox>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="horizontal" gap="xsmall" fullWidth={true} style={styles.emojiToAddRow}>
-      <Kb.Box style={styles.emojiToAddImageContainer}>
-        <Kb.Image src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
-      </Kb.Box>
-      <Kb.NewInput
-        textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
-        value={`:${item.emojiToAdd.alias}:`}
-        containerStyle={styles.aliasInput}
-        onChangeText={newText => item.emojiToAdd.onChangeAlias(newText.replace(/:/g, ''))}
-      />
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      gap="xxtiny"
+      style={Styles.collapseStyles([
+        styles.emojiToAddRow,
+        item.emojiToAdd.error && styles.emojiToAddRowWithError,
+      ])}
+    >
+      <Kb.Box2 direction="horizontal" gap="xsmall" fullWidth={true}>
+        <Kb.Box style={styles.emojiToAddImageContainer}>
+          <Kb.Image src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
+        </Kb.Box>
+        <Kb.NewInput
+          error={!!item.emojiToAdd.error}
+          textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
+          value={`:${item.emojiToAdd.alias}:`}
+          containerStyle={styles.aliasInput}
+          onChangeText={newText => item.emojiToAdd.onChangeAlias(newText.replace(/:/g, ''))}
+        />
+      </Kb.Box2>
+      {!!item.emojiToAdd.error && (
+        <Kb.Text type="BodySmallError" style={styles.errorText}>
+          {item.emojiToAdd.error}
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
-
-const rowItemHeight = {
-  getItemLayout: (index: number, item: EmojiToAddOrAddRow) => ({
-    index,
-    length: item.height,
-    offset: item.offset,
-  }),
-  type: 'variable',
-} as const
 
 const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
   const {dragOver, onDragLeave, onDragOver, onDrop, pick} = usePickFiles(props.addFiles)
@@ -278,6 +391,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       arr.push({
         emojiToAdd,
         height: emojiToAdd.error ? emojiToAddRowHeightWithError : emojiToAddRowHeightNoError,
+        key: emojiToAdd.path,
         offset: last ? last.offset + last.height : 0,
         type: 'emoji',
       })
@@ -287,11 +401,27 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
     ret.push({
       add: pick,
       height: emojiToAddRowHeightNoError,
+      key: 'btn:add',
       offset: last ? last.offset + last.height : 0,
       type: 'add',
     })
     return ret
   }, [emojisToAdd, pick])
+
+  const rowItemHeight = React.useMemo(() => {
+    // @ts-ignore
+    const makeLinterhappy = emojisToAdd
+    return {
+      getItemLayout: (index: number, item: EmojiToAddOrAddRow | undefined) => ({
+        index,
+        length: item?.height ?? 0,
+        offset: item?.offset ?? 0,
+      }),
+      sizeChangeHint: Date.now(),
+      type: 'variable',
+    } as const
+  }, [emojisToAdd])
+
   return (
     <Kb.Box2
       direction="vertical"
@@ -305,7 +435,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
         Choose aliases for these emojis:
       </Kb.Text>
       <Kb.BoxGrow>
-        <Kb.List2 items={items} keyProperty="path" renderItem={renderRow} itemHeight={rowItemHeight} />
+        <Kb.List2 items={items} keyProperty="key" renderItem={renderRow} itemHeight={rowItemHeight} />
       </Kb.BoxGrow>
     </Kb.Box2>
   )
@@ -315,17 +445,25 @@ const emojiToAddRowHeightNoError = Styles.isMobile ? 48 : 40
 const emojiToAddRowHeightWithError = Styles.isMobile ? 64 : 56
 
 const styles = Styles.styleSheetCreate(() => ({
-  addEmojiIconContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    borderColor: Styles.globalColors.black_20,
-    borderRadius: Styles.globalMargins.xtiny,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    height: Styles.globalMargins.mediumLarge,
-    justifyContent: 'center',
-    width: Styles.globalMargins.mediumLarge,
-  },
+  addEmojiIconContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      borderColor: Styles.globalColors.black_20,
+      borderRadius: Styles.globalMargins.xtiny,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      justifyContent: 'center',
+    },
+    isElectron: {
+      height: Styles.globalMargins.mediumLarge,
+      width: Styles.globalMargins.mediumLarge,
+    },
+    isMobile: {
+      height: Styles.globalMargins.large,
+      width: Styles.globalMargins.large,
+    },
+  }),
   aliasInput: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -344,7 +482,23 @@ const styles = Styles.styleSheetCreate(() => ({
     left: Styles.globalMargins.xsmall,
     position: 'absolute',
   },
+  bannerContainer: {
+    height: Styles.globalMargins.xlarge + Styles.globalMargins.mediumLarge,
+    position: 'relative',
+  },
+  bannerError: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+    },
+  }),
+  bannerImage: {
+    height: '100%',
+    width: '100%',
+  },
   container: Styles.platformStyles({
+    common: {
+      position: 'relative',
+    },
     isElectron: {
       height: 537,
       width: 400,
@@ -388,17 +542,19 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       borderRadius: Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny,
-      padding: 3,
       maxHeight: Styles.globalMargins.mediumLarge,
       maxWidth: Styles.globalMargins.mediumLarge,
       minHeight: Styles.globalMargins.mediumLarge,
       minWidth: Styles.globalMargins.mediumLarge,
+      padding: 3,
     },
     isMobile: {
       borderRadius: Styles.globalMargins.xtiny,
-      height: Styles.globalMargins.large,
+      maxHeight: Styles.globalMargins.large,
+      maxWidth: Styles.globalMargins.large,
+      minHeight: Styles.globalMargins.large,
+      minWidth: Styles.globalMargins.large,
       padding: Styles.globalMargins.xtiny,
-      width: Styles.globalMargins.large,
     },
   }),
   emojiToAddRow: {
@@ -406,8 +562,16 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: Styles.globalMargins.tiny,
   },
   emojiToAddRowWithError: {
-    height: emojiToAddRowHeightNoError,
+    height: emojiToAddRowHeightWithError,
   },
+  errorText: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.mediumLarge + Styles.globalMargins.xsmall,
+    },
+    isMobile: {
+      marginLeft: Styles.globalMargins.large + Styles.globalMargins.xsmall,
+    },
+  }),
   footerContainer: Styles.platformStyles({
     isElectron: {
       paddingBottom: Styles.globalMargins.xsmall,
@@ -422,7 +586,6 @@ const styles = Styles.styleSheetCreate(() => ({
   headerContainer: Styles.platformStyles({
     isElectron: {
       height: Styles.globalMargins.large + Styles.globalMargins.tiny,
-      position: 'relative',
     },
   }),
   textChooseAlias: {

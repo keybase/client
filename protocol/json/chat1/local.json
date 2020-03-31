@@ -3958,6 +3958,34 @@
     },
     {
       "type": "record",
+      "name": "AddEmojisRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "successFilenames"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "failedFilenames"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RemoveEmojiRes",
       "fields": [
         {
@@ -5931,6 +5959,29 @@
         }
       ],
       "response": "AddEmojiRes"
+    },
+    "addEmojis": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "alias",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "filename",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": "AddEmojisRes"
     },
     "addEmojiAlias": {
       "request": [

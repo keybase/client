@@ -35,6 +35,8 @@ export type Props = {
   // only applies to icon fonts
   sizeType?: SizeType
   padding?: keyof typeof globalMargins
+  // Only applicable to png icons.
+  resizeMode?: 'contain' | 'cover' | 'stretch' | 'repeat' | 'center'
 }
 
 declare class Icon extends React.Component<Props> {

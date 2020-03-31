@@ -3687,6 +3687,34 @@ func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1
 	return res, nil
 }
 
+func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res chat1.AddEmojisRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "AddEmojis")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	if len(arg.Alias) != len(arg.Filename) {
+		return chat1.AddEmojisRes{}, errors.New("alias and filename have different length")
+	}
+	res.FailedFilenames = make(map[string]string)
+	res.SuccessFilenames = make([]string, 0, len(arg.Alias))
+	for i := range arg.Alias {
+		if arg.Alias[i] == "debug-test-error" {
+			res.FailedFilenames[arg.Filename[i]] = "this is a test error"
+			continue
+		}
+		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias[i], arg.Filename[i])
+		if err != nil {
+			res.FailedFilenames[arg.Filename[i]] = err.Error()
+		} else {
+			res.SuccessFilenames = append(res.SuccessFilenames, arg.Filename[i])
+		}
+	}
+	return res, nil
+}
+
 func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddEmojiAlias")()

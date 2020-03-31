@@ -1378,6 +1378,12 @@ protocol local {
     union { null, RateLimit } rateLimit;
   }
   AddEmojiRes addEmoji(ConversationID convID, string alias, string filename);
+  record AddEmojisRes {
+    union { null, RateLimit } rateLimit;
+    array<string> successFilenames;
+    map<string, string> failedFilenames; // filename => error message
+  }
+  AddEmojisRes addEmojis(ConversationID convID, array<string> alias, array<string> filename);
   AddEmojiRes addEmojiAlias(ConversationID convID, string newAlias, string existingAlias);
    record RemoveEmojiRes {
     union { null, RateLimit } rateLimit;

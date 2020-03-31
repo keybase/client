@@ -13,6 +13,7 @@ export type VariableItemHeight<Item> = {
     length: number
     offset: number
   }
+  sizeChangeHint?: number
   type: 'variable'
 }
 

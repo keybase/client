@@ -4,6 +4,7 @@ import * as Kb from '../../../../../common-adapters'
 import {LayoutEvent} from '../../../../../common-adapters/box'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
+import * as TeamsTypes from '../../../../../constants/types/teams'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
@@ -101,6 +102,19 @@ const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
   return {customEmojiGroups, waiting}
 }
 
+const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.ConversationIDKey) => {
+  dispatch(
+    RouteTreeGen.createNavigateAppend({
+      path: [
+        {
+          props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
+          selected: 'teamAddEmoji',
+        },
+      ],
+    })
+  )
+}
+
 const WrapperMobile = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
@@ -110,7 +124,7 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
-  const addEmoji = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddEmoji']}))
+  const addEmoji = () => goToAddEmoji(dispatch, props.conversationIDKey)
   return (
     <Kb.Box2
       direction="vertical"
@@ -170,7 +184,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const dispatch = Container.useDispatch()
   const addEmoji = () => {
     props.onDidPick?.()
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddEmoji']}))
+    goToAddEmoji(dispatch, props.conversationIDKey)
   }
 
   return (
