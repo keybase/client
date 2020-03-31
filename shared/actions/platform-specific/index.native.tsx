@@ -28,8 +28,8 @@ import {
   Clipboard,
   Vibration,
 } from 'react-native'
-import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
+import * as MediaLibrary from 'expo-media-library'
 // @ts-ignore
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
@@ -126,7 +126,7 @@ export const saveAttachmentDialog = async (filePath: string) => {
   const goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
   await requestPermissionsToWrite()
-  return CameraRoll.saveToCameraRoll(goodPath)
+  return MediaLibrary.saveToLibraryAsync(goodPath)
 }
 
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
@@ -136,7 +136,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   try {
     await requestPermissionsToWrite()
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await CameraRoll.saveToCameraRoll(fileURL, saveType)
+    await MediaLibrary.saveToLibraryAsync(fileURL, saveType)
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
