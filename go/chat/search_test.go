@@ -515,17 +515,17 @@ func TestChatSearchInbox(t *testing.T) {
 		convID := conv.Id
 
 		// verify zero messages case
-		fi, err := indexer1.FullyIndexed(ctx, conv.Id)
+		fi, err := indexer1.FullyIndexed(ctx, convID)
 		require.NoError(t, err)
 		require.True(t, fi)
-		pi, err := indexer1.PercentIndexed(ctx, conv.Id)
+		pi, err := indexer1.PercentIndexed(ctx, convID)
 		require.NoError(t, err)
 		require.Equal(t, 100, pi)
 
-		fi, err = indexer2.FullyIndexed(ctx, conv.Id)
+		fi, err = indexer2.FullyIndexed(ctx, convID)
 		require.NoError(t, err)
 		require.True(t, fi)
-		pi, err = indexer2.PercentIndexed(ctx, conv.Id)
+		pi, err = indexer2.PercentIndexed(ctx, convID)
 		require.NoError(t, err)
 		require.Equal(t, 100, pi)
 
@@ -1017,5 +1017,16 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyHit(convID, []chat1.MessageID{msgID10}, msgID11, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
 		verifySearchDone(1, true)
 
+		err = indexer1.Clear(ctx, uid1, convID)
+		require.NoError(t, err)
+		pi, err = indexer1.PercentIndexed(ctx, convID)
+		require.NoError(t, err)
+		require.Zero(t, pi)
+
+		err = indexer2.Clear(ctx, uid2, convID)
+		require.NoError(t, err)
+		pi, err = indexer2.PercentIndexed(ctx, convID)
+		require.NoError(t, err)
+		require.Zero(t, pi)
 	})
 }
