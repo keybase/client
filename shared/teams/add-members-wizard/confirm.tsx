@@ -311,36 +311,23 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   )
 }
 
-// keep it in the module so we don't reload if we loop back to this page
-// let defaultChannelsCache: null | {channels: Array<Types.ChannelNameID>; teamID: Types.TeamID} = null
-// const emptyArray = []
 const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
+  const dispatch = Container.useDispatch()
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
-  const [changing, setChanging] = React.useState(false)
-  // React.useEffect(() => {
-  //   if (_defaultChannels.length) {
-  //     defaultChannelsCache = {
-  //       channels: _defaultChannels,
-  //       teamID,
-  //     }
-  //   }
-  // }, [_defaultChannels, teamID])
-  // const defaultChannels = _defaultChannels.length
-  //   ? _defaultChannels
-  //   : defaultChannelsCache?.teamID === teamID
-  //   ? defaultChannelsCache.channels
-  //   : emptyArray
+  const defaultChannelsFromStore = Container.useSelector(s => s.teams.addMembersWizard.defaultChannels)
+  const onChangeFromDefault = () =>
+    dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: defaultChannels}))
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {defaultChannelsWaiting ? (
           <Kb.ProgressIndicator />
-        ) : changing ? (
+        ) : defaultChannelsFromStore ? (
           <ChannelsWidget
             disableGeneral={true}
             teamID={teamID}
-            channels={defaultChannels}
+            channels={defaultChannelsFromStore}
             onAddChannel={() => {}}
             onRemoveChannel={() => {}}
           />
@@ -359,7 +346,7 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
                 </Kb.Text>
               ))}
               .{' '}
-              <Kb.Text type="BodySmallPrimaryLink" onClick={() => setChanging(true)}>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={onChangeFromDefault}>
                 Change this
               </Kb.Text>
             </Kb.Text>

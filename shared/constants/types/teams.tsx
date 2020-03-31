@@ -154,8 +154,9 @@ export type NewTeamWizardState = {
 
 export type AddingMember = {assertion: string; role: TeamRoleType}
 export type AddMembersWizardState = {
-  justFinished: boolean
   addingMembers: Array<AddingMember>
+  defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
+  justFinished: boolean
   role: TeamRoleType | undefined // undefined -> role set individually
   teamID: TeamID
 }

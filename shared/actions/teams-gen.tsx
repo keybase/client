@@ -10,6 +10,7 @@ export const resetStore = 'common:resetStore' // not a part of teams but is hand
 export const typePrefix = 'teams:'
 export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
 export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
+export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
 export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
@@ -114,6 +115,10 @@ export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 // Payload Types
 type _AddMembersWizardPushMembersPayload = {readonly members: Array<Types.AddingMember>}
 type _AddMembersWizardRemoveMemberPayload = {readonly assertion: string}
+type _AddMembersWizardSetDefaultChannelsPayload = {
+  readonly toAdd?: Array<Types.ChannelNameID>
+  readonly toRemove?: Types.ChannelNameID
+}
 type _AddParticipantPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -388,6 +393,12 @@ type _UploadTeamAvatarPayload = {
 export const createAddMembersWizardPushMembers = (
   payload: _AddMembersWizardPushMembersPayload
 ): AddMembersWizardPushMembersPayload => ({payload, type: addMembersWizardPushMembers})
+/**
+ * Change the set of default channels we're adding these users to.
+ */
+export const createAddMembersWizardSetDefaultChannels = (
+  payload: _AddMembersWizardSetDefaultChannelsPayload = Object.freeze({})
+): AddMembersWizardSetDefaultChannelsPayload => ({payload, type: addMembersWizardSetDefaultChannels})
 /**
  * Don't eagerly reload team list anymore.
  */
@@ -816,6 +827,10 @@ export type AddMembersWizardRemoveMemberPayload = {
   readonly payload: _AddMembersWizardRemoveMemberPayload
   readonly type: typeof addMembersWizardRemoveMember
 }
+export type AddMembersWizardSetDefaultChannelsPayload = {
+  readonly payload: _AddMembersWizardSetDefaultChannelsPayload
+  readonly type: typeof addMembersWizardSetDefaultChannels
+}
 export type AddParticipantPayload = {
   readonly payload: _AddParticipantPayload
   readonly type: typeof addParticipant
@@ -1165,6 +1180,7 @@ export type UploadTeamAvatarPayload = {
 export type Actions =
   | AddMembersWizardPushMembersPayload
   | AddMembersWizardRemoveMemberPayload
+  | AddMembersWizardSetDefaultChannelsPayload
   | AddParticipantPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload

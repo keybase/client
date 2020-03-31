@@ -164,6 +164,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 
 export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   addingMembers: [],
+  defaultChannels: undefined,
   justFinished: false,
   role: 'writer',
   teamID: Types.noTeamID,
