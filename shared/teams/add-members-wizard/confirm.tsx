@@ -2,12 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
+import {useDefaultChannels} from '../team/settings-tab/default-channels'
 import {ModalTitle} from '../common'
 import {pluralize} from '../../util/string'
 import logger from '../../logger'
@@ -17,6 +19,7 @@ const AddMembersConfirm = () => {
 
   const {teamID, addingMembers} = Container.useSelector(s => s.teams.addMembersWizard)
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
+  const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const onlyEmails = React.useMemo(
     () =>
@@ -91,19 +94,7 @@ const AddMembersConfirm = () => {
             <RoleSelector />
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySmall">Your invitees will be added to 3 channels.</Kb.Text>
-            <Kb.Text type="BodySmall">
-              {/* TODO: Hook this up when default channels settings are hooked up */}
-              <Kb.Text type="BodySmallBold">#general</Kb.Text>,{' '}
-              <Kb.Text type="BodySmallBold">#random</Kb.Text>, and{' '}
-              <Kb.Text type="BodySmallBold">#hellos</Kb.Text>.{' '}
-              <Kb.Text type="BodySmallPrimaryLink">Change this</Kb.Text>
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
+        {isBigTeam && <DefaultChannels teamID={teamID} />}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
@@ -315,6 +306,37 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
           </FloatingRolePicker>
         )}
         {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
+const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
+  const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        {defaultChannelsWaiting ? (
+          <Kb.ProgressIndicator />
+        ) : (
+          <>
+            <Kb.Text type="BodySmall">
+              Your invitees will be added to {defaultChannels.length}{' '}
+              {pluralize('channel', defaultChannels.length)}.
+            </Kb.Text>
+            <Kb.Text type="BodySmall">
+              {defaultChannels.map((channel, index) => (
+                <Kb.Text key={channel.conversationIDKey} type="BodySmallSemibold">
+                  #{channel.channelname}
+                  {defaultChannels.length > 2 && index < defaultChannels.length - 1 && ', '}
+                  {index === defaultChannels.length - 2 && <Kb.Text type="BodySmall"> and </Kb.Text>}
+                </Kb.Text>
+              ))}
+              . <Kb.Text type="BodySmallPrimaryLink">Change this</Kb.Text>
+            </Kb.Text>
+          </>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
