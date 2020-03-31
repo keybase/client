@@ -43,27 +43,38 @@ const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
 // 1. we read the intent that started the MainActivity (in onNewIntent)
 // 2. in `onResume` we check if we have an intent, if we do call `emitIntent`
 // 3. `emitIntent` eventually calls `RCTDeviceEventEmitter` with a couple different event names for various events
-// 4. We subscribe to those events below (e.g. `RNEmitter.addListener('initialIntentFromNotification', evt => {`)
+// 4. We subscribe to those events below (e.g. `androidNativeEmitter.addListener('initialIntentFromNotification', evt => {`)
 
 // At startup the flow above can be racy, since we may not have registered the
 // event listener before the event is emitted. In that case you can always use
-// `getInitialPushAndroid`.
-const listenForNativeAndroidIntentNotifications = async (
-  emitter: (action: Container.TypedActions) => void
-) => {
-  const pushToken = await NativeModules.Utils.getRegistrationToken()
-  logger.debug('[PushToken] received new token: ', pushToken)
-  emitter(PushGen.createUpdatePushToken({token: pushToken}))
+// `getInitialPush`.
 
-  const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
-  RNEmitter.addListener('initialIntentFromNotification', evt => {
+// setup listening as early as possible
+let _emitter: undefined | ((action: Container.TypedActions) => void)
+// queue things up if we don't have an emitter
+let _emitterQueue: undefined | Array<Container.TypedActions> = []
+
+const emitOrQueue = (action: Container.TypedActions) => {
+  if (_emitter) {
+    _emitter(action)
+  } else if (_emitterQueue) {
+    _emitterQueue.push(action)
+  } else {
+    logger.error('impossible no emitter or queue for ', action.type)
+  }
+}
+
+if (isAndroid) {
+  const androidNativeEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
+
+  androidNativeEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
-    notification && emitter(PushGen.createNotification({notification}))
+    notification && emitOrQueue(PushGen.createNotification({notification}))
   })
 
-  RNEmitter.addListener('onShareData', evt => {
+  androidNativeEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    emitter(
+    emitOrQueue(
       ConfigGen.createAndroidShare({
         text: evt.text,
         url: evt.localPath,
@@ -72,44 +83,37 @@ const listenForNativeAndroidIntentNotifications = async (
   })
 }
 
-const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActions) => void) => {
-  const onRegister = (token: {token: string}) => {
-    logger.debug('[PushToken] received new token: ', token)
-    emitter(PushGen.createUpdatePushToken({token: token.token}))
-  }
-
-  const onNotification = (n: Object) => {
-    logger.debug('[onNotification]: ', n)
-    const notification = Constants.normalizePush(n)
-    if (!notification) {
-      return
-    }
-    emitter(PushGen.createNotification({notification}))
-  }
-
-  const onError = (error: Error) => {
-    logger.error('push error:', error)
-  }
-
+if (isIOS) {
   PushNotifications.configure({
-    onError,
-    onNotification,
-    onRegister,
+    onError: (error: Error) => {
+      logger.error('push error:', error)
+    },
+    onNotification: (n: Object) => {
+      logger.debug('[onNotification]: ', n)
+      const notification = Constants.normalizePush(n)
+      notification && emitOrQueue(PushGen.createNotification({notification}))
+    },
+    onRegister: (token: {token: string}) => {
+      logger.debug('[PushToken] received new token: ', token)
+      emitOrQueue(PushGen.createUpdatePushToken({token: token.token}))
+    },
     popInitialNotification: false,
-    // Don't request permissions for ios, we'll ask later, after showing UI
-    requestPermissions: !isIOS,
-    senderID: Constants.androidSenderID,
+    requestPermissions: false,
   })
 }
 
 function* setupPushEventLoop() {
   const pushChannel = yield Saga.eventChannel(emitter => {
+    _emitter = emitter
+    // drain queues if exist
+    _emitterQueue?.forEach(a => emitter(a))
+    _emitterQueue = undefined
     if (isAndroid) {
-      listenForNativeAndroidIntentNotifications(emitter)
-    } else {
-      listenForPushNotificationsFromJS(emitter)
+      NativeModules.Utils.getRegistrationToken().then(token => {
+        logger.debug('[PushToken] received new token: ', token)
+        emitter(PushGen.createUpdatePushToken({token}))
+      })
     }
-
     // we never unsubscribe
     return () => {}
   }, Saga.buffers.expanding(10))
@@ -270,7 +274,8 @@ const neverShowMonsterAgain = async (
   state: Container.TypedState,
   action: PushGen.ShowPermissionsPromptPayload | PushGen.RejectPermissionsPayload
 ) => {
-  if (state.push.showPushPrompt) {
+  const {showPushPrompt} = state.push
+  if (showPushPrompt) {
     return
   }
 
@@ -376,14 +381,14 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 export function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
-    push: isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
+    push: getInitialPush(),
     pushTimeout: Saga.delay(10),
   })
   if (pushTimeout || !push) {
     return null
   }
 
-  const notification = push.payload.notification
+  const {notification} = push.payload
   if (notification.type === 'follow') {
     if (notification.username) {
       return {startupFollowUser: notification.username}
@@ -400,22 +405,20 @@ export function* getStartupDetailsFromInitialPush() {
   return null
 }
 
-const getInitialPushAndroid = async () => {
-  const n = await NativeModules.KeybaseEngine.getInitialBundleFromNotification()
-  const notification = n && Constants.normalizePush(n)
-  return notification && PushGen.createNotification({notification})
+const getInitialPush = async () => {
+  if (isAndroid) {
+    const n = await NativeModules.KeybaseEngine.getInitialBundleFromNotification()
+    const notification = n && Constants.normalizePush(n)
+    return notification && PushGen.createNotification({notification})
+  } else {
+    return new Promise(resolve =>
+      PushNotifications.popInitialNotification((n: any) => {
+        const notification = Constants.normalizePush(n)
+        resolve(notification ? PushGen.createNotification({notification}) : null)
+      })
+    )
+  }
 }
-
-const getInitialPushiOS = () =>
-  new Promise(resolve =>
-    PushNotifications.popInitialNotification((n: any) => {
-      const notification = Constants.normalizePush(n)
-      if (notification) {
-        resolve(PushGen.createNotification({notification}))
-      }
-      resolve(null)
-    })
-  )
 
 function* pushSaga() {
   // Permissions
