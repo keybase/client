@@ -1431,26 +1431,29 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 	return ikey, err
 }
 
-func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
+func (t *Team) InviteInvitelink(
+	ctx context.Context,
+	role keybase1.TeamRole,
 	maxUses keybase1.TeamInviteMaxUses,
-	etime *keybase1.UnixTime) (ikey keybase1.SeitanIKeyInvitelink, err error) {
+	etime *keybase1.UnixTime,
+) (ikey keybase1.SeitanIKeyInvitelink, inviteID SCTeamInviteID, err error) {
 	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
 
 	// Experimental code: we are figuring out how to do invite links.
 
 	ikey, err = GenerateSeitanIKeyInvitelink()
 	if err != nil {
-		return ikey, err
+		return ikey, inviteID, err
 	}
 
 	sikey, err := GenerateSIKeyInvitelink(ikey)
 	if err != nil {
-		return ikey, err
+		return ikey, inviteID, err
 	}
 
-	inviteID, err := sikey.GenerateTeamInviteID()
+	inviteID, err = sikey.GenerateTeamInviteID()
 	if err != nil {
-		return ikey, err
+		return ikey, inviteID, err
 	}
 
 	// label is hardcoded for now, but could change in the future
@@ -1458,7 +1461,7 @@ func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
 
 	_, encoded, err := GeneratePackedEncryptedKeyInvitelink(ctx, ikey, t, label)
 	if err != nil {
-		return ikey, err
+		return ikey, inviteID, err
 	}
 
 	invite := SCTeamInvite{
@@ -1470,10 +1473,10 @@ func (t *Team) InviteInvitelink(ctx context.Context, role keybase1.TeamRole,
 	}
 
 	if err := t.postInvite(ctx, invite, role); err != nil {
-		return ikey, err
+		return ikey, inviteID, err
 	}
 
-	return ikey, err
+	return ikey, inviteID, err
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
