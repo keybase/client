@@ -212,7 +212,11 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
     </Kb.ClickableBox>
   )
   if (props.tooltip) {
-    return <Kb.WithTooltip tooltip={props.tooltip}>{content}</Kb.WithTooltip>
+    return (
+      <Kb.WithTooltip tooltip={props.tooltip} showOnPressMobile={props.disabled}>
+        {content}
+      </Kb.WithTooltip>
+    )
   }
 
   return content
