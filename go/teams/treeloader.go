@@ -8,6 +8,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type nodePosition int
+
+const (
+	nodePositionTarget   = 0
+	nodePositionAncestor = 1
+	nodePositionChild    = 2
+)
+
 func LoadTeamTreeMemberships(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	username string) error {
 
@@ -23,9 +31,7 @@ func LoadTeamTreeMemberships(mctx libkb.MetaContext, teamID keybase1.TeamID,
 		return err
 	}
 
-	isInitial := true
-	includeAncestor := true
-	go loadTeamTreeMembershipsRecursive(mctx, teamID, target.Name(), uv, isInitial, includeAncestor)
+	go loadTeamTreeMembershipsRecursive(mctx, teamID, target.Name(), uv, nodePositionTarget)
 
 	return nil
 }
@@ -58,8 +64,7 @@ func loadTeamAncestorsMembershipsRecursive(mctx libkb.MetaContext, teamID keybas
 	teamName keybase1.TeamName, uv keybase1.UserVersion) {
 
 	handleAncestor := func(t keybase1.TeamSigChainState, teamName keybase1.TeamName) error {
-		includeAncestor := true
-		res := sigchainStateToTeamTreeMembership(&t, uv, includeAncestor)
+		res := sigchainStateToTeamTreeMembership(&t, uv, nodePositionAncestor)
 		notifyTeamTreeMembershipResult(mctx, teamName, res)
 		return nil
 	}
@@ -80,10 +85,10 @@ func loadTeamAncestorsMembershipsRecursive(mctx libkb.MetaContext, teamID keybas
 
 // Inclusive
 func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	teamName keybase1.TeamName, uv keybase1.UserVersion, isInitial bool, includeAncestor bool) {
+	teamName keybase1.TeamName, uv keybase1.UserVersion, np nodePosition) {
 	mctx.Warning("@@@ loadRecursive %s", teamName)
 
-	node, res := loadTeamTreeMembershipsSingle(mctx, teamID, uv, false)
+	node, res := loadTeamTreeMembershipsSingle(mctx, teamID, uv, np)
 	notifyTeamTreeMembershipResult(mctx, teamName, res)
 	s, _ := res.S()
 	if s == keybase1.TeamTreeMembershipStatus_ERROR {
@@ -95,7 +100,7 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 	eg, ctx := errgroup.WithContext(mctx.Ctx())
 
 	// Load ancestors
-	if isInitial {
+	if np == nodePositionTarget {
 		eg.Go(func() error {
 			loadTeamAncestorsMembershipsRecursive(mctx, teamID, teamName, uv)
 			return nil
@@ -108,10 +113,8 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 		idAndName := idAndName
 		// This is technically unbounded but assuming subteam spread isn't too high, should be ok.
 		eg.Go(func() error {
-			isInitial = false
-			includeAncestor = false
 			loadTeamTreeMembershipsRecursive(
-				mctx.WithContext(ctx), idAndName.Id, idAndName.Name, uv, isInitial, includeAncestor,
+				mctx.WithContext(ctx), idAndName.Id, idAndName.Name, uv, nodePositionChild,
 			)
 			// handle errors ourselves, we don't want the load to be short-circuited if one load fails
 			return nil
@@ -129,33 +132,42 @@ func makeLoadTeamTreeErrorResult(err error) keybase1.TeamTreeMembershipResult {
 }
 
 func loadTeamTreeMembershipsSingle(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	uv keybase1.UserVersion, includeAncestor bool) (team *Team, res keybase1.TeamTreeMembershipResult) {
+	uv keybase1.UserVersion, np nodePosition) (team *Team, res keybase1.TeamTreeMembershipResult) {
 
 	team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
 	if err != nil {
 		return team, makeLoadTeamTreeErrorResult(err)
 	}
 
-	return team, sigchainStateToTeamTreeMembership(&team.chain().inner, uv, includeAncestor)
+	return team, sigchainStateToTeamTreeMembership(&team.chain().inner, uv, np)
 }
 
 func sigchainStateToTeamTreeMembership(
 	s *keybase1.TeamSigChainState,
 	uv keybase1.UserVersion,
-	includeAncestor bool,
+	np nodePosition,
 ) (res keybase1.TeamTreeMembershipResult) {
 	role := s.UserRole(uv)
 	var joinTime *keybase1.Time
 	if t, err := s.GetUserLastJoinTime(uv); err == nil {
 		joinTime = &t
 	}
-	increase := len(s.ListSubteams())
-	if includeAncestor && s.NameDepth > 1 {
-		increase += 1
+	increase := 0
+	switch np {
+	case nodePositionTarget, nodePositionAncestor:
+		if s.NameDepth > 1 {
+			increase += 1
+		}
+	default:
+	}
+	switch np {
+	case nodePositionTarget, nodePositionChild:
+		increase += len(s.ListSubteams())
+	default:
 	}
 	return keybase1.NewTeamTreeMembershipResultWithOk(keybase1.TeamTreeMembershipValue{
 		Role:                    role,
 		JoinTime:                joinTime,
-		IncreaseExpectedCountBy: len(s.ListSubteams()),
+		IncreaseExpectedCountBy: increase,
 	})
 }

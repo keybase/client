@@ -2284,7 +2284,7 @@ loop:
 		}
 	}
 
-	require.Equal(t, 7, want)
+	require.Equal(t, 8, want)
 	t.Logf("@@@ END")
 
 	// check want is needed (noe errors)

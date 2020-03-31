@@ -1904,7 +1904,7 @@ func (l *TeamLoader) mapTeamAncestorsHelper(
 				return err
 			}
 
-			if forceFullReloadOnceToAssert != nil &&
+			if forceFullReloadOnceToAssert == nil ||
 				forceFullReloadOnceToAssert(ancestor.team.Chain) {
 				break
 			}
