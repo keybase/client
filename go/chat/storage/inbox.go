@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 33
+const inboxVersion = 31
 
 type InboxFlushMode int
 
@@ -450,14 +450,13 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			continue
 		}
 		topicName := convLocal.Info.TopicName
-		snippetDecoration, snippet, snippetDecorated := utils.GetConvSnippet(ctx, i.G(), convLocal,
+		snippetDecoration, snippet, _ := utils.GetConvSnippet(ctx, i.G(), convLocal,
 			i.G().GetEnv().GetUsername().String())
 		rcm := &types.RemoteConversationMetadata{
 			Name:              convLocal.Info.TlfName,
 			TopicName:         topicName,
 			Headline:          convLocal.Info.Headline,
 			Snippet:           snippet,
-			SnippetDecorated:  snippetDecorated,
 			SnippetDecoration: snippetDecoration,
 		}
 		switch convLocal.GetMembersType() {

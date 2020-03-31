@@ -90,7 +90,6 @@ type RemoteConversationMetadata struct {
 	Name               string                  `codec:"n"`
 	TopicName          string                  `codec:"t"`
 	Snippet            string                  `codec:"s"`
-	SnippetDecorated   string                  `codec:"sd"`
 	SnippetDecoration  chat1.SnippetDecoration `codec:"d"`
 	Headline           string                  `codec:"h"`
 	WriterNames        []string                `codec:"w"`
@@ -102,7 +101,6 @@ func (m RemoteConversationMetadata) DeepCopy() (res RemoteConversationMetadata) 
 	res.Name = m.Name
 	res.TopicName = m.TopicName
 	res.Snippet = m.Snippet
-	res.SnippetDecorated = m.SnippetDecorated
 	res.SnippetDecoration = m.SnippetDecoration
 	res.Headline = m.Headline
 	res.WriterNames = make([]string, len(m.WriterNames))
