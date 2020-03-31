@@ -29,7 +29,12 @@ export type Props = {
 }
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+  <Kb.Box2
+    direction="vertical"
+    gap="tiny"
+    fullWidth={true}
+    style={Styles.isPhone ? styles.sectionPhone : styles.sectionDesktopTablet}
+  >
     {children}
   </Kb.Box2>
 )
@@ -241,8 +246,8 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 16,
     width: 16,
   },
-  section: Styles.platformStyles({
-    isElectron: {
+  sectionDesktopTablet: Styles.platformStyles({
+    common: {
       ...Styles.padding(
         Styles.globalMargins.small,
         Styles.globalMargins.mediumLarge,
@@ -251,10 +256,13 @@ const styles = Styles.styleSheetCreate(() => ({
       ),
       maxWidth: 600,
     },
-    isMobile: {
-      ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
+    isTablet: {
+      maxWidth: Styles.globalStyles.largeWidthPercent,
     },
   }),
+  sectionPhone: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
+  },
   topButton: {
     marginTop: Styles.globalMargins.xtiny,
   },
