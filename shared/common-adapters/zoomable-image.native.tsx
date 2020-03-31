@@ -306,7 +306,7 @@ class ZoomableImage extends React.Component<Props, State> {
                               width: this.state.imageWidth,
                             },
                           ]}
-                          source={this.props.uri ? {uri: this.props.uri} : undefined}
+                          source={{uri: this.props.uri}}
                         />
                       </Animated.View>
                     </Animated.View>

@@ -451,17 +451,24 @@ body {
 .addInviteAndLinkBox {
   transition: box-shadow 0.35s;
 }
-
 .headerTitle:hover .addInviteAndLinkBox {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
-
 .darkMode .headerTitle:hover .addInviteAndLinkBox {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
 }
 
 .selectionPopup {
   transition: bottom 0.5s;
+}
+
+.hideableDropdown {
+  transition: height 0.2s;
+  height: 24px;
+  overflow: hidden;
+}
+.hideableDropdown.hidden {
+  height: 0;
 }
 
 .selectable {

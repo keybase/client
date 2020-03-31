@@ -22,7 +22,7 @@ const ChannelTabs = (props: Props) => {
   const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const error = Container.useSelector(state => state.teams.errorInAddToTeam)
   const waiting = Container.useAnyWaiting(
-    Constants.teamWaitingKey(teamMeta.teamname),
+    Constants.teamWaitingKey(teamMeta.id),
     Constants.teamTarsWaitingKey(teamMeta.teamname)
   )
   const tabs: Array<TabType<TabKey>> = [

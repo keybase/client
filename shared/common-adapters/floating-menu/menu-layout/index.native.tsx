@@ -92,9 +92,7 @@ const MenuRow = (props: MenuRowProps) => (
 )
 
 const MenuLayout = (props: MenuLayoutProps) => {
-  const menuItemsWithDividers = props.items.filter((x): x is MenuItem | 'Divider' =>
-    x ? x === 'Divider' : false
-  )
+  const menuItemsWithDividers = props.items.filter((x): x is MenuItem | 'Divider' => x !== null)
   const beginningDivider = props.items[0] === 'Divider'
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
 

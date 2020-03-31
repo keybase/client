@@ -5,6 +5,7 @@ import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
 import flags from '../../util/feature-flags'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
@@ -40,12 +41,7 @@ const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProps) => ({
   onAddOrInvitePeople: () => dispatch(appendNewTeamBuilder(teamID)),
   onCopyInviteLink: () => {}, // TODO
-  onCreateSubteam: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {subteamOf: teamID}, selected: 'teamNewTeamDialog'}],
-      })
-    ),
+  onCreateSubteam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID})),
   onDeleteTeam: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
