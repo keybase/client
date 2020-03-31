@@ -32,7 +32,7 @@ export default Container.connect(
     const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
     const _canPinMessage = !isTeam || (yourOperations && yourOperations.pinMessage)
     const _authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
-    const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+    const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
     return {
       _authorIsBot,
       _canAdminDelete,

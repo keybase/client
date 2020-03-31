@@ -37,7 +37,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
   const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
-  const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+  const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
   return {
     _authorIsBot: authorIsBot,
     _canAdminDelete,

@@ -40,7 +40,7 @@ export default Container.connect(
       ownProps.message.type === 'text' &&
       (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, ownProps.message, participantInfo)
-    const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+    const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
 
     return {
       _authorIsBot: authorIsBot,
