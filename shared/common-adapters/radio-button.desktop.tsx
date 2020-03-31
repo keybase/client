@@ -14,11 +14,11 @@ const StyledRadio: any = Styles.styled.div(
   () => ({
     ...Styles.transition('background'),
     borderRadius: '100%',
+    flex: 'none',
     height: RADIOBUTTON_SIZE,
     marginRight: RADIOBUTTON_MARGIN,
     position: 'relative',
     width: RADIOBUTTON_SIZE,
-    flex: 'none',
   }),
   // @ts-ignore
   ({disabled, selected}) => ({

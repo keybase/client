@@ -6,9 +6,9 @@ import * as Styles from '../styles'
 import {Props} from './radio-button'
 
 const Kb = {
+  Box2,
   ClickableBox,
   Text,
-  Box2,
 }
 
 export const RADIOBUTTON_SIZE = 22
