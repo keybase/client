@@ -170,8 +170,6 @@ func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 
 func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err Error) {
-	defer t.Trace(ctx, func() error { return err }, "setPurgeInfo")()
-
 	t.Lock()
 	defer t.Unlock()
 
@@ -179,7 +177,6 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 		return nil
 	}
 
-	t.Debug(ctx, "setPurgeInfo setting info: %v", *purgeInfo)
 	if err = t.put(ctx, uid, convID, *purgeInfo); err != nil {
 		return err
 	}
@@ -194,8 +191,6 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 // if they tell us about something older we should be purging.
 func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err Error) {
-	defer t.Trace(ctx, func() error { return err }, "maybeUpdatePurgeInfo")()
-
 	t.Lock()
 	defer t.Unlock()
 
@@ -207,7 +202,6 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	t.Debug(ctx, "maybeUpdatePurgeInfo old: %v, new: %v", curPurgeInfo, purgeInfo)
 	if curPurgeInfo != nil { // Throw away our update info if what we already have is more restrictive.
 		if curPurgeInfo.IsActive {
 			purgeInfo.IsActive = true
@@ -223,7 +217,6 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	if purgeInfo == curPurgeInfo {
 		return nil
 	}
-	t.Debug(ctx, "maybeUpdatePurgeInfo setting info: %v", purgeInfo)
 	if err = t.put(ctx, uid, convID, *purgeInfo); err != nil {
 		return nil
 	}
@@ -235,8 +228,6 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 
 func (t *ephemeralTracker) inactivatePurgeInfo(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID) (err Error) {
-	defer t.Trace(ctx, func() error { return err }, "inactivatePurgeInfo")()
-
 	t.Lock()
 	defer t.Unlock()
 
