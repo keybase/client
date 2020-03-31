@@ -293,7 +293,7 @@ PODS:
     - React
   - react-native-geolocation (2.0.2):
     - React
-  - react-native-netinfo (5.6.2):
+  - react-native-netinfo (5.7.0):
     - React
   - react-native-safe-area-context (0.7.3):
     - React
@@ -673,7 +673,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 8e5913c4c6c54f0d3f9c9fc630c465a89cded65d
   react-native-contacts: be6cde1ffc9c0196fbb57d987b9d40f12b85989c
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
-  react-native-netinfo: 73303369946c2487c600418961bfdc87748b832f
+  react-native-netinfo: becc6dd2bb2335aa85a8adbaefc8e206125e6177
   react-native-safe-area-context: e200d4433aba6b7e60b52da5f37af11f7a0b0392
   react-native-video: d01ed7ff1e38fa7dcc6c15c94cf505e661b7bfd0
   react-native-webview: d12c8352c853e401fb6fff69a3461d0bca9f0c0b
