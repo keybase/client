@@ -14,6 +14,7 @@ protocol incomingShare {
     string originalPath;
     int originalSize;
     union{null, string} scaledPath;
+    union{null, int} scaledSize;
     union{null, string} thumbnailPath;
     union {null, string} content;
   }
