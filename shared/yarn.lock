@@ -2135,7 +2135,7 @@
   resolved "https://registry.yarnpkg.com/@types/mousetrap/-/mousetrap-1.6.3.tgz#3159a01a2b21c9155a3d8f85588885d725dc987d"
   integrity sha512-13gmo3M2qVvjQrWNseqM3+cR6S2Ss3grbR2NZltgMq94wOwqJYQdgn8qzwDshzgXqMlSUtyPZjysImmktu22ew==
 
-"@types/node@*", "@types/node@12.12.21", "@types/node@>=10.0.0", "@types/node@^12.0.12":
+"@types/node@*", "@types/node@12.12.21", "@types/node@^12.0.12":
   version "12.12.21"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.21.tgz#aa44a6363291c7037111c47e4661ad210aded23f"
   integrity sha512-8sRGhbpU+ck1n0PGAUgVrWrWdjSW2aqNeyC15W88GRsMpSwzv6RJGlLhE7s2RhVSOdyDmxbqlWSeThq4/7xqlA==
@@ -12149,12 +12149,11 @@ signal-exit@^3.0.0, signal-exit@^3.0.2:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
   integrity sha1-tf3AjxKH6hF4Yo5BXiUTK3NkbG0=
 
-simple-markdown@0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/simple-markdown/-/simple-markdown-0.7.1.tgz#48f2f65ad9f7faa5922347e9ab6baf66ab3195bc"
-  integrity sha512-9p92kPFjaDER1yuDgVW1UzFVQoL46HBonniqOLKnCmqn0vlxKkHIxRODBJdHLplo44tOtmnGxPTbUZ1HpYkHyg==
+simple-markdown@0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/simple-markdown/-/simple-markdown-0.7.2.tgz#896cc3e3dd9acd068d30e696bce70b0b97655665"
+  integrity sha512-XfCvqqzMyzRj4L7eIxJgGaQ2Gaxr20GhTFMB+1yuY8q3xffjzmOg4Q5tC0kcaJPV42NNUHCQDaRK6jzi3/RhrA==
   dependencies:
-    "@types/node" ">=10.0.0"
     "@types/react" ">=16.0.0"
 
 simple-plist@^1.0.0:
