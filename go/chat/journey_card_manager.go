@@ -198,21 +198,26 @@ func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) (enabl
 	// G.FeatureFlags seems like the kind of system that might hang on a bad network.
 	// PickCard is supposed to be lightning fast, so impose a timeout on FeatureFlags.
 	var err error
-	doneChan := make(chan struct{})
+	type enabledAndError struct {
+		enabled bool
+		err     error
+	}
+	ret := make(chan enabledAndError)
 	go func() {
 		enabled, err = cc.G().FeatureFlags.EnabledWithError(cc.MetaContext(ctx), libkb.FeatureJourneycard)
-		close(doneChan)
+		ret <- enabledAndError{enabled: enabled, err: err}
 	}()
 
 	select {
 	case <-time.After(100 * time.Millisecond):
 		cc.Debug(ctx, "JourneyCardManagerSingleUser#checkFeature timed out: returning false")
 		return false
-	case <-doneChan:
-		if err != nil {
+	case enabledAndErrorRet := <-ret:
+		if enabledAndErrorRet.err != nil {
 			cc.Debug(ctx, "JourneyCardManagerSingleUser#checkFeature errored out (returning false): %v", err)
 			return false
 		}
+		enabled = enabledAndErrorRet.enabled
 		cc.Debug(ctx, "JourneyCardManagerSingleUser#checkFeature succeeded: %v", enabled)
 		return enabled
 	}
