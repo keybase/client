@@ -2,6 +2,7 @@ package hidden
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
@@ -48,6 +49,7 @@ func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybas
 		mctx.Debug("ChainManager#TeamSupportsHiddenChain(%v): querying the server", id)
 		state, err = featureGateForTeamFromServer(mctx, id)
 		if err != nil {
+			mctx.Debug("ChainManager#TeamSupportsHiddenChain(%v): got error %v", id)
 			return false, err
 		}
 		supportsHiddenState = &storage.HiddenChainSupportState{TeamID: id, State: state, CacheUntil: mctx.G().Clock().Now().Add(HiddenChainFlagCacheTime)}
@@ -61,12 +63,7 @@ func ShouldClearSupportFlagOnError(err error) bool {
 	if err == nil {
 		return false
 	}
-	switch err.(type) {
-	case libkb.APINetError:
-		return false
-	default:
-		return true
-	}
+	return !strings.Contains(err.Error(), "API network error")
 }
 
 func (m *ChainManager) ClearSupportFlagIfFalse(mctx libkb.MetaContext, teamID keybase1.TeamID) {

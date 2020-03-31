@@ -263,7 +263,7 @@ func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *f
 	defer lock.Release(m.Ctx())
 
 	res, err = f.loadLockedWithRetries(m, arg)
-	if err != nil {
+	if hidden.ShouldClearSupportFlagOnError(err) {
 		m.Debug("Clearing support hidden chain flag for team %s because of error %v in FTL", arg.ID, err)
 		m.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(m, arg.ID)
 	}
