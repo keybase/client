@@ -1142,16 +1142,18 @@ func GetMsgSnippetBody(ctx context.Context, g *globals.Context, convID chat1.Con
 		}
 	}()
 	var msgBody chat1.MessageBody
+	var emojis []chat1.HarvestedEmoji
 	if msg.IsValid() {
 		msgBody = msg.Valid().MessageBody
+		emojis = msg.Valid().Emojis
 	} else {
 		msgBody = msg.Outbox().Msg.MessageBody
+		emojis = msg.Outbox().Msg.Emojis
 	}
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msgBody.Text().Body,
-			PresentDecoratedSnippet(ctx, g, msgBody.Text().Body, convID, msg.GetMessageType(),
-				msg.Valid().Emojis)
+			PresentDecoratedSnippet(ctx, g, msgBody.Text().Body, convID, msg.GetMessageType(), emojis)
 	case chat1.MessageType_EDIT:
 		return msgBody.Edit().Body, ""
 	case chat1.MessageType_FLIP:
@@ -1301,15 +1303,14 @@ func StripUsernameFromConvName(name string, username string) (res string) {
 }
 
 func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,
-	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
+	username string) (res chat1.UIInboxSmallTeamRow) {
 	res.ConvID = rc.ConvIDStr
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
 	res.Time = GetConvMtime(rc)
-	if useSnippet && rc.LocalMetadata != nil {
+	if rc.LocalMetadata != nil {
 		res.SnippetDecoration = rc.LocalMetadata.SnippetDecoration
-		res.Snippet = &rc.LocalMetadata.Snippet
-		res.SnippetDecorated = &rc.LocalMetadata.SnippetDecorated
+		res.Snippet = &rc.LocalMetadata.SnippetDecorated
 	}
 	res.Draft = rc.LocalDraft
 	res.IsMuted = rc.Conv.Metadata.Status == chat1.ConversationStatus_MUTED

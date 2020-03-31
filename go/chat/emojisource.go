@@ -600,6 +600,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	}
 	offset := 0
 	added := 0
+	isReacji := messageType == chat1.MessageType_REACTION
 	for _, match := range matches {
 		if source, ok := emojiMap[match.name]; ok {
 			localSource, err := s.remoteToLocalSource(ctx, source)
@@ -610,9 +611,10 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
-					IsBig:  bigEmoji,
-					Alias:  match.name,
-					Source: localSource,
+					IsBig:    bigEmoji,
+					IsReacji: isReacji,
+					Alias:    match.name,
+					Source:   localSource,
 				}))
 			offset += added
 		}

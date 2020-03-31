@@ -35,7 +35,6 @@ type UIInboxSmallTeamRow struct {
 	Name              string            `codec:"name" json:"name"`
 	Time              gregor1.Time      `codec:"time" json:"time"`
 	Snippet           *string           `codec:"snippet,omitempty" json:"snippet,omitempty"`
-	SnippetDecorated  *string           `codec:"snippetDecorated,omitempty" json:"snippetDecorated,omitempty"`
 	SnippetDecoration SnippetDecoration `codec:"snippetDecoration" json:"snippetDecoration"`
 	Draft             *string           `codec:"draft,omitempty" json:"draft,omitempty"`
 	IsMuted           bool              `codec:"isMuted" json:"isMuted"`
@@ -54,13 +53,6 @@ func (o UIInboxSmallTeamRow) DeepCopy() UIInboxSmallTeamRow {
 			tmp := (*x)
 			return &tmp
 		})(o.Snippet),
-		SnippetDecorated: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.SnippetDecorated),
 		SnippetDecoration: o.SnippetDecoration.DeepCopy(),
 		Draft: (func(x *string) *string {
 			if x == nil {

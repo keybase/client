@@ -51,6 +51,7 @@ protocol emoji {
   record Emoji {
     string alias;
     boolean isBig;
+    boolean isReacji;
     boolean isCrossTeam;
     EmojiLoadSource source;
     EmojiRemoteSource remoteSource;

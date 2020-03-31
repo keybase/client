@@ -162,6 +162,10 @@
         },
         {
           "type": "boolean",
+          "name": "isReacji"
+        },
+        {
+          "type": "boolean",
           "name": "isCrossTeam"
         },
         {

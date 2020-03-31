@@ -21,7 +21,6 @@ protocol chatUi {
     string name;
     gregor1.Time time;
     union { null, string } snippet;
-    union { null, string } snippetDecorated;
     SnippetDecoration snippetDecoration;
     union { null, string } draft;
     boolean isMuted;

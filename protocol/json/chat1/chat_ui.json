@@ -76,13 +76,6 @@
           "name": "snippet"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "snippetDecorated"
-        },
-        {
           "type": "SnippetDecoration",
           "name": "snippetDecoration"
         },
