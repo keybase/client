@@ -140,6 +140,8 @@ type Indexer interface {
 	Add(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error
+	// Clear search index data for the given user and conversation.
+	Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	FullyIndexed(ctx context.Context, convID chat1.ConversationID) (bool, error)
 	PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error)
 	SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error)
