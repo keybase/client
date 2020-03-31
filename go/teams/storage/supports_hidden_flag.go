@@ -15,7 +15,7 @@ type SupportsHiddenFlagStorage struct {
 
 // Increment to invalidate the disk cache.
 const supportsHiddenFlagDiskStorageVersion = 1
-const supportsHiddenFlagCacheLRUSize = 200
+const supportsHiddenFlagCacheLRUSize = 5000
 
 // HiddenChainSupportState describes whether a team supports the hidden chain or
 // not. This information is fetched from the server and cached.
@@ -61,7 +61,15 @@ func (d *supportsHiddenFlagDiskStorageItem) setValue(v teamDataGeneric) error {
 }
 
 func NewSupportsHiddenFlagStorage(g *libkb.GlobalContext) *SupportsHiddenFlagStorage {
-	s := newStorageGeneric(g, supportsHiddenFlagCacheLRUSize, supportsHiddenFlagDiskStorageVersion, libkb.DBSupportsHiddenFlagStorage, libkb.EncryptionReasonTeamsHiddenLocalStorage, "hidden flag", func() diskItemGeneric { return &supportsHiddenFlagDiskStorageItem{} })
+	s := newStorageGeneric(
+		g,
+		supportsHiddenFlagCacheLRUSize,
+		supportsHiddenFlagDiskStorageVersion,
+		libkb.DBSupportsHiddenFlagStorage,
+		libkb.EncryptionReasonTeamsHiddenLocalStorage,
+		"hidden flag",
+		func() diskItemGeneric { return &supportsHiddenFlagDiskStorageItem{} },
+	)
 	return &SupportsHiddenFlagStorage{s}
 }
 
@@ -78,13 +86,13 @@ func (s *SupportsHiddenFlagStorage) Get(mctx libkb.MetaContext, teamID keybase1.
 	ret, ok := vp.(*HiddenChainSupportState)
 	if !ok {
 		mctx.Debug("teams.storage/SupportsHiddenFlagStorage#Get cast error: %T is wrong type", vp)
+		return nil
 	}
 	return ret
 }
 
 func (s *SupportsHiddenFlagStorage) ClearEntryIfFalse(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 	if currentState := s.Get(mctx, teamID); currentState != nil && !currentState.State {
-		// put an already expired state in the cache
-		s.Put(mctx, &HiddenChainSupportState{TeamID: teamID, State: false, CacheUntil: mctx.G().Clock().Now().Add(-1 * time.Second)})
+		s.Put(mctx, nil)
 	}
 }

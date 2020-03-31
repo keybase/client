@@ -39,8 +39,13 @@ func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybas
 	// if we never checked before or the chain was not supported but the cache
 	// expired, check again. Once enabled, hidden support cannot be revoked
 	// regardless of the cache staleness.
-	if supportsHiddenState == nil || (!supportsHiddenState.State && mctx.G().Clock().Now().Before(supportsHiddenState.CacheUntil)) {
-		mctx.Debug("TeamSupportsHiddenChain: current state is %+v, querying the server", supportsHiddenState)
+	if supportsHiddenState != nil {
+		mctx.Debug("ChainManager#TeamSupportsHiddenChain(%v): current state is %+v", id, *supportsHiddenState)
+	} else {
+		mctx.Debug("ChainManager#TeamSupportsHiddenChain(%v): current state is nil", id)
+	}
+	if supportsHiddenState == nil || (!supportsHiddenState.State && mctx.G().Clock().Now().After(supportsHiddenState.CacheUntil)) {
+		mctx.Debug("ChainManager#TeamSupportsHiddenChain(%v): querying the server", id)
 		state, err = featureGateForTeamFromServer(mctx, id)
 		if err != nil {
 			return false, err
@@ -48,11 +53,12 @@ func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybas
 		supportsHiddenState = &storage.HiddenChainSupportState{TeamID: id, State: state, CacheUntil: mctx.G().Clock().Now().Add(HiddenChainFlagCacheTime)}
 		m.hiddenSupportStorage.Put(mctx, supportsHiddenState)
 	}
-	mctx.Debug("TeamSupportsHiddenChain(%s): returning %v", id, supportsHiddenState.State)
+	mctx.Debug("ChainManager#TeamSupportsHiddenChain(%s): returning %v", id, supportsHiddenState.State)
 	return supportsHiddenState.State, nil
 }
 
 func (m *ChainManager) ClearSupportFlagIfFalse(mctx libkb.MetaContext, teamID keybase1.TeamID) {
+	mctx.Debug("ChainManager#ClearSupportFlagIfFalse(%v)", teamID)
 	m.hiddenSupportStorage.ClearEntryIfFalse(mctx, teamID)
 }
 
