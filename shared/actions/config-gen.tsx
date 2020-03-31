@@ -58,7 +58,6 @@ export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const startHandshake = 'config:startHandshake'
-export const startupFirstIdle = 'config:startupFirstIdle'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
@@ -163,7 +162,6 @@ type _ShowShareActionSheetPayload = {
   readonly mimeType: string
 }
 type _StartHandshakePayload = void
-type _StartupFirstIdlePayload = void
 type _ToggleRuntimeStatsPayload = void
 type _UpdateHTTPSrvInfoPayload = {readonly address: string; readonly token: string}
 type _UpdateInfoPayload = {readonly status: 'critical' | 'suggested' | 'ok'; readonly message: string}
@@ -239,13 +237,6 @@ export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({
 export const createInstallerRan = (payload: _InstallerRanPayload): InstallerRanPayload => ({
   payload,
   type: installerRan,
-})
-/**
- * emitted when we have some idle time after loading. useful to load thing but not slow down startup
- */
-export const createStartupFirstIdle = (payload: _StartupFirstIdlePayload): StartupFirstIdlePayload => ({
-  payload,
-  type: startupFirstIdle,
 })
 /**
  * internal to config. should restart the handshake process
@@ -578,10 +569,6 @@ export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
   readonly type: typeof startHandshake
 }
-export type StartupFirstIdlePayload = {
-  readonly payload: _StartupFirstIdlePayload
-  readonly type: typeof startupFirstIdle
-}
 export type ToggleRuntimeStatsPayload = {
   readonly payload: _ToggleRuntimeStatsPayload
   readonly type: typeof toggleRuntimeStats
@@ -652,7 +639,6 @@ export type Actions =
   | ShowMainPayload
   | ShowShareActionSheetPayload
   | StartHandshakePayload
-  | StartupFirstIdlePayload
   | ToggleRuntimeStatsPayload
   | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload

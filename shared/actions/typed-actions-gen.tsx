@@ -270,7 +270,6 @@ export type TypedActionsMap = {
   'config:changedActive': config.ChangedActivePayload
   'config:mobileAppState': config.MobileAppStatePayload
   'config:showMain': config.ShowMainPayload
-  'config:startupFirstIdle': config.StartupFirstIdlePayload
   'config:bootstrapStatusLoaded': config.BootstrapStatusLoadedPayload
   'config:followerInfoUpdated': config.FollowerInfoUpdatedPayload
   'config:daemonError': config.DaemonErrorPayload
