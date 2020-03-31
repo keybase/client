@@ -20,6 +20,7 @@ class SwitchToggle extends React.PureComponent<Props, {}> {
       duration: 100,
       easing: NativeEasing.linear,
       toValue: this._getOffset(),
+      useNativeDriver: false,
     })
     this._animation.start()
   }

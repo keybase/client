@@ -14,7 +14,7 @@ type State = 'appActive' | 'afterActiveCheck' | 'appInactive' | 'blurred' | 'foc
 class InputMonitor {
   notifyActive?: NotifyActiveFunction
   private state: State
-  private timeoutID?: NodeJS.Timeout
+  private timeoutID?: ReturnType<typeof setInterval>
 
   constructor() {
     window.addEventListener('focus', this.onFocus)

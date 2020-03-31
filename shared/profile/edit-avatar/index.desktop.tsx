@@ -39,7 +39,7 @@ type State = {
 class EditAvatar extends React.Component<Props, State> {
   private file: HTMLInputElement | null = null
   private image = React.createRef()
-  private timerID?: NodeJS.Timer
+  private timerID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
     super(props)

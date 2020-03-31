@@ -16,7 +16,7 @@ type State = {
 
 class GlobalError extends Component<Props, State> {
   state: State
-  private timerID?: NodeJS.Timeout
+  private timerID?: ReturnType<typeof setInterval>
   private mounted: boolean = false
 
   constructor(props: Props) {
