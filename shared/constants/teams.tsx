@@ -435,7 +435,7 @@ export const getDisabledReasonsForRolePicker = (
     }
     const modifyingSelf =
       membersToModify === state.config.username ||
-      (typeof membersToModify === 'object' && membersToModify?.includes(state.config.username))
+      (Array.isArray(membersToModify) && membersToModify?.includes(state.config.username))
     let noOtherOwners = true
     members.forEach(({type}, name) => {
       if (name !== state.config.username && type === 'owner') {
