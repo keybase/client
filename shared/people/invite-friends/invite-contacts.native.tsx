@@ -3,63 +3,17 @@ import * as Kb from '../../common-adapters/mobile.native'
 import {Section as _Section} from '../../common-adapters/section-list'
 import useContacts, {Contact} from '../../teams/common/use-contacts.native'
 import {EnableContactsPopup} from '../../teams/common'
-import {memoize} from '../../util/memoize'
+import ContactsList from '../../teams/common/contacts-list.native'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import {mapGetEnsureValue} from '../../util/map'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 
-type Section = _Section<Contact, {title: string}>
-
-const categorize = (contact: Contact): string => {
-  if (!contact.name) {
-    return '0-9'
-  }
-  const firstLetter = contact.name[0].toUpperCase()
-  if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(firstLetter)) {
-    return firstLetter
-  } else if ('0123456789'.includes(firstLetter)) {
-    return '0-9'
-  } else {
-    return 'Other'
-  }
-}
-const filterAndSectionContacts = memoize((contacts: Contact[], search: string): Section[] => {
-  const searchL = search.toLowerCase()
-  const sectionMap: Map<string, Contact[]> = new Map()
-  contacts
-    .filter(
-      contact => contact.name.toLowerCase().includes(searchL) || contact.value.toLowerCase().includes(searchL)
-    )
-    .forEach(contact => {
-      const category = categorize(contact)
-      const section = mapGetEnsureValue(sectionMap, category, [])
-      section.push(contact)
-    })
-  const sections: Section[] = []
-  for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
-    if (sectionMap.has(letter)) {
-      sections.push({
-        data: sectionMap.get(letter)!,
-        key: letter,
-        title: letter,
-      })
-    }
-  }
-  for (const sectionKey of ['0-9', 'Other']) {
-    if (sectionMap.has(sectionKey)) {
-      sections.push({
-        data: sectionMap.get(sectionKey)!,
-        key: sectionKey,
-        title: sectionKey,
-      })
-    }
-  }
-  return sections
-})
-
 const waitingKey = 'inviteContacts'
+
+const ListHeaderComponent = () => (
+  <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.iconBox} />
+)
 
 const InviteContacts = () => {
   const contactInfo = useContacts()
@@ -96,68 +50,24 @@ const InviteContacts = () => {
   }
   const placeholderText = loading ? '' : `Search ${contacts.length.toLocaleString()} contacts`
 
-  const sections = [
-    {data: [], key: 'headerIcon', title: 'headerIcon'},
-    ...filterAndSectionContacts(contacts, search),
-  ]
-  const renderSectionHeader = ({section}: {section: Section}) =>
-    section.title === 'headerIcon' ? (
-      <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.iconBox} />
-    ) : (
-      <Kb.SectionDivider label={section.title} />
-    )
   const disabled = !!successCount
-  const renderItem = ({item, index}: {item: Contact; index: number}) => {
-    const topText = item.name ?? item.valueFormatted ?? item.value
-    const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
-    const onCheck = (check: boolean) => {
-      if (item.type === 'phone') {
-        if (check) {
-          selectedPhones.add(item.value)
-        } else {
-          selectedPhones.delete(item.value)
-        }
-        setSelectedPhones(new Set(selectedPhones))
+  const onSelectContact = (contact: Contact, checked: boolean) => {
+    if (contact.type === 'phone') {
+      if (checked) {
+        selectedPhones.add(contact.value)
       } else {
-        if (check) {
-          selectedEmails.add(item.value)
-        } else {
-          selectedEmails.delete(item.value)
-        }
-        setSelectedEmails(new Set(selectedEmails))
+        selectedPhones.delete(contact.value)
       }
+      setSelectedPhones(new Set(selectedPhones))
+    } else {
+      if (checked) {
+        selectedEmails.add(contact.value)
+      } else {
+        selectedEmails.delete(contact.value)
+      }
+      setSelectedEmails(new Set(selectedEmails))
     }
-    const checked = item.type === 'email' ? selectedEmails.has(item.value) : selectedPhones.has(item.value)
-    return (
-      <Kb.ListItem2
-        type="Small"
-        firstItem={index === 0}
-        body={
-          <Kb.Box2 direction="vertical" alignItems="flex-start">
-            <Kb.Text type="BodySemibold">{topText}</Kb.Text>
-            {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
-          </Kb.Box2>
-        }
-        onClick={disabled ? undefined : () => onCheck(!checked)}
-        action={
-          <Kb.CheckCircle
-            checked={checked}
-            onCheck={onCheck}
-            style={styles.checkCircle}
-            disabled={disabled}
-          />
-        }
-        icon={
-          item.pictureUri ? (
-            <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
-          ) : (
-            undefined
-          )
-        }
-      />
-    )
   }
-  const keyExtractor = (item: Contact) => item.id
   return (
     <Kb.Modal
       noScrollView={true}
@@ -209,11 +119,13 @@ const InviteContacts = () => {
           icon="iconfont-search"
         />
       )}
-      <Kb.SectionList
-        sections={sections}
-        renderSectionHeader={renderSectionHeader}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
+      <ContactsList
+        disabled={disabled}
+        ListHeaderComponent={ListHeaderComponent}
+        onSelect={onSelectContact}
+        search={search}
+        selectedEmails={selectedEmails}
+        selectedPhones={selectedPhones}
       />
       <EnableContactsPopup noAccess={contactInfo.noAccessPermanent} onClose={navUp} />
     </Kb.Modal>
@@ -222,20 +134,10 @@ const InviteContacts = () => {
 export default InviteContacts
 
 const styles = Styles.styleSheetCreate(() => ({
-  checkCircle: {
-    marginRight: 24,
-  },
   disabledLink: {
     opacity: 0.5,
   },
   iconBox: {
     alignSelf: 'center',
-  },
-  thumbnail: {
-    borderRadius: 16,
-    height: 32,
-    marginLeft: 16,
-    marginRight: 16,
-    width: 32,
   },
 }))
