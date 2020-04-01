@@ -632,12 +632,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
-                    <Kb.Icon
-                      type="iconfont-ellipsis"
-                      onClick={this.props.toggleShowingMenu}
-                      style={styles.ellipsis}
-                      fontSize={14}
-                    />
+                    <Kb.WithTooltip tooltip="More actions...">
+                      <Kb.Box style={styles.ellipsis}>
+                        <Kb.Icon type="iconfont-ellipsis" onClick={this.props.toggleShowingMenu} />
+                      </Kb.Box>
+                    </Kb.WithTooltip>
                   )}
                 </Kb.Box>
               </Kb.Box>
