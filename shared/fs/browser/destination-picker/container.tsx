@@ -86,19 +86,29 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     },
     _onNewFolder: destinationParentPath =>
       dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
+    onBack: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
     onCancel: () => {
       dispatch(RouteTreeGen.createClearModals())
     },
   }
 
+  const index = getIndex(ownProps)
+  const showHeaderBackInsteadOfCancel = isShare && index > 0
   const targetName = Constants.getDestinationPickerPathName(destPicker)
   const props = {
-    index: getIndex(ownProps),
+    index,
     isShare,
-    onBackUp: canBackUp(destPicker, ownProps)
-      ? () => dispatchProps._onBackUp(getDestinationParentPath(destPicker, ownProps))
-      : undefined,
-    onCancel: dispatchProps.onCancel,
+    // If we are are dealing with incoming share, the first view is root,
+    // so rely on the header back burtton instead of showing a separate row
+    // for going to parent directory.
+    onBack: showHeaderBackInsteadOfCancel ? dispatchProps.onBack : undefined,
+    onBackUp:
+      isShare || !canBackUp(destPicker, ownProps)
+        ? undefined
+        : () => dispatchProps._onBackUp(getDestinationParentPath(destPicker, ownProps)),
+    onCancel: showHeaderBackInsteadOfCancel ? undefined : dispatchProps.onCancel,
     onCopyHere: canCopy(destPicker, pathItems, ownProps)
       ? () => dispatchProps._onCopyHere(getDestinationParentPath(destPicker, ownProps))
       : undefined,

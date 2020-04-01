@@ -45,9 +45,11 @@ class Rows extends React.PureComponent<Props> {
           </WrapRow>
         )
       case RowTypes.RowType.Tlf:
+        console.log({songgao: 'rows', ...item})
         return (
           <WrapRow>
             <Tlf
+              disabled={item.disabled}
               name={item.name}
               tlfType={item.tlfType}
               destinationPickerIndex={this.props.destinationPickerIndex}

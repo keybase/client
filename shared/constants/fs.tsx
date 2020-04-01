@@ -971,3 +971,14 @@ export const hasSpecialFileElement = (path: Types.Path): boolean =>
 
 export const sfmiInfoLoaded = (settings: Types.Settings, driverStatus: Types.DriverStatus): boolean =>
   settings.loaded && driverStatus !== driverStatusUnknown
+
+// This isn't perfect since it doesn't cover the case of multi-writer public
+// TLFs or where a team TLF is readonly to the user. But to do that we'd need
+// some new caching in KBFS to plumb it into the Tlfs structure without
+// awful overhead.
+export const hideOrDisableInDestinationPicker = (
+  tlfType: Types.TlfType,
+  name: string,
+  username: string,
+  destinationPickerIndex?: number
+) => typeof destinationPickerIndex === 'number' && tlfType === Types.TlfType.Public && name !== username

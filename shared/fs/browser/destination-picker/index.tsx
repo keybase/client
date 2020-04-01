@@ -14,6 +14,7 @@ type Props = {
   isShare: boolean
   parentPath: Types.Path
   targetName: string
+  onBack?: () => void
   onCancel?: () => void
   onCopyHere?: () => void
   onMoveHere?: () => void
@@ -57,6 +58,7 @@ const DestinationPicker = (props: Props) => {
   FsCommon.useFsOnlineStatus()
   return (
     <Kb.PopupWrapper
+      onBack={props.onBack}
       onCancel={props.onCancel}
       customComponent={props.customComponent}
       headerStyle={props.headerStyle}
@@ -128,11 +130,18 @@ const DestinationPicker = (props: Props) => {
 const HighOrderDestinationPickerMobile = (props: Props) => {
   const otherProps = {
     customComponent: (
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel || undefined}>
-          <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
-        </Kb.ClickableBox>
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={{position: 'relative'}} centerChildren={true}>
+        {!!props.onCancel && (
+          <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
+            <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
+          </Kb.ClickableBox>
+        )}
+        {!!props.onBack && (
+          <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onBack}>
+            <Kb.Text type="BodyBigLink">Back</Kb.Text>
+          </Kb.ClickableBox>
+        )}
+        <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
             <FsCommon.ItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
             <FsCommon.Filename type="BodySmallSemibold" filename={props.targetName} />
@@ -194,13 +203,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       mobileHeaderButton: {
-        paddingBottom: 8,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: 8,
-      },
-      mobileHeaderContent: {
-        paddingRight: 90, // width of the "Cancel" button
+        left: 0,
+        padding: Styles.globalMargins.small,
+        position: 'absolute',
       },
       newFolderBox: {
         ...Styles.globalStyles.flexBoxRow,

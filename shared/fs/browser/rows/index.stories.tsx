@@ -342,6 +342,7 @@ const load = () => {
         </WrapRow>
         <WrapRow key="19">
           <TlfRow
+            disabled={false}
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
             isIgnored={false}
             onOpen={Sb.action('onOpen')}
@@ -350,6 +351,7 @@ const load = () => {
         </WrapRow>
         <WrapRow key="20">
           <TlfRow
+            disabled={false}
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
             isIgnored={false}
             onOpen={Sb.action('onOpen')}
@@ -358,6 +360,16 @@ const load = () => {
         </WrapRow>
         <WrapRow key="21">
           <TlfRow
+            disabled={false}
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie,david,eve,felicity,george')}
+            isIgnored={false}
+            onOpen={Sb.action('onOpen')}
+            usernames={['bob', 'charlie', 'david', 'eve', 'felicity', 'george']}
+          />
+        </WrapRow>
+        <WrapRow key="22">
+          <TlfRow
+            disabled={true}
             path={Types.stringToPath('/keybase/private/alice,bob,charlie,david,eve,felicity,george')}
             isIgnored={false}
             onOpen={Sb.action('onOpen')}
