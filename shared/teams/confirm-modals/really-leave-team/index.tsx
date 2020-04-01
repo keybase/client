@@ -27,7 +27,14 @@ const Spinner = (props: Props) => (
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Icon boxStyle={styles.iconContainer} type="iconfont-leave" style={styles.headerIcon} />
+    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconContainer}>
+      <Kb.Icon
+        type="iconfont-leave"
+        color={Styles.globalColors.white}
+        fontSize={14}
+        style={styles.headerIcon}
+      />
+    </Kb.Box2>
   </>
 )
 
@@ -76,30 +83,21 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: 12,
     },
   }),
-  // TODO: fix that this is an oval
-  headerIcon: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.red,
-      borderColor: Styles.globalColors.white,
-      borderStyle: 'solid',
-      borderWidth: 3,
-      color: Styles.globalColors.white,
-      padding: 4,
-    },
-    isElectron: {
-      backgroundClip: 'padding-box',
-      borderRadius: 50,
-    },
-    isMobile: {
-      borderRadius: 18,
-      marginRight: -46,
-      marginTop: -30,
-      zIndex: 1,
-    },
-  }),
+  headerIcon: {
+    position: 'relative',
+    top: 1,
+  },
   iconContainer: {
+    backgroundColor: Styles.globalColors.red,
+    borderColor: Styles.globalColors.white,
+    borderRadius: 12,
+    borderStyle: 'solid',
+    borderWidth: 3,
+    height: 24,
     marginRight: -46,
     marginTop: -20,
+    overflow: 'hidden',
+    width: 24,
     zIndex: 1,
   },
   spinnerContainer: {
