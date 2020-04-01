@@ -2611,7 +2611,6 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			converter := newMockConverter(tst.failureTeamIDs)
 			results, err := loadTeamTree(t, mctx, tst.requester.notifications, tst.teamID,
 				tst.target.username, converter, tst.failureTeamNames)
-			t.Logf("@@@ %d %s", idx, spew.Sdump(results))
 			require.NoError(t, err)
 			checkTeamTreeResults(t, tst.expectedSuccesses, tst.failureTeamNames, results)
 		})

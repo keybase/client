@@ -52,6 +52,7 @@ func LoadTeamTreeMemberships(mctx libkb.MetaContext,
 		username, &TreeloaderStateConverter{})
 }
 
+// LoadTeamTreeMembershipsWithConverter lets us mock load failures for tests.
 func LoadTeamTreeMembershipsWithConverter(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	username string, converter ITreeloaderStateConverter) error {
 
@@ -82,13 +83,11 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 	defer mctx.TraceTimed(fmt.Sprintf("loadTeamTreeMembershipsRecursive(%s, %s)", teamName, uv),
 		func() error { return nil })()
 
+	// Load this team first
 	node, res := loadTeamTreeMembershipsSingle(mctx, teamID, uv, np, converter)
 	nTeamsLoaded = 1
 	notifyTeamTreeMembershipResult(mctx, teamName, res)
-	s, err := res.S()
-	if err != nil {
-		panic(err)
-	}
+	s, _ := res.S()
 	if s == keybase1.TeamTreeMembershipStatus_ERROR {
 		mctx.Debug("loadTeamTreeMembershipsRecursive: short-circuiting load due to failure")
 		return nTeamsLoaded
@@ -137,7 +136,7 @@ func loadTeamAncestorsMemberships(mctx libkb.MetaContext, teamID keybase1.TeamID
 		if err != nil {
 			return err
 		}
-		// Shortcircuit ancestor load if this resulted in an error (though it shouldn't except for
+		// Short-circuit ancestor load if this resulted in an error (though it shouldn't except for
 		// in testing), to keep symmetry with behavior if the ancestor team load failed.
 		if s == keybase1.TeamTreeMembershipStatus_ERROR {
 			return fmt.Errorf("failed to load ancestor: %s", res.Error().Message)
