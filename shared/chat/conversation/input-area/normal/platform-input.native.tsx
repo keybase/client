@@ -378,7 +378,7 @@ const Buttons = (p: ButtonsProps) => {
       alignItems="center"
       style={styles.actionContainer}
     >
-      {isEditing && <Kb.Button mode="Secondary" small={true} onClick={onCancelEditing} label="Cancel" />}
+      {isEditing && <Kb.Button small={true} onClick={onCancelEditing} label="Cancel" type="Dim" />}
       {explodingIcon}
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (

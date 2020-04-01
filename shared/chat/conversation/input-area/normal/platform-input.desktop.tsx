@@ -234,11 +234,13 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               </HoverBox>
             )}
             {this.props.isEditing && (
-              <Kb.Box onClick={this.props.onCancelEditing} style={styles.cancelEditing}>
-                <Kb.Text style={styles.cancelEditingText} type="BodySmallSemibold">
-                  Cancel
-                </Kb.Text>
-              </Kb.Box>
+              <Kb.Button
+                label="Cancel"
+                onClick={this.props.onCancelEditing}
+                small={true}
+                style={styles.cancelEditingBtn}
+                type="Dim"
+              />
             )}
             <input
               type="file"
@@ -356,24 +358,8 @@ const EmojiPicker = ({
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      cancelEditing: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignSelf: 'stretch',
-          backgroundColor: Styles.globalColors.blackOrBlack,
-          borderRadius: 2,
-          justifyContent: 'center',
-          margin: 2,
-          marginRight: 0,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
-        },
-        isElectron: {
-          ...Styles.desktopStyles.clickable,
-        },
-      }),
-      cancelEditingText: {
-        color: Styles.globalColors.whiteOrWhite,
+      cancelEditingBtn: {
+        margin: Styles.globalMargins.xtiny,
       },
       container: {
         ...Styles.globalStyles.flexBoxColumn,
