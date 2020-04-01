@@ -39,7 +39,7 @@ const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProps) => ({
-  onAddOrInvitePeople: () => dispatch(appendNewTeamBuilder(teamID)),
+  onAddOrInvitePeople: () => dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
   onCopyInviteLink: () => {}, // TODO
   onCreateSubteam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID})),
   onDeleteTeam: () =>

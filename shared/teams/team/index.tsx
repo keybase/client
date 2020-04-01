@@ -111,7 +111,7 @@ const Team = (props: Props) => {
   const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
   const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
   const invitesSections = useInvitesSections(teamID, teamDetails)
-  const channelsSections = useChannelsSections(teamID, selectedTab === 'channels')
+  const channelsSections = useChannelsSections(teamID, yourOperations, selectedTab === 'channels')
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
 
   switch (selectedTab) {
