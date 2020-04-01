@@ -81,6 +81,12 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 	return engine.RunEngine2(m, li)
 }
 
+func LogoutAndLoginAs(tc libkb.TestContext, fu *FakeUser) {
+	Logout(tc)
+	err := fu.Login(tc.G)
+	require.NoError(tc.T, err)
+}
+
 func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
 	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_DESKTOP, false /* randomPW */)
 }
