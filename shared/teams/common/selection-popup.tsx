@@ -9,6 +9,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
 import {FloatingRolePicker} from '../role-picker'
+import {useChannelMeta} from './channel-hooks'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -352,6 +353,8 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   const membersSet = Container.useSelector(
     s => s.teams.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
+  const channelMeta = useChannelMeta(teamID, conversationIDKey)
+  const channelname = channelMeta?.channelname ?? ''
 
   if (!membersSet) {
     // we shouldn't be rendered
@@ -366,7 +369,17 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
       })
     )
-  const onRemoveFromChannel = () => console.log('onRemoveFromChannel not implemented') // TODO
+  const onRemoveFromChannel = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, members: [...members], teamID},
+            selected: 'teamReallyRemoveChannelMember',
+          },
+        ],
+      })
+    )
 
   return (
     <ActionsWrapper>
@@ -377,12 +390,14 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         fullWidth={Styles.isMobile}
       />
       <EditRoleButton teamID={teamID} members={members} />
-      <Kb.Button
-        label="Remove from channel"
-        type="Danger"
-        onClick={onRemoveFromChannel}
-        fullWidth={Styles.isMobile}
-      />
+      {channelname !== 'general' && (
+        <Kb.Button
+          label="Remove from channel"
+          type="Danger"
+          onClick={onRemoveFromChannel}
+          fullWidth={Styles.isMobile}
+        />
+      )}
     </ActionsWrapper>
   )
 }

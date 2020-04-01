@@ -26,8 +26,8 @@ import rootReducer, {TypedState} from '../reducers'
  */
 
 const defaultYou = 'ayoubd'
-const defaultFollowing = ['max', 'cnojima', 'cdixon']
-const defaultFollowers = ['max', 'akalin']
+const defaultFollowing = ['max', 'cnojima', 'cdixon', 'following', 'both', 'weijiekohyalenus']
+const defaultFollowers = ['max', 'akalin', 'followers', 'both', 'weijiekohyalenus']
 
 export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
   Usernames: (ownProps: any): _Usernames.Props => {
@@ -184,9 +184,9 @@ export const createStoreWithCommon = (): TypedState => {
     ...root,
     config: {
       ...root.config,
-      followers: new Set(['max', 'akalin', 'followers', 'both']),
-      following: new Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
-      username: 'ayoubd',
+      followers: new Set(defaultFollowers),
+      following: new Set(defaultFollowing),
+      username: defaultYou,
     },
     fs: {
       ...root.fs,

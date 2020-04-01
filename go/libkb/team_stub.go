@@ -194,6 +194,8 @@ func (n nullHiddenTeamChainManager) TeamSupportsHiddenChain(m MetaContext, id ke
 	return false, fmt.Errorf("null hidden team chain manager")
 }
 
+func (n nullHiddenTeamChainManager) ClearSupportFlagIfFalse(m MetaContext, id keybase1.TeamID) {}
+
 func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
 	return nullHiddenTeamChainManager{}
 }

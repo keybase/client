@@ -856,7 +856,30 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return tv, nil
 }
 
-func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
+	defer s.PerfTrace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Clearing conv for %s", convID)
+		} else {
+			message = fmt.Sprintf("Failed to clear conv %s", convID)
+		}
+		s.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_CLEARCONV,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
+	if (s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String()))) && s.G().UIRouter != nil {
+		ui, err := s.G().UIRouter.GetLogUI()
+		if err == nil && ui != nil {
+			ui.Critical("Clearing conv")
+		}
+	}
+
 	epick := libkb.FirstErrorPicker{}
 	epick.Push(s.storage.ClearAll(ctx, convID, uid))
 	epick.Push(s.G().Indexer.Clear(ctx, uid, convID))

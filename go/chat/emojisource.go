@@ -302,7 +302,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	}
 	convs := ibox.Convs
 	addEmojis := func(convs []chat1.ConversationLocal, isCrossTeam bool) {
-		if opts.OnlyInTeam {
+		if opts.OnlyInTeam && isCrossTeam {
 			return
 		}
 		for _, conv := range convs {

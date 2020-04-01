@@ -9,11 +9,19 @@ import (
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type LogUI struct {
 	sessionID int
 	cli       *keybase1.LogUiClient
+}
+
+func NewLogUI(sessionID int, c *rpc.Client) *LogUI {
+	return &LogUI{
+		sessionID: sessionID,
+		cli:       &keybase1.LogUiClient{Cli: c},
+	}
 }
 
 func (l *LogUI) Log(level keybase1.LogLevel, format string, args []interface{}) {
