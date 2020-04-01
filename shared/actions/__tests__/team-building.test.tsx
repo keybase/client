@@ -100,6 +100,8 @@ const expectedGithub: Array<Types.User> = [
   {
     id: 'marcopolo@github+marcopolo',
     prettyName: 'Marco Munizaga',
+    pictureUrl:
+      'https://s3.amazonaws.com/keybase_processed_uploads/67a551a80db42fc190462c28e5785a05_200_200_square_200.jpeg',
     serviceId: 'github',
     serviceMap: {
       facebook: 'mmunizaga1337',

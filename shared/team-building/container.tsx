@@ -88,6 +88,7 @@ const expensiveDeriveResults = (
       isYou: info.username === myUsername,
       key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
       prettyName: formatAnyPhoneNumbers(info.prettyName),
+      pictureUrl: info.pictureUrl,
       services: info.serviceMap,
       userId: info.id,
       username: info.username,
@@ -118,6 +119,7 @@ const deriveTeamSoFar = memoize(
       }
       return {
         prettyName: userInfo.prettyName !== username ? userInfo.prettyName : '',
+        pictureUrl: userInfo.pictureUrl,
         service: serviceId,
         userId: userInfo.id,
         username,
