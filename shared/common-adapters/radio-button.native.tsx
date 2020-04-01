@@ -1,12 +1,10 @@
 import React from 'react'
 import ClickableBox from './clickable-box'
-import {Box2} from './box'
 import Text from './text'
 import * as Styles from '../styles'
 import {Props} from './radio-button'
 
 const Kb = {
-  Box2,
   ClickableBox,
   Text,
 }

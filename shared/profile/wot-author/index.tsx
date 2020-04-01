@@ -133,68 +133,39 @@ const VerificationChoice = (props: {
   selected: boolean
   onSelect: () => void
 }) => {
-  const textStyle = Styles.globalStyles.flexOne
-  let text = (
-    <Kb.Text type="Body" style={textStyle}>
-      Do not choose this option
-    </Kb.Text>
-  )
+  let text: React.ReactNode = 'Do not choose this option'
   let color: string = Styles.globalColors.white
   switch (props.verificationType) {
     case 'in_person':
       text = (
-        <Kb.Text type="Body" style={textStyle}>
+        <>
           {props.voucheeUsername} told me their username <Kb.Text type="BodyBold">in person</Kb.Text>
-        </Kb.Text>
+        </>
       )
       color = Styles.globalColors.greenDark
       break
     case 'video':
-      text = (
-        <Kb.Text type="Body" style={textStyle}>
-          {props.voucheeUsername} told me their username over video
-        </Kb.Text>
-      )
+      text = `${props.voucheeUsername} told me their username over video`
       color = '#56fff5'
       break
     case 'audio':
-      text = (
-        <Kb.Text type="Body" style={textStyle}>
-          {props.voucheeUsername} told me their username over audio
-        </Kb.Text>
-      )
+      text = `${props.voucheeUsername} told me their username over audio`
       color = Styles.globalColors.blueLight
       break
     case 'proofs':
-      text = (
-        <Kb.Text type="Body" style={textStyle}>
-          I know one of {props.voucheeUsername}'s proofs
-        </Kb.Text>
-      )
+      text = `I know one of ${props.voucheeUsername}'s proofs`
       color = Styles.globalColors.blueLight
       break
     case 'other_chat':
-      text = (
-        <Kb.Text type="Body" style={textStyle}>
-          {props.voucheeUsername} texted me their username
-        </Kb.Text>
-      )
+      text = `${props.voucheeUsername} texted me their username`
       color = Styles.globalColors.yellow
       break
     case 'familiar':
-      text = (
-        <Kb.Text type="Body" style={textStyle}>
-          We are longtime Keybase friends
-        </Kb.Text>
-      )
+      text = 'We are longtime Keybase friends'
       color = Styles.globalColors.yellow
       break
     case 'other':
-      text = (
-        <Kb.Text type="Body" style={textStyle}>
-          Other
-        </Kb.Text>
-      )
+      text = 'Other'
       color = Styles.globalColors.yellowDark
       break
   }
@@ -206,7 +177,11 @@ const VerificationChoice = (props: {
         style={{backgroundColor: color, flexShrink: 0, width: 6}}
       />
       <Kb.RadioButton
-        label={text}
+        label={
+          <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
+            {text}
+          </Kb.Text>
+        }
         selected={props.selected}
         onSelect={props.onSelect}
         style={styles.choiceRadio}
