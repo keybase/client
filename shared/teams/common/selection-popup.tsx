@@ -366,7 +366,12 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
       })
     )
-  const onRemoveFromChannel = () => console.log('onRemoveFromChannel not implemented') // TODO
+  const onRemoveFromChannel = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, members: [...members], teamID}, selected: 'teamReallyRemoveChannelMember'}],
+      })
+    )
 
   return (
     <ActionsWrapper>

@@ -2,33 +2,32 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
-import {memoize} from '../../util/memoize'
+import {useChannelMeta} from '../common/channel-hooks'
 
-type Props = Container.RouteProps<{members: string[]; teamID: Types.TeamID}>
+type Props = Container.RouteProps<{
+  members: string[]
+  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: Types.TeamID
+}>
 
-const getSubteamNames = memoize((state: Container.TypedState, teamID: Types.TeamID): [
-  string[],
-  Types.TeamID[]
-] => {
-  const subteamIDs = [...Constants.getTeamDetails(state, teamID).subteams]
-  return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
-})
-
-const ConfirmKickOut = (props: Props) => {
+const ConfirmRemoveFromChannel = (props: Props) => {
   const members = Container.getRouteProps(props, 'members', [])
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const [subteamsToo, setSubteamsToo] = React.useState(false)
-
-  const [subteams, subteamIDs] = Container.useSelector(state => getSubteamNames(state, teamID))
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const waitingKeys = ([] as string[]).concat.apply(
-    members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
-    members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
+  const conversationIDKey = Container.getRouteProps(
+    props,
+    'conversationIDKey',
+    ChatConstants.noConversationIDKey
   )
+
+  const waitingKeys = members.map(member => Constants.removeFromChannelWaitingKey(conversationIDKey, member))
   const waiting = Container.useAnyWaiting(...waitingKeys)
+  const channelMeta = useChannelMeta(teamID, conversationIDKey)
+  const channelname = channelMeta?.channelname ?? ''
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -37,29 +36,15 @@ const ConfirmKickOut = (props: Props) => {
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
     dispatch(
-      TeamsGen.createTeamSetMemberSelected({
+      TeamsGen.createChannelSetMemberSelected({
         clearAll: true,
+        conversationIDKey,
         selected: false,
-        teamID: teamID,
         username: '',
       })
     )
 
-    members.forEach(member =>
-      dispatch(
-        TeamsGen.createRemoveMember({
-          teamID,
-          username: member,
-        })
-      )
-    )
-    if (subteamsToo) {
-      subteamIDs.forEach(subteamID =>
-        members.forEach(member =>
-          dispatch(TeamsGen.createRemoveMember({teamID: subteamID, username: member}))
-        )
-      )
-    }
+    members.forEach(member => console.log(`TODO: ${member} wants to leave channel, not implemented yet`))
   }
 
   const wasWaiting = Container.usePrevious(waiting)
@@ -69,7 +54,7 @@ const ConfirmKickOut = (props: Props) => {
     }
   }, [waiting, wasWaiting, onCancel])
 
-  const prompt = `Kick ${Constants.stringifyPeople(members)} out of ${teamname}?`
+  const prompt = `Remove ${Constants.stringifyPeople(members)} from #${channelname}?`
   const header = (
     <Kb.Box style={styles.positionRelative}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
@@ -85,34 +70,14 @@ const ConfirmKickOut = (props: Props) => {
     <Kb.ConfirmModal
       header={header}
       prompt={prompt}
-      content={
-        <Kb.Box2 direction="vertical" gap="small">
-          <Kb.Text type="Body">
-            They will lose access to all the {teamname} chats and folders, and they won’t be able to get back
-            unless an admin invites them.
-          </Kb.Text>
-          {subteams.length != 0 && (
-            <Kb.Checkbox
-              checked={subteamsToo}
-              onCheck={setSubteamsToo}
-              labelComponent={
-                <Kb.Text type="Body">
-                  Also kick them out of all {teamname} subteams:{' '}
-                  <Kb.Text type="BodyBold">{subteams.join(', ')}</Kb.Text>
-                </Kb.Text>
-              }
-            />
-          )}
-        </Kb.Box2>
-      }
       onCancel={onCancel}
       onConfirm={onRemove}
-      confirmText="Kick out"
+      confirmText="Remove from channel"
       waitingKey={waitingKeys}
     />
   )
 }
-export default ConfirmKickOut
+export default ConfirmRemoveFromChannel
 
 const styles = Styles.styleSheetCreate(() => ({
   headerIcon: Styles.platformStyles({
