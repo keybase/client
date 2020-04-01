@@ -893,10 +893,6 @@
         {
           "type": "string",
           "name": "message"
-        },
-        {
-          "type": "StatusCode",
-          "name": "statusCode"
         }
       ]
     }

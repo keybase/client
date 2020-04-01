@@ -3438,10 +3438,6 @@
             "Time"
           ],
           "name": "joinTime"
-        },
-        {
-          "type": "int",
-          "name": "increaseExpectedCountBy"
         }
       ]
     },

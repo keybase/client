@@ -3889,9 +3889,8 @@ func (o AnnotatedSubteamMemberDetails) DeepCopy() AnnotatedSubteamMemberDetails 
 }
 
 type TeamTreeMembershipValue struct {
-	Role                    TeamRole `codec:"role" json:"role"`
-	JoinTime                *Time    `codec:"joinTime,omitempty" json:"joinTime,omitempty"`
-	IncreaseExpectedCountBy int      `codec:"increaseExpectedCountBy" json:"increaseExpectedCountBy"`
+	Role     TeamRole `codec:"role" json:"role"`
+	JoinTime *Time    `codec:"joinTime,omitempty" json:"joinTime,omitempty"`
 }
 
 func (o TeamTreeMembershipValue) DeepCopy() TeamTreeMembershipValue {
@@ -3904,7 +3903,6 @@ func (o TeamTreeMembershipValue) DeepCopy() TeamTreeMembershipValue {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.JoinTime),
-		IncreaseExpectedCountBy: o.IncreaseExpectedCountBy,
 	}
 }
 

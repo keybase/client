@@ -111,7 +111,7 @@ type NotifyListener interface {
 	SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string)
 	UpdateInviteCounts(keybase1.InviteCounts)
 	TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)
-	TeamTreeMembershipsDone()
+	TeamTreeMembershipsDone(int)
 }
 
 type NoopNotifyListener struct{}
@@ -256,7 +256,7 @@ func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOpera
 func (n *NoopNotifyListener) UpdateInviteCounts(keybase1.InviteCounts) {
 }
 func (n *NoopNotifyListener) TeamTreeMembershipsPartial(keybase1.TeamTreeMembership) {}
-func (n *NoopNotifyListener) TeamTreeMembershipsDone()                               {}
+func (n *NoopNotifyListener) TeamTreeMembershipsDone(int)                            {}
 
 type NotifyListenerID string
 
@@ -2837,7 +2837,7 @@ func (n *NotifyRouter) HandleTeamTreeMembershipsPartial(ctx context.Context,
 	})
 }
 
-func (n *NotifyRouter) HandleTeamTreeMembershipsDone(ctx context.Context) {
+func (n *NotifyRouter) HandleTeamTreeMembershipsDone(ctx context.Context, expectedCount int) {
 	if n == nil {
 		return
 	}
@@ -2846,13 +2846,15 @@ func (n *NotifyRouter) HandleTeamTreeMembershipsDone(ctx context.Context) {
 			go func() {
 				_ = (keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamTreeMembershipsDone(context.Background(), 0)
+				}).TeamTreeMembershipsDone(context.Background(), keybase1.TeamTreeMembershipsDoneArg{
+					ExpectedCount: expectedCount,
+				})
 			}()
 		}
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.TeamTreeMembershipsDone()
+		listener.TeamTreeMembershipsDone(expectedCount)
 	})
 }

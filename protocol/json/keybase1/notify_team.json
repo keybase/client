@@ -195,6 +195,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "expectedCount",
+          "type": "int"
         }
       ],
       "response": null,

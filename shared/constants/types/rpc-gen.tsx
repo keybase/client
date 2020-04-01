@@ -220,7 +220,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeam.teamTreeMembershipsDone': {
-    inParam: void
+    inParam: {readonly expectedCount: Int}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamTreeMembershipsPartial': {
@@ -2899,7 +2899,7 @@ export type GUIEntryFeatures = {readonly showTyping: Feature}
 export type GUIFileContext = {readonly viewType: GUIViewType; readonly contentType: String; readonly url: String}
 export type GcOptions = {readonly maxLooseRefs: Int; readonly pruneMinLooseObjects: Int; readonly pruneExpireTime: Time; readonly maxObjectPacks: Int}
 export type Generic = {readonly m: {[key: string]: Generic}; readonly a?: Array<Generic> | null; readonly s?: String | null; readonly i?: Int | null}
-export type GenericError = {readonly message: String; readonly statusCode: StatusCode}
+export type GenericError = {readonly message: String}
 export type GetBlockRes = {readonly blockKey: String; readonly buf: Bytes; readonly size: Int; readonly status: BlockStatus}
 export type GetBlockSizesRes = {readonly sizes?: Array<Int> | null; readonly statuses?: Array<BlockStatus> | null}
 export type GetLockdownResponse = {readonly history?: Array<LockdownHistory> | null; readonly status: Boolean}
@@ -3275,7 +3275,7 @@ export type TeamSigChainState = {readonly reader: UserVersion; readonly id: Team
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
 export type TeamTreeMembership = {readonly teamName: TeamName; readonly result: TeamTreeMembershipResult}
 export type TeamTreeMembershipResult = {s: TeamTreeMembershipStatus.ok; ok: TeamTreeMembershipValue} | {s: TeamTreeMembershipStatus.error; error: GenericError}
-export type TeamTreeMembershipValue = {readonly role: TeamRole; readonly joinTime?: Time | null; readonly increaseExpectedCountBy: Int}
+export type TeamTreeMembershipValue = {readonly role: TeamRole; readonly joinTime?: Time | null}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
 export type TeamUsedInvite = {readonly inviteID: TeamInviteID; readonly uv: UserVersionPercentForm}
 export type TeamUsedInviteLogPoint = {readonly uv: UserVersion; readonly logPoint: Int}

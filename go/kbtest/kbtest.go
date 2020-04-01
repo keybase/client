@@ -360,7 +360,7 @@ type TeamNotifyListener struct {
 	changeByIDCh                 chan keybase1.TeamChangedByIDArg
 	changeByNameCh               chan keybase1.TeamChangedByNameArg
 	TeamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
-	TeamTreeMembershipsDoneCh    chan struct{}
+	TeamTreeMembershipsDoneCh    chan int
 }
 
 var _ libkb.NotifyListener = (*TeamNotifyListener)(nil)
@@ -388,8 +388,8 @@ func (n *TeamNotifyListener) TeamTreeMembershipsPartial(res keybase1.TeamTreeMem
 	n.TeamTreeMembershipsPartialCh <- res
 }
 
-func (n *TeamNotifyListener) TeamTreeMembershipsDone() {
-	n.TeamTreeMembershipsDoneCh <- struct{}{}
+func (n *TeamNotifyListener) TeamTreeMembershipsDone(expectedCount int) {
+	n.TeamTreeMembershipsDoneCh <- expectedCount
 }
 
 func NewTeamNotifyListener() *TeamNotifyListener {
@@ -397,7 +397,7 @@ func NewTeamNotifyListener() *TeamNotifyListener {
 		changeByIDCh:                 make(chan keybase1.TeamChangedByIDArg, 10),
 		changeByNameCh:               make(chan keybase1.TeamChangedByNameArg, 10),
 		TeamTreeMembershipsPartialCh: make(chan keybase1.TeamTreeMembership, 10),
-		TeamTreeMembershipsDoneCh:    make(chan struct{}, 10),
+		TeamTreeMembershipsDoneCh:    make(chan int, 10),
 	}
 }
 

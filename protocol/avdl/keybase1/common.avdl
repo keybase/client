@@ -416,6 +416,5 @@ protocol Common {
 
   record GenericError {
     string message;
-    StatusCode statusCode;
   }
 }

@@ -394,7 +394,7 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 	if hasID {
 		id, err := keybase1.TeamIDFromString(lArg.ID.String())
 		if err != nil {
-			return fmt.Errorf("team load arg has invalid ID: %v", lArg.ID)
+			return fmt.Errorf("team load arg has invalid ID: %q", lArg.ID)
 		}
 		if id.IsPublic() != lArg.Public {
 			return libkb.NewTeamVisibilityError(lArg.Public, id.IsPublic())

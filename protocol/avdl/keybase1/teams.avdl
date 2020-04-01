@@ -1636,9 +1636,6 @@ protocol teams {
     TeamRole role;
     // last time the user joined the team
     union { null, Time } joinTime;
-    // how many subteams will be loaded (each of which themselves may specify additional
-    // ExpectNMore)
-    int increaseExpectedCountBy;
   }
   enum TeamTreeMembershipStatus {
     OK_0,

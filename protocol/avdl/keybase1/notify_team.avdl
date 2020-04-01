@@ -58,5 +58,5 @@ protocol NotifyTeam {
   void teamMetadataUpdate() oneway;
 
   void teamTreeMembershipsPartial(int sessionID, TeamTreeMembership membership) oneway;
-  void teamTreeMembershipsDone(int sessionID) oneway;
+  void teamTreeMembershipsDone(int sessionID, int expectedCount) oneway;
 }

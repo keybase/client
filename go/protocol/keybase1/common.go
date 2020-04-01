@@ -1138,14 +1138,12 @@ func (e WotStatusType) String() string {
 }
 
 type GenericError struct {
-	Message    string     `codec:"message" json:"message"`
-	StatusCode StatusCode `codec:"statusCode" json:"statusCode"`
+	Message string `codec:"message" json:"message"`
 }
 
 func (o GenericError) DeepCopy() GenericError {
 	return GenericError{
-		Message:    o.Message,
-		StatusCode: o.StatusCode.DeepCopy(),
+		Message: o.Message,
 	}
 }
 
