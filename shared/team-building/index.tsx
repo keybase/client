@@ -536,7 +536,7 @@ class TeamBuilding extends React.PureComponent<Props> {
         </Kb.BoxGrow>
       )
     }
-    console.log('spooner', this.props.searchResults)
+
     return (
       <>
         {this.props.searchResults === undefined || this.props.searchResults?.length ? (
