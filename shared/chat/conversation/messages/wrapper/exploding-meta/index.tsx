@@ -121,7 +121,7 @@ class ExplodingMeta extends React.Component<Props, State> {
                   <Kb.ProgressIndicator style={{height: 12, width: 12}} />
                 </Kb.Box2>
               ) : (
-                <Kb.WithTooltip tooltip="Exploding message">
+                <Kb.WithTooltip containerStyle={styles.explodingTooltip} tooltip="Exploding message">
                   <Kb.Box2
                     className="explodingTimeContainer"
                     direction="horizontal"
@@ -251,6 +251,7 @@ const styles = Styles.styleSheetCreate(
       countdownHighlighted: {
         color: Styles.globalColors.whiteOrWhite,
       },
+      explodingTooltip: {right: -Styles.globalMargins.small},
       progressContainer: Styles.platformStyles({
         common: {
           alignItems: 'center',
