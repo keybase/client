@@ -2351,6 +2351,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	err = teams.Delete(context.Background(), alfa.tc.G, tui, hID)
 	require.NoError(t, err)
 	tang.reset()
+	tang.loginAfterReset()
 	unif.delete()
 
 	t.Logf("happy-path table tests")
@@ -2429,6 +2430,20 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
 				dName.String(): keybase1.TeamRole_ADMIN,
+				eName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_NONE,
+				gName.String(): keybase1.TeamRole_NONE,
+				iName.String(): keybase1.TeamRole_NONE,
+			},
+		},
+		{
+			teamID:     cID,
+			requesters: []*userPlusDevice{yank},
+			target:     tang, // in no teams after reset
+			expected: map[string]keybase1.TeamRole{
+				aName.String(): keybase1.TeamRole_NONE,
+				cName.String(): keybase1.TeamRole_NONE,
+				dName.String(): keybase1.TeamRole_NONE,
 				eName.String(): keybase1.TeamRole_NONE,
 				fName.String(): keybase1.TeamRole_NONE,
 				gName.String(): keybase1.TeamRole_NONE,
@@ -2622,9 +2637,6 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 
 	_, err = loadTeamTree(t, zuluMctx, zulu.notifications, cID, unif.username, nil, nil)
 	require.IsType(t, libkb.NoKeyError{}, err, "cannot load a deleted user")
-
-	_, err = loadTeamTree(t, zuluMctx, zulu.notifications, cID, tang.username, nil, nil)
-	require.IsType(t, libkb.NoKeyError{}, err, "cannot load a just-reset user")
 
 	_, err = loadTeamTree(t, victMctx, vict.notifications, cID, yank.username, nil, nil)
 	require.IsType(t, teams.StubbedError{}, err, "can only load if you're an admin")
