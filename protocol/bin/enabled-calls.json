@@ -346,6 +346,7 @@
   "keybase.1.user.userCard": {"promise": true},
   "keybase.1.userSearch.getNonUserDetails": {"promise": true},
   "keybase.1.userSearch.userSearch": {"promise": true},
+  "keybase.1.userSearch.bulkEmailOrPhoneSearch": {"promise": true},
   "keybase.1.wot.dismissWotNotifications": {"promise": true},
   "stellar.1.local.acceptDisclaimerLocal": {"promise": true},
   "stellar.1.local.addTrustlineLocal": {"promise": true},
