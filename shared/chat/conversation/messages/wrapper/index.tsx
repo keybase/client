@@ -632,7 +632,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
-                    <Kb.WithTooltip tooltip="More actions...">
+                    <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
                       <Kb.Box style={styles.ellipsis}>
                         <Kb.Icon type="iconfont-ellipsis" onClick={this.props.toggleShowingMenu} />
                       </Kb.Box>
@@ -821,6 +821,9 @@ const styles = Styles.styleSheetCreate(
       }),
       menuButtonsWithAuthor: {marginTop: -16},
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
+      moreActionsTooltip: {
+        marginRight: -Styles.globalMargins.xxtiny,
+      },
       orangeLine: {
         // don't push down content due to orange line
         backgroundColor: Styles.globalColors.orange,
