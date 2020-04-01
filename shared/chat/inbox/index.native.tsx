@@ -339,3 +339,9 @@ export default Inbox
 // <Inbox {...p} />
 // </PerfWrapper>
 // )
+// try {
+// // @ts-ignore
+// console.error(`V8 version is ${global._v8runtime().version}`)
+// } catch (_) {
+// console.error(`V8 isn't running`)
+// }
