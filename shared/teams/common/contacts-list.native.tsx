@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import {Section as _Section} from '../../common-adapters/section-list'
-import useContacts, {Contact} from './use-contacts.native'
+import useContacts, {Contact as _Contact} from './use-contacts.native'
 import {memoize} from '../../util/memoize'
 import {mapGetEnsureValue} from '../../util/map'
 
@@ -129,4 +129,8 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
+// convenience exports of stuff likely used with this component
+export type Contact = _Contact
+export {useContacts}
+export {default as EnableContactsPopup} from './enable-contacts'
 export default ContactsList

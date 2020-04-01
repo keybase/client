@@ -1,13 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
-import {Section as _Section} from '../../common-adapters/section-list'
-import useContacts, {Contact} from '../../teams/common/use-contacts.native'
-import {EnableContactsPopup} from '../../teams/common'
-import ContactsList from '../../teams/common/contacts-list.native'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
+import ContactsList, {
+  useContacts,
+  Contact,
+  EnableContactsPopup,
+} from '../../teams/common/contacts-list.native'
 
 const waitingKey = 'inviteContacts'
 
