@@ -53,6 +53,7 @@ const styles = Styles.styleSheetCreate(
       }),
       container: {
         position: 'relative',
+        padding: Styles.globalMargins.xtiny,
       },
       menuItemBox: Styles.platformStyles({
         common: {
