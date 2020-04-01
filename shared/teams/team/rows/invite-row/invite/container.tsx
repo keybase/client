@@ -57,7 +57,7 @@ export default Container.connect(
 
     let label = user.username || user.name || user.email || user.phone
     let subLabel = user.name ? user.phone || user.email : undefined
-    const re = /(.+) \((.+)\)/
+    const re = /^(.+?) \((.+)\)$/
     if (!subLabel && re.test(label)) {
       const match = re.exec(label)!
       label = match[1]
@@ -67,6 +67,7 @@ export default Container.connect(
     return {
       firstItem: ownProps.firstItem,
       label,
+      isKeybaseUser: !!user.username,
       subLabel,
       onCancelInvite,
       role: user.role,
