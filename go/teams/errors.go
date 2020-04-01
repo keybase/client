@@ -569,7 +569,8 @@ func NewMapAncestorsError(err error, failedLoadingAtAncestorIdx int) error {
 }
 
 func (e *MapAncestorsError) Error() string {
-	return fmt.Sprintf("failed to load ancestor %d during load: %s", e.err)
+	return fmt.Sprintf("failed to load ancestor %d during load: %s",
+		e.failedLoadingAtAncestorIdx, e.err)
 }
 
 func (e *MapAncestorsError) Unwrap() error {
