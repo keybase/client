@@ -8,6 +8,7 @@ import proveWebsite from './prove-website-choice/index.stories'
 import revoke from './revoke/index.stories'
 import profile from './profile.stories'
 import teamInfo from './user/teams/teaminfo.stories'
+import wotAuthor from './wot-author/index.stories'
 
 const load = () => {
   ;[
@@ -21,6 +22,7 @@ const load = () => {
     proveWebsite,
     revoke,
     teamInfo,
+    wotAuthor,
   ].forEach(load => load())
 }
 

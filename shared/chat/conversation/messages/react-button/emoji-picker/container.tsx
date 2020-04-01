@@ -209,19 +209,16 @@ export const EmojiPickerDesktop = (props: Props) => {
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
-      <Kb.Box style={styles.emojiContainer}>
-        {waiting && <Kb.ProgressIndicator />}
-        <EmojiPicker
-          topReacjis={topReacjis}
-          filter={filter}
-          onChoose={onAddReaction}
-          onHover={setHoveredEmoji}
-          width={336}
-          skinTone={currentSkinTone}
-          customSections={customEmojiGroups}
-          waitingForEmoji={waiting}
-        />
-      </Kb.Box>
+      <EmojiPicker
+        topReacjis={topReacjis}
+        filter={filter}
+        onChoose={onAddReaction}
+        onHover={setHoveredEmoji}
+        width={336}
+        skinTone={currentSkinTone}
+        customSections={customEmojiGroups}
+        waitingForEmoji={waiting}
+      />
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -283,13 +280,9 @@ const styles = Styles.styleSheetCreate(
         minHeight: 561,
         width: 336,
       },
-      emojiContainer: {
-        flex: 1,
-        flexGrow: 1,
-        overflow: 'hidden',
-      },
       footerContainer: Styles.platformStyles({
         common: {
+          flexShrink: 0,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
         },

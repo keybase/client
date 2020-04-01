@@ -155,7 +155,12 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 	lock := a.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())
 
-	return a.auditLocked(m, id, headMerkleSeqno, chain, hiddenChain, maxSeqno, maxHiddenSeqno, lastMerkleRoot, auditMode)
+	err = a.auditLocked(m, id, headMerkleSeqno, chain, hiddenChain, maxSeqno, maxHiddenSeqno, lastMerkleRoot, auditMode)
+	if hidden.ShouldClearSupportFlagOnError(err) {
+		m.Debug("Clearing support hidden chain flag for team %s because of error %v in Auditor", id, err)
+		m.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(m, id)
+	}
+	return err
 }
 
 func (a *Auditor) getLRU() *lru.Cache {

@@ -17,7 +17,7 @@ type State = {
 
 class InviteCode extends React.Component<Props, State> {
   state = {inviteCode: '', loading: !__STORYSHOT__}
-  _loadingID: NodeJS.Timeout | undefined
+  _loadingID: ReturnType<typeof setInterval> | undefined
   _doneLoading = () => this.setState({loading: false})
 
   componentDidMount() {

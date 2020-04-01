@@ -68,9 +68,9 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			ctc.as(t, users[0]).h.mockChatUI = ui0
 			ctc.as(t, users[1]).h.mockChatUI = ui1
 			ctc.as(t, users[2]).h.mockChatUI = ui2
-			ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
-			ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
-			ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
+			ctc.world.Tcs[users[0].Username].G.UIRouter = kbtest.NewMockUIRouter(ui0)
+			ctc.world.Tcs[users[1].Username].G.UIRouter = kbtest.NewMockUIRouter(ui1)
+			ctc.world.Tcs[users[2].Username].G.UIRouter = kbtest.NewMockUIRouter(ui2)
 			listener0 := newServerChatListener()
 			listener1 := newServerChatListener()
 			listener2 := newServerChatListener()
@@ -260,9 +260,9 @@ func TestFlipManagerChannelFlip(t *testing.T) {
 		ctc.as(t, users[0]).h.mockChatUI = ui0
 		ctc.as(t, users[1]).h.mockChatUI = ui1
 		ctc.as(t, users[2]).h.mockChatUI = ui2
-		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
-		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
-		ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
+		ctc.world.Tcs[users[0].Username].G.UIRouter = kbtest.NewMockUIRouter(ui0)
+		ctc.world.Tcs[users[1].Username].G.UIRouter = kbtest.NewMockUIRouter(ui1)
+		ctc.world.Tcs[users[2].Username].G.UIRouter = kbtest.NewMockUIRouter(ui2)
 		listener0 := newServerChatListener()
 		listener1 := newServerChatListener()
 		listener2 := newServerChatListener()
@@ -391,8 +391,8 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		ui1 := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui0
 		ctc.as(t, users[1]).h.mockChatUI = ui1
-		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
-		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
+		ctc.world.Tcs[users[0].Username].G.UIRouter = kbtest.NewMockUIRouter(ui0)
+		ctc.world.Tcs[users[1].Username].G.UIRouter = kbtest.NewMockUIRouter(ui1)
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
@@ -459,8 +459,8 @@ func TestFlipManagerRateLimit(t *testing.T) {
 	ui1 := kbtest.NewChatUI()
 	ctc.as(t, users[0]).h.mockChatUI = ui0
 	ctc.as(t, users[1]).h.mockChatUI = ui1
-	ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
-	ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
+	ctc.world.Tcs[users[0].Username].G.UIRouter = kbtest.NewMockUIRouter(ui0)
+	ctc.world.Tcs[users[1].Username].G.UIRouter = kbtest.NewMockUIRouter(ui1)
 	listener0 := newServerChatListener()
 	listener1 := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)

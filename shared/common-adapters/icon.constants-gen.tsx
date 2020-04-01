@@ -537,6 +537,7 @@ export type IconType =
   | 'icon-illustration-teams-feature-profile-460-64'
   | 'icon-illustration-teams-subteams-460-96'
   | 'icon-illustration-welcome-96'
+  | 'icon-illustration-wot-460-96'
   | 'icon-illustration-zen-240-180'
   | 'icon-invite-link-48'
   | 'icon-keybase-logo-128'
@@ -5810,6 +5811,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-welcome-96.png')
+    },
+  },
+  'icon-illustration-wot-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-wot-460-96.png')
     },
   },
   'icon-illustration-zen-240-180': {

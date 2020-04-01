@@ -359,6 +359,10 @@ export type MessageTypes = {
     inParam: {readonly teamID: Keybase1.TeamID; readonly uid: Gregor1.UID}
     outParam: GetChannelMembershipsLocalRes
   }
+  'chat.1.local.getDefaultTeamChannelsLocal': {
+    inParam: {readonly teamID: Keybase1.TeamID}
+    outParam: GetDefaultTeamChannelsLocalRes
+  }
   'chat.1.local.getGlobalAppNotificationSettingsLocal': {
     inParam: void
     outParam: GlobalAppNotificationSettings
@@ -374,6 +378,14 @@ export type MessageTypes = {
   'chat.1.local.getLastActiveAtMultiLocal': {
     inParam: {readonly teamIDs?: Array<Keybase1.TeamID> | null; readonly username: String}
     outParam: {[key: string]: Gregor1.Time}
+  }
+  'chat.1.local.getLastActiveForTLF': {
+    inParam: {readonly tlfID: TLFIDStr}
+    outParam: LastActiveStatus
+  }
+  'chat.1.local.getLastActiveForTeams': {
+    inParam: void
+    outParam: LastActiveStatusAll
   }
   'chat.1.local.getMutualTeamsLocal': {
     inParam: {readonly usernames?: Array<String> | null}
@@ -574,6 +586,10 @@ export type MessageTypes = {
   'chat.1.local.setConvRetentionLocal': {
     inParam: {readonly convID: ConversationID; readonly policy: RetentionPolicy}
     outParam: void
+  }
+  'chat.1.local.setDefaultTeamChannelsLocal': {
+    inParam: {readonly teamID: Keybase1.TeamID; readonly convs?: Array<ConvIDStr> | null}
+    outParam: SetDefaultTeamChannelsLocalRes
   }
   'chat.1.local.setGlobalAppNotificationSettingsLocal': {
     inParam: {readonly settings: {[key: string]: Bool}}
@@ -1186,7 +1202,7 @@ export type DeviceInfo = {readonly deviceID: Keybase1.DeviceID; readonly deviceD
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
-export type Emoji = {readonly alias: String; readonly isBig: Boolean; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
+export type Emoji = {readonly alias: String; readonly isBig: Boolean; readonly isReacji: Boolean; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
 export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
 export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
 export type EmojiFetchOpts = {readonly getCreationInfo: Boolean; readonly getAliases: Boolean; readonly onlyInTeam: Boolean}
@@ -1252,7 +1268,7 @@ export type HeaderPlaintext = {version: HeaderPlaintextVersion.v1; v1: HeaderPla
 export type HeaderPlaintextMetaInfo = {readonly crit: Boolean}
 export type HeaderPlaintextUnsupported = {readonly mi: HeaderPlaintextMetaInfo}
 export type HeaderPlaintextV1 = {readonly conv: ConversationIDTriple; readonly tlfName: String; readonly tlfPublic: Boolean; readonly messageType: MessageType; readonly prev?: Array<MessagePreviousPointer> | null; readonly sender: Gregor1.UID; readonly senderDevice: Gregor1.DeviceID; readonly kbfsCryptKeysUsed?: Boolean | null; readonly bodyHash: Hash; readonly outboxInfo?: OutboxInfo | null; readonly outboxID?: OutboxID | null; readonly headerSignature?: SignatureInfo | null; readonly merkleRoot?: MerkleRoot | null; readonly em /* ephemeralMetadata */?: MsgEphemeralMetadata | null; readonly b /* botUID */?: Gregor1.UID | null}
-export type InboxUIItem = {readonly convID: ConvIDStr; readonly tlfID: TLFIDStr; readonly topicType: TopicType; readonly isPublic: Boolean; readonly isEmpty: Boolean; readonly isDefaultConv: Boolean; readonly name: String; readonly snippet: String; readonly snippetDecoration: SnippetDecoration; readonly channel: String; readonly headline: String; readonly headlineDecorated: String; readonly draft?: String | null; readonly visibility: Keybase1.TLFVisibility; readonly participants?: Array<UIParticipant> | null; readonly resetParticipants?: Array<String> | null; readonly status: ConversationStatus; readonly membersType: ConversationMembersType; readonly memberStatus: ConversationMemberStatus; readonly teamType: TeamType; readonly time: Gregor1.Time; readonly notifications?: ConversationNotificationInfo | null; readonly creatorInfo?: ConversationCreatorInfoLocal | null; readonly version: ConversationVers; readonly localVersion: LocalConversationVers; readonly maxMsgID: MessageID; readonly maxVisibleMsgID: MessageID; readonly readMsgID: MessageID; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly convSettings?: ConversationSettingsLocal | null; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly commands: ConversationCommandGroups; readonly botCommands: ConversationCommandGroups; readonly botAliases: {[key: string]: String}; readonly pinnedMsg?: UIPinnedMessage | null}
+export type InboxUIItem = {readonly convID: ConvIDStr; readonly tlfID: TLFIDStr; readonly topicType: TopicType; readonly isPublic: Boolean; readonly isEmpty: Boolean; readonly isDefaultConv: Boolean; readonly name: String; readonly snippet: String; readonly snippetDecorated: String; readonly snippetDecoration: SnippetDecoration; readonly channel: String; readonly headline: String; readonly headlineDecorated: String; readonly draft?: String | null; readonly visibility: Keybase1.TLFVisibility; readonly participants?: Array<UIParticipant> | null; readonly resetParticipants?: Array<String> | null; readonly status: ConversationStatus; readonly membersType: ConversationMembersType; readonly memberStatus: ConversationMemberStatus; readonly teamType: TeamType; readonly time: Gregor1.Time; readonly notifications?: ConversationNotificationInfo | null; readonly creatorInfo?: ConversationCreatorInfoLocal | null; readonly version: ConversationVers; readonly localVersion: LocalConversationVers; readonly maxMsgID: MessageID; readonly maxVisibleMsgID: MessageID; readonly readMsgID: MessageID; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly convSettings?: ConversationSettingsLocal | null; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly commands: ConversationCommandGroups; readonly botCommands: ConversationCommandGroups; readonly botAliases: {[key: string]: String}; readonly pinnedMsg?: UIPinnedMessage | null}
 export type InboxUIItemError = {readonly typ: ConversationErrorType; readonly message: String; readonly unverifiedTLFName: String; readonly rekeyInfo?: ConversationErrorRekey | null; readonly remoteConv: UnverifiedInboxUIItem}
 export type InboxUIItems = {readonly items?: Array<InboxUIItem> | null; readonly offline: Boolean}
 export type InboxVers = Uint64
@@ -1266,6 +1282,8 @@ export type KBFSImpteamUpgradeUpdate = {readonly convID: ConversationID; readonl
 export type KBFSPath = {readonly startIndex: Int; readonly rawPath: String; readonly standardPath: String; readonly pathInfo: Keybase1.KBFSPathInfo}
 export type KnownTeamMention = {readonly name: String; readonly channel: String}
 export type KnownUserMention = {readonly text: String; readonly uid: Gregor1.UID}
+export type LastActiveStatusAll = {readonly teams: {[key: string]: LastActiveStatus}; readonly channels: {[key: string]: LastActiveStatus}}
+export type LastActiveTimeAll = {readonly teams: {[key: string]: Gregor1.Time}; readonly channels: {[key: string]: Gregor1.Time}}
 export type ListBotCommandsLocalRes = {readonly commands?: Array<UserBotCommandOutput> | null; readonly rateLimits?: Array<RateLimit> | null}
 export type ListCommandsRes = {readonly commands?: Array<UserBotCommandOutput> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type LiveLocation = {readonly endTime: Gregor1.Time}
@@ -1634,10 +1652,13 @@ export const localFindConversationsLocalRpcPromise = (params: MessageTypes['chat
 export const localFindGeneralConvFromTeamIDRpcPromise = (params: MessageTypes['chat.1.local.findGeneralConvFromTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findGeneralConvFromTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findGeneralConvFromTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1.local.getBotMemberSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getBotMemberSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getBotMemberSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetChannelMembershipsLocalRpcPromise = (params: MessageTypes['chat.1.local.getChannelMembershipsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getChannelMembershipsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getChannelMembershipsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetDefaultTeamChannelsLocalRpcPromise = (params: MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getDefaultTeamChannelsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxAndUnboxUILocalRpcPromise = (params: MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getInboxAndUnboxUILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxNonblockLocalRpcSaga = (p: {params: MessageTypes['chat.1.local.getInboxNonblockLocal']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.getInboxNonblockLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localGetLastActiveAtMultiLocalRpcPromise = (params: MessageTypes['chat.1.local.getLastActiveAtMultiLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveAtMultiLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveAtMultiLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetLastActiveForTLFRpcPromise = (params: MessageTypes['chat.1.local.getLastActiveForTLF']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveForTLF']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveForTLF', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetLastActiveForTeamsRpcPromise = (params: MessageTypes['chat.1.local.getLastActiveForTeams']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveForTeams']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveForTeams', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetMutualTeamsLocalRpcPromise = (params: MessageTypes['chat.1.local.getMutualTeamsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getMutualTeamsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getMutualTeamsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetNextAttachmentMessageLocalRpcPromise = (params: MessageTypes['chat.1.local.getNextAttachmentMessageLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getNextAttachmentMessageLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getNextAttachmentMessageLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetStaticConfigRpcPromise = (params: MessageTypes['chat.1.local.getStaticConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getStaticConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getStaticConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1691,6 +1712,7 @@ export const localSetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1
 export const localSetConvMinWriterRoleLocalRpcPromise = (params: MessageTypes['chat.1.local.setConvMinWriterRoleLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setConvMinWriterRoleLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setConvMinWriterRoleLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetConvRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setConvRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setConvRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setConvRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetConversationStatusLocalRpcPromise = (params: MessageTypes['chat.1.local.SetConversationStatusLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.SetConversationStatusLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.SetConversationStatusLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localSetDefaultTeamChannelsLocalRpcPromise = (params: MessageTypes['chat.1.local.setDefaultTeamChannelsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setDefaultTeamChannelsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setDefaultTeamChannelsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.setGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetWelcomeMessageRpcPromise = (params: MessageTypes['chat.1.local.setWelcomeMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setWelcomeMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setWelcomeMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1760,10 +1782,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
 // 'chat.1.local.teamIDFromTLFName'
-// 'chat.1.local.getDefaultTeamChannelsLocal'
-// 'chat.1.local.setDefaultTeamChannelsLocal'
-// 'chat.1.local.getLastActiveForTLF'
-// 'chat.1.local.getLastActiveForTeams'
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.addEmoji'

@@ -30,7 +30,11 @@ class ThresholdDropdown extends React.PureComponent<
       <>
         <Kb.DropdownButton
           disabled={!this.props.spaceAvailableNotificationThreshold}
-          selected={<Kb.Text type="Body">{this.props.humanizedNotificationThreshold}</Kb.Text>}
+          selected={
+            <Kb.Text type="Body" style={styles.selectedText}>
+              {this.props.humanizedNotificationThreshold}
+            </Kb.Text>
+          }
           toggleOpen={this._toggleShowingMenu}
         />
         <Kb.FloatingPicker
@@ -67,7 +71,12 @@ const Files = (props: Props) => {
   )
   return (
     <Kb.HeaderHocWrapper title="Files" onBack={props.onBack} skipHeader={!Styles.isPhone}>
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="small">
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        alignItems={Styles.isTablet ? 'flex-start' : 'center'}
+        gap="small"
+      >
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
           <Kb.Text type="Header">Sync</Kb.Text>
           <Kb.Switch
@@ -104,6 +113,10 @@ const Files = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      selectedText: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        width: '100%',
+      },
       switch: {
         marginTop: Styles.globalMargins.small,
       },

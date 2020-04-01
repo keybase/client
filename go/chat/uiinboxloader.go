@@ -470,10 +470,10 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 			}
 			res.SmallTeams = append(res.SmallTeams,
 				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
-					h.G().GetEnv().GetUsername().String(), len(res.SmallTeams) < 50))
+					h.G().GetEnv().GetUsername().String()))
 		}
 		widgetList = append(widgetList, utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
-			h.G().GetEnv().GetUsername().String(), true))
+			h.G().GetEnv().GetUsername().String()))
 	}
 	sort.Slice(res.SmallTeams, func(i, j int) bool {
 		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
@@ -482,6 +482,11 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	res.TotalSmallTeams = len(res.SmallTeams)
 	if res.TotalSmallTeams > h.smallTeamBound {
 		res.SmallTeams = res.SmallTeams[:h.smallTeamBound]
+		// clear extra snippets to keep the payload size managable
+		for i := 50; i < len(res.SmallTeams); i++ {
+			res.SmallTeams[i].Snippet = nil
+			res.SmallTeams[i].SnippetDecoration = chat1.SnippetDecoration_NONE
+		}
 	}
 	if !selectedInLayout || reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 		// select a new conv for the UI

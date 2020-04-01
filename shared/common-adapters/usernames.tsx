@@ -114,6 +114,7 @@ const UsernameText = (
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
               onLongPress={onLongPress}
+              lineClamp={props.lineClamp}
               onClick={
                 onUsernameClicked
                   ? evt => {

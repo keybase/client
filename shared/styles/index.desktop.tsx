@@ -59,6 +59,7 @@ const font = {
 
 const util = {
   ...Shared.util,
+  largeWidthPercent: '70%',
   loadingTextStyle: {
     // this won't really work with dark mode
     backgroundColor: colors.greyLight,

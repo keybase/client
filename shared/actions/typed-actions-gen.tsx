@@ -929,6 +929,7 @@ export type TypedActionsMap = {
   'teams:inviteToTeamByEmail': teams.InviteToTeamByEmailPayload
   'teams:inviteToTeamByPhone': teams.InviteToTeamByPhonePayload
   'teams:joinTeam': teams.JoinTeamPayload
+  'teams:launchNewTeamWizardOrModal': teams.LaunchNewTeamWizardOrModalPayload
   'teams:leaveTeam': teams.LeaveTeamPayload
   'teams:leftTeam': teams.LeftTeamPayload
   'teams:addToTeam': teams.AddToTeamPayload
@@ -983,6 +984,7 @@ export type TypedActionsMap = {
   'teams:setAddMembersWizardIndividualRole': teams.SetAddMembersWizardIndividualRolePayload
   'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
+  'teams:addMembersWizardSetDefaultChannels': teams.AddMembersWizardSetDefaultChannelsPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
   'teams:finishAddMembersWizard': teams.FinishAddMembersWizardPayload
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
@@ -1000,6 +1002,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'teams:teamSeen': teams.TeamSeenPayload
+  'teams:setActivityLevels': teams.SetActivityLevelsPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

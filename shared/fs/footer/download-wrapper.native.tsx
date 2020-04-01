@@ -12,6 +12,7 @@ export default class DownloadNativeWrapper extends React.PureComponent<Props, St
     duration: 3000,
     easing: NativeEasing.linear,
     toValue: 0,
+    useNativeDriver: false,
   })
 
   _started = false

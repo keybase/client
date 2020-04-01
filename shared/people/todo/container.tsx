@@ -12,6 +12,7 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as SettingsGen from '../../actions/settings-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import openURL from '../../util/open-url'
 import {appendPeopleBuilder} from '../../actions/typed-routes'
 
@@ -187,8 +188,8 @@ const TeamConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['teamNewTeamDialog']}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.teamsTab]}))
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+      dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
     },
     onDismiss: onSkipTodo('team', dispatch),
   }),

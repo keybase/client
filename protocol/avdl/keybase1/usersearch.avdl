@@ -94,5 +94,5 @@ protocol userSearch {
     // go package), and a list of phone numbers, do a Keybase user search. As a
     // side-effect, Keybase assertion will be returned for each valid email and
     // phone number.
-    array<EmailOrPhoneNumberSearchResult> bulkEmailOrPhoneSearch(int sessionID, string emails, array<PhoneNumber> phoneNumbers, boolean checkContacts);
+    array<EmailOrPhoneNumberSearchResult> bulkEmailOrPhoneSearch(int sessionID, string emails, array<PhoneNumber> phoneNumbers);
 }

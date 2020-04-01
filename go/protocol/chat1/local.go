@@ -6194,6 +6194,74 @@ func (o SetDefaultTeamChannelsLocalRes) DeepCopy() SetDefaultTeamChannelsLocalRe
 	}
 }
 
+type LastActiveTimeAll struct {
+	Teams    map[TLFIDStr]gregor1.Time  `codec:"teams" json:"teams"`
+	Channels map[ConvIDStr]gregor1.Time `codec:"channels" json:"channels"`
+}
+
+func (o LastActiveTimeAll) DeepCopy() LastActiveTimeAll {
+	return LastActiveTimeAll{
+		Teams: (func(x map[TLFIDStr]gregor1.Time) map[TLFIDStr]gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TLFIDStr]gregor1.Time, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Channels: (func(x map[ConvIDStr]gregor1.Time) map[ConvIDStr]gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[ConvIDStr]gregor1.Time, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Channels),
+	}
+}
+
+type LastActiveStatusAll struct {
+	Teams    map[TLFIDStr]LastActiveStatus  `codec:"teams" json:"teams"`
+	Channels map[ConvIDStr]LastActiveStatus `codec:"channels" json:"channels"`
+}
+
+func (o LastActiveStatusAll) DeepCopy() LastActiveStatusAll {
+	return LastActiveStatusAll{
+		Teams: (func(x map[TLFIDStr]LastActiveStatus) map[TLFIDStr]LastActiveStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TLFIDStr]LastActiveStatus, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Channels: (func(x map[ConvIDStr]LastActiveStatus) map[ConvIDStr]LastActiveStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[ConvIDStr]LastActiveStatus, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Channels),
+	}
+}
+
 type AddEmojiRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
@@ -6900,12 +6968,12 @@ type GetWelcomeMessageArg struct {
 }
 
 type GetDefaultTeamChannelsLocalArg struct {
-	TeamName string `codec:"teamName" json:"teamName"`
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
 }
 
 type SetDefaultTeamChannelsLocalArg struct {
-	TeamName string      `codec:"teamName" json:"teamName"`
-	Convs    []ConvIDStr `codec:"convs" json:"convs"`
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Convs  []ConvIDStr     `codec:"convs" json:"convs"`
 }
 
 type GetLastActiveForTLFArg struct {
@@ -7065,10 +7133,10 @@ type LocalInterface interface {
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
 	SetWelcomeMessage(context.Context, SetWelcomeMessageArg) error
 	GetWelcomeMessage(context.Context, keybase1.TeamID) (WelcomeMessageDisplay, error)
-	GetDefaultTeamChannelsLocal(context.Context, string) (GetDefaultTeamChannelsLocalRes, error)
+	GetDefaultTeamChannelsLocal(context.Context, keybase1.TeamID) (GetDefaultTeamChannelsLocalRes, error)
 	SetDefaultTeamChannelsLocal(context.Context, SetDefaultTeamChannelsLocalArg) (SetDefaultTeamChannelsLocalRes, error)
 	GetLastActiveForTLF(context.Context, TLFIDStr) (LastActiveStatus, error)
-	GetLastActiveForTeams(context.Context) (map[TLFIDStr]LastActiveStatus, error)
+	GetLastActiveForTeams(context.Context) (LastActiveStatusAll, error)
 	GetRecentJoinsLocal(context.Context, ConversationID) (int, error)
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
@@ -8590,7 +8658,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetDefaultTeamChannelsLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetDefaultTeamChannelsLocal(ctx, typedArgs[0].TeamName)
+					ret, err = i.GetDefaultTeamChannelsLocal(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -9317,8 +9385,8 @@ func (c LocalClient) GetWelcomeMessage(ctx context.Context, teamID keybase1.Team
 	return
 }
 
-func (c LocalClient) GetDefaultTeamChannelsLocal(ctx context.Context, teamName string) (res GetDefaultTeamChannelsLocalRes, err error) {
-	__arg := GetDefaultTeamChannelsLocalArg{TeamName: teamName}
+func (c LocalClient) GetDefaultTeamChannelsLocal(ctx context.Context, teamID keybase1.TeamID) (res GetDefaultTeamChannelsLocalRes, err error) {
+	__arg := GetDefaultTeamChannelsLocalArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "chat.1.local.getDefaultTeamChannelsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
@@ -9334,7 +9402,7 @@ func (c LocalClient) GetLastActiveForTLF(ctx context.Context, tlfID TLFIDStr) (r
 	return
 }
 
-func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res map[TLFIDStr]LastActiveStatus, err error) {
+func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res LastActiveStatusAll, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTeams", []interface{}{GetLastActiveForTeamsArg{}}, &res, 0*time.Millisecond)
 	return
 }
