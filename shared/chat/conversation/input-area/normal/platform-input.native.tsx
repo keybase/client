@@ -264,6 +264,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           direction="vertical"
           style={Styles.collapseStyles([
             styles.container,
+            isExploding && styles.explodingContainer,
             (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
           ])}
           fullWidth={true}
@@ -397,6 +398,8 @@ const Buttons = (p: ButtonsProps) => {
           onClick={onSubmit}
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
+          labelStyle={isExploding ? styles.explodingSendBtnLabel : undefined}
+          style={isExploding ? styles.explodingSendBtn : undefined}
         />
       )}
     </Kb.Box2>
@@ -476,6 +479,15 @@ const styles = Styles.styleSheetCreate(
         borderRadius: Styles.globalMargins.mediumLarge / 2,
         height: 28,
         width: 28,
+      },
+      explodingContainer: {
+        borderTopColor: Styles.globalColors.black,
+      },
+      explodingSendBtn: {
+        backgroundColor: Styles.globalColors.black,
+      },
+      explodingSendBtnLabel: {
+        color: Styles.globalColors.white,
       },
       explodingText: {
         fontSize: 11,
