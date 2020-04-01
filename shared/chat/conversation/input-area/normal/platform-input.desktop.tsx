@@ -221,13 +221,15 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                     {formatDurationShort(this.props.explodingModeSeconds * 1000)}
                   </Kb.Text>
                 ) : (
-                  <Kb.Icon
-                    className="timer"
-                    colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
-                    onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
-                    padding="xtiny"
-                    type="iconfont-timer"
-                  />
+                  <Kb.WithTooltip tooltip="Timer">
+                    <Kb.Icon
+                      className="timer"
+                      colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
+                      onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
+                      padding="xtiny"
+                      type="iconfont-timer"
+                    />
+                  </Kb.WithTooltip>
                 )}
               </HoverBox>
             )}
@@ -277,22 +279,35 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               />
             )}
             {!this.props.cannotWrite && this.props.showWalletsIcon && (
-              <WalletsIcon
-                size={16}
-                style={styles.walletsIcon}
-                conversationIDKey={this.props.conversationIDKey}
-              />
+              <Kb.WithTooltip tooltip="Lumens">
+                <WalletsIcon
+                  size={16}
+                  style={styles.walletsIcon}
+                  conversationIDKey={this.props.conversationIDKey}
+                />
+              </Kb.WithTooltip>
             )}
             {!this.props.cannotWrite && (
               <>
-                <Kb.Icon onClick={this.props.onGiphyToggle} style={styles.icon} type="iconfont-gif" />
-                <Kb.Icon
-                  color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
-                  onClick={this._emojiPickerToggle}
-                  style={styles.icon}
-                  type="iconfont-emoji"
-                />
-                <Kb.Icon onClick={this._filePickerOpen} style={styles.icon} type="iconfont-attachment" />
+                <Kb.WithTooltip tooltip="GIF">
+                  <Kb.Box style={styles.icon}>
+                    <Kb.Icon onClick={this.props.onGiphyToggle} type="iconfont-gif" />
+                  </Kb.Box>
+                </Kb.WithTooltip>
+                <Kb.WithTooltip tooltip="Emoji">
+                  <Kb.Box style={styles.icon}>
+                    <Kb.Icon
+                      color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
+                      onClick={this._emojiPickerToggle}
+                      type="iconfont-emoji"
+                    />
+                  </Kb.Box>
+                </Kb.WithTooltip>
+                <Kb.WithTooltip tooltip="Attachment">
+                  <Kb.Box style={styles.icon}>
+                    <Kb.Icon onClick={this._filePickerOpen} type="iconfont-attachment" />
+                  </Kb.Box>
+                </Kb.WithTooltip>
               </>
             )}
           </Kb.Box>
@@ -417,9 +432,10 @@ const styles = Styles.styleSheetCreate(
         display: 'none',
       },
       icon: {
-        bottom: 6,
-        marginRight: Styles.globalMargins.tiny,
-        position: 'relative',
+        alignSelf: 'flex-end',
+        marginBottom: 2,
+        marginRight: Styles.globalMargins.xtiny,
+        padding: Styles.globalMargins.xtiny,
       },
       input: Styles.platformStyles({
         isElectron: {
@@ -451,11 +467,12 @@ const styles = Styles.styleSheetCreate(
         borderWidth: 1,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.xtiny,
       },
       walletsIcon: {
         alignSelf: 'flex-end',
-        marginBottom: 6,
-        marginRight: Styles.globalMargins.tiny,
+        marginBottom: 2,
+        marginRight: Styles.globalMargins.xtiny,
       },
     } as const)
 )
