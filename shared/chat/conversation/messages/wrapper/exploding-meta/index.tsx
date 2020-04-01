@@ -229,8 +229,8 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.tiny,
           position: 'relative',
         },
-        isMobile: {height: 24},
         isElectron: {height: 20},
+        isMobile: {height: 24},
       }),
       countdown: Styles.platformStyles({
         common: {color: Styles.globalColors.white, fontWeight: 'bold'},
