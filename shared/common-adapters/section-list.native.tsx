@@ -90,7 +90,7 @@ const getGetItemLayout = ({
           elementPointer = {type: 'SECTION_FOOTER'}
           // ...otherwise we make elementPointer point at the first row in this section
         } else {
-          elementPointer = {type: 'ROW', index: 0}
+          elementPointer = {index: 0, type: 'ROW'}
         }
 
         break
@@ -122,15 +122,16 @@ const getGetItemLayout = ({
     i += 1
   }
 
-  let length
+  let length: number
   switch (elementPointer.type) {
     case 'SECTION_HEADER':
       length = getSectionHeaderHeight(sectionIndex)
       break
-    case 'ROW':
+    case 'ROW': {
       const rowIndex = elementPointer.index
       length = getItemHeight(data[sectionIndex].data[rowIndex], sectionIndex, rowIndex)
       break
+    }
     case 'SECTION_FOOTER':
       length = getSectionFooterHeight(sectionIndex)
       break
@@ -138,5 +139,5 @@ const getGetItemLayout = ({
       throw new Error('Unknown elementPointer.type')
   }
 
-  return {length, offset, index}
+  return {index, length, offset}
 }
