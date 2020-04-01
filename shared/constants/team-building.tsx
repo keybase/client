@@ -135,8 +135,8 @@ export const parseRawResultToUser = (
 
     return {
       id,
-      prettyName,
       pictureUrl,
+      prettyName,
       serviceId: service,
       serviceMap,
       username: result.service.username,
