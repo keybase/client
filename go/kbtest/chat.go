@@ -1563,9 +1563,10 @@ func (m *MockChatHelper) convKey(name string, topicName *string) string {
 }
 
 type MockUIRouter struct {
-	libkb.UIRouter
 	ui libkb.ChatUI
 }
+
+var _ libkb.UIRouter = (*MockUIRouter)(nil)
 
 func NewMockUIRouter(chatUI libkb.ChatUI) *MockUIRouter {
 	return &MockUIRouter{
@@ -1573,8 +1574,26 @@ func NewMockUIRouter(chatUI libkb.ChatUI) *MockUIRouter {
 	}
 }
 
+func (f *MockUIRouter) SetUI(libkb.ConnectionID, libkb.UIKind)   {}
+func (f *MockUIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) { return nil, nil }
+func (f *MockUIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {
+	return 0, nil, nil
+}
+func (f *MockUIRouter) GetSecretUI(sessionID int) (libkb.SecretUI, error)         { return nil, nil }
+func (f *MockUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error)       { return nil, 0, nil }
+func (f *MockUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) { return nil, nil }
+func (f *MockUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error)              { return nil, nil }
+func (f *MockUIRouter) GetIdentify3UIAdapter(libkb.MetaContext) (libkb.IdentifyUI, error) {
+	return nil, nil
+}
+func (f *MockUIRouter) GetIdentify3UI(libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
+	return nil, nil
+}
+func (f *MockUIRouter) GetLogUI() (libkb.LogUI, error)                                { return nil, nil }
+func (f *MockUIRouter) WaitForUIType(uiKind libkb.UIKind, timeout time.Duration) bool { return false }
+func (f *MockUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID                  { return nil }
+func (f *MockUIRouter) Shutdown()                                                     {}
+
 func (f *MockUIRouter) GetChatUI() (libkb.ChatUI, error) {
 	return f.ui, nil
 }
-
-func (f *MockUIRouter) Shutdown() {}

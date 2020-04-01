@@ -655,6 +655,10 @@ export type MessageTypes = {
     inParam: void
     outParam: void
   }
+  'keybase.1.delegateUiCtl.registerLogUI': {
+    inParam: void
+    outParam: void
+  }
   'keybase.1.delegateUiCtl.registerRekeyUI': {
     inParam: void
     outParam: void
@@ -2084,6 +2088,8 @@ export enum PerfEventType {
   teamaudit = 2,
   userchain = 3,
   teamchain = 4,
+  clearconv = 5,
+  clearinbox = 6,
 }
 
 export enum PrefetchStatus {
@@ -3717,6 +3723,7 @@ export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (params: Me
 export const delegateUiCtlRegisterHomeUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerHomeUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerHomeUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerHomeUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterIdentify3UIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerIdentify3UI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerIdentify3UI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerIdentify3UI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterIdentifyUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerIdentifyUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerIdentifyUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerIdentifyUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const delegateUiCtlRegisterLogUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerLogUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerLogUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerLogUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterRekeyUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerRekeyUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerRekeyUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerRekeyUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterSecretUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerSecretUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerSecretUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerSecretUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const deviceCheckDeviceNameFormatRpcPromise = (params: MessageTypes['keybase.1.device.checkDeviceNameFormat']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.device.checkDeviceNameFormat']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.checkDeviceNameFormat', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

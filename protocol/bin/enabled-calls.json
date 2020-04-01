@@ -188,6 +188,7 @@
   "keybase.1.ctl.setOnLoginStartup": {"promise": true},
   "keybase.1.ctl.stop": {"promise": true},
   "keybase.1.delegateUiCtl.registerChatUI": {"promise": true},
+  "keybase.1.delegateUiCtl.registerLogUI": {"promise": true},
   "keybase.1.delegateUiCtl.registerGregorFirehoseFiltered": {"promise": true},
   "keybase.1.delegateUiCtl.registerHomeUI": {"promise": true},
   "keybase.1.delegateUiCtl.registerIdentify3UI": {"promise": true},

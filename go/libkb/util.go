@@ -839,20 +839,16 @@ var adminFeatureList = map[keybase1.UID]bool{
 	"46fa8104092d0a680ad854bfc8507700": true, // | xgess        |
 	"69da56f622a2ac750b8e590c3658a700": true, // | jzila        |
 	"ef2e49961eddaa77094b45ed635cfc00": true, // | strib        |
-	"ebbe1d99410ab70123262cf8dfc87900": true, // | akalin       |
-	"4c230ae8d2f922dc2ccc1d2f94890700": true, // | marcopolo    |
 	"9403ede05906b942fd7361f40a679500": true, // | jinyang      |
 	"e0b4166c9c839275cf5633ff65c3e819": true, // | chrisnojima  |
 	"5f72055750c37c02a630122781508219": true, // | jakob223     |
 	"d95f137b3b4a3600bc9e39350adba819": true, // | cecileb      |
 	"eb08cb06e608ea41bd893946445d7919": true, // | mlsteele     |
 	"4a2c5d27346497ad64e3b7d457a1f919": true, // | pzduniak     |
-	"673a740cd20fb4bd348738b16d228219": true, // | zanderz      |
 	"743338e8d5987e0e5077f0fddc763f19": true, // | taruti       |
 	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // | zapu         |
 	"8c7c57995cd14780e351fc90ca7dc819": true, // | ayoubd       |
 	"b848bce3d54a76e4da323aad2957e819": true, // | modalduality |
-	"f06926a91bc53c80561ee4e74813dc19": true, // | aimeedavid   |
 }
 
 // IsKeybaseAdmin returns true if uid is a keybase admin.

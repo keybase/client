@@ -246,7 +246,7 @@ protocol chatUi {
     string decorated;
     map<string, Reaction> users;
   }
-  
+
   record UIReactionMap {
     map<string, UIReactionDesc> reactions;
   }
