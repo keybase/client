@@ -71,7 +71,12 @@ const Files = (props: Props) => {
   )
   return (
     <Kb.HeaderHocWrapper title="Files" onBack={props.onBack} skipHeader={!Styles.isPhone}>
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="small">
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        alignItems={Styles.isTablet ? 'flex-start' : 'center'}
+        gap="small"
+      >
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
           <Kb.Text type="Header">Sync</Kb.Text>
           <Kb.Switch
