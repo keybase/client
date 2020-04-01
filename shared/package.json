@@ -222,7 +222,7 @@
     "purepack": "git://github.com/keybase/nullModule",
     "randexp": "0.5.3",
     "react-hot-loader": "4.12.20",
-    "react-native-v8": "git://github.com/keybase/react-native-v8#rn_v0.61.5.3-v8_v8.80.1-2",
+    "react-native-v8": "git://github.com/keybase/react-native-v8#rn_v0.62.0-v8_v8.80.1-2",
     "react-test-renderer": "16.11.0",
     "redux-logger": "3.0.6",
     "rimraf": "2.6.3",

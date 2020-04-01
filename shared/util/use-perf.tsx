@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2} from '../common-adapters/box'
 import Text from '../common-adapters/text'
 import * as Styles from '../styles'
-/** 
+/**
 A dev only hook to measure rendering perf of a component, use the return value as a key
  */
 

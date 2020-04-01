@@ -332,3 +332,10 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Inbox
+// swap out above line for below to run the android inbox perf test
+// import {PerfWrapper} from '../../util/use-perf'
+// export default (p: any) => (
+// <PerfWrapper style={{height: '100%', width: '100%'}}>
+// <Inbox {...p} />
+// </PerfWrapper>
+// )
