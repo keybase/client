@@ -1,8 +1,10 @@
+import * as dateFns from 'date-fns'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import proofsList from './generic/proofs-list/index.stories'
 import {BioTeamProofs, BackgroundColorType} from './user'
 import WebOfTrust from './user/weboftrust/index'
+import {WotStatusType} from '../constants/types/rpc-gen'
 
 const providerUser = (cfProps =>
   Sb.createPropProviderWithCommon({
@@ -154,25 +156,36 @@ const bioPropsSBS = {
   username: 'chris@twitter',
 }
 
-const webOfTrustPending = {
+const fourHoursAgo = dateFns.sub(new Date(), {hours: 4}).getTime()
+
+// looking at an attestation on alice's profile
+const webOfTrustBase = {
   attestation:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-  attestingUser: 'chris',
-  dateString: '2 months ago',
-  onAccept: Sb.action('onAccept'),
-  onReject: Sb.action('onReject'),
-  pending: true,
+  reactWaitingKey: 'reactWaitingKey',
+  username: 'alice',
   verificationType: 'video' as 'video',
+  vouchedAt: fourHoursAgo,
 }
 
-const webOfTrustSent = {
-  ...webOfTrustPending,
+// logged in as alice, chris vouched
+const webOfTrustPending = {
+  ...webOfTrustBase,
+  attestingUser: 'chris',
+  onAccept: Sb.action('onAccept'),
+  onReject: Sb.action('onReject'),
+  status: WotStatusType.proposed,
+  userIsYou: true,
+}
+
+// logged in as max, max wrote, alice accepted
+const webOfTrustAccepted = {
+  ...webOfTrustBase,
   attestingUser: 'max',
-  dateString: '2 months ago',
   onAccept: undefined,
-  onHide: Sb.action('onHide'),
   onReject: undefined,
-  pending: false,
+  status: WotStatusType.accepted,
+  userIsYou: false,
 }
 
 const load = () => {
@@ -181,8 +194,8 @@ const load = () => {
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(providerUser)
     .add('BioTeamProofs', () => <BioTeamProofs {...bioPropsUser} />)
-    .add('Web of Trust - pending', () => <WebOfTrust {...webOfTrustPending} />)
-    .add('Web of Trust - you authored', () => <WebOfTrust {...webOfTrustSent} />)
+    .add('Web of Trust - pending for you', () => <WebOfTrust {...webOfTrustPending} />)
+    .add('Web of Trust - accepted you authored', () => <WebOfTrust {...webOfTrustAccepted} />)
 
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(providerSBS)

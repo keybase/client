@@ -409,7 +409,7 @@ class User extends React.Component<Props, State> {
         </Kb.Button>
       </Kb.Box2>
     ) : (
-      <WebOfTrust webOfTrustAttestation={item} />
+      <WebOfTrust webOfTrustAttestation={item} username={this.props.username} />
     )
 
   _renderOtherUsers = ({item, section, index}) =>

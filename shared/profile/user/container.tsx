@@ -1,11 +1,11 @@
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
+import Profile2, {BackgroundColorType} from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as Types from '../../constants/types/tracker2'
-import Profile2, {BackgroundColorType} from '.'
-import * as Styles from '../../styles'
 
 export type OwnProps = Container.RouteProps<{username: string}>
 
@@ -49,7 +49,7 @@ const connected = Container.namedConnect(
     if (!notAUser) {
       // Keybase user
       const followThem = Constants.followThem(state, username)
-      const {followersCount, followingCount, followers, following, reason} = d
+      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
 
       return {
         ...commonProps,
@@ -65,6 +65,7 @@ const connected = Container.namedConnect(
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
+        webOfTrustEntries,
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
@@ -86,11 +87,13 @@ const connected = Container.namedConnect(
         service,
         serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
+        webOfTrustEntries: [],
       }
     }
   },
   dispatch => ({
     _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
+    _onIKnowThem: () => {}, // TODO: route to the new attestation flow
     _onReload: (username: string, isYou: boolean, state: Types.DetailsState) => {
       if (state !== 'valid') {
         // Might be a Keybase user or not, launch non-user profile fetch.
@@ -148,7 +151,7 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      onIKnowThem: () => {}, // PICNIC-847 open the modal
+      onIKnowThem: stateProps.userIsYou ? undefined : dispatchProps._onIKnowThem, // PICNIC-847 open the modal
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
@@ -161,8 +164,7 @@ const connected = Container.namedConnect(
       title: stateProps.title,
       userIsYou: stateProps.userIsYou,
       username: stateProps.username,
-      // Integrate webOfTrust here.
-      webOfTrustEntries: [],
+      webOfTrustEntries: stateProps.webOfTrustEntries || [],
     }
   },
   'Profile2'

@@ -484,6 +484,9 @@
         "keybase1NotifyUsersUserChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {sessionID: number}"
         },
+        "keybase1NotifyUsersWebOfTrustChanged": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.webOfTrustChanged']['inParam'] & {sessionID: number}"
+        },
         "keybase1NotifyUsersPasswordChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyUsers.passwordChanged']['outParam']) => void}"
         },

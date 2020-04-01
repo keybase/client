@@ -264,6 +264,10 @@ func (h *notifyHandler) IdentifyUpdate(_ context.Context, _ keybase1.IdentifyUpd
 	return nil
 }
 
+func (h *notifyHandler) WebOfTrustChanged(_ context.Context, username string) error {
+	return nil
+}
+
 func TestSignupLogout(t *testing.T) {
 	tc := setupTest(t, "signup")
 	defer tc.Cleanup()
