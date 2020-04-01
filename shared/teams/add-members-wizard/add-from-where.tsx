@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
-import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
+import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 const AddFromWhere = () => {
