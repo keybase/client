@@ -100,7 +100,7 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 		eg.Go(func() error {
 			incr := loadTeamAncestorsMemberships(mctx, teamID, teamName, uv, converter)
 			mctx.Debug("loadTeamTreeMembershipsRecursive: loaded %d teams from ancestors", incr)
-			atomic.AddInt32(&nTeamsLoaded, int32(incr))
+			atomic.AddInt32(&nTeamsLoaded, incr)
 			return nil
 		})
 	}
@@ -115,11 +115,12 @@ func loadTeamTreeMembershipsRecursive(mctx libkb.MetaContext, teamID keybase1.Te
 				mctx, idAndName.Id, idAndName.Name, uv, NodePositionChild, converter,
 			)
 			mctx.Debug("loadTeamTreeMembershipsRecursive: loaded %d teams from subtree", incr)
-			atomic.AddInt32(&nTeamsLoaded, int32(incr))
+			atomic.AddInt32(&nTeamsLoaded, incr)
 			return nil
 		})
 	}
-	eg.Wait()
+	// Should not return any errors since we did error handling ourselves
+	_ = eg.Wait()
 
 	return nTeamsLoaded
 }
