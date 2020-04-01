@@ -73,7 +73,6 @@ class Icon extends React.PureComponent<Props, void> {
         !hasContainer ? this.props.style : {},
         onClick ? Styles.desktopStyles.clickable : {},
         this.props.color ? {color: color} : {},
-        this.props.resizeMode && {resizeMode: this.props.resizeMode},
       ])
 
       iconElement = (

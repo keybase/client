@@ -139,7 +139,7 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
   }
 }
 
-const debug = true
+const debug = false
 
 export const AddEmojiModal = (props: Props) => {
   const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
@@ -216,12 +216,7 @@ const Modal = (props: ModalProps) => {
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
-          <Kb.Icon
-            type="icon-illustration-emoji-add-460-96"
-            resizeMode="cover"
-            noContainer={true}
-            style={styles.bannerImage}
-          />
+          <Kb.Icon type="icon-illustration-emoji-add-460-96" noContainer={true} style={styles.bannerImage} />
           {!!props.bannerError && (
             <Kb.Banner color="red" style={styles.bannerError}>
               {props.bannerError}
@@ -491,10 +486,18 @@ const styles = Styles.styleSheetCreate(() => ({
       position: 'absolute',
     },
   }),
-  bannerImage: {
-    height: '100%',
-    width: '100%',
-  },
+  bannerImage: Styles.platformStyles({
+    common: {
+      height: '100%',
+      width: '100%',
+    },
+    isElectron: {
+      objectFit: 'cover',
+    },
+    isMobile: {
+      resizeMode: 'cover',
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       position: 'relative',

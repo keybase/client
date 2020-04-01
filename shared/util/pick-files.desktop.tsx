@@ -1,12 +1,11 @@
-import * as Electron from 'electron'
-
 const pickFiles = async (title: string): Promise<Array<string>> => {
-  const res = await Electron.remote.dialog.showOpenDialog(Electron.remote.getCurrentWindow(), {
+  const filePaths = await KB.electron.dialog.showOpenDialog({
+    allowFiles: true,
+    allowMultiselect: true,
     filters: [{extensions: ['jpg', 'png', 'gif'], name: 'Images'}],
-    properties: ['multiSelections', 'openFile'],
     title,
   })
-  return res.filePaths
+  return filePaths ?? []
 }
 
 export default pickFiles
