@@ -39,6 +39,9 @@ import com.facebook.react.modules.core.PermissionListener;
 import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
+import android.view.KeyEvent;
+import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -448,5 +451,23 @@ public class MainActivity extends ReactActivity {
     handler.post(() -> {
       mainWindow.setBackgroundDrawableResource(bgColor);
     });
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+      if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+          // Detects user pressing the enter key
+          if (event.getAction() == KeyEvent.ACTION_DOWN && !event.isShiftPressed()) {
+              // Enter is pressed
+              HWKeyboardEventModule.getInstance().keyPressed("enter");
+              return true;
+          }
+          if (event.getAction() == KeyEvent.ACTION_DOWN && event.isShiftPressed()) {
+              // Shift-Enter is pressed
+              HWKeyboardEventModule.getInstance().keyPressed("shift-enter");
+              return true;
+          }
+      }
+      return super.dispatchKeyEvent(event);
   }
 }

@@ -234,6 +234,8 @@ PODS:
     - React
   - react-native-geolocation (2.0.2):
     - React
+  - react-native-hw-keyboard-event (0.0.4):
+    - React
   - react-native-netinfo (5.6.2):
     - React
   - react-native-safe-area-context (0.7.3):
@@ -349,6 +351,7 @@ DEPENDENCIES:
   - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
   - react-native-contacts (from `../node_modules/react-native-contacts`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
+  - react-native-hw-keyboard-event (from `../node_modules/react-native-hw-keyboard-event`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-video (from `../node_modules/react-native-video`)
@@ -457,6 +460,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-contacts"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
+  react-native-hw-keyboard-event:
+    :path: "../node_modules/react-native-hw-keyboard-event"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-safe-area-context:
@@ -569,6 +574,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 3e5e34d36d93548ae7770ee8ab7b2ae9e778f571
   react-native-contacts: be6cde1ffc9c0196fbb57d987b9d40f12b85989c
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
+  react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-netinfo: 73303369946c2487c600418961bfdc87748b832f
   react-native-safe-area-context: e200d4433aba6b7e60b52da5f37af11f7a0b0392
   react-native-video: d01ed7ff1e38fa7dcc6c15c94cf505e661b7bfd0
@@ -608,4 +614,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 843dc6df133334007d13b5c34a0fd83194e7fa0e
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.1

@@ -25,6 +25,7 @@ import {
   runToggle,
   runRotateToggle,
 } from './platform-input-animation.native'
+import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -95,6 +96,26 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           .catch(error => this.props.onFilePickerError(new Error(error)))
         break
     }
+  }
+
+  // Enter should send a message like on desktop, when a hardware keyboard's attached.
+  private handleHardwareEnterPress = (hwKeyEvent: {pressedKey: string}) => {
+    switch (hwKeyEvent.pressedKey) {
+      case 'enter':
+        this.onSubmit()
+        break
+      case 'shift-enter':
+        this.insertText('\n')
+    }
+  }
+
+  componentDidMount() {
+    // @ts-ignore supplied type seems incorrect, has the onHWKeyPressed param as an object
+    HWKeyboardEvent.onHWKeyPressed(this.handleHardwareEnterPress)
+  }
+
+  componentWillUnmount() {
+    HWKeyboardEvent.removeOnHWKeyPressed()
   }
 
   private getText = () => {
