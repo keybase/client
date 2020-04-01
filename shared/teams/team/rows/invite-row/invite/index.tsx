@@ -6,7 +6,7 @@ import {TeamRoleType} from '../../../../../constants/types/teams'
 import flags from '../../../../../util/feature-flags'
 
 export type Props = {
-  isKeybaseUser: boolean
+  isKeybaseUser?: boolean
   label: string
   subLabel?: string
   onCancelInvite?: () => void
