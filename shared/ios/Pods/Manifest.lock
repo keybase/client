@@ -3,28 +3,25 @@ PODS:
   - CocoaAsyncSocket (7.6.4)
   - CocoaLibEvent (1.0.0)
   - DoubleConversion (1.1.6)
+  - EXAppLoaderProvider (8.0.0)
   - EXBarCodeScanner (8.1.0):
     - UMCore
     - UMImageLoaderInterface
     - UMPermissionsInterface
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
-  - EXConstants (9.0.0):
+  - EXConstants (8.0.0):
     - UMConstantsInterface
     - UMCore
   - EXContacts (8.1.0):
     - UMCore
     - UMFileSystemInterface
     - UMPermissionsInterface
-  - EXFileSystem (8.1.0):
+  - EXFileSystem (8.0.0):
     - UMCore
     - UMFileSystemInterface
   - EXHaptics (8.1.0):
     - UMCore
-  - EXImageLoader (1.0.0):
-    - React-Core
-    - UMCore
-    - UMImageLoaderInterface
   - EXImagePicker (8.1.0):
     - UMCore
     - UMFileSystemInterface
@@ -388,23 +385,21 @@ PODS:
   - SDWebImageWebPCoder (0.2.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.0)
-  - UMAppLoader (1.0.0)
-  - UMBarCodeScannerInterface (5.1.0)
-  - UMCameraInterface (5.1.0)
-  - UMConstantsInterface (5.1.0)
-  - UMCore (5.1.0)
-  - UMFaceDetectorInterface (5.1.0)
-  - UMFileSystemInterface (5.1.0)
-  - UMFontInterface (5.1.0)
-  - UMImageLoaderInterface (5.1.0)
-  - UMPermissionsInterface (5.1.0):
-    - UMCore
-  - UMReactNativeAdapter (5.1.1):
+  - UMBarCodeScannerInterface (5.0.0)
+  - UMCameraInterface (5.0.0)
+  - UMConstantsInterface (5.0.0)
+  - UMCore (5.0.0)
+  - UMFaceDetectorInterface (5.0.0)
+  - UMFileSystemInterface (5.0.0)
+  - UMFontInterface (5.0.0)
+  - UMImageLoaderInterface (5.0.0)
+  - UMPermissionsInterface (5.0.0)
+  - UMReactNativeAdapter (5.0.0):
     - React-Core
     - UMCore
     - UMFontInterface
-  - UMSensorsInterface (5.1.0)
-  - UMTaskManagerInterface (5.1.0)
+  - UMSensorsInterface (5.0.0)
+  - UMTaskManagerInterface (5.0.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -416,12 +411,12 @@ PODS:
 
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXAppLoaderProvider (from `../node_modules/expo-app-loader-provider/ios`)
   - EXBarCodeScanner (from `../node_modules/expo-barcode-scanner/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXHaptics (from `../node_modules/expo-haptics/ios`)
-  - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
   - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
@@ -471,7 +466,6 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - UMBarCodeScannerInterface (from `../node_modules/unimodules-barcode-scanner-interface/ios`)
   - UMCameraInterface (from `../node_modules/unimodules-camera-interface/ios`)
   - UMConstantsInterface (from `../node_modules/unimodules-constants-interface/ios`)
@@ -509,26 +503,36 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXAppLoaderProvider:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-app-loader-provider/ios"
   EXBarCodeScanner:
-    :path: "../node_modules/expo-barcode-scanner/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-barcode-scanner/ios"
   EXConstants:
-    :path: "../node_modules/expo-constants/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-constants/ios"
   EXContacts:
-    :path: "../node_modules/expo-contacts/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-contacts/ios"
   EXFileSystem:
-    :path: "../node_modules/expo-file-system/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-file-system/ios"
   EXHaptics:
-    :path: "../node_modules/expo-haptics/ios"
-  EXImageLoader:
-    :path: "../node_modules/expo-image-loader/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-haptics/ios"
   EXImagePicker:
-    :path: "../node_modules/expo-image-picker/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-image-picker/ios"
   EXMediaLibrary:
-    :path: "../node_modules/expo-media-library/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-media-library/ios"
   EXPermissions:
-    :path: "../node_modules/expo-permissions/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-permissions/ios"
   EXSMS:
-    :path: "../node_modules/expo-sms/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-sms/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
@@ -603,32 +607,42 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
-  UMAppLoader:
-    :path: "../node_modules/unimodules-app-loader/ios"
   UMBarCodeScannerInterface:
-    :path: "../node_modules/unimodules-barcode-scanner-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-barcode-scanner-interface/ios"
   UMCameraInterface:
-    :path: "../node_modules/unimodules-camera-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-camera-interface/ios"
   UMConstantsInterface:
-    :path: "../node_modules/unimodules-constants-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-constants-interface/ios"
   UMCore:
-    :path: "../node_modules/@unimodules/core/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/@unimodules/core/ios"
   UMFaceDetectorInterface:
-    :path: "../node_modules/unimodules-face-detector-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-face-detector-interface/ios"
   UMFileSystemInterface:
-    :path: "../node_modules/unimodules-file-system-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-file-system-interface/ios"
   UMFontInterface:
-    :path: "../node_modules/unimodules-font-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-font-interface/ios"
   UMImageLoaderInterface:
-    :path: "../node_modules/unimodules-image-loader-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-image-loader-interface/ios"
   UMPermissionsInterface:
-    :path: "../node_modules/unimodules-permissions-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-permissions-interface/ios"
   UMReactNativeAdapter:
-    :path: "../node_modules/@unimodules/react-native-adapter/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/@unimodules/react-native-adapter/ios"
   UMSensorsInterface:
-    :path: "../node_modules/unimodules-sensors-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-sensors-interface/ios"
   UMTaskManagerInterface:
-    :path: "../node_modules/unimodules-task-manager-interface/ios"
+    :path: !ruby/object:Pathname
+    path: "../node_modules/unimodules-task-manager-interface/ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -637,12 +651,12 @@ SPEC CHECKSUMS:
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
+  EXAppLoaderProvider: ebdb6bc2632c1ccadbe49f5e4104d8d690969c49
   EXBarCodeScanner: 69c482f1dc8492493ccae692093d6e9914081a09
-  EXConstants: 5304709b1bea70a4828f48ba4c7fc3ec3b2d9b17
+  EXConstants: 4051b16c17ef3defa03c541d42811dc92b249146
   EXContacts: b24026570adb4dc8c4db0f12b90d608978f72561
-  EXFileSystem: cf4232ba7c62dc49b78c2d36005f97b6fddf0b01
+  EXFileSystem: 6e0d9bb6cc4ea404dbb8f583c1a8a2dcdf4b83b6
   EXHaptics: 013b5065946d4dd7b46ea547b58072d45a206dbd
-  EXImageLoader: edbf02910aec4b87dfd637de27181e442468401e
   EXImagePicker: 4126814cba56cc3dc5e7fc47abce0b263da84609
   EXMediaLibrary: 30a65e1eef453c6e7a76754febeb88c0d0fba232
   EXPermissions: 24b97f734ce9172d245a5be38ad9ccfcb6135964
@@ -696,19 +710,18 @@ SPEC CHECKSUMS:
   RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
   SDWebImage: 86589f0d47a7de15827640c71813e23fd428965c
   SDWebImageWebPCoder: 947093edd1349d820c40afbd9f42acb6cdecd987
-  UMAppLoader: 70387114be35df5f90cd1f172edfb7a2f150e65a
-  UMBarCodeScannerInterface: 9dc692b87e5f20fe277fa57aa47f45d418c3cc6c
-  UMCameraInterface: 625878bbf2ba188a8548675e1d1d2e438a653e6d
-  UMConstantsInterface: 64060cf86587bcd90b1dbd804cceb6d377a308c1
-  UMCore: d6117852f32c74cde466b863cfdeaa0960186249
-  UMFaceDetectorInterface: d6677d6ddc9ab95a0ca857aa7f8ba76656cc770f
-  UMFileSystemInterface: c70ea7147198b9807080f3597f26236be49b0165
-  UMFontInterface: d9d3b27af698c5389ae9e20b99ef56a083f491fb
-  UMImageLoaderInterface: 14dd2c46c67167491effc9e91250e9510f12709e
-  UMPermissionsInterface: 5e83a9167c177e4a0f0a3539345983cc749efb3e
-  UMReactNativeAdapter: 900e80a6cd83823870cf840f35081edb4043b014
-  UMSensorsInterface: 48941f70175e2975af1a9386c6d6cb16d8126805
-  UMTaskManagerInterface: cb890c79c63885504ddc0efd7a7d01481760aca2
+  UMBarCodeScannerInterface: 3802c8574ef119c150701d679ab386e2266d6a54
+  UMCameraInterface: 985d301f688ed392f815728f0dd906ca34b7ccb1
+  UMConstantsInterface: bda5f8bd3403ad99e663eb3c4da685d063c5653c
+  UMCore: 7ab08669a8bb2e61f557c1fe9784521cb5aa28e3
+  UMFaceDetectorInterface: ce14e8e597f6a52aa66e4ab956cb5bff4fa8acf8
+  UMFileSystemInterface: 2ed004c9620f43f0b36b33c42ce668500850d6a4
+  UMFontInterface: 24fbc0a02ade6c60ad3ee3e2b5d597c8dcfc3208
+  UMImageLoaderInterface: 3976a14c588341228881ff75970fbabf122efca4
+  UMPermissionsInterface: 2abf9f7f4aa7110e27beaf634a7deda2d50ff3d7
+  UMReactNativeAdapter: 230406e3335a8dbd4c9c0e654488a1cf3b44552f
+  UMSensorsInterface: d708a892ef1500bdd9fc3ff03f7836c66d1634d3
+  UMTaskManagerInterface: a98e37a576a5220bf43b8faf33cfdc129d2f441d
   Yoga: 9db9ff2025ad21d1ac0a8b3c85d5ac4e7c29d525
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
   ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb

@@ -22,7 +22,6 @@ import org.unimodules.adapters.react.ReactAdapterPackage;
 import org.unimodules.adapters.react.ReactModuleRegistryProvider;
 import org.unimodules.core.interfaces.Package;
 
-// import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,21 +36,12 @@ import io.keybase.ossifrage.modules.BackgroundJobCreator;
 import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.modules.StorybookConstants;
+import io.keybase.ossifrage.generated.BasePackageList;
 
 import static keybase.Keybase.forceGC;
 
 public class MainApplication extends Application implements ReactApplication {
-    private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(Arrays.<Package>asList(
-      new ReactAdapterPackage(),
-      new ConstantsPackage(),
-      // Same order as package.json
-      new BarCodeScannerPackage(),
-      new ContactsPackage(),
-      new ImagePickerPackage(),
-      new PermissionsPackage(),
-      new SMSPackage()
-    ), null);
-
+    private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(new BasePackageList().getPackageList(), null);
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -148,7 +138,11 @@ public class MainApplication extends Application implements ReactApplication {
                 }
             });
 
-            packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+            // Add unimodules
+            List<ReactPackage> unimodules = Arrays.<ReactPackage>asList(
+                new ModuleRegistryAdapter(mModuleRegistryProvider)
+            );
+            packages.addAll(unimodules);
 
             return packages;
         }
