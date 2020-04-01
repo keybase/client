@@ -43,6 +43,13 @@
         {
           "type": [
             null,
+            "int"
+          ],
+          "name": "scaledSize"
+        },
+        {
+          "type": [
+            null,
             "string"
           ],
           "name": "thumbnailPath"
