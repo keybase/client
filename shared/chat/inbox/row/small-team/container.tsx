@@ -64,7 +64,8 @@ export default Container.namedConnect(
     const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =
-      (hasUnread || stateProps.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
+      (hasUnread || (stateProps.snippet?.length ?? 0) === 0) &&
+      Constants.isDecryptingSnippet(stateProps._meta)
     const hasResetUsers = stateProps._meta.resetParticipants.size !== 0
     const participantsArray = stateProps._participantInfo.all.length
       ? Constants.getRowParticipants(stateProps._participantInfo, stateProps._username)
