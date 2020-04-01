@@ -43,7 +43,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     saving: false,
     selected: retentionPolicies.policyRetain,
   }
-  _timeoutID: NodeJS.Timeout | undefined
+  _timeoutID: ReturnType<typeof setInterval> | undefined
   _showSaved: boolean = false
 
   // We just updated the state with a new selection, do we show the warning
@@ -106,7 +106,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
             let title = ''
             switch (this.props.teamPolicy.type) {
               case 'retain':
-                title = 'Team default (Never auto-delete)'
+                title = 'Team default (Never)'
                 break
               case 'expire':
               case 'explode':
@@ -267,8 +267,9 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.tiny,
   },
   label: {
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     minHeight: Styles.isMobile ? 40 : 32,
+    paddingLeft: Styles.globalMargins.xsmall,
   },
   progressIndicator: {
     height: 30,
@@ -327,7 +328,7 @@ const policyToLabel = (p: RetentionPolicy, parent: RetentionPolicy | null) => {
       }
       switch (parent.type) {
         case 'retain':
-          text = 'Team default (Never auto-delete)'
+          text = 'Team default (Never)'
           break
         case 'expire':
         case 'explode':

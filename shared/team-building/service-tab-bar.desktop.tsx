@@ -194,9 +194,6 @@ const styles = Styles.styleSheetCreate(
       },
       badgeStyle: {backgroundColor: Styles.globalColors.blue},
       inactiveTabBar: {
-        borderBottomWidth: 1,
-        borderColor: Styles.globalColors.black_10,
-        borderStyle: 'solid',
         height: 2,
       },
       label: {
@@ -260,6 +257,9 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 90,
       },
       tabBarContainer: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
         flexShrink: 0,
         minHeight: 30,
       },

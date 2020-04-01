@@ -52,15 +52,7 @@ export default Container.connect(
           ? dispatchProps.onSelectAccountLoggedIn(username)
           : dispatchProps.onSelectAccountLoggedOut(username)
       },
-      rightActions: [
-        {
-          color: 'red',
-          label: 'Sign out',
-          onPress: dispatchProps.onSignOut,
-        },
-      ],
-
-      title: ' ',
+      onSignOut: dispatchProps.onSignOut,
       username: stateProps.username,
       waiting: stateProps.waiting,
     }

@@ -3,7 +3,6 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
-import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
 import {standardTransformer, TransformerData} from '../suggestors'
 import {InputProps} from './types'
@@ -15,6 +14,8 @@ import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
 import {infoPanelWidthTablet} from '../../info-panel/common'
+import {emojiIndex, emojiNameMap} from '../../messages/react-button/emoji-picker/data'
+import {EmojiData, RPCToEmojiData} from '../../../../util/emoji'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -102,7 +103,7 @@ const suggestorKeyExtractors = {
   channels: ({channelname, teamname}: {channelname: string; teamname?: string}) =>
     teamname ? `${teamname}#${channelname}` : channelname,
   commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
-  emoji: (item: {id: string}) => item.id,
+  emoji: (item: EmojiData) => item.short_name,
   users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
     if (teamname) {
       if (channelname) {
@@ -118,12 +119,8 @@ const suggestorKeyExtractors = {
 
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
-const emojiDatasource = (filter: string) => ({
-  data: emojiPrepass.test(filter) ? emojiIndex.search(filter) : [],
-  loading: false,
-  useSpaces: false,
-})
-const emojiRenderer = (item: {colons: string}, selected: boolean) => (
+
+const emojiRenderer = (item: EmojiData, selected: boolean) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
@@ -135,21 +132,16 @@ const emojiRenderer = (item: {colons: string}, selected: boolean) => (
     ])}
     gap="small"
   >
-    <Kb.Emoji emojiName={item.colons} size={24} />
-    <Kb.Text type="BodySmallSemibold">{item.colons}</Kb.Text>
+    {item.source ? (
+      <Kb.CustomEmoji size="Medium" src={item.source} />
+    ) : (
+      <Kb.Emoji emojiName={item.short_name} size={24} />
+    )}
+    <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = (
-  emoji: {
-    colons: string
-    native: string
-  },
-  _: unknown,
-  tData: TransformerData,
-  preview: boolean
-) => {
-  const toInsert = Styles.isMobile ? emoji.native : emoji.colons
-  return standardTransformer(toInsert, tData, preview)
+const emojiTransformer = (emoji: EmojiData, _: unknown, tData: TransformerData, preview: boolean) => {
+  return standardTransformer(`:${emoji.short_name}:`, tData, preview)
 }
 
 type InputState = {
@@ -173,7 +165,7 @@ class Input extends React.Component<InputProps, InputState> {
     this._suggestorDatasource = {
       channels: this._getChannelSuggestions,
       commands: this._getCommandSuggestions,
-      emoji: emojiDatasource,
+      emoji: this._getEmojiSuggestions,
       users: this._getUserSuggestions,
     }
     this._suggestorRenderer = {
@@ -279,7 +271,7 @@ class Input extends React.Component<InputProps, InputState> {
   _setHeight = (inputHeight: number) =>
     this.setState(s => (s.inputHeight === inputHeight ? null : {inputHeight}))
 
-  componentDidMount = () => {
+  componentDidMount() {
     // Set lastQuote so we only inject quoted text after we mount.
     this._lastQuote = this.props.quoteCounter
 
@@ -287,7 +279,7 @@ class Input extends React.Component<InputProps, InputState> {
     this._setText(text, true)
   }
 
-  componentDidUpdate = (prevProps: InputProps) => {
+  componentDidUpdate(prevProps: InputProps) {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
       this._inputFocus()
     }
@@ -359,6 +351,40 @@ class Input extends React.Component<InputProps, InputState> {
       if (!this.props.isSearching && !Constants.isSplit) {
         this._inputFocus()
       }
+    }
+  }
+
+  _getEmojiSuggestions = (filter: string) => {
+    if (!emojiPrepass.test(filter)) {
+      return {
+        data: [],
+        loading: false,
+        useSpaces: false,
+      }
+    }
+
+    // prefill data with stock emoji
+    let emojiData: Array<EmojiData> = []
+    emojiIndex.search(filter)?.forEach((res: {id?: string}) => {
+      if (res.id) {
+        emojiData.push(emojiNameMap[res.id])
+      }
+    })
+
+    // sort stock emoji by sort order
+    emojiData = emojiData.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+
+    if (this.props.userEmojis) {
+      let userEmoji = this.props.userEmojis
+        .filter(emoji => emoji.alias.toLowerCase().includes(filter))
+        .map(emoji => RPCToEmojiData(emoji))
+      emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
+    }
+
+    return {
+      data: emojiData,
+      loading: this.props.userEmojisLoading,
+      useSpaces: false,
     }
   }
 
@@ -632,6 +658,7 @@ class Input extends React.Component<InputProps, InputState> {
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
           onChannelSuggestionsTriggered={this.props.onChannelSuggestionsTriggered}
+          onFetchEmoji={this.props.onFetchEmoji}
           suggestionListStyle={Styles.collapseStyles([
             styles.suggestionList,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},

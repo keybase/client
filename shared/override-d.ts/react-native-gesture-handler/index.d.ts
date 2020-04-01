@@ -5,18 +5,18 @@ declare module 'react-native-gesture-handler' {
   import * as React from 'react'
   import {
     Animated,
-    FlatListProperties,
-    ScrollViewProperties,
-    SliderProperties,
-    SwitchProperties,
-    TextInputProperties,
-    ToolbarAndroidProperties,
-    ViewPagerAndroidProperties,
-    DrawerLayoutAndroidProperties,
-    TouchableHighlightProperties,
-    TouchableOpacityProperties,
-    TouchableNativeFeedbackProperties,
-    TouchableWithoutFeedbackProperties,
+    FlatListProps,
+    ScrollViewProps,
+    SliderProps,
+    SwitchProps,
+    TextInputProps,
+    ToolbarAndroidProps,
+    ViewPagerAndroidProps,
+    DrawerLayoutAndroidProps,
+    TouchableHighlightProps,
+    TouchableOpacityProps,
+    TouchableNativeFeedbackProps,
+    TouchableWithoutFeedbackProps,
     Insets,
     ViewStyle,
     StyleProp,
@@ -330,43 +330,39 @@ declare module 'react-native-gesture-handler' {
 
   export class BorderlessButton extends React.Component<BorderlessButtonProperties> {}
 
-  export class TouchableHighlight extends React.Component<TouchableHighlightProperties> {}
+  export class TouchableHighlight extends React.Component<TouchableHighlightProps> {}
 
-  export class TouchableNativeFeedback extends React.Component<TouchableNativeFeedbackProperties> {}
+  export class TouchableNativeFeedback extends React.Component<TouchableNativeFeedbackProps> {}
 
-  export class TouchableOpacity extends React.Component<TouchableOpacityProperties> {}
+  export class TouchableOpacity extends React.Component<TouchableOpacityProps> {}
 
-  export class TouchableWithoutFeedback extends React.Component<TouchableWithoutFeedbackProperties> {}
+  export class TouchableWithoutFeedback extends React.Component<TouchableWithoutFeedbackProps> {}
 
   /* GESTURE HANDLER WRAPPED CLASSES */
 
-  export class ScrollView extends React.Component<
-    NativeViewGestureHandlerProperties & ScrollViewProperties
-  > {}
+  export class ScrollView extends React.Component<NativeViewGestureHandlerProperties & ScrollViewProps> {}
 
-  export class Slider extends React.Component<NativeViewGestureHandlerProperties & SliderProperties> {}
+  export class Slider extends React.Component<NativeViewGestureHandlerProperties & SliderProps> {}
 
-  export class Switch extends React.Component<NativeViewGestureHandlerProperties & SwitchProperties> {}
+  export class Switch extends React.Component<NativeViewGestureHandlerProperties & SwitchProps> {}
 
-  export class TextInput extends React.Component<NativeViewGestureHandlerProperties & TextInputProperties> {}
+  export class TextInput extends React.Component<NativeViewGestureHandlerProperties & TextInputProps> {}
 
   export class ToolbarAndroid extends React.Component<
-    NativeViewGestureHandlerProperties & ToolbarAndroidProperties
+    NativeViewGestureHandlerProperties & ToolbarAndroidProps
   > {}
 
   export class ViewPagerAndroid extends React.Component<
-    NativeViewGestureHandlerProperties & ViewPagerAndroidProperties
+    NativeViewGestureHandlerProperties & ViewPagerAndroidProps
   > {}
 
   export class DrawerLayoutAndroid extends React.Component<
-    NativeViewGestureHandlerProperties & DrawerLayoutAndroidProperties
+    NativeViewGestureHandlerProperties & DrawerLayoutAndroidProps
   > {}
 
   /* OTHER */
 
-  export class FlatList extends React.Component<
-    NativeViewGestureHandlerProperties & FlatListProperties<any>
-  > {}
+  export class FlatList extends React.Component<NativeViewGestureHandlerProperties & FlatListProps<any>> {}
 
   export function gestureHandlerRootHOC(
     Component: React.ComponentType<any>,

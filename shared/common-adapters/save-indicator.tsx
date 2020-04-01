@@ -117,7 +117,7 @@ const defaultStyle = {
 }
 
 class SaveIndicator extends React.Component<Props, State> {
-  private timeoutID?: NodeJS.Timeout
+  private timeoutID?: ReturnType<typeof setInterval>
   private clearTimeout = () => {
     if (this.timeoutID) {
       clearTimeout(this.timeoutID)
@@ -162,7 +162,7 @@ class SaveIndicator extends React.Component<Props, State> {
     this.clearTimeout()
   }
 
-  componentDidUpdate = (_: Props, prevState: State) => {
+  componentDidUpdate(_: Props, prevState: State) {
     if (this.props.saving !== this.state.saving) {
       const debugLog = this.props.debugLog
       const newPartialState: Partial<State> = {

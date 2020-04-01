@@ -28,7 +28,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     height: 20,
     numImages: 1,
   }
-  timeoutID?: NodeJS.Timer
+  timeoutID?: ReturnType<typeof setTimeout>
 
   static getDerivedStateFromProps(nextProps: Props, _: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
@@ -115,6 +115,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
         duration: animationDuration,
         easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
         toValue: 100,
+        useNativeDriver: false,
       }).start()
       // insert 'EXPLODED' in sync with 'boom!' disappearing
       this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)

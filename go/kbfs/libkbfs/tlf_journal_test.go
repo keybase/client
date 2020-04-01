@@ -84,26 +84,26 @@ type testTLFJournalConfig struct {
 	codecGetter
 	logMaker
 	*testSyncedTlfGetterSetter
-	t                           *testing.T
-	tlfID                       tlf.ID
-	splitter                    data.BlockSplitter
-	crypto                      *CryptoLocal
-	bcache                      data.BlockCache
-	bops                        BlockOps
-	mdcache                     MDCache
-	ver                         kbfsmd.MetadataVer
-	reporter                    Reporter
-	uid                         keybase1.UID
-	verifyingKey                kbfscrypto.VerifyingKey
-	ekg                         singleEncryptionKeyGetter
-	nug                         idutil.NormalizedUsernameGetter
-	mdserver                    MDServer
-	dlTimeout                   time.Duration
-	subsciptionManagerPublisher SubscriptionManagerPublisher
+	t                            *testing.T
+	tlfID                        tlf.ID
+	splitter                     data.BlockSplitter
+	crypto                       *CryptoLocal
+	bcache                       data.BlockCache
+	bops                         BlockOps
+	mdcache                      MDCache
+	ver                          kbfsmd.MetadataVer
+	reporter                     Reporter
+	uid                          keybase1.UID
+	verifyingKey                 kbfscrypto.VerifyingKey
+	ekg                          singleEncryptionKeyGetter
+	nug                          idutil.NormalizedUsernameGetter
+	mdserver                     MDServer
+	dlTimeout                    time.Duration
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 func (c testTLFJournalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
-	return c.subsciptionManagerPublisher
+	return c.subscriptionManagerPublisher
 }
 
 func (c testTLFJournalConfig) BlockSplitter() data.BlockSplitter {

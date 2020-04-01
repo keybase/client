@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
-import {Props as HeaderHocProps} from '../../common-adapters/header-hoc'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'
 
@@ -13,6 +12,7 @@ export type Props = {
   contactKeys: Array<string>
   hasPassword: boolean
   onClearSupersededPhoneNumber: () => void
+  onBack?: () => void
   onAddEmail: () => void
   onAddPhone: () => void
   onClearAddedEmail: () => void
@@ -26,7 +26,7 @@ export type Props = {
   tooManyPhones: boolean
   moreThanOneEmail: boolean
   waiting: boolean
-} & HeaderHocProps
+}
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -168,55 +168,57 @@ const AccountSettings = (props: Props) => (
     reloadOnMount={true}
     waitingKeys={[Constants.loadSettingsWaitingKey]}
   >
-    <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
-      {props.addedEmail && (
-        <Kb.Banner color="yellow" onClose={props.onClearAddedEmail}>
-          <Kb.BannerParagraph
-            bannerColor="yellow"
-            content={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
-          />
-        </Kb.Banner>
-      )}
-      {props.supersededPhoneNumber && (
-        <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
-          <Kb.BannerParagraph
-            bannerColor="yellow"
-            content={`Your phone number ${props.supersededPhoneNumber} is now associated with another Keybase user.`}
-          />
-          <Kb.Button
-            onClick={props.onAddPhone}
-            label="Add a new number"
-            small={true}
-            backgroundColor="yellow"
-            style={styles.topButton}
-          />
-        </Kb.Banner>
-      )}
-      {props.addedPhone && (
-        <Kb.Banner color="green" onClose={props.onClearAddedPhone}>
-          <Kb.BannerParagraph
-            bannerColor="green"
-            content={[
-              'Success! And now you can message anyone on Keybase by phone number. ',
-              {onClick: props.onStartPhoneConversation, text: 'Give it a try.'},
-            ]}
-          />
-        </Kb.Banner>
-      )}
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <EmailPhone {...props} />
-        <Kb.Divider />
-        <Password {...props} />
-        <Kb.Divider />
-        <WebAuthTokenLogin {...props} />
-        {!Styles.isMobile && (
-          <>
-            <Kb.Divider />
-            <DeleteAccount {...props} />
-          </>
+    <Kb.HeaderHocWrapper onBack={props.onBack} skipHeader={!Styles.isPhone} title="Your account">
+      <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
+        {props.addedEmail && (
+          <Kb.Banner color="yellow" onClose={props.onClearAddedEmail}>
+            <Kb.BannerParagraph
+              bannerColor="yellow"
+              content={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
+            />
+          </Kb.Banner>
         )}
-      </Kb.Box2>
-    </Kb.ScrollView>
+        {props.supersededPhoneNumber && (
+          <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
+            <Kb.BannerParagraph
+              bannerColor="yellow"
+              content={`Your phone number ${props.supersededPhoneNumber} is now associated with another Keybase user.`}
+            />
+            <Kb.Button
+              onClick={props.onAddPhone}
+              label="Add a new number"
+              small={true}
+              backgroundColor="yellow"
+              style={styles.topButton}
+            />
+          </Kb.Banner>
+        )}
+        {props.addedPhone && (
+          <Kb.Banner color="green" onClose={props.onClearAddedPhone}>
+            <Kb.BannerParagraph
+              bannerColor="green"
+              content={[
+                'Success! And now you can message anyone on Keybase by phone number. ',
+                {onClick: props.onStartPhoneConversation, text: 'Give it a try.'},
+              ]}
+            />
+          </Kb.Banner>
+        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+          <EmailPhone {...props} />
+          <Kb.Divider />
+          <Password {...props} />
+          <Kb.Divider />
+          <WebAuthTokenLogin {...props} />
+          {!Styles.isMobile && (
+            <>
+              <Kb.Divider />
+              <DeleteAccount {...props} />
+            </>
+          )}
+        </Kb.Box2>
+      </Kb.ScrollView>
+    </Kb.HeaderHocWrapper>
   </Kb.Reloadable>
 )
 
@@ -240,17 +242,22 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 16,
   },
   section: Styles.platformStyles({
-    isElectron: {
+    common: {
       ...Styles.padding(
         Styles.globalMargins.small,
         Styles.globalMargins.mediumLarge,
         Styles.globalMargins.medium,
         Styles.globalMargins.small
       ),
+    },
+    isElectron: {
       maxWidth: 600,
     },
-    isMobile: {
+    isPhone: {
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
+    },
+    isTablet: {
+      maxWidth: Styles.globalStyles.largeWidthPercent,
     },
   }),
   topButton: {
@@ -258,4 +265,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Kb.HeaderHoc(AccountSettings)
+export default AccountSettings

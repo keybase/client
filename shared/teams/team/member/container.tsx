@@ -4,64 +4,13 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
-import {HeaderHoc} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {TeamMember, MemberProps} from '.'
 import * as Constants from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = Container.RouteProps<{username: string; teamID: Types.TeamID}>
-
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const username = Container.getRouteProps(ownProps, 'username', '')
-  const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-  const teamDetails = Constants.getTeamDetails(state, teamID)
-  const {teamname} = Constants.getTeamMeta(state, teamID)
-  const disabledReasonsForRolePicker = Constants.getDisabledReasonsForRolePicker(state, teamID, username)
-
-  return {
-    _memberInfo: teamDetails.members,
-    _username: username,
-    _you: state.config.username,
-    disabledReasonsForRolePicker,
-    follower: state.config.followers.has(username),
-    following: state.config.following.has(username),
-    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
-    teamID,
-    teamname,
-    yourOperations: Constants.getCanPerform(state, teamname),
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  _onChat: (username: string) => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
-  },
-  _onEditRole: (teamID: Types.TeamID, username: string, role: Types.TeamRoleType) =>
-    dispatch(TeamsGen.createEditMembership({role, teamID, username})),
-  _onRemoveMember: (teamID: Types.TeamID, username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
-      })
-    )
-  },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onLeaveTeam: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {teamID: Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)},
-            selected: 'teamReallyLeaveTeam',
-          },
-        ],
-      })
-    )
-  },
-  onOpenProfile: () =>
-    dispatch(createShowUserProfile({username: Container.getRouteProps(ownProps, 'username', '')})),
-})
 
 type State = {
   rolePickerOpen: boolean
@@ -72,7 +21,7 @@ type Props = MemberProps & {
   onEditRole: (role: Types.TeamRoleType) => void
 }
 
-class TeamMemberStateWrapper extends React.Component<Props, State> {
+export class TeamMemberStateWrapper extends React.Component<Props, State> {
   state = {
     rolePickerOpen: false,
     selectedRole: null,
@@ -80,25 +29,75 @@ class TeamMemberStateWrapper extends React.Component<Props, State> {
 
   render() {
     return (
-      <TeamMember
-        {...this.props}
-        isRolePickerOpen={this.state.rolePickerOpen}
-        onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
-        onEditMembership={() => this.setState({rolePickerOpen: true})}
-        onConfirmRolePicker={role => {
-          this.props.onEditRole(role)
-          this.setState({rolePickerOpen: false})
-        }}
-        onSelectRole={selectedRole => this.setState({selectedRole})}
-        selectedRole={this.state.selectedRole}
-      />
+      <Kb.HeaderHocWrapper onBack={this.props.onBack}>
+        <TeamMember
+          {...this.props}
+          isRolePickerOpen={this.state.rolePickerOpen}
+          onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
+          onEditMembership={() => this.setState({rolePickerOpen: true})}
+          onConfirmRolePicker={role => {
+            this.props.onEditRole(role)
+            this.setState({rolePickerOpen: false})
+          }}
+          onSelectRole={selectedRole => this.setState({selectedRole})}
+          selectedRole={this.state.selectedRole}
+        />
+      </Kb.HeaderHocWrapper>
     )
   }
 }
 
 export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const username = Container.getRouteProps(ownProps, 'username', '')
+    const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
+    const teamDetails = Constants.getTeamDetails(state, teamID)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
+    const disabledReasonsForRolePicker = Constants.getDisabledReasonsForRolePicker(state, teamID, username)
+
+    return {
+      _memberInfo: teamDetails.members,
+      _username: username,
+      _you: state.config.username,
+      disabledReasonsForRolePicker,
+      follower: state.config.followers.has(username),
+      following: state.config.following.has(username),
+      loading: anyWaiting(state, Constants.teamWaitingKey(teamID)),
+      teamID,
+      teamname,
+      yourOperations: Constants.getCanPerform(state, teamname),
+    }
+  },
+  (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+    _onChat: (username: string) => {
+      username &&
+        dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
+    },
+    _onEditRole: (teamID: Types.TeamID, username: string, role: Types.TeamRoleType) =>
+      dispatch(TeamsGen.createEditMembership({role, teamID, username})),
+    _onRemoveMember: (teamID: Types.TeamID, username: string) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
+        })
+      )
+    },
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onLeaveTeam: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {teamID: Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)},
+              selected: 'teamReallyLeaveTeam',
+            },
+          ],
+        })
+      )
+    },
+    onOpenProfile: () =>
+      dispatch(createShowUserProfile({username: Container.getRouteProps(ownProps, 'username', '')})),
+  }),
   (stateProps, dispatchProps, _: OwnProps) => {
     // Gather contextual team membership info
     const yourInfo = stateProps._memberInfo && stateProps._memberInfo.get(stateProps._you)
@@ -140,4 +139,4 @@ export default Container.connect(
       you,
     }
   }
-)(HeaderHoc(TeamMemberStateWrapper))
+)(TeamMemberStateWrapper)

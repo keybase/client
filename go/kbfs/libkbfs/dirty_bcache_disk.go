@@ -98,7 +98,7 @@ func (d *DirtyBlockCacheDisk) Get(
 	}
 
 	block := info.newBlock()
-	err = assembleBlock(
+	err = assembleBlockLocal(
 		ctx, d.config.keyGetter(), d.config.Codec(),
 		d.config.cryptoPure(), d.kmd, info.tmpPtr, block, data, serverHalf)
 	if err != nil {

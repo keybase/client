@@ -9,7 +9,18 @@ import {keybaseFM} from '../../constants/whats-new'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import WhatsNewIcon from '../../whats-new/icon/container'
-import {Props} from './index'
+import SplitNav from './split-nav'
+
+type Props = {
+  badgeNotifications?: boolean
+  badgeNumbers: Map<TabConstants.Tab, number>
+  contactsLabel: string
+  hasRandomPW: boolean | null
+  logoutInProgress: boolean
+  onLogout: () => void
+  onTabChange: (tab: Constants.SettingsTab) => void
+  selectedTab: Constants.SettingsTab
+}
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -72,90 +83,97 @@ function SettingsNav(props: Props) {
         ) : null
       }
       style={Styles.globalStyles.fullHeight}
-      sections={[
-        {
-          data: [
-            ...(statsShown ? [{text: 'perf'}] : []),
-            {
-              badgeNumber: badgeNumbers.get(TabConstants.gitTab),
-              icon: 'iconfont-nav-git',
-              onClick: () => props.onTabChange(Constants.gitTab),
-              text: 'Git',
-            },
-            {
-              badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
-              icon: 'iconfont-nav-devices',
-              onClick: () => props.onTabChange(Constants.devicesTab),
-              text: 'Devices',
-            },
-            {
-              badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
-              icon: 'iconfont-nav-wallets',
-              onClick: () => props.onTabChange(Constants.walletsTab),
-              text: 'Wallet',
-            },
-            {
-              iconComponent: WhatsNewIcon,
-              onClick: () => props.onTabChange(Constants.whatsNewTab),
-              subText: `What's new?`,
-              text: keybaseFM,
-            },
-          ],
-          title: '',
-        },
-        {
-          data: [
-            {
-              badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
-              onClick: () => props.onTabChange(Constants.accountTab),
-              text: 'Your account',
-            },
-            {
-              onClick: () => props.onTabChange(Constants.chatTab),
-              text: 'Chat',
-            },
-            {
-              onClick: () => props.onTabChange(Constants.contactsTab),
-              text: props.contactsLabel,
-            },
-            {
-              onClick: () => props.onTabChange(Constants.fsTab),
-              text: 'Files',
-            },
-            {
-              badgeNumber: props.badgeNotifications ? 1 : 0,
-              onClick: () => props.onTabChange(Constants.notificationsTab),
-              text: 'Notifications',
-            },
-            {
-              onClick: () => props.onTabChange(Constants.displayTab),
-              text: 'Display',
-            },
-            ...(isAndroid
-              ? [
-                  {
-                    onClick: () => props.onTabChange(Constants.screenprotectorTab),
-                    text: 'Screen protector',
-                  },
-                ]
-              : []),
-          ],
-          title: 'Settings',
-        },
-        {
-          data: [
-            {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
-            {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
-            {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
-            {
-              onClick: () => props.onTabChange(Constants.logOutTab),
-              text: 'Sign out',
-              textColor: Styles.globalColors.red,
-            },
-          ],
-          title: 'More',
-        },
-      ]}
+      sections={
+        [
+          {
+            data: [
+              ...(statsShown ? [{text: 'perf'}] : []),
+              {
+                icon: 'iconfont-nav-2-crypto',
+                onClick: () => props.onTabChange(Constants.cryptoTab),
+                text: 'Crypto',
+              },
+              {
+                badgeNumber: badgeNumbers.get(TabConstants.gitTab),
+                icon: 'iconfont-nav-git',
+                onClick: () => props.onTabChange(Constants.gitTab),
+                text: 'Git',
+              },
+              {
+                badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
+                icon: 'iconfont-nav-devices',
+                onClick: () => props.onTabChange(Constants.devicesTab),
+                text: 'Devices',
+              },
+              {
+                badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
+                icon: 'iconfont-nav-wallets',
+                onClick: () => props.onTabChange(Constants.walletsTab),
+                text: 'Wallet',
+              },
+              {
+                iconComponent: WhatsNewIcon,
+                onClick: () => props.onTabChange(Constants.whatsNewTab),
+                subText: `What's new?`,
+                text: keybaseFM,
+              },
+            ] as const,
+            title: '',
+          },
+          {
+            data: [
+              {
+                badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
+                onClick: () => props.onTabChange(Constants.accountTab),
+                text: 'Your account',
+              },
+              {
+                onClick: () => props.onTabChange(Constants.chatTab),
+                text: 'Chat',
+              },
+              {
+                onClick: () => props.onTabChange(Constants.contactsTab),
+                text: props.contactsLabel,
+              },
+              {
+                onClick: () => props.onTabChange(Constants.fsTab),
+                text: 'Files',
+              },
+              {
+                badgeNumber: props.badgeNotifications ? 1 : 0,
+                onClick: () => props.onTabChange(Constants.notificationsTab),
+                text: 'Notifications',
+              },
+              {
+                onClick: () => props.onTabChange(Constants.displayTab),
+                text: 'Display',
+              },
+              ...(isAndroid
+                ? [
+                    {
+                      onClick: () => props.onTabChange(Constants.screenprotectorTab),
+                      text: 'Screen protector',
+                    },
+                  ]
+                : []),
+            ],
+            title: 'Settings',
+          },
+          {
+            data: [
+              {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
+              {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
+              {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
+              {
+                onClick: () => props.onTabChange(Constants.logOutTab),
+                text: 'Sign out',
+                textColor: Styles.globalColors.red,
+              },
+            ] as const,
+            title: 'More',
+          },
+        ] as any
+      }
     />
   )
 }
@@ -173,4 +191,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default SettingsNav
+export default Styles.isPhone ? SettingsNav : SplitNav

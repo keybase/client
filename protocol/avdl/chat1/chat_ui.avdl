@@ -139,6 +139,7 @@ protocol chatUi {
     boolean isDefaultConv;
     string name;
     string snippet;
+    string snippetDecorated;
     SnippetDecoration snippetDecoration;
     string channel;
     string headline;
@@ -299,6 +300,7 @@ protocol chatUi {
     boolean isEphemeral;
     union { null, FlipGameIDStr} flipGameID;
     union { null, UIMessage } replyTo;
+    MessageID supersedes;
 
     // For attachments
     string filename;

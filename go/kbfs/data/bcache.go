@@ -136,8 +136,14 @@ func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
 }
 
 // CheckForKnownPtr implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (
+func (b *BlockCacheStandard) CheckForKnownPtr(
+	tlf tlf.ID, block *FileBlock, hashBehavior BlockCacheHashBehavior) (
 	BlockPointer, error) {
+	if hashBehavior == SkipCacheHash {
+		// Avoid hashing if we're not caching the hashes.
+		return BlockPointer{}, nil
+	}
+
 	if block.IsInd {
 		return BlockPointer{}, NotDirectFileBlockError{}
 	}

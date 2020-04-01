@@ -61,6 +61,7 @@ export declare const globalStyles: {
     width: '100%'
   }
   italic: _fakeFontDefSeeCommentsOnThisStyle
+  largeWidthPercent: string
   loadingTextStyle: CSS._StylesCrossPlatform
   mediumWidth: number | string
   opacity0: {opacity: 0}
@@ -69,6 +70,7 @@ export declare const globalStyles: {
     borderRadius: 3
   }
   shortWidth: number | string
+  tinyWidth: number | string
 }
 
 export declare const desktopStyles: {

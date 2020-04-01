@@ -24,7 +24,9 @@ export default Container.namedConnect(
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const youAreReset = _meta.membershipType === 'youAreReset'
     const typers = state.chat2.typingMap.get(_conversationIDKey)
-    let snippet = state.chat2.metaMap.get(_conversationIDKey) ? _meta.snippet : ownProps.snippet || ''
+    let snippet = state.chat2.metaMap.get(_conversationIDKey)
+      ? _meta.snippetDecorated
+      : ownProps.snippet || ''
     const snippetDecoration = _meta.snippetDecoration ?? ownProps.snippetDecoration
     let isTypingSnippet = false
     if (typers && typers.size > 0) {
@@ -62,7 +64,8 @@ export default Container.namedConnect(
     const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =
-      (hasUnread || stateProps.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
+      (hasUnread || (stateProps.snippet?.length ?? 0) === 0) &&
+      Constants.isDecryptingSnippet(stateProps._meta)
     const hasResetUsers = stateProps._meta.resetParticipants.size !== 0
     const participantsArray = stateProps._participantInfo.all.length
       ? Constants.getRowParticipants(stateProps._participantInfo, stateProps._username)

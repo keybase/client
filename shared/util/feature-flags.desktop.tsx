@@ -21,6 +21,7 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   connectThrashCheck: true,
+  inviteFriends: true,
   moveOrCopy: true,
   tabletSupport: true,
   webOfTrust: false,

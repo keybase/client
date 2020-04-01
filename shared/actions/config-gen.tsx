@@ -186,7 +186,8 @@ export const createAndroidShare = (
   payload: _AndroidSharePayload = Object.freeze({})
 ): AndroidSharePayload => ({payload, type: androidShare})
 /**
- * Log out the current user, keeping secrets stored. Then prefill the username for provisioned another user to log in.
+ * Log out the current user, keeping secrets stored.
+ * Then prefill the username for provisioned another user to log in.
  */
 export const createLogoutAndTryToLogInAs = (
   payload: _LogoutAndTryToLogInAsPayload
@@ -212,7 +213,8 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload): FilePic
   type: filePickerError,
 })
 /**
- * Set the latest version number that a user has seen from Gregor. This is used to set the badged state of the 'What's New' radio icon
+ * Set the latest version number that a user has seen from Gregor.
+ * This is used to set the badged state of the 'What's New' radio icon
  */
 export const createSetWhatsNewLastSeenVersion = (
   payload: _SetWhatsNewLastSeenVersionPayload
@@ -225,14 +227,16 @@ export const createSetStartupFile = (payload: _SetStartupFilePayload): SetStartu
   type: setStartupFile,
 })
 /**
- * This action is dispatched multiple times with various flags. if you want to do something as a result of startup or login listen to this
+ * This action is dispatched multiple times with various flags.
+ * If you want to do something as a result of startup or login listen to this.
  */
 export const createLoadOnStart = (payload: _LoadOnStartPayload): LoadOnStartPayload => ({
   payload,
   type: loadOnStart,
 })
 /**
- * Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded
+ * Used internally to know we were logged in.
+ * If you want to react to being logged in likely you want bootstrapStatusLoaded
  */
 export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({payload, type: loggedIn})
 /**

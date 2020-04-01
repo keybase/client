@@ -23,7 +23,13 @@ const InviteFriendsModal = () => {
   }, [defaultCountry, dispatch])
 
   const [emails, setEmails] = React.useState('')
-  const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
+  const {
+    phoneNumbers,
+    setPhoneNumber,
+    addPhoneNumber,
+    removePhoneNumber,
+    resetPhoneNumbers,
+  } = usePhoneNumberList()
 
   // disabled if both are empty or if there are some invalid phone numbers
   const disabled =
@@ -46,11 +52,15 @@ const InviteFriendsModal = () => {
         setSuccessCount(r)
         setError('')
         setEmails('')
-        phoneNumbers.filter(p => !!p.phoneNumber).forEach(p => removePhoneNumber(p.key))
+        resetPhoneNumbers()
       },
       err => {
         setSuccessCount(null)
-        setError(err.message)
+        if (err.code === RPCGen.StatusCode.scratelimit) {
+          setError("You've been doing that a bit too much lately. Try again later.")
+        } else {
+          setError(err.message)
+        }
       }
     )
   const {popup, setShowingPopup} = Kb.usePopup(() => (
@@ -60,7 +70,14 @@ const InviteFriendsModal = () => {
     <Kb.Modal
       mode="DefaultFullHeight"
       onClose={onClose}
-      header={{title: Styles.isMobile ? 'Invite friends' : 'Invite your friends to Keybase'}}
+      header={{
+        leftButton: Styles.isMobile && (
+          <Kb.Text type="BodyBigLink" onClick={onClose}>
+            Cancel
+          </Kb.Text>
+        ),
+        title: Styles.isMobile ? 'Invite friends' : 'Invite your friends to Keybase',
+      }}
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="medium" fullWidth={true}>
@@ -100,7 +117,7 @@ const InviteFriendsModal = () => {
             ]),
       ]}
     >
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} alignItems="center" style={styles.container}>
         <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.illustration} />
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.content}>
           <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'tiny'} fullWidth={true}>
@@ -162,9 +179,7 @@ const styles = Styles.styleSheetCreate(() => ({
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
   },
-  illustration: {
-    width: '100%',
-  },
+  illustration: Styles.platformStyles({isElectron: {width: '100%'}}),
   linkPopupContainer: {
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
   },

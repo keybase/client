@@ -15,6 +15,7 @@ import (
 
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -39,12 +40,14 @@ type blockRetrievalPartialConfig interface {
 	data.Versioner
 	logMaker
 	blockCacher
+	blockServerGetter
 	diskBlockCacheGetter
 	syncedTlfGetterSetter
 	initModeGetter
 	clockGetter
 	reporterGetter
 	settingsDBGetter
+	subscriptionManagerGetter
 	subscriptionManagerPublisherGetter
 }
 
@@ -124,8 +127,9 @@ type blockRetrievalQueue struct {
 	ptrs map[blockPtrLookup]*blockRetrieval
 	// global counter of insertions to queue
 	// capacity: ~584 years at 1 billion requests/sec
-	insertionCount uint64
-	heap           *blockRetrievalHeap
+	insertionCount  uint64
+	heap            *blockRetrievalHeap
+	appStateUpdater env.AppStateUpdater
 
 	// These are notification channels to maximize the time that each request
 	// is in the heap, allowing preemption as long as possible. This way, a
@@ -160,7 +164,8 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 func newBlockRetrievalQueue(
 	numWorkers int, numPrefetchWorkers int,
 	throttledPrefetchPeriod time.Duration,
-	config blockRetrievalConfig) *blockRetrievalQueue {
+	config blockRetrievalConfig,
+	appStateUpdater env.AppStateUpdater) *blockRetrievalQueue {
 	var throttledWorkCh channels.Channel
 	if numPrefetchWorkers > 0 {
 		throttledWorkCh = NewInfiniteChannelWrapper()
@@ -173,6 +178,7 @@ func newBlockRetrievalQueue(
 		vlog:               config.MakeVLogger(log),
 		ptrs:               make(map[blockPtrLookup]*blockRetrieval),
 		heap:               &blockRetrievalHeap{},
+		appStateUpdater:    appStateUpdater,
 		workerCh:           NewInfiniteChannelWrapper(),
 		prefetchWorkerCh:   NewInfiniteChannelWrapper(),
 		throttledWorkCh:    throttledWorkCh,
@@ -181,7 +187,7 @@ func newBlockRetrievalQueue(
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
 	}
-	q.prefetcher = newBlockPrefetcher(q, config, nil, nil)
+	q.prefetcher = newBlockPrefetcher(q, config, nil, nil, appStateUpdater)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
 			config.blockGetter(), q, q.workerCh))
@@ -343,15 +349,18 @@ func (brq *blockRetrievalQueue) setPrefetchStatus(
 	return nil
 }
 
+func (brq *blockRetrievalQueue) cacheHashBehavior(
+	tlfID tlf.ID) data.BlockCacheHashBehavior {
+	return cacheHashBehavior(brq.config, brq.config, tlfID)
+}
+
 // PutInCaches implements the BlockRetriever interface for
 // BlockRetrievalQueue.
 func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	ptr data.BlockPointer, tlfID tlf.ID, block data.Block, lifetime data.BlockCacheLifetime,
 	prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) (err error) {
-	// TODO: plumb through whether journaling is enabled for this TLF,
-	// to set the right cache behavior.
 	err = brq.config.BlockCache().Put(
-		ptr, tlfID, block, lifetime, data.DoCacheHash)
+		ptr, tlfID, block, lifetime, brq.cacheHashBehavior(tlfID))
 	switch err.(type) {
 	case nil:
 	case data.CachePutCacheFullError:
@@ -415,14 +424,13 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	}
 
 	// Assemble the block from the encrypted block buffer.
-	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block, blockBuf,
-		serverHalf)
+	err = brq.config.blockGetter().assembleBlockLocal(
+		ctx, kmd, ptr, block, blockBuf, serverHalf)
 	if err == nil {
-		// Cache the block in memory.  TODO: plumb through whether
-		// journaling is enabled for this TLF, to set the right cache
-		// behavior.
+		// Cache the block in memory.
 		_ = brq.config.BlockCache().Put(
-			ptr, kmd.TlfID(), block, data.TransientEntry, data.DoCacheHash)
+			ptr, kmd.TlfID(), block, data.TransientEntry,
+			brq.cacheHashBehavior(kmd.TlfID()))
 	}
 	return prefetchStatus, err
 }
@@ -573,7 +581,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
 	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	if brq.config.IsSyncedTlf(kmd.TlfID()) {
+	if !action.NonMasterBranch() && brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()
 	}
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)
@@ -738,7 +746,7 @@ func (brq *blockRetrievalQueue) TogglePrefetcher(enable bool,
 	ch := brq.prefetcher.Shutdown()
 	if enable {
 		brq.prefetcher = newBlockPrefetcher(
-			brq, brq.config, testSyncCh, testDoneCh)
+			brq, brq.config, testSyncCh, testDoneCh, brq.appStateUpdater)
 	}
 	return ch
 }

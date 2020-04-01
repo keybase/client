@@ -40,6 +40,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
         duration: 2000,
         easing: NativeEasing.linear,
         toValue: -80, // pattern loops on multiples of 80
+        useNativeDriver: false,
       })
     )
     loop.start()
@@ -49,6 +50,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
       duration: 300,
       easing,
       toValue: 0,
+      useNativeDriver: false,
     })
     this._animations.in = ain
     ain.start()
@@ -58,6 +60,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
       duration: 300,
       easing,
       toValue: 48,
+      useNativeDriver: false,
     })
     this._animations.out = out
     out.start(({finished}) => finished && cbIfFinish())

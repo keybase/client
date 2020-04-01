@@ -23,7 +23,7 @@ type Ref = {
 
 class Ticker {
   refs: Array<Ref> = []
-  intervalID: NodeJS.Timeout | undefined
+  intervalID: ReturnType<typeof setInterval> | undefined
 
   addObserver = (fn: () => void): TickerID => {
     if (!this.intervalID) {

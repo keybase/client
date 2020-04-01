@@ -108,4 +108,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HeaderOnMobile(Git)
+export default Git

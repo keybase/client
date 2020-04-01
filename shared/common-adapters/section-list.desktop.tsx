@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import ReactList from 'react-list'
 import {Box2} from './box'
-import DelayedMounting from './delayed-mounting'
 import ScrollView from './scroll-view'
 import {Props, Section, ItemTFromSectionT} from './section-list'
 import debounce from 'lodash/debounce'
@@ -29,6 +28,7 @@ type State = {
 
 class SectionList<T extends Section<any, any>> extends React.Component<Props<T>, State> {
   _flat: Array<FlatListElement<T>> = []
+  _sectionIndexToFlatIndex: Array<number> = []
   state = {currentSectionFlatIndex: 0}
   _listRef: React.RefObject<any> = React.createRef()
   _mounted = true
@@ -56,8 +56,13 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   }
 
   /* Methods from native SectionList */
-  scrollToLocation() {
-    console.warn('TODO desktop SectionList')
+  scrollToLocation(params) {
+    // TODO desktop SectionList is limited to sectionIndex
+    const sectionIndex = params?.sectionIndex
+    const flatIndex = sectionIndex && this._sectionIndexToFlatIndex[sectionIndex]
+    if (typeof flatIndex === 'number') {
+      this._listRef.current?.scrollTo(flatIndex)
+    }
   }
   recordInteraction() {
     console.warn('TODO desktop SectionList')
@@ -161,19 +166,40 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   _checkStickyDebounced = debounce(this._checkSticky, 20)
   _checkStickyThrottled = throttle(this._checkSticky, 20)
 
-  _onScroll = e => {
-    e.currentTarget && this._checkOnEndReached(e.currentTarget)
+  private triggerOnSectionChangeIfNeeded() {
+    if (!this.props.desktopOnSectionChange) {
+      return
+    }
+    const visibleRange = this._listRef.current?.getVisibleRange()
+    const sectionIndex = this._flat[visibleRange[0]].sectionIndex
+    typeof sectionIndex === 'number' && this.props.desktopOnSectionChange(sectionIndex)
+  }
+
+  private onScrollDelayed = () => {
+    if (!this._mounted) {
+      return
+    }
+    this.triggerOnSectionChangeIfNeeded()
     this._checkStickyDebounced()
     this._checkStickyThrottled()
   }
 
+  private onScroll = e => {
+    e.currentTarget && this._checkOnEndReached(e.currentTarget)
+    // getVisibleRange() is racy, so delay it.
+    setTimeout(() => this.onScrollDelayed())
+  }
+
   _flatten = memoize((sections: ReadonlyArray<T>) => {
+    this._sectionIndexToFlatIndex = []
     this._flat = (sections || []).reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
       const flatSectionIndex = arr.length
+      this._sectionIndexToFlatIndex.push(flatSectionIndex)
       arr.push({
         flatSectionIndex,
         key: this.props.sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
         section,
+        sectionIndex,
         type: 'header',
       })
       if (section.data.length) {
@@ -187,6 +213,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
               // @ts-ignore
               item.key ||
               `${sectionIndex}-${indexWithinSection}`,
+            sectionIndex,
             type: 'body',
           }))
         )
@@ -197,6 +224,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
         // to get the sticky header back on the screen.
         arr.push({
           flatSectionIndex,
+          sectionIndex,
           type: 'placeholder',
         })
       }
@@ -247,24 +275,18 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
         <Kb.ScrollView
           contentContainerStyle={this.props.contentContainerStyle}
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
-          onScroll={this._onScroll}
+          onScroll={this.onScroll}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
-          <DelayedMounting delay={0}>
-            {/* The delayed mounting is needed for the list to render
-              correctly. Otherwise if the first `sections` prop passed into
-                SectionList is non-zero, the offset is wrong causing first
-            item in the first section to be hidden.*/}
-            <ReactList
-              itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
-              itemSizeGetter={this.getItemSizeGetter()}
-              length={this._flat.length}
-              // @ts-ignore
-              retrigger={this._flat}
-              ref={this._listRef}
-              type="variable"
-            />
-          </DelayedMounting>
+          <ReactList
+            itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
+            itemSizeGetter={this.getItemSizeGetter()}
+            length={this._flat.length}
+            // @ts-ignore
+            retrigger={this._flat}
+            ref={this._listRef}
+            type="variable"
+          />
         </Kb.ScrollView>
         {!this.props.disableAbsoluteStickyHeader && stickyHeader}
       </Kb.Box2>
@@ -276,6 +298,7 @@ type HeaderFlatListElement<T> = {
   flatSectionIndex: number
   key: React.Key
   section: T
+  sectionIndex: number
   type: 'header'
 }
 type FlatListElement<T> =
@@ -284,11 +307,13 @@ type FlatListElement<T> =
       indexWithinSection: number
       item: ItemTFromSectionT<T>
       key: React.Key
+      sectionIndex: number
       type: 'body'
     }
   | HeaderFlatListElement<T>
   | {
       flatSectionIndex: number
+      sectionIndex: number
       type: 'placeholder'
     }
 

@@ -13,16 +13,16 @@ const load = () => {
         <Box style={styles.space} />
         <Dropdown
           items={[
-            <Text type="BodyBig" key="pick">
+            <Text type="BodyBig" key="pick" style={styles.text}>
               Pick a value
             </Text>,
-            <Text type="BodyBig" key="one">
+            <Text type="BodyBig" key="one" style={styles.text}>
               One
             </Text>,
-            <Text type="BodyBig" key="two">
+            <Text type="BodyBig" key="two" style={styles.text}>
               Two
             </Text>,
-            <Text type="BodyBig" key="three">
+            <Text type="BodyBig" key="three" style={styles.text}>
               Three
             </Text>,
           ]}
@@ -30,40 +30,48 @@ const load = () => {
         />
         <Dropdown
           items={[
-            <Text type="BodyBig" key="pick">
+            <Text type="BodyBig" key="pick" style={styles.text}>
               Pick a value
             </Text>,
-            <Text type="BodyBig" key="one">
+            <Text type="BodyBig" key="one" style={styles.text}>
               One
             </Text>,
-            <Text type="BodyBig" key="two">
+            <Text type="BodyBig" key="two" style={styles.text}>
               Two
             </Text>,
-            <Text type="BodyBig" key="trhee">
+            <Text type="BodyBig" key="trhee" style={styles.text}>
               Three
             </Text>,
           ]}
           onChanged={Sb.action('onChanged')}
-          selected={<Text type="BodyBig">Pick a value</Text>}
+          selected={
+            <Text type="BodyBig" style={styles.text}>
+              Pick a value
+            </Text>
+          }
           style={styles.dropdown}
         />
         <Dropdown
           items={[
-            <Text type="BodyBig" key="pick">
+            <Text type="BodyBig" key="pick" style={styles.text}>
               Pick a value
             </Text>,
-            <Text type="BodyBig" key="one">
+            <Text type="BodyBig" key="one" style={styles.text}>
               One
             </Text>,
-            <Text type="BodyBig" key="two">
+            <Text type="BodyBig" key="two" style={styles.text}>
               Two
             </Text>,
-            <Text type="BodyBig" key="trhee">
+            <Text type="BodyBig" key="trhee" style={styles.text}>
               Three
             </Text>,
           ]}
           onChanged={Sb.action('onChanged')}
-          selected={<Text type="BodyBig">Pick a value</Text>}
+          selected={
+            <Text type="BodyBig" style={styles.text}>
+              Pick a value
+            </Text>
+          }
           style={styles.dropdown}
           disabled={true}
         />
@@ -81,22 +89,26 @@ const load = () => {
           <Dropdown
             key={pos}
             items={[
-              <Text type="BodyBig" key="pick">
+              <Text type="BodyBig" key="pick" style={styles.text}>
                 {pos}
               </Text>,
-              <Text type="BodyBig" key="one">
+              <Text type="BodyBig" key="one" style={styles.text}>
                 One
               </Text>,
-              <Text type="BodyBig" key="two">
+              <Text type="BodyBig" key="two" style={styles.text}>
                 Two
               </Text>,
-              <Text type="BodyBig" key="three">
+              <Text type="BodyBig" key="three" style={styles.text}>
                 Three
               </Text>,
             ]}
             onChanged={Sb.action('onChanged')}
             position={pos}
-            selected={<Text type="BodyBig">{pos}</Text>}
+            selected={
+              <Text type="BodyBig" style={styles.text}>
+                {pos}
+              </Text>
+            }
             style={styles.dropdownPositions}
           />
         ))}
@@ -106,8 +118,8 @@ const load = () => {
     .add('InlineDropdown', () => (
       <Box style={styles.container}>
         <Box style={styles.space} />
-        <InlineDropdown label="Pick" type="Body" onPress={Sb.action('onPress')} />
-        <InlineDropdown label="Pick" type="BodySmall" onPress={Sb.action('onPress')} />
+        <InlineDropdown label="Pick" textWrapperType="Body" onPress={Sb.action('onPress')} />
+        <InlineDropdown label="Pick" textWrapperType="BodySmall" onPress={Sb.action('onPress')} />
         <Box style={styles.space} />
       </Box>
     ))
@@ -115,12 +127,13 @@ const load = () => {
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxCenter,
     ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
     borderColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
     borderWidth: 1,
     height: '100%',
+    justifyContent: 'flex-start',
     width: '100%',
   },
   dropdown: {
@@ -132,6 +145,11 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   space: {
     height: 200,
+  },
+  text: {
+    alignSelf: 'center',
+    paddingLeft: Styles.globalMargins.xsmall,
+    width: '100%',
   },
 }))
 

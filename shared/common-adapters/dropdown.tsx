@@ -8,6 +8,7 @@ import ScrollView from './scroll-view'
 import OverlayParentHOC, {OverlayParentProps} from './overlay/parent-hoc'
 import {Position} from './relative-popup-hoc.types'
 import Icon from './icon'
+import {smallHeight, regularHeight} from './button'
 import * as Styles from '../styles'
 
 type DropdownButtonProps = {
@@ -117,17 +118,24 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
 
 type InlineDropdownProps = {
   containerStyle?: Styles.StylesCrossPlatform
-  label: React.ReactNode
   onPress: () => void
-  type: 'Body' | 'BodySmall' | 'BodySmallSemibold'
   style?: Styles.StylesCrossPlatform
   loading?: boolean
-}
+} & (
+  | {
+      textWrapperType: null
+      label: React.ReactElement
+    }
+  | {
+      textWrapperType: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+      label: string
+    }
+)
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
     <Box2 direction="horizontal" style={styles.inlineSelected}>
-      <Text type={props.type}>{props.label}</Text>
+      {props.textWrapperType ? <Text type={props.textWrapperType}>{props.label}</Text> : props.label}
     </Box2>
   )
   return (
@@ -150,8 +158,8 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: Styles.globalMargins.tiny,
   },
   inlineDropdownSelected: Styles.platformStyles({
-    isElectron: {minHeight: 22},
-    isMobile: {minHeight: 30, width: undefined},
+    common: {minHeight: smallHeight},
+    isMobile: {width: undefined},
   }),
   inlineSelected: Styles.platformStyles({
     common: {
@@ -193,14 +201,11 @@ const styles = Styles.styleSheetCreate(() => ({
       maxHeight: '50%',
     },
   }),
-  selectedBox: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxCenter,
-      width: '100%',
-    },
-    isElectron: {minHeight: 32},
-    isMobile: {minHeight: 48},
-  }),
+  selectedBox: {
+    ...Styles.globalStyles.flexBoxCenter,
+    minHeight: regularHeight,
+    width: '100%',
+  },
 }))
 
 const ItemBox = Styles.styled(Box)(() => ({

@@ -75,7 +75,7 @@
   AppearanceRootView *rootView = [[AppearanceRootView alloc] initWithBridge:bridge
                                                    moduleName:@"Keybase"
                                             initialProperties:nil];
-  rootView.backgroundColor = [[UIColor alloc] initWithRed:71/255.0f green:139/255.f blue:1.0f alpha:1];
+  rootView.backgroundColor = [UIColor colorWithWhite:0.f alpha:0.f];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];

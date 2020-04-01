@@ -14,6 +14,8 @@ import (
 // that is, also sending it to the server, not just testing sigchain player.
 
 func TestTeamInviteStubbing(t *testing.T) {
+	t.Skip() // TODO Y2K-1696
+
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)

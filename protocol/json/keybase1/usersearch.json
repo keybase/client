@@ -263,6 +263,40 @@
           "name": "siteIconFullDarkmode"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmailOrPhoneNumberSearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "input"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
+          "name": "assertionValue"
+        },
+        {
+          "type": "string",
+          "name": "assertionKey"
+        },
+        {
+          "type": "boolean",
+          "name": "foundUser"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        }
+      ]
     }
   ],
   "messages": {
@@ -305,6 +339,33 @@
       "response": {
         "type": "array",
         "items": "APIUserSearchResult"
+      }
+    },
+    "bulkEmailOrPhoneSearch": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "emails",
+          "type": "string"
+        },
+        {
+          "name": "phoneNumbers",
+          "type": {
+            "type": "array",
+            "items": "PhoneNumber"
+          }
+        },
+        {
+          "name": "checkContacts",
+          "type": "boolean"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "EmailOrPhoneNumberSearchResult"
       }
     }
   },

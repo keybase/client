@@ -63,6 +63,7 @@ type MembershipUpdateRes struct {
 }
 
 func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
+	res = make([]gregor1.UID, 0, len(m.OthersResetConvs)+len(m.OthersJoinedConvs)+len(m.OthersRemovedConvs))
 	for _, cm := range append(m.OthersResetConvs, append(m.OthersJoinedConvs, m.OthersRemovedConvs...)...) {
 		res = append(res, cm.Uid)
 	}
@@ -381,11 +382,11 @@ type ParticipantResult struct {
 	Err  error
 }
 
-type EmojiSourceHarvestMode int
+type EmojiHarvestMode int
 
 const (
-	EmojiSourceHarvestModeOutbound EmojiSourceHarvestMode = iota
-	EmojiSourceHarvestModeInbound
+	EmojiHarvestModeNormal EmojiHarvestMode = iota
+	EmojiHarvestModeFast
 )
 
 type DummyAttachmentFetcher struct{}
@@ -423,7 +424,7 @@ type DummyAttachmentHTTPSrv struct{}
 var _ AttachmentURLSrv = (*DummyAttachmentHTTPSrv)(nil)
 
 func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview bool) string {
+	preview, noAnim bool) string {
 	return ""
 }
 
@@ -520,6 +521,9 @@ func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.Conversatio
 }
 func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error) {
 	return 0, nil
+}
+func (d DummyIndexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
+	return nil
 }
 
 type DummyNativeVideoHelper struct{}
@@ -800,18 +804,26 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 type DummyEmojiSource struct{}
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string, topicNameSuffix *string) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
-func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (chat1.UserEmojis, error) {
+func (DummyEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
+	return res, err
+}
+func (DummyEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	alias string) error {
+	return nil
+}
+func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
+	opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error) {
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, crossTeams map[string]chat1.HarvestedEmoji,
-	mode EmojiSourceHarvestMode) (res []chat1.HarvestedEmoji, err error) {
+	convID chat1.ConversationID, mode EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	return res, err
 }

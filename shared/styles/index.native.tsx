@@ -35,12 +35,14 @@ const font = isIOS
 
 const util = {
   ...Shared.util,
+  largeWidthPercent: '70%',
   loadingTextStyle: {
     backgroundColor: globalColors.greyLight,
     height: 16,
   },
   mediumWidth: isTablet ? 460 : '100%',
   shortWidth: isTablet ? 240 : '100%',
+  tinyWidth: isTablet ? 200 : '100%',
 }
 
 export const desktopStyles = {

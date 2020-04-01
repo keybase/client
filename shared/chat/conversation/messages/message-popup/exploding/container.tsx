@@ -40,6 +40,7 @@ export default Container.connect(
       ownProps.message.type === 'text' &&
       (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, ownProps.message, participantInfo)
+    const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
 
     return {
       _authorIsBot: authorIsBot,
@@ -50,6 +51,7 @@ export default Container.connect(
       _mapUnfurl,
       _participants: participantInfo.all,
       _teamID: meta.teamID,
+      _teamMembers,
       _teamname: meta.teamname,
       author: ownProps.message.author,
       botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
@@ -70,7 +72,7 @@ export default Container.connect(
             {
               props: {
                 conversationIDKey: ownProps.message.conversationIDKey,
-                ordinal: ownProps.message.ordinal,
+                onPickAddToMessageOrdinal: ownProps.message.ordinal,
               },
               selected: 'chatChooseEmoji',
             },
@@ -185,24 +187,9 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const authorInConv = stateProps._participants.includes(ownProps.message.author)
+    const message = ownProps.message
+    const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     const items: MenuItems = []
-    if (stateProps._canExplodeNow) {
-      items.push({
-        danger: true,
-        icon: 'iconfont-bomb',
-        onClick: dispatchProps._onExplodeNow,
-        title: 'Explode now',
-      })
-    }
-    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
-      items.push({
-        danger: true,
-        icon: 'iconfont-block-user',
-        onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
-        title: 'Kick user',
-      })
-    }
     if (Container.isMobile) {
       // 'Add a reaction' is an option on mobile
       items.push({
@@ -211,7 +198,6 @@ export default Container.connect(
         title: 'Add a reaction',
       })
     }
-    const message = ownProps.message
     if (message.type === 'attachment') {
       if (Container.isMobile) {
         if (message.attachmentType === 'image') {
@@ -266,6 +252,22 @@ export default Container.connect(
         })
       }
       items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+    }
+    if (stateProps._canExplodeNow) {
+      items.push({
+        danger: true,
+        icon: 'iconfont-bomb',
+        onClick: dispatchProps._onExplodeNow,
+        title: 'Explode now',
+      })
+    }
+    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInTeam) {
+      items.push({
+        danger: true,
+        icon: 'iconfont-block-user',
+        onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
+        title: 'Kick user',
+      })
     }
     if (!stateProps.yourMessage && message.author) {
       const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2

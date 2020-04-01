@@ -1623,6 +1623,7 @@ func (c ChainLink) IsHighUserLink(mctx MetaContext, uid keybase1.UID) (bool, err
 		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||
 		v2Type == SigchainV2TypeCryptocurrencyWithRevoke ||
 		v2Type == SigchainV2TypeSibkey ||
+		v2Type == SigchainV2TypeWotVouchWithRevoke ||
 		v2Type == SigchainV2TypePGPUpdate
 	return isNewHighLink, nil
 }

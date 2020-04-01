@@ -22,7 +22,11 @@ const ChooseConversation = (props: Props) => {
   return (
     <>
       <Kb.DropdownButton
-        selected={<Kb.Text type="BodySemibold">{text}</Kb.Text>}
+        selected={
+          <Kb.Text type="BodySemibold" style={styles.selectedText}>
+            {text}
+          </Kb.Text>
+        }
         setAttachmentRef={props.setAttachmentRef}
         toggleOpen={toggleOpen}
         style={Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
@@ -52,6 +56,10 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.white,
         height: 360,
         width: 300,
+      },
+      selectedText: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        width: '100%',
       },
     } as const)
 )

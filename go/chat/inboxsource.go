@@ -522,6 +522,21 @@ func NewHybridInboxSource(g *globals.Context,
 	return s
 }
 
+func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, err error) {
+	if utils.IsDeletedConvError(err) {
+		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", err, convID, uid)
+		if err := s.G().InboxSource.Clear(ctx, uid); err != nil {
+			s.Debug(ctx, "unable to Clear inbox: %v", err)
+		}
+		if convID != nil {
+			if err := s.G().ConvSource.Clear(ctx, *convID, uid); err != nil {
+				s.Debug(ctx, "unable to Clear conv: %v", err)
+			}
+		}
+		s.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "InboxSource#maybeNuke")
+	}
+}
+
 func (s *HybridInboxSource) createInbox() *storage.Inbox {
 	return storage.NewInbox(s.G(),
 		storage.LayoutChangedNotifier(s.G().UIInboxLoader))
@@ -756,8 +771,9 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 }
 
 func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	text *string) error {
-	_, err := s.createInbox().Draft(ctx, uid, convID, text)
+	text *string) (err error) {
+	defer s.maybeNuke(ctx, uid, &convID, err)
+	_, err = s.createInbox().Draft(ctx, uid, convID, text)
 	if err != nil {
 		return err
 	}
@@ -773,6 +789,7 @@ func (s *HybridInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UI
 
 func (s *HybridInboxSource) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "MergeLocalMetadata")()
+	defer s.maybeNuke(ctx, uid, nil, err)
 	return s.createInbox().MergeLocalMetadata(ctx, uid, convs)
 }
 
@@ -798,6 +815,7 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 func (s *HybridInboxSource) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "IncrementLocalConvVersion")()
+	defer s.maybeNuke(ctx, uid, &convID, err)
 	if err := s.createInbox().IncrementLocalConvVersion(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "IncrementLocalConvVersion: unable to IncrementLocalConvVersion, err", err)
 	}
@@ -807,6 +825,7 @@ func (s *HybridInboxSource) IncrementLocalConvVersion(ctx context.Context, uid g
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgID *chat1.MessageID) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "MarkAsRead(%s,%d)", convID, msgID)()
+	defer s.maybeNuke(ctx, uid, &convID, err)
 	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
 	readRes, err := s.createInbox().GetConversation(ctx, uid, convID)
 	if err == nil && readRes.GetConvID().Eq(convID) &&
@@ -912,6 +931,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, dataSource types.InboxSourceDataSourceTyp, maxLocalize *int,
 	query *chat1.GetInboxLocalQuery) (inbox types.Inbox, localizeCb chan types.AsyncInboxResult, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Read")()
+	defer s.maybeNuke(ctx, uid, nil, err)
 
 	// Read unverified inbox
 	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
@@ -952,6 +972,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery) (res types.Inbox, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
+	defer s.maybeNuke(ctx, uid, nil, err)
 
 	var cerr storage.Error
 	inboxStore := s.createInbox()
@@ -1153,6 +1174,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int,
 	emptyMode types.InboxSourceSearchEmptyMode) (res []types.RemoteConversation, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Search")()
+	defer s.maybeNuke(ctx, uid, nil, err)
 	username := s.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	ib := s.createInbox()
 	_, convs, err := ib.ReadAll(ctx, uid, true)
@@ -1607,6 +1629,18 @@ func (s *HybridInboxSource) TeamBotSettingsForConv(ctx context.Context, uid greg
 		res[uv.Uid] = botSettings
 	}
 	return res, nil
+}
+
+func (s *HybridInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	defer s.maybeNuke(ctx, uid, &convID, err)
+	return s.baseInboxSource.RemoteSetConversationStatus(ctx, uid, convID, status)
+}
+
+func (s *HybridInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
+	localizerTyp types.ConversationLocalizerTyp) (res []chat1.ConversationLocal, localizeCb chan types.AsyncInboxResult, err error) {
+	defer s.maybeNuke(ctx, uid, nil, err)
+	return s.baseInboxSource.Localize(ctx, uid, convs, localizerTyp)
 }
 
 func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterface) types.InboxSource {

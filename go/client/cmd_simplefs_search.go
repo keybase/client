@@ -29,8 +29,9 @@ type CmdSimpleFSSearch struct {
 // NewCmdSimpleFSSearch creates a new cli.Command.
 func NewCmdSimpleFSSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "search",
-		Usage: "search [flags] <query>",
+		Name:         "search",
+		ArgumentHelp: "<query>",
+		Usage:        "[disabled] search locally-synced folders",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSearch{
 				Contextified: libkb.NewContextified(g)}, "search", c)

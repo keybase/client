@@ -203,10 +203,6 @@ const paymentActions: Container.ActionHandler<Actions, Types.State> = {
 }
 
 const searchActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.setChannelSearchText]: (draftState, action) => {
-    const {text} = action.payload
-    draftState.channelSearchText = text.toLowerCase()
-  },
   [Chat2Gen.threadSearchResults]: (draftState, action) => {
     const {conversationIDKey, clear, messages} = action.payload
     const {threadSearchInfoMap} = draftState
@@ -1048,14 +1044,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.typingMap = typingMap
   },
   [Chat2Gen.toggleLocalReaction]: (draftState, action) => {
-    const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
+    const {conversationIDKey, decorated, emoji, targetOrdinal, username} = action.payload
     const {messageMap} = draftState
 
     const m = messageMap.get(conversationIDKey)?.get(targetOrdinal)
     if (m && Constants.isMessageWithReactions(m)) {
       const reactions = m.reactions
       const rs = {
-        decorated: reactions.get(emoji)?.decorated ?? '',
+        decorated: reactions.get(emoji)?.decorated ?? decorated,
         users: reactions.get(emoji)?.users ?? new Set(),
       }
       reactions.set(emoji, rs)
@@ -1183,9 +1179,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.setExplodingModeLock]: (draftState, action) => {
     const {conversationIDKey, unset} = action.payload
     const {explodingModes, explodingModeLocks} = draftState
-    const mode = explodingModes.get(conversationIDKey) || 0
+    const mode = explodingModes.get(conversationIDKey) ?? 0
     // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
-    const alreadyLocked = (explodingModeLocks.get(conversationIDKey) || null) !== null
+    const alreadyLocked = explodingModeLocks.get(conversationIDKey) !== undefined
     if (unset) {
       explodingModeLocks.delete(conversationIDKey)
     } else if (!alreadyLocked) {
@@ -1225,6 +1221,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, teamIDs} = action.payload
     const {mutualTeamMap} = draftState
     mutualTeamMap.set(conversationIDKey, teamIDs)
+  },
+  [Chat2Gen.loadedUserEmojiForAutocomplete]: (draftState, action) => {
+    let newEmojis: Array<RPCChatTypes.Emoji> = []
+    action.payload.fetchedEmojis.emojis?.map(group => {
+      group.emojis?.forEach(e => newEmojis.push(e))
+    })
+    draftState.userEmojisForAutocomplete = newEmojis
   },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {

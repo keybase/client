@@ -443,6 +443,10 @@ func (mso modeSingleOp) TLFEditHistoryEnabled() bool {
 	return false
 }
 
+func (mso modeSingleOp) MetricsEnabled() bool {
+	return false
+}
+
 func (mso modeSingleOp) SendEditNotificationsEnabled() bool {
 	// We don't want git, or other single op writes, showing up in the
 	// notification history.
@@ -675,6 +679,12 @@ type modeTestSearch struct {
 
 func (mts modeTestSearch) IndexingEnabled() bool {
 	return true
+}
+
+func (mts modeTestSearch) InitialDelayForBackgroundWork() time.Duration {
+	// Delay background work like loading the synced TLFs, until the
+	// indexer has registered to receive notifications about them.
+	return 5 * time.Second
 }
 
 func (mts modeTestSearch) DelayInitialConnect() bool {

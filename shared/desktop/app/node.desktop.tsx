@@ -15,6 +15,7 @@ import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {isPathSaltpack} from '../../constants/crypto'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
@@ -119,7 +120,7 @@ const isRelevantDeepLink = (x: string) => {
 }
 
 const isValidSaltpackFilePath = (p: string) => {
-  const valid = p.endsWith('.encrypted.saltpack') || p.endsWith('.signed.saltpack')
+  const valid = isPathSaltpack(p)
   if (!valid) {
     logger.warn(
       'Received Electron open-file event with a file not ending in either ".encrypted.saltpack" or ".signed.saltpack".'

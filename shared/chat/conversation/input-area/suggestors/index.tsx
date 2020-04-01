@@ -46,6 +46,7 @@ type AddSuggestorsProps = {
   dataSources: {[K in string]: (filter: string) => {data: Array<any>; loading: boolean; useSpaces: boolean}}
   keyExtractors?: {[K in string]: (item: any) => string}
   onChannelSuggestionsTriggered: () => void
+  onFetchEmoji: () => void
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
@@ -104,15 +105,22 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _lastText?: string
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
-    _timeoutID?: NodeJS.Timer
+    _timeoutID?: ReturnType<typeof setTimeout>
 
     componentWillUnmount() {
       this._timeoutID && clearTimeout(this._timeoutID)
     }
 
     componentDidUpdate(_, prevState: AddSuggestorsState) {
-      if (prevState.active !== this.state.active && this.state.active === 'channels') {
-        this.props.onChannelSuggestionsTriggered()
+      if (prevState.active !== this.state.active) {
+        switch (this.state.active) {
+          case 'channels':
+            this.props.onChannelSuggestionsTriggered()
+            break
+          case 'emoji':
+            this.props.onFetchEmoji()
+            break
+        }
       }
     }
 

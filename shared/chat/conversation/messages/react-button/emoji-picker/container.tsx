@@ -6,46 +6,43 @@ import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../styles'
 import * as Data from './data'
+import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
+import {EmojiData} from '../../../../../util/emoji'
 
 type Props = {
-  onDidPick: () => void
-  onPick:
-    | ((emoji: string) => void)
-    | {
-        conversationIDKey: Types.ConversationIDKey
-        ordinal: Types.Ordinal
-      }
+  conversationIDKey: Types.ConversationIDKey
+  onDidPick?: () => void
+  onPickAddToMessageOrdinal?: Types.Ordinal
+  onPickAction?: (emoji: string) => void
 }
 
-type RoutableProps = Container.RouteProps<{
-  conversationIDKey: Types.ConversationIDKey
-  onDidPick: () => void
-  ordinal: Types.Ordinal
-}>
+type RoutableProps = Container.RouteProps<Props>
 
-const useReacji = ({onPick, onDidPick}: Props) => {
+const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
   const dispatch = Container.useDispatch()
   const onAddReaction = React.useCallback(
     (emoji: string) => {
-      typeof onPick === 'function'
-        ? onPick(emoji)
-        : dispatch(
-            Chat2Gen.createToggleMessageReaction({
-              conversationIDKey: onPick.conversationIDKey,
-              emoji,
-              ordinal: onPick.ordinal,
-            })
-          )
-      onDidPick()
+      if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
+        dispatch(
+          Chat2Gen.createToggleMessageReaction({
+            conversationIDKey: conversationIDKey,
+            emoji,
+            ordinal: onPickAddToMessageOrdinal,
+          })
+        )
+      }
+      onPickAction?.(emoji)
+      onDidPick?.()
     },
-    [dispatch, onPick, onDidPick]
+    [dispatch, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
   )
   return {
     filter,
@@ -69,9 +66,44 @@ const useSkinTone = () => {
   )
   return {currentSkinTone, setSkinTone}
 }
+const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
+  const getUserEmoji = Container.useRPC(RPCChatGen.localUserEmojisRpcPromise)
+  const [customEmojiGroups, setCustomEmojiGroups] = React.useState<RPCChatGen.EmojiGroup[]>([])
+  const [waiting, setWaiting] = React.useState(true)
+
+  React.useEffect(() => {
+    setWaiting(true)
+    getUserEmoji(
+      [
+        {
+          convID:
+            conversationIDKey !== Constants.noConversationIDKey
+              ? Types.keyToConversationID(conversationIDKey)
+              : null,
+          opts: {
+            getAliases: true,
+            getCreationInfo: false,
+            onlyInTeam: false,
+          },
+        },
+      ],
+      result => {
+        setCustomEmojiGroups(result.emojis.emojis ?? [])
+        setWaiting(false)
+      },
+      _ => {
+        setCustomEmojiGroups([])
+        setWaiting(false)
+      }
+    )
+  }, [conversationIDKey, getUserEmoji])
+
+  return {customEmojiGroups, waiting}
+}
 
 const WrapperMobile = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
@@ -79,7 +111,13 @@ const WrapperMobile = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
-    <Kb.Box2 direction="vertical" onLayout={onLayout} fullWidth={true} fullHeight={true}>
+    <Kb.Box2
+      direction="vertical"
+      onLayout={onLayout}
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.contain}
+    >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.ClickableBox onClick={onCancel} style={styles.cancelContainerMobile}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
@@ -89,7 +127,7 @@ const WrapperMobile = (props: Props) => {
           size="small"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={setFilter}
+          onChange={debounce(setFilter, 200)}
           style={styles.searchFilter}
         />
       </Kb.Box2>
@@ -97,6 +135,8 @@ const WrapperMobile = (props: Props) => {
         topReacjis={topReacjis}
         filter={filter}
         onChoose={onAddReaction}
+        customSections={customEmojiGroups}
+        waitingForEmoji={waiting}
         width={width}
         skinTone={currentSkinTone}
       />
@@ -118,9 +158,15 @@ const WrapperMobile = (props: Props) => {
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<Data.EmojiData>(Data.defaultHoverEmoji)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
+
   return (
-    <Kb.Box style={styles.containerDesktop} onClick={e => e.stopPropagation()} gap="tiny">
+    <Kb.Box
+      style={Styles.collapseStyles([styles.containerDesktop, styles.contain])}
+      onClick={e => e.stopPropagation()}
+      gap="tiny"
+    >
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
@@ -133,20 +179,20 @@ export const EmojiPickerDesktop = (props: Props) => {
           size="full-width"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={setFilter}
+          onChange={debounce(setFilter, 200)}
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
-      <Kb.Box style={styles.emojiContainer}>
-        <EmojiPicker
-          topReacjis={topReacjis}
-          filter={filter}
-          onChoose={onAddReaction}
-          onHover={setHoveredEmoji}
-          width={336}
-          skinTone={currentSkinTone}
-        />
-      </Kb.Box>
+      <EmojiPicker
+        topReacjis={topReacjis}
+        filter={filter}
+        onChoose={onAddReaction}
+        onHover={setHoveredEmoji}
+        width={336}
+        skinTone={currentSkinTone}
+        customSections={customEmojiGroups}
+        waitingForEmoji={waiting}
+      />
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -154,10 +200,16 @@ export const EmojiPickerDesktop = (props: Props) => {
         style={styles.footerContainer}
         gap="small"
       >
-        <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
+        {hoveredEmoji.source ? (
+          <Kb.CustomEmoji size="Big" src={hoveredEmoji.source} alias={hoveredEmoji.short_name} />
+        ) : (
+          <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
+        )}
         <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
           <Kb.Text type="BodyBig" lineClamp={1}>
-            {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+            {hoveredEmoji.source
+              ? hoveredEmoji.short_name
+              : startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
           </Kb.Text>
           <Kb.Text type="BodySmall" lineClamp={1}>
             {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
@@ -189,6 +241,11 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.tiny,
       },
+      contain: Styles.platformStyles({
+        isElectron: {
+          contain: 'content',
+        },
+      }),
       containerDesktop: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,
@@ -197,13 +254,9 @@ const styles = Styles.styleSheetCreate(
         minHeight: 561,
         width: 336,
       },
-      emojiContainer: {
-        flex: 1,
-        flexGrow: 1,
-        overflow: 'hidden',
-      },
       footerContainer: Styles.platformStyles({
         common: {
+          flexShrink: 0,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
         },
@@ -240,8 +293,27 @@ export const Routable = (routableProps: RoutableProps) => {
     'conversationIDKey',
     Constants.noConversationIDKey
   )
-  const ordinal = Container.getRouteProps(routableProps, 'ordinal', Types.numberToOrdinal(0))
+  const onPickAction = Container.getRouteProps(routableProps, 'onPickAction', undefined)
+  const onPickAddToMessageOrdinal = Container.getRouteProps(
+    routableProps,
+    'onPickAddToMessageOrdinal',
+    undefined
+  )
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
-  return <WrapperMobile onPick={{conversationIDKey, ordinal}} onDidPick={navigateUp} />
+  const _onDidPick = Container.getRouteProps(routableProps, 'onDidPick', undefined)
+  const onDidPick = _onDidPick
+    ? () => {
+        _onDidPick()
+        navigateUp()
+      }
+    : navigateUp
+  return (
+    <WrapperMobile
+      conversationIDKey={conversationIDKey}
+      onPickAction={onPickAction}
+      onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}
+      onDidPick={onDidPick}
+    />
+  )
 }

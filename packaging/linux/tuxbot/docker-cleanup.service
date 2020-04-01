@@ -1,0 +1,10 @@
+[Unit]
+Description=clean up docker tags a few hours after nightly builds
+
+[Service]
+WorkingDirectory=%h/go/src/github.com/keybase/client/packaging/linux/tuxbot/bot/
+ExecStart=go run %h/go/src/github.com/keybase/client/packaging/linux/tuxbot/bot/docker-cleanup/main.go
+EnvironmentFile=%h/tuxbot.env
+
+[Install]
+WantedBy=default.target

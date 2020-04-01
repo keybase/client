@@ -43,6 +43,6 @@ func (h *AddEmoji) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	if err != nil {
 		return err
 	}
-	_, err = h.G().EmojiSource.Add(ctx, uid, convID, toks[1], toks[2], nil)
+	_, err = h.G().EmojiSource.Add(ctx, uid, convID, toks[1], toks[2])
 	return err
 }

@@ -773,6 +773,10 @@
           "type": "boolean",
           "name": "sfmiBannerDismissed",
           "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "syncOnCellular"
         }
       ]
     },
@@ -1578,6 +1582,15 @@
       ],
       "response": null,
       "lint": "ignore"
+    },
+    "simpleFSSetSyncOnCellular": {
+      "request": [
+        {
+          "name": "syncOnCellular",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     },
     "simpleFSObfuscatePath": {
       "request": [

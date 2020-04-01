@@ -1,8 +1,13 @@
 import * as Types from '../../../../../constants/types/chat2'
+import * as CryptoTypes from '../../../../../constants/types/crypto'
+import * as Tabs from '../../../../../constants/tabs'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as CryptoGen from '../../../../../actions/crypto-gen'
 import * as Container from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
+import {isPathSaltpack} from '../../../../../constants/crypto'
 import File from '.'
 
 type OwnProps = {
@@ -22,6 +27,15 @@ export default Container.connect(
       dispatch(
         Chat2Gen.createAttachmentDownload({
           message,
+        })
+      )
+    },
+    _onSaltpackFileOpen: (path: string, operation: CryptoTypes.Operations) => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}))
+      dispatch(
+        CryptoGen.createOnSaltpackOpenFile({
+          operation,
+          path: new Container.HiddenString(path),
         })
       )
     },
@@ -50,6 +64,7 @@ export default Container.connect(
       errorMsg: message.transferErrMsg || '',
       fileName: message.fileName,
       hasProgress,
+      isSaltpackFile: isPathSaltpack(message.fileName),
       message,
       onDownload: () => {
         if (Container.isMobile) {
@@ -60,6 +75,7 @@ export default Container.connect(
           }
         }
       },
+      onSaltpackFileOpen: dispatchProps._onSaltpackFileOpen,
       onShowInFinder:
         !Container.isMobile && message.downloadPath
           ? () => dispatchProps._onShowInFinder(message)

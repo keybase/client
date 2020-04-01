@@ -8155,17 +8155,17 @@ func TestChatSrvDefaultTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), teamID)
 		require.NoError(t, err)
 		require.Zero(t, len(res.Convs))
 
 		_, err = tc.chatLocalHandler().SetDefaultTeamChannelsLocal(context.TODO(), chat1.SetDefaultTeamChannelsLocalArg{
-			TeamName: created.TlfName,
-			Convs:    []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
+			TeamID: teamID,
+			Convs:  []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
 		})
 		require.NoError(t, err)
 
-		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), teamID)
 		require.NoError(t, err)
 		require.Len(t, res.Convs, 1)
 		require.Equal(t, topicName, res.Convs[0].Channel)
@@ -8226,7 +8226,7 @@ func TestChatSrvTeamActivity(t *testing.T) {
 
 		tc := ctc.as(t, users[0])
 		topicName := "zjoinonsend"
-		_, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+		nc1, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
 			chat1.NewConversationLocalArg{
 				TlfName:       created.TlfName,
 				TopicName:     &topicName,
@@ -8235,7 +8235,7 @@ func TestChatSrvTeamActivity(t *testing.T) {
 				MembersType:   mt,
 			})
 		require.NoError(t, err)
-		_, err = tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+		nc2, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
 			chat1.NewConversationLocalArg{
 				TlfName:       created2.TlfName,
 				TopicName:     &topicName,
@@ -8251,9 +8251,12 @@ func TestChatSrvTeamActivity(t *testing.T) {
 
 		res, err := tc.chatLocalHandler().GetLastActiveForTeams(context.TODO())
 		require.NoError(t, err)
-		require.Equal(t, 2, len(res))
-		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID1])
-		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID2])
+		require.Equal(t, 2, len(res.Teams))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID1])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID2])
+		require.Equal(t, 4, len(res.Channels))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc1.UiConv.ConvID])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc2.UiConv.ConvID])
 	})
 }
 
@@ -8288,8 +8291,8 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		uid1 := gregor1.UID(users[0].User.GetUID().ToBytes())
-		uid2 := gregor1.UID(users[1].User.GetUID().ToBytes())
+		username1 := users[0].User.GetName()
+		username2 := users[1].User.GetName()
 		tc := ctc.as(t, users[0])
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -8297,17 +8300,17 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		}))
 
 		teamID := keybase1.TeamID(created.Triple.Tlfid.String())
-		t.Logf("teamID: %v, uid1: %v, uid2: %v", teamID, users[0].User.GetUID(), users[1].User.GetUID())
+		t.Logf("teamID: %v, username1: %v, username2: %v", teamID, username1, username2)
 		lastActiveAt, err := tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid1,
+			TeamID:   teamID,
+			Username: username1,
 		})
 		require.NoError(t, err)
 		require.NotZero(t, lastActiveAt)
 
 		lastActiveAt, err = tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid2,
+			TeamID:   teamID,
+			Username: username2,
 		})
 		require.NoError(t, err)
 		require.Zero(t, lastActiveAt)
@@ -8316,8 +8319,8 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 			Body: "HI",
 		}))
 		lastActiveAt, err = tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid2,
+			TeamID:   teamID,
+			Username: username2,
 		})
 		require.NoError(t, err)
 		require.Zero(t, lastActiveAt)
@@ -8325,8 +8328,8 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		err = tc.h.G().TeamChannelSource.OnDbNuke(tc.m)
 		require.NoError(t, err)
 		lastActiveAt, err = tc.chatLocalHandler().GetLastActiveAtLocal(context.TODO(), chat1.GetLastActiveAtLocalArg{
-			TeamID: teamID,
-			Uid:    uid2,
+			TeamID:   teamID,
+			Username: username2,
 		})
 		require.NoError(t, err)
 		require.NotZero(t, lastActiveAt)

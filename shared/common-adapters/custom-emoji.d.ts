@@ -9,4 +9,4 @@ export type Props = {
 
 declare const emojiSizes: {[key in emojiSize]: number}
 
-export default class Emoji extends Component<Props> {}
+export default class CustomEmoji extends Component<Props> {}

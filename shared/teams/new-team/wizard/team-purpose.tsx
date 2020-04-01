@@ -18,8 +18,7 @@ const TeamPurpose = () => {
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname="" title="New team" />,
+        title: <ModalTitle teamID={Types.noTeamID} title="New team" />,
       }}
       allowOverflow={true}
     >

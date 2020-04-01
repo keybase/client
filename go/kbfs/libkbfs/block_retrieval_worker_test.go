@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libkey"
@@ -104,11 +105,18 @@ func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
 	return nil
 }
 
+func (bg *fakeBlockGetter) assembleBlockLocal(ctx context.Context,
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	return bg.assembleBlock(ctx, kmd, ptr, block, buf, serverHalf)
+}
+
 func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	t.Log("Test the basic ability of a worker to return a block.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
+		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 
@@ -130,7 +138,8 @@ func TestBlockRetrievalWorkerBasicSoloCached(t *testing.T) {
 	t.Log("Test the worker fetching and caching a solo block.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
+		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 
@@ -154,7 +163,8 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Test the ability of multiple workers to retrieve concurrently.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		2, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
+		2, 0, 0, newTestBlockRetrievalConfig(t, bg, nil),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 
@@ -202,7 +212,8 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	t.Log("Test the ability of a worker and queue to work correctly together.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
+		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 
@@ -267,7 +278,8 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	t.Log("Test the ability of a worker to handle a request cancelation.")
 	bg := newFakeBlockGetter(true)
 	q := newBlockRetrievalQueue(
-		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
+		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 
@@ -289,7 +301,8 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	t.Log("Test that worker shutdown works.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
+		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 
@@ -337,7 +350,8 @@ func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 		"correctly switches workers.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		1, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
+		1, 1, 0, newTestBlockRetrievalConfig(t, bg, nil),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	defer endBlockRetrievalQueueTest(t, q)
 
@@ -393,7 +407,8 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
-		1, 1, 0, newTestBlockRetrievalConfig(t, bg, dbc))
+		1, 1, 0, newTestBlockRetrievalConfig(t, bg, dbc),
+		env.EmptyAppStateUpdater{})
 	require.NotNil(t, q)
 	<-q.TogglePrefetcher(false, nil, nil)
 	defer endBlockRetrievalQueueTest(t, q)

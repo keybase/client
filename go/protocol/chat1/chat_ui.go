@@ -539,6 +539,7 @@ type InboxUIItem struct {
 	IsDefaultConv     bool                          `codec:"isDefaultConv" json:"isDefaultConv"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
+	SnippetDecorated  string                        `codec:"snippetDecorated" json:"snippetDecorated"`
 	SnippetDecoration SnippetDecoration             `codec:"snippetDecoration" json:"snippetDecoration"`
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
@@ -581,6 +582,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		IsDefaultConv:     o.IsDefaultConv,
 		Name:              o.Name,
 		Snippet:           o.Snippet,
+		SnippetDecorated:  o.SnippetDecorated,
 		SnippetDecoration: o.SnippetDecoration.DeepCopy(),
 		Channel:           o.Channel,
 		Headline:          o.Headline,
@@ -1114,6 +1116,7 @@ type UIMessageOutbox struct {
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
 	FlipGameID        *FlipGameIDStr  `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	Supersedes        MessageID       `codec:"supersedes" json:"supersedes"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -1149,8 +1152,9 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
-		Filename: o.Filename,
-		Title:    o.Title,
+		Supersedes: o.Supersedes.DeepCopy(),
+		Filename:   o.Filename,
+		Title:      o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

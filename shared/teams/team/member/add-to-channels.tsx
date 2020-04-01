@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
@@ -41,7 +40,6 @@ const AddToChannels = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const usernames = Container.getRouteProps(props, 'usernames', [])
 
-  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const {channelMetasAll, channelMetasFiltered, channelMetaGeneral} = getChannelsForList(
     useAllChannelMetas(teamID)
   )
@@ -153,7 +151,7 @@ const AddToChannels = (props: Props) => {
         ),
         title: (
           <Common.ModalTitle
-            teamname={meta.teamname}
+            teamID={teamID}
             title={`Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`}
           />
         ),
@@ -234,7 +232,9 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
   const numParticipants = Container.useSelector(
     s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
   )
-  const activityLevel = 'active' // TODO: plumbing
+  const activityLevel = Container.useSelector(
+    s => s.teams.activityLevels.channels.get(conversationIDKey) || 'none'
+  )
   return Styles.isMobile ? (
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
@@ -274,9 +274,10 @@ const ChannelRow = ({channelname, conversationIDKey, numMembers, selected, onSel
           </Kb.Text>
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
             <Kb.Text type="BodySmall">
-              {numMembers} {pluralize('member', numMembers)} •
+              {numMembers} {pluralize('member', numMembers)}
+              {activityLevel !== 'none' && ' • '}
             </Kb.Text>
-            <Common.Activity level="recently" />
+            <Common.Activity level={activityLevel} />
           </Kb.Box2>
         </Kb.Box2>
       }

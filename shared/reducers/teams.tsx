@@ -265,8 +265,20 @@ export default Container.makeReducer<
       draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
     })
   },
-  [TeamsGen.startNewTeamWizard]: draftState => {
-    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
+  [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
+    action.payload.activityMap.forEach((lastActivity, teamID) => {
+      if (!draftState.teamMemberToLastActivity.has(teamID)) {
+        draftState.teamMemberToLastActivity.set(teamID, new Map())
+      }
+      draftState.teamMemberToLastActivity.get(teamID)?.set(action.payload.username, lastActivity)
+    })
+  },
+  [TeamsGen.launchNewTeamWizardOrModal]: (draftState, action) => {
+    draftState.newTeamWizard = {
+      ...Constants.newTeamWizardEmptyState,
+      parentTeamID: action.payload.subteamOf,
+      teamType: 'subteam',
+    }
   },
   [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
     draftState.newTeamWizard.teamType = action.payload.teamType
@@ -277,6 +289,7 @@ export default Container.makeReducer<
     draftState.newTeamWizard.open = action.payload.openTeam
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
     draftState.newTeamWizard.showcase = action.payload.showcase
+    draftState.newTeamWizard.addYourself = action.payload.addYourself
   },
   [TeamsGen.setTeamWizardAvatar]: (draftState, action) => {
     draftState.newTeamWizard.avatarCrop = action.payload.crop
@@ -336,6 +349,9 @@ export default Container.makeReducer<
   },
   [TeamsGen.setNewTeamRequests]: (draftState, action) => {
     draftState.newTeamRequests = action.payload.newTeamRequests
+  },
+  [TeamsGen.setActivityLevels]: (draftState, action) => {
+    draftState.activityLevels = action.payload.levels
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

@@ -328,6 +328,7 @@ const reactComponentsForMarkdownType = {
         message={(state.markdownMeta && state.markdownMeta.message) || undefined}
         styleOverride={state.styleOverride}
         styles={markdownStyles}
+        disableBigEmojis={false}
       />
     ),
   },
@@ -442,6 +443,22 @@ const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         _state: SimpleMarkdown.State
       ) => ' ',
     },
+    serviceDecoration: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        _output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => (
+        <ServiceDecoration
+          json={node.content}
+          key={state.key}
+          allowFontScaling={state.allowFontScaling}
+          styleOverride={state.styleOverride}
+          styles={markdownStyles as any}
+          disableBigEmojis={true}
+        />
+      ),
+    },
     text: SimpleMarkdown.defaultRules.text,
   },
   'react'
@@ -470,6 +487,7 @@ const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
           allowFontScaling={state.allowFontScaling}
           styleOverride={state.styleOverride}
           styles={markdownStyles as any}
+          disableBigEmojis={true}
         />
       ),
     },

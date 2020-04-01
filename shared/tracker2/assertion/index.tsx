@@ -264,14 +264,11 @@ class Assertion extends React.PureComponent<Props, State> {
 
     if (p.metas.find(m => m.label === 'unreachable')) {
       return {
-        header: {
-          title: 'header',
-          view: (
-            <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
-              Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
-            </Kb.PopupHeaderText>
-          ),
-        },
+        header: (
+          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
+            Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
+          </Kb.PopupHeaderText>
+        ),
         items: [
           {onClick: p.onShowProof, title: 'View proof'},
           {onClick: p.onRecheck, title: 'I fixed it - recheck'},
@@ -292,14 +289,11 @@ class Assertion extends React.PureComponent<Props, State> {
           break
       }
       return {
-        header: {
-          title: 'header',
-          view: pendingMessage ? (
-            <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
-              {pendingMessage}
-            </Kb.PopupHeaderText>
-          ) : null,
-        },
+        header: pendingMessage ? (
+          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+            {pendingMessage}
+          </Kb.PopupHeaderText>
+        ) : null,
         items: [onRevoke],
       }
     }

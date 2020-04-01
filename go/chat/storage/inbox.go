@@ -182,7 +182,7 @@ func (i *Inbox) maybeNuke(ctx context.Context, ef func() Error, uid gregor1.UID)
 	err := ef()
 	if err != nil && err.ShouldClear() {
 		i.Debug(ctx, "maybeNuke: nuking on err: %v", err)
-		if ierr := i.Clear(ctx, uid); ierr != nil {
+		if ierr := i.clearLocked(ctx, uid); ierr != nil {
 			i.Debug(ctx, "maybeNuke: unable to clear box on error! err: %s", ierr)
 		}
 	}
@@ -217,7 +217,7 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 	// Check on disk server version against known server version
 	if _, err := i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
 		i.Debug(ctx, "readDiskVersions: server version match error, clearing: %s", err)
-		if cerr := i.Clear(ctx, uid); cerr != nil {
+		if cerr := i.clearLocked(ctx, uid); cerr != nil {
 			i.Debug(ctx, "readDiskVersions: failed to clear after server mismatch: %s", cerr)
 		}
 		return ibox, MissError{}
@@ -227,7 +227,7 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 		i.Debug(ctx,
 			"readDiskVersions: on disk version not equal to program version, clearing: disk :%d program: %d",
 			ibox.Version, inboxVersion)
-		if cerr := i.Clear(ctx, uid); cerr != nil {
+		if cerr := i.clearLocked(ctx, uid); cerr != nil {
 			i.Debug(ctx, "readDiskVersions: failed to clear after inbox mismatch: %s", cerr)
 		}
 		return ibox, MissError{}
@@ -264,7 +264,7 @@ func (i *Inbox) readDiskIndex(ctx context.Context, uid gregor1.UID, useInMemory 
 	}
 	// Check in memory cache first
 	if memibox := inboxMemCache.GetIndex(uid); useInMemory && memibox != nil {
-		i.Debug(ctx, "hit in memory cache")
+		i.Debug(ctx, "readDiskIndex: hit in memory cache")
 		ibox = *memibox
 	} else {
 		found, err := i.readDiskBox(ctx, i.dbIndexKey(uid), &ibox)
@@ -450,7 +450,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			continue
 		}
 		topicName := convLocal.Info.TopicName
-		snippetDecoration, snippet := utils.GetConvSnippet(convLocal,
+		snippetDecoration, snippet, _ := utils.GetConvSnippet(ctx, i.G(), convLocal,
 			i.G().GetEnv().GetUsername().String())
 		rcm := &types.RemoteConversationMetadata{
 			Name:              convLocal.Info.TlfName,
@@ -626,9 +626,9 @@ func (i *Inbox) GetConversation(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery) (vers chat1.InboxVers, res []types.RemoteConversation, err Error) {
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Read(%s)", uid))()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Read(%s)", uid))()
 	defer i.maybeNuke(ctx, func() Error { return err }, uid)
 
 	iboxVers, err := i.readDiskVersions(ctx, uid, true)
@@ -675,10 +675,9 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	return iboxVers.InboxVersion, res, nil
 }
 
-func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err Error) {
-	defer i.Trace(ctx, func() error { return err }, "Clear")()
+func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "clearLocked")()
 	var iboxIndex inboxDiskIndex
-	inboxMemCache.Clear(uid)
 	if iboxIndex, err = i.readDiskIndex(ctx, uid, true); err != nil {
 		i.Debug(ctx, "Clear: failed to read index: %s", err)
 	}
@@ -699,7 +698,15 @@ func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err Error) {
 		err = NewInternalError(ctx, i.DebugLabeler, msg)
 		i.Debug(ctx, msg)
 	}
+	inboxMemCache.Clear(uid)
 	return err
+}
+
+func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "Clear")()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	return i.clearLocked(ctx, uid)
 }
 
 func (i *Inbox) ClearInMemory(ctx context.Context, uid gregor1.UID) (err Error) {

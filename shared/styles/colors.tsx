@@ -97,6 +97,7 @@ export const colors = {
   blueLighter_40_on_white: 'rgb(220, 235, 255)',
   blueLighter_60: 'rgba(168, 204, 255, 0.6)',
   blueLighter_60_on_white: 'rgb(203, 224, 255)',
+  blue_10: 'rgba(51, 160, 255, 0.1)',
   blue_30: 'rgba(51, 160, 255, 0.3)',
   blue_30_on_white: 'rgb(192,226,255)',
   blue_60: 'rgba(51, 160, 255, 0.6)',
@@ -118,6 +119,9 @@ export const colors = {
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
+  get greenLightOrWhite() {
+    return this.greenLight
+  },
   greenLighter: '#E8FAF6',
   get greenLighterOrGreen() {
     return this.greenLighter
@@ -306,6 +310,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueLighter_40_on_white: 'rgb(220, 235, 255)',
   blueLighter_60: 'rgba(168, 204, 255, 0.6)',
   blueLighter_60_on_white: 'rgb(203, 224, 255)',
+  blue_10: 'rgba(51, 160, 255, 0.1)',
   blue_30: 'rgba(51, 160, 255, 0.3)',
   blue_30_on_white: 'rgb(192,226,255)',
   blue_60: 'rgba(51, 160, 255, 0.6)',
@@ -327,6 +332,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
+  get greenLightOrWhite() {
+    return colors.white
+  },
   greenLighter: '#E8FAF6',
   get greenLighterOrGreen() {
     return colors.green

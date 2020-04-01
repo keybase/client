@@ -17,5 +17,10 @@ protocol inviteFriends {
 
   // returns the number of people invited
   int invitePeople(EmailInvites emails, array<PhoneNumber> phones);
+
+  // gets and returns the most recent invite count, does not send a notification
   InviteCounts getInviteCounts();
+
+  // request sending out a cached count, useful on mount
+  void requestInviteCounts();
 }

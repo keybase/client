@@ -325,6 +325,24 @@ const onIncomingMessage = (
 
   if (convID && cMsg) {
     const conversationIDKey = Types.conversationIDToKey(convID)
+
+    // check for a reaction outbox notification before doing anything
+    if (
+      cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
+      cMsg.outbox.messageType === RPCChatTypes.MessageType.reaction
+    ) {
+      actions.push(
+        Chat2Gen.createToggleLocalReaction({
+          conversationIDKey,
+          decorated: cMsg.outbox.decoratedTextBody ?? '',
+          emoji: cMsg.outbox.body,
+          targetOrdinal: cMsg.outbox.supersedes,
+          username: state.config.username,
+        })
+      )
+      return actions
+    }
+
     const {containsLatestMessageMap} = state.chat2
     const shouldAddMessage = containsLatestMessageMap.get(conversationIDKey) || false
     const message = Constants.uiMessageToMessage(state, conversationIDKey, cMsg)
@@ -421,7 +439,10 @@ const chatActivityToMetasAction = (
   }
 ) => {
   const conv = payload ? payload.conv : null
-  const meta = conv && Constants.inboxUIItemToConversationMeta(state, conv)
+  if (!conv) {
+    return []
+  }
+  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
   const usernameToFullname = (conv?.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
     if (part.fullName) {
       map[part.assertion] = part.fullName
@@ -976,7 +997,6 @@ function* loadMoreMessages(
   state: Container.TypedState,
   action:
     | Chat2Gen.NavigateToThreadPayload
-    | Chat2Gen.SelectedConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -1021,10 +1041,6 @@ function* loadMoreMessages(
       if (action.payload.pushBody && action.payload.pushBody.length > 0) {
         knownRemotes.push(action.payload.pushBody)
       }
-      break
-    case Chat2Gen.selectedConversation:
-      key = action.payload.conversationIDKey
-      reason = 'nav'
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -2399,6 +2415,20 @@ const refreshMutualTeamsInConv = async (
   return Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []})
 }
 
+const fetchUserEmojiForAutocomplete = async () => {
+  const results = await RPCChatTypes.localUserEmojisRpcPromise(
+    {
+      opts: {
+        getAliases: true,
+        getCreationInfo: false,
+        onlyInTeam: false,
+      },
+    },
+    Constants.waitingKeyLoadingEmoji
+  )
+  return Chat2Gen.createLoadedUserEmojiForAutocomplete({fetchedEmojis: results.emojis})
+}
+
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
 
 // Helpers to nav you to the right place
@@ -3006,7 +3036,6 @@ const toggleMessageReaction = async (
   const messageID = id
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
-  const {username} = state.config
   const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
   try {
@@ -3020,19 +3049,8 @@ const toggleMessageReaction = async (
       tlfName: meta.tlfname,
       tlfPublic: false,
     })
-    return Chat2Gen.createToggleLocalReaction({
-      conversationIDKey,
-      emoji,
-      targetOrdinal: ordinal,
-      username,
-    })
-  } catch (_) {
-    return Chat2Gen.createToggleLocalReaction({
-      conversationIDKey,
-      emoji,
-      targetOrdinal: ordinal,
-      username,
-    })
+  } catch (e) {
+    logger.info(`toggleMessageReaction: failed to post` + e.message)
   }
 }
 
@@ -3588,18 +3606,27 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
     return false
   }
 
+  // deselect if there was one
+  const deselectAction =
+    wasChat && Constants.isValidConversationIDKey(wasID)
+      ? [Chat2Gen.createDeselectedConversation({conversationIDKey: wasID})]
+      : []
+
   // still chatting? just select new one
   if (wasChat && isChat && Constants.isValidConversationIDKey(isID)) {
-    return Chat2Gen.createSelectedConversation({conversationIDKey: isID})
+    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
   }
 
   // leaving a chat
   if (wasChat) {
-    return Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey})
+    return [
+      ...deselectAction,
+      Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey}),
+    ]
   }
 
   if (isChat) {
-    return Chat2Gen.createSelectedConversation({conversationIDKey: isID})
+    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
   }
 
   return false
@@ -3612,6 +3639,13 @@ const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
   }
   return false
 }
+
+const updateDraftState = (action: Chat2Gen.DeselectedConversationPayload) =>
+  Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys: [action.payload.conversationIDKey],
+    force: true,
+    reason: 'refreshPreviousSelected',
+  })
 
 function* chat2Saga() {
   // Platform specific actions
@@ -3650,7 +3684,6 @@ function* chat2Saga() {
   // Load the selected thread
   yield* Saga.chainGenerator<
     | Chat2Gen.NavigateToThreadPayload
-    | Chat2Gen.SelectedConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -3660,7 +3693,6 @@ function* chat2Saga() {
   >(
     [
       Chat2Gen.navigateToThread,
-      Chat2Gen.selectedConversation,
       Chat2Gen.jumpToRecent,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,
@@ -3798,6 +3830,8 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
 
+  yield* Saga.chainAction2(Chat2Gen.fetchUserEmojiForAutocomplete, fetchUserEmojiForAutocomplete)
+
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
   yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)
 
@@ -3871,6 +3905,7 @@ function* chat2Saga() {
 
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeChangeChatSelection)
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeChatTabSelected)
+  yield* Saga.chainAction(Chat2Gen.deselectedConversation, updateDraftState)
 }
 
 export default chat2Saga

@@ -7,6 +7,12 @@ import clamp from 'lodash/clamp'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
 import {Props} from '.'
 import {ModalTitle} from '../../teams/common'
+import {
+  AVATAR_CONTAINER_SIZE,
+  AVATAR_BORDER_SIZE,
+  AVATAR_SIZE,
+  VIEWPORT_CENTER,
+} from '../../common-adapters/avatar'
 
 type State = {
   dragStartX: number
@@ -30,15 +36,10 @@ type State = {
   viewingCenterY: number
 }
 
-const AVATAR_CONTAINER_SIZE = 175
-const AVATAR_BORDER_SIZE = 4
-const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
-const VIEWPORT_CENTER = AVATAR_SIZE / 2
-
 class EditAvatar extends React.Component<Props, State> {
   private file: HTMLInputElement | null = null
   private image = React.createRef()
-  private timerID?: NodeJS.Timer
+  private timerID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
     super(props)
@@ -295,6 +296,17 @@ class EditAvatar extends React.Component<Props, State> {
       y0: Math.round(y * ratio),
       y1: Math.round((y + AVATAR_SIZE) * ratio),
     }
+
+    if (flags.teamsRedesign && this.props.wizard) {
+      return this.props.onSave(
+        this.state.imageSource,
+        crop,
+        this.state.scaledImageWidth,
+        this.state.offsetLeft,
+        this.state.offsetTop
+      )
+    }
+
     this.props.onSave(this.state.imageSource, crop)
   }
 
@@ -316,12 +328,7 @@ class EditAvatar extends React.Component<Props, State> {
                 type="Default"
               />
             ) : null,
-            title: (
-              <ModalTitle
-                teamname={this.props.teamname ? this.props.teamname : ''}
-                title="Upload an avatar"
-              />
-            ),
+            title: <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />,
           }}
           allowOverflow={true}
           footer={{

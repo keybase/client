@@ -24,7 +24,7 @@ export const HeaderRightActions = Container.connect(
     return {
       canAddPeople: yourOperations.manageMembers,
       canChat: !yourOperations.joinTeam,
-      loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
+      loading: anyWaiting(state, Constants.teamWaitingKey(teamID)),
       teamname,
     }
   },

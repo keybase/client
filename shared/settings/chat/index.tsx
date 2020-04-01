@@ -14,6 +14,7 @@ export type Props = {
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
   unfurlError?: string
+  onBack?: () => void
   onContactSettingsSave: (
     enabled: boolean,
     indirectFollowees: boolean,
@@ -129,181 +130,185 @@ class Chat extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ScrollView>
-          <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="Header">Contact restrictions</Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Checkbox
-                label="Only let someone message you or add you to a team if..."
-                onCheck={() =>
-                  this.setState(prevState => ({contactSettingsEnabled: !prevState.contactSettingsEnabled}))
-                }
-                checked={!!this.state.contactSettingsEnabled}
-                disabled={this.props.contactSettingsEnabled === undefined}
-              />
-              {!!this.state.contactSettingsEnabled && (
-                <>
-                  <Kb.Box2
-                    direction="vertical"
-                    fullWidth={true}
-                    gap={Styles.isMobile ? 'small' : undefined}
-                    gapStart={Styles.isMobile}
-                    style={styles.checkboxIndented}
-                  >
-                    <Kb.Checkbox
-                      label="You follow them, or..."
-                      checked={true}
-                      disabled={true}
-                      onCheck={null}
-                    />
-                    <Kb.Checkbox
-                      label="You follow someone who follows them, or..."
-                      onCheck={checked =>
-                        this.setState({
-                          contactSettingsIndirectFollowees: checked,
-                        })
-                      }
-                      checked={!!this.state.contactSettingsIndirectFollowees}
-                    />
-                    <Kb.Checkbox
-                      label="They're in one of these teams with you:"
-                      onCheck={checked => this.setState({contactSettingsTeamsEnabled: checked})}
-                      checked={!!this.state.contactSettingsTeamsEnabled}
-                      disabled={false}
-                    />
-                  </Kb.Box2>
-
-                  {this.state.contactSettingsTeamsEnabled && (
+      <Kb.HeaderHocWrapper onBack={this.props.onBack} skipHeader={!Styles.isPhone} title="Chat">
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.ScrollView>
+            <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Text type="Header">Contact restrictions</Kb.Text>
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Checkbox
+                  label="Only let someone message you or add you to a team if..."
+                  onCheck={() =>
+                    this.setState(prevState => ({contactSettingsEnabled: !prevState.contactSettingsEnabled}))
+                  }
+                  checked={!!this.state.contactSettingsEnabled}
+                  disabled={this.props.contactSettingsEnabled === undefined}
+                />
+                {!!this.state.contactSettingsEnabled && (
+                  <>
                     <Kb.Box2
                       direction="vertical"
                       fullWidth={true}
                       gap={Styles.isMobile ? 'small' : undefined}
-                      gapStart={false}
-                      gapEnd={true}
+                      gapStart={Styles.isMobile}
+                      style={styles.checkboxIndented}
                     >
-                      {this.props.teamMeta.map(teamMeta => (
-                        <TeamRow
-                          checked={this.state.contactSettingsSelectedTeams[teamMeta.id]}
-                          key={teamMeta.id}
-                          isOpen={teamMeta.isOpen}
-                          name={teamMeta.teamname}
-                          onCheck={(checked: boolean) =>
-                            this.setState(prevState => ({
-                              contactSettingsSelectedTeams: {
-                                ...prevState.contactSettingsSelectedTeams,
-                                [teamMeta.id]: checked,
-                              },
-                            }))
-                          }
-                        />
-                      ))}
+                      <Kb.Checkbox
+                        label="You follow them, or..."
+                        checked={true}
+                        disabled={true}
+                        onCheck={null}
+                      />
+                      <Kb.Checkbox
+                        label="You follow someone who follows them, or..."
+                        onCheck={checked =>
+                          this.setState({
+                            contactSettingsIndirectFollowees: checked,
+                          })
+                        }
+                        checked={!!this.state.contactSettingsIndirectFollowees}
+                      />
+                      <Kb.Checkbox
+                        label="They're in one of these teams with you:"
+                        onCheck={checked => this.setState({contactSettingsTeamsEnabled: checked})}
+                        checked={!!this.state.contactSettingsTeamsEnabled}
+                        disabled={false}
+                      />
                     </Kb.Box2>
+
+                    {this.state.contactSettingsTeamsEnabled && (
+                      <Kb.Box2
+                        direction="vertical"
+                        fullWidth={true}
+                        gap={Styles.isMobile ? 'small' : undefined}
+                        gapStart={false}
+                        gapEnd={true}
+                      >
+                        {this.props.teamMeta.map(teamMeta => (
+                          <TeamRow
+                            checked={this.state.contactSettingsSelectedTeams[teamMeta.id]}
+                            key={teamMeta.id}
+                            isOpen={teamMeta.isOpen}
+                            name={teamMeta.teamname}
+                            onCheck={(checked: boolean) =>
+                              this.setState(prevState => ({
+                                contactSettingsSelectedTeams: {
+                                  ...prevState.contactSettingsSelectedTeams,
+                                  [teamMeta.id]: checked,
+                                },
+                              }))
+                            }
+                          />
+                        ))}
+                      </Kb.Box2>
+                    )}
+                  </>
+                )}
+                <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
+                  <Kb.WaitingButton
+                    onClick={() =>
+                      this.props.onContactSettingsSave(
+                        !!this.state.contactSettingsEnabled,
+                        !!this.state.contactSettingsIndirectFollowees,
+                        !!this.state.contactSettingsTeamsEnabled,
+                        this.state.contactSettingsSelectedTeams
+                      )
+                    }
+                    label="Save"
+                    small={true}
+                    style={styles.save}
+                    waitingKey={Constants.contactSettingsSaveWaitingKey}
+                  />
+                  {!!this.props.contactSettingsError && (
+                    <Kb.Text type="BodySmall" style={styles.error}>
+                      {this.props.contactSettingsError}
+                    </Kb.Text>
                   )}
-                </>
-              )}
+                </Kb.Box2>
+              </Kb.Box2>
+
+              <Kb.Divider style={styles.divider} />
+
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Text type="Header">Post link previews?</Kb.Text>
+                <Kb.Text type="BodySmall">
+                  Your Keybase app will visit the links you share and automatically post previews.
+                </Kb.Text>
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+                <Kb.RadioButton
+                  key="rbalways"
+                  label="Always"
+                  onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.always)}
+                  selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.always}
+                  disabled={this.props.unfurlMode === undefined}
+                />
+                <Kb.RadioButton
+                  key="rbwhitelist"
+                  label="Yes, but only for these sites:"
+                  onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.whitelisted)}
+                  selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted}
+                  disabled={this.props.unfurlMode === undefined}
+                />
+                <Kb.ScrollView style={styles.whitelist}>
+                  {this._getUnfurlWhitelist(false).map(w => {
+                    const wlremoved = this._isUnfurlWhitelistRemoved(w)
+                    return (
+                      <React.Fragment key={w}>
+                        <Kb.Box2
+                          fullWidth={true}
+                          direction="horizontal"
+                          style={Styles.collapseStyles([
+                            wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
+                            styles.whitelistRowContainer,
+                          ])}
+                        >
+                          <Kb.Text type="BodySemibold">{w}</Kb.Text>
+                          <Kb.Text
+                            type="BodyPrimaryLink"
+                            style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
+                            onClick={() => this._toggleUnfurlWhitelist(w)}
+                          >
+                            {wlremoved ? 'Restore' : 'Remove'}
+                          </Kb.Text>
+                        </Kb.Box2>
+                        <Kb.Divider />
+                      </React.Fragment>
+                    )
+                  })}
+                </Kb.ScrollView>
+                <Kb.RadioButton
+                  key="rbnever"
+                  label="Never"
+                  onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.never)}
+                  selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.never}
+                  disabled={this.props.unfurlMode === undefined}
+                />
+              </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
                 <Kb.WaitingButton
                   onClick={() =>
-                    this.props.onContactSettingsSave(
-                      !!this.state.contactSettingsEnabled,
-                      !!this.state.contactSettingsIndirectFollowees,
-                      !!this.state.contactSettingsTeamsEnabled,
-                      this.state.contactSettingsSelectedTeams
-                    )
+                    this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist(true))
                   }
                   label="Save"
                   small={true}
                   style={styles.save}
-                  waitingKey={Constants.contactSettingsSaveWaitingKey}
+                  disabled={this._isUnfurlSaveDisabled()}
+                  waitingKey={Constants.chatUnfurlWaitingKey}
                 />
-                {!!this.props.contactSettingsError && (
+                {this.props.unfurlError && (
                   <Kb.Text type="BodySmall" style={styles.error}>
-                    {this.props.contactSettingsError}
+                    {this.props.unfurlError}
                   </Kb.Text>
                 )}
               </Kb.Box2>
+              <Kb.Divider style={styles.divider} />
             </Kb.Box2>
-
-            <Kb.Divider style={styles.divider} />
-
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="Header">Post link previews?</Kb.Text>
-              <Kb.Text type="BodySmall">
-                Your Keybase app will visit the links you share and automatically post previews.
-              </Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-              <Kb.RadioButton
-                key="rbalways"
-                label="Always"
-                onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.always)}
-                selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.always}
-                disabled={this.props.unfurlMode === undefined}
-              />
-              <Kb.RadioButton
-                key="rbwhitelist"
-                label="Yes, but only for these sites:"
-                onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.whitelisted)}
-                selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted}
-                disabled={this.props.unfurlMode === undefined}
-              />
-              <Kb.ScrollView style={styles.whitelist}>
-                {this._getUnfurlWhitelist(false).map(w => {
-                  const wlremoved = this._isUnfurlWhitelistRemoved(w)
-                  return (
-                    <React.Fragment key={w}>
-                      <Kb.Box2
-                        fullWidth={true}
-                        direction="horizontal"
-                        style={Styles.collapseStyles([
-                          wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
-                          styles.whitelistRowContainer,
-                        ])}
-                      >
-                        <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                        <Kb.Text
-                          type="BodyPrimaryLink"
-                          style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
-                          onClick={() => this._toggleUnfurlWhitelist(w)}
-                        >
-                          {wlremoved ? 'Restore' : 'Remove'}
-                        </Kb.Text>
-                      </Kb.Box2>
-                      <Kb.Divider />
-                    </React.Fragment>
-                  )
-                })}
-              </Kb.ScrollView>
-              <Kb.RadioButton
-                key="rbnever"
-                label="Never"
-                onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.never)}
-                selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.never}
-                disabled={this.props.unfurlMode === undefined}
-              />
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
-              <Kb.WaitingButton
-                onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist(true))}
-                label="Save"
-                small={true}
-                style={styles.save}
-                disabled={this._isUnfurlSaveDisabled()}
-                waitingKey={Constants.chatUnfurlWaitingKey}
-              />
-              {this.props.unfurlError && (
-                <Kb.Text type="BodySmall" style={styles.error}>
-                  {this.props.unfurlError}
-                </Kb.Text>
-              )}
-            </Kb.Box2>
-            <Kb.Divider style={styles.divider} />
-          </Kb.Box2>
-        </Kb.ScrollView>
-      </Kb.Box2>
+          </Kb.ScrollView>
+        </Kb.Box2>
+      </Kb.HeaderHocWrapper>
     )
   }
 }
@@ -379,15 +384,17 @@ const styles = Styles.styleSheetCreate(() => ({
       borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
+      height: 150,
     },
     isElectron: {
-      height: 150,
       marginLeft: 22,
       minWidth: 305,
     },
-    isMobile: {
-      height: 150,
+    isPhone: {
       width: '100%',
+    },
+    isTablet: {
+      width: Styles.globalStyles.largeWidthPercent,
     },
   }),
   whitelistRowContainer: {
@@ -400,4 +407,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Kb.HeaderHoc(Chat)
+export default Chat

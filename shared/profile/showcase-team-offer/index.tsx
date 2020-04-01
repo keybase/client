@@ -17,9 +17,6 @@ export type RowProps = {
 }
 
 export type Props = {
-  customCancelText: string
-  customComponent?: React.ElementType | null
-  headerStyle?: Object | null
   onCancel: () => void
   onPromote: (teamID: Types.TeamID, promote: boolean) => void
   teams: ReadonlyArray<Types.TeamMeta>
@@ -94,27 +91,29 @@ const ShowcaseTeamOfferHeader = () => (
 const ShowcaseTeamOffer = (props: Props) => {
   useTeamsSubscribe()
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
-      {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
-      <Kb.ScrollView>
-        {Styles.isMobile && <ShowcaseTeamOfferHeader />}
-        {props.teams.map(teamMeta => (
-          <TeamRow
-            key={teamMeta.id}
-            canShowcase={
-              (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
-            }
-            isExplicitMember={teamMeta.isMember}
-            name={teamMeta.teamname}
-            isOpen={teamMeta.isOpen}
-            membercount={teamMeta.memberCount}
-            onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
-            showcased={teamMeta.showcasing}
-            waiting={!!props.waiting[teamWaitingKey(teamMeta.teamname)]}
-          />
-        ))}
-      </Kb.ScrollView>
-    </Kb.Box2>
+    <Kb.PopupWrapper onCancel={props.onCancel} title="Feature your teams" customCancelText="Close">
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
+        <Kb.ScrollView>
+          {Styles.isMobile && <ShowcaseTeamOfferHeader />}
+          {props.teams.map(teamMeta => (
+            <TeamRow
+              key={teamMeta.id}
+              canShowcase={
+                (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
+              }
+              isExplicitMember={teamMeta.isMember}
+              name={teamMeta.teamname}
+              isOpen={teamMeta.isOpen}
+              membercount={teamMeta.memberCount}
+              onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
+              showcased={teamMeta.showcasing}
+              waiting={!!props.waiting[teamWaitingKey(teamMeta.id)]}
+            />
+          ))}
+        </Kb.ScrollView>
+      </Kb.Box2>
+    </Kb.PopupWrapper>
   )
 }
 

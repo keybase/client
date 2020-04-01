@@ -18,7 +18,6 @@ export default Container.connect(
   }),
   (dispatch, ownProps: OwnProps) => ({
     loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => {
       const isTeam = !!Container.getRouteProps(ownProps, 'isTeam', false)
@@ -29,7 +28,10 @@ export default Container.connect(
       dispatch(createAction)
       dispatch(RouteTreeGen.createNavigateUp())
     },
-    onNewTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, 'teamNewTeamDialog']})),
+    onNewTeam: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
+      dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+    },
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(NewRepo)

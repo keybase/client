@@ -21,7 +21,7 @@ const uploadedSrc = /https?:\/\/127.0.0.1:.*$/i
 const NO_TRANSFORM = 'notransform'
 const _cacheNoTransforms: {[K in string]: string} = {}
 
-// Define transformatin functions to operate on canvas elements
+// Define transformation functions to operate on canvas elements
 //
 // 1: rotate 0 deg left
 // 2: flip horizontally

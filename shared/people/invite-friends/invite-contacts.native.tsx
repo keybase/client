@@ -1,13 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import {Section as _Section} from '../../common-adapters/section-list'
-import useContacts from '../../teams/invite-by-contact/use-contacts.native'
-import {Contact} from '../../teams/invite-by-contact/index.native'
+import useContacts, {Contact} from '../../teams/common/use-contacts.native'
+import {EnableContactsPopup} from '../../teams/common'
 import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import {mapGetEnsureValue} from '../../util/map'
 import * as RPCGen from '../../constants/types/rpc-gen'
+import {pluralize} from '../../util/string'
 
 type Section = _Section<Contact, {title: string}>
 
@@ -76,6 +77,7 @@ const InviteContacts = () => {
 
   const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
   const [rpcErrorMessage, setError] = React.useState('')
+  const [successCount, setSuccessCount] = React.useState(0)
   const onSubmit = () => {
     setError('')
     submit(
@@ -86,10 +88,7 @@ const InviteContacts = () => {
         },
         waitingKey,
       ],
-      () => {
-        // TODO(Y2K-1643): positive feedback
-        navUp()
-      },
+      r => setSuccessCount(r),
       err => {
         setError(err.message)
       }
@@ -107,6 +106,7 @@ const InviteContacts = () => {
     ) : (
       <Kb.SectionDivider label={section.title} />
     )
+  const disabled = !!successCount
   const renderItem = ({item, index}: {item: Contact; index: number}) => {
     const topText = item.name ?? item.valueFormatted ?? item.value
     const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
@@ -138,8 +138,15 @@ const InviteContacts = () => {
             {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
           </Kb.Box2>
         }
-        onClick={() => onCheck(!checked)}
-        action={<Kb.CheckCircle checked={checked} onCheck={onCheck} style={styles.checkCircle} />}
+        onClick={disabled ? undefined : () => onCheck(!checked)}
+        action={
+          <Kb.CheckCircle
+            checked={checked}
+            onCheck={onCheck}
+            style={styles.checkCircle}
+            disabled={disabled}
+          />
+        }
         icon={
           item.pictureUri ? (
             <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
@@ -158,10 +165,12 @@ const InviteContacts = () => {
         hideBorder: true,
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={navUp}>
-            Cancel
+            {successCount ? 'Close' : 'Cancel'}
           </Kb.Text>
         ),
-        rightButton: waiting ? (
+        rightButton: successCount ? (
+          undefined
+        ) : waiting ? (
           <Kb.ProgressIndicator type="Small" />
         ) : (
           <Kb.Text
@@ -174,11 +183,21 @@ const InviteContacts = () => {
         ),
         title: 'Invite friends',
       }}
+      footer={
+        successCount
+          ? {content: <Kb.Button onClick={navUp} small={true} fullWidth={true} label="Close" />}
+          : undefined
+      }
     >
       {(!!contactsErrorMessage || !!rpcErrorMessage) && (
         <Kb.Banner color="red">{contactsErrorMessage ?? rpcErrorMessage}</Kb.Banner>
       )}
-      {loading ? (
+      {successCount ? (
+        <Kb.Banner color="green">{`Success! You invited ${successCount} ${pluralize(
+          'contact',
+          successCount
+        )} to Keybase.`}</Kb.Banner>
+      ) : loading ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
         <Kb.SearchFilter
@@ -196,6 +215,7 @@ const InviteContacts = () => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
       />
+      <EnableContactsPopup noAccess={contactInfo.noAccessPermanent} onClose={navUp} />
     </Kb.Modal>
   )
 }

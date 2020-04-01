@@ -30,6 +30,8 @@ import (
 	"github.com/keybase/client/go/teams/opensearch"
 	"github.com/keybase/pipeliner"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
 type UISource interface {
@@ -722,24 +724,9 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 		return res, err
 	}
 	err = h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status)
-	switch err.(type) {
-	case nil:
-		return chat1.SetConversationStatusLocalRes{
-			IdentifyFailures: identBreaks,
-		}, nil
-	case libkb.ChatBadConversationError:
-		// Clear the inbox, we could have a deleted conversation stuck in our
-		// cache that we need to boot.
-		if err := h.G().InboxSource.Clear(ctx, uid); err != nil {
-			h.Debug(ctx, "unable to clear inbox %v", err)
-		}
-		h.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "SetConversationStatusLocal")
-		return chat1.SetConversationStatusLocalRes{
-			IdentifyFailures: identBreaks,
-		}, nil
-	default:
-		return res, err
-	}
+	return chat1.SetConversationStatusLocalRes{
+		IdentifyFailures: identBreaks,
+	}, err
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
@@ -2502,16 +2489,8 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		return err
 	}
 	fetchAndUnfurl := func() error {
-		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
-		if err != nil {
-			return err
-		}
-		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.Conv, uid, []chat1.MessageID{arg.MsgID}, nil,
-			nil)
-		if err != nil {
-			return err
-		}
-		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs, nil, nil, nil)
+		msgs, err := h.G().ConvSource.GetMessages(ctx, arg.ConvID, uid, []chat1.MessageID{arg.MsgID},
+			nil, nil, true)
 		if err != nil {
 			return err
 		}
@@ -2605,7 +2584,7 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 	if err := utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapse); err != nil {
 		return err
 	}
-	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid, arg.MsgID, nil, nil, true)
 	if err != nil {
 		h.Debug(ctx, "ToggleMessageCollapse: failed to get message: %s", err)
 		return nil
@@ -2615,8 +2594,8 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 		return nil
 	}
 	if msg.Valid().MessageBody.IsType(chat1.MessageType_UNFURL) {
-		unfurledMsg, err := GetMessage(ctx, h.G(), uid, arg.ConvID,
-			msg.Valid().MessageBody.Unfurl().MessageID, true, nil)
+		unfurledMsg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid,
+			msg.Valid().MessageBody.Unfurl().MessageID, nil, nil, true)
 		if err != nil {
 			h.Debug(ctx, "ToggleMessageCollapse: failed to get unfurl base message: %s", err)
 			return nil
@@ -3045,7 +3024,7 @@ func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res c
 	if err != nil {
 		return res, err
 	}
-	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.ConvID, uid, arg.MsgID, nil, nil, true)
 	if err != nil {
 		return res, err
 	}
@@ -3516,20 +3495,16 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 	return getWelcomeMessage(ctx, h.G(), h.remoteClient, uid, teamID)
 }
 
-func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamName string) (res chat1.GetDefaultTeamChannelsLocalRes, err error) {
+func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetDefaultTeamChannelsLocalRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetDefaultTeamChannelsLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetDefaultTeamChannelsLocal %v", teamID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx, teamName, false)
-	if err != nil {
-		return res, err
-	}
 
-	resp, err := h.remoteClient().GetDefaultTeamChannels(ctx, keybase1.TeamID(nameInfo.ID.String()))
+	resp, err := h.remoteClient().GetDefaultTeamChannels(ctx, teamID)
 	if err != nil {
 		return res, err
 	}
@@ -3553,13 +3528,9 @@ func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamName strin
 
 func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetDefaultTeamChannelsLocalArg) (res chat1.SetDefaultTeamChannelsLocalRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetDefaultTeamChannelsLocal")()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("SetDefaultTeamChannelsLocal: %v", arg.TeamID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	_, err = utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx, arg.TeamName, false)
 	if err != nil {
 		return res, err
 	}
@@ -3573,7 +3544,7 @@ func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetD
 		convs = append(convs, convID)
 	}
 	_, err = h.remoteClient().SetDefaultTeamChannels(ctx, chat1.SetDefaultTeamChannelsArg{
-		TeamID: keybase1.TeamID(nameInfo.ID.String()),
+		TeamID: arg.TeamID,
 		Convs:  convs,
 	})
 	return res, err
@@ -3597,20 +3568,24 @@ func (h *Server) GetLastActiveForTLF(ctx context.Context, tlfIDStr chat1.TLFIDSt
 	return utils.ToLastActiveStatus(mtime), nil
 }
 
-func (h *Server) GetLastActiveForTeams(ctx context.Context) (res map[chat1.TLFIDStr]chat1.LastActiveStatus, err error) {
+func (h *Server) GetLastActiveForTeams(ctx context.Context) (res chat1.LastActiveStatusAll, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetLastActiveForTeams")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	teamActivity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
+	activity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	res = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
-	for tlfID, mtime := range teamActivity {
-		res[tlfID] = utils.ToLastActiveStatus(mtime)
+	res.Teams = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
+	res.Channels = make(map[chat1.ConvIDStr]chat1.LastActiveStatus)
+	for tlfID, mtime := range activity.Teams {
+		res.Teams[tlfID] = utils.ToLastActiveStatus(mtime)
+	}
+	for convID, mtime := range activity.Channels {
+		res.Channels[convID] = utils.ToLastActiveStatus(mtime)
 	}
 	return res, nil
 }
@@ -3643,7 +3618,47 @@ func (h *Server) GetLastActiveAtLocal(ctx context.Context, arg chat1.GetLastActi
 	if err != nil {
 		return 0, err
 	}
-	return h.G().TeamChannelSource.GetLastActiveAt(ctx, arg.TeamID, arg.Uid, h.remoteClient())
+	uid := gregor1.UID(libkb.UsernameToUID(arg.Username).ToBytes())
+	return h.G().TeamChannelSource.GetLastActiveAt(ctx, arg.TeamID, uid, h.remoteClient())
+}
+
+func (h *Server) GetLastActiveAtMultiLocal(ctx context.Context, arg chat1.GetLastActiveAtMultiLocalArg) (res map[keybase1.TeamID]gregor1.Time, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLastActiveAtMultiLocal")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	uid := gregor1.UID(libkb.UsernameToUID(arg.Username).ToBytes())
+
+	res = map[keybase1.TeamID]gregor1.Time{}
+	resMu := sync.Mutex{}
+	sem := semaphore.NewWeighted(10)
+	eg, subctx := errgroup.WithContext(ctx)
+	for _, teamID := range arg.TeamIDs {
+		if err := sem.Acquire(subctx, 1); err != nil {
+			return nil, err
+		}
+
+		teamID := teamID
+		eg.Go(func() error {
+			defer sem.Release(1)
+
+			lastActive, err := h.G().TeamChannelSource.GetLastActiveAt(subctx, teamID, uid, h.remoteClient())
+			if err != nil {
+				return err
+			}
+			resMu.Lock()
+			res[teamID] = lastActive
+			resMu.Unlock()
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1.AddEmojiRes, err error) {
@@ -3654,13 +3669,41 @@ func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename, nil); err != nil {
+	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename); err != nil {
 		return res, err
 	}
 	return res, nil
 }
 
-func (h *Server) UserEmojis(ctx context.Context) (res chat1.UserEmojiRes, err error) {
+func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "AddEmojiAlias")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	if _, err := h.G().EmojiSource.AddAlias(ctx, uid, arg.ConvID, arg.NewAlias, arg.ExistingAlias); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) RemoveEmoji(ctx context.Context, arg chat1.RemoveEmojiArg) (res chat1.RemoveEmojiRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "RemoveEmoji")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	if err := h.G().EmojiSource.Remove(ctx, uid, arg.ConvID, arg.Alias); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) UserEmojis(ctx context.Context, arg chat1.UserEmojisArg) (res chat1.UserEmojiRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UserEmojis")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
@@ -3668,6 +3711,6 @@ func (h *Server) UserEmojis(ctx context.Context) (res chat1.UserEmojiRes, err er
 	if err != nil {
 		return res, err
 	}
-	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, nil)
+	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, arg.ConvID, arg.Opts)
 	return res, err
 }
