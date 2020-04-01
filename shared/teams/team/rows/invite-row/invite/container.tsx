@@ -66,11 +66,11 @@ export default Container.connect(
 
     return {
       firstItem: ownProps.firstItem,
-      label,
       isKeybaseUser: !!user.username,
-      subLabel,
+      label,
       onCancelInvite,
       role: user.role,
+      subLabel,
     }
   }
 )(TeamInviteRow)
