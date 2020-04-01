@@ -51,3 +51,14 @@ export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 export const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
 export const ROLE_PICKER_ZINDEX = ADD_TO_TEAM_ZINDEX + 1
 export const EDIT_AVATAR_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
+
+// In order of quality.
+export const webOfTrustVerificationTypes: Types.WebOfTrustVerificationType[] = [
+  'in_person',
+  'video',
+  'audio',
+  'proofs',
+  'other_chat',
+  'familiar',
+  'other',
+]
