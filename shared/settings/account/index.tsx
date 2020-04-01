@@ -253,11 +253,11 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       maxWidth: 600,
     },
-    isTablet: {
-      maxWidth: Styles.globalStyles.largeWidthPercent,
-    },
     isPhone: {
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
+    },
+    isTablet: {
+      maxWidth: Styles.globalStyles.largeWidthPercent,
     },
   }),
   topButton: {
