@@ -6,7 +6,11 @@
  * file that was distributed with this source code.
  */
 
+#if __has_include(<SDWebImage/SDWebImage.h>)
 #import <SDWebImage/SDWebImage.h>
+#else
+@import SDWebImage;
+#endif
 
 // This category is just use as a convenience method. For more detail control, use methods in `UIImage+MultiFormat.h` or directlly use `SDImageCoder`
 @interface UIImage (WebP)

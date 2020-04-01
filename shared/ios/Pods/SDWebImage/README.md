@@ -20,7 +20,7 @@ This library provides an async image downloader with cache support. For convenie
 - [x] An asynchronous image downloader
 - [x] An asynchronous memory + disk image caching with automatic cache expiration handling
 - [x] A background image decompression to avoid frame rate drop
-- [x] Progressive image loading (including animated image, like GIF showing in Web browser)
+- [x] [Progressive image loading](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#progressive-animation) (including animated image, like GIF showing in Web browser)
 - [x] [Thumbnail image decoding](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#thumbnail-decoding-550) to save CPU && Memory for large images
 - [x] [Extendable image coder](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#custom-coder-420) to support massive image format, like WebP
 - [x] [Full-stack solution for animated images](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#animated-image-50) which keep a balance between CPU && Memory
@@ -52,13 +52,14 @@ As such, we have moved/built new modules to [SDWebImage org](https://github.com/
 We support SwiftUI by building with the functions (caching, loading and animation) powered by SDWebImage. You can have a try with [SDWebImageSwiftUI](https://github.com/SDWebImage/SDWebImageSwiftUI)
 
 #### Coders for additional image formats
-- [SDWebImageWebPCoder](https://github.com/SDWebImage/SDWebImageWebPCoder) - coder for WebP image format. Based on [libwebp](https://chromium.googlesource.com/webm/libwebp)
-- [SDWebImageHEIFCoder](https://github.com/SDWebImage/SDWebImageHEIFCoder) - coder to support HEIF image without Apple's `Image/IO framework`, iOS 8+/macOS 10.10+ support.
-- [SDWebImageBPGCoder](https://github.com/SDWebImage/SDWebImageBPGCoder) - coder for BPG format
-- [SDWebImageFLIFCoder](https://github.com/SDWebImage/SDWebImageFLIFCoder) - coder for FLIF format
-- [SDWebImageAVIFCoder](https://github.com/SDWebImage/SDWebImageAVIFCoder) - coder for AVIF (AV1-based) format
-- [SDWebImagePDFCoder](https://github.com/SDWebImage/SDWebImagePDFCoder) - coder for PDF vector format image
-- [SDWebImageSVGCoder](https://github.com/SDWebImage/SDWebImageSVGCoder) - coder for SVG vector format image
+- [SDWebImageWebPCoder](https://github.com/SDWebImage/SDWebImageWebPCoder) - coder for WebP format. Based on [libwebp](https://chromium.googlesource.com/webm/libwebp)
+- [SDWebImageHEIFCoder](https://github.com/SDWebImage/SDWebImageHEIFCoder) - coder for HEIF format, iOS 8+/macOS 10.10+ support. Based on [libheif](https://github.com/strukturag/libheif)
+- [SDWebImageBPGCoder](https://github.com/SDWebImage/SDWebImageBPGCoder) - coder for BPG format. Based on [libbpg](https://github.com/mirrorer/libbpg)
+- [SDWebImageFLIFCoder](https://github.com/SDWebImage/SDWebImageFLIFCoder) - coder for FLIF format. Based on [libflif](https://github.com/FLIF-hub/FLIF)
+- [SDWebImageAVIFCoder](https://github.com/SDWebImage/SDWebImageAVIFCoder) - coder for AVIF (AV1-based) format. Based on [libavif](https://github.com/AOMediaCodec/libavif)
+- [SDWebImagePDFCoder](https://github.com/SDWebImage/SDWebImagePDFCoder) - coder for PDF vector format. Using built-in frameworks
+- [SDWebImageSVGCoder](https://github.com/SDWebImage/SDWebImageSVGCoder) - coder for SVG vector format. Using built-in frameworks
+- [SDWebImageLottieCoder](https://github.com/SDWebImage/SDWebImageLottieCoder) - coder for Lottie animation format. Based on [rlottie](https://github.com/Samsung/rlottie)
 - and more from community!
 
 #### Loaders
@@ -66,13 +67,16 @@ We support SwiftUI by building with the functions (caching, loading and animatio
 - [SDWebImageLinkPlugin](https://github.com/SDWebImage/SDWebImageLinkPlugin) - plugin to support loading images from rich link url, as well as `LPLinkView` (using `LinkPresentation.framework`) 
 
 #### Integration with 3rd party libraries
+- [SDWebImageLottiePlugin](https://github.com/SDWebImage/SDWebImageLottiePlugin) - plugin to support [Lottie-iOS](https://github.com/airbnb/lottie-ios), vector animation rending with remote JSON files
+- [SDWebImageSVGKitPlugin](https://github.com/SDWebImage/SDWebImageLottiePlugin) - plugin to support [SVGKit](https://github.com/SVGKit/SVGKit), SVG rendering using Core Animation, iOS 8+/macOS 10.10+ support
 - [SDWebImageFLPlugin](https://github.com/SDWebImage/SDWebImageFLPlugin) - plugin to support [FLAnimatedImage](https://github.com/Flipboard/FLAnimatedImage) as the engine for animated GIFs
 - [SDWebImageYYPlugin](https://github.com/SDWebImage/SDWebImageYYPlugin) - plugin to integrate [YYImage](https://github.com/ibireme/YYImage) & [YYCache](https://github.com/ibireme/YYCache) for image rendering & caching
 
 #### Make our lives easier
 - [libwebp-Xcode](https://github.com/SDWebImage/libwebp-Xcode) - A wrapper for [libwebp](https://chromium.googlesource.com/webm/libwebp) + an Xcode project.
 - [libheif-Xcode](https://github.com/SDWebImage/libheif-Xcode) - A wrapper for [libheif](https://github.com/strukturag/libheif) + an Xcode project.
-- and more third-party C/C++ image codec libraries with CocoaPods/Carthage support.
+- [libavif-Xcode](https://github.com/SDWebImage/libavif-Xcode) - A wrapper for [libavif](https://github.com/AOMediaCodec/libavif) + an Xcode project.
+- and more third-party C/C++ image codec libraries with CocoaPods/Carthage/SwiftPM support.
 
 You can use those directly, or create similar components of your own.
 
@@ -143,6 +147,22 @@ imageView.sd_setImage(with: URL(string: "http://www.domain.com/path/to/image.jpg
 
 In 5.0, we introduced a brand new mechanism for supporting animated images. This includes animated image loading, rendering, decoding, and also supports customizations (for advanced users).
 This animated image solution is available for `iOS`/`tvOS`/`macOS`. The `SDAnimatedImage` is subclass of `UIImage/NSImage`, and `SDAnimatedImageView` is subclass of `UIImageView/NSImageView`, to make them compatible with the common frameworks APIs. See [Animated Image](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#animated-image-50) for more detailed information.
+
+* Objective-C
+
+```objective-c
+SDAnimatedImageView *imageView = [SDAnimatedImageView new];
+SDAnimatedImage *animatedImage = [SDAnimatedImage imageNamed:@"image.gif"];
+imageView.image = animatedImage;
+```
+
+* Swift
+
+```swift
+let imageView = SDAnimatedImageView()
+let animatedImage = SDAnimatedImage(name: "image.gif")
+imageView.image = animatedImage
+```
 
 #### FLAnimatedImage integration has its own dedicated repo
 In order to clean up things and make our core project do less things, we decided that the `FLAnimatedImage` integration does not belong here. From 5.0, this will still be available, but under a dedicated repo [SDWebImageFLPlugin](https://github.com/SDWebImage/SDWebImageFLPlugin).
