@@ -10,16 +10,16 @@ import (
 
 const testTFmt = `2006-01-02 15:04:05 -0700`
 
+type longDurTestCase struct {
+	expected string
+	duration string
+}
+
 func TestAddLongDurationLong(t *testing.T) {
 	then, err := time.Parse(testTFmt, "2020-04-01 12:23:08 +0200")
 	require.NoError(t, err)
 
-	type tcase struct {
-		expected string
-		duration string
-	}
-
-	cases := []tcase{
+	cases := []longDurTestCase{
 		{"2021-04-01 12:23:08 +0200", "1 Y"},
 		{"2021-04-01 12:23:08 +0200", "1Y"},
 		{"2022-04-01 12:23:08 +0200", "2 Y"},
@@ -36,6 +36,25 @@ func TestAddLongDurationLong(t *testing.T) {
 		{"2020-07-01 12:23:08 +0200", "3M"},
 		{"2020-10-01 12:23:08 +0200", "6M"},
 		{"2021-02-01 12:23:08 +0100", "10M"}, // TODO: the timezone changes ???
+	}
+
+	for _, c := range cases {
+		ret, err := AddLongDuration(then, c.duration)
+		require.NoError(t, err, "failed for %q", c.duration)
+		require.Equal(t, c.expected, ret.Format(testTFmt), "failed for %q", c.duration)
+	}
+}
+
+func TestAddLongDurationForTimeTravelers(t *testing.T) {
+	then, err := time.Parse(testTFmt, "3062-04-01 12:23:08 +0200")
+	require.NoError(t, err)
+
+	cases := []longDurTestCase{
+		{"3072-04-01 12:23:08 +0200", "10 Y"},
+		{"4062-04-01 12:23:08 +0200", "1000 Y"},
+		{"3062-04-15 12:23:08 +0200", "14 D"},
+		{"3062-05-01 12:23:08 +0200", "1M"},
+		{"3062-10-01 12:23:08 +0200", "6M"},
 	}
 
 	for _, c := range cases {
