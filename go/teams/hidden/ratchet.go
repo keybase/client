@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -299,7 +300,7 @@ func MakeRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (ret *
 
 	defer mctx.Trace(fmt.Sprintf("hidden.MakeRatchet(%s)", id), func() error { return err })()
 
-	err = CheckFeatureGateForSupport(mctx, id, true /* isWrite */)
+	err = CheckFeatureGateForSupport(mctx, id)
 	if err != nil {
 		mctx.VLogf(libkb.VLog0, "skipping ratchet for team id %s due to feature-flag", id)
 		return nil, nil

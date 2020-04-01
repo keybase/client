@@ -9,21 +9,6 @@ import {memoize} from '../../util/memoize'
 
 type Props = Container.RouteProps<{members: string[]; teamID: Types.TeamID}>
 
-const membersStr = (members: string[]): string => {
-  switch (members.length) {
-    case 0:
-      return 'nobody'
-    case 1:
-      return members[0]
-    case 2:
-      return `${members[0]} and ${members[1]}`
-    case 3:
-      return `${members[0]}, ${members[1]} and ${members[2]}`
-    default:
-      return `${members[0]}, ${members[1]}, and ${members.length - 2} others`
-  }
-}
-
 const getSubteamNames = memoize((state: Container.TypedState, teamID: Types.TeamID): [
   string[],
   Types.TeamID[]
@@ -86,7 +71,7 @@ const ConfirmKickOut = (props: Props) => {
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
-      Kick {membersStr(members)} out of {teamname}?
+      Kick {Constants.stringifyPeople(members)} out of {teamname}?
     </Kb.Text>
   )
   const header = (

@@ -4,23 +4,18 @@ import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
+import {RPCError} from '../../../util/errors'
 import {ChannelsWidget} from '../../common'
 
 type Props = {
   teamID: Types.TeamID
 }
 
-const DefaultChannels = (props: Props) => {
-  const {teamID} = props
+export const useDefaultChannels = (teamID: Types.TeamID) => {
   const getDefaultChannelsRPC = Container.useRPC(RPCChatGen.localGetDefaultTeamChannelsLocalRpcPromise)
-  const setDefaultChannelsRPC = Container.useRPC(RPCChatGen.localSetDefaultTeamChannelsLocalRpcPromise)
   const [defaultChannels, setDefaultChannels] = React.useState<Array<Types.ChannelNameID>>([])
-  const [waiting, setWaiting] = React.useState(false)
-  // TODO TRIAGE-2474
-  // Implicit admins should be able to set this, but chat stuff doesnt know about them.
-  // For now limit to people who are admins in this team.
-  // const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
-  const canEdit = Container.useSelector(s => ['admin', 'owner'].includes(Constants.getRole(s, teamID)))
+  const [defaultChannelsWaiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState<RPCError | null>(null)
 
   const reloadDefaultChannels = React.useCallback(() => {
     setWaiting(true)
@@ -33,8 +28,8 @@ const DefaultChannels = (props: Props) => {
         ])
         setWaiting(false)
       },
-      _ => {
-        // TODO what to do with error?
+      err => {
+        setError(err)
         setWaiting(false)
       }
     )
@@ -42,6 +37,20 @@ const DefaultChannels = (props: Props) => {
 
   // Initialize
   React.useEffect(reloadDefaultChannels, [reloadDefaultChannels])
+
+  return {defaultChannels, defaultChannelsWaiting, error, reloadDefaultChannels}
+}
+
+const DefaultChannels = (props: Props) => {
+  const {teamID} = props
+  const {defaultChannels, defaultChannelsWaiting, reloadDefaultChannels} = useDefaultChannels(teamID)
+  const setDefaultChannelsRPC = Container.useRPC(RPCChatGen.localSetDefaultTeamChannelsLocalRpcPromise)
+  const [waiting, setWaiting] = React.useState(false)
+  // TODO TRIAGE-2474
+  // Implicit admins should be able to set this, but chat stuff doesnt know about them.
+  // For now limit to people who are admins in this team.
+  // const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
+  const canEdit = Container.useSelector(s => ['admin', 'owner'].includes(Constants.getRole(s, teamID)))
 
   const onAdd = (channels: Array<Types.ChannelNameID>) => {
     setWaiting(true)
@@ -68,11 +77,12 @@ const DefaultChannels = (props: Props) => {
     }
   }
 
+  const anyWaiting = defaultChannelsWaiting || waiting
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Default join channels</Kb.Text>
-        {waiting && <Kb.ProgressIndicator />}
+        {anyWaiting && <Kb.ProgressIndicator />}
       </Kb.Box2>
       {canEdit ? (
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>

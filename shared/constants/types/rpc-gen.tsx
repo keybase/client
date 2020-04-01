@@ -655,6 +655,10 @@ export type MessageTypes = {
     inParam: void
     outParam: void
   }
+  'keybase.1.delegateUiCtl.registerLogUI': {
+    inParam: void
+    outParam: void
+  }
   'keybase.1.delegateUiCtl.registerRekeyUI': {
     inParam: void
     outParam: void
@@ -1595,6 +1599,10 @@ export type MessageTypes = {
     inParam: {readonly username: String; readonly useSession: Boolean}
     outParam: UserCard | null
   }
+  'keybase.1.userSearch.bulkEmailOrPhoneSearch': {
+    inParam: {readonly emails: String; readonly phoneNumbers?: Array<PhoneNumber> | null}
+    outParam: Array<EmailOrPhoneNumberSearchResult> | null
+  }
   'keybase.1.userSearch.getNonUserDetails': {
     inParam: {readonly assertion: String}
     outParam: NonUserDetails
@@ -2084,6 +2092,8 @@ export enum PerfEventType {
   teamaudit = 2,
   userchain = 3,
   teamchain = 4,
+  clearconv = 5,
+  clearinbox = 6,
 }
 
 export enum PrefetchStatus {
@@ -3717,6 +3727,7 @@ export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (params: Me
 export const delegateUiCtlRegisterHomeUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerHomeUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerHomeUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerHomeUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterIdentify3UIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerIdentify3UI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerIdentify3UI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerIdentify3UI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterIdentifyUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerIdentifyUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerIdentifyUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerIdentifyUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const delegateUiCtlRegisterLogUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerLogUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerLogUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerLogUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterRekeyUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerRekeyUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerRekeyUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerRekeyUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterSecretUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerSecretUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerSecretUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerSecretUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const deviceCheckDeviceNameFormatRpcPromise = (params: MessageTypes['keybase.1.device.checkDeviceNameFormat']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.device.checkDeviceNameFormat']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.checkDeviceNameFormat', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3863,6 +3874,7 @@ export const userLoadPassphraseStateRpcPromise = (params: MessageTypes['keybase.
 export const userProfileEditRpcPromise = (params: MessageTypes['keybase.1.user.profileEdit']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.profileEdit']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.profileEdit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProofSuggestionsRpcPromise = (params: MessageTypes['keybase.1.user.proofSuggestions']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.proofSuggestions']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.proofSuggestions', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userReportUserRpcPromise = (params: MessageTypes['keybase.1.user.reportUser']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.reportUser']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.reportUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userSearchBulkEmailOrPhoneSearchRpcPromise = (params: MessageTypes['keybase.1.userSearch.bulkEmailOrPhoneSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.userSearch.bulkEmailOrPhoneSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.userSearch.bulkEmailOrPhoneSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userSearchGetNonUserDetailsRpcPromise = (params: MessageTypes['keybase.1.userSearch.getNonUserDetails']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.userSearch.getNonUserDetails']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.userSearch.getNonUserDetails', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userSearchUserSearchRpcPromise = (params: MessageTypes['keybase.1.userSearch.userSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.userSearch.userSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.userSearch.userSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userSetUserBlocksRpcPromise = (params: MessageTypes['keybase.1.user.setUserBlocks']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.setUserBlocks']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.setUserBlocks', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4290,7 +4302,6 @@ export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keyba
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
-// 'keybase.1.userSearch.bulkEmailOrPhoneSearch'
 // 'keybase.1.wot.wotVouch'
 // 'keybase.1.wot.wotVouchCLI'
 // 'keybase.1.wot.wotReact'

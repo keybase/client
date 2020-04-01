@@ -787,6 +787,8 @@ func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}
 
 type DummyParticipantSource struct{}
 
+var _ ParticipantSource = (*DummyParticipantSource)(nil)
+
 func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
 	return nil, nil
@@ -802,6 +804,8 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 }
 
 type DummyEmojiSource struct{}
+
+var _ EmojiSource = (*DummyEmojiSource)(nil)
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {

@@ -373,6 +373,11 @@
       "_description": "Remove a pending member from the add members wizard.",
       "assertion": "string"
     },
+    "addMembersWizardSetDefaultChannels": {
+      "_description": "Change the set of default channels we're adding these users to.",
+      "toAdd?": "Array<Types.ChannelNameID>",
+      "toRemove?": "Types.ChannelNameID"
+    },
     "cancelAddMembersWizard": {
       "_description": "Nav away from add members wizard and clear related state."
     },
@@ -396,6 +401,7 @@
       ],
       "teamname": "string",
       "initialTab?": "Types.TabKey",
+      "join?": "boolean",
       "addMembers?": "boolean"
     },
     "setMemberActivityDetails": {
