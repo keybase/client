@@ -94,10 +94,16 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): Array<RowTyp
 }
 
 const getTlfRowsFromTlfs = memoize(
-  (tlfs: Map<string, Types.Tlf>, tlfType: Types.TlfType): Array<SortableRowItem> =>
+  (
+    tlfs: Map<string, Types.Tlf>,
+    tlfType: Types.TlfType,
+    username: string,
+    destinationPickerIndex?: number
+  ): Array<SortableRowItem> =>
     [...tlfs]
       .filter(([_, {isIgnored}]) => !isIgnored)
       .map(([name, {isNew, tlfMtime}]) => ({
+        disabled: Constants.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
         isNew,
         key: `tlf:${name}`,
         name,
@@ -108,7 +114,11 @@ const getTlfRowsFromTlfs = memoize(
       }))
 )
 
-const getTlfItemsFromStateProps = (stateProps, path): Array<RowTypes.NamedRowItem> => {
+const getTlfItemsFromStateProps = (
+  stateProps,
+  path,
+  destinationPickerIndex
+): Array<RowTypes.NamedRowItem> => {
   if (stateProps._tlfs.private.size === 0) {
     // /keybase/private/<me> is always favorited. If it's not there it must be
     // unintialized.
@@ -116,21 +126,26 @@ const getTlfItemsFromStateProps = (stateProps, path): Array<RowTypes.NamedRowIte
   }
 
   const {tlfList, tlfType} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
+
   return sortRowItems(
-    getTlfRowsFromTlfs(tlfList, tlfType),
+    getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, destinationPickerIndex),
     stateProps._sortSetting,
     (Types.pathIsNonTeamTLFList(path) && stateProps._username) || ''
   )
 }
 
-const getNormalRowItemsFromStateProps = (stateProps, path): Array<RowTypes.NamedRowItem> => {
+const getNormalRowItemsFromStateProps = (
+  stateProps,
+  path,
+  destinationPickerIndex
+): Array<RowTypes.NamedRowItem> => {
   const level = Types.getPathLevel(path)
   switch (level) {
     case 0:
     case 1:
       return [] // should never happen
     case 2:
-      return getTlfItemsFromStateProps(stateProps, path)
+      return getTlfItemsFromStateProps(stateProps, path, destinationPickerIndex)
     default:
       return getInTlfItemsFromStateProps(stateProps, path)
   }
@@ -155,7 +170,7 @@ export default namedConnect(
   }),
   () => ({}),
   (s, _, o: OwnProps) => {
-    const normalRowItems = getNormalRowItemsFromStateProps(s, o.path)
+    const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, o.destinationPickerIndex)
     const filteredRowItems = filterRowItems(normalRowItems, s._filter)
     return {
       destinationPickerIndex: o.destinationPickerIndex,

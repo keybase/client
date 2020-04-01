@@ -13,11 +13,17 @@ type TlfProps = StillCommonProps & {
   isIgnored: boolean
   mixedMode?: boolean
   usernames: Array<string>
+  disabled: boolean
 }
 
 const Content = (props: TlfProps) => (
   <Kb.BoxGrow>
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.leftBox}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      style={Styles.collapseStyles([styles.leftBox, props.disabled && rowStyles.opacity30])}
+    >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
         <Filename
           type={Constants.pathTypeToTextType(Types.PathType.Folder)}
@@ -49,7 +55,7 @@ const Tlf = (props: TlfProps) => (
     {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}
     <StillCommon
       path={props.path}
-      onOpen={props.onOpen}
+      onOpen={props.disabled ? undefined : props.onOpen}
       inDestinationPicker={props.inDestinationPicker}
       mixedMode={props.mixedMode}
       writingToJournal={false}
