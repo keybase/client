@@ -1041,6 +1041,21 @@ function* loadMoreMessages(
       if (action.payload.pushBody && action.payload.pushBody.length > 0) {
         knownRemotes.push(action.payload.pushBody)
       }
+      if (action.payload.highlightMessageID) {
+        reason = 'centered'
+        messageIDControl = {
+          mode: RPCChatTypes.MessageIDControlMode.centered,
+          num: Constants.numMessagesOnInitialLoad,
+          pivot: action.payload.highlightMessageID,
+        }
+        forceClear = true
+        forceContainsLatestCalc = true
+        centeredMessageIDs.push({
+          conversationIDKey: key,
+          highlightMode: 'flash',
+          messageID: action.payload.highlightMessageID,
+        })
+      }
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -1146,22 +1161,6 @@ function* loadMoreMessages(
             forceContainsLatestCalc,
             messages,
             shouldClearOthers,
-          })
-        )
-      )
-    }
-
-    if (
-      action.type === Chat2Gen.navigateToThread &&
-      action.payload.highlightMessageID &&
-      action.payload.conversationIDKey
-    ) {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createLoadMessagesCentered({
-            conversationIDKey: action.payload.conversationIDKey,
-            highlightMode: 'flash',
-            messageID: action.payload.highlightMessageID,
           })
         )
       )

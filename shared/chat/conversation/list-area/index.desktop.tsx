@@ -177,7 +177,11 @@ class Thread extends React.PureComponent<Props, State> {
       markedInitiallyLoaded = true
       this.props.markInitiallyLoadedThreadAsRead()
     }
-
+    if (this.props.centeredOrdinal) {
+      this.lockedToBottom = false
+      this.scrollToCentered()
+      return
+    }
     if (this.isLockedToBottom()) {
       this.scrollToBottom('componentDidMount')
     }
