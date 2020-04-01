@@ -17,8 +17,9 @@ import {validTeamname, validTeamnamePart} from '../constants/teamname'
 import URL from 'url-parse'
 import logger from '../logger'
 
-const TeamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
-type TeamPageAction = typeof TeamPageActions[number]
+const teamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
+type TeamPageAction = typeof teamPageActions[number]
+const isTeamPageAction = (a: any): a is TeamPageAction => teamPageActions.includes(a)
 
 const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
   return [
@@ -102,9 +103,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         const teamName = parts[1]
         if (teamName.length && validTeamname(teamName)) {
           const actionPart = parts[2]
-          const action = TeamPageActions.includes(actionPart as TeamPageAction)
-            ? (actionPart as TeamPageAction)
-            : undefined
+          const action = isTeamPageAction(actionPart) ? actionPart : undefined
           return handleTeamPageLink(teamName, action)
         }
       }
