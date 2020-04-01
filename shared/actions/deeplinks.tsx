@@ -17,10 +17,10 @@ import {validTeamname, validTeamnamePart} from '../constants/teamname'
 import URL from 'url-parse'
 import logger from '../logger'
 
-const handleTeamPageLink = (
-  teamname: string,
-  action: 'add_or_invite' | 'manage_settings' | 'join' | undefined
-) => {
+const TeamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
+type TeamPageAction = typeof TeamPageActions[number]
+
+const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
   return [
     TeamsGen.createShowTeamByName({
       addMembers: action === 'add_or_invite' ? true : undefined,
@@ -102,10 +102,9 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         const teamName = parts[1]
         if (teamName.length && validTeamname(teamName)) {
           const actionPart = parts[2]
-          const action =
-            actionPart === 'add_or_invite' || actionPart === 'manage_settings' || actionPart === 'join'
-              ? actionPart
-              : undefined
+          const action = TeamPageActions.includes(actionPart as TeamPageAction)
+            ? (actionPart as TeamPageAction)
+            : undefined
           return handleTeamPageLink(teamName, action)
         }
       }
