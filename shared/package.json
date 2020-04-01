@@ -242,7 +242,7 @@
   },
   "resolutions": {
     "**/@types/node": "12.12.32",
-    "**/@types/react": "16.9.27",
+    "**/@types/react": "16.9.31",
     "**/@types/react-native": "0.62",
     "**/lottie-react-web/**/lodash": "4.17.15",
     "**/lottie-react-web/**/minimatch": "3.0.4",
