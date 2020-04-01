@@ -189,7 +189,7 @@ export const useSubteamsSections = (
 }
 
 const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
-  const [conversationIDKey, setConversationIDKey] = React.useState(Chat2Constants.noConversationIDKey)
+  const [conversationIDKey, setConversationIDKey] = React.useState<Chat2Types.ConversationIDKey | null>(null)
   const generalConvID = Container.useSelector(
     (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
   )
@@ -206,20 +206,17 @@ const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
   return conversationIDKey
 }
 
-export const useEmojiSections = (
-  teamID: Types.TeamID
-  // details: Types.TeamDetails,
-  // yourOperations: Types.TeamOperations
-): Array<Section> => {
+export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
   const convID = useGeneralConversationIDKey(teamID)
   const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
   const [waiting, setWaiting] = React.useState(true)
 
+  const [filter, setFilter] = React.useState('')
+
   React.useEffect(() => {
     setWaiting(true)
     if (convID) {
-      console.warn(convID)
       getUserEmoji(
         [
           {
@@ -227,7 +224,7 @@ export const useEmojiSections = (
             opts: {
               getAliases: true,
               getCreationInfo: true,
-              onlyInTeam: true,
+              onlyInTeam: false, // TODO: change this to true
             },
           },
         ],
@@ -248,18 +245,30 @@ export const useEmojiSections = (
       setWaiting(false)
     }
   }, [convID, getUserEmoji])
+
+  let filteredEmoji: RPCChatTypes.Emoji[] = customEmoji
+  if (filter != '') {
+    filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
+  }
   const sections: Array<Section> = []
   sections.push({
     data: ['emoji-add'],
     key: 'emoji-add',
-    renderItem: () => <EmojiAddRow teamID={teamID} />,
+    renderItem: () => (
+      <EmojiAddRow
+        teamID={teamID}
+        convID={convID ?? Chat2Constants.noConversationIDKey}
+        filter={filter}
+        setFilter={setFilter}
+      />
+    ),
   })
 
   if (!waiting && customEmoji) {
     sections.push({
-      data: customEmoji,
+      data: filteredEmoji,
       key: 'emoji-item',
-      renderItem: ({item}) => <EmojiItemRow emoji={item} />,
+      renderItem: ({index, item}) => <EmojiItemRow emoji={item} firstItem={index === 0} />,
     })
   }
   return sections
