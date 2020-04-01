@@ -29,7 +29,7 @@ import TeamWizardSubteamMembers from './new-team/wizard/add-subteam-members'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
-import TeamAddToTeamContacts from './add-members-wizard/add-contacts'
+import TeamAddToTeamContacts from './add-members-wizard/add-contacts.native'
 import TeamAddToTeamConfirm from './add-members-wizard/confirm'
 import Team from './team'
 import ExternalTeam from './external-team'
@@ -52,7 +52,8 @@ const addWizardRoutes = {
     getScreen: (): typeof TeamAddToTeamConfirm => require('./add-members-wizard/confirm').default,
   },
   teamAddToTeamContacts: {
-    getScreen: (): typeof TeamAddToTeamContacts => require('./add-members-wizard/add-contacts').default,
+    getScreen: (): typeof TeamAddToTeamContacts =>
+      require('./add-members-wizard/add-contacts.native').default,
   },
   teamAddToTeamEmail: {
     getScreen: (): typeof TeamAddToTeamEmail => require('./add-members-wizard/add-email').default,
