@@ -92,14 +92,17 @@ const ConfirmKickOut = (props: Props) => {
   const header = (
     <Kb.Box style={styles.positionRelative}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconContainer}>
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
+        style={Styles.collapseStyles([styles.iconContainer, members.length > 5 && styles.iconContainerMany])}
+      >
         <Kb.Icon
           type="iconfont-block"
           color={Styles.globalColors.white}
           fontSize={14}
           style={styles.headerIcon}
         />
-        {/* boxStyle={members.length <= 5 ? styles.iconContainerSingle : styles.iconContainer} */}
       </Kb.Box2>
     </Kb.Box>
   )
@@ -155,6 +158,9 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
     right: Styles.isMobile ? -24 : 0,
     width: 24,
+  },
+  iconContainerMany: {
+    right: Styles.isMobile ? 0 : 20,
   },
   positionRelative: {
     position: 'relative',
