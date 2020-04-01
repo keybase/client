@@ -62,7 +62,7 @@ export type Props<SectionT extends Section<any, any>> = {
    * default extractor checks `item.key`, then falls back to using the index,
    * like React does.
    */
-  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => React.Key
+  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => string
 
   /**
    * Called once when the scroll position gets within onEndReachedThreshold of
@@ -123,10 +123,14 @@ export type Props<SectionT extends Section<any, any>> = {
    */
   onScroll?: (event: ReactNative.NativeSyntheticEvent<ReactNative.NativeScrollEvent>) => void
 
-  // optional and desktop only.
-  desktopItemHeight?: number
-  desktopHeaderHeight?: number
-  desktopOnSectionChange?: (sectionIndex: number) => void
+  getItemHeight?: (
+    item: ItemTFromSectionT<SectionT>,
+    sectionIndex: number,
+    indexWithinSection: number
+  ) => number
+  getSectionHeaderHeight?: (sectionIndex: number) => number
+
+  onSectionChange?: (section: SectionT) => void
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}

@@ -222,7 +222,8 @@ class InboxSearch extends React.Component<Props, State> {
   private renderSectionHeader = ({section}: any) => {
     return section.renderHeader(section)
   }
-  private keyExtractor = (_: Types.InboxSearchOpenTeamHit | NameResult | TextResult, index: number) => index
+  private keyExtractor = (_: Types.InboxSearchOpenTeamHit | NameResult | TextResult, index: number) =>
+    index.toString()
 
   render() {
     const nameResults: Array<NameResult> = this.state.nameCollapsed ? [] : this.props.nameResults
