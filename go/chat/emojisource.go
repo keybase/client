@@ -28,6 +28,9 @@ type DevConvEmojiSource struct {
 	getLock     sync.Mutex
 	aliasLookup map[string]chat1.Emoji
 	ri          func() chat1.RemoteInterface
+
+	testingCreatedSyncConv   chan struct{}
+	testingRefreshedSyncConv chan struct{}
 }
 
 var _ types.EmojiSource = (*DevConvEmojiSource)(nil)
@@ -465,6 +468,9 @@ func (s *DevConvEmojiSource) getCrossTeamConv(ctx context.Context, uid gregor1.U
 	}
 	if created {
 		s.Debug(ctx, "getCrossTeamConv: created a new sync conv: %s", res.GetConvID())
+		if s.testingCreatedSyncConv != nil {
+			s.testingCreatedSyncConv <- struct{}{}
+		}
 	} else {
 		s.Debug(ctx, "getCrossTeamConv: using exising sync conv: %s", res.GetConvID())
 	}
@@ -517,7 +523,9 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	} else {
 		s.Debug(ctx, "syncCrossTeam: missed mapping")
 	}
-
+	if s.testingRefreshedSyncConv != nil {
+		s.testingRefreshedSyncConv <- struct{}{}
+	}
 	// download from the original source
 	sink, err := ioutil.TempFile(os.TempDir(), "emoji")
 	if err != nil {
