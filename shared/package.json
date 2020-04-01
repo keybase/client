@@ -172,7 +172,7 @@
     "@types/mousetrap": "1.6.3",
     "@types/node": "12.12.32",
     "@types/path-parse": "1.0.19",
-    "@types/react":"16.9.27",
+    "@types/react":"16.9.31",
     "@types/react-dom":"16.9.5",
     "@types/react-gateway": "2.8.3",
     "@types/react-is": "16.7.1",
@@ -238,7 +238,6 @@
     "webpack-merge": "4.2.2"
   },
   "optionalDependencies": {
-    "regedit": "2.2.7",
     "webfonts-generator": "0.4.0"
   },
   "resolutions": {
