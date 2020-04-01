@@ -770,6 +770,7 @@ type HiddenTeamChainManager interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	Shutdown(m MetaContext)
 	TeamSupportsHiddenChain(m MetaContext, id keybase1.TeamID) (state bool, err error)
+	ClearSupportFlagIfFalse(m MetaContext, id keybase1.TeamID)
 }
 
 type TeamRoleMapManager interface {
