@@ -1405,11 +1405,13 @@ func (k *KeybaseDaemonRPC) AvatarUpdated(ctx context.Context,
 	return nil
 }
 
+// TeamTreeMembershipsPartial implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) TeamTreeMembershipsPartial(context.Context,
 	keybase1.TeamTreeMembershipsPartialArg) error {
 	return nil
 }
 
+// TeamTreeMembershipsDone implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context,
 	keybase1.TeamTreeMembershipsDoneArg) error {
 	return nil
