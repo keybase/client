@@ -139,6 +139,7 @@ protocol chatUi {
     boolean isDefaultConv;
     string name;
     string snippet;
+    string snippetDecorated;
     SnippetDecoration snippetDecoration;
     string channel;
     string headline;

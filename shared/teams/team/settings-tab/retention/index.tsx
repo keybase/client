@@ -267,8 +267,9 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.tiny,
   },
   label: {
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     minHeight: Styles.isMobile ? 40 : 32,
+    paddingLeft: Styles.globalMargins.xsmall,
   },
   progressIndicator: {
     height: 30,

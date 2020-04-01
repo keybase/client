@@ -221,7 +221,8 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 	return storage.Put(ctx, uid, convID, topicName, stored)
 }
 
-func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource) (res chat1.EmojiLoadSource, err error) {
+func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
+	noAnim bool) (res chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {
 		return res, err
@@ -229,7 +230,7 @@ func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote cha
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		msg := remote.Message()
-		url := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false)
+		url := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, noAnim)
 		return chat1.NewEmojiLoadSourceWithHttpsrv(url), nil
 	case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
 		return chat1.NewEmojiLoadSourceWithStr(remote.Stockalias().Text), nil
@@ -318,7 +319,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					continue
 				}
 				var creationInfo *chat1.EmojiCreationInfo
-				source, err := s.remoteToLocalSource(ctx, storedEmoji)
+				source, err := s.remoteToLocalSource(ctx, storedEmoji, false)
 				if err != nil {
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
@@ -577,7 +578,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string {
 	if len(emojis) == 0 {
 		return body
 	}
@@ -600,9 +601,10 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	}
 	offset := 0
 	added := 0
+	isReacji := messageType == chat1.MessageType_REACTION
 	for _, match := range matches {
 		if source, ok := emojiMap[match.name]; ok {
-			localSource, err := s.remoteToLocalSource(ctx, source)
+			localSource, err := s.remoteToLocalSource(ctx, source, noAnim)
 			if err != nil {
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue
@@ -610,9 +612,10 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
-					IsBig:  bigEmoji,
-					Alias:  match.name,
-					Source: localSource,
+					IsBig:    bigEmoji,
+					IsReacji: isReacji,
+					Alias:    match.name,
+					Source:   localSource,
 				}))
 			offset += added
 		}

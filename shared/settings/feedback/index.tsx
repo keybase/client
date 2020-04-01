@@ -143,7 +143,12 @@ class Feedback extends React.Component<Props, State> {
               gap="tiny"
             >
               <Kb.ButtonBar>
-                <Kb.Button label="Send" onClick={this._onSendFeedback} waiting={sending} fullWidth={true} />
+                <Kb.Button
+                  label="Send"
+                  onClick={this._onSendFeedback}
+                  waiting={sending}
+                  fullWidth={!Styles.isTablet}
+                />
               </Kb.ButtonBar>
             </Kb.Box2>
             {sendError && (
@@ -193,8 +198,8 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isTablet: {
-          maxWidth: Styles.globalStyles.mediumWidth,
-          width: '100%',
+          alignSelf: 'flex-start',
+          width: Styles.globalStyles.largeWidthPercent,
         },
       }),
       outerStyle: {backgroundColor: Styles.globalColors.white},
