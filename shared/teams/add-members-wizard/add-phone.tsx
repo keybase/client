@@ -6,6 +6,7 @@ import * as RPCGen from '../../constants/types/rpc-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle, usePhoneNumberList} from '../common'
+import {formatPhoneNumber} from '../../util/phone-numbers'
 
 const waitingKey = 'phoneLookup'
 
@@ -40,7 +41,7 @@ const AddPhone = () => {
               TeamsGen.createAddMembersWizardPushMembers({
                 members: r.map(m => ({
                   assertion: m.foundUser ? m.username : m.assertion,
-                  note: m.foundUser ? m.assertionValue : undefined,
+                  note: m.foundUser ? formatPhoneNumber(m.assertionValue) : undefined,
                   role: 'writer',
                 })),
               })
