@@ -51,10 +51,7 @@ const Checkbox = (props: Props) => {
         color={Styles.globalColors.white}
         fontSize={9}
       />
-      <Kb.Box2
-        direction="vertical"
-        style={Styles.collapseStyles([props.disabled && styles.semiLessTransparent])}
-      >
+      <Kb.Box2 direction="vertical">
         <Kb.Text type="Body">{props.labelComponent || props.label}</Kb.Text>
         {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
       </Kb.Box2>
@@ -101,9 +98,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   opaque: {
     opacity: 1,
-  },
-  semiLessTransparent: {
-    opacity: 0.3,
   },
   semiTransparent: {
     opacity: 0.4,
