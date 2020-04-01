@@ -1410,7 +1410,8 @@ func (k *KeybaseDaemonRPC) TeamTreeMembershipsPartial(context.Context,
 	return nil
 }
 
-func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context, int) error {
+func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context,
+	keybase1.TeamTreeMembershipsDoneArg) error {
 	return nil
 }
 

@@ -1621,7 +1621,6 @@ protocol teams {
 
   AnnotatedTeam getAnnotatedTeam(TeamID teamID);
 
-  // CHOPPER
   record AnnotatedSubteamMemberDetails {
     TeamName teamName;
     TeamID teamID;
@@ -1629,7 +1628,6 @@ protocol teams {
     TeamRole role;
   }
   array<AnnotatedSubteamMemberDetails> getUserSubteamMemberships(TeamID teamID, string username);
-  // CHOPPER
 
   // For member page
   record TeamTreeMembershipValue {
@@ -1649,7 +1647,6 @@ protocol teams {
     TeamName teamName;
     TeamTreeMembershipResult result;
   }
-  // singleflighted on teamID
   void loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
   // called when navigating out of page
   void cancelLoadTeamTree(int sessionID);

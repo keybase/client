@@ -872,7 +872,5 @@ func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (e
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
 
-	// mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	return nil
-	// return teams.CancelLoadTeamTree(mctx, arg.TeamName, arg.Username)
+	return fmt.Errorf("unimplemented")
 }

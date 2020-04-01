@@ -357,10 +357,8 @@ func (u *TestProvisionUI) ProvisionerSuccess(_ context.Context, _ keybase1.Provi
 
 type TeamNotifyListener struct {
 	libkb.NoopNotifyListener
-	changeByIDCh                 chan keybase1.TeamChangedByIDArg
-	changeByNameCh               chan keybase1.TeamChangedByNameArg
-	TeamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
-	TeamTreeMembershipsDoneCh    chan int
+	changeByIDCh   chan keybase1.TeamChangedByIDArg
+	changeByNameCh chan keybase1.TeamChangedByNameArg
 }
 
 var _ libkb.NotifyListener = (*TeamNotifyListener)(nil)
@@ -384,20 +382,10 @@ func (n *TeamNotifyListener) TeamChangedByName(teamName string, latestSeqno keyb
 	}
 }
 
-func (n *TeamNotifyListener) TeamTreeMembershipsPartial(res keybase1.TeamTreeMembership) {
-	n.TeamTreeMembershipsPartialCh <- res
-}
-
-func (n *TeamNotifyListener) TeamTreeMembershipsDone(expectedCount int) {
-	n.TeamTreeMembershipsDoneCh <- expectedCount
-}
-
 func NewTeamNotifyListener() *TeamNotifyListener {
 	return &TeamNotifyListener{
-		changeByIDCh:                 make(chan keybase1.TeamChangedByIDArg, 10),
-		changeByNameCh:               make(chan keybase1.TeamChangedByNameArg, 10),
-		TeamTreeMembershipsPartialCh: make(chan keybase1.TeamTreeMembership, 10),
-		TeamTreeMembershipsDoneCh:    make(chan int, 10),
+		changeByIDCh:   make(chan keybase1.TeamChangedByIDArg, 10),
+		changeByNameCh: make(chan keybase1.TeamChangedByNameArg, 10),
 	}
 }
 
