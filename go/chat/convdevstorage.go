@@ -48,33 +48,20 @@ func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.Conversatio
 	*/
 }
 
-func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, name string, src interface{}) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
-
+func (s *ConvDevConversationBackedStorage) PutToKnownConv(ctx context.Context, uid gregor1.UID,
+	conv chat1.ConversationLocal, src interface{}) (err error) {
+	if s.adminOnly && !conv.ReaderInfo.UntrustedTeamRole.IsAdminOrAbove() {
+		return NewDevStoragePermissionDeniedError(conv.ReaderInfo.UntrustedTeamRole)
+	}
 	dat, err := json.Marshal(src)
 	if err != nil {
 		return err
-	}
-	var conv chat1.ConversationLocal
-	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return err
-	}
-	tlfname := baseConv.Info.TlfName
-	conv, _, err = NewConversation(ctx, s.G(), uid, tlfname, &name, s.topicType,
-		s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
-	if err != nil {
-		return err
-	}
-	if s.adminOnly && !conv.ReaderInfo.UntrustedTeamRole.IsAdminOrAbove() {
-		return NewDevStoragePermissionDeniedError(conv.ReaderInfo.UntrustedTeamRole)
 	}
 	if _, _, err = NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri).Send(ctx, conv.GetConvID(),
 		chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        conv.Info.Triple,
-				TlfName:     tlfname,
+				TlfName:     conv.Info.TlfName,
 				MessageType: chat1.MessageType_TEXT,
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -84,7 +71,7 @@ func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 		return err
 	}
 	// only do min writer role stuff for team convs
-	if baseConv.GetMembersType() != chat1.ConversationMembersType_TEAM {
+	if conv.GetMembersType() != chat1.ConversationMembersType_TEAM {
 		return nil
 	}
 	minWriterUnset := conv.ConvSettings == nil ||
@@ -101,6 +88,24 @@ func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 		}
 	}
 	return nil
+}
+
+func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, name string, src interface{}) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
+
+	var conv chat1.ConversationLocal
+	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	tlfname := baseConv.Info.TlfName
+	conv, _, err = NewConversation(ctx, s.G(), uid, tlfname, &name, s.topicType,
+		s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, nil, s.ri, NewConvFindExistingNormal)
+	if err != nil {
+		return err
+	}
+	return s.PutToKnownConv(ctx, uid, conv, src)
 }
 
 func (s *ConvDevConversationBackedStorage) GetFromKnownConv(ctx context.Context, uid gregor1.UID,
@@ -163,7 +168,7 @@ func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.
 		conv = &convs[0]
 	} else {
 		newconv, _, err := NewConversation(ctx, s.G(), uid, baseConv.Info.TlfName, &name, s.topicType,
-			s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
+			s.getMembersType(baseConv), keybase1.TLFVisibility_PRIVATE, nil, s.ri, NewConvFindExistingNormal)
 		if err != nil {
 			return false, conv, err
 		}

@@ -52,12 +52,17 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 	return ret
 }
 
-func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
+	storageConv *chat1.ConversationLocal, convID chat1.ConversationID,
 	alias, filename string, topicNameSuffix *string, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
 	var stored chat1.EmojiStorage
 	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
-	topicName := s.topicName(topicNameSuffix)
-	_, storageConv, err := storage.Get(ctx, uid, convID, topicName, &stored, true)
+	if storageConv != nil {
+		_, err = storage.GetFromKnownConv(ctx, uid, *storageConv, &stored)
+	} else {
+		topicName := s.topicName(topicNameSuffix)
+		_, storageConv, err = storage.Get(ctx, uid, convID, topicName, &stored, true)
+	}
 	if err != nil {
 		return res, err
 	}
@@ -79,7 +84,7 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, c
 		MsgID:  *msgID,
 	})
 	stored.Mapping[alias] = res
-	return res, storage.Put(ctx, uid, convID, topicName, stored)
+	return res, storage.PutToKnownConv(ctx, uid, *storageConv, stored)
 }
 
 func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
@@ -108,7 +113,7 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
-	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
+	return s.addAdvanced(ctx, uid, nil, convID, alias, filename, nil, storage)
 }
 
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -439,6 +444,33 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 	return lhash != nil && rhash != nil && lhash.Eq(rhash)
 }
 
+func (s *DevConvEmojiSource) getCrossTeamConv(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicName string, sourceConvID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
+	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		s.Debug(ctx, "getCrossTeamConv: failed to get base conv: %s", err)
+		return res, err
+	}
+	sourceConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, sourceConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		s.Debug(ctx, "getCrossTeamConv: failed to get source conv: %s", err)
+		return res, err
+	}
+	var created bool
+	topicID := chat1.TopicID(sourceConv.Info.Triple.Tlfid.Bytes())
+	if res, created, err = NewConversation(ctx, s.G(), uid, baseConv.Info.TlfName, &topicName,
+		chat1.TopicType_EMOJICROSS, baseConv.GetMembersType(), baseConv.Info.Visibility,
+		&topicID, s.ri, NewConvFindExistingNormal); err != nil {
+		return res, err
+	}
+	if created {
+		s.Debug(ctx, "getCrossTeamConv: created a new sync conv: %s", res.GetConvID())
+	} else {
+		s.Debug(ctx, "getCrossTeamConv: using exising sync conv: %s", res.GetConvID())
+	}
+	return res, nil
+}
+
 func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID, emoji chat1.HarvestedEmoji,
 	convID chat1.ConversationID) (res chat1.HarvestedEmoji, err error) {
 	typ, err := emoji.Source.Typ()
@@ -453,10 +485,16 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	default:
 		return res, errors.New("invalid remote source to sync")
 	}
-	suffix := convID.String()
+	suffix := "cross"
+	topicName := s.topicName(&suffix)
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJICROSS)
-	if _, _, err := storage.Get(ctx, uid, convID, s.topicName(&suffix), &stored, true); err != nil {
+	sourceConvID := emoji.Source.Message().ConvID
+	syncConv, err := s.getCrossTeamConv(ctx, uid, convID, topicName, sourceConvID)
+	if err != nil {
+		return res, err
+	}
+	if _, err := storage.GetFromKnownConv(ctx, uid, syncConv, &stored); err != nil {
 		return res, err
 	}
 	if stored.Mapping == nil {
@@ -486,14 +524,14 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 		return res, err
 	}
 	defer os.Remove(sink.Name())
-	if err := attachments.Download(ctx, s.G(), uid, emoji.Source.Message().ConvID,
+	if err := attachments.Download(ctx, s.G(), uid, sourceConvID,
 		emoji.Source.Message().MsgID, sink, false, nil, s.ri); err != nil {
 		s.Debug(ctx, "syncCrossTeam: failed to download: %s", err)
 		return res, err
 	}
 
 	// add the source to the target storage area
-	newSource, err := s.addAdvanced(ctx, uid, convID, stripped, sink.Name(), &suffix, storage)
+	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), &suffix, storage)
 	if err != nil {
 		return res, err
 	}
