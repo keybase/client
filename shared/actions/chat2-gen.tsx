@@ -274,10 +274,7 @@ type _ConversationErroredPayload = {
   readonly disallowedUsers: Array<string>
   readonly message: string
 }
-type _CreateConversationPayload = {
-  readonly highlightMessageID?: number | null
-  readonly participants: Array<string>
-}
+type _CreateConversationPayload = {readonly highlightMessageID?: number; readonly participants: Array<string>}
 type _DeselectedConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -509,7 +506,7 @@ type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationI
 type _NavigateToInboxPayload = void
 type _NavigateToThreadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly highlightMessageID?: number | null
+  readonly highlightMessageID?: number
   readonly reason:
     | 'focused'
     | 'clearSelected'
@@ -569,7 +566,7 @@ type _PreviewConversationPayload = {
   readonly teamname?: string
   readonly channelname?: string
   readonly conversationIDKey?: Types.ConversationIDKey
-  readonly highlightMessageID?: number | null
+  readonly highlightMessageID?: number
   readonly reason:
     | 'channelHeader'
     | 'manageView'

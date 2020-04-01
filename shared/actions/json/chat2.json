@@ -37,7 +37,7 @@
       "teamname?": "string",
       "channelname?": "string",
       "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
-      "highlightMessageID?": "number | null",
+      "highlightMessageID?": "number",
       "reason": [
         "'channelHeader'",
         "'manageView'",
@@ -66,7 +66,7 @@
     },
     "createConversation": {
       "_description": "Actually start a conversation",
-      "highlightMessageID?": "number | null",
+      "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
     "changeFocus": {
@@ -408,7 +408,7 @@
     "navigateToThread": {
       "_description": "Navigation helper. Nav is slightly different on mobile / desktop.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "highlightMessageID?": "number | null",
+      "highlightMessageID?": "number",
       // why this happened, sometimes there's different side effects
       "reason": [
         "'focused'", // nav focus changed
