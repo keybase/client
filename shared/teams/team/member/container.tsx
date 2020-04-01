@@ -60,6 +60,7 @@ export default Container.connect(
       _username: username,
       _you: state.config.username,
       disabledReasonsForRolePicker,
+      error: state.teams.errorInEditMember,
       follower: state.config.followers.has(username),
       following: state.config.following.has(username),
       loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
@@ -118,6 +119,7 @@ export default Container.connect(
     return {
       admin,
       disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
+      error: stateProps.error,
       follower: stateProps.follower,
       following: stateProps.following,
       loading: stateProps.loading,

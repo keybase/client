@@ -211,6 +211,9 @@
     "setEditDescriptionError": {
       "error": "string"
     },
+    "setEditMemberError": {
+      "error": "string"
+    },
     "settingsError": {
       "error": "string"
     },

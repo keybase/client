@@ -162,6 +162,9 @@ export default Container.makeReducer<
   [TeamsGen.setEditDescriptionError]: (draftState, action) => {
     draftState.errorInEditDescription = action.payload.error
   },
+  [TeamsGen.setEditMemberError]: (draftState, action) => {
+    draftState.errorInEditMember = action.payload.error
+  },
   [TeamsGen.editTeamDescription]: draftState => {
     draftState.errorInEditDescription = ''
   },

@@ -57,6 +57,7 @@ export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
+export const setEditMemberError = 'teams:setEditMemberError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
@@ -237,6 +238,7 @@ type _SetChannelSelectedPayload = {
   readonly clearAll?: boolean
 }
 type _SetEditDescriptionErrorPayload = {readonly error: string}
+type _SetEditMemberErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
 type _SetMemberActivityDetailsPayload = {
@@ -642,6 +644,10 @@ export const createSetChannelCreationError = (
 export const createSetEditDescriptionError = (
   payload: _SetEditDescriptionErrorPayload
 ): SetEditDescriptionErrorPayload => ({payload, type: setEditDescriptionError})
+export const createSetEditMemberError = (payload: _SetEditMemberErrorPayload): SetEditMemberErrorPayload => ({
+  payload,
+  type: setEditMemberError,
+})
 export const createSetEmailInviteError = (
   payload: _SetEmailInviteErrorPayload
 ): SetEmailInviteErrorPayload => ({payload, type: setEmailInviteError})
@@ -947,6 +953,10 @@ export type SetEditDescriptionErrorPayload = {
   readonly payload: _SetEditDescriptionErrorPayload
   readonly type: typeof setEditDescriptionError
 }
+export type SetEditMemberErrorPayload = {
+  readonly payload: _SetEditMemberErrorPayload
+  readonly type: typeof setEditMemberError
+}
 export type SetEmailInviteErrorPayload = {
   readonly payload: _SetEmailInviteErrorPayload
   readonly type: typeof setEmailInviteError
@@ -1183,6 +1193,7 @@ export type Actions =
   | SetChannelCreationErrorPayload
   | SetChannelSelectedPayload
   | SetEditDescriptionErrorPayload
+  | SetEditMemberErrorPayload
   | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
   | SetMemberActivityDetailsPayload

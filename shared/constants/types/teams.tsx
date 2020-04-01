@@ -169,6 +169,7 @@ export type State = {
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string
   readonly errorInEditDescription: string
+  readonly errorInEditMember: string
   readonly errorInEditWelcomeMessage: string
   readonly errorInEmailInvite: EmailInviteError
   readonly errorInSettings: string
