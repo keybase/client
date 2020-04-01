@@ -461,40 +461,47 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType) (topicNameState *chat1.TopicNameState, convIDs []chat1.ConversationID, err error) {
-	if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
-		tlfID := msg.ClientHeader.Conv.Tlfid
-		topicType := msg.ClientHeader.Conv.TopicType
-		newTopicName := msg.MessageBody.Metadata().ConversationTitle
-		convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID, topicType)
-		if err != nil {
-			return nil, nil, err
-		}
-		var validConvs []chat1.ConversationLocal
-		for _, conv := range convs {
-			// If we have a conv error consider the conv invalid. Exclude
-			// the conv from out TopicNameState forcing the client to retry.
-			if conv.Error == nil {
-				if conv.GetTopicName() == "" {
-					s.Debug(ctx, "checkTopicNameAndGetState: unnamed channel in play: %s", conv.GetConvID())
-				}
-				validConvs = append(validConvs, conv)
-				convIDs = append(convIDs, conv.GetConvID())
-			} else {
-				s.Debug(ctx, "checkTopicNameAndGetState: skipping conv: %s, will cause an error from server",
-					conv.GetConvID())
-			}
-			if conv.GetTopicName() == newTopicName {
-				return nil, nil, DuplicateTopicNameError{Conv: conv}
-			}
-		}
-
-		ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, validConvs,
-			msg.ClientHeader.Sender, tlfID, topicType, membersType)
-		if err != nil {
-			return nil, nil, err
-		}
-		topicNameState = &ts
+	if msg.ClientHeader.MessageType != chat1.MessageType_METADATA {
+		return topicNameState, convIDs, nil
 	}
+	tlfID := msg.ClientHeader.Conv.Tlfid
+	topicType := msg.ClientHeader.Conv.TopicType
+	switch topicType {
+	case chat1.TopicType_EMOJICROSS:
+		// skip this for this topic type
+		return topicNameState, convIDs, nil
+	default:
+	}
+	newTopicName := msg.MessageBody.Metadata().ConversationTitle
+	convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID, topicType)
+	if err != nil {
+		return nil, nil, err
+	}
+	var validConvs []chat1.ConversationLocal
+	for _, conv := range convs {
+		// If we have a conv error consider the conv invalid. Exclude
+		// the conv from out TopicNameState forcing the client to retry.
+		if conv.Error == nil {
+			if conv.GetTopicName() == "" {
+				s.Debug(ctx, "checkTopicNameAndGetState: unnamed channel in play: %s", conv.GetConvID())
+			}
+			validConvs = append(validConvs, conv)
+			convIDs = append(convIDs, conv.GetConvID())
+		} else {
+			s.Debug(ctx, "checkTopicNameAndGetState: skipping conv: %s, will cause an error from server",
+				conv.GetConvID())
+		}
+		if conv.GetTopicName() == newTopicName {
+			return nil, nil, DuplicateTopicNameError{Conv: conv}
+		}
+	}
+
+	ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, validConvs,
+		msg.ClientHeader.Sender, tlfID, topicType, membersType)
+	if err != nil {
+		return nil, nil, err
+	}
+	topicNameState = &ts
 	return topicNameState, convIDs, nil
 }
 
