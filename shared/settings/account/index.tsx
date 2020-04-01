@@ -242,17 +242,22 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 16,
   },
   section: Styles.platformStyles({
-    isElectron: {
+    common: {
       ...Styles.padding(
         Styles.globalMargins.small,
         Styles.globalMargins.mediumLarge,
         Styles.globalMargins.medium,
         Styles.globalMargins.small
       ),
+    },
+    isElectron: {
       maxWidth: 600,
     },
-    isMobile: {
+    isPhone: {
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
+    },
+    isTablet: {
+      maxWidth: Styles.globalStyles.largeWidthPercent,
     },
   }),
   topButton: {
