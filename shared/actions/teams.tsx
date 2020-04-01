@@ -409,6 +409,7 @@ const editMembership = async (state: TypedState, action: TeamsGen.EditMembership
   } catch (e) {
     return TeamsGen.createSetEditMemberError({error: e.message})
   }
+  return false
 }
 
 function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
