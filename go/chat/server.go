@@ -3687,21 +3687,21 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	if err != nil {
 		return res, err
 	}
-	if len(arg.Alias) != len(arg.Filename) {
-		return chat1.AddEmojisRes{}, errors.New("alias and filename have different length")
+	if len(arg.Aliases) != len(arg.Filenames) {
+		return chat1.AddEmojisRes{}, errors.New("aliases and filenames have different length")
 	}
 	res.FailedFilenames = make(map[string]string)
-	res.SuccessFilenames = make([]string, 0, len(arg.Alias))
-	for i := range arg.Alias {
-		if arg.Alias[i] == "debug-test-error" {
-			res.FailedFilenames[arg.Filename[i]] = "this is a test error"
+	res.SuccessFilenames = make([]string, 0, len(arg.Aliases))
+	for i := range arg.Aliases {
+		if arg.Aliases[i] == "debug-test-error" {
+			res.FailedFilenames[arg.Filenames[i]] = "this is a test error"
 			continue
 		}
-		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias[i], arg.Filename[i])
+		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i])
 		if err != nil {
-			res.FailedFilenames[arg.Filename[i]] = err.Error()
+			res.FailedFilenames[arg.Filenames[i]] = err.Error()
 		} else {
-			res.SuccessFilenames = append(res.SuccessFilenames, arg.Filename[i])
+			res.SuccessFilenames = append(res.SuccessFilenames, arg.Filenames[i])
 		}
 	}
 	return res, nil

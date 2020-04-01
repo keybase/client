@@ -5967,14 +5967,14 @@
           "type": "ConversationID"
         },
         {
-          "name": "alias",
+          "name": "aliases",
           "type": {
             "type": "array",
             "items": "string"
           }
         },
         {
-          "name": "filename",
+          "name": "filenames",
           "type": {
             "type": "array",
             "items": "string"

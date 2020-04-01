@@ -6940,9 +6940,9 @@ type AddEmojiArg struct {
 }
 
 type AddEmojisArg struct {
-	ConvID   ConversationID `codec:"convID" json:"convID"`
-	Alias    []string       `codec:"alias" json:"alias"`
-	Filename []string       `codec:"filename" json:"filename"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Aliases   []string       `codec:"aliases" json:"aliases"`
+	Filenames []string       `codec:"filenames" json:"filenames"`
 }
 
 type AddEmojiAliasArg struct {

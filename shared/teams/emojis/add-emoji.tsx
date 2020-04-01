@@ -44,9 +44,9 @@ const useDoAddEmojis = (
           addEmojisRpc(
             [
               {
-                alias: emojisToAdd.map(e => e.alias),
+                aliases: emojisToAdd.map(e => e.alias),
                 convID: ChatTypes.keyToConversationID(conversationIDKey),
-                filename: emojisToAdd.map(e => e.path),
+                filenames: emojisToAdd.map(e => e.path),
               },
             ],
             res => {
