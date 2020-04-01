@@ -42,8 +42,10 @@ export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
 export const removeMemberWaitingKey = (teamID: Types.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
-export const removeFromChannelWaitingKey = (conversationIDKey: ChatTypes.ConversationIDKey, id: string) =>
-  `teamChannelRemove:${conversationIDKey};${id}`
+export const removeFromChannelWaitingKey = (
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  usernameOrAssertion: string
+) => `teamChannelRemove:${conversationIDKey};${usernameOrAssertion}`
 export const deleteChannelWaitingKey = (teamID: Types.TeamID) => `channelDelete:${teamID}`
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`

@@ -49,6 +49,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
+    // TODO: refactor to `useRPC`
     if (wasWaiting && !waiting) {
       onCancel()
     }
