@@ -61,13 +61,17 @@ const _ReallyLeaveTeam = (props: Props) => {
           style={styles.checkBox}
         />
       }
-      description={`You will lose access to all the ${props.name} chats and folders${
+      description={`You will lose access to all the team chats and folders${
         !props.open ? ', and you won’t be able to get back unless an admin invites you' : ''
       }.`}
       header={<Header {...props} />}
       onCancel={props.onBack}
       onConfirm={onLeave}
-      prompt={`Leave ${props.name}?`}
+      prompt={
+        <Kb.Text type="Header" center={true} style={styles.prompt}>
+          Leave {props.name}?
+        </Kb.Text>
+      }
       waitingKey={Constants.leaveTeamWaitingKey(props.name)}
     />
   )
@@ -76,10 +80,15 @@ const _ReallyLeaveTeam = (props: Props) => {
 const styles = Styles.styleSheetCreate(() => ({
   checkBox: Styles.platformStyles({
     common: {
+      marginBottom: Styles.globalMargins.small,
+    },
+    isElectron: {
       marginLeft: 48,
       marginRight: 48,
     },
     isMobile: {
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
       marginTop: 12,
     },
   }),
@@ -100,6 +109,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 24,
     zIndex: 1,
   },
+  prompt: Styles.padding(0, Styles.globalMargins.small),
   spinnerContainer: {
     alignItems: 'center',
     flex: 1,
