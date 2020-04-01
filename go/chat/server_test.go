@@ -6337,7 +6337,7 @@ func TestChatSrvNewConvAfterReset(t *testing.T) {
 	require.NoError(t, users[0].Login(tc.G))
 	conv2, created, err := NewConversation(ctx, tc.Context(), uid, users[0].Username+","+users[1].Username, nil,
 		chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
-		func() chat1.RemoteInterface { return ctc.as(t, users[0]).ri }, NewConvFindExistingNormal)
+		nil, func() chat1.RemoteInterface { return ctc.as(t, users[0]).ri }, NewConvFindExistingNormal)
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, conv.Id, conv2.Info.Id)
