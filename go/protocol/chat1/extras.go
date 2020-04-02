@@ -368,6 +368,10 @@ func (t TopicID) String() string {
 	return hex.EncodeToString(t)
 }
 
+func (t TopicID) Eq(r TopicID) bool {
+	return bytes.Equal([]byte(t), []byte(r))
+}
+
 func (t ConversationIDTriple) Eq(other ConversationIDTriple) bool {
 	return t.Tlfid.Eq(other.Tlfid) &&
 		bytes.Equal([]byte(t.TopicID), []byte(other.TopicID)) &&

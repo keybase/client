@@ -1120,8 +1120,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
-		n.Debug(ctx, "found previous conversation that matches, returning")
-		return convs[0], false, nil
+		// if we have a known topic ID, make sure we hit it
+		if n.topicID == nil || n.topicID.Eq(convs[0].Info.Triple.TopicID) {
+			n.Debug(ctx, "found previous conversation that matches, returning")
+			return convs[0], false, nil
+		}
 	}
 
 	if n.G().ExternalG().Env.GetChatMemberType() == "impteam" {
@@ -1194,16 +1197,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			case libkb.ChatConvExistsError:
 				// This triple already exists.
 				n.Debug(ctx, "conv exists: %v", cerr.ConvID)
-
-				if triple.TopicType != chat1.TopicType_CHAT ||
-					n.membersType == chat1.ConversationMembersType_TEAM {
-					// Not a chat (or is a team) conversation. Multiples are fine. Just retry with a
-					// different topic ID.
-					continue
+				if n.topicID != nil {
+					// if the topicID is hardcoded, just fail right away
+					return res, false, reserr
 				}
-				// A chat conversation already exists; just reuse it.
-				// Note that from this point on, TopicID is entirely the wrong value.
-				convID = cerr.ConvID
+				continue
 			case libkb.ChatCollisionError:
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				n.Debug(ctx, "collision: %v", reserr)

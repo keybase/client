@@ -200,7 +200,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 func TestEmojiSourceCrossTeam(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestEmojiSourceCrossTeam", 3)
+	ctc := makeChatTestContext(t, "TestEmojiSourceCrossTeam", 4)
 	defer ctc.cleanup()
 
 	users := ctc.users()
@@ -268,14 +268,16 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	aloneConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
 	sharedConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_TEAM, users[1])
+		chat1.ConversationMembersType_TEAM, users[1], users[3])
 	sharedConv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_TEAM, users[2])
+		chat1.ConversationMembersType_TEAM, users[2], users[3])
 
 	t.Logf("basic")
 	_, err := tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename)
 	require.NoError(t, err)
 	_, err = tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "success-kid", filename)
+	require.NoError(t, err)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "mike", filename)
 	require.NoError(t, err)
 
 	msgID := mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -294,6 +296,26 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 		Body: ":party_parrot:",
 	}))
 	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot")
+	expectCreated(false)
+	expectRefresh(false)
+	t.Logf("post from different source")
+	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "mike")
+	expectCreated(true)
+	expectRefresh(true)
+	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "mike")
+	expectCreated(false)
+	expectRefresh(false)
+	t.Logf("different user tries posting after convs are created")
+	msgID = mustPostLocalForTest(t, ctc, users[3], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "mike")
 	expectCreated(false)
 	expectRefresh(false)
 
