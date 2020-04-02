@@ -98,6 +98,10 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
 let markedInitiallyLoaded = false
 
 class ConversationList extends React.PureComponent<Props> {
+  private mounted = true
+  componentWillUnmount() {
+    this.mounted = false
+  }
   componentDidMount() {
     if (markedInitiallyLoaded) {
       return
@@ -175,8 +179,14 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
-  private getItemCount = (messageOrdinals: Array<Types.Ordinal>) =>
-    messageOrdinals ? messageOrdinals.length + 2 : 2
+  private getItemCount = (messageOrdinals: Array<Types.Ordinal>) => {
+    if (this.mounted) {
+      return messageOrdinals ? messageOrdinals.length + 2 : 2
+    } else {
+      // needed else VirtualizedList will yellowbox
+      return 0
+    }
+  }
 
   private keyExtractor = (item: ItemType) => {
     if (item === 'specialTop') {
