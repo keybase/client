@@ -137,9 +137,6 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamWizardSubteamMembers =>
       require('./new-team/wizard/add-subteam-members').default,
   },
-  teamsContactsTeamBuilder: {
-    getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
-  },
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
