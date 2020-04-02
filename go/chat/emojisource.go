@@ -26,6 +26,7 @@ import (
 )
 
 const (
+	minShortNameLength = 2
 	maxShortNameLength = 48
 	maxEmojiSize       = 64 * 1000 // 64kb
 	minEmojiWidth      = 32
@@ -114,8 +115,9 @@ func (s *DevConvEmojiSource) validateShortName(shortName string) (string, error)
 	if s.isStockEmoji(shortName) {
 		return "", errors.New("cannot use existing stock emoji short name")
 	}
-	if len(shortName) > maxShortNameLength {
-		return "", fmt.Errorf("short name length %d exceeds %d", len(shortName), maxShortNameLength)
+	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
+		return "", fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
+			shortName, len(shortName), minShortNameLength, maxShortNameLength)
 	}
 	return shortName, nil
 }
