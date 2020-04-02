@@ -474,7 +474,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			h.Debug(ctx, "NewConversationLocal: unable to unhide conv: %s", err)
 			return res, err
 		}
-		h.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_FORCE, "new conv unhide")
 	}
 
 	return res, nil
