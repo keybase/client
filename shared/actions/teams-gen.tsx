@@ -237,7 +237,11 @@ type _SetChannelSelectedPayload = {
   readonly selected: boolean
   readonly clearAll?: boolean
 }
-type _SetEditDescriptionErrorPayload = {readonly error: string}
+type _SetEditDescriptionErrorPayload = {
+  readonly error: string
+  readonly teamID: Types.TeamID
+  readonly username: string
+}
 type _SetEditMemberErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
