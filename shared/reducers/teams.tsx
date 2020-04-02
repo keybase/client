@@ -84,7 +84,8 @@ export default Container.makeReducer<
   [TeamsGen.teamLoaded]: (draftState, action) => {
     const {teamID, team} = action.payload
     const maybeMeta = draftState.teamMeta.get(teamID)
-    if (maybeMeta) {
+    // subteam names can change, don't check those
+    if (maybeMeta && !team.name.includes('.')) {
       if (maybeMeta.teamname !== team.name) {
         throw new Error('Team name mismatch! Please report this error.')
       }
