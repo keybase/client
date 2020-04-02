@@ -3,27 +3,45 @@ import {WebOfTrustVerificationType} from '../../constants/types/more'
 import * as Constants from '../../constants/profile'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-
-type Props = {
-  error?: string
-  onSubmit: () => void
-  voucheeUsername: string
-}
-
-type WotModalProps = {
-  error?: string
-  submitLabel: string
-  onSubmit: () => void
-  children: React.ReactNode
-}
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // PICNIC-1059 Keep in sync with server limit (yet to be implemented)
 const statementLimit = 700
+const otherLimit = 90
+
+type WotModalProps = {
+  children: React.ReactNode
+  error?: string
+  onBack?: () => void
+  onSubmit: () => void
+  scrollViewRef?: React.Ref<Kb.ScrollView>
+  submitDisabled?: boolean
+  submitLabel: string
+  submitWaiting?: boolean
+}
 
 const WotModal = (props: WotModalProps) => {
+  const dispatch = Container.useDispatch()
+  const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
     <Kb.Modal
-      header={{title: 'Web of Trust'}}
+      onClose={onClose}
+      scrollViewRef={props.scrollViewRef}
+      header={{
+        leftButton: props.onBack ? (
+          <Kb.Text onClick={props.onBack} type="BodyPrimaryLink">
+            Back
+          </Kb.Text>
+        ) : Styles.isMobile ? (
+          <Kb.Text onClick={onClose} type="BodyPrimaryLink">
+            Cancel
+          </Kb.Text>
+        ) : (
+          undefined
+        ),
+        title: 'Web of Trust',
+      }}
       mode="DefaultFullHeight"
       banners={[
         !!props.error && (
@@ -35,17 +53,18 @@ const WotModal = (props: WotModalProps) => {
       footer={{
         content: (
           <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button fullWidth={true} label={props.submitLabel} onClick={props.onSubmit} />
+            <Kb.Button
+              fullWidth={true}
+              label={props.submitLabel}
+              onClick={props.onSubmit}
+              disabled={props.submitDisabled}
+              waiting={props.submitWaiting}
+            />
           </Kb.ButtonBar>
         ),
       }}
     >
-      <Kb.Box2
-        direction="vertical"
-        alignSelf="stretch"
-        alignItems="stretch"
-        style={{backgroundColor: Styles.globalColors.green}}
-      >
+      <Kb.Box2 direction="vertical" alignSelf="stretch" alignItems="center" style={styles.topIconContainer}>
         <Kb.Icon type="icon-illustration-wot-460-96" />
       </Kb.Box2>
       {props.children}
@@ -53,9 +72,59 @@ const WotModal = (props: WotModalProps) => {
   )
 }
 
-export const Question1 = (props: Props) => {
+type Question1Props = {
+  error?: string
+  initialVerificationType?: WebOfTrustVerificationType
+  onSubmit: (_: {
+    otherText: string
+    proofs: {key: string; value: string}[]
+    verificationType: WebOfTrustVerificationType
+  }) => void
+  proofs: {key: string; value: string}[]
+  voucheeUsername: string
+}
+
+export const Question1 = (props: Question1Props) => {
+  const scrollViewRef = React.useRef<Kb.ScrollView>(null)
+  const [vt, setVtRaw] = React.useState<WebOfTrustVerificationType>(
+    props.initialVerificationType || 'in_person'
+  )
+  const [otherText, setOtherText] = React.useState('')
+  const setVt = newVt => {
+    if (newVt === 'other' && newVt !== vt && scrollViewRef.current) {
+      const hackDelay = 50 // With no delay scrolling undershoots. Perhaps the bottom component doesn't exist yet.
+      setTimeout(
+        () => scrollViewRef.current && scrollViewRef.current.scrollToEnd({animated: true}),
+        hackDelay
+      )
+    }
+    setVtRaw(newVt)
+  }
+  const proofs = useCheckboxesState(props.proofs)
+  const submitDisabled =
+    (vt === 'other' && otherText === '') ||
+    (vt === 'proofs' && proofs.filter(({checked}) => checked).length === 0)
+  const onSubmit = () => {
+    props.onSubmit({
+      otherText: vt === 'other' ? otherText : '',
+      proofs: proofs
+        .filter(({checked}) => checked)
+        .map(proof => ({
+          key: proof.key,
+          value: proof.value,
+        })),
+      verificationType: vt,
+    })
+  }
+
   return (
-    <WotModal error={props.error} submitLabel="Continue" onSubmit={props.onSubmit}>
+    <WotModal
+      error={props.error}
+      onSubmit={onSubmit}
+      scrollViewRef={scrollViewRef}
+      submitDisabled={submitDisabled}
+      submitLabel="Continue"
+    >
       <Kb.Box2
         direction="horizontal"
         alignSelf="stretch"
@@ -75,22 +144,77 @@ export const Question1 = (props: Props) => {
           is the person you think they are?
         </Kb.Text>
       </Kb.Box2>
-      {Constants.choosableWotVerificationTypes.map(vt => (
+      {Constants.choosableWotVerificationTypes.map(vt2 => (
         <VerificationChoice
-          key={vt}
+          key={vt2}
           voucheeUsername={props.voucheeUsername}
-          verificationType={vt}
-          selected={false}
-          onSelect={() => {}}
-        />
+          verificationType={vt2}
+          selected={vt === vt2}
+          onSelect={() => setVt(vt2)}
+        >
+          {vt2 === 'proofs' &&
+            proofs.map(proof => (
+              <Kb.Box2
+                key={`${proof.key}:${proof.value}`}
+                direction="horizontal"
+                alignSelf="stretch"
+                alignItems="center"
+                style={styles.insetContainer}
+              >
+                <Kb.Checkbox
+                  checked={proof.checked && vt === 'proofs'}
+                  onCheck={proof.onCheck}
+                  disabled={vt !== 'proofs'}
+                  labelComponent={
+                    <Kb.Text type="Body">
+                      {proof.value}@{proof.key}
+                    </Kb.Text>
+                  }
+                />
+              </Kb.Box2>
+            ))}
+          {vt2 === 'other' && vt === vt2 && (
+            <Kb.Box2
+              direction="vertical"
+              alignSelf="stretch"
+              alignItems="flex-start"
+              style={Styles.collapseStyles([styles.insetContainer, styles.otherInputContainer])}
+            >
+              <Kb.LabeledInput
+                placeholder={'Specify (required)'}
+                value={otherText}
+                onChangeText={setOtherText}
+                maxLength={otherLimit}
+              />
+            </Kb.Box2>
+          )}
+        </VerificationChoice>
       ))}
     </WotModal>
   )
 }
 
-export const Question2 = (props: Props) => {
+type Question2Props = {
+  error?: string
+  onBack: () => void
+  onSubmit: ({statement: string}) => void
+  waiting?: boolean
+  voucheeUsername: string
+}
+
+export const Question2 = (props: Question2Props) => {
+  const [statement, setStatement] = React.useState('')
+  const submitDisabled = statement === ''
+  const onSubmit = () => props.onSubmit({statement})
   return (
-    <WotModal error={props.error} submitLabel="Submit" onSubmit={props.onSubmit}>
+    <WotModal
+      error={props.error}
+      onBack={props.onBack}
+      onSubmit={onSubmit}
+      submitDisabled={submitDisabled}
+      submitWaiting={props.waiting}
+      submitLabel="Submit"
+    >
       <Kb.Box2
         direction="vertical"
         alignSelf="stretch"
@@ -116,8 +240,10 @@ export const Question2 = (props: Props) => {
           hoverPlaceholder={'Write how you met them and what experiences you shared with them.'}
           multiline={true}
           rowsMin={9}
-          autoFocus={true}
+          autoFocus={!Styles.isMobile}
           maxLength={statementLimit}
+          value={statement}
+          onChangeText={setStatement}
         />
         <Kb.Text type="BodySmall" style={styles.approveNote}>
           {props.voucheeUsername} will be able to approve or suggest edits to what you’ve written.
@@ -128,6 +254,7 @@ export const Question2 = (props: Props) => {
 }
 
 const VerificationChoice = (props: {
+  children?: React.ReactNode
   voucheeUsername: string
   verificationType: WebOfTrustVerificationType
   selected: boolean
@@ -172,22 +299,42 @@ const VerificationChoice = (props: {
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
       <Kb.Box2
+        key="colorbar"
         direction="vertical"
         alignSelf="stretch"
         style={{backgroundColor: color, flexShrink: 0, width: 6}}
       />
-      <Kb.RadioButton
-        label={
-          <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
-            {text}
-          </Kb.Text>
-        }
-        selected={props.selected}
-        onSelect={props.onSelect}
-        style={styles.choiceRadio}
-      />
+      <Kb.Box2 direction="vertical" alignSelf="stretch" style={Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
+          <Kb.RadioButton
+            label={
+              <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
+                {text}
+              </Kb.Text>
+            }
+            selected={props.selected}
+            onSelect={props.onSelect}
+            style={styles.choiceRadio}
+          />
+        </Kb.Box2>
+        {props.children}
+      </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+// Store checkedness for a list of checkboxes.
+function useCheckboxesState<T>(items: T[]): (T & {checked: boolean; onCheck: (_: boolean) => void})[] {
+  const initial = items.map(() => false)
+  const [stateStored, setState] = React.useState<boolean[]>(initial)
+  const state = items.length === stateStored.length ? stateStored : initial
+  return items.map((item, i) => ({
+    ...item,
+    checked: state[i],
+    onCheck: checked => {
+      setState(state.map((wasChecked, j) => (i === j ? checked : wasChecked)))
+    },
+  }))
 }
 
 const styles = Styles.styleSheetCreate(
@@ -206,8 +353,14 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         paddingLeft: Styles.globalMargins.tiny,
       },
+      insetContainer: Styles.platformStyles({
+        common: {marginLeft: 38, marginRight: Styles.globalMargins.small},
+        isMobile: {marginLeft: 46},
+      }),
+      otherInputContainer: {paddingBottom: Styles.globalMargins.tiny},
       outside: {paddingTop: Styles.globalMargins.tiny},
       outsideBox: {paddingBottom: Styles.globalMargins.small},
       sidePadding: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
+      topIconContainer: {backgroundColor: Styles.globalColors.green, overflow: 'hidden'},
     } as const)
 )

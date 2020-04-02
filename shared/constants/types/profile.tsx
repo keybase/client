@@ -1,5 +1,5 @@
 import * as RPCTypes from './rpc-gen'
-import {PlatformsExpandedType} from './more'
+import {PlatformsExpandedType, WebOfTrustVerificationType} from './more'
 import {SiteIconSet} from './tracker2'
 
 export type ProveGenericParams = {
@@ -9,6 +9,11 @@ export type ProveGenericParams = {
   readonly subtext: string
   readonly suffix: string
   readonly buttonLabel: string
+}
+
+export type WotAuthor = {
+  error: string
+  initialVerificationType: WebOfTrustVerificationType
 }
 
 export type State = {
@@ -38,4 +43,5 @@ export type State = {
   readonly username: string
   readonly usernameValid: boolean
   readonly searchShowingSuggestions: boolean
+  readonly wotAuthor: WotAuthor
 }

@@ -93,7 +93,10 @@ const connected = Container.namedConnect(
   },
   dispatch => ({
     _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
-    _onIKnowThem: () => {}, // TODO: route to the new attestation flow
+    _onIKnowThem: (username: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileWotAuthor'}]})
+      ),
     _onReload: (username: string, isYou: boolean, state: Types.DetailsState) => {
       if (state !== 'valid') {
         // Might be a Keybase user or not, launch non-user profile fetch.
@@ -151,7 +154,7 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      onIKnowThem: stateProps.userIsYou ? undefined : dispatchProps._onIKnowThem, // PICNIC-847 open the modal
+      onIKnowThem: stateProps.userIsYou ? undefined : () => dispatchProps._onIKnowThem(stateProps.username),
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
