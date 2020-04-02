@@ -53,6 +53,21 @@ const useSecondaryAction = (props: Props) => {
   return onSecondaryAction
 }
 
+const getFirstText = (type: Props['type'], teamOrChannel: string, teamOrChannelName: string) => {
+  switch (type) {
+    case 'members':
+      return notIn
+        ? `${teamOrChannelName} doesn't have any members`
+        : `You are the only member in this ${teamOrChannel}.`
+    case 'channelsEmpty':
+      return `${teamMeta.teamname} is a small team.
+Make it a big team by creating chat channels.`
+    case 'channelsFew':
+      return 'Channels can be joined by anyone, unlike subteams.'
+    case 'subteams':
+      return 'Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team hierarchy.'
+  }
+}
 // TODO: decide what to do about the <5 channel empty state
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
@@ -82,18 +97,7 @@ const EmptyRow = (props: Props) => {
         <Kb.Icon type={icon[props.type]} />
       </Kb.Box2>
       <Kb.Text type="BodySmall" center={true} style={styles.text}>
-        {props.type === 'members'
-          ? notIn
-            ? `${teamOrChannelName} doesn't have any members`
-            : `You are the only member in this ${teamOrChannel}.`
-          : props.type === 'channelsEmpty'
-          ? `${teamMeta.teamname} is a small team.
-Make it a big team by creating chat channels.`
-          : props.type === 'channelsFew'
-          ? 'Channels can be joined by anyone, unlike subteams.'
-          : props.type === 'subteams'
-          ? 'Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team hierarchy.'
-          : undefined}
+        {getFirstText(props.type, teamOrChannel, teamOrChannelName)}
       </Kb.Text>
       {props.type === 'subteams' && ( // Subteams has a second paragraph, putting it in a separate text so we get the Box2 gap
         <Kb.Text type="BodySmall" center={true} style={styles.text}>
