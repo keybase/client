@@ -62,7 +62,7 @@ export type Props<SectionT extends Section<any, any>> = {
    * default extractor checks `item.key`, then falls back to using the index,
    * like React does.
    */
-  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => string
+  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => React.Key
 
   /**
    * Called once when the scroll position gets within onEndReachedThreshold of
