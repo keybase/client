@@ -251,10 +251,6 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       addEmojiButton: Styles.platformStyles({
-        common: {
-          // TODO: enable this once we have the "add emoji" modal.
-          // display: 'none',
-        },
         isElectron: {
           width: 88,
         },

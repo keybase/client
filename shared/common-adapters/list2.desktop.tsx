@@ -59,11 +59,7 @@ class List2<T> extends PureComponent<Props<T>> {
   )
 
   componentDidUpdate(prevProps: Props<T>) {
-    if (
-      prevProps.itemHeight.type === 'variable' &&
-      this.props.itemHeight.type === 'variable' &&
-      prevProps.itemHeight.sizeChangeHint !== this.props.itemHeight.sizeChangeHint
-    ) {
+    if (prevProps.forceLayout !== this.props.forceLayout) {
       this.variableSizeListRef.current?.resetAfterIndex(0, true)
     }
   }

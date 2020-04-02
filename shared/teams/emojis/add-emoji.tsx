@@ -78,19 +78,24 @@ const useDoAddEmojis = (
 const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
   const [filePaths, setFilePaths] = React.useState<Array<string>>([])
 
-  const aliasMap = React.useRef(new Map<string, string>()).current
-  const [aliasMapChangeCounter, setAliasMapChangeCounter] = React.useState(0)
-  const aliasMapChanged = React.useCallback(() => setAliasMapChangeCounter(c => c + 1), [
-    setAliasMapChangeCounter,
-  ])
+  const [aliasMap, setAliasMap] = React.useState(new Map<string, string>())
 
   const addFiles = React.useCallback(
     (paths: Array<string>) => {
-      paths.forEach(path => aliasMap.get(path) ?? aliasMap.set(path, filePathToDefaultAlias(path)))
-      aliasMapChanged()
+      const newAliasMap = paths.reduce((map: undefined | Map<string, string>, path) => {
+        if (!map && aliasMap.get(path) !== undefined) {
+          // fast path to avoid making the map if alias already exists.
+          return map
+        }
+
+        const newMap = map ?? new Map([...aliasMap])
+        newMap.get(path) ?? newMap.set(path, filePathToDefaultAlias(path))
+        return newMap
+      }, undefined)
+      newAliasMap && setAliasMap(newAliasMap)
       setFilePaths([...filePaths, ...paths])
     },
-    [filePaths, aliasMap, aliasMapChanged, setFilePaths]
+    [filePaths, aliasMap, setFilePaths]
   )
   const clearFiles = React.useCallback(() => setFilePaths([]), [setFilePaths])
 
@@ -106,20 +111,16 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
 
   const [errors, setErrors] = React.useState(new Map<string, string>())
 
-  const emojisToAdd = React.useMemo(() => {
-    // @ts-ignore
-    const makeLinterhappy = aliasMapChangeCounter
-
-    return filePaths.map(path => ({
-      alias: aliasMap.get(path) || '',
-      error: errors.get(path) || '',
-      onChangeAlias: (newAlias: string) => {
-        aliasMap.set(path, newAlias)
-        aliasMapChanged()
-      },
-      path,
-    }))
-  }, [aliasMapChangeCounter, errors, filePaths, aliasMap, aliasMapChanged])
+  const emojisToAdd = React.useMemo(
+    () =>
+      filePaths.map(path => ({
+        alias: aliasMap.get(path) || '',
+        error: errors.get(path) || '',
+        onChangeAlias: (newAlias: string) => setAliasMap(new Map([...aliasMap, [path, newAlias]])),
+        path,
+      })),
+    [errors, filePaths, aliasMap]
+  )
 
   const {bannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
     conversationIDKey,
@@ -166,7 +167,7 @@ export const AddEmojiModal = (props: Props) => {
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
-      backButtonOnClick={() => clearFiles()}
+      backButtonOnClick={clearFiles}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>
@@ -382,12 +383,12 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
   const {emojisToAdd} = props
   const items = React.useMemo(() => {
     const ret = emojisToAdd.reduce((arr, emojiToAdd, index) => {
-      const last = arr[index - 1]
+      const previous = arr[index - 1]
       arr.push({
         emojiToAdd,
         height: emojiToAdd.error ? emojiToAddRowHeightWithError : emojiToAddRowHeightNoError,
         key: emojiToAdd.path,
-        offset: last ? last.offset + last.height : 0,
+        offset: previous ? previous.offset + previous.height : 0,
         type: 'emoji',
       })
       return arr
@@ -403,19 +404,8 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
     return ret
   }, [emojisToAdd, pick])
 
-  const rowItemHeight = React.useMemo(() => {
-    // @ts-ignore
-    const makeLinterhappy = emojisToAdd
-    return {
-      getItemLayout: (index: number, item: EmojiToAddOrAddRow | undefined) => ({
-        index,
-        length: item?.height ?? 0,
-        offset: item?.offset ?? 0,
-      }),
-      sizeChangeHint: Date.now(),
-      type: 'variable',
-    } as const
-  }, [emojisToAdd])
+  const [forceLayout, setForceLayout] = React.useState(0)
+  React.useEffect(() => setForceLayout(n => n + 1), [emojisToAdd])
 
   return (
     <Kb.Box2
@@ -430,7 +420,20 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
         Choose aliases for these emojis:
       </Kb.Text>
       <Kb.BoxGrow>
-        <Kb.List2 items={items} keyProperty="key" renderItem={renderRow} itemHeight={rowItemHeight} />
+        <Kb.List2
+          items={items}
+          keyProperty="key"
+          renderItem={renderRow}
+          itemHeight={{
+            getItemLayout: (index: number, item: EmojiToAddOrAddRow | undefined) => ({
+              index,
+              length: item?.height ?? 0,
+              offset: item?.offset ?? 0,
+            }),
+            type: 'variable',
+          }}
+          forceLayout={forceLayout}
+        />
       </Kb.BoxGrow>
     </Kb.Box2>
   )
@@ -577,10 +580,12 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   footerContainer: Styles.platformStyles({
     isElectron: {
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.xsmall,
+      ...Styles.padding(
+        Styles.globalMargins.xsmall,
+        Styles.globalMargins.small,
+        Styles.globalMargins.xsmall,
+        Styles.globalMargins.small
+      ),
     },
     isMobile: {
       padding: Styles.globalMargins.small,
