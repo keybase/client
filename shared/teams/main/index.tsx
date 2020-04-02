@@ -30,10 +30,11 @@ export type OwnProps = {
   teams: Array<Types.TeamMeta>
 }
 
-export type Props = OwnProps & {
+type HeaderProps = {
   onCreateTeam: () => void
   onJoinTeam: () => void
 }
+export type Props = OwnProps & HeaderProps
 
 type RowProps = {
   firstItem: boolean
@@ -102,27 +103,38 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   )
 })
 
+const TeamBigButtons = (props: HeaderProps) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
+    <Kb.ClickableBox
+      style={styles.bigButton}
+      onClick={props.onCreateTeam}
+      className="background_color_white hover_background_color_blueLighter2"
+    >
+      <Kb.Box2 direction="vertical" gap="tiny">
+        <Kb.Text type="BodyBig">Create a team</Kb.Text>
+        <Kb.Avatar isTeam={true} size={96} />
+      </Kb.Box2>
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
+      style={styles.bigButton}
+      onClick={props.onJoinTeam}
+      className="background_color_white hover_background_color_blueLighter2"
+    >
+      <Kb.Box2 direction="vertical" gap="tiny">
+        <Kb.Text type="BodyBig">Join a team</Kb.Text>
+        <Kb.Icon type="icon-illustration-teams-80" /> {/*Waiting for an asset of the right size from design*/}
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  </Kb.Box2>
+)
+
 const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${pluralize('member', count)}`)
 
-type Row =
-  | {
-      key: string
-      type: '_banner'
-    }
-  | {
-      key: string
-      team: DeletedTeam
-      type: 'deletedTeam'
-    }
-  | {
-      key: string
-      team: Types.TeamMeta
-      type: 'team'
-    }
-  | {
-      key: string
-      type: '_placeholder'
-    }
+type Row = {key: React.Key} & (
+  | {type: '_banner' | '_placeholder' | '_buttons'}
+  | {team: DeletedTeam; type: 'deletedTeam'}
+  | {team: Types.TeamMeta; type: 'team'}
+)
 
 type State = {
   sawChatBanner: boolean
@@ -133,7 +145,10 @@ class Teams extends React.PureComponent<Props, State> {
 
   private teamsAndExtras = memoize(
     (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
-      ...(this.state.sawChatBanner ? [] : [{key: '_banner', type: '_banner' as const}]),
+      ...(flags.teamsRedesign ? [{key: '_buttons', type: '_buttons' as const}] : []),
+      ...(this.state.sawChatBanner || flags.teamsRedesign
+        ? []
+        : [{key: '_banner', type: '_banner' as const}]),
       ...deletedTeams.map(dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam' as const})),
       ...teams.map(team => ({key: team.id, team, type: 'team' as const})),
       ...(teams.length === 0 ? [{key: '_placeholder', type: '_placeholder' as const}] : []),
@@ -154,6 +169,8 @@ class Teams extends React.PureComponent<Props, State> {
         return <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this.onHideChatBanner} />
       case '_placeholder':
         return <NoTeamsPlaceholder />
+      case '_buttons':
+        return <TeamBigButtons onCreateTeam={this.props.onCreateTeam} onJoinTeam={this.props.onJoinTeam} />
       case 'deletedTeam': {
         const {deletedBy, teamName} = item.team
         return (
@@ -170,13 +187,7 @@ class Teams extends React.PureComponent<Props, State> {
         const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
         if (flags.teamsRedesign) {
-          return (
-            <TeamRowNew
-              firstItem={index === (this.state.sawChatBanner ? 0 : 1)}
-              showChat={!Styles.isMobile}
-              teamID={team.id}
-            />
-          )
+          return <TeamRowNew firstItem={index === 1} showChat={!Styles.isMobile} teamID={team.id} />
         }
         return (
           <TeamRow
@@ -205,7 +216,7 @@ class Teams extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const renderHeader = Styles.isMobile
+    const renderHeader = Styles.isMobile && !flags.teamsRedesign
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {renderHeader && (
@@ -233,9 +244,27 @@ const styles = Styles.styleSheetCreate(
         right: -5,
         top: -5,
       },
+      bigButton: Styles.platformStyles({
+        common: {
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: 8,
+          borderStyle: 'solid',
+          borderWidth: 1,
+        },
+        isElectron: {padding: Styles.globalMargins.small},
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.small, 22),
+          backgroundColor: Styles.globalColors.white,
+        },
+      }),
       kerning: {letterSpacing: 0.2},
       maxWidth: {maxWidth: '100%'},
       openMeta: {alignSelf: 'center'},
+      teamButtons: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+        backgroundColor: Styles.globalColors.blueGrey,
+        justifyContent: 'flex-start',
+      },
     } as const)
 )
 
