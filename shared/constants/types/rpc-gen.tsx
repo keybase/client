@@ -251,6 +251,10 @@ export type MessageTypes = {
     inParam: {readonly uid: UID}
     outParam: void
   }
+  'keybase.1.NotifyUsers.webOfTrustChanged': {
+    inParam: {readonly username: String}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSCancel': {
     inParam: {readonly opID: OpID}
     outParam: void
@@ -1615,6 +1619,18 @@ export type MessageTypes = {
     inParam: {readonly voucher: String; readonly vouchee: String}
     outParam: void
   }
+  'keybase.1.wot.wotFetchVouches': {
+    inParam: {readonly vouchee: String; readonly voucher: String}
+    outParam: Array<WotVouch> | null
+  }
+  'keybase.1.wot.wotReact': {
+    inParam: {readonly voucher: String; readonly reaction: WotReactionType}
+    outParam: void
+  }
+  'keybase.1.wot.wotVouch': {
+    inParam: {readonly assertion: String; readonly vouchTexts?: Array<String> | null; readonly confidence: Confidence}
+    outParam: void
+  }
 }
 
 export enum AppLinkType {
@@ -2963,7 +2979,7 @@ export type ImplicitRole = {readonly role: TeamRole; readonly ancestor: TeamID}
 export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration; readonly time: Time}
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
-export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath: String; readonly originalSize: Int; readonly scaledPath?: String | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
+export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath: String; readonly originalSize: Int; readonly scaledPath?: String | null; readonly scaledSize?: Int | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
 export type IndexProgressRecord = {readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesSoFar: Int64}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
@@ -3350,7 +3366,7 @@ export type WalletAccountInfo = {readonly accountID: String; readonly numUnread:
 export type WebProof = {readonly hostname: String; readonly protocols?: Array<String> | null}
 export type WotProof = {readonly proofType: ProofType; readonly name: String; readonly username: String; readonly protocol: String; readonly hostname: String; readonly domain: String}
 export type WotUpdate = {readonly voucher: String; readonly vouchee: String; readonly status: WotStatusType}
-export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucher: UserVersion; readonly vouchTexts?: Array<String> | null; readonly vouchedAt: Time; readonly confidence?: Confidence | null}
+export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucheeUsername: String; readonly voucher: UserVersion; readonly voucherUsername: String; readonly vouchTexts?: Array<String> | null; readonly vouchedAt: Time; readonly confidence?: Confidence | null}
 export type WriteArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long}
 
 export type IncomingCallMapType = {
@@ -3453,6 +3469,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyTracking.trackingInfo'?: (params: MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTracking.notifyUserBlocked'?: (params: MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyUsers.userChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyUsers.webOfTrustChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.webOfTrustChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyUsers.passwordChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyUsers.identifyUpdate'?: (params: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.outputPGPWarning'?: (params: MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3882,6 +3899,9 @@ export const userUnblockUserRpcPromise = (params: MessageTypes['keybase.1.user.u
 export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.user.uploadUserAvatar']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.uploadUserAvatar']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.uploadUserAvatar', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.userCard']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.userCard']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.userCard', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keybase.1.wot.dismissWotNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.dismissWotNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.dismissWotNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const wotWotFetchVouchesRpcPromise = (params: MessageTypes['keybase.1.wot.wotFetchVouches']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.wotFetchVouches']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.wotFetchVouches', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const wotWotReactRpcPromise = (params: MessageTypes['keybase.1.wot.wotReact']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.wotReact']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.wotReact', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVouch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.wotVouch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.wotVouch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.timeTravelReset'
@@ -4138,6 +4158,7 @@ export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keyba
 // 'keybase.1.NotifyTracking.trackingInfo'
 // 'keybase.1.NotifyTracking.notifyUserBlocked'
 // 'keybase.1.NotifyUsers.userChanged'
+// 'keybase.1.NotifyUsers.webOfTrustChanged'
 // 'keybase.1.NotifyUsers.passwordChanged'
 // 'keybase.1.NotifyUsers.identifyUpdate'
 // 'keybase.1.paperprovision.paperProvision'
@@ -4302,8 +4323,3 @@ export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keyba
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
-// 'keybase.1.wot.wotVouch'
-// 'keybase.1.wot.wotVouchCLI'
-// 'keybase.1.wot.wotReact'
-// 'keybase.1.wot.wotReactCLI'
-// 'keybase.1.wot.wotListCLI'

@@ -63,7 +63,7 @@ func (c *cmdWotList) Run() error {
 		return errors.New("can't specify both a vouchee and --byMe; please remove one")
 	}
 
-	arg := keybase1.WotListCLIArg{
+	arg := keybase1.WotFetchVouchesArg{
 		Vouchee: c.vouchee,
 		Voucher: c.voucher,
 	}
@@ -72,7 +72,7 @@ func (c *cmdWotList) Run() error {
 	if err != nil {
 		return err
 	}
-	res, err := cli.WotListCLI(ctx, arg)
+	res, err := cli.WotFetchVouches(ctx, arg)
 	if err != nil {
 		return err
 	}
@@ -107,23 +107,15 @@ func (c *cmdWotList) Run() error {
 	}
 	for _, vouch := range res {
 		vouchTexts := strings.Join(vouch.VouchTexts, ", ")
-		vouchee, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Vouchee.Uid)
-		if err != nil {
-			return fmt.Errorf("error looking up username for vouchee: %s", err.Error())
-		}
-		voucher, err := c.G().GetUPAKLoader().LookupUsername(ctx, vouch.Voucher.Uid)
-		if err != nil {
-			return fmt.Errorf("error looking up username for voucher: %s", err.Error())
-		}
-		line("Vouchee: %s", vouchee)
-		line("Voucher: %s", voucher)
+		line("Vouchee: %s", vouch.VoucheeUsername)
+		line("Voucher: %s", vouch.VoucherUsername)
 		line("Attestation: \"%s\"", vouchTexts)
 		line("Status: %s", vouch.Status)
 		if vouch.Status == keybase1.WotStatusType_PROPOSED {
 			if len(targetVouchee) > 0 && targetVouchee == me {
-				line("    `keybase wot accept %s` to accept this into your web-of-trust", voucher)
+				line("    `keybase wot accept %s` to accept this into your web-of-trust", vouch.VoucherUsername)
 			} else if len(targetVoucher) > 0 && targetVoucher == me {
-				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", vouchee) // TODO
+				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", vouch.VoucheeUsername) // TODO
 			}
 		}
 		if vouch.Confidence != nil {

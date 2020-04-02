@@ -2,16 +2,6 @@ import * as RPCTypes from './rpc-gen'
 import {PlatformsExpandedType} from './more'
 import {SiteIconSet} from './tracker2'
 
-// Keep in sync with keybase1 extras.go UsernameVerificationType
-export type WebOfTrustVerificationType =
-  | 'in_person'
-  | 'video'
-  | 'audio'
-  | 'proofs'
-  | 'other_chat'
-  | 'familiar'
-  | 'other'
-
 export type ProveGenericParams = {
   readonly logoBlack: SiteIconSet
   readonly logoFull: SiteIconSet

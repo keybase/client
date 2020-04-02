@@ -26,20 +26,6 @@ func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchA
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
-	earg := &engine.WotVouchArg{
-		Vouchee:    arg.Vouchee,
-		VouchTexts: arg.VouchTexts,
-		Confidence: arg.Confidence,
-	}
-
-	eng := engine.NewWotVouch(h.G(), earg)
-	return engine.RunEngine2(mctx, eng)
-}
-
-func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVouchCLIArg) error {
-	ctx = libkb.WithLogTag(ctx, "WOT")
-	mctx := libkb.NewMetaContext(ctx, h.G())
-
 	upak, _, err := h.G().GetUPAKLoader().Load(libkb.NewLoadUserArg(h.G()).WithName(arg.Assertion))
 	if err != nil {
 		return err
@@ -67,7 +53,7 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 		return fmt.Errorf("missing identify result")
 	}
 	if idRes.TrackBreaks != nil {
-		mctx.Debug("WotVouchCLI TrackBreaks: %+v", idRes.TrackBreaks)
+		mctx.Debug("WotVouch TrackBreaks: %+v", idRes.TrackBreaks)
 		return libkb.TrackingBrokeError{}
 	}
 	failingProofs, err := eng.ResultWotFailingProofs(mctx)
@@ -75,7 +61,7 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 		return err
 	}
 	for i, proof := range failingProofs {
-		mctx.Debug("WotVouchCLI failingProofs %v/%v %+v", i+1, len(failingProofs), proof)
+		mctx.Debug("WotVouch failingProofs %v/%v %+v", i+1, len(failingProofs), proof)
 	}
 	return engine.RunEngine2(mctx, engine.NewWotVouch(h.G(), &engine.WotVouchArg{
 		Vouchee:       idRes.Upk.Current.ToUserVersion(),
@@ -85,26 +71,13 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 	}))
 }
 
-func (h *WebOfTrustHandler) WotListCLI(ctx context.Context, arg keybase1.WotListCLIArg) (res []keybase1.WotVouch, err error) {
+func (h *WebOfTrustHandler) WotFetchVouches(ctx context.Context, arg keybase1.WotFetchVouchesArg) (res []keybase1.WotVouch, err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	return libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Vouchee: arg.Vouchee, Voucher: arg.Voucher})
 }
 
 func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactArg) error {
-	ctx = libkb.WithLogTag(ctx, "WOT")
-	mctx := libkb.NewMetaContext(ctx, h.G())
-
-	earg := &engine.WotReactArg{
-		Voucher:  arg.Voucher,
-		Proof:    arg.Proof,
-		Reaction: arg.Reaction,
-	}
-	eng := engine.NewWotReact(h.G(), earg)
-	return engine.RunEngine2(mctx, eng)
-}
-
-func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotReactCLIArg) error {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
@@ -146,13 +119,13 @@ func (h *WebOfTrustHandler) WotReactCLI(ctx context.Context, arg keybase1.WotRea
 		return fmt.Errorf("unknown status on web-of-trust attestation: %v", reactingVouch.Status)
 	}
 
-	rarg := keybase1.WotReactArg{
-		SessionID: arg.SessionID,
-		Voucher:   expectedVoucher,
-		Proof:     reactingVouch.VouchProof,
-		Reaction:  arg.Reaction,
+	earg := &engine.WotReactArg{
+		Voucher:  expectedVoucher,
+		Proof:    reactingVouch.VouchProof,
+		Reaction: arg.Reaction,
 	}
-	return h.WotReact(ctx, rarg)
+	eng := engine.NewWotReact(h.G(), earg)
+	return engine.RunEngine2(mctx, eng)
 }
 
 func (h *WebOfTrustHandler) DismissWotNotifications(ctx context.Context, arg keybase1.DismissWotNotificationsArg) (err error) {

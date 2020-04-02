@@ -137,6 +137,8 @@ func (e *WotReact) Run(mctx libkb.MetaContext) error {
 	}); err != nil {
 		return err
 	}
+
 	voucheeUsername := mctx.ActiveDevice().Username(mctx).String()
+	mctx.G().NotifyRouter.HandleWebOfTrustChanged(voucheeUsername)
 	return libkb.DismissWotNotifications(mctx, them.GetName(), voucheeUsername)
 }

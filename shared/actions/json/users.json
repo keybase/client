@@ -28,6 +28,10 @@
       "_description": "Sets the block state for multiple users",
       "blocks": "Array<{username: string, chatBlocked: boolean, followBlocked: boolean}>"
     },
+    "wotReact": {
+      "voucher": "string",
+      "reaction": "RPCTypes.WotReactionType"
+    },
     "reportUser": {
       "_description": "Calls RPC to report user",
       "username": "string",

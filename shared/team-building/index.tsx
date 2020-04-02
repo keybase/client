@@ -42,6 +42,7 @@ export type SearchResult = {
   userId: string
   username: string
   prettyName: string
+  pictureUrl?: string
   displayLabel: string
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
@@ -505,6 +506,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                     resultForService={this.props.selectedService}
                     username={result.username}
                     prettyName={result.prettyName}
+                    pictureUrl={result.pictureUrl}
                     displayLabel={result.displayLabel}
                     services={result.services}
                     inTeam={result.inTeam}
@@ -555,6 +557,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                 resultForService={this.props.selectedService}
                 username={result.username}
                 prettyName={result.prettyName}
+                pictureUrl={result.pictureUrl}
                 displayLabel={result.displayLabel}
                 services={result.services}
                 namespace={this.props.namespace}
