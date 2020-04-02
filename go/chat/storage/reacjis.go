@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
@@ -204,7 +203,7 @@ func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, reacji str
 	if codeMap == nil {
 		codeMap = emoji.CodeMap()
 	}
-	if _, ok := codeMap[reacji]; !(ok || types.EmojiPattern.MatchString(reacji)) {
+	if _, ok := codeMap[reacji]; !(ok || globals.EmojiPattern.MatchString(reacji)) {
 		return nil
 	}
 

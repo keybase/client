@@ -384,7 +384,7 @@ type emojiMatch struct {
 
 func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emojiMatch) {
 	body = utils.ReplaceQuotedSubstrings(body, false)
-	hits := types.EmojiPattern.FindAllStringSubmatchIndex(body, -1)
+	hits := globals.EmojiPattern.FindAllStringSubmatchIndex(body, -1)
 	for _, hit := range hits {
 		if len(hit) < 4 {
 			s.Debug(ctx, "parse: malformed hit: %d", len(hit))
