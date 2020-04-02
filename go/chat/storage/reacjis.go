@@ -49,8 +49,9 @@ func (i ReacjiInternalStorage) score(name string) float64 {
 		mtimeScore = 0
 	} else if minutes < minScoringMinutes {
 		mtimeScore = 1
+	} else {
+		mtimeScore = 1 - minutes/(maxScoringMinutes-minScoringMinutes)
 	}
-	mtimeScore = 1 - minutes/(maxScoringMinutes-minScoringMinutes)
 	return float64(freq*frequencyWeight) + mtimeScore*mtimeWeight
 }
 
