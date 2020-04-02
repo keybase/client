@@ -28,6 +28,7 @@ import (
 const (
 	minShortNameLength = 2
 	maxShortNameLength = 48
+	minEmojiSize       = 512       // min size for reading mime type
 	maxEmojiSize       = 64 * 1000 // 64kb
 	minEmojiWidth      = 32
 	minEmojiHeight     = 32
@@ -119,6 +120,9 @@ func (s *DevConvEmojiSource) validateShortName(shortName string) (string, error)
 		return "", fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
 			shortName, len(shortName), minShortNameLength, maxShortNameLength)
 	}
+	if strings.Contains(shortName, "#") {
+		return "", errors.New("invalid character in emoji alias")
+	}
 	return shortName, nil
 }
 
@@ -131,9 +135,6 @@ func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName,
 	err = s.validateFile(ctx, filename)
 	if err != nil {
 		return "", err
-	}
-	if strings.Contains(shortName, "#") {
-		return "", errors.New("invalid character in emoji alias")
 	}
 	return shortName, nil
 }
@@ -149,8 +150,8 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 	}
 	if finfo.IsDir() {
 		return errors.New("invalid file type for emoji")
-	} else if finfo.Size() > maxEmojiSize {
-		return fmt.Errorf("emoji size %d excced %d", finfo.Size(), maxEmojiSize)
+	} else if finfo.Size() > maxEmojiSize || finfo.Size() < minEmojiSize {
+		return fmt.Errorf("emoji size %d not within bounds %d,%d", finfo.Size(), minEmojiSize, maxEmojiSize)
 	}
 
 	src, err := attachments.NewReadCloseResetter(ctx, s.G().GlobalContext, filename)

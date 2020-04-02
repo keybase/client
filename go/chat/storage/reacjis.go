@@ -26,11 +26,6 @@ const (
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada:"}
 
-// EmojieRevCodeMap gets the underlying map of emoji.
-func EmojiRevCodeMap() map[string][]string {
-	return emojiRevCodeMap
-}
-
 func EmojiAliasList(shortCode string) []string {
 	return emojiRevCodeMap[emojiCodeMap[shortCode]]
 }
