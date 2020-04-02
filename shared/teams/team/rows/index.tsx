@@ -17,7 +17,7 @@ import {BotRow, AddBotRow} from './bot-row'
 import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
-import {EmojiItemRow, EmojiAddRow} from './emoji-row'
+import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
 import EmptyRow from './empty-row'
 
@@ -224,7 +224,7 @@ export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
             opts: {
               getAliases: true,
               getCreationInfo: true,
-              onlyInTeam: false, // TODO: change this to true
+              onlyInTeam: true,
             },
           },
         ],
@@ -250,6 +250,8 @@ export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
   if (filter != '') {
     filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
   }
+
+  filteredEmoji = filteredEmoji.sort((a, b) => (b.creationInfo?.time ?? 0) - (a.creationInfo?.time ?? 0))
   const sections: Array<Section> = []
   sections.push({
     data: ['emoji-add'],
@@ -264,11 +266,17 @@ export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
     ),
   })
 
+  sections.push({
+    data: ['emoji-header'],
+    key: 'emoji-header',
+    renderItem: () => <EmojiHeader />,
+  })
+
   if (!waiting && customEmoji) {
     sections.push({
       data: filteredEmoji,
       key: 'emoji-item',
-      renderItem: ({index, item}) => <EmojiItemRow emoji={item} firstItem={index === 0} />,
+      renderItem: ({item}) => <EmojiItemRow emoji={item} />,
     })
   }
   return sections

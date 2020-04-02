@@ -4,7 +4,6 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
@@ -15,7 +14,6 @@ type OwnProps = {
 }
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const dispatch = Container.useDispatch()
-  const subteamFilter = Container.useSelector(s => s.teams.subteamFilter)
   const onAddEmoji = () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -29,7 +27,6 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
     )
   const onAddAlias = () => {}
   // clear filter on unmount
-  //   React.useEffect(() => () => dispatch(TeamsGen.createSetSubteamFilter({filter: ''})), [dispatch])
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
       <Kb.Box2 direction="horizontal" gap="tiny">
