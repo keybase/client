@@ -4,6 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FloatingRolePicker, roleIconMap} from '../../role-picker'
 import {useTeamDetailsSubscribe} from '../../subscriber'
+import * as Container from '../../../util/container'
 
 type RolePickerSpecificProps = {
   isRolePickerOpen: boolean
@@ -35,12 +36,14 @@ export type MemberProps = {
   onChat: () => void
   onRemoveMember: () => void
   onBack: () => void
+  onBlur: () => void
 }
 
 export type Props = MemberProps & RolePickerSpecificProps
 
 export const TeamMember = (props: Props) => {
   useTeamDetailsSubscribe(props.teamID)
+  Container.useFocusBlur(undefined, props.onBlur)
   const {user, you, error} = props
   const iconType = user.type && roleIconMap[user.type]
   return (

@@ -183,6 +183,8 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
   teamType: 'other',
 }
 
+export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
+
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
@@ -193,7 +195,7 @@ const emptyState: Types.State = {
   errorInAddToTeam: '',
   errorInChannelCreation: '',
   errorInEditDescription: '',
-  errorInEditMember: '',
+  errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',

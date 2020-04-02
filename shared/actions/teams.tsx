@@ -407,7 +407,7 @@ const editMembership = async (state: TypedState, action: TeamsGen.EditMembership
       [Constants.teamWaitingKeyByID(teamID, state), Constants.editMembershipWaitingKey(teamID, username)]
     )
   } catch (e) {
-    return TeamsGen.createSetEditMemberError({error: e.message})
+    return TeamsGen.createSetEditMemberError({error: e.message, teamID, username})
   }
   return false
 }
