@@ -3,11 +3,14 @@ import * as Sb from '../../stories/storybook'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as ChatConstants from '../../constants/chat2'
 import {AddEmojiModal} from './add-emoji'
+import {AddAliasModal} from './add-alias'
 
 const load = () => {
-  Sb.storiesOf('Teams/Emojis', module).add('Add Emoji', () => (
-    <AddEmojiModal conversationIDKey={ChatConstants.noConversationIDKey} teamID={TeamsTypes.noTeamID} />
-  ))
+  Sb.storiesOf('Teams/Emojis', module)
+    .add('Add Emoji', () => (
+      <AddEmojiModal conversationIDKey={ChatConstants.noConversationIDKey} teamID={TeamsTypes.noTeamID} />
+    ))
+    .add('Add Alias', () => <AddAliasModal teamID={TeamsTypes.noTeamID} />)
 }
 
 export default load
