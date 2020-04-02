@@ -11,7 +11,7 @@ const shimNewRoute = (Original: any) => {
     const original = <Original {...props} />
     let body = original
 
-    const [renderDebug] = Shared.useRenderDebug()
+    const renderDebug = Shared.getRenderDebug()
     if (renderDebug) {
       body = <PerfWrapper style={styles.perf}>{original}</PerfWrapper>
     }

@@ -11,7 +11,7 @@ import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
 import {anyErrors, anyWaiting} from '../constants/waiting'
 import {isMobile, isLinux, isWindows} from '../constants/platform'
-import {useRenderDebug} from '../router-v2/shim.shared'
+import {toggleRenderDebug} from '../router-v2/shim.shared'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -222,8 +222,6 @@ const Developer = () => {
     dispatch(SettingsGen.createProcessorProfile({durationSeconds}))
   const onDBNuke = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']}))
 
-  const [, setRenderDebug] = useRenderDebug()
-
   return (
     <Kb.Box style={styles.developerContainer}>
       <Kb.Text center={true} type="BodySmallSemibold" onClick={onLabelClick} style={styles.text}>
@@ -247,7 +245,7 @@ const Developer = () => {
           />
           <Kb.Button
             label="Toggle Render Stats"
-            onClick={() => setRenderDebug(r => !r)}
+            onClick={toggleRenderDebug}
             mode="Secondary"
             style={styles.developerButtons}
           />

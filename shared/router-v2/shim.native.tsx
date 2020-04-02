@@ -9,6 +9,7 @@ export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
 
 let isV8 = false
 try {
+  // @ts-ignore
   console.log(`V8 version is ${global._v8runtime().version}`)
   isV8 = true
 } catch (_) {}
@@ -25,7 +26,7 @@ const shimNewRoute = (Original: any) => {
     const original = <Original {...props} key={Styles.isDarkMode ? 'dark' : 'light'} />
     let body = original
 
-    const [renderDebug] = Shared.useRenderDebug()
+    const renderDebug = Shared.getRenderDebug()
     if (renderDebug) {
       body = (
         <PerfWrapper style={styles.perf} prefix={isV8 ? 'V8: ' : 'JSC: '}>
