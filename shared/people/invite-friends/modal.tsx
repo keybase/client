@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import {usePhoneNumberList} from '../../teams/common'
 import * as RPCGen from '../../constants/types/rpc-gen'
+import {pluralize} from '../../util/string'
 
 const shareURL = 'https://keybase.io/download'
 const waitingKey = 'invitePeople'
@@ -110,10 +111,10 @@ const InviteFriendsModal = () => {
         ...(successCount === null
           ? []
           : [
-              <Kb.Banner
-                color="green"
-                key="success"
-              >{`Success! You invited ${successCount} friends to Keybase.`}</Kb.Banner>,
+              <Kb.Banner color="green" key="success">{`Success! You invited ${successCount} ${pluralize(
+                'friend',
+                successCount
+              )} to Keybase.`}</Kb.Banner>,
             ]),
       ]}
     >
