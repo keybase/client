@@ -167,12 +167,13 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   _checkStickyThrottled = throttle(this._checkSticky, 20)
 
   private triggerOnSectionChangeIfNeeded() {
-    if (!this.props.desktopOnSectionChange) {
+    if (!this.props.onSectionChange) {
       return
     }
     const visibleRange = this._listRef.current?.getVisibleRange()
     const sectionIndex = this._flat[visibleRange[0]].sectionIndex
-    typeof sectionIndex === 'number' && this.props.desktopOnSectionChange(sectionIndex)
+    const section = this.props.sections[sectionIndex]
+    section && this.props.onSectionChange(section)
   }
 
   private onScrollDelayed = () => {
@@ -250,15 +251,19 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   }
 
   private getItemSizeGetter = () => {
-    const {desktopItemHeight, desktopHeaderHeight} = this.props
-    return desktopHeaderHeight && desktopItemHeight
+    const {getItemHeight, getSectionHeaderHeight} = this.props
+    return getItemHeight && getSectionHeaderHeight
       ? (index: number): number => {
           const item = this._flat[index]
           if (!item) {
             // data is switching out from under us. let things settle
             return 0
           }
-          return item.type === 'header' ? desktopHeaderHeight : desktopItemHeight
+          return item.type === 'header'
+            ? getSectionHeaderHeight(item.sectionIndex)
+            : item.type === 'body'
+            ? getItemHeight(item.item, item.sectionIndex, item.indexWithinSection)
+            : 0
         }
       : undefined
   }

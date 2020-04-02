@@ -54,12 +54,13 @@ export default Container.connect(
     const teamDetails = Constants.getTeamDetails(state, teamID)
     const {teamname} = Constants.getTeamMeta(state, teamID)
     const disabledReasonsForRolePicker = Constants.getDisabledReasonsForRolePicker(state, teamID, username)
-
+    const error = state.teams.errorInEditMember
     return {
       _memberInfo: teamDetails.members,
       _username: username,
       _you: state.config.username,
       disabledReasonsForRolePicker,
+      error: error.username === username && error.teamID === teamID ? error.error : '',
       follower: state.config.followers.has(username),
       following: state.config.following.has(username),
       loading: anyWaiting(state, Constants.teamWaitingKey(teamID)),
@@ -83,6 +84,7 @@ export default Container.connect(
       )
     },
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onBlur: () => dispatch(TeamsGen.createSetEditMemberError(Constants.emptyErrorInEditMember)),
     onLeaveTeam: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -100,17 +102,12 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     // Gather contextual team membership info
-    const yourInfo = stateProps._memberInfo && stateProps._memberInfo.get(stateProps._you)
-    const userInfo = stateProps._memberInfo && stateProps._memberInfo.get(stateProps._username)
-    const you = {
-      type: yourInfo ? yourInfo.type : null,
-      username: stateProps._you,
-    }
+    const yourInfo = stateProps._memberInfo?.get(stateProps._you)
+    const userInfo = stateProps._memberInfo?.get(stateProps._username)
 
-    const user = {
-      type: userInfo ? userInfo.type : null,
-      username: stateProps._username,
-    }
+    const you = {type: yourInfo?.type, username: stateProps._you}
+    const user = {type: userInfo?.type, username: stateProps._username}
+
     // If they're an owner, you need to be an owner to edit them
     // otherwise you just need to be an admin
     const admin = user.type === 'owner' ? you.type === 'owner' : stateProps.yourOperations.manageMembers
@@ -118,10 +115,12 @@ export default Container.connect(
     return {
       admin,
       disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
+      error: stateProps.error,
       follower: stateProps.follower,
       following: stateProps.following,
       loading: stateProps.loading,
       onBack: dispatchProps.onBack,
+      onBlur: dispatchProps.onBlur,
       onChat: () => dispatchProps._onChat(stateProps._username),
       onEditRole: (role: Types.TeamRoleType) =>
         dispatchProps._onEditRole(stateProps.teamID, user.username, role),

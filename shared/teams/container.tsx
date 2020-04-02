@@ -14,6 +14,7 @@ import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useNavigationEvents} from '../util/navigation-hooks'
+import flags from '../util/feature-flags'
 
 type OwnProps = {}
 
@@ -81,7 +82,8 @@ const Reloadable = (props: ReloadableProps) => {
 
 Reloadable.navigationOptions = {
   header: undefined,
-  headerRightActions: () => <ConnectedHeaderRightActions />,
+  // This will be a filter box eventually
+  headerRightActions: flags.teamsRedesign ? undefined : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }
 

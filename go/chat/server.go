@@ -440,6 +440,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	conv, created, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
 		arg.TopicType, arg.MembersType, arg.TlfVisibility, nil, h.remoteClient, NewConvFindExistingNormal)
 	if err != nil {
+		h.Debug(ctx, "NewConversationLocal: failed to make conv: %s", err)
 		return res, err
 	}
 
@@ -462,7 +463,17 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			&globals.DefaultTeamTopic, arg.MembersType, keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			body, chat1.MessageType_SYSTEM)
 		if err != nil {
-			h.Debug(ctx, "unable to post new channel system message: %v", err)
+			h.Debug(ctx, "NewConversationLocal: unable to post new channel system message: %v", err)
+		}
+	}
+
+	// If we have this conv hidden, then let's bring it back before returning
+	if !utils.GetConversationStatusBehavior(conv.Info.Status).ShowInInbox {
+		h.Debug(ctx, "NewConversationLocal: new conversation not shown, unhiding: %s", conv.GetConvID())
+		if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, conv.GetConvID(),
+			chat1.ConversationStatus_UNFILED); err != nil {
+			h.Debug(ctx, "NewConversationLocal: unable to unhide conv: %s", err)
+			return res, err
 		}
 	}
 
@@ -3671,6 +3682,34 @@ func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1
 	}
 	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename); err != nil {
 		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res chat1.AddEmojisRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "AddEmojis")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	if len(arg.Aliases) != len(arg.Filenames) {
+		return chat1.AddEmojisRes{}, errors.New("aliases and filenames have different length")
+	}
+	res.FailedFilenames = make(map[string]string)
+	res.SuccessFilenames = make([]string, 0, len(arg.Aliases))
+	for i := range arg.Aliases {
+		if arg.Aliases[i] == "debug-test-error" {
+			res.FailedFilenames[arg.Filenames[i]] = "this is a test error"
+			continue
+		}
+		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i])
+		if err != nil {
+			res.FailedFilenames[arg.Filenames[i]] = err.Error()
+		} else {
+			res.SuccessFilenames = append(res.SuccessFilenames, arg.Filenames[i])
+		}
 	}
 	return res, nil
 }

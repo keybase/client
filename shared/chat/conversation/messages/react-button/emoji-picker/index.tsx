@@ -5,6 +5,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {isMobile} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
+import debounce from 'lodash/debounce'
 import {memoize} from '../../../../../util/memoize'
 import {EmojiData, RPCToEmojiData} from '../../../../../util/emoji'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
@@ -64,7 +65,14 @@ const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
 
 type Row = {emojis: Array<EmojiData>; key: string}
-type Section = _Section<Row, {title: string}>
+type Section = _Section<
+  Row,
+  {
+    // enforce string keys so we can easily refernece it for coveredSectionKeys
+    key: string
+    title: string
+  }
+>
 
 type Props = {
   topReacjis: Array<string>
@@ -78,11 +86,11 @@ type Props = {
 }
 
 type State = {
-  activeSectionIndex: number
+  activeSectionKey: string
 }
 
 type Bookmark = {
-  coveredSectionIndices?: Set<number>
+  coveredSectionKeys: Set<string>
   iconType: Kb.IconType
   sectionIndex: number
 }
@@ -162,24 +170,34 @@ const getSectionsAndBookmarks = (
   const bookmarks: Array<Bookmark> = []
 
   if (topReacjis.length) {
-    bookmarks.push({iconType: 'iconfont-clock', sectionIndex: sections.length})
-    sections.push(getFrequentSection(topReacjis, customSections || emptyArray, emojisPerLine))
+    const frequentSection = getFrequentSection(topReacjis, customSections || emptyArray, emojisPerLine)
+    bookmarks.push({
+      coveredSectionKeys: new Set([frequentSection.key]),
+      iconType: 'iconfont-clock',
+      sectionIndex: sections.length,
+    })
+    sections.push(frequentSection)
   }
 
   getEmojiSections(emojisPerLine).forEach(section => {
     const categoryIcon = Data.categoryIcons[section.title]
-    categoryIcon && bookmarks.push({iconType: categoryIcon, sectionIndex: sections.length})
+    categoryIcon &&
+      bookmarks.push({
+        coveredSectionKeys: new Set([section.key]),
+        iconType: categoryIcon,
+        sectionIndex: sections.length,
+      })
     sections.push(section)
   })
 
   if (customSections?.length) {
     const bookmark = {
-      coveredSectionIndices: new Set<number>(),
+      coveredSectionKeys: new Set<string>(),
       iconType: 'iconfont-keybase',
       sectionIndex: sections.length,
     } as Bookmark
     getCustomEmojiSections(customSections, emojisPerLine).forEach(section => {
-      bookmark.coveredSectionIndices?.add(sections.length)
+      bookmark.coveredSectionKeys.add(section.key)
       sections.push(section)
     })
     bookmarks.push(bookmark)
@@ -189,7 +207,7 @@ const getSectionsAndBookmarks = (
 }
 
 class EmojiPicker extends React.PureComponent<Props, State> {
-  state = {activeSectionIndex: 0}
+  state = {activeSectionKey: ''}
 
   private mounted = true
   componentWillUnmount() {
@@ -227,13 +245,13 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   private sectionListRef = React.createRef<any>()
 
-  private getBookmarkBar = (bookmarks: Array<Bookmark>) =>
-    Styles.isMobile ? null : (
+  private getBookmarkBar = (bookmarks: Array<Bookmark>) => {
+    const content = (
       <Kb.Box2 key="bookmark" direction="horizontal" fullWidth={true} style={styles.bookmarkContainer}>
-        {bookmarks.map(bookmark => {
-          const isActive =
-            this.state.activeSectionIndex === bookmark.sectionIndex ||
-            bookmark.coveredSectionIndices?.has(this.state.activeSectionIndex)
+        {bookmarks.map((bookmark, bookmarkIndex) => {
+          const isActive = this.state.activeSectionKey
+            ? bookmark.coveredSectionKeys.has(this.state.activeSectionKey)
+            : bookmarkIndex === 0
           return (
             <Kb.Box
               key={bookmark.sectionIndex}
@@ -245,7 +263,10 @@ class EmojiPicker extends React.PureComponent<Props, State> {
                 padding="tiny"
                 color={isActive ? Styles.globalColors.blue : Styles.globalColors.black_50}
                 onClick={() =>
-                  this.sectionListRef.current?.scrollToLocation({sectionIndex: bookmark.sectionIndex})
+                  this.sectionListRef.current?.scrollToLocation({
+                    itemIndex: 0,
+                    sectionIndex: bookmark.sectionIndex,
+                  })
                 }
               />
             </Kb.Box>
@@ -253,11 +274,24 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         })}
       </Kb.Box2>
     )
+    return Styles.isMobile ? (
+      <Kb.ScrollView key="bookmark" horizontal={true} style={styles.bookmarkScrollView}>
+        {content}
+      </Kb.ScrollView>
+    ) : (
+      content
+    )
+  }
 
   private getSectionHeader = (title: string) => (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
       <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
     </Kb.Box2>
+  )
+
+  private onSectionChange = debounce(
+    section => this.mounted && this.setState({activeSectionKey: section.key}),
+    200
   )
 
   render() {
@@ -308,14 +342,12 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
-            desktopItemHeight={36}
-            desktopHeaderHeight={32}
+            getItemHeight={() => emojiWidthWithPadding}
+            getSectionHeaderHeight={() => 32}
             keyboardShouldPersistTaps="handled"
             initialNumToRender={14}
             sections={sections}
-            desktopOnSectionChange={sectionIndex =>
-              this.mounted && this.setState({activeSectionIndex: sectionIndex})
-            }
+            onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={Styles.isMobile}
             renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
             renderSectionHeader={({section}) => this.getSectionHeader(section.title)}
@@ -346,6 +378,9 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
       },
+      bookmarkScrollView: {
+        flexShrink: 0,
+      },
       emoji: {
         borderRadius: 2,
         padding: emojiPadding,
@@ -356,6 +391,7 @@ const styles = Styles.styleSheetCreate(
       },
       emojiRowContainer: {
         alignItems: 'center',
+        height: emojiWidthWithPadding,
         justifyContent: 'center',
       },
       flexWrap: {

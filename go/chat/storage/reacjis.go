@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/kyokomi/emoji"
 	context "golang.org/x/net/context"
 )
 
@@ -20,14 +19,36 @@ const (
 	minScoringMinutes = 1           // one minute
 	maxScoringMinutes = 7 * 24 * 60 // one week
 	frequencyWeight   = 1
-	mtimeWeight       = 20
+	mtimeWeight       = 2
 	reacjiDiskVersion = 3
 )
 
-var codeMap map[string]string
-
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada:"}
+
+// RevCodeMap gets the underlying map of emoji.
+func RevCodeMap() map[string][]string {
+	return emojiRevCodeMap
+}
+
+func AliasList(shortCode string) []string {
+	return emojiRevCodeMap[emojiCodeMap[shortCode]]
+}
+
+// HasAlias flags if the given `shortCode` has multiple aliases with other
+// codes.
+func HasAlias(shortCode string) bool {
+	return len(AliasList(shortCode)) > 1
+}
+
+// NormalizeShortCode normalizes a given `shortCode` to a deterministic alias.
+func NormalizeShortCode(shortCode string) string {
+	shortLists := AliasList(shortCode)
+	if len(shortLists) == 0 {
+		return shortCode
+	}
+	return shortLists[0]
+}
 
 type ReacjiInternalStorage struct {
 	FrequencyMap map[string]int
@@ -163,21 +184,21 @@ func (s *ReacjiStore) dbKey(uid gregor1.UID) libkb.DbKey {
 	}
 }
 
-func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) ReacjiInternalStorage {
-	if found, data := reacjiMemCache.Get(uid); found {
-		return data
+func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) (cache ReacjiInternalStorage) {
+	if found, cache := reacjiMemCache.Get(uid); found {
+		return cache
 	}
 
 	// populate the cache after we fetch from disk
-	data := NewReacjiInternalStorage()
-	defer func() { reacjiMemCache.Put(uid, data) }()
+	cache = NewReacjiInternalStorage()
+	defer func() { reacjiMemCache.Put(uid, cache) }()
 
 	dbKey := s.dbKey(uid)
 	var entry reacjiDiskEntry
 	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
 	if err != nil || !found {
 		s.Debug(ctx, "reacji map not found on disk")
-		return data
+		return cache
 	}
 
 	if entry.Version != reacjiDiskVersion {
@@ -186,30 +207,42 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 		if err = s.encryptedDB.Delete(ctx, dbKey); err != nil {
 			s.Debug(ctx, "unable to delete cache entry: %v", err)
 		}
-		return data
+		return cache
 	}
+
 	if entry.Data.FrequencyMap == nil {
 		entry.Data.FrequencyMap = make(map[string]int)
 	}
 	if entry.Data.MtimeMap == nil {
 		entry.Data.MtimeMap = make(map[string]gregor1.Time)
 	}
-	return entry.Data
+
+	cache = entry.Data
+	// Normalized duplicated aliases
+	for name, freq := range cache.FrequencyMap {
+		normalized := NormalizeShortCode(name)
+		if name != normalized {
+			cache.FrequencyMap[normalized] += freq
+			if cache.MtimeMap[name] > cache.MtimeMap[normalized] {
+				cache.MtimeMap[normalized] = cache.MtimeMap[name]
+			}
+			delete(cache.FrequencyMap, name)
+			delete(cache.MtimeMap, name)
+		}
+	}
+	return cache
 }
 
-func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, reacji string) error {
+func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode string) error {
 	s.Lock()
 	defer s.Unlock()
-	if codeMap == nil {
-		codeMap = emoji.CodeMap()
-	}
-	if _, ok := codeMap[reacji]; !(ok || globals.EmojiPattern.MatchString(reacji)) {
+	if !(HasAlias(shortCode) || globals.EmojiPattern.MatchString(shortCode)) {
 		return nil
 	}
-
 	cache := s.populateCacheLocked(ctx, uid)
-	cache.FrequencyMap[reacji]++
-	cache.MtimeMap[reacji] = gregor1.ToTime(time.Now())
+	shortCode = NormalizeShortCode(shortCode)
+	cache.FrequencyMap[shortCode]++
+	cache.MtimeMap[shortCode] = gregor1.ToTime(time.Now())
 
 	dbKey := s.dbKey(uid)
 	err := s.encryptedDB.Put(ctx, dbKey, reacjiDiskEntry{
@@ -260,7 +293,6 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 	defer s.Unlock()
 
 	cache := s.populateCacheLocked(ctx, uid)
-	pairs := []reacjiPair{}
 	// add defaults if needed so we always return some values
 	for _, el := range DefaultTopReacjis {
 		if len(cache.FrequencyMap) >= len(DefaultTopReacjis) {
@@ -272,6 +304,7 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 		}
 	}
 
+	pairs := make([]reacjiPair, 0, len(cache.FrequencyMap))
 	for name, freq := range cache.FrequencyMap {
 		score := cache.score(name)
 		pairs = append(pairs, newReacjiPair(name, freq, score))

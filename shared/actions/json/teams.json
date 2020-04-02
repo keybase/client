@@ -217,6 +217,11 @@
     "setEditDescriptionError": {
       "error": "string"
     },
+    "setEditMemberError": {
+      "error": "string",
+      "teamID": "Types.TeamID",
+      "username": "string"
+    },
     "settingsError": {
       "error": "string"
     },
