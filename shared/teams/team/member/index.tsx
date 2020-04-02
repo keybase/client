@@ -18,6 +18,7 @@ type RolePickerSpecificProps = {
 export type MemberProps = {
   admin: boolean
   disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker
+  error: string
   follower: boolean
   following: boolean
   loading: boolean
@@ -35,6 +36,7 @@ export type MemberProps = {
   onChat: () => void
   onRemoveMember: () => void
   onBack: () => void
+  onBlur: () => void
 }
 
 export type Props = MemberProps & RolePickerSpecificProps
@@ -52,11 +54,13 @@ const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null) => {
 
 export const TeamMember = (props: Props) => {
   useTeamDetailsSubscribe(props.teamID)
-  const {user, you} = props
+  Container.useFocusBlur(undefined, props.onBlur)
+  const {user, you, error} = props
   const iconType = user.type && roleIconMap[user.type]
   useCloseIfNoLongerInTeam(user.type)
   return (
     <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
+      {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
       <Kb.Box
         style={{
           ...Styles.globalStyles.flexBoxColumn,

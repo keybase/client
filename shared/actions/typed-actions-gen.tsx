@@ -947,6 +947,7 @@ export type TypedActionsMap = {
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
   'teams:setWelcomeMessageError': teams.SetWelcomeMessageErrorPayload
   'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
+  'teams:setEditMemberError': teams.SetEditMemberErrorPayload
   'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
   'teams:setTeamCreationError': teams.SetTeamCreationErrorPayload

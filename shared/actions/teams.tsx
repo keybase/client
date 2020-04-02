@@ -391,14 +391,19 @@ const uploadAvatar = async (action: TeamsGen.UploadTeamAvatarPayload, logger: Sa
 
 const editMembership = async (state: TypedState, action: TeamsGen.EditMembershipPayload) => {
   const {teamID, username, role} = action.payload
-  await RPCTypes.teamsTeamEditMemberRpcPromise(
-    {
-      name: Constants.getTeamNameFromID(state, teamID) ?? '',
-      role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
-      username,
-    },
-    [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, username)]
-  )
+  try {
+    await RPCTypes.teamsTeamEditMemberRpcPromise(
+      {
+        name: Constants.getTeamNameFromID(state, teamID) ?? '',
+        role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
+        username,
+      },
+      [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, username)]
+    )
+  } catch (e) {
+    return TeamsGen.createSetEditMemberError({error: e.message, teamID, username})
+  }
+  return false
 }
 
 function* removeMember(_: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
