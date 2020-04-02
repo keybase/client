@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type Props = Container.RouteProps<{
   isOpenTeam: boolean
@@ -28,12 +29,13 @@ const OpenTeamWarning = (props: Props) => {
   const onConfirmCallback = Container.getRouteProps(props, 'onConfirm', () => undefined)
 
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const onConfirm = React.useCallback(() => {
-    dispatch(nav.safeNavigateUpPayload())
+
+  const onConfirm = () => {
+    dispatch(RouteTreeGen.createClearModals())
     onConfirmCallback()
-  }, [dispatch, nav])
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  }
+
+  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
 
   return (
     <Wrapper onBack={onCancel}>
