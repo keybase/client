@@ -74,7 +74,7 @@ const WotModal = (props: WotModalProps) => {
 
 type Question1Props = {
   error?: string
-  initialVerificationType?: WebOfTrustVerificationType
+  initialVerificationType: WebOfTrustVerificationType
   onSubmit: (_: {
     otherText: string
     proofs: {key: string; value: string}[]
@@ -86,24 +86,18 @@ type Question1Props = {
 
 export const Question1 = (props: Question1Props) => {
   const scrollViewRef = React.useRef<Kb.ScrollView>(null)
-  const [vt, setVtRaw] = React.useState<WebOfTrustVerificationType>(
-    props.initialVerificationType || 'in_person'
-  )
+  const [vt, _setVt] = React.useState<WebOfTrustVerificationType>(props.initialVerificationType)
   const [otherText, setOtherText] = React.useState('')
   const setVt = newVt => {
     if (newVt === 'other' && newVt !== vt && scrollViewRef.current) {
       const hackDelay = 50 // With no delay scrolling undershoots. Perhaps the bottom component doesn't exist yet.
-      setTimeout(
-        () => scrollViewRef.current && scrollViewRef.current.scrollToEnd({animated: true}),
-        hackDelay
-      )
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({animated: true}), hackDelay)
     }
-    setVtRaw(newVt)
+    _setVt(newVt)
   }
   const proofs = useCheckboxesState(props.proofs)
   const submitDisabled =
-    (vt === 'other' && otherText === '') ||
-    (vt === 'proofs' && proofs.filter(({checked}) => checked).length === 0)
+    (vt === 'other' && otherText === '') || (vt === 'proofs' && !proofs.some(x => x.checked))
   const onSubmit = () => {
     props.onSubmit({
       otherText: vt === 'other' ? otherText : '',
