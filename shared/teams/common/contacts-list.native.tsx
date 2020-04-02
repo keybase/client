@@ -64,52 +64,79 @@ type Props = {
   selectedPhones: Set<string>
 }
 
+type ContactRowProps = {
+  disabled?: boolean
+  index: number
+  item: Contact
+  onSelect: Props['onSelect']
+  selected: boolean
+}
+const ContactRow = React.memo(({item, disabled, index, onSelect, selected}: ContactRowProps) => {
+  const topText = item.name ?? item.valueFormatted ?? item.value
+  const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
+  const onCheck = (check: boolean) => onSelect(item, check)
+  return (
+    <Kb.ListItem2
+      type="Small"
+      firstItem={index === 0}
+      body={
+        <Kb.Box2 direction="vertical" alignItems="flex-start">
+          <Kb.Text type="BodySemibold">{topText}</Kb.Text>
+          {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
+        </Kb.Box2>
+      }
+      onClick={disabled ? undefined : () => onCheck(!selected)}
+      action={
+        <Kb.CheckCircle checked={selected} onCheck={onCheck} style={styles.checkCircle} disabled={disabled} />
+      }
+      icon={
+        item.pictureUri ? (
+          <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
+        ) : (
+          undefined
+        )
+      }
+    />
+  )
+})
+
 const ContactsList = (props: Props) => {
   const contactInfo = useContacts()
 
   const sections = filterAndSectionContacts(contactInfo.contacts, props.search)
   const renderSectionHeader = ({section}: {section: Section}) => <Kb.SectionDivider label={section.title} />
-  const renderItem = ({item, index}: {item: Contact; index: number}) => {
-    const topText = item.name ?? item.valueFormatted ?? item.value
-    const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
-    const onCheck = (check: boolean) => props.onSelect(item, check)
-    const checked =
-      item.type === 'email' ? props.selectedEmails.has(item.value) : props.selectedPhones.has(item.value)
-    return (
-      <Kb.ListItem2
-        type="Small"
-        firstItem={index === 0}
-        body={
-          <Kb.Box2 direction="vertical" alignItems="flex-start">
-            <Kb.Text type="BodySemibold">{topText}</Kb.Text>
-            {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
-          </Kb.Box2>
-        }
-        onClick={props.disabled ? undefined : () => onCheck(!checked)}
-        action={
-          <Kb.CheckCircle
-            checked={checked}
-            onCheck={onCheck}
-            style={styles.checkCircle}
-            disabled={props.disabled}
-          />
-        }
-        icon={
-          item.pictureUri ? (
-            <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
-          ) : (
-            undefined
-          )
-        }
-      />
-    )
-  }
   const keyExtractor = (item: Contact) => item.id
+
+  // need to box this callback or every row will rerender when the selection changes
+  const {onSelect} = props
+  const onSelectRef = React.useRef(props.onSelect)
+  React.useEffect(() => {
+    onSelectRef.current = onSelect
+  }, [onSelect])
+  const onSelectForRows = React.useCallback<Props['onSelect']>(
+    (...args) => {
+      onSelectRef.current(...args)
+    },
+    [onSelectRef]
+  )
+
   return (
     <Kb.SectionList
       sections={sections}
       renderSectionHeader={renderSectionHeader}
-      renderItem={renderItem}
+      renderItem={({item, index}) => (
+        <ContactRow
+          item={item}
+          index={index}
+          onSelect={onSelectForRows}
+          disabled={props.disabled}
+          selected={
+            item.type === 'email'
+              ? props.selectedEmails.has(item.value)
+              : props.selectedPhones.has(item.value)
+          }
+        />
+      )}
       keyExtractor={keyExtractor}
       ListHeaderComponent={props.ListHeaderComponent}
     />
