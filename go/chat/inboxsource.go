@@ -281,7 +281,7 @@ func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *
 	return s
 }
 
-func (s *RemoteInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+func (s *RemoteInboxSource) Clear(ctx context.Context, uid gregor1.UID, opts types.ClearOpts) error {
 	return nil
 }
 
@@ -525,11 +525,14 @@ func NewHybridInboxSource(g *globals.Context,
 func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, err error) {
 	if utils.IsDeletedConvError(err) {
 		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", err, convID, uid)
-		if err := s.G().InboxSource.Clear(ctx, uid); err != nil {
+		if err := s.G().InboxSource.Clear(ctx, uid, types.ClearOpts{
+			SendLocalAdminNotification: true,
+			Reason:                     "Got unexpected conversation deleted error. Cleared conv and inbox cache",
+		}); err != nil {
 			s.Debug(ctx, "unable to Clear inbox: %v", err)
 		}
 		if convID != nil {
-			if err := s.G().ConvSource.Clear(ctx, *convID, uid); err != nil {
+			if err := s.G().ConvSource.Clear(ctx, *convID, uid, types.ClearOpts{}); err != nil {
 				s.Debug(ctx, "unable to Clear conv: %v", err)
 			}
 		}
@@ -542,7 +545,7 @@ func (s *HybridInboxSource) createInbox() *storage.Inbox {
 		storage.LayoutChangedNotifier(s.G().UIInboxLoader))
 }
 
-func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) (err error) {
+func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID, opts types.ClearOpts) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Clear(%v)", uid)()
 	defer s.PerfTrace(ctx, func() error { return err }, "Clear(%v)", uid)()
 	start := time.Now()
@@ -559,10 +562,10 @@ func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) (err err
 			Ctime:     keybase1.ToTime(start),
 		})
 	}()
-	if (s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String()))) && s.G().UIRouter != nil {
+	if (s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String()))) && s.G().UIRouter != nil && opts.SendLocalAdminNotification {
 		ui, err := s.G().UIRouter.GetLogUI()
 		if err == nil && ui != nil {
-			ui.Critical("Clearing inbox")
+			ui.Critical("Clearing inbox: %s", opts.Reason)
 		}
 	}
 
@@ -1475,7 +1478,7 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 		if r.Uid.Eq(uid) {
 			// Blow away conversation cache for any conversations we get removed from
 			s.Debug(ctx, "MembershipUpdate: clear conv cache for removed conv: %s", r.ConvID)
-			err := s.G().ConvSource.Clear(ctx, r.ConvID, uid)
+			err := s.G().ConvSource.Clear(ctx, r.ConvID, uid, types.ClearOpts{})
 			if err != nil {
 				s.Debug(ctx, "MembershipUpdate: error clearing conv source: %+v", err)
 			}

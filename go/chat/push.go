@@ -987,7 +987,7 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 
 		// Just blow away anything we have locally, there might be unboxing errors in here during the
 		// transition.
-		if err = g.G().ConvSource.Clear(ctx, update.ConvID, uid); err != nil {
+		if err = g.G().ConvSource.Clear(ctx, update.ConvID, uid, types.ClearOpts{}); err != nil {
 			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %v", err)
 		}
 		g.G().ActivityNotifier.KBFSToImpteamUpgrade(ctx, uid, update.ConvID, update.TopicType)

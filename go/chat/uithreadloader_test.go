@@ -102,7 +102,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
 
-	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
+	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid, types.ClearOpts{}))
 	_, err = tc.Context().ConvSource.GetMessages(ctx, convFull.Conv.GetConvID(), uid,
 		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, nil, nil, false)
 	require.NoError(t, err)
@@ -160,7 +160,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}
-	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
+	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid, types.ClearOpts{}))
 	clock.Advance(5 * time.Second)
 	select {
 	case res := <-chatUI.ThreadCb:
@@ -202,7 +202,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 		Body: "HI",
 	}))
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
+	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid, types.ClearOpts{}))
 	_, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
@@ -480,7 +480,7 @@ func TestUIThreadLoaderKnownRemotes(t *testing.T) {
 	consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 	consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 
-	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
+	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid, types.ClearOpts{}))
 	_, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
 		ConversationID: conv.Id,
 		MessageIDs:     []chat1.MessageID{1, msgID1},

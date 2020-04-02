@@ -202,7 +202,7 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	// Clear caches from members type changed convos
 	for _, convID := range convIDs {
 		s.Debug(ctx, "handleMembersTypeChanged: clearing message cache: %s", convID)
-		err := s.G().ConvSource.Clear(ctx, convID, uid)
+		err := s.G().ConvSource.Clear(ctx, convID, uid, types.ClearOpts{})
 		if err != nil {
 			s.Debug(ctx, "handleMembersTypeChanged: erroring clearing conv: %+v", err)
 		}
@@ -220,7 +220,7 @@ func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncC
 		if !fmap[sconv.GetConvID().ConvIDStr()] {
 			s.Debug(ctx, "handleFilteredConvs: conv filtered from inbox, removing cache: convID: %s memberStatus: %v existence: %v",
 				sconv.GetConvID(), sconv.ReaderInfo.Status, sconv.Metadata.Existence)
-			err := s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+			err := s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid, types.ClearOpts{})
 			if err != nil {
 				s.Debug(ctx, "handleFilteredCovs: erroring clearing conv: %+v", err)
 			}

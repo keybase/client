@@ -1187,7 +1187,10 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				n.Debug(ctx, "stale topic name state, trying again")
 				if !clearedCache {
 					n.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
-					err := n.G().InboxSource.Clear(ctx, n.uid)
+					err := n.G().InboxSource.Clear(ctx, n.uid, types.ClearOpts{
+						SendLocalAdminNotification: true,
+						Reason:                     "received ChatStalePreviousStateError",
+					})
 					if err != nil {
 						n.Debug(ctx, "Send: error clearing inbox: %+v", err)
 					}

@@ -205,7 +205,7 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 
 	attempt(types.InboxSourceDataSourceAll, true)
 	attempt(types.InboxSourceDataSourceLocalOnly, true)
-	require.NoError(t, tc.Context().InboxSource.Clear(ctx, uid))
+	require.NoError(t, tc.Context().InboxSource.Clear(ctx, uid, types.ClearOpts{}))
 	attempt(types.InboxSourceDataSourceLocalOnly, false)
 	attempt(types.InboxSourceDataSourceRemoteOnly, true)
 	attempt(types.InboxSourceDataSourceLocalOnly, false)
