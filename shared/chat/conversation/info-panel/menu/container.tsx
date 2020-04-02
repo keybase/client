@@ -23,28 +23,6 @@ export type OwnProps = {
   visible: boolean
 }
 
-// can be expensive, don't run if not visible
-const moreThanOneSubscribedChannel = (
-  inboxLayout: Container.TypedState['chat2']['inboxLayout'],
-  teamname?: string
-) => {
-  if (!inboxLayout || !inboxLayout.bigTeams) {
-    return false
-  }
-  const bigTeams = inboxLayout.bigTeams
-  let found = 0
-  return bigTeams.some(c => {
-    if (c.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel && c.channel.teamname === teamname) {
-      found++
-    }
-    // got enough
-    if (found === 2) {
-      return true
-    }
-    return false
-  })
-}
-
 // TODO convProps was being made all the time and thrashing
 // how this works should change. i just normalized this so it doesn't thrash
 export default Container.namedConnect(
@@ -115,11 +93,7 @@ export default Container.namedConnect(
     const yourOperations = TeamConstants.getCanPerformByID(state, teamID)
     const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
 
-    const manageChannelsTitle = isSmallTeam
-      ? 'Create channels...'
-      : moreThanOneSubscribedChannel(state.chat2.inboxLayout, teamname)
-      ? 'Browse all channels'
-      : 'Subscribe to channels...'
+    const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
     return {
       _convPropsFullname,

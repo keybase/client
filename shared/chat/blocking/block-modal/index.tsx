@@ -358,13 +358,18 @@ class BlockModal extends React.PureComponent<Props, State> {
         header={header}
         footer={{
           content: (
-            <Kb.WaitingButton
-              label="Finish"
-              onClick={this.onFinish}
-              fullWidth={true}
-              type="Danger"
-              waitingKey={null}
-            />
+            <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+              {!Styles.isMobile && (
+                <Kb.Button fullWidth={true} label="Cancel" onClick={this.props.onClose} type="Dim" />
+              )}
+              <Kb.WaitingButton
+                label="Finish"
+                onClick={this.onFinish}
+                fullWidth={true}
+                type="Danger"
+                waitingKey={null}
+              />
+            </Kb.ButtonBar>
           ),
         }}
         noScrollView={true}
@@ -408,6 +413,7 @@ const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
 })
 
 const styles = Styles.styleSheetCreate(() => ({
+  buttonBar: {minHeight: undefined},
   checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
   feedback: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, 0),
   feedbackPaddingBottom: {paddingBottom: Styles.globalMargins.small},

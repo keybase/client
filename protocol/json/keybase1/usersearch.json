@@ -357,10 +357,6 @@
             "type": "array",
             "items": "PhoneNumber"
           }
-        },
-        {
-          "name": "checkContacts",
-          "type": "boolean"
         }
       ],
       "response": {

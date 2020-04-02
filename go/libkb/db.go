@@ -47,6 +47,7 @@ const (
 	DBUserPlusKeysVersionedUnstubbed = 0xbd
 	DBOfflineRPC                     = 0xbe
 	DBChatCollapses                  = 0xbf
+	DBSupportsHiddenFlagStorage      = 0xc0
 	DBMerkleAudit                    = 0xca
 	DBUnfurler                       = 0xcb
 	DBStellarDisclaimer              = 0xcc

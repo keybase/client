@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
@@ -16,8 +17,8 @@ type Props = Container.RouteProps<{
 
 const Header = () => (
   <>
-    <Kb.Icon type={'icon-teams-channel-64'} />
-    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.Icon type="icon-teams-channel-64" />
+    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20}} />
   </>
 )
 
@@ -86,10 +87,18 @@ const DeleteChannel = (props: Props) => {
       header={<Header />}
       onCancel={onClose}
       onConfirm={onDelete}
-      prompt={`Delete ${deleteMsg}?`}
+      prompt={
+        <Kb.Text type="Header" center={true} style={styles.prompt}>
+          Delete {deleteMsg}?
+        </Kb.Text>
+      }
       waitingKey={Constants.deleteChannelWaitingKey(teamID)}
     />
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  prompt: Styles.padding(0, Styles.globalMargins.small),
+}))
 
 export default DeleteChannel

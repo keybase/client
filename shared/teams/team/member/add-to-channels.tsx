@@ -327,7 +327,9 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect}: ChannelRowProps) =>
   const numParticipants = Container.useSelector(
     s => ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey).name.length
   )
-  const activityLevel = 'active' // TODO: plumbing
+  const activityLevel = Container.useSelector(
+    s => s.teams.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
+  )
   return Styles.isMobile ? (
     <Kb.ClickableBox onClick={onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
@@ -380,7 +382,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect}: ChannelRowProps) =>
       body={
         <Kb.Box2 direction="vertical" alignItems="stretch">
           <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
-            <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
+            <Kb.Text type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}
             </Kb.Text>
             {selfMode && <Common.ParticipantMeta numParticipants={numParticipants} />}
@@ -391,6 +393,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect}: ChannelRowProps) =>
                 {numParticipants} {pluralize('member', numParticipants)} •
               </Kb.Text>
             )}
+            <Kb.Text type="BodySmall">{activityLevel !== 'none' && !selfMode && ' • '}</Kb.Text>
             <Common.Activity level={activityLevel} />
           </Kb.Box2>
           {selfMode && (

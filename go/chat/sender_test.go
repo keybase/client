@@ -1032,7 +1032,7 @@ func TestKBFSFileEditSize(t *testing.T) {
 		tlfName := u.Username
 		tc := userTc(t, world, u)
 		conv, created, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
-			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
+			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, nil,
 			func() chat1.RemoteInterface { return ri }, NewConvFindExistingNormal)
 		require.NoError(t, err)
 		require.True(t, created)

@@ -123,10 +123,14 @@ export type Props<SectionT extends Section<any, any>> = {
    */
   onScroll?: (event: ReactNative.NativeSyntheticEvent<ReactNative.NativeScrollEvent>) => void
 
-  // optional and desktop only.
-  desktopItemHeight?: number
-  desktopHeaderHeight?: number
-  desktopOnSectionChange?: (sectionIndex: number) => void
+  getItemHeight?: (
+    item: ItemTFromSectionT<SectionT>,
+    sectionIndex: number,
+    indexWithinSection: number
+  ) => number
+  getSectionHeaderHeight?: (sectionIndex: number) => number
+
+  onSectionChange?: (section: SectionT) => void
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}

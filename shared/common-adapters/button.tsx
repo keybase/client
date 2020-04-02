@@ -216,7 +216,11 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
     </Kb.ClickableBox>
   )
   if (props.tooltip) {
-    return <Kb.WithTooltip tooltip={props.tooltip}>{content}</Kb.WithTooltip>
+    return (
+      <Kb.WithTooltip tooltip={props.tooltip} showOnPressMobile={props.disabled}>
+        {content}
+      </Kb.WithTooltip>
+    )
   }
 
   return content
@@ -230,8 +234,8 @@ const typeToColorName = {
   Dim: 'black',
 }
 
-const smallHeight = Styles.isMobile ? 32 : 28
-const regularHeight = Styles.isMobile ? 40 : 32
+export const smallHeight = Styles.isMobile ? 32 : 28
+export const regularHeight = Styles.isMobile ? 40 : 32
 
 const common = () =>
   Styles.platformStyles({

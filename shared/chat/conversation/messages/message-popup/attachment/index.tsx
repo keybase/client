@@ -35,32 +35,7 @@ type Props = {
 
 const AttachmentPopupMenu = (props: Props) => {
   const items: MenuItems = [
-    ...(props.isDeleteable
-      ? ([
-          'Divider' as const,
-          {
-            danger: true,
-            disabled: !props.onDelete,
-            icon: 'iconfont-trash',
-            onClick: props.onDelete,
-            subTitle: 'Deletes this attachment for everyone',
-            title: 'Delete',
-          },
-        ] as const)
-      : []),
-    ...(props.isKickable
-      ? ([
-          {
-            danger: true,
-            disabled: !props.onKick,
-            icon: 'iconfont-block-user',
-            onClick: props.onKick,
-            subTitle: 'Removes the user from the team',
-            title: 'Kick user',
-          },
-        ] as const)
-      : []),
-    'Divider' as const,
+    'Divider',
     ...(props.onShowInFinder
       ? [{icon: 'iconfont-finder', onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}]
       : []),
@@ -97,6 +72,31 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
+      : []),
+    ...(props.isDeleteable
+      ? ([
+          {
+            danger: true,
+            disabled: !props.onDelete,
+            icon: 'iconfont-trash',
+            onClick: props.onDelete,
+            subTitle: 'Deletes this attachment for everyone',
+            title: 'Delete',
+          },
+        ] as const)
+      : []),
+    ...(props.isKickable
+      ? ([
+          'Divider' as const,
+          {
+            danger: true,
+            disabled: !props.onKick,
+            icon: 'iconfont-block-user',
+            onClick: props.onKick,
+            subTitle: 'Removes the user from the team',
+            title: 'Kick user',
+          },
+        ] as const)
       : []),
   ].reduce<MenuItems>((arr, i) => {
     i && arr.push(i as MenuItem)

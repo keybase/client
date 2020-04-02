@@ -7,53 +7,67 @@ import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'
 
 type Props = {
-  channels: Array<string>
-  onAddChannel: (channelname: string) => void
-  onRemoveChannel: (channelname: string) => void
+  channels: Array<Types.ChannelNameID>
+  disableGeneral?: boolean
+  onAddChannel: (toAdd: Array<Types.ChannelNameID>) => void
+  onRemoveChannel: (toRemove: Types.ChannelNameID) => void
   teamID: Types.TeamID
 }
 
 // always shows #general
-const ChannelsWidget = (props: Props) => {
-  return (
-    <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
-      <ChannelInput onAdd={props.onAddChannel} teamID={props.teamID} selected={props.channels} />
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
-        {props.channels.map(channelname => (
-          <ChannelPill
-            key={channelname}
-            channelname={channelname}
-            onRemove={channelname === 'general' ? undefined : () => props.onRemoveChannel(channelname)}
-          />
-        ))}
-      </Kb.Box2>
+const ChannelsWidget = (props: Props) => (
+  <Kb.Box2 direction="vertical" gap="tiny" style={styles.container} fullWidth={true}>
+    <ChannelInput
+      onAdd={props.onAddChannel}
+      teamID={props.teamID}
+      selected={props.channels}
+      disableGeneral={props.disableGeneral}
+    />
+    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
+      {props.channels.map(channel => (
+        <ChannelPill
+          key={channel.channelname}
+          channelname={channel.channelname}
+          onRemove={channel.channelname === 'general' ? undefined : () => props.onRemoveChannel(channel)}
+        />
+      ))}
     </Kb.Box2>
-  )
+  </Kb.Box2>
+)
+
+type ChannelInputProps = {
+  disableGeneral?: boolean
+  onAdd: (toAdd: Array<Types.ChannelNameID>) => void
+  selected: Array<Types.ChannelNameID>
+  teamID: Types.TeamID
 }
 
-type ChannelInputProps = {onAdd: (channelname: string) => void; selected: Array<string>; teamID: Types.TeamID}
-
-const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
+const ChannelInputDesktop = ({disableGeneral, onAdd, selected, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
-  const {channelMetas} = useAllChannelMetas(teamID)
-  const channelnames = [...channelMetas.values()]
-    .filter(c => !selected.includes(c.channelname))
-    .map(c => `#${c.channelname}`)
 
-  const onSelect = value => {
-    onAdd(value)
+  const {channelMetas} = useAllChannelMetas(teamID)
+  const channelItems = [...channelMetas.values()]
+    .filter(
+      c =>
+        !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
+        (!disableGeneral || c.channelname !== 'general')
+    )
+    .map(c => ({
+      label: `#${c.channelname}`,
+      value: {channelname: c.channelname, conversationIDKey: c.conversationIDKey},
+    }))
+
+  const onSelect = (value: Unpacked<typeof channelItems>['value']) => {
+    onAdd([value])
     setFilter('')
   }
 
-  const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter<Kb.SearchFilter>(
-    channelnames,
-    onSelect,
-    filter
-  )
+  const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter(channelItems, onSelect, filter)
 
   return (
     <>
       <Kb.SearchFilter
+        // @ts-ignore complaining that popupAnchor is missing properties that SearchFilter has
         ref={popupAnchor}
         onFocus={() => setShowingPopup(true)}
         onBlur={() => setShowingPopup(false)}
@@ -70,11 +84,11 @@ const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
   )
 }
 
-const ChannelInputMobile = ({onAdd, selected, teamID}: ChannelInputProps) => {
+const ChannelInputMobile = ({disableGeneral, onAdd, selected, teamID}: ChannelInputProps) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
-  const onComplete = (channelnames: Array<string>) => {
+  const onComplete = (channels: Array<Types.ChannelNameID>) => {
     setShowingPopup(false)
-    channelnames.forEach(c => onAdd(c))
+    onAdd(channels)
   }
   return (
     <Kb.ClickableBox onClick={() => setShowingPopup(true)}>
@@ -96,6 +110,7 @@ const ChannelInputMobile = ({onAdd, selected, teamID}: ChannelInputProps) => {
           onCancel={() => setShowingPopup(false)}
           onComplete={onComplete}
           disabledChannels={selected}
+          hideGeneral={disableGeneral}
         />
       )}
     </Kb.ClickableBox>

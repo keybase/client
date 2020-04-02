@@ -6337,7 +6337,7 @@ func TestChatSrvNewConvAfterReset(t *testing.T) {
 	require.NoError(t, users[0].Login(tc.G))
 	conv2, created, err := NewConversation(ctx, tc.Context(), uid, users[0].Username+","+users[1].Username, nil,
 		chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
-		func() chat1.RemoteInterface { return ctc.as(t, users[0]).ri }, NewConvFindExistingNormal)
+		nil, func() chat1.RemoteInterface { return ctc.as(t, users[0]).ri }, NewConvFindExistingNormal)
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, conv.Id, conv2.Info.Id)
@@ -7297,10 +7297,16 @@ func TestReacjiStore(t *testing.T) {
 		ctc.as(t, user).h.G().NotifyRouter.AddListener(listener)
 		tc.ChatG.Syncer.(*Syncer).isConnected = true
 		reacjiStore := storage.NewReacjiStore(ctc.as(t, user).h.G())
-		assertReacjiStore := func(actual, expected keybase1.UserReacjis, expectedData *storage.ReacjiInternalStorage) {
-			require.Equal(t, expected, actual)
+		assertReacjiStore := func(actual, expected keybase1.UserReacjis, expectedData storage.ReacjiInternalStorage) {
+			require.Equal(t, actual, expected)
 			data := reacjiStore.GetInternalStore(ctx, uid)
-			require.Equal(t, expectedData, data)
+			require.Equal(t, len(data.FrequencyMap), len(data.MtimeMap))
+			for name := range data.MtimeMap {
+				_, ok := data.FrequencyMap[name]
+				require.True(t, ok)
+			}
+			require.Equal(t, expectedData.FrequencyMap, data.FrequencyMap)
+			require.Equal(t, expectedData.SkinTone, data.SkinTone)
 		}
 
 		expectedData := storage.NewReacjiInternalStorage()
@@ -7336,7 +7342,8 @@ func TestReacjiStore(t *testing.T) {
 			expected.TopReacjis = append([]string{reaction}, expected.TopReacjis...)
 			if i < 5 {
 				// remove defaults as user values are added
-				delete(expectedData.FrequencyMap, storage.DefaultTopReacjis[len(storage.DefaultTopReacjis)-i-1])
+				name := storage.DefaultTopReacjis[len(storage.DefaultTopReacjis)-i-1]
+				delete(expectedData.FrequencyMap, name)
 				expected.TopReacjis = append(expected.TopReacjis, storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
 			}
 			assertReacjiStore(info.UserReacjis, expected, expectedData)
@@ -8155,17 +8162,17 @@ func TestChatSrvDefaultTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), teamID)
 		require.NoError(t, err)
 		require.Zero(t, len(res.Convs))
 
 		_, err = tc.chatLocalHandler().SetDefaultTeamChannelsLocal(context.TODO(), chat1.SetDefaultTeamChannelsLocalArg{
-			TeamName: created.TlfName,
-			Convs:    []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
+			TeamID: teamID,
+			Convs:  []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
 		})
 		require.NoError(t, err)
 
-		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), teamID)
 		require.NoError(t, err)
 		require.Len(t, res.Convs, 1)
 		require.Equal(t, topicName, res.Convs[0].Channel)
@@ -8226,7 +8233,7 @@ func TestChatSrvTeamActivity(t *testing.T) {
 
 		tc := ctc.as(t, users[0])
 		topicName := "zjoinonsend"
-		_, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+		nc1, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
 			chat1.NewConversationLocalArg{
 				TlfName:       created.TlfName,
 				TopicName:     &topicName,
@@ -8235,7 +8242,7 @@ func TestChatSrvTeamActivity(t *testing.T) {
 				MembersType:   mt,
 			})
 		require.NoError(t, err)
-		_, err = tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+		nc2, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
 			chat1.NewConversationLocalArg{
 				TlfName:       created2.TlfName,
 				TopicName:     &topicName,
@@ -8251,9 +8258,12 @@ func TestChatSrvTeamActivity(t *testing.T) {
 
 		res, err := tc.chatLocalHandler().GetLastActiveForTeams(context.TODO())
 		require.NoError(t, err)
-		require.Equal(t, 2, len(res))
-		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID1])
-		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID2])
+		require.Equal(t, 2, len(res.Teams))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID1])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Teams[tlfID2])
+		require.Equal(t, 4, len(res.Channels))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc1.UiConv.ConvID])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res.Channels[nc2.UiConv.ConvID])
 	})
 }
 

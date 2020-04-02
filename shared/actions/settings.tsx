@@ -290,7 +290,7 @@ function* refreshNotifications() {
         ],
       },
       {
-        description: 'Display typing notifications',
+        description: "Show others when I'm typing",
         name: 'disabletyping',
         subscribed: !chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.disabletyping}`],
       },

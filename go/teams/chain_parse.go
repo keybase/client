@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 type SCTeamName string
 type SCTeamID string
 type SCTeamInviteID string
+type SCTeamInviteIDShort string
 type SCTeamBoxSummaryHash string
 
 // SCTeamEntropy is used to render stubbed out links unguessable.
@@ -330,6 +332,22 @@ func (i SCTeamInviteID) Eq(i2 keybase1.TeamInviteID) bool {
 		return false
 	}
 	return tmp.Eq(i2)
+}
+
+func (i SCTeamInviteID) ToShortInviteID() (SCTeamInviteIDShort, error) {
+	decoded, err := hex.DecodeString(string(i))
+	if err != nil {
+		return "", err
+	}
+	return SCTeamInviteIDShort(libkb.Encode58(decoded)), nil
+}
+
+func (i SCTeamInviteIDShort) ToInviteID() (SCTeamInviteID, error) {
+	decoded, err := libkb.Decode58(string(i))
+	if err != nil {
+		return "", err
+	}
+	return SCTeamInviteID(hex.EncodeToString(decoded)), nil
 }
 
 func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, inviter keybase1.UserVersion) (keybase1.TeamInvite, error) {

@@ -26,6 +26,7 @@ export type Props = {
   footerComponent?: React.ReactNode
   presetRole?: TeamRoleType | null
   selectedRole?: TeamRoleType | null
+  waiting?: boolean
 }
 
 type RoleRowProps = {
@@ -209,11 +210,18 @@ const headerTextHelper = (text: string | undefined) =>
 const footerButtonsHelper = (
   onCancel: undefined | (() => void),
   onConfirm: undefined | (() => void),
-  confirmLabel: string
+  confirmLabel: string,
+  waiting: boolean | undefined
 ) => (
   <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
-    {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />}
-    <Kb.Button fullWidth={true} disabled={!onConfirm} label={confirmLabel} onClick={onConfirm} />
+    {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} disabled={waiting} />}
+    <Kb.Button
+      fullWidth={true}
+      disabled={!onConfirm}
+      waiting={waiting}
+      label={confirmLabel}
+      onClick={onConfirm}
+    />
   </Kb.ButtonBar>
 )
 
@@ -259,7 +267,8 @@ const RolePicker = (props: Props) => {
           selectedRole && props.selectedRole !== props.presetRole
             ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          props.confirmLabel || confirmLabelHelper(filterRole(props.presetRole), selectedRole || null)
+          props.confirmLabel || confirmLabelHelper(filterRole(props.presetRole), selectedRole || null),
+          props.waiting
         )}
       </Kb.Box2>
     </Kb.Box2>

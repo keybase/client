@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"image/gif"
+	"image/png"
 	"io"
 	"os"
 	"strings"
@@ -328,4 +330,15 @@ func AddPendingPreview(ctx context.Context, g *globals.Context, obr *chat1.Outbo
 	}
 	obr.Preview = &mpr
 	return nil
+}
+
+func GIFToPNG(ctx context.Context, src io.Reader, dest io.Writer) error {
+	g, err := gif.DecodeAll(src)
+	if err != nil {
+		return err
+	}
+	if len(g.Image) == 0 {
+		return errors.New("no frames in gif")
+	}
+	return png.Encode(dest, g.Image[0])
 }

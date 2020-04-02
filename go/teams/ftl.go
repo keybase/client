@@ -39,10 +39,6 @@ type FastTeamChainLoader struct {
 	// them persistently to disk.
 	storage *storage.FTLStorage
 
-	// Feature-flagging is powered by the server. If we get feature flagged off, we
-	// won't retry for another hour.
-	featureFlagGate *libkb.FeatureFlagGate
-
 	// We can get pushed by the server into "force repoll" mode, in which we're
 	// not getting cache invalidations. An example: when Coyne or Nojima revokes
 	// a device. We want to cut down on notification spam. So instead, all attempts
@@ -56,9 +52,8 @@ const FTLVersion = 1
 // NewFastLoader makes a new fast loader and initializes it.
 func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
-		world:           NewLoaderContextFromG(g),
-		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
-		locktab:         libkb.NewLockTable(),
+		world:   NewLoaderContextFromG(g),
+		locktab: libkb.NewLockTable(),
 	}
 	ret.storage = storage.NewFTLStorage(g, ret.upgradeStoredState)
 	return ret
@@ -120,11 +115,6 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	m = ftlLogTag(m)
 	defer m.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
 	originalArg := arg.DeepCopy()
-
-	err = f.featureFlagGate.ErrorIfFlagged(m)
-	if err != nil {
-		return res, err
-	}
 
 	res, err = f.loadOneAttempt(m, arg)
 	if err != nil {
@@ -266,14 +256,18 @@ func (a fastLoadArg) needChainTail() bool {
 
 // load acquires a lock by team ID, and the runs loadLockedWithRetries.
 func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
-
 	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#load(%+v)", arg), func() error { return err })()
 
 	// Single-flight lock by team ID.
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), arg.ID.String())
 	defer lock.Release(m.Ctx())
 
-	return f.loadLockedWithRetries(m, arg)
+	res, err = f.loadLockedWithRetries(m, arg)
+	if hidden.ShouldClearSupportFlagOnError(err) {
+		m.Debug("Clearing support hidden chain flag for team %s because of error %v in FTL", arg.ID, err)
+		m.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(m, arg.ID)
+	}
+	return res, err
 }
 
 // loadLockedWithRetries attempts two loads of the team. If the first iteration returns an FTLMissingSeedError,
@@ -820,7 +814,6 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 
 	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(m, shoppingList, hp), arg.Public)
 	if err != nil {
-		f.featureFlagGate.DigestError(m, err)
 		return nil, err
 	}
 
@@ -1331,7 +1324,7 @@ func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg
 		m.Debug("hiddenPackage: disabling checks since we a subteam reader looking for parent chain")
 		hp.DisableHiddenChainData()
 	}
-	if tmp := hidden.CheckFeatureGateForSupport(m, arg.ID, false /* isWrite */); tmp != nil {
+	if tmp := hidden.CheckFeatureGateForSupport(m, arg.ID); tmp != nil {
 		m.Debug("hiddenPackage: disabling checks since we are feature-flagged off")
 		hp.DisableHiddenChainData()
 	}
@@ -1537,14 +1530,12 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 // OnLogout is called when the user logs out, which purges the LRU.
 func (f *FastTeamChainLoader) OnLogout(mctx libkb.MetaContext) error {
 	f.storage.ClearMem()
-	f.featureFlagGate.Clear()
 	return nil
 }
 
 // OnDbNuke is called when the disk cache is cleared, which purges the LRU.
 func (f *FastTeamChainLoader) OnDbNuke(mctx libkb.MetaContext) error {
 	f.storage.ClearMem()
-	f.featureFlagGate.Clear()
 	return nil
 }
 

@@ -384,15 +384,17 @@ const styles = Styles.styleSheetCreate(() => ({
       borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
+      height: 150,
     },
     isElectron: {
-      height: 150,
       marginLeft: 22,
       minWidth: 305,
     },
-    isMobile: {
-      height: 150,
+    isPhone: {
       width: '100%',
+    },
+    isTablet: {
+      width: Styles.globalStyles.largeWidthPercent,
     },
   }),
   whitelistRowContainer: {

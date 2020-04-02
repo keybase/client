@@ -41,12 +41,7 @@ const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProps) => ({
   onAddOrInvitePeople: () => dispatch(appendNewTeamBuilder(teamID)),
   onCopyInviteLink: () => {}, // TODO
-  onCreateSubteam: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {subteamOf: teamID}, selected: 'teamNewTeamDialog'}],
-      })
-    ),
+  onCreateSubteam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID})),
   onDeleteTeam: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({

@@ -36,6 +36,7 @@ import {isIOS} from '../../constants/platform'
 const onConnect = async () => {
   try {
     await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
+    await RPCTypes.delegateUiCtlRegisterLogUIRpcPromise()
     console.log('Registered Chat UI')
   } catch (error) {
     console.warn('Error in registering Chat UI:', error)
@@ -3588,6 +3589,15 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   const {prev, next} = action.payload
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
+
+  const wasModal = prev[1]?.routeName !== 'Main'
+  const isModal = next[1]?.routeName !== 'Main'
+
+  // ignore if changes involve a modal
+  if (wasModal || isModal) {
+    return
+  }
+
   const wasChat = p?.routeName === Constants.threadRouteName
   const isChat = n?.routeName === Constants.threadRouteName
 
@@ -3601,7 +3611,7 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
 
   logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
 
-  // same? should be impossible
+  // same? ignore
   if (wasChat && isChat && wasID === isID) {
     return false
   }
@@ -3618,14 +3628,14 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   }
 
   // leaving a chat
-  if (wasChat) {
+  if (wasChat && !isChat) {
     return [
       ...deselectAction,
       Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey}),
     ]
   }
 
-  if (isChat) {
+  if (isChat && Constants.isValidConversationIDKey(isID)) {
     return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
   }
 

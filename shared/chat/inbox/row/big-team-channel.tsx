@@ -37,21 +37,25 @@ const BigTeamChannel = (props: Props) => {
   switch (snippetDecoration) {
     case RPCChatTypes.SnippetDecoration.pendingMessage:
       outboxIcon = (
-        <Kb.Icon
-          style={styles.icon}
-          sizeType="Small"
-          type={'iconfont-hourglass'}
-          color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
-        />
+        <Kb.WithTooltip tooltip="Sending...">
+          <Kb.Icon
+            style={styles.icon}
+            sizeType="Small"
+            type={'iconfont-hourglass'}
+            color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+          />
+        </Kb.WithTooltip>
       )
       break
     case RPCChatTypes.SnippetDecoration.failedPendingMessage:
       outboxIcon = (
-        <Kb.Icon
-          style={styles.icon}
-          type={'iconfont-exclamation'}
-          color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
-        />
+        <Kb.WithTooltip tooltip="Message failed to send">
+          <Kb.Icon
+            style={styles.icon}
+            type={'iconfont-exclamation'}
+            color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
+          />
+        </Kb.WithTooltip>
       )
       break
   }
@@ -93,21 +97,25 @@ const BigTeamChannel = (props: Props) => {
             </Kb.Text>
           </Kb.Text>
           {isMuted && (
-            <Kb.Icon
-              color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
-              style={styles.muted}
-              type={
-                Styles.isPhone ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
-              }
-            />
+            <Kb.WithTooltip tooltip="Muted conversation">
+              <Kb.Icon
+                color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+                style={styles.muted}
+                type={
+                  Styles.isPhone ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
+                }
+              />
+            </Kb.WithTooltip>
           )}
           <Kb.Box style={styles.iconContainer}>
             {hasDraft && (
-              <Kb.Icon
-                type="iconfont-edit"
-                style={styles.icon}
-                color={isSelected ? Styles.globalColors.white : undefined}
-              />
+              <Kb.WithTooltip tooltip="Draft message">
+                <Kb.Icon
+                  type="iconfont-edit"
+                  style={styles.icon}
+                  color={isSelected ? Styles.globalColors.white : undefined}
+                />
+              </Kb.WithTooltip>
             )}
             {outboxIcon}
             {hasBadge && <Kb.Box style={styles.unread} />}

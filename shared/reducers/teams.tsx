@@ -162,6 +162,11 @@ export default Container.makeReducer<
   [TeamsGen.setEditDescriptionError]: (draftState, action) => {
     draftState.errorInEditDescription = action.payload.error
   },
+  [TeamsGen.setEditMemberError]: (draftState, action) => {
+    draftState.errorInEditMember.error = action.payload.error
+    draftState.errorInEditMember.username = action.payload.username
+    draftState.errorInEditMember.teamID = action.payload.teamID
+  },
   [TeamsGen.editTeamDescription]: draftState => {
     draftState.errorInEditDescription = ''
   },
@@ -273,8 +278,12 @@ export default Container.makeReducer<
       draftState.teamMemberToLastActivity.get(teamID)?.set(action.payload.username, lastActivity)
     })
   },
-  [TeamsGen.startNewTeamWizard]: draftState => {
-    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
+  [TeamsGen.launchNewTeamWizardOrModal]: (draftState, action) => {
+    draftState.newTeamWizard = {
+      ...Constants.newTeamWizardEmptyState,
+      parentTeamID: action.payload.subteamOf,
+      teamType: 'subteam',
+    }
   },
   [TeamsGen.setTeamWizardTeamType]: (draftState, action) => {
     draftState.newTeamWizard.teamType = action.payload.teamType
@@ -285,6 +294,7 @@ export default Container.makeReducer<
     draftState.newTeamWizard.open = action.payload.openTeam
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
     draftState.newTeamWizard.showcase = action.payload.showcase
+    draftState.newTeamWizard.addYourself = action.payload.addYourself
   },
   [TeamsGen.setTeamWizardAvatar]: (draftState, action) => {
     draftState.newTeamWizard.avatarCrop = action.payload.crop
@@ -342,8 +352,29 @@ export default Container.makeReducer<
   [TeamsGen.finishAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
   },
+  [TeamsGen.addMembersWizardSetDefaultChannels]: (draftState, action) => {
+    const {toAdd, toRemove} = action.payload
+    if (!draftState.addMembersWizard.defaultChannels) {
+      // we're definitely setting these manually now
+      draftState.addMembersWizard.defaultChannels = []
+    }
+    const defaultChannels = draftState.addMembersWizard.defaultChannels
+    toAdd?.forEach(channel => {
+      if (!defaultChannels.find(dc => dc.conversationIDKey === channel.conversationIDKey)) {
+        defaultChannels?.push(channel)
+      }
+    })
+    const maybeRemoveIdx =
+      (toRemove && defaultChannels.findIndex(dc => dc.conversationIDKey === toRemove.conversationIDKey)) ?? -1
+    if (maybeRemoveIdx >= 0) {
+      defaultChannels.splice(maybeRemoveIdx, 1)
+    }
+  },
   [TeamsGen.setNewTeamRequests]: (draftState, action) => {
     draftState.newTeamRequests = action.payload.newTeamRequests
+  },
+  [TeamsGen.setActivityLevels]: (draftState, action) => {
+    draftState.activityLevels = action.payload.levels
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

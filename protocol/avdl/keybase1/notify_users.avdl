@@ -6,6 +6,9 @@ protocol NotifyUsers {
   @notify("")
   void userChanged(UID uid);
 
+  @notify("")
+  void webOfTrustChanged(string username);
+
   void passwordChanged(PassphraseState state) oneway;
 
   void identifyUpdate(array<string> okUsernames, array<string> brokenUsernames) oneway;

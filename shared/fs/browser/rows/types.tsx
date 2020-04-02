@@ -19,6 +19,7 @@ export type TlfTypeRowItem = {
 }
 
 export type TlfRowItem = {
+  disabled: boolean
   isNew: boolean
   key: string
   name: string

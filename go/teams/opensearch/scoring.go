@@ -33,7 +33,7 @@ func normalizeLastActive(lastActive keybase1.Time) float64 {
 	hours := time.Since(lastActive.Time()).Hours()
 	if hours > maxScoringActivityHours {
 		return 0
-	} else if hours < minScoringMemberCount {
+	} else if hours < minScoringActivityHours {
 		return 1
 	}
 	return 1 - hours/(maxScoringActivityHours-minScoringActivityHours)

@@ -3953,12 +3953,14 @@ func (e TeamSearchExport) Hash() string {
 
 // web-of-trust
 // In order of descending quality.
-// Keep in sync with server: helpers/wot.ts
+// Keep in sync with:
+// - server helpers/wot.ts
+// - gui WebOfTrustVerificationType
 const (
 	UsernameVerificationType_IN_PERSON  = "in_person"
-	UsernameVerificationType_PROOFS     = "proofs"
 	UsernameVerificationType_VIDEO      = "video"
 	UsernameVerificationType_AUDIO      = "audio"
+	UsernameVerificationType_PROOFS     = "proofs"
 	UsernameVerificationType_OTHER_CHAT = "other_chat"
 	UsernameVerificationType_FAMILIAR   = "familiar"
 	UsernameVerificationType_OTHER      = "other"

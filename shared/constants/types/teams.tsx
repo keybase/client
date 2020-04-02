@@ -135,31 +135,48 @@ export type AvatarCrop = {
   scaledWidth?: number
 }
 
-export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other'
+export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other' | 'subteam'
 export type NewTeamWizardState = {
   teamType: TeamWizardTeamType
-  teamNameTaken: boolean
   name: string
   description: string
   open: boolean
   openTeamJoinRole: TeamRoleType
   showcase: boolean
+  addYourself: boolean // for subteams
   avatarFilename?: string
   avatarCrop?: AvatarCrop
   isBig: boolean
   channels?: string[]
   subteams?: string[]
+  parentTeamID?: TeamID
 }
 
-export type AddingMember = {assertion: string; role: TeamRoleType}
+export type AddingMember = {
+  assertion: string
+  role: TeamRoleType
+  note?: string // note is for imp tofu assertions that got turned into usernames. It doesn't go to the server but it displays to the user in the confirm screen.
+}
 export type AddMembersWizardState = {
-  justFinished: boolean
   addingMembers: Array<AddingMember>
+  defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
+  justFinished: boolean
   role: TeamRoleType | undefined // undefined -> role set individually
   teamID: TeamID
 }
 
+export type ChannelNameID = {
+  channelname: string
+  conversationIDKey: ConversationIDKey
+}
+
+export type ActivityLevels = {
+  channels: Map<ConversationIDKey, ActivityLevel>
+  teams: Map<TeamID, ActivityLevel>
+}
+
 export type State = {
+  readonly activityLevels: ActivityLevels
   readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
@@ -169,6 +186,7 @@ export type State = {
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string
   readonly errorInEditDescription: string
+  readonly errorInEditMember: {error: string; teamID: TeamID; username: string}
   readonly errorInEditWelcomeMessage: string
   readonly errorInEmailInvite: EmailInviteError
   readonly errorInSettings: string

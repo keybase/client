@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
+import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
@@ -13,6 +14,7 @@ import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import LoadingRow from './loading'
+import EmptyRow from './empty-row'
 
 export type Section = _Section<
   any,
@@ -22,6 +24,8 @@ export type Section = _Section<
     title?: string
   }
 >
+
+const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
 
 export const useMembersSections = (
   teamID: Types.TeamID,
@@ -34,19 +38,25 @@ export const useMembersSections = (
 
   // TODO: consider moving this to the parent
   const stillLoading = meta.memberCount > 0 && !details.members.size
-  return [
+  if (stillLoading) {
+    return [makeSingleRow('members-loading', () => <LoadingRow />)]
+  }
+  const sections: Array<Section> = [
     {
-      data: stillLoading ? ['loading'] : getOrderedMemberArray(details.members, yourUsername, yourOperations),
+      data: getOrderedMemberArray(details.members, yourUsername, yourOperations),
       key: 'member-members',
-      renderItem: ({index, item}) =>
-        item === 'loading' ? (
-          <LoadingRow />
-        ) : (
-          <MemberRow teamID={teamID} username={item.username} firstItem={index == 0} />
-        ),
+      renderItem: ({index, item}) => (
+        <MemberRow teamID={teamID} username={item.username} firstItem={index == 0} />
+      ),
       title: flags.teamsRedesign ? `Already in team (${meta.memberCount})` : '',
     },
   ]
+
+  // When you're the only one in the team, still show the no-members row
+  if (meta.memberCount === 0 || (meta.memberCount === 1 && meta.role !== 'none')) {
+    sections.push(makeSingleRow('members-none', () => <EmptyRow teamID={teamID} type="members" />))
+  }
+  return sections
 }
 
 export const useBotSections = (
@@ -56,16 +66,17 @@ export const useBotSections = (
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
   const stillLoading = meta.memberCount > 0 && !details.members.size
+  if (stillLoading) {
+    return [makeSingleRow('loading', () => <LoadingRow />)]
+  }
+  // TODO: is there an empty state here?
   return [
     {
-      data: stillLoading ? ['loading'] : getOrderedBotsArray(details.members),
+      data: getOrderedBotsArray(details.members),
       key: 'bots',
-      renderItem: ({item}) =>
-        item === 'loading' ? <LoadingRow /> : <BotRow teamID={teamID} username={item.username} />,
+      renderItem: ({item}) => <BotRow teamID={teamID} username={item.username} />,
     },
-    ...(yourOperations.manageBots
-      ? [{data: ['add-bot'], key: 'add-bots', renderItem: () => <AddBotRow teamID={teamID} />}]
-      : []),
+    ...(yourOperations.manageBots ? [makeSingleRow('add-bots', () => <AddBotRow teamID={teamID} />)] : []),
   ]
 }
 
@@ -101,20 +112,31 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
       data: collapsed ? [] : [...details.invites].sort(sortInvites),
       key: 'member-invites',
       onToggleCollapsed,
-      renderItem: ({item}) => <InviteRow teamID={teamID} id={item.id} />,
+      renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index == 0} />,
       title: `Invitations (${details.invites.size})`,
     })
   }
   if (empty && !flags.teamsRedesign) {
-    sections.push({data: ['invites-empty'], key: 'invites-empty', renderItem: () => <InvitesEmptyRow />})
+    sections.push(makeSingleRow('invites-empty', () => <InvitesEmptyRow />))
   }
   return sections
 }
+export const useChannelsSections = (
+  teamID: Types.TeamID,
+  yourOperations: Types.TeamOperations,
+  shouldActuallyLoad: boolean
+): Array<Section> => {
+  const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
+  const {channelMetas, loadingChannels} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
 
-export const useChannelsSections = (teamID: Types.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
-  const {channelMetas} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
+  if (!isBig) {
+    return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
+  }
+  if (loadingChannels) {
+    return [makeSingleRow('channel-loading', () => <LoadingRow />)]
+  }
   return [
-    {data: ['channel-add'], key: 'channel-add', renderItem: () => <ChannelHeaderRow teamID={teamID} />},
+    makeSingleRow('channel-add', () => <ChannelHeaderRow teamID={teamID} />),
     {
       data: [...channelMetas.values()].sort((a, b) =>
         a.channelname === 'general'
@@ -126,10 +148,13 @@ export const useChannelsSections = (teamID: Types.TeamID, shouldActuallyLoad: bo
       key: 'channel-channels',
       renderItem: ({item}) => <ChannelRow teamID={teamID} channel={item} />,
     },
-    {data: ['channel-info'], key: 'channel-info', renderItem: () => <ChannelFooterRow />},
+    channelMetas?.size < 5 && yourOperations.createChannel
+      ? makeSingleRow('channel-few', () => <EmptyRow type="channelsFew" teamID={teamID} />)
+      : makeSingleRow('channel-info', () => <ChannelFooterRow />),
   ]
 }
 
+// When we delete the feature flag, clean this up a bit
 export const useSubteamsSections = (
   teamID: Types.TeamID,
   details: Types.TeamDetails,
@@ -141,29 +166,21 @@ export const useSubteamsSections = (
     : [...details.subteams]
   ).sort()
   const sections: Array<Section> = []
+
   if (!flags.teamsRedesign) {
-    sections.push({
-      data: ['subteam-intro'],
-      key: 'subteam-intro',
-      renderItem: () => <SubteamIntroRow teamID={teamID} />,
-    })
+    sections.push(makeSingleRow('subteam-intro', () => <SubteamIntroRow teamID={teamID} />))
   }
-  if (yourOperations.manageSubteams) {
-    sections.push({
-      data: ['subteam-add'],
-      key: 'subteam-add',
-      renderItem: () => <SubteamAddRow teamID={teamID} />,
-    })
+  if (yourOperations.manageSubteams && (!flags.teamsRedesign || subteams.length)) {
+    sections.push(makeSingleRow('subteam-add', () => <SubteamAddRow teamID={teamID} />))
   }
-  sections.push({
-    data: subteams,
-    key: 'subteams',
-    renderItem: ({item}) => <SubteamTeamRow teamID={item} />,
-  })
-  if (flags.teamsRedesign) {
-    sections.push({data: ['subteam-info'], key: 'subteam-info', renderItem: () => <SubteamInfoRow />})
+  sections.push({data: subteams, key: 'subteams', renderItem: ({item}) => <SubteamTeamRow teamID={item} />})
+
+  if (flags.teamsRedesign && subteams.length) {
+    sections.push(makeSingleRow('subteam-info', () => <SubteamInfoRow />))
+  } else if (flags.teamsRedesign) {
+    sections.push(makeSingleRow('subteam-none', () => <EmptyRow teamID={teamID} type="subteams" />))
   } else if (!subteams.length) {
-    sections.push({data: ['subteam-none'], key: 'subteam-none', renderItem: () => <SubteamNoneRow />})
+    sections.push(makeSingleRow('subteam-none', () => <SubteamNoneRow />))
   }
   return sections
 }

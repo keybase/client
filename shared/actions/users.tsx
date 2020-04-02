@@ -70,12 +70,17 @@ const refreshBlockList = async (action: TeamBuildingGen.SearchResultsLoadedPaylo
     usernames: action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean),
   })
 
+const wotReact = async (action: UsersGen.WotReactPayload) => {
+  await RPCTypes.wotWotReactRpcPromise(action.payload, Constants.wotReactWaitingKey)
+}
+
 function* usersSaga() {
   yield* Saga.chainAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
   yield* Saga.chainAction2(UsersGen.getBio, getBio)
   yield* Saga.chainAction(UsersGen.setUserBlocks, setUserBlocks)
   yield* Saga.chainAction(UsersGen.getBlockState, getBlockState)
   yield* Saga.chainAction(UsersGen.reportUser, reportUser)
+  yield* Saga.chainAction(UsersGen.wotReact, wotReact)
   yield* Saga.chainAction(TeamBuildingGen.searchResultsLoaded, refreshBlockList)
 }
 

@@ -170,6 +170,10 @@ func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.Tr
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
 }
 
+func (d *notificationDisplay) WebOfTrustChanged(_ context.Context, username string) error {
+	return d.printf("Web of Trust changed for %s\n", username)
+}
+
 func (d *notificationDisplay) TrackingInfo(_ context.Context, arg keybase1.TrackingInfoArg) error {
 	return d.printf("Tracking info for %s followers: %v followees: %v\n", arg.Uid, arg.Followers,
 		arg.Followees)

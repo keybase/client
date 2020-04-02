@@ -8,10 +8,7 @@ import {isMobile} from '../../../constants/platform'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as React from 'react'
 
-type OwnProps = Container.RouteProps<{
-  index: number
-  isIncomingShare: boolean
-}>
+type OwnProps = Container.RouteProps<{index: number}>
 
 const getIndex = (ownProps: OwnProps) => Container.getRouteProps(ownProps, 'index', 0)
 const getDestinationParentPath = (dp: Types.DestinationPicker, ownProps: OwnProps): Types.Path =>
@@ -56,6 +53,7 @@ const canBackUp = isMobile
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const destPicker = Container.useSelector(state => state.fs.destinationPicker)
+  const isShare = destPicker.source.type === Types.DestinationPickerSource.IncomingShare
   const pathItems = Container.useSelector(state => state.fs.pathItems)
 
   const dispatch = Container.useDispatch()
@@ -88,27 +86,39 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     },
     _onNewFolder: destinationParentPath =>
       dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
+    onBack: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
     onCancel: () => {
       dispatch(RouteTreeGen.createClearModals())
     },
   }
 
+  const index = getIndex(ownProps)
+  const showHeaderBackInsteadOfCancel = isShare && index > 0
   const targetName = Constants.getDestinationPickerPathName(destPicker)
   const props = {
-    index: getIndex(ownProps),
-    onBackUp: canBackUp(destPicker, ownProps)
-      ? () => dispatchProps._onBackUp(getDestinationParentPath(destPicker, ownProps))
-      : undefined,
-    onCancel: dispatchProps.onCancel,
+    index,
+    isShare,
+    // If we are are dealing with incoming share, the first view is root,
+    // so rely on the header back burtton instead of showing a separate row
+    // for going to parent directory.
+    onBack: showHeaderBackInsteadOfCancel ? dispatchProps.onBack : undefined,
+    onBackUp:
+      isShare || !canBackUp(destPicker, ownProps)
+        ? undefined
+        : () => dispatchProps._onBackUp(getDestinationParentPath(destPicker, ownProps)),
+    onCancel: showHeaderBackInsteadOfCancel ? undefined : dispatchProps.onCancel,
     onCopyHere: canCopy(destPicker, pathItems, ownProps)
       ? () => dispatchProps._onCopyHere(getDestinationParentPath(destPicker, ownProps))
       : undefined,
     onMoveHere: canMove(destPicker, pathItems, ownProps)
       ? () => dispatchProps._onMoveHere(getDestinationParentPath(destPicker, ownProps))
       : undefined,
-    onNewFolder: canWrite(destPicker, pathItems, ownProps)
-      ? () => dispatchProps._onNewFolder(getDestinationParentPath(destPicker, ownProps))
-      : undefined,
+    onNewFolder:
+      canWrite(destPicker, pathItems, ownProps) && !isShare
+        ? () => dispatchProps._onNewFolder(getDestinationParentPath(destPicker, ownProps))
+        : undefined,
     parentPath: getDestinationParentPath(destPicker, ownProps),
     targetName,
   }

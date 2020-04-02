@@ -123,8 +123,13 @@ const getContentDescription = (props: Props) => {
 }
 
 const ChooseTarget = (props: Props) => {
-  const [useOriginal, setUseOriginal] = React.useState(false)
   const {onChat, onKBFS} = props
+  const originalTotalSize = props.items.reduce((bytes, item) => bytes + item.originalSize, 0)
+  const scaledTotalSize = props.items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0)
+  const offerScaled = scaledTotalSize > 0 && scaledTotalSize < originalTotalSize
+  const [useOriginalUserSelection, setUseOriginalUserSelection] = React.useState(false)
+  const useOriginal = !offerScaled || useOriginalUserSelection
+
   return !props.items.length ? (
     <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
       <Kb.ProgressIndicator type="Large" />
@@ -134,7 +139,7 @@ const ChooseTarget = (props: Props) => {
       <Kb.HeaderHocHeader onCancel={props.onCancel} title="Share" />
       <Kb.Box2
         direction="vertical"
-        gap="medium"
+        gap="small"
         fullWidth={true}
         gapStart={true}
         style={styles.container}
@@ -144,18 +149,21 @@ const ChooseTarget = (props: Props) => {
           {getContentDescription(props)}
         </Kb.Box2>
 
-        {isAV(props.items[0].type) ? (
-          <Kb.Switch
-            allowLabelClick={true}
-            gapSize={Styles.globalMargins.small}
-            color="blue"
-            label={`Send full size (${FsConstants.humanizeBytes(
-              props.items.reduce((bytes, item) => bytes + item.originalSize, 0),
-              1
-            )})`}
-            on={useOriginal}
-            onClick={() => setUseOriginal(b => !b)}
-          />
+        {isAV(props.items[0].type) && offerScaled ? (
+          <Kb.Box2 direction="vertical" alignItems="flex-start">
+            <Kb.RadioButton
+              key="compress"
+              label={`Compress image (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`}
+              selected={!useOriginalUserSelection}
+              onSelect={s => s && setUseOriginalUserSelection(false)}
+            />
+            <Kb.RadioButton
+              key="original"
+              label={`Keep full size (${FsConstants.humanizeBytes(originalTotalSize, 1)})`}
+              selected={useOriginalUserSelection}
+              onSelect={s => s && setUseOriginalUserSelection(true)}
+            />
+          </Kb.Box2>
         ) : null}
         <Kb.ButtonBar style={styles.buttonBar}>
           <Kb.Button

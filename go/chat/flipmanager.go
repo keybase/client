@@ -998,7 +998,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		}
 		conv, _, err = NewConversationWithMemberSourceConv(ctx, m.G(), uid, tlfName, &topicName,
 			chat1.TopicType_DEV, membersType,
-			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, retentionPolicy, &hostConvID)
+			keybase1.TLFVisibility_PRIVATE, nil, m.ri, NewConvFindExistingSkip, retentionPolicy, &hostConvID)
 		convCreatedCh <- err
 	}()
 
