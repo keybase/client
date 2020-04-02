@@ -82,17 +82,13 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
 
   const addFiles = React.useCallback(
     (paths: Array<string>) => {
-      const newAliasMap = paths.reduce((map: undefined | Map<string, string>, path) => {
-        if (!map && aliasMap.get(path) !== undefined) {
-          // fast path to avoid making the map if alias already exists.
-          return map
-        }
-
-        const newMap = map ?? new Map([...aliasMap])
-        newMap.get(path) ?? newMap.set(path, filePathToDefaultAlias(path))
-        return newMap
-      }, undefined)
-      newAliasMap && setAliasMap(newAliasMap)
+      setAliasMap(
+        paths.reduce(
+          (map: Map<string, string>, path) =>
+            map.get(path) ? map : new Map([...map, [path, filePathToDefaultAlias(path)]]),
+          aliasMap
+        )
+      )
       setFilePaths([...filePaths, ...paths])
     },
     [filePaths, aliasMap, setFilePaths]
@@ -580,12 +576,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   footerContainer: Styles.platformStyles({
     isElectron: {
-      ...Styles.padding(
-        Styles.globalMargins.xsmall,
-        Styles.globalMargins.small,
-        Styles.globalMargins.xsmall,
-        Styles.globalMargins.small
-      ),
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
     },
     isMobile: {
       padding: Styles.globalMargins.small,
