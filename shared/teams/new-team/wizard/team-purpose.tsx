@@ -18,6 +18,13 @@ const TeamPurpose = () => {
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodyBigLink" onClick={onBack}>
+            Cancel
+          </Kb.Text>
+        ) : (
+          undefined
+        ),
         title: <ModalTitle teamID={Types.noTeamID} title="New team" />,
       }}
       allowOverflow={true}
