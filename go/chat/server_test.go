@@ -7298,7 +7298,7 @@ func TestReacjiStore(t *testing.T) {
 		tc.ChatG.Syncer.(*Syncer).isConnected = true
 		reacjiStore := storage.NewReacjiStore(ctc.as(t, user).h.G())
 		assertReacjiStore := func(actual, expected keybase1.UserReacjis, expectedData storage.ReacjiInternalStorage) {
-			require.Equal(t, expected, actual)
+			require.Equal(t, actual, expected)
 			data := reacjiStore.GetInternalStore(ctx, uid)
 			require.Equal(t, len(data.FrequencyMap), len(data.MtimeMap))
 			for name := range data.MtimeMap {
