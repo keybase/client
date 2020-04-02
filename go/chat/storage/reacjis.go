@@ -184,21 +184,21 @@ func (s *ReacjiStore) dbKey(uid gregor1.UID) libkb.DbKey {
 	}
 }
 
-func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) ReacjiInternalStorage {
-	if found, data := reacjiMemCache.Get(uid); found {
-		return data
+func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) (cache ReacjiInternalStorage) {
+	if found, cache := reacjiMemCache.Get(uid); found {
+		return cache
 	}
 
 	// populate the cache after we fetch from disk
-	data := NewReacjiInternalStorage()
-	defer func() { reacjiMemCache.Put(uid, data) }()
+	cache = NewReacjiInternalStorage()
+	defer func() { reacjiMemCache.Put(uid, cache) }()
 
 	dbKey := s.dbKey(uid)
 	var entry reacjiDiskEntry
 	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
 	if err != nil || !found {
 		s.Debug(ctx, "reacji map not found on disk")
-		return data
+		return cache
 	}
 
 	if entry.Version != reacjiDiskVersion {
@@ -207,8 +207,9 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 		if err = s.encryptedDB.Delete(ctx, dbKey); err != nil {
 			s.Debug(ctx, "unable to delete cache entry: %v", err)
 		}
-		return data
+		return cache
 	}
+
 	if entry.Data.FrequencyMap == nil {
 		entry.Data.FrequencyMap = make(map[string]int)
 	}
@@ -216,7 +217,7 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 		entry.Data.MtimeMap = make(map[string]gregor1.Time)
 	}
 
-	cache := entry.Data
+	cache = entry.Data
 	// Normalized duplicated aliases
 	for name, freq := range cache.FrequencyMap {
 		normalized := NormalizeShortCode(name)
@@ -239,7 +240,6 @@ func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode 
 		return nil
 	}
 	cache := s.populateCacheLocked(ctx, uid)
-	s.Debug(ctx, "CACHE BEFORE PUT: %+v", cache)
 	shortCode = NormalizeShortCode(shortCode)
 	cache.FrequencyMap[shortCode]++
 	cache.MtimeMap[shortCode] = gregor1.ToTime(time.Now())
@@ -253,8 +253,6 @@ func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode 
 		return err
 	}
 	reacjiMemCache.Put(uid, cache)
-	cache = s.populateCacheLocked(ctx, uid)
-	s.Debug(ctx, "CACHE AFTER PUT: %+v", cache)
 	return nil
 }
 
@@ -295,7 +293,6 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 	defer s.Unlock()
 
 	cache := s.populateCacheLocked(ctx, uid)
-	s.Debug(ctx, "CACHE IN USER REACJIS BEFORE: %+v", cache)
 	// add defaults if needed so we always return some values
 	for _, el := range DefaultTopReacjis {
 		if len(cache.FrequencyMap) >= len(DefaultTopReacjis) {
@@ -328,7 +325,6 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 			reacjis = append(reacjis, p.name)
 		}
 	}
-	s.Debug(ctx, "CACHE IN USER REACJIS AFTER: %+v", cache)
 
 	return keybase1.UserReacjis{
 		TopReacjis: reacjis,
