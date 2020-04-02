@@ -33,6 +33,9 @@ const AddContacts = () => {
   const [waiting, setWaiting] = React.useState(false)
   const toAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onDone = () => {
+    if (waiting) {
+      return
+    }
     setWaiting(true)
     toAssertionsRPC(
       [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
@@ -64,9 +67,23 @@ const AddContacts = () => {
         hideBorder: true,
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: (
-          <Kb.Text type="BodyBigLink" onClick={onDone} style={noneSelected && Styles.globalStyles.opacity0}>
-            Done
-          </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={Styles.globalStyles.positionRelative}>
+            <Kb.Text
+              type="BodyBigLink"
+              onClick={onDone}
+              style={Styles.collapseStyles([
+                noneSelected && Styles.globalStyles.opacity0,
+                waiting && styles.opacity40,
+              ])}
+            >
+              Done
+            </Kb.Text>
+            {waiting && (
+              <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+                <Kb.ProgressIndicator />
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
         ),
         title: <ModalTitle teamID={teamID} title="Add members" />,
       }}
@@ -89,5 +106,9 @@ const AddContacts = () => {
     </Kb.Modal>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  opacity40: {opacity: 0.4},
+}))
 
 export default AddContacts
