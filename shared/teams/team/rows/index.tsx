@@ -101,7 +101,7 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
       data: collapsed ? [] : [...details.invites].sort(sortInvites),
       key: 'member-invites',
       onToggleCollapsed,
-      renderItem: ({item}) => <InviteRow teamID={teamID} id={item.id} />,
+      renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index == 0} />,
       title: `Invitations (${details.invites.size})`,
     })
   }
