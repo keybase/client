@@ -144,52 +144,54 @@ export const Question1 = (props: Question1Props) => {
           is the person you think they are?
         </Kb.Text>
       </Kb.Box2>
-      {Constants.choosableWotVerificationTypes.map(vt2 => (
-        <VerificationChoice
-          key={vt2}
-          voucheeUsername={props.voucheeUsername}
-          verificationType={vt2}
-          selected={vt === vt2}
-          onSelect={() => setVt(vt2)}
-        >
-          {vt2 === 'proofs' &&
-            proofs.map(proof => (
+      {Constants.choosableWotVerificationTypes
+        .filter(vt2 => vt2 !== 'proofs' || proofs.length)
+        .map(vt2 => (
+          <VerificationChoice
+            key={vt2}
+            voucheeUsername={props.voucheeUsername}
+            verificationType={vt2}
+            selected={vt === vt2}
+            onSelect={() => setVt(vt2)}
+          >
+            {vt2 === 'proofs' &&
+              proofs.map(proof => (
+                <Kb.Box2
+                  key={`${proof.key}:${proof.value}`}
+                  direction="horizontal"
+                  alignSelf="stretch"
+                  alignItems="center"
+                  style={styles.insetContainer}
+                >
+                  <Kb.Checkbox
+                    checked={proof.checked && vt === 'proofs'}
+                    onCheck={proof.onCheck}
+                    disabled={vt !== 'proofs'}
+                    labelComponent={
+                      <Kb.Text type="Body">
+                        {proof.value}@{proof.key}
+                      </Kb.Text>
+                    }
+                  />
+                </Kb.Box2>
+              ))}
+            {vt2 === 'other' && vt === vt2 && (
               <Kb.Box2
-                key={`${proof.key}:${proof.value}`}
-                direction="horizontal"
+                direction="vertical"
                 alignSelf="stretch"
-                alignItems="center"
-                style={styles.insetContainer}
+                alignItems="flex-start"
+                style={Styles.collapseStyles([styles.insetContainer, styles.otherInputContainer])}
               >
-                <Kb.Checkbox
-                  checked={proof.checked && vt === 'proofs'}
-                  onCheck={proof.onCheck}
-                  disabled={vt !== 'proofs'}
-                  labelComponent={
-                    <Kb.Text type="Body">
-                      {proof.value}@{proof.key}
-                    </Kb.Text>
-                  }
+                <Kb.LabeledInput
+                  placeholder={'Specify (required)'}
+                  value={otherText}
+                  onChangeText={setOtherText}
+                  maxLength={otherLimit}
                 />
               </Kb.Box2>
-            ))}
-          {vt2 === 'other' && vt === vt2 && (
-            <Kb.Box2
-              direction="vertical"
-              alignSelf="stretch"
-              alignItems="flex-start"
-              style={Styles.collapseStyles([styles.insetContainer, styles.otherInputContainer])}
-            >
-              <Kb.LabeledInput
-                placeholder={'Specify (required)'}
-                value={otherText}
-                onChangeText={setOtherText}
-                maxLength={otherLimit}
-              />
-            </Kb.Box2>
-          )}
-        </VerificationChoice>
-      ))}
+            )}
+          </VerificationChoice>
+        ))}
     </WotModal>
   )
 }
