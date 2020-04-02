@@ -119,6 +119,9 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   }
 }
 
+// A helper to allow console logs while building but have TS catch it
+const debugConsoleLog: () => void = console.log.bind(console) as any
+
 const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   try {
     const {title, message, buttonLabel, defaultPath} = opts
@@ -145,6 +148,7 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
 
 target.KB = {
   __dirname: __dirname,
+  debugConsoleLog,
   electron: {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
