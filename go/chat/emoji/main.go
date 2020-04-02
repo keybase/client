@@ -17,8 +17,9 @@ var fileName string
 
 // TemplateData emoji_codemap.go template
 type TemplateData struct {
-	PkgName string
-	CodeMap map[string]string
+	PkgName    string
+	CodeMap    map[string]string
+	RevCodeMap map[string][]string
 }
 
 const templateMapCode = `
@@ -33,14 +34,19 @@ var emojiCodeMap = map[string]string{
 	{{range $key, $val := .CodeMap}}":{{$key}}:": {{$val}},
 {{end}}
 }
+
+var emojiRevCodeMap = map[string][]string{
+	{{range $key, $val := .RevCodeMap}} {{$key}}: { {{range $val}} ":{{.}}:", {{end}} },
+{{end}}
+}
 `
 
-func createCodeMapSource(pkgName string, emojiCodeMap map[string]string) ([]byte, error) {
+func createCodeMapSource(pkgName string, emojiCodeMap map[string]string, emojiRevCodeMap map[string][]string) ([]byte, error) {
 	// Template GenerateSource
 
 	var buf bytes.Buffer
 	t := template.Must(template.New("template").Parse(templateMapCode))
-	if err := t.Execute(&buf, TemplateData{PkgName: pkgName, CodeMap: emojiCodeMap}); err != nil {
+	if err := t.Execute(&buf, TemplateData{PkgName: pkgName, CodeMap: emojiCodeMap, RevCodeMap: emojiRevCodeMap}); err != nil {
 		return nil, err
 	}
 
@@ -59,18 +65,17 @@ func main() {
 	flag.StringVar(&pkgName, "pkg", "storage", "output package")
 	flag.StringVar(&fileName, "o", "../storage/emoji_codemap.go", "output file")
 	flag.Parse()
-	codeMap, err := createEmojiDataCodeMap()
+	codeMap, revCodeMap, err := createEmojiDataCodeMap()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	codeMapSource, err := createCodeMapSource(pkgName, codeMap)
+	codeMapSource, err := createCodeMapSource(pkgName, codeMap, revCodeMap)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	os.Remove(fileName)
-
 	file, err := os.Create(fileName)
 	if err != nil {
 		log.Fatalln(err)

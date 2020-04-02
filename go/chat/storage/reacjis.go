@@ -19,30 +19,12 @@ const (
 	minScoringMinutes = 1           // one minute
 	maxScoringMinutes = 7 * 24 * 60 // one week
 	frequencyWeight   = 1
-	mtimeWeight       = 20
+	mtimeWeight       = 2
 	reacjiDiskVersion = 3
 )
 
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada:"}
-
-// emojiRevCodeMap maps unicode characters to lists of short codes.
-var emojiRevCodeMap = make(map[string][]string, len(emojiCodeMap))
-
-func init() {
-	for shortCode, unicode := range emojiCodeMap {
-		emojiRevCodeMap[unicode] = append(emojiRevCodeMap[unicode], shortCode)
-	}
-	// ensure deterministic ordering for aliases
-	for _, value := range emojiRevCodeMap {
-		sort.Slice(value, func(i, j int) bool {
-			if len(value[i]) == len(value[j]) {
-				return value[i] < value[j]
-			}
-			return len(value[i]) < len(value[j])
-		})
-	}
-}
 
 // RevCodeMap gets the underlying map of emoji.
 func RevCodeMap() map[string][]string {
@@ -233,7 +215,21 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 	if entry.Data.MtimeMap == nil {
 		entry.Data.MtimeMap = make(map[string]gregor1.Time)
 	}
-	return entry.Data
+
+	cache := entry.Data
+	// Normalized duplicated aliases
+	for name, freq := range cache.FrequencyMap {
+		normalized := NormalizeShortCode(name)
+		if name != normalized {
+			cache.FrequencyMap[normalized] += freq
+			if cache.MtimeMap[name] > cache.MtimeMap[normalized] {
+				cache.MtimeMap[normalized] = cache.MtimeMap[name]
+			}
+			delete(cache.FrequencyMap, name)
+			delete(cache.MtimeMap, name)
+		}
+	}
+	return cache
 }
 
 func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode string) error {
@@ -242,8 +238,9 @@ func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode 
 	if !(HasAlias(shortCode) || globals.EmojiPattern.MatchString(shortCode)) {
 		return nil
 	}
-	shortCode = NormalizeShortCode(shortCode)
 	cache := s.populateCacheLocked(ctx, uid)
+	s.Debug(ctx, "CACHE BEFORE PUT: %+v", cache)
+	shortCode = NormalizeShortCode(shortCode)
 	cache.FrequencyMap[shortCode]++
 	cache.MtimeMap[shortCode] = gregor1.ToTime(time.Now())
 
@@ -256,6 +253,8 @@ func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode 
 		return err
 	}
 	reacjiMemCache.Put(uid, cache)
+	cache = s.populateCacheLocked(ctx, uid)
+	s.Debug(ctx, "CACHE AFTER PUT: %+v", cache)
 	return nil
 }
 
@@ -296,7 +295,7 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 	defer s.Unlock()
 
 	cache := s.populateCacheLocked(ctx, uid)
-	pairs := []reacjiPair{}
+	s.Debug(ctx, "CACHE IN USER REACJIS BEFORE: %+v", cache)
 	// add defaults if needed so we always return some values
 	for _, el := range DefaultTopReacjis {
 		if len(cache.FrequencyMap) >= len(DefaultTopReacjis) {
@@ -308,9 +307,8 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 		}
 	}
 
-	for name := range cache.FrequencyMap {
-		name = NormalizeShortCode(name)
-		freq := cache.FrequencyMap[name]
+	pairs := make([]reacjiPair, 0, len(cache.FrequencyMap))
+	for name, freq := range cache.FrequencyMap {
 		score := cache.score(name)
 		pairs = append(pairs, newReacjiPair(name, freq, score))
 	}
@@ -330,6 +328,7 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 			reacjis = append(reacjis, p.name)
 		}
 	}
+	s.Debug(ctx, "CACHE IN USER REACJIS AFTER: %+v", cache)
 
 	return keybase1.UserReacjis{
 		TopReacjis: reacjis,

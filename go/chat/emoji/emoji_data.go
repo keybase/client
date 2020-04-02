@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -14,8 +15,9 @@ const emojiDataJsonURL = "https://github.com/iamcal/emoji-data/raw/v4.1.0/emoji.
 
 // EmojiData json parse struct
 type EmojiData struct {
-	Unified   string `json:"unified"`
-	ShortName string `json:"short_name"`
+	Unified     string `json:"unified"`
+	ShortName   string `json:"short_name"`
+	ObsoletedBy string `json:"obsoleted_by"`
 }
 
 // UnifiedToChar renders a character from its hexadecimal codepoint
@@ -32,34 +34,53 @@ func UnifiedToChar(unified string) (string, error) {
 	return sb.String(), nil
 }
 
-func createEmojiDataCodeMap() (map[string]string, error) {
+func createEmojiDataCodeMap() (map[string]string, map[string][]string, error) {
 	res, err := http.Get(emojiDataJsonURL)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer res.Body.Close()
 
 	emojiFile, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var data []EmojiData
 	if err := json.Unmarshal(emojiFile, &data); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	// emojiRevCodeMap maps unicode characters to lists of short codes.
+
 	emojiCodeMap := make(map[string]string)
+	emojiRevCodeMap := make(map[string][]string)
 	for _, emoji := range data {
 		if len(emoji.ShortName) == 0 || len(emoji.Unified) == 0 {
 			continue
 		}
-		code, err := UnifiedToChar(emoji.Unified)
-		if err != nil {
-			return nil, err
+		unified := emoji.Unified
+		if len(emoji.ObsoletedBy) > 0 {
+			unified = emoji.ObsoletedBy
 		}
-		emojiCodeMap[emoji.ShortName] = fmt.Sprintf("%+q", strings.ToLower(code))
+		unicode, err := UnifiedToChar(unified)
+		if err != nil {
+			return nil, nil, err
+		}
+		unicode = fmt.Sprintf("%+q", strings.ToLower(unicode))
+		emojiCodeMap[emoji.ShortName] = unicode
+		emojiRevCodeMap[unicode] = append(emojiRevCodeMap[unicode], emoji.ShortName)
 	}
 
-	return emojiCodeMap, nil
+	// ensure deterministic ordering for aliases
+	for _, value := range emojiRevCodeMap {
+		sort.Slice(value, func(i, j int) bool {
+			if len(value[i]) == len(value[j]) {
+				return value[i] < value[j]
+			}
+			return len(value[i]) < len(value[j])
+		})
+	}
+
+	return emojiCodeMap, emojiRevCodeMap, nil
 }
