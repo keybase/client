@@ -209,12 +209,12 @@
       "error": "string"
     },
     "setEditDescriptionError": {
+      "error": "string"
+    },
+    "setEditMemberError": {
       "error": "string",
       "teamID": "Types.TeamID",
       "username": "string"
-    },
-    "setEditMemberError": {
-      "error": "string"
     },
     "settingsError": {
       "error": "string"
