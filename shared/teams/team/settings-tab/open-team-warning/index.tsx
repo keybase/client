@@ -25,10 +25,14 @@ const OpenTeamWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
   const isOpenTeam = Container.getRouteProps(props, 'isOpenTeam', false)
   const teamname = Container.getRouteProps(props, 'teamname', '')
-  const onConfirm = Container.getRouteProps(props, 'onConfirm', () => undefined)
+  const onConfirmCallback = Container.getRouteProps(props, 'onConfirm', () => undefined)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const onConfirm = React.useCallback(() => {
+    dispatch(nav.safeNavigateUpPayload())
+    onConfirmCallback()
+  }, [dispatch, nav])
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
   return (
