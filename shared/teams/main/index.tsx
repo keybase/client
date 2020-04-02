@@ -110,10 +110,12 @@ const TeamBigButtons = (props: HeaderProps) => (
       onClick={props.onCreateTeam}
       className="background_color_white hover_background_color_blueLighter2"
     >
-      <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
         <Kb.Text type="BodyBig">Create a team</Kb.Text>
-        <Kb.Avatar isTeam={true} size={96} />
-        <Kb.Icon type="iconfont-add" sizeType="Default" style={styles.teamPlus} />
+        <Kb.Box style={styles.relative}>
+          <Kb.Avatar isTeam={true} size={96} />
+          <Kb.Icon type="iconfont-add" sizeType="Default" style={styles.teamPlus} />
+        </Kb.Box>
       </Kb.Box2>
     </Kb.ClickableBox>
     <Kb.ClickableBox
@@ -121,7 +123,7 @@ const TeamBigButtons = (props: HeaderProps) => (
       onClick={props.onJoinTeam}
       className="background_color_white hover_background_color_blueLighter2"
     >
-      <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
         <Kb.Text type="BodyBig">Join a team</Kb.Text>
         <Kb.Icon type="icon-illustration-teams-96" />
       </Kb.Box2>
@@ -254,23 +256,25 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {padding: Styles.globalMargins.small},
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small, 22),
+          ...Styles.padding(Styles.globalMargins.small, 0),
           backgroundColor: Styles.globalColors.white,
+          width: 140,
         },
       }),
       kerning: {letterSpacing: 0.2},
       maxWidth: {maxWidth: '100%'},
       openMeta: {alignSelf: 'center'},
+      relative: {position: 'relative'},
       teamButtons: {
         ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
         backgroundColor: Styles.globalColors.blueGrey,
         justifyContent: 'flex-start',
       },
       teamPlus: {
-        bottom: Styles.isMobile ? 22 + 8 : Styles.globalMargins.small + 8,
+        bottom: -2,
         color: Styles.globalColors.blue,
         position: 'absolute',
-        right: Styles.globalMargins.small,
+        right: -1,
       },
     } as const)
 )
