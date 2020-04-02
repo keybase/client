@@ -113,6 +113,7 @@ const TeamBigButtons = (props: HeaderProps) => (
       <Kb.Box2 direction="vertical" gap="tiny">
         <Kb.Text type="BodyBig">Create a team</Kb.Text>
         <Kb.Avatar isTeam={true} size={96} />
+        <Kb.Icon type="iconfont-add" sizeType="Default" style={styles.teamPlus} />
       </Kb.Box2>
     </Kb.ClickableBox>
     <Kb.ClickableBox
@@ -122,7 +123,7 @@ const TeamBigButtons = (props: HeaderProps) => (
     >
       <Kb.Box2 direction="vertical" gap="tiny">
         <Kb.Text type="BodyBig">Join a team</Kb.Text>
-        <Kb.Icon type="icon-illustration-teams-80" /> {/*Waiting for an asset of the right size from design*/}
+        <Kb.Icon type="icon-illustration-teams-96" />
       </Kb.Box2>
     </Kb.ClickableBox>
   </Kb.Box2>
@@ -264,6 +265,12 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
         backgroundColor: Styles.globalColors.blueGrey,
         justifyContent: 'flex-start',
+      },
+      teamPlus: {
+        bottom: Styles.isMobile ? 22 + 8 : Styles.globalMargins.small + 8,
+        color: Styles.globalColors.blue,
+        position: 'absolute',
+        right: Styles.globalMargins.small,
       },
     } as const)
 )
