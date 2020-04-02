@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/kbtest"
 
@@ -199,7 +200,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 func TestEmojiSourceCrossTeam(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestEmojiSourceCrossTeam", 3)
+	ctc := makeChatTestContext(t, "TestEmojiSourceCrossTeam", 4)
 	defer ctc.cleanup()
 
 	users := ctc.users()
@@ -213,6 +214,44 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	ri1 := ctc.as(t, users[1]).ri
 	store := attachments.NewStoreTesting(tc.Context(), nil)
 	fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
+	source := tc.Context().EmojiSource.(*DevConvEmojiSource)
+	syncCreated := make(chan struct{}, 10)
+	syncRefresh := make(chan struct{}, 10)
+	source.testingCreatedSyncConv = syncCreated
+	source.testingRefreshedSyncConv = syncRefresh
+	timeout := 2 * time.Second
+	expectCreated := func(expect bool) {
+		if expect {
+			select {
+			case <-syncCreated:
+			case <-time.After(timeout):
+				require.Fail(t, "no sync created")
+			}
+		} else {
+			time.Sleep(100 * time.Millisecond)
+			select {
+			case <-syncCreated:
+				require.Fail(t, "no sync created expected")
+			default:
+			}
+		}
+	}
+	expectRefresh := func(expect bool) {
+		if expect {
+			select {
+			case <-syncRefresh:
+			case <-time.After(timeout):
+				require.Fail(t, "no sync refresh")
+			}
+		} else {
+			time.Sleep(100 * time.Millisecond)
+			select {
+			case <-syncRefresh:
+				require.Fail(t, "no sync refresh expected")
+			default:
+			}
+		}
+	}
 
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
 		manager.NewSrv(tc.Context().ExternalG()),
@@ -229,18 +268,56 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	aloneConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
 	sharedConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_TEAM, users[1])
+		chat1.ConversationMembersType_TEAM, users[1], users[3])
 	sharedConv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_TEAM, users[2])
+		chat1.ConversationMembersType_TEAM, users[2], users[3])
 
 	t.Logf("basic")
 	_, err := tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename)
+	require.NoError(t, err)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "success-kid", filename)
+	require.NoError(t, err)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "mike", filename)
 	require.NoError(t, err)
 
 	msgID := mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: ":party_parrot:",
 	}))
 	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot")
+	expectCreated(true)
+	expectRefresh(true)
+	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":success-kid:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "success-kid")
+	expectCreated(false)
+	expectRefresh(true)
+	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":party_parrot:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot")
+	expectCreated(false)
+	expectRefresh(false)
+	t.Logf("post from different source")
+	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "mike")
+	expectCreated(true)
+	expectRefresh(true)
+	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "mike")
+	expectCreated(false)
+	expectRefresh(false)
+	t.Logf("different user tries posting after convs are created")
+	msgID = mustPostLocalForTest(t, ctc, users[3], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: ":mike:",
+	}))
+	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "mike")
+	expectCreated(false)
+	expectRefresh(false)
 
 	t.Logf("collision")
 	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename)

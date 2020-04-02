@@ -438,7 +438,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	}
 
 	conv, created, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
-		arg.TopicType, arg.MembersType, arg.TlfVisibility, h.remoteClient, NewConvFindExistingNormal)
+		arg.TopicType, arg.MembersType, arg.TlfVisibility, nil, h.remoteClient, NewConvFindExistingNormal)
 	if err != nil {
 		return res, err
 	}
