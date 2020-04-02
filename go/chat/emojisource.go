@@ -88,7 +88,6 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 		MsgID:  *msgID,
 	})
 	stored.Mapping[alias] = res
-	s.Debug(ctx, "DEBUG: putting to known conv: %s", storageConv.GetConvID())
 	return res, storage.PutToKnownConv(ctx, uid, *storageConv, stored)
 }
 
