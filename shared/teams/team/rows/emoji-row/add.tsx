@@ -3,20 +3,20 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Chat2Types from '../../../../constants/types/chat2'
+import * as ChatTypes from '../../../../constants/types/chat2'
 
 type OwnProps = {
   teamID: Types.TeamID
-  convID: Chat2Types.ConversationIDKey
+  convID: ChatTypes.ConversationIDKey
   filter: string
   setFilter: (filter: string) => void
 }
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
+  const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
   const onAddEmoji = () =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({
+      nav.safeNavigateAppendPayload({
         path: [
           {
             props: {conversationIDKey: convID, teamID},
@@ -49,18 +49,6 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      ...Styles.padding(Styles.globalMargins.tiny, 0),
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-    },
-    isMobile: {
-      paddingTop: Styles.globalMargins.small,
-    },
-  }),
   containerNew: {
     ...Styles.padding(6, Styles.globalMargins.small),
     backgroundColor: Styles.globalColors.blueGrey,

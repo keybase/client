@@ -114,7 +114,7 @@ const Team = (props: Props) => {
   const invitesSections = useInvitesSections(teamID, teamDetails)
   const channelsSections = useChannelsSections(teamID, yourOperations, selectedTab === 'channels')
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
-  const emojiSections = useEmojiSections(teamID)
+  const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
 
   switch (selectedTab) {
     case 'members':

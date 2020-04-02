@@ -206,7 +206,7 @@ const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
   return conversationIDKey
 }
 
-export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
+export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
   const convID = useGeneralConversationIDKey(teamID)
   const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
@@ -216,7 +216,7 @@ export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
 
   React.useEffect(() => {
     setWaiting(true)
-    if (convID) {
+    if (convID && shouldActuallyLoad) {
       getUserEmoji(
         [
           {
@@ -244,7 +244,7 @@ export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
     } else {
       setWaiting(false)
     }
-  }, [convID, getUserEmoji])
+  }, [convID, getUserEmoji, shouldActuallyLoad])
 
   let filteredEmoji: RPCChatTypes.Emoji[] = customEmoji
   if (filter != '') {
@@ -266,13 +266,13 @@ export const useEmojiSections = (teamID: Types.TeamID): Array<Section> => {
     ),
   })
 
-  sections.push({
-    data: ['emoji-header'],
-    key: 'emoji-header',
-    renderItem: () => <EmojiHeader />,
-  })
-
   if (!waiting && customEmoji) {
+    sections.push({
+      data: ['emoji-header'],
+      key: 'emoji-header',
+      renderItem: () => <EmojiHeader />,
+    })
+
     sections.push({
       data: filteredEmoji,
       key: 'emoji-item',

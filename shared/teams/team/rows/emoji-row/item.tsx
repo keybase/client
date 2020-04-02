@@ -9,12 +9,18 @@ type OwnProps = {
 }
 
 const ItemRow = ({emoji}: OwnProps) => {
-  let menuRef = React.useRef<Kb.Box>(null)
-  const [showMenu, setShowMenu] = React.useState(false)
-  const _onShowMenu = () => setShowMenu(true)
-  const _onHideMenu = () => setShowMenu(false)
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <EmojiMenu
+      attachTo={attachTo}
+      canManageEmoji={true}
+      visible={showingPopup}
+      onEditAlias={() => null}
+      onAddAlias={() => null}
+      onRemove={() => null}
+      onHidden={() => setShowingPopup(false)}
+    />
+  ))
 
-  const _getAttachmentRef = () => menuRef.current
   return (
     <Kb.ListItem2
       icon={
@@ -48,22 +54,16 @@ const ItemRow = ({emoji}: OwnProps) => {
               containerStyle={styles.username}
             />
           )}
-          <Kb.Button
-            icon="iconfont-ellipsis"
-            mode="Secondary"
-            type="Dim"
-            onClick={_onShowMenu}
-            ref={menuRef}
-          />
-          <EmojiMenu
-            attachTo={_getAttachmentRef}
-            canManageEmoji={true}
-            visible={showMenu}
-            onEditAlias={() => null}
-            onAddAlias={() => null}
-            onRemove={() => null}
-            onHidden={_onHideMenu}
-          />
+          <Kb.Box2 direction="horizontal">
+            {popup}
+            <Kb.Button
+              icon="iconfont-ellipsis"
+              mode="Secondary"
+              type="Dim"
+              onClick={() => setShowingPopup(!showingPopup)}
+              ref={popupAnchor}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       }
       firstItem={false}

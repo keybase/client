@@ -33,7 +33,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   text: {padding: Styles.globalMargins.xtiny},
   username: {
-    marginRight: 54, // width of icon button + gap + padding
+    marginRight: 40, // width of icon button + gap + padding
     width: 210,
   },
 }))
