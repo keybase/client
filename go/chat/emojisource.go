@@ -30,8 +30,8 @@ const (
 	maxShortNameLength = 48
 	minEmojiSize       = 512       // min size for reading mime type
 	maxEmojiSize       = 64 * 1000 // 64kb
-	minEmojiWidth      = 32
-	minEmojiHeight     = 32
+	minEmojiWidth      = 16
+	minEmojiHeight     = 16
 	maxEmojiWidth      = 128
 	maxEmojiHeight     = 128
 )

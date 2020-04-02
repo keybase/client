@@ -72,7 +72,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
-	filename := "./testdata/ship.jpg"
+	filename := "./testdata/party_parrot.gif"
 
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
@@ -262,7 +262,7 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
-	filename := "./testdata/ship.jpg"
+	filename := "./testdata/party_parrot.gif"
 	t.Logf("uid1: %s", uid1)
 
 	aloneConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
