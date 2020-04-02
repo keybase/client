@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/kyokomi/emoji"
 	context "golang.org/x/net/context"
 )
 
@@ -24,8 +23,6 @@ const (
 	reacjiDiskVersion = 3
 )
 
-var emojiCodeMap map[string]string
-
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada:"}
 
@@ -33,13 +30,17 @@ var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada
 var emojiRevCodeMap = make(map[string][]string, len(emojiCodeMap))
 
 func init() {
-	emojiCodeMap = emoji.CodeMap()
 	for shortCode, unicode := range emojiCodeMap {
 		emojiRevCodeMap[unicode] = append(emojiRevCodeMap[unicode], shortCode)
 	}
 	// ensure deterministic ordering for aliases
 	for _, value := range emojiRevCodeMap {
-		sort.Strings(value)
+		sort.Slice(value, func(i, j int) bool {
+			if len(value[i]) == len(value[j]) {
+				return value[i] < value[j]
+			}
+			return len(value[i]) < len(value[j])
+		})
 	}
 }
 
