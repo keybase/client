@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
@@ -202,7 +203,7 @@ func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, reacji str
 	if codeMap == nil {
 		codeMap = emoji.CodeMap()
 	}
-	if _, ok := codeMap[reacji]; !ok {
+	if _, ok := codeMap[reacji]; !(ok || types.EmojiPattern.MatchString(reacji)) {
 		return nil
 	}
 
@@ -226,6 +227,10 @@ func (s *ReacjiStore) PutSkinTone(ctx context.Context, uid gregor1.UID,
 	skinTone keybase1.ReacjiSkinTone) error {
 	s.Lock()
 	defer s.Unlock()
+
+	if skinTone > 5 {
+		skinTone = 0
+	}
 
 	cache := s.populateCacheLocked(ctx, uid)
 	cache.SkinTone = skinTone

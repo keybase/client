@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/libkb"
@@ -37,6 +38,8 @@ const (
 
 	MapsDomain = "keybasemaps"
 )
+
+var EmojiPattern = regexp.MustCompile(`(?::)([^:\s]+)(?::)`)
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
