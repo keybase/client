@@ -5,7 +5,6 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import {FloatingRolePicker, roleIconMap} from '../../role-picker'
 import {useTeamDetailsSubscribe} from '../../subscriber'
-import * as Container from '../../../util/container'
 
 type RolePickerSpecificProps = {
   isRolePickerOpen: boolean
