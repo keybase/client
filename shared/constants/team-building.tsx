@@ -125,6 +125,8 @@ export const parseRawResultToUser = (
 
     const prettyName = result.service.fullName || kbPrettyName || ''
 
+    const pictureUrl = result.keybase?.pictureUrl || result.service?.pictureUrl
+
     let id = `${result.service.username}@${result.service.serviceName}`
     if (result.keybase) {
       // If it's also a keybase user, make a compound assertion.
@@ -133,6 +135,7 @@ export const parseRawResultToUser = (
 
     return {
       id,
+      pictureUrl,
       prettyName,
       serviceId: service,
       serviceMap,

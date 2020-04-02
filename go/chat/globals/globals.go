@@ -2,12 +2,16 @@ package globals
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
+
+var DefaultTeamTopic = "general"
+var EmojiPattern = regexp.MustCompile(`(?::)([^:\s]+)(?::)`)
 
 type ChatContext struct {
 	CtxFactory           types.ContextFactory      // source of verified user info and crypt keys
@@ -168,5 +172,3 @@ func NewChatContextified(gc *ChatContext) ChatContextified {
 func (c ChatContextified) ChatG() *ChatContext {
 	return c.gc
 }
-
-var DefaultTeamTopic = "general"

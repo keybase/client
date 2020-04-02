@@ -347,6 +347,24 @@ export default Container.makeReducer<
   [TeamsGen.finishAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
   },
+  [TeamsGen.addMembersWizardSetDefaultChannels]: (draftState, action) => {
+    const {toAdd, toRemove} = action.payload
+    if (!draftState.addMembersWizard.defaultChannels) {
+      // we're definitely setting these manually now
+      draftState.addMembersWizard.defaultChannels = []
+    }
+    const defaultChannels = draftState.addMembersWizard.defaultChannels
+    toAdd?.forEach(channel => {
+      if (!defaultChannels.find(dc => dc.conversationIDKey === channel.conversationIDKey)) {
+        defaultChannels?.push(channel)
+      }
+    })
+    const maybeRemoveIdx =
+      (toRemove && defaultChannels.findIndex(dc => dc.conversationIDKey === toRemove.conversationIDKey)) ?? -1
+    if (maybeRemoveIdx >= 0) {
+      defaultChannels.splice(maybeRemoveIdx, 1)
+    }
+  },
   [TeamsGen.setNewTeamRequests]: (draftState, action) => {
     draftState.newTeamRequests = action.payload.newTeamRequests
   },

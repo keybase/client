@@ -137,6 +137,7 @@ type WotVouchChainLink struct {
 }
 
 func (cl *WotVouchChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
+func (cl *WotVouchChainLink) Type() string                                         { return string(LinkTypeWotVouch) }
 
 var _ TypedChainLink = (*WotVouchChainLink)(nil)
 
@@ -159,6 +160,7 @@ type WotReactChainLink struct {
 }
 
 func (cl *WotReactChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
+func (cl *WotReactChainLink) Type() string                                         { return string(LinkTypeWotReact) }
 
 var _ TypedChainLink = (*WotReactChainLink)(nil)
 

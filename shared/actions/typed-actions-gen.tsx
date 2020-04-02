@@ -506,6 +506,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTrackingTrackingInfo': enginegen.Keybase1NotifyTrackingTrackingInfoPayload
   'engine-gen:keybase1NotifyTrackingNotifyUserBlocked': enginegen.Keybase1NotifyTrackingNotifyUserBlockedPayload
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
+  'engine-gen:keybase1NotifyUsersWebOfTrustChanged': enginegen.Keybase1NotifyUsersWebOfTrustChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
   'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
@@ -984,6 +985,7 @@ export type TypedActionsMap = {
   'teams:setAddMembersWizardIndividualRole': teams.SetAddMembersWizardIndividualRolePayload
   'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
+  'teams:addMembersWizardSetDefaultChannels': teams.AddMembersWizardSetDefaultChannelsPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
   'teams:finishAddMembersWizard': teams.FinishAddMembersWizardPayload
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
@@ -1009,6 +1011,7 @@ export type TypedActionsMap = {
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
   'tracker2:updateFollows': tracker2.UpdateFollowsPayload
+  'tracker2:updateWotEntries': tracker2.UpdateWotEntriesPayload
   'tracker2:getProofSuggestions': tracker2.GetProofSuggestionsPayload
   'tracker2:proofSuggestionsUpdated': tracker2.ProofSuggestionsUpdatedPayload
   'tracker2:showUser': tracker2.ShowUserPayload
@@ -1030,6 +1033,7 @@ export type TypedActionsMap = {
   'users:setUserBlocks': users.SetUserBlocksPayload
   'users:getBlockState': users.GetBlockStatePayload
   'users:updateBlockState': users.UpdateBlockStatePayload
+  'users:wotReact': users.WotReactPayload
   'users:reportUser': users.ReportUserPayload
   'waiting:incrementWaiting': waiting.IncrementWaitingPayload
   'waiting:decrementWaiting': waiting.DecrementWaitingPayload

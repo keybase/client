@@ -574,7 +574,7 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
 	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), func() error { return err })()
 
-	rt, err = hidden.CheckFeatureGateForSupportWithRotationType(mctx, t.ID, true /* isWrite */, rt)
+	rt, err = hidden.CheckFeatureGateForSupportWithRotationType(mctx, t.ID, rt)
 	if err != nil {
 		return err
 	}

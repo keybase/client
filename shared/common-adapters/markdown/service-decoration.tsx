@@ -114,6 +114,7 @@ export type Props = {
   message?: Types.MessageText | Types.MessageAttachment
   styleOverride: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
+  disableBigEmojis: boolean
 }
 
 const ServiceDecoration = (props: Props) => {
@@ -236,13 +237,20 @@ const ServiceDecoration = (props: Props) => {
     if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
       return (
         <CustomEmoji
-          size={parsed.emoji.isBig ? 'Big' : 'Medium'}
+          size={
+            parsed.emoji.isBig && !props.disableBigEmojis ? 'Big' : parsed.emoji.isReacji ? 'Medium' : 'Small'
+          }
           src={parsed.emoji.source.httpsrv}
           alias={parsed.emoji.alias}
         />
       )
     } else if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str) {
-      return <Emoji emojiName={parsed.emoji.source.str} size={parsed.emoji.isBig ? 32 : 24} />
+      return (
+        <Emoji
+          emojiName={parsed.emoji.source.str}
+          size={parsed.emoji.isBig && !props.disableBigEmojis ? 32 : 24}
+        />
+      )
     }
     // we may want to add more cases here later if we decide to parse "stock" emoji with this
   }

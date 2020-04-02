@@ -16,6 +16,7 @@ import TeamJoinTeamDialog from './join-team/container'
 import TeamNewTeamDialog from './new-team/container'
 import TeamReallyLeaveTeam from './confirm-modals/really-leave-team/container'
 import TeamReallyRemoveMember from './confirm-modals/confirm-kick-out'
+import TeamReallyRemoveChannelMember from './confirm-modals/confirm-remove-from-channel'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
@@ -103,6 +104,10 @@ export const newModalRoutes = {
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam =>
       require('./confirm-modals/really-leave-team/container').default,
+  },
+  teamReallyRemoveChannelMember: {
+    getScreen: (): typeof TeamReallyRemoveChannelMember =>
+      require('./confirm-modals/confirm-remove-from-channel').default,
   },
   teamReallyRemoveMember: {
     getScreen: (): typeof TeamReallyRemoveMember => require('./confirm-modals/confirm-kick-out').default,

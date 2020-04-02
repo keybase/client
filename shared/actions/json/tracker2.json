@@ -43,6 +43,10 @@
       "following?": "Array<{fullname: string, username: string}>",
       "followers?": "Array<{fullname: string, username: string}>"
     },
+    "updateWotEntries": {
+      "voucheeUsername": "string",
+      "entries": "Array<Types.WebOfTrustEntry>"
+    },
     "getProofSuggestions": {},
     "proofSuggestionsUpdated": {"suggestions": "ReadonlyArray<Types.Assertion>"},
     "showUser": {

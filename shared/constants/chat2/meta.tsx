@@ -92,6 +92,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     resetParticipants,
     retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
+    snippetDecorated: '',
     snippetDecoration: i.localMetadata
       ? i.localMetadata.snippetDecoration
       : RPCChatTypes.SnippetDecoration.none,
@@ -331,6 +332,7 @@ export const inboxUIItemToConversationMeta = (
     resetParticipants,
     retentionPolicy,
     snippet: i.snippet,
+    snippetDecorated: i.snippetDecorated,
     snippetDecoration: i.snippetDecoration,
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
@@ -374,6 +376,7 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   resetParticipants: new Set(),
   retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
+  snippetDecorated: '',
   snippetDecoration: RPCChatTypes.SnippetDecoration.none as RPCChatTypes.SnippetDecoration,
   status: RPCChatTypes.ConversationStatus.unfiled as RPCChatTypes.ConversationStatus,
   supersededBy: noConversationIDKey,

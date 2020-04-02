@@ -1,6 +1,7 @@
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import * as ChatTypes from './types/chat2'
 import {getFullRoute} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
@@ -41,6 +42,10 @@ export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
 export const removeMemberWaitingKey = (teamID: Types.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
+export const removeFromChannelWaitingKey = (
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  usernameOrAssertion: string
+) => `teamChannelRemove:${conversationIDKey};${usernameOrAssertion}`
 export const deleteChannelWaitingKey = (teamID: Types.TeamID) => `channelDelete:${teamID}`
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
@@ -164,6 +169,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 
 export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   addingMembers: [],
+  defaultChannels: undefined,
   justFinished: false,
   role: 'writer',
   teamID: Types.noTeamID,
@@ -914,4 +920,19 @@ export const lastActiveStatusToActivityLevel: {
   [RPCChatTypes.LastActiveStatus.active]: 'active',
   [RPCChatTypes.LastActiveStatus.none]: 'none',
   [RPCChatTypes.LastActiveStatus.recentlyActive]: 'recently',
+}
+
+export const stringifyPeople = (people: string[]): string => {
+  switch (people.length) {
+    case 0:
+      return 'nobody'
+    case 1:
+      return people[0]
+    case 2:
+      return `${people[0]} and ${people[1]}`
+    case 3:
+      return `${people[0]}, ${people[1]} and ${people[2]}`
+    default:
+      return `${people[0]}, ${people[1]}, and ${people.length - 2} others`
+  }
 }

@@ -624,14 +624,16 @@ type knownRemoteInterface struct {
 	chat1.RemoteInterface
 	log      logger.Logger
 	knownMap map[chat1.MessageID]chat1.MessageBoxed
+	conv     types.RemoteConversation
 }
 
 func newKnownRemoteInterface(log logger.Logger, ri chat1.RemoteInterface,
-	knownMap map[chat1.MessageID]chat1.MessageBoxed) *knownRemoteInterface {
+	conv types.RemoteConversation, knownMap map[chat1.MessageID]chat1.MessageBoxed) *knownRemoteInterface {
 	return &knownRemoteInterface{
 		knownMap:        knownMap,
 		log:             log,
 		RemoteInterface: ri,
+		conv:            conv,
 	}
 }
 
@@ -650,6 +652,8 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 			remoteFetch = append(remoteFetch, msgID)
 		}
 	}
+	res.MembersType = i.conv.GetMembersType()
+	res.Visibility = i.conv.Conv.Metadata.Visibility
 	if len(remoteFetch) == 0 {
 		return res, nil
 	}
@@ -666,9 +670,15 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 	return res, nil
 }
 
-func (t *UIThreadLoader) makeRi(ctx context.Context, knownRemotes []string) func() chat1.RemoteInterface {
+func (t *UIThreadLoader) makeRi(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	knownRemotes []string) func() chat1.RemoteInterface {
 	if len(knownRemotes) == 0 {
 		t.Debug(ctx, "makeRi: no known remotes")
+		return t.ri
+	}
+	conv, err := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		t.Debug(ctx, "makeRi: don't know about the conv")
 		return t.ri
 	}
 	t.Debug(ctx, "makeRi: creating new interface with %d known remotes", len(knownRemotes))
@@ -689,7 +699,7 @@ func (t *UIThreadLoader) makeRi(ctx context.Context, knownRemotes []string) func
 		knownMap[msgBoxed.GetMessageID()] = msgBoxed
 	}
 	return func() chat1.RemoteInterface {
-		return newKnownRemoteInterface(t.G().GetLog(), t.ri(), knownMap)
+		return newKnownRemoteInterface(t.G().GetLog(), t.ri(), conv, knownMap)
 	}
 }
 
@@ -872,7 +882,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		if fullErr = t.waitForOnline(ctx); fullErr != nil {
 			return
 		}
-		customRi := t.makeRi(ctx, knownRemotes)
+		customRi := t.makeRi(ctx, uid, convID, knownRemotes)
 		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, customRi, query, pagination)
 		setDisplayedStatus(cancelUIStatus)
 		if fullErr != nil {
@@ -1029,6 +1039,6 @@ func (t *UIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1
 			*query.MessageIDControl)
 	}
 	// Get messages from the source
-	ri := t.makeRi(ctx, knownRemotes)
+	ri := t.makeRi(ctx, uid, convID, knownRemotes)
 	return t.G().ConvSource.Pull(ctx, convID, uid, reason, ri, query, pagination)
 }

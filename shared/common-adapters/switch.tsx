@@ -59,6 +59,7 @@ const getContent = (props: Props, ref: React.Ref<ClickableBox>) => (
         style={Styles.collapseStyles([
           props.align === 'left' && styles.switchLeft,
           props.align === 'right' && styles.switchRight,
+          props.disabled && styles.disabled,
           !!props.labelSubtitle && styles.switch,
         ])}
       />
@@ -85,7 +86,6 @@ const getStyle = (props: Props) =>
   Styles.collapseStyles([
     styles.container,
     props.align !== 'right' ? Styles.globalStyles.flexBoxRow : Styles.globalStyles.flexBoxRowReverse,
-    props.disabled && styles.disabled,
     props.style,
   ])
 

@@ -190,22 +190,6 @@ export default Container.connect(
     const message = ownProps.message
     const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     const items: MenuItems = []
-    if (stateProps._canExplodeNow) {
-      items.push({
-        danger: true,
-        icon: 'iconfont-bomb',
-        onClick: dispatchProps._onExplodeNow,
-        title: 'Explode now',
-      })
-    }
-    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInTeam) {
-      items.push({
-        danger: true,
-        icon: 'iconfont-block-user',
-        onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
-        title: 'Kick user',
-      })
-    }
     if (Container.isMobile) {
       // 'Add a reaction' is an option on mobile
       items.push({
@@ -268,6 +252,22 @@ export default Container.connect(
         })
       }
       items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+    }
+    if (stateProps._canExplodeNow) {
+      items.push({
+        danger: true,
+        icon: 'iconfont-bomb',
+        onClick: dispatchProps._onExplodeNow,
+        title: 'Explode now',
+      })
+    }
+    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInTeam) {
+      items.push({
+        danger: true,
+        icon: 'iconfont-block-user',
+        onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
+        title: 'Kick user',
+      })
     }
     if (!stateProps.yourMessage && message.author) {
       const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2

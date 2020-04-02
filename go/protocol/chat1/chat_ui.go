@@ -539,6 +539,7 @@ type InboxUIItem struct {
 	IsDefaultConv     bool                          `codec:"isDefaultConv" json:"isDefaultConv"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
+	SnippetDecorated  string                        `codec:"snippetDecorated" json:"snippetDecorated"`
 	SnippetDecoration SnippetDecoration             `codec:"snippetDecoration" json:"snippetDecoration"`
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
@@ -581,6 +582,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		IsDefaultConv:     o.IsDefaultConv,
 		Name:              o.Name,
 		Snippet:           o.Snippet,
+		SnippetDecorated:  o.SnippetDecorated,
 		SnippetDecoration: o.SnippetDecoration.DeepCopy(),
 		Channel:           o.Channel,
 		Headline:          o.Headline,

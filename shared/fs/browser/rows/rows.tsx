@@ -48,6 +48,7 @@ class Rows extends React.PureComponent<Props> {
         return (
           <WrapRow>
             <Tlf
+              disabled={item.disabled}
               name={item.name}
               tlfType={item.tlfType}
               destinationPickerIndex={this.props.destinationPickerIndex}

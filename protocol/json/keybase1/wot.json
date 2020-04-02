@@ -98,8 +98,16 @@
           "name": "vouchee"
         },
         {
+          "type": "string",
+          "name": "voucheeUsername"
+        },
+        {
           "type": "UserVersion",
           "name": "voucher"
+        },
+        {
+          "type": "string",
+          "name": "voucherUsername"
         },
         {
           "type": {
@@ -130,30 +138,6 @@
           "type": "int"
         },
         {
-          "name": "vouchee",
-          "type": "UserVersion"
-        },
-        {
-          "name": "vouchTexts",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
-        },
-        {
-          "name": "confidence",
-          "type": "Confidence"
-        }
-      ],
-      "response": null
-    },
-    "wotVouchCLI": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
           "name": "assertion",
           "type": "string"
         },
@@ -172,27 +156,6 @@
       "response": null
     },
     "wotReact": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "voucher",
-          "type": "UserVersion"
-        },
-        {
-          "name": "proof",
-          "type": "SigID"
-        },
-        {
-          "name": "reaction",
-          "type": "WotReactionType"
-        }
-      ],
-      "response": null
-    },
-    "wotReactCLI": {
       "request": [
         {
           "name": "sessionID",
@@ -226,7 +189,7 @@
       ],
       "response": null
     },
-    "wotListCLI": {
+    "wotFetchVouches": {
       "request": [
         {
           "name": "sessionID",

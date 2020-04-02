@@ -437,7 +437,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.isRevoked ? 24 : 0, // revoked
       this.props.showCoinsIcon ? 24 : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
-      exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
+      exploding ? (Styles.isMobile ? 24 : 20) : 0, // exploding
       this.getKeyedBot() && !this.props.authorIsBot ? 24 : 0,
     ].filter(Boolean)
     const padding = Styles.globalMargins.tiny
@@ -632,12 +632,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
-                    <Kb.Icon
-                      type="iconfont-ellipsis"
-                      onClick={this.props.toggleShowingMenu}
-                      style={styles.ellipsis}
-                      fontSize={14}
-                    />
+                    <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
+                      <Kb.Box style={styles.ellipsis}>
+                        <Kb.Icon type="iconfont-ellipsis" onClick={this.props.toggleShowingMenu} />
+                      </Kb.Box>
+                    </Kb.WithTooltip>
                   )}
                 </Kb.Box>
               </Kb.Box>
@@ -763,7 +762,10 @@ const styles = Styles.styleSheetCreate(
       }),
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
-      ellipsis: {marginLeft: Styles.globalMargins.tiny},
+      ellipsis: {
+        marginLeft: Styles.globalMargins.tiny,
+        paddingTop: 3,
+      },
       emojiRow: Styles.platformStyles({
         isElectron: {
           borderBottomLeftRadius: Styles.borderRadius,
@@ -814,11 +816,14 @@ const styles = Styles.styleSheetCreate(
           justifyContent: 'flex-end',
           overflow: 'hidden',
         },
-        isElectron: {height: 16},
-        isMobile: {height: 21},
+        isElectron: {height: 20},
+        isMobile: {height: 24},
       }),
       menuButtonsWithAuthor: {marginTop: -16},
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
+      moreActionsTooltip: {
+        marginRight: -Styles.globalMargins.xxtiny,
+      },
       orangeLine: {
         // don't push down content due to orange line
         backgroundColor: Styles.globalColors.orange,
