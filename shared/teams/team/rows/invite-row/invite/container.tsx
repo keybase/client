@@ -10,6 +10,12 @@ type OwnProps = {
   firstItem: boolean
 }
 
+/**
+ * labelledInviteRegex matches a string like "Jakob (+1 (216) 555-3434)" or "Max (max@keybase.io)"
+ * The ? in the first group is so that it doesn't treat "216) 555-3434" as the parenthesized bit in the first case above.
+ */
+const labelledInviteRegex = /^(.+?) \((.+)\)$/
+
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
@@ -57,9 +63,8 @@ export default Container.connect(
 
     let label = user.username || user.name || user.email || user.phone
     let subLabel = user.name ? user.phone || user.email : undefined
-    const re = /^(.+?) \((.+)\)$/
-    if (!subLabel && re.test(label)) {
-      const match = re.exec(label)!
+    if (!subLabel && labelledInviteRegex.test(label)) {
+      const match = labelledInviteRegex.exec(label)!
       label = match[1]
       subLabel = match[2]
     }
