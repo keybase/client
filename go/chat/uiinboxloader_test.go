@@ -138,6 +138,8 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM, users[1], users[2])
 	layout = recvLayout()
+	t.Logf("DEBUG: team conv: %s", teamConv.Id)
+	t.Logf("DEBUG: layout: %+v", layout)
 	require.Equal(t, 2, len(layout.SmallTeams))
 	require.Equal(t, teamConv.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
 	require.True(t, layout.SmallTeams[0].IsTeam)

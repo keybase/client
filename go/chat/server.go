@@ -469,6 +469,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 
 	// If we have this conv hidden, then let's bring it back before returning
 	if !utils.GetConversationStatusBehavior(conv.Info.Status).ShowInInbox {
+		h.Debug(ctx, "NewConversationLocal: new conversation not shown, unhiding: %s", conv.GetConvID())
 		if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED); err != nil {
 			h.Debug(ctx, "NewConversationLocal: unable to unhide conv: %s", err)
