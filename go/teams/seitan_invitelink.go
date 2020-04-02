@@ -43,12 +43,24 @@ func GenerateSIKeyInvitelink(ikey keybase1.SeitanIKeyInvitelink) (sikey SeitanSI
 	return sikey, nil
 }
 
+func (sikey SeitanSIKeyInvitelink) generateMsgpackPayload() ([]byte, error) {
+	return msgpack.Encode(NewSeitanInviteIDPayload(SeitanVersionInvitelink))
+}
+
 func (sikey SeitanSIKeyInvitelink) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
-	payload, err := msgpack.Encode(NewSeitanInviteIDPayload(SeitanVersionInvitelink))
+	payload, err := sikey.generateMsgpackPayload()
 	if err != nil {
 		return id, err
 	}
 	return generateTeamInviteID(sikey[:], payload)
+}
+
+func (sikey SeitanSIKeyInvitelink) GenerateShortTeamInviteID() (id SCTeamInviteIDShort, err error) {
+	payload, err := sikey.generateMsgpackPayload()
+	if err != nil {
+		return id, err
+	}
+	return generateShortTeamInviteID(sikey[:], payload)
 }
 
 func generatePackedEncryptedKeyWithSecretKeyInvitelink(ikey keybase1.SeitanIKeyInvitelink,
@@ -104,7 +116,7 @@ func GenerateSeitanInvitelinkAcceptanceKey(sikey []byte, uid keybase1.UID, eldes
 }
 
 // bound from SeitanEncodedIKeyInvitelinkLength
-var invitelinkIKeyRxx = regexp.MustCompile(`/invite#i=([a-z0-9+]{16,28})`)
+var invitelinkIKeyRxx = regexp.MustCompile(`/i/t/([a-z0-9]{16})#([a-z0-9+]{16,28})`)
 
 func generateInvitelinkURLPrefix(mctx libkb.MetaContext) (string, error) {
 	serverRoot, err := mctx.G().Env.GetServerURI()
@@ -112,13 +124,17 @@ func generateInvitelinkURLPrefix(mctx libkb.MetaContext) (string, error) {
 		return "", err
 	}
 	// NOTE: if you change this url, change invitelinkIKeyRxx too!
-	return fmt.Sprintf("%s/invite#i=", serverRoot), nil
+	return fmt.Sprintf("%s/i/t/", serverRoot), nil
 }
 
-func GenerateInvitelinkURL(mctx libkb.MetaContext, ikey keybase1.SeitanIKeyInvitelink) (string, error) {
+func GenerateInvitelinkURL(
+	mctx libkb.MetaContext,
+	ikey keybase1.SeitanIKeyInvitelink,
+	id SCTeamInviteIDShort,
+) (string, error) {
 	prefix, err := generateInvitelinkURLPrefix(mctx)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s%s", prefix, ikey), nil
+	return fmt.Sprintf("%s%s#%s", prefix, id, ikey), nil
 }

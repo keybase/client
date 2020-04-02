@@ -63,6 +63,8 @@ interface Console {
 declare var KB: {
   __dirname: string
   DEV?: any
+  /** Use this for debug logs you don't want commited **/
+  debugConsoleLog: (nope: never) => void
   electron: {
     app: {
       appPath: string

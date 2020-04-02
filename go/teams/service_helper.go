@@ -1930,11 +1930,15 @@ func CreateInvitelink(mctx libkb.MetaContext, teamname string,
 	if err != nil {
 		return invitelink, err
 	}
-	ikey, err := t.InviteInvitelink(mctx.Ctx(), role, maxUses, etime)
+	ikey, id, err := t.InviteInvitelink(mctx.Ctx(), role, maxUses, etime)
 	if err != nil {
 		return invitelink, err
 	}
-	url, err := GenerateInvitelinkURL(mctx, ikey)
+	shortID, err := id.ToShortInviteID()
+	if err != nil {
+		return invitelink, err
+	}
+	url, err := GenerateInvitelinkURL(mctx, ikey, shortID)
 	if err != nil {
 		return invitelink, err
 	}
