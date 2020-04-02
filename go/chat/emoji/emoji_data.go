@@ -11,7 +11,7 @@ import (
 )
 
 // NOTE when update shared/package.json when updating this version
-const emojiDataJsonURL = "https://github.com/iamcal/emoji-data/raw/v4.1.0/emoji.json"
+const emojiDataJSONURL = "https://github.com/iamcal/emoji-data/raw/v4.1.0/emoji.json"
 
 // EmojiData json parse struct
 type EmojiData struct {
@@ -35,7 +35,7 @@ func UnifiedToChar(unified string) (string, error) {
 }
 
 func createEmojiDataCodeMap() (map[string]string, map[string][]string, error) {
-	res, err := http.Get(emojiDataJsonURL)
+	res, err := http.Get(emojiDataJSONURL)
 	if err != nil {
 		return nil, nil, err
 	}
