@@ -17,6 +17,7 @@ import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
+import {isOpen} from '../../../../util/keyboard'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import {
   AnimatedBox2,
@@ -102,7 +103,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   private handleHardwareEnterPress = (hwKeyEvent: {pressedKey: string}) => {
     switch (hwKeyEvent.pressedKey) {
       case 'enter':
-        this.onSubmit()
+        !isOpen() ? this.onSubmit() : this.insertText('\n')
         break
       case 'shift-enter':
         this.insertText('\n')
