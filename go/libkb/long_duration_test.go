@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testTFmt = `2006-01-02 15:04:05`
 const testTTzFmt = `2006-01-02 15:04:05 -0700`
 
 type longDurTestCase struct {
@@ -17,32 +16,32 @@ type longDurTestCase struct {
 }
 
 func TestAddLongDurationLong(t *testing.T) {
-	then, err := time.Parse(testTFmt, "2020-04-01 12:23:08")
+	then, err := time.Parse(testTTzFmt, "2020-04-01 12:23:08 +0000")
 	require.NoError(t, err)
 
 	cases := []longDurTestCase{
-		{"2021-04-01 12:23:08", "1 Y"},
-		{"2021-04-01 12:23:08", "1Y"},
-		{"2022-04-01 12:23:08", "2 Y"},
-		{"2023-04-01 12:23:08", "3Y"},
-		{"2030-04-01 12:23:08", "10 Y"},
-		{"3020-04-01 12:23:08", "1000 Y"}, // TODO: the timezone changes ???
+		{"2021-04-01 12:23:08 +0000", "1 Y"},
+		{"2021-04-01 12:23:08 +0000", "1Y"},
+		{"2022-04-01 12:23:08 +0000", "2 Y"},
+		{"2023-04-01 12:23:08 +0000", "3Y"},
+		{"2030-04-01 12:23:08 +0000", "10 Y"},
+		{"3020-04-01 12:23:08 +0000", "1000 Y"},
 
-		{"2020-04-08 12:23:08", "7D"},
-		{"2020-04-08 12:23:08", "7D"},
-		{"2020-04-15 12:23:08", "14 D"},
+		{"2020-04-08 12:23:08 +0000", "7D"},
+		{"2020-04-08 12:23:08 +0000", "7D"},
+		{"2020-04-15 12:23:08 +0000", "14 D"},
 
-		{"2020-05-01 12:23:08", "1M"},
-		{"2020-06-01 12:23:08", "2 M"},
-		{"2020-07-01 12:23:08", "3M"},
-		{"2020-10-01 12:23:08", "6M"},
-		{"2021-02-01 12:23:08", "10M"}, // TODO: the timezone changes ???
+		{"2020-05-01 12:23:08 +0000", "1M"},
+		{"2020-06-01 12:23:08 +0000", "2 M"},
+		{"2020-07-01 12:23:08 +0000", "3M"},
+		{"2020-10-01 12:23:08 +0000", "6M"},
+		{"2021-02-01 12:23:08 +0000", "10M"},
 	}
 
 	for _, c := range cases {
 		ret, err := AddLongDuration(then, c.duration)
 		require.NoError(t, err, "failed for %q", c.duration)
-		require.Equal(t, c.expected, ret.Format(testTFmt), "failed for %q", c.duration)
+		require.Equal(t, c.expected, ret.Format(testTTzFmt), "failed for %q", c.duration)
 	}
 }
 
@@ -112,12 +111,14 @@ func TestAddLongDurationBad(t *testing.T) {
 }
 
 func TestAddLongDurationTimezone(t *testing.T) {
-	then, err := time.Parse(testTTzFmt, "2020-04-01 12:23:08 +0200")
+	loc, err := time.LoadLocation("Europe/Warsaw")
+	require.NoError(t, err)
+	then, err := time.ParseInLocation(testTTzFmt, "2020-04-01 12:23:08 +0200", loc)
 	require.NoError(t, err)
 
 	ret, err := AddLongDuration(then, "1000 Y")
 	require.NoError(t, err)
 	require.Equal(t,
-		"3020-04-01 12:23:08 +0100", // why does the timezone change on my pc?
+		"3020-04-01 12:23:08 +0100", // timezone changes to +0100 from +0200 (???)
 		ret.Format(testTTzFmt))
 }
