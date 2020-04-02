@@ -89,6 +89,7 @@
   "chat.1.local.updateTyping": {"promise": true},
   "chat.1.local.updateUnsentText": {"promise": true},
   "chat.1.local.userEmojis": {"promise": true},
+  "chat.1.local.addEmojis": {"promise": true},
   "keybase.1.Proxy.getProxyData": {"promise": true},
   "keybase.1.Proxy.setProxyData": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCancel": {"promise": true},

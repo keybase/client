@@ -29,6 +29,7 @@ declare type KBElectronOpenDialogOptions = {
   allowMultiselect?: boolean
   buttonLabel?: string
   defaultPath?: string
+  filters?: Array<{extensions: Array<string>; name: string}>
   message?: string
   title?: string
 }

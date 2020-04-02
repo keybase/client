@@ -88,7 +88,16 @@ const darwinCopyToChatTempUploadFile = isDarwin
 // Improved experience over HTML <input type='file' />
 const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   try {
-    const {title, message, buttonLabel, allowDirectories, allowFiles, allowMultiselect, defaultPath} = opts
+    const {
+      title,
+      message,
+      buttonLabel,
+      allowDirectories,
+      allowFiles,
+      allowMultiselect,
+      defaultPath,
+      filters,
+    } = opts
     // If on Windows or Linux and allowDirectories, prefer allowDirectories.
     // Can't have both openFile and openDirectory on Windows/Linux
     // Source: https://www.electronjs.org/docs/api/dialog#dialogshowopendialogbrowserwindow-options
@@ -102,6 +111,7 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
     const allowedOptions = {
       buttonLabel,
       defaultPath,
+      filters,
       message,
       properties: allowedProperties,
       title,
