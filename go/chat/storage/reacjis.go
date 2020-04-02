@@ -26,24 +26,29 @@ const (
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada:"}
 
-// RevCodeMap gets the underlying map of emoji.
-func RevCodeMap() map[string][]string {
+// EmojieRevCodeMap gets the underlying map of emoji.
+func EmojiRevCodeMap() map[string][]string {
 	return emojiRevCodeMap
 }
 
-func AliasList(shortCode string) []string {
+func EmojiAliasList(shortCode string) []string {
 	return emojiRevCodeMap[emojiCodeMap[shortCode]]
 }
 
-// HasAlias flags if the given `shortCode` has multiple aliases with other
+// EmojiHasAlias flags if the given `shortCode` has multiple aliases with other
 // codes.
-func HasAlias(shortCode string) bool {
-	return len(AliasList(shortCode)) > 1
+func EmojiHasAlias(shortCode string) bool {
+	return len(EmojiAliasList(shortCode)) > 1
+}
+
+// EmojiExists flags if the given `shortCode` is a valid emoji
+func EmojiExists(shortCode string) bool {
+	return len(EmojiAliasList(shortCode)) > 0
 }
 
 // NormalizeShortCode normalizes a given `shortCode` to a deterministic alias.
 func NormalizeShortCode(shortCode string) string {
-	shortLists := AliasList(shortCode)
+	shortLists := EmojiAliasList(shortCode)
 	if len(shortLists) == 0 {
 		return shortCode
 	}
@@ -236,7 +241,7 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode string) error {
 	s.Lock()
 	defer s.Unlock()
-	if !(HasAlias(shortCode) || globals.EmojiPattern.MatchString(shortCode)) {
+	if !(EmojiHasAlias(shortCode) || globals.EmojiPattern.MatchString(shortCode)) {
 		return nil
 	}
 	cache := s.populateCacheLocked(ctx, uid)
