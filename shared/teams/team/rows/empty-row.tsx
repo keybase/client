@@ -53,14 +53,19 @@ const useSecondaryAction = (props: Props) => {
   return onSecondaryAction
 }
 
-const getFirstText = (type: Props['type'], teamOrChannel: string, teamOrChannelName: string) => {
+const getFirstText = (
+  type: Props['type'],
+  teamOrChannel: string,
+  teamOrChannelName: string,
+  notIn?: boolean
+) => {
   switch (type) {
     case 'members':
       return notIn
         ? `${teamOrChannelName} doesn't have any members`
         : `You are the only member in this ${teamOrChannel}.`
     case 'channelsEmpty':
-      return `${teamMeta.teamname} is a small team.
+      return `${teamOrChannelName} is a small team.
 Make it a big team by creating chat channels.`
     case 'channelsFew':
       return 'Channels can be joined by anyone, unlike subteams.'
@@ -68,7 +73,7 @@ Make it a big team by creating chat channels.`
       return 'Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team hierarchy.'
   }
 }
-// TODO: decide what to do about the <5 channel empty state
+
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
   const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
@@ -97,7 +102,7 @@ const EmptyRow = (props: Props) => {
         <Kb.Icon type={icon[props.type]} />
       </Kb.Box2>
       <Kb.Text type="BodySmall" center={true} style={styles.text}>
-        {getFirstText(props.type, teamOrChannel, teamOrChannelName)}
+        {getFirstText(props.type, teamOrChannel, teamOrChannelName, notIn)}
       </Kb.Text>
       {props.type === 'subteams' && ( // Subteams has a second paragraph, putting it in a separate text so we get the Box2 gap
         <Kb.Text type="BodySmall" center={true} style={styles.text}>
