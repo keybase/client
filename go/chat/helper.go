@@ -1201,7 +1201,19 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 					// if the topicID is hardcoded, just fail right away
 					return res, false, reserr
 				}
-				continue
+				if triple.TopicType != chat1.TopicType_CHAT ||
+					n.membersType == chat1.ConversationMembersType_TEAM {
+					// THIS CHECK IS FOR WHEN THE SERVER RETURNS THIS ERROR WHEN PREVENTING
+					// MULTIPLE CHANNELS ON NON-TEAM CHATS. IT TRIES TO REDIRECT YOU TO THE CONV
+					// THAT IS ALREADY THERE.
+					//
+					// Not a chat (or is a team) conversation. Multiples are fine. Just retry with a
+					// different topic ID.
+					continue
+				}
+				// A chat conversation already exists; just reuse it. See above comment.
+				// Note that from this point on, TopicID is entirely the wrong value.
+				convID = cerr.ConvID
 			case libkb.ChatCollisionError:
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				n.Debug(ctx, "collision: %v", reserr)
