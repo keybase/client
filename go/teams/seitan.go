@@ -162,19 +162,33 @@ func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
 	return sikey, nil
 }
 
-func generateTeamInviteID(secretKey []byte, payload []byte) (id SCTeamInviteID, err error) {
+func generateTeamInviteIDRaw(secretKey []byte, payload []byte) ([]byte, error) {
 	mac := hmac.New(sha512.New, secretKey)
-	_, err = mac.Write(payload)
-	if err != nil {
-		return id, err
+	if _, err := mac.Write(payload); err != nil {
+		return nil, err
 	}
-
 	out := mac.Sum(nil)
 	out = out[0:15]
 	out = append(out, libkb.InviteIDTag)
+	return out, nil
+}
+
+func generateTeamInviteID(secretKey []byte, payload []byte) (id SCTeamInviteID, err error) {
+	out, err := generateTeamInviteIDRaw(secretKey, payload)
+	if err != nil {
+		return id, err
+	}
 	id = SCTeamInviteID(hex.EncodeToString(out))
 	return id, nil
+}
 
+func generateShortTeamInviteID(secretKey []byte, payload []byte) (id SCTeamInviteIDShort, err error) {
+	out, err := generateTeamInviteIDRaw(secretKey, payload)
+	if err != nil {
+		return id, err
+	}
+	id = SCTeamInviteIDShort(libkb.Encode58(out))
+	return id, nil
 }
 
 func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {

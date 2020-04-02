@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"errors"
 	"strings"
 	"sync"
 	"time"
@@ -55,7 +54,6 @@ func (set FeatureFlags) Empty() bool {
 }
 
 type featureSlot struct {
-	sync.Mutex
 	on         bool
 	cacheUntil time.Time
 }
@@ -64,12 +62,11 @@ type featureSlot struct {
 // of whether a feature is on or off, and how long until we should check to
 // update
 type FeatureFlagSet struct {
-	sync.Mutex
+	sync.RWMutex
 	features map[Feature]*featureSlot
 }
 
 const (
-	FeatureFTL                        = Feature("ftl")
 	FeatureBoxAuditor                 = Feature("box_auditor3")
 	ExperimentalGenericProofs         = Feature("experimental_generic_proofs")
 	FeatureCheckForHiddenChainSupport = Feature("check_for_hidden_chain_support")
@@ -80,23 +77,24 @@ const (
 	FeatureJourneycard        = Feature("journeycard")
 )
 
-// NewFeatureFlagSet makes a new set of feature flags.
-func NewFeatureFlagSet() *FeatureFlagSet {
-	return &FeatureFlagSet{
-		features: make(map[Feature]*featureSlot),
-	}
+// getInitialFeatures returns the features which a new FeatureFlagSet should
+// contain so that they are prefetched the first time the set is used.
+func getInitialFeatures() []Feature {
+	return []Feature{
+		FeatureBoxAuditor,
+		ExperimentalGenericProofs,
+		FeatureCheckForHiddenChainSupport,
+		FeatureJourneycardPreview,
+		FeatureJourneycard}
 }
 
-func (s *FeatureFlagSet) getOrMakeSlot(f Feature) *featureSlot {
-	s.Lock()
-	defer s.Unlock()
-	ret := s.features[f]
-	if ret != nil {
-		return ret
+// NewFeatureFlagSet makes a new set of feature flags.
+func NewFeatureFlagSet() *FeatureFlagSet {
+	features := make(map[Feature]*featureSlot)
+	for _, f := range getInitialFeatures() {
+		features[f] = &featureSlot{}
 	}
-	ret = &featureSlot{}
-	s.features[f] = ret
-	return ret
+	return &FeatureFlagSet{features: features}
 }
 
 type rawFeatureSlot struct {
@@ -119,66 +117,92 @@ func (f *featureSlot) readFrom(m MetaContext, r rawFeatureSlot) {
 }
 
 func (s *FeatureFlagSet) InvalidateCache(m MetaContext, f Feature) {
-	featureSlot := s.getOrMakeSlot(f)
-	featureSlot.Lock()
-	defer featureSlot.Unlock()
-	featureSlot.cacheUntil = m.G().Clock().Now().Add(time.Duration(-1) * time.Second)
+	s.Lock()
+	defer s.Unlock()
+	slot, found := s.features[f]
+	if !found {
+		return
+	}
+	slot.cacheUntil = m.G().Clock().Now().Add(time.Duration(-1) * time.Second)
 }
 
-func (s *FeatureFlagSet) EnableImmediately(m MetaContext, f Feature) error {
-	if m.G().Env.GetRunMode() == ProductionRunMode {
-		return errors.New("EnableImmediately is a dev/test-only path")
+func (s *FeatureFlagSet) refreshAllLocked(m MetaContext) (err error) {
+	// collect all feature names in the set, regardless of state
+	var features []string
+	for f := range s.features {
+		features = append(features, string(f))
 	}
-	s.InvalidateCache(m, f)
-	_, err := m.G().API.Post(m, APIArg{
-		Endpoint:    "test/feature",
-		SessionType: APISessionTypeREQUIRED,
-		Args: HTTPArgs{
-			"feature":   S{Val: string(f)},
-			"value":     I{Val: 1},
-			"cache_sec": I{Val: 100},
-		},
-	})
-	return err
-}
 
-// EnabledWithError returns if the given feature is enabled, it will return true if it's
-// enabled, and an error if one occurred.
-func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, err error) {
-	m = m.WithLogTag("FEAT")
-	slot := s.getOrMakeSlot(f)
-	slot.Lock()
-	defer slot.Unlock()
-	if m.G().Clock().Now().Before(slot.cacheUntil) {
-		m.Debug("Feature (cached) %q -> %v", f, slot.on)
-		return slot.on, nil
-	}
 	var raw rawFeatures
 	arg := NewAPIArg("user/features")
 	arg.SessionType = APISessionTypeREQUIRED
 	arg.Args = HTTPArgs{
-		"features": S{Val: string(f)},
+		"features": S{Val: strings.Join(features, ",")},
 	}
 	err = m.G().API.GetDecode(m, arg, &raw)
 	switch err.(type) {
 	case nil:
 	case LoginRequiredError:
 		// No features for logged-out users
-		return false, nil
+		return nil
 	default:
-		return false, err
+		return err
 	}
+
+	for f, slot := range s.features {
+		rawFeature, ok := raw.Features[string(f)]
+		if !ok {
+			m.Debug("Feature %q wasn't returned from server, not updating", f)
+			continue
+		}
+		slot.readFrom(m, rawFeature)
+		m.Debug("Feature (fetched) %q -> %v (will cache for %ds)", f, slot.on, rawFeature.CacheSec)
+	}
+	return nil
+}
+
+// enabledInCacheRLocked must be called while holding (at least) the read lock on s
+func (s *FeatureFlagSet) enabledInCacheRLocked(m MetaContext, f Feature) (on bool, found bool) {
+	slot, found := s.features[f]
+	if !found {
+		return false, false
+	}
+	if m.G().Clock().Now().Before(slot.cacheUntil) {
+		m.Debug("Feature (cached) %q -> %v", f, slot.on)
+		return slot.on, true
+	}
+	return false, false
+}
+
+// EnabledWithError returns if the given feature is enabled, it will return true if it's
+// enabled, and an error if one occurred.
+func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, err error) {
+	m = m.WithLogTag("FEAT")
+
+	s.RLock()
+	if on, found := s.enabledInCacheRLocked(m, f); found {
+		s.RUnlock()
+		return on, nil
+	}
+	s.RUnlock()
+
+	// cache did not help, we need to lock for writing and update
+	s.Lock()
+	defer s.Unlock()
+	// while we were waiting for the write lock, other threads might have already
+	// updated this, check again
+	if on, found := s.enabledInCacheRLocked(m, f); found {
+		return on, nil
+	}
+
+	if _, found := s.features[f]; !found {
+		s.features[f] = &featureSlot{}
+	}
+	err = s.refreshAllLocked(m)
 	if err != nil {
 		return false, err
 	}
-	rawFeature, ok := raw.Features[string(f)]
-	if !ok {
-		m.Debug("Feature %q wasn't returned from server", f)
-		return false, nil
-	}
-	slot.readFrom(m, rawFeature)
-	m.Debug("Feature (fetched) %q -> %v (will cache for %ds)", f, slot.on, rawFeature.CacheSec)
-	return slot.on, nil
+	return s.features[f].on, nil
 }
 
 // Enabled returns if the feature flag is enabled. It ignore errors and just acts

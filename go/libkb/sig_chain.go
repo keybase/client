@@ -1052,6 +1052,12 @@ func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {
 
 func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 	for _, link := range sc.chainLinks {
+		if len(link.GetSigID()) == 0 {
+			// sigID might not be set for stubbed links on other users. If you're looking
+			// for a specific link by sigID of another user (e.g. for web-of-trust), then
+			// an intermediate stubbed link might otherwise cause a panic if it's not skipped.
+			continue
+		}
 		if link.GetSigID().Eq(id) {
 			return link
 		}

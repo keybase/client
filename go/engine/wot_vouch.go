@@ -53,8 +53,32 @@ func (e *WotVouch) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
+func getSigIDToRevoke(mctx libkb.MetaContext, vouchee *libkb.User) (toRevoke *keybase1.SigID, err error) {
+	voucherUsername := mctx.ActiveDevice().Username(mctx).String()
+	vouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Voucher: voucherUsername, Vouchee: vouchee.GetName()})
+	if err != nil {
+		return nil, err
+	}
+	var unrevokedVouches []keybase1.WotVouch
+	for _, vouch := range vouches {
+		if vouch.Status != keybase1.WotStatusType_REVOKED {
+			unrevokedVouches = append(unrevokedVouches, vouch)
+		}
+	}
+	switch {
+	case len(unrevokedVouches) > 1:
+		return nil, fmt.Errorf("there should be at most one existing vouch to revoke, but there are %d", len(unrevokedVouches))
+	case len(unrevokedVouches) == 1:
+		return &unrevokedVouches[0].VouchProof, nil
+	default:
+		return nil, nil
+	}
+}
+
 // Run starts the engine.
 func (e *WotVouch) Run(mctx libkb.MetaContext) error {
+	ctx := mctx.Ctx()
+	g := mctx.G()
 	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Vouchee.Uid).WithStubMode(libkb.StubModeUnstubbed)
 	them, err := libkb.LoadUser(luArg)
 	if err != nil {
@@ -115,16 +139,38 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		return err
 	}
 
+	sigIDToRevoke, err := getSigIDToRevoke(mctx, them)
+	if err != nil {
+		return err
+	}
+	var lease *libkb.Lease
+	var merkleRoot *libkb.MerkleRoot
+	if sigIDToRevoke != nil {
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseBySigIDs(ctx, g, []keybase1.SigID{*sigIDToRevoke})
+		if err != nil {
+			return err
+		}
+		defer func() {
+			// not sure if this is necessary or not
+			err := libkb.CancelDowngradeLease(ctx, g, lease.LeaseID)
+			if err != nil {
+				g.Log.CWarningf(ctx, "Failed to cancel downgrade lease: %s", err.Error())
+			}
+		}()
+	}
+
 	sigVersion := libkb.KeybaseSignatureV2
 	var inner []byte
 	var sig string
 
 	// ForcePoll is required.
-	err = mctx.G().GetFullSelfer().WithSelfForcePoll(mctx.Ctx(), func(me *libkb.User) error {
+	var proof *libkb.ProofMetadataRes
+	var linkID libkb.LinkID
+	err = mctx.G().GetFullSelfer().WithSelfForcePoll(ctx, func(me *libkb.User) (err error) {
 		if me.GetUID() == e.arg.Vouchee.Uid {
 			return libkb.InvalidArgumentError{Msg: "can't vouch for yourself"}
 		}
-		proof, err := me.WotVouchProof(mctx, signingKey, sigVersion, sum)
+		proof, err = me.WotVouchProof(mctx, signingKey, sigVersion, sum, merkleRoot, sigIDToRevoke)
 		if err != nil {
 			return err
 		}
@@ -132,13 +178,12 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		if err != nil {
 			return err
 		}
-
-		sig, _, _, err = libkb.MakeSig(
+		sig, _, linkID, err = libkb.MakeSig(
 			mctx,
 			signingKey,
 			libkb.LinkTypeWotVouch,
 			inner,
-			libkb.SigHasRevokes(false),
+			libkb.SigHasRevokes(sigIDToRevoke != nil),
 			keybase1.SeqType_PUBLIC,
 			libkb.SigIgnoreIfUnsupported(true),
 			me,
@@ -147,7 +192,6 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 
 		return err
 	})
-
 	if err != nil {
 		return err
 	}
@@ -164,7 +208,9 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{item}
-
+	if lease != nil {
+		payload["downgrade_lease_id"] = lease.LeaseID
+	}
 	if _, err := e.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -172,6 +218,17 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	}); err != nil {
 		return err
 	}
+
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx))
+	if err != nil {
+		return err
+	}
+	err = libkb.MerkleCheckPostedUserSig(mctx, me.GetUID(), proof.Seqno, linkID)
+	if err != nil {
+		return err
+	}
+
 	voucherUsername := mctx.ActiveDevice().Username(mctx).String()
+	mctx.G().NotifyRouter.HandleWebOfTrustChanged(voucherUsername)
 	return libkb.DismissWotNotifications(mctx, voucherUsername, them.GetName())
 }

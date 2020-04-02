@@ -368,6 +368,10 @@ func (t TopicID) String() string {
 	return hex.EncodeToString(t)
 }
 
+func (t TopicID) Eq(r TopicID) bool {
+	return bytes.Equal([]byte(t), []byte(r))
+}
+
 func (t ConversationIDTriple) Eq(other ConversationIDTriple) bool {
 	return t.Tlfid.Eq(other.Tlfid) &&
 		bytes.Equal([]byte(t.TopicID), []byte(other.TopicID)) &&
@@ -2549,6 +2553,19 @@ func (r *AddEmojiRes) SetRateLimits(rl []RateLimit) {
 	}
 }
 
+func (r *AddEmojisRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AddEmojisRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
 func (r *RemoveEmojiRes) GetRateLimit() (res []RateLimit) {
 	if r.RateLimit != nil {
 		res = []RateLimit{*r.RateLimit}
@@ -3118,4 +3135,12 @@ func (r EmojiRemoteSource) IsStockAlias() bool {
 
 func (r EmojiRemoteSource) IsAlias() bool {
 	return r.IsStockAlias() || (r.IsMessage() && r.Message().IsAlias)
+}
+
+func (r EmojiLoadSource) IsHTTPSrv() bool {
+	typ, err := r.Typ()
+	if err != nil {
+		return false
+	}
+	return typ == EmojiLoadSourceTyp_HTTPSRV
 }

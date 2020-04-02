@@ -77,12 +77,9 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 		return nil, err
 	}
 	ret := &RemoteIdentifyUI{
-		sessionID: sessionID,
-		uicli:     iuicli,
-		logUI: &LogUI{
-			sessionID,
-			&keybase1.LogUiClient{Cli: cli},
-		},
+		sessionID:    sessionID,
+		uicli:        iuicli,
+		logUI:        NewLogUI(sessionID, cli),
 		Contextified: libkb.NewContextified(u.G()),
 	}
 	return ret, nil
@@ -118,6 +115,15 @@ func (u *UIRouter) GetChatUI() (libkb.ChatUI, error) {
 	return NewRemoteChatUI(0, cli), nil
 }
 
+func (u *UIRouter) GetLogUI() (libkb.LogUI, error) {
+	x, _ := u.getUI(libkb.LogUIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
+	return NewLogUI(0, cli), nil
+}
+
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {
 	x, _ := u.getUI(libkb.IdentifyUIKind)
 	if x == nil {
@@ -130,12 +136,9 @@ func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI,
 		return 0, nil, err
 	}
 	ret := &RemoteIdentifyUI{
-		sessionID: sessionID,
-		uicli:     iuicli,
-		logUI: &LogUI{
-			sessionID,
-			&keybase1.LogUiClient{Cli: cli},
-		},
+		sessionID:    sessionID,
+		uicli:        iuicli,
+		logUI:        NewLogUI(sessionID, cli),
 		Contextified: libkb.NewContextified(u.G()),
 	}
 	return sessionID, ret, nil

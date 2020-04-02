@@ -424,7 +424,8 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes id from reaction, skipping: %v", err)
 					return false
 				}
-				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil, nil)
+				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid, supersedes,
+					nil, nil, false)
 				if err != nil || len(supersedesMsg) == 0 || !supersedesMsg[0].IsValid() {
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes message from reaction, skipping: %v", err)
 					return false
@@ -481,12 +482,15 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 	switch msg.GetMessageType() {
 	case chat1.MessageType_EDIT:
 		targetMsgID := msg.Valid().MessageBody.Edit().MessageID
-		msgs, err := g.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{targetMsgID}, nil, nil)
+		msgs, err := g.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid, []chat1.MessageID{targetMsgID},
+			nil, nil, false)
 		if err != nil {
 			g.Debug(ctx, "getSupersedesTarget: failed to get message: %v", err)
 			return nil
 		}
-		msgs, err = g.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
+		maxDeletedUpTo := conv.GetMaxDeletedUpTo()
+		msgs, err = g.G().ConvSource.TransformSupersedes(ctx, conv.GetConvID(), uid, msgs, nil, nil, nil,
+			&maxDeletedUpTo)
 		if err != nil || len(msgs) == 0 {
 			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %v", err)
 			return nil
@@ -503,7 +507,7 @@ func (g *PushHandler) getReplyMessage(ctx context.Context, uid gregor1.UID, conv
 	if conv == nil {
 		return msg, nil
 	}
-	return NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msg)
+	return NewReplyFiller(g.G()).FillSingle(ctx, uid, conv.GetConvID(), msg)
 }
 
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
@@ -613,7 +617,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					if err != nil {
 						g.Debug(ctx, "chat activity: unable to get app notification settings: %v defaulting to disable plaintext", err)
 					}
-					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
+					notificationSnippet = utils.GetDesktopNotificationSnippet(ctx, g.G(), conv,
 						g.G().Env.GetUsername().String(), &decmsg, plaintextDesktopDisabled)
 				}
 				activity = new(chat1.ChatActivity)

@@ -109,7 +109,7 @@ const Image = React.forwardRef<NativeImage, ImageProps>((p, ref) => {
     }
   }
 
-  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} resizeMode="contain" />
+  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} />
 })
 Image.displayName = 'IconImage'
 

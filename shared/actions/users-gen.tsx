@@ -12,6 +12,7 @@ export const updateBio = 'users:updateBio'
 export const updateBlockState = 'users:updateBlockState'
 export const updateBrokenState = 'users:updateBrokenState'
 export const updateFullnames = 'users:updateFullnames'
+export const wotReact = 'users:wotReact'
 
 // Payload Types
 type _GetBioPayload = {readonly username: string}
@@ -30,6 +31,7 @@ type _UpdateBlockStatePayload = {
 }
 type _UpdateBrokenStatePayload = {readonly newlyBroken: Array<string>; readonly newlyFixed: Array<string>}
 type _UpdateFullnamesPayload = {readonly usernameToFullname: {[username: string]: string}}
+type _WotReactPayload = {readonly voucher: string; readonly reaction: RPCTypes.WotReactionType}
 
 // Action Creators
 /**
@@ -73,6 +75,7 @@ export const createUpdateFullnames = (payload: _UpdateFullnamesPayload): UpdateF
   payload,
   type: updateFullnames,
 })
+export const createWotReact = (payload: _WotReactPayload): WotReactPayload => ({payload, type: wotReact})
 
 // Action Payloads
 export type GetBioPayload = {readonly payload: _GetBioPayload; readonly type: typeof getBio}
@@ -98,6 +101,7 @@ export type UpdateFullnamesPayload = {
   readonly payload: _UpdateFullnamesPayload
   readonly type: typeof updateFullnames
 }
+export type WotReactPayload = {readonly payload: _WotReactPayload; readonly type: typeof wotReact}
 
 // All Actions
 // prettier-ignore
@@ -110,4 +114,5 @@ export type Actions =
   | UpdateBlockStatePayload
   | UpdateBrokenStatePayload
   | UpdateFullnamesPayload
+  | WotReactPayload
   | {type: 'common:resetStore', payload: {}}

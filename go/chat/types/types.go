@@ -424,7 +424,7 @@ type DummyAttachmentHTTPSrv struct{}
 var _ AttachmentURLSrv = (*DummyAttachmentHTTPSrv)(nil)
 
 func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview bool) string {
+	preview, noAnim bool) string {
 	return ""
 }
 
@@ -521,6 +521,9 @@ func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.Conversatio
 }
 func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error) {
 	return 0, nil
+}
+func (d DummyIndexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
+	return nil
 }
 
 type DummyNativeVideoHelper struct{}
@@ -784,6 +787,8 @@ func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}
 
 type DummyParticipantSource struct{}
 
+var _ ParticipantSource = (*DummyParticipantSource)(nil)
+
 func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
 	return nil, nil
@@ -799,6 +804,8 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 }
 
 type DummyEmojiSource struct{}
+
+var _ EmojiSource = (*DummyEmojiSource)(nil)
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
@@ -817,7 +824,7 @@ func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,

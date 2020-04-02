@@ -510,6 +510,10 @@
           "name": "snippet"
         },
         {
+          "type": "string",
+          "name": "snippetDecorated"
+        },
+        {
           "type": "SnippetDecoration",
           "name": "snippetDecoration"
         },

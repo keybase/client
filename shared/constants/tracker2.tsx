@@ -23,6 +23,7 @@ export const noDetails = Object.freeze<Types.Details>({
   stellarHidden: false,
   teamShowcase: emptyArray,
   username: '',
+  webOfTrustEntries: emptyArray,
 })
 
 export const noNonUserDetails = Object.freeze<Types.NonUserDetails>({

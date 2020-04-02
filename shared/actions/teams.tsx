@@ -74,8 +74,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
   try {
     const result: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise> = yield Saga.callUntyped(
       RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
-      {tokenOrName: teamname},
-      Constants.teamWaitingKey(teamname)
+      {tokenOrName: teamname}
     )
 
     // Success
@@ -179,7 +178,6 @@ const setWelcomeMessage = async (action: TeamsGen.SetWelcomeMessagePayload, logg
 }
 
 const getTeamRetentionPolicy = async (
-  state: TypedState,
   action: TeamsGen.GetTeamRetentionPolicyPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -188,7 +186,7 @@ const getTeamRetentionPolicy = async (
   try {
     const policy = await RPCChatTypes.localGetTeamRetentionLocalRpcPromise(
       {teamID},
-      Constants.teamWaitingKeyByID(teamID, state)
+      Constants.teamWaitingKey(teamID)
     )
     try {
       retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
@@ -204,7 +202,6 @@ const getTeamRetentionPolicy = async (
 }
 
 const saveTeamRetentionPolicy = (
-  state: TypedState,
   action: TeamsGen.SaveTeamRetentionPolicyPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -218,7 +215,7 @@ const saveTeamRetentionPolicy = (
     return TeamsGen.createSettingsError({error: error.desc})
   }
   return RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-    Constants.teamWaitingKeyByID(teamID, state),
+    Constants.teamWaitingKey(teamID),
     Constants.retentionWaitingKey(teamID),
   ])
 }
@@ -243,7 +240,7 @@ const updateTeamRetentionPolicy = (
 }
 
 function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPayload, logger: Saga.SagaLogger) {
-  const {invitees, role, teamname, loadingKey} = action.payload
+  const {invitees, role, teamID, teamname, loadingKey} = action.payload
   if (loadingKey) {
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
@@ -254,7 +251,7 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
         name: teamname,
         role: (role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none) as any,
       },
-      [Constants.teamWaitingKey(teamname), Constants.addToTeamByEmailWaitingKey(teamname)]
+      [Constants.teamWaitingKey(teamID), Constants.addToTeamByEmailWaitingKey(teamname)]
     )
     if (res.malformed && res.malformed.length > 0) {
       const malformed = res.malformed
@@ -367,13 +364,10 @@ const reAddToTeam = async (action: TeamsGen.ReAddToTeamPayload) => {
   }
 }
 
-const editDescription = async (state: TypedState, action: TeamsGen.EditTeamDescriptionPayload) => {
+const editDescription = async (action: TeamsGen.EditTeamDescriptionPayload) => {
   const {teamID, description} = action.payload
   try {
-    await RPCTypes.teamsSetTeamShowcaseRpcPromise(
-      {description, teamID},
-      Constants.teamWaitingKeyByID(teamID, state)
-    )
+    await RPCTypes.teamsSetTeamShowcaseRpcPromise({description, teamID}, Constants.teamWaitingKey(teamID))
   } catch (e) {
     return TeamsGen.createSetEditDescriptionError({error: e.message})
   }
@@ -412,7 +406,7 @@ const editMembership = async (state: TypedState, action: TeamsGen.EditMembership
   return false
 }
 
-function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
+function* removeMember(_: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
   const {teamID, username} = action.payload
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
@@ -423,7 +417,7 @@ function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, 
         teamID,
         username,
       },
-      [Constants.teamWaitingKeyByID(teamID, state), Constants.removeMemberWaitingKey(teamID, username)]
+      [Constants.teamWaitingKey(teamID), Constants.removeMemberWaitingKey(teamID, username)]
     )
   } catch (err) {
     logger.error('Failed to remove member', err)
@@ -432,7 +426,7 @@ function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, 
 }
 
 function* removePendingInvite(
-  state: TypedState,
+  _: TypedState,
   action: TeamsGen.RemovePendingInvitePayload,
   logger: Saga.SagaLogger
 ) {
@@ -455,7 +449,7 @@ function* removePendingInvite(
         username: username ?? '',
       },
       [
-        Constants.teamWaitingKeyByID(teamID, state),
+        Constants.teamWaitingKey(teamID),
         // only one of (username, email, inviteID) is truth-y
         Constants.removeMemberWaitingKey(teamID, username || email || inviteID || ''),
       ]
@@ -483,7 +477,7 @@ function* inviteToTeamByPhone(
   action: TeamsGen.InviteToTeamByPhonePayload,
   logger: Saga.SagaLogger
 ) {
-  const {teamname, role, phoneNumber, fullName = '', loadingKey} = action.payload
+  const {teamID, teamname, role, phoneNumber, fullName = '', loadingKey} = action.payload
   if (loadingKey) {
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
@@ -494,7 +488,7 @@ function* inviteToTeamByPhone(
         role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
         teamname: teamname,
       },
-      [Constants.teamWaitingKey(teamname)]
+      [Constants.teamWaitingKey(teamID)]
     )
     /* Open SMS */
     const bodyText = generateSMSBody(teamname, seitan)
@@ -513,11 +507,11 @@ function* inviteToTeamByPhone(
 }
 
 const ignoreRequest = async (action: TeamsGen.IgnoreRequestPayload) => {
-  const {teamname, username} = action.payload
+  const {teamID, teamname, username} = action.payload
   try {
     await RPCTypes.teamsTeamIgnoreRequestRpcPromise(
       {name: teamname, username},
-      Constants.teamWaitingKey(teamname)
+      Constants.teamWaitingKey(teamID)
     )
   } catch (_) {
     // TODO handle error
@@ -592,7 +586,7 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
           teamID,
           username: user,
         },
-        [Constants.teamWaitingKey(team), Constants.addUserToTeamsWaitingKey(user)]
+        [Constants.teamWaitingKey(teamID), Constants.addUserToTeamsWaitingKey(user)]
       )
       teamsAddedTo.push(team)
     } catch (error) {
@@ -685,6 +679,34 @@ function* getTeams(
   }
 }
 
+const getActivityForTeams = async (
+  action: TeamsGen.GetTeamsPayload | ConfigGen.LoadOnStartPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
+    return
+  }
+  try {
+    const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
+    const teams = new Map(
+      Object.entries(results.teams).map(([teamID, status]) => [
+        teamID,
+        Constants.lastActiveStatusToActivityLevel[status],
+      ])
+    )
+    const channels = new Map(
+      Object.entries(results.channels).map(([conversationIDKey, status]) => [
+        conversationIDKey,
+        Constants.lastActiveStatusToActivityLevel[status],
+      ])
+    )
+    return TeamsGen.createSetActivityLevels({levels: {channels, teams}})
+  } catch (e) {
+    logger.error(e)
+  }
+  return
+}
+
 const checkRequestedAccess = async () => {
   const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
     {},
@@ -727,9 +749,9 @@ const _leaveConversation = function*(
   }
 }
 
-function* saveChannelMembership(state: TypedState, action: TeamsGen.SaveChannelMembershipPayload) {
+function* saveChannelMembership(_: TypedState, action: TeamsGen.SaveChannelMembershipPayload) {
   const {teamID, oldChannelState, newChannelState} = action.payload
-  const waitingKey = Constants.teamWaitingKeyByID(teamID, state)
+  const waitingKey = Constants.teamWaitingKey(teamID)
 
   const calls: Array<any> = []
   for (const convIDKeyStr in newChannelState) {
@@ -815,7 +837,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
   }
 }
 
-const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberPublicityPayload) => {
+const setMemberPublicity = async (action: TeamsGen.SetMemberPublicityPayload) => {
   const {teamID, showcase} = action.payload
   try {
     await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
@@ -823,7 +845,7 @@ const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberP
         isShowcased: showcase,
         teamID,
       },
-      [Constants.teamWaitingKeyByID(teamID, state), Constants.setMemberPublicityWaitingKey(teamID)]
+      [Constants.teamWaitingKey(teamID), Constants.setMemberPublicityWaitingKey(teamID)]
     )
     return
   } catch (error) {
@@ -1016,7 +1038,7 @@ const updateTopic = async (state: TypedState, action: TeamsGen.UpdateTopicPayloa
     tlfPublic: false,
   }
 
-  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKeyByID(teamID, state))
+  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKey(teamID))
   return []
 }
 
@@ -1039,7 +1061,7 @@ function* addTeamWithChosenChannels(
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
   let pushState: Saga.RPCPromiseType<typeof RPCTypes.gregorGetStateRpcPromise>
   try {
-    pushState = yield RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamname))
+    pushState = yield RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamID))
   } catch (err) {
     // failure getting the push state, don't bother the user with an error
     // and don't try to move forward updating the state
@@ -1089,7 +1111,7 @@ function* addTeamWithChosenChannels(
       category: Constants.chosenChannelsGregorKey,
       dtime,
     },
-    teams.map(t => Constants.teamWaitingKey(t))
+    teams.map(t => Constants.teamWaitingKey(Constants.getTeamID(state, t)))
   )
 }
 
@@ -1111,7 +1133,7 @@ const updateChannelname = async (state: TypedState, action: TeamsGen.UpdateChann
   }
 }
 
-const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.DeleteChannelConfirmedPayload) => {
+const deleteChannelConfirmed = async (action: TeamsGen.DeleteChannelConfirmedPayload) => {
   const {teamID, conversationIDKey} = action.payload
   // channelName is only needed for confirmation, so since we handle
   // confirmation ourselves we don't need to plumb it through.
@@ -1121,7 +1143,7 @@ const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.Delete
       confirmed: true,
       convID: ChatTypes.keyToConversationID(conversationIDKey),
     },
-    Constants.teamWaitingKeyByID(teamID, state)
+    Constants.teamWaitingKey(teamID)
   )
   return false
 }
@@ -1294,7 +1316,7 @@ function* teamBuildingSaga() {
 }
 
 async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Saga.SagaLogger) {
-  const {teamname, initialTab, addMembers} = action.payload
+  const {teamname, initialTab, addMembers, join} = action.payload
   let teamID: string
   try {
     teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
@@ -1302,8 +1324,22 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
     logger.info(`team="${teamname}" cannot be loaded:`, err)
     if (flags.teamsRedesign) {
       // navigate to team page for team we're not in
-      logger.info('showing external team page')
-      return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]})
+      logger.info(`showing external team page, join=${join}`)
+      return [
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]}),
+        ...(join
+          ? [
+              RouteTreeGen.createNavigateAppend({
+                path: [
+                  {
+                    props: {initialTeamname: teamname},
+                    selected: 'teamJoinTeamDialog',
+                  },
+                ],
+              }),
+            ]
+          : []),
+      ]
     }
     return null
   }
@@ -1419,6 +1455,18 @@ function* getMemberSubteamDetails(
   return
 }
 
+const launchNewTeamWizardOrModal = (action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
+  if (flags.teamsRedesign) {
+    if (action.payload.subteamOf) {
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+    }
+    return TeamsGen.createStartNewTeamWizard()
+  } else {
+    return RouteTreeGen.createNavigateAppend({
+      path: [{props: {subteamOf: action.payload.subteamOf}, selected: 'teamNewTeamDialog'}],
+    })
+  }
+}
 const startNewTeamWizard = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
 const setTeamWizardTeamType = () =>
@@ -1434,6 +1482,8 @@ const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescript
   })
 const setTeamWizardAvatar = (state: TypedState) => {
   switch (state.teams.newTeamWizard.teamType) {
+    case 'subteam':
+      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizardSubteamMembers'}]})
     case 'friends':
     case 'other':
       return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
@@ -1481,6 +1531,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<
     ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
   >([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
+  yield* Saga.chainAction([ConfigGen.loadOnStart, TeamsGen.getTeams], getActivityForTeams)
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership
@@ -1496,7 +1547,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<TeamsGen.AddUserToTeamsPayload>(TeamsGen.addUserToTeams, addUserToTeams)
   yield* Saga.chainGenerator<TeamsGen.InviteToTeamByEmailPayload>(TeamsGen.inviteToTeamByEmail, inviteByEmail)
   yield* Saga.chainAction(TeamsGen.ignoreRequest, ignoreRequest)
-  yield* Saga.chainAction2(TeamsGen.editTeamDescription, editDescription)
+  yield* Saga.chainAction(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   yield* Saga.chainAction2(TeamsGen.editMembership, editMembership)
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
@@ -1504,10 +1555,10 @@ const teamsSaga = function*() {
     TeamsGen.removePendingInvite,
     removePendingInvite
   )
-  yield* Saga.chainAction2(TeamsGen.setMemberPublicity, setMemberPublicity)
+  yield* Saga.chainAction(TeamsGen.setMemberPublicity, setMemberPublicity)
   yield* Saga.chainAction2(TeamsGen.updateTopic, updateTopic)
   yield* Saga.chainAction2(TeamsGen.updateChannelName, updateChannelname)
-  yield* Saga.chainAction2(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
+  yield* Saga.chainAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
   yield* Saga.chainAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   yield* Saga.chainGenerator<TeamsGen.InviteToTeamByPhonePayload>(
     TeamsGen.inviteToTeamByPhone,
@@ -1515,8 +1566,8 @@ const teamsSaga = function*() {
   )
   yield* Saga.chainGenerator<TeamsGen.SetPublicityPayload>(TeamsGen.setPublicity, setPublicity)
   yield* Saga.chainAction2(TeamsGen.checkRequestedAccess, checkRequestedAccess)
-  yield* Saga.chainAction2(TeamsGen.getTeamRetentionPolicy, getTeamRetentionPolicy)
-  yield* Saga.chainAction2(TeamsGen.saveTeamRetentionPolicy, saveTeamRetentionPolicy)
+  yield* Saga.chainAction(TeamsGen.getTeamRetentionPolicy, getTeamRetentionPolicy)
+  yield* Saga.chainAction(TeamsGen.saveTeamRetentionPolicy, saveTeamRetentionPolicy)
   yield* Saga.chainAction(Chat2Gen.updateTeamRetentionPolicy, updateTeamRetentionPolicy)
   yield* Saga.chainGenerator<TeamsGen.AddTeamWithChosenChannelsPayload>(
     TeamsGen.addTeamWithChosenChannels,
@@ -1554,6 +1605,7 @@ const teamsSaga = function*() {
   )
 
   // New team wizard
+  yield* Saga.chainAction(TeamsGen.launchNewTeamWizardOrModal, launchNewTeamWizardOrModal)
   yield* Saga.chainAction(TeamsGen.startNewTeamWizard, startNewTeamWizard)
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
   yield* Saga.chainAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)

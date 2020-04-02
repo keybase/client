@@ -42,7 +42,7 @@ const styles = Styles.styleSheetCreate(() => ({
   underlay: {
     ...Styles.globalStyles.fillAbsolute,
     ...Styles.padding(27, Styles.globalMargins.small, Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.black_50,
+    backgroundColor: Styles.globalColors.black_50OrBlack_50,
   },
 }))
 

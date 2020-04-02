@@ -40,8 +40,11 @@ class List2<T> extends PureComponent<Props<T>> {
     </FixedSizeList>
   )
 
+  private variableSizeListRef = React.createRef<VariableSizeList>()
+
   _variable = ({height, width, getItemLayout}) => (
     <VariableSizeList
+      ref={this.variableSizeListRef}
       style={this.props.style as React.CSSProperties}
       height={height}
       width={width}
@@ -54,6 +57,12 @@ class List2<T> extends PureComponent<Props<T>> {
       {this._row}
     </VariableSizeList>
   )
+
+  componentDidUpdate(prevProps: Props<T>) {
+    if (prevProps.forceLayout !== this.props.forceLayout) {
+      this.variableSizeListRef.current?.resetAfterIndex(0, true)
+    }
+  }
 
   render() {
     return (

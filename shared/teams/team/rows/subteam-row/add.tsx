@@ -3,21 +3,12 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import flags from '../../../../util/feature-flags'
 
 const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
-  const onCreateSubteam = React.useCallback(
-    () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {subteamOf: teamID}, selected: 'teamNewTeamDialog'}],
-        })
-      ),
-    [dispatch, teamID]
-  )
+  const onCreateSubteam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
   return (
     <Kb.ClickableBox style={styles.container} onClick={onCreateSubteam}>
       <Kb.Box2 direction="horizontal" alignItems="center">
@@ -33,12 +24,7 @@ const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
 const AddSubteamNew = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const subteamFilter = Container.useSelector(s => s.teams.subteamFilter)
-  const onCreateSubteam = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {subteamOf: teamID}, selected: 'teamNewTeamDialog'}],
-      })
-    )
+  const onCreateSubteam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
   const onChangeFilter = (filter: string) =>
     dispatch(TeamsGen.createSetSubteamFilter({filter, parentTeam: teamID}))
   // clear filter on unmount

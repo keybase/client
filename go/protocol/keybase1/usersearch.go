@@ -288,10 +288,9 @@ type UserSearchArg struct {
 }
 
 type BulkEmailOrPhoneSearchArg struct {
-	SessionID     int           `codec:"sessionID" json:"sessionID"`
-	Emails        string        `codec:"emails" json:"emails"`
-	PhoneNumbers  []PhoneNumber `codec:"phoneNumbers" json:"phoneNumbers"`
-	CheckContacts bool          `codec:"checkContacts" json:"checkContacts"`
+	SessionID    int           `codec:"sessionID" json:"sessionID"`
+	Emails       string        `codec:"emails" json:"emails"`
+	PhoneNumbers []PhoneNumber `codec:"phoneNumbers" json:"phoneNumbers"`
 }
 
 type UserSearchInterface interface {

@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
 import {FloatingRolePicker, roleIconMap} from '../../role-picker'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import * as Container from '../../../util/container'
@@ -41,11 +42,23 @@ export type MemberProps = {
 
 export type Props = MemberProps & RolePickerSpecificProps
 
+const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null) => {
+  const prevType = Container.usePrevious(type)
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  React.useEffect(() => {
+    if (type === null && prevType !== null) {
+      dispatch(nav.safeNavigateUpPayload())
+    }
+  })
+}
+
 export const TeamMember = (props: Props) => {
   useTeamDetailsSubscribe(props.teamID)
   Container.useFocusBlur(undefined, props.onBlur)
   const {user, you, error} = props
   const iconType = user.type && roleIconMap[user.type]
+  useCloseIfNoLongerInTeam(user.type)
   return (
     <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
       {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}

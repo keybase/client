@@ -59,6 +59,7 @@ class WithTooltip extends React.Component<Props, State> {
               styles.container,
               this.props.multiline && styles.containerMultiline,
               this.props.backgroundColor && {backgroundColor: this.props.backgroundColor},
+              this.props.toastStyle,
             ])}
             visible={!!this.props.tooltip && this.state.visible}
             attachTo={this._getAttachmentRef}

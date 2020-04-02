@@ -25,6 +25,7 @@ func (i *id3FakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error)  
 func (i *id3FakeUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) { return nil, nil }
 func (i *id3FakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error)              { return nil, nil }
 func (i *id3FakeUIRouter) GetChatUI() (ChatUI, error)                                { return nil, nil }
+func (i *id3FakeUIRouter) GetLogUI() (LogUI, error)                                  { return nil, nil }
 func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }

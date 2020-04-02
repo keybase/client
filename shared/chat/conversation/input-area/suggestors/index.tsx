@@ -105,7 +105,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _lastText?: string
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
-    _timeoutID?: NodeJS.Timer
+    _timeoutID?: ReturnType<typeof setTimeout>
 
     componentWillUnmount() {
       this._timeoutID && clearTimeout(this._timeoutID)

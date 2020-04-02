@@ -3945,6 +3945,50 @@
     },
     {
       "type": "record",
+      "name": "LastActiveTimeAll",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "gregor1.Time",
+            "keys": "TLFIDStr"
+          },
+          "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "gregor1.Time",
+            "keys": "ConvIDStr"
+          },
+          "name": "channels"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LastActiveStatusAll",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "LastActiveStatus",
+            "keys": "TLFIDStr"
+          },
+          "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LastActiveStatus",
+            "keys": "ConvIDStr"
+          },
+          "name": "channels"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AddEmojiRes",
       "fields": [
         {
@@ -3953,6 +3997,34 @@
             "RateLimit"
           ],
           "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AddEmojisRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "successFilenames"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "failedFilenames"
         }
       ]
     },
@@ -5825,8 +5897,8 @@
     "getDefaultTeamChannelsLocal": {
       "request": [
         {
-          "name": "teamName",
-          "type": "string"
+          "name": "teamID",
+          "type": "keybase1.TeamID"
         }
       ],
       "response": "GetDefaultTeamChannelsLocalRes"
@@ -5834,8 +5906,8 @@
     "setDefaultTeamChannelsLocal": {
       "request": [
         {
-          "name": "teamName",
-          "type": "string"
+          "name": "teamID",
+          "type": "keybase1.TeamID"
         },
         {
           "name": "convs",
@@ -5858,11 +5930,7 @@
     },
     "getLastActiveForTeams": {
       "request": [],
-      "response": {
-        "type": "map",
-        "values": "LastActiveStatus",
-        "keys": "TLFIDStr"
-      }
+      "response": "LastActiveStatusAll"
     },
     "getRecentJoinsLocal": {
       "request": [
@@ -5931,6 +5999,29 @@
         }
       ],
       "response": "AddEmojiRes"
+    },
+    "addEmojis": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "aliases",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "filenames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": "AddEmojisRes"
     },
     "addEmojiAlias": {
       "request": [

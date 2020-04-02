@@ -42,14 +42,14 @@ func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName s
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
 	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
-		topicType, membersType, vis, h.ri, NewConvFindExistingNormal)
+		topicType, membersType, vis, nil, h.ri, NewConvFindExistingNormal)
 }
 
 func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
 	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
-		topicType, membersType, vis, h.ri, NewConvFindExistingSkip)
+		topicType, membersType, vis, nil, h.ri, NewConvFindExistingSkip)
 }
 
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
@@ -57,7 +57,7 @@ func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gr
 	vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
 	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	return NewConversationWithMemberSourceConv(ctx, h.G(), uid, tlfName, topicName,
-		topicType, membersType, vis, h.ri, NewConvFindExistingNormal, retentionPolicy, memberSourceConv)
+		topicType, membersType, vis, nil, h.ri, NewConvFindExistingNormal, retentionPolicy, memberSourceConv)
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
@@ -282,12 +282,12 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
-	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes, reason)
+	return h.G().ConvSource.GetMessages(ctx, convID, uid, msgIDs, reason, nil, resolveSupersedes)
 }
 
 func (h *Helper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
-	return GetMessage(ctx, h.G(), uid, convID, msgID, resolveSupersedes, reason)
+	return h.G().ConvSource.GetMessage(ctx, convID, uid, msgID, reason, nil, resolveSupersedes)
 }
 
 func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
@@ -331,41 +331,6 @@ func (h *Helper) InTeam(ctx context.Context, uid gregor1.UID, teamID keybase1.Te
 		return false, err
 	}
 	return len(ibox.ConvsUnverified) > 0, nil
-}
-
-func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
-	msgs, err := GetMessages(ctx, g, uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, reason)
-	if err != nil {
-		return chat1.MessageUnboxed{}, err
-	}
-	if len(msgs) != 1 {
-		return chat1.MessageUnboxed{}, errors.New("message not found")
-	}
-	return msgs[0], nil
-}
-
-func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
-	conv, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return nil, err
-	}
-
-	// use ConvSource to get the messages, to try the cache first
-	messages, err := g.ConvSource.GetMessages(ctx, conv.Conv, uid, msgIDs, reason, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// unless arg says not to, transform the superseded messages
-	if resolveSupersedes {
-		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages, nil, nil, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return messages, nil
 }
 
 type sendHelper struct {
@@ -420,7 +385,7 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 	}
 	uid := gregor1.UID(kuid.ToBytes())
 	conv, _, err := NewConversation(ctx, s.G(), uid, s.name, s.topicName,
-		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface,
+		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, nil, s.remoteInterface,
 		NewConvFindExistingNormal)
 	if err != nil {
 		return err
@@ -966,18 +931,20 @@ const (
 
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, bool, error) {
-	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, findExistingMode, nil, nil)
+	vis keybase1.TLFVisibility, knownTopicID *chat1.TopicID, ri func() chat1.RemoteInterface,
+	findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, bool, error) {
+	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis,
+		knownTopicID, ri, findExistingMode, nil, nil)
 }
 
 func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	tlfName string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface,
+	vis keybase1.TLFVisibility, knownTopicID *chat1.TopicID, ri func() chat1.RemoteInterface,
 	findExistingMode NewConvFindExistingMode, retentionPolicy *chat1.RetentionPolicy,
 	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
-	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri,
-		findExistingMode, retentionPolicy, memberSourceConv)
+	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis,
+		ri, findExistingMode, retentionPolicy, memberSourceConv, knownTopicID)
 	return helper.create(ctx)
 }
 
@@ -989,6 +956,7 @@ type newConversationHelper struct {
 	tlfName          string
 	topicName        *string
 	topicType        chat1.TopicType
+	topicID          *chat1.TopicID
 	membersType      chat1.ConversationMembersType
 	memberSourceConv *chat1.ConversationID
 	vis              keybase1.TLFVisibility
@@ -1000,7 +968,8 @@ type newConversationHelper struct {
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode,
-	retentionPolicy *chat1.RetentionPolicy, memberSourceConv *chat1.ConversationID) *newConversationHelper {
+	retentionPolicy *chat1.RetentionPolicy, memberSourceConv *chat1.ConversationID,
+	knownTopicID *chat1.TopicID) *newConversationHelper {
 	return &newConversationHelper{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "newConversationHelper", false),
@@ -1014,6 +983,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 		ri:               ri,
 		findExistingMode: findExistingMode,
 		retentionPolicy:  retentionPolicy,
+		topicID:          knownTopicID,
 	}
 }
 
@@ -1150,8 +1120,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
-		n.Debug(ctx, "found previous conversation that matches, returning")
-		return convs[0], false, nil
+		// if we have a known topic ID, make sure we hit it
+		if n.topicID == nil || n.topicID.Eq(convs[0].Info.Triple.TopicID) {
+			n.Debug(ctx, "found previous conversation that matches, returning")
+			return convs[0], false, nil
+		}
 	}
 
 	if n.G().ExternalG().Env.GetChatMemberType() == "impteam" {
@@ -1177,9 +1150,13 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	clearedCache := false
 	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	for i := 0; i < 5; i++ {
-		triple.TopicID, err = utils.NewChatTopicID()
-		if err != nil {
-			return res, false, fmt.Errorf("error creating topic ID: %s", err)
+		if n.topicID != nil {
+			triple.TopicID = *n.topicID
+		} else {
+			triple.TopicID, err = utils.NewChatTopicID()
+			if err != nil {
+				return res, false, fmt.Errorf("error creating topic ID: %s", err)
+			}
 		}
 		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v mt: %v]",
 			i, triple.Tlfid, triple.TopicType, triple.TopicID, info.CanonicalName, isPublic,
@@ -1220,19 +1197,30 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			case libkb.ChatConvExistsError:
 				// This triple already exists.
 				n.Debug(ctx, "conv exists: %v", cerr.ConvID)
-
+				if n.topicID != nil {
+					// if the topicID is hardcoded, just fail right away
+					return res, false, reserr
+				}
 				if triple.TopicType != chat1.TopicType_CHAT ||
 					n.membersType == chat1.ConversationMembersType_TEAM {
+					// THIS CHECK IS FOR WHEN THE SERVER RETURNS THIS ERROR WHEN PREVENTING
+					// MULTIPLE CHANNELS ON NON-TEAM CHATS. IT TRIES TO REDIRECT YOU TO THE CONV
+					// THAT IS ALREADY THERE.
+					//
 					// Not a chat (or is a team) conversation. Multiples are fine. Just retry with a
 					// different topic ID.
 					continue
 				}
-				// A chat conversation already exists; just reuse it.
+				// A chat conversation already exists; just reuse it. See above comment.
 				// Note that from this point on, TopicID is entirely the wrong value.
 				convID = cerr.ConvID
 			case libkb.ChatCollisionError:
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				n.Debug(ctx, "collision: %v", reserr)
+				if n.topicID != nil {
+					// if the topicID is hardcoded, just fail right away
+					return res, false, reserr
+				}
 				continue
 			case libkb.ChatClientError:
 				// just make sure we can't find anything with FindConversations if we get this back

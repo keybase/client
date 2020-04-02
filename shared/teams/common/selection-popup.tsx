@@ -8,6 +8,8 @@ import * as Kb from '../../common-adapters'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
+import {FloatingRolePicker} from '../role-picker'
+import {useChannelMeta} from './channel-hooks'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -222,25 +224,25 @@ const ActionsWrapper = ({children}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const dispatch = Container.useDispatch()
-  const members = Container.useSelector(s => s.teams.teamSelectedMembers.get(teamID))
+  const membersSet = Container.useSelector(s => s.teams.teamSelectedMembers.get(teamID))
   const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
-  if (!members) {
+  if (!membersSet) {
     // we shouldn't be rendered
     return null
   }
+  const members = [...membersSet]
 
   // Members tab functions
   const onAddToChannel = () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID, usernames: [...members]}, selected: 'teamAddToChannels'}],
+        path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
       })
     )
-  const onEditRoles = () => console.log('onEditRoles not implemented') // TODO
   const onRemoveFromTeam = () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {members: [...members], teamID}, selected: 'teamReallyRemoveMember'}],
+        path: [{props: {members: members, teamID}, selected: 'teamReallyRemoveMember'}],
       })
     )
 
@@ -254,7 +256,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
           fullWidth={Styles.isMobile}
         />
       )}
-      <Kb.Button label="Edit role" mode="Secondary" onClick={onEditRoles} fullWidth={Styles.isMobile} />
+      <EditRoleButton teamID={teamID} members={members} />
       <Kb.Button
         label="Remove from team"
         type="Danger"
@@ -262,6 +264,70 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
         fullWidth={Styles.isMobile}
       />
     </ActionsWrapper>
+  )
+}
+
+const emptySetForUseSelector = new Set<string>()
+function allSameOrNull<T>(arr: T[]): T | null {
+  if (arr.length === 0) {
+    return null
+  }
+  const first = arr[0]
+  return arr.some(r => r !== first) ? null : first
+}
+const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: string[]}) => {
+  const dispatch = Container.useDispatch()
+
+  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const roles = members.map(username => teamDetails.members.get(username)?.type)
+  const currentRole = allSameOrNull(roles)
+  const [role, setRole] = React.useState(currentRole ?? null)
+
+  const [showingPicker, _setShowingPicker] = React.useState(false)
+  const setShowingPicker = (show: boolean) => {
+    if (show) {
+      setRole(currentRole ?? null)
+    }
+    _setShowingPicker(show)
+  }
+
+  const waiting = Container.useAnyWaiting(
+    ...members.map(username => Constants.editMembershipWaitingKey(teamID, username))
+  )
+  const wasWaiting = Container.usePrevious(waiting)
+  React.useEffect(() => {
+    wasWaiting && !waiting && showingPicker && _setShowingPicker(false)
+  }, [waiting, wasWaiting, showingPicker, _setShowingPicker])
+
+  const disabledReasons = Container.useSelector(state =>
+    Constants.getDisabledReasonsForRolePicker(state, teamID, members)
+  )
+  const disableButton = disabledReasons.admin !== undefined
+  const onChangeRoles = role =>
+    members.forEach(username => dispatch(TeamsGen.createEditMembership({role, teamID, username})))
+
+  return (
+    <FloatingRolePicker
+      presetRole={currentRole}
+      selectedRole={role}
+      onSelectRole={setRole}
+      onConfirm={onChangeRoles}
+      onCancel={() => setShowingPicker(false)}
+      position="top center"
+      open={showingPicker}
+      disabledRoles={disabledReasons}
+      waiting={waiting}
+      confirmLabel={role ? `Make ${pluralize(role, members.length)}` : undefined}
+    >
+      <Kb.Button
+        label="Edit role"
+        mode="Secondary"
+        disabled={disableButton}
+        onClick={() => setShowingPicker(!showingPicker)}
+        fullWidth={Styles.isMobile}
+        tooltip={disableButton ? disabledReasons.admin : undefined}
+      />
+    </FloatingRolePicker>
   )
 }
 
@@ -282,24 +348,38 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
     </ActionsWrapper>
   )
 }
-
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
   const dispatch = Container.useDispatch()
-  const members = Container.useSelector(s => s.teams.channelSelectedMembers.get(conversationIDKey))
-  if (!members) {
+  const membersSet = Container.useSelector(
+    s => s.teams.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
+  )
+  const channelMeta = useChannelMeta(teamID, conversationIDKey)
+  const channelname = channelMeta?.channelname ?? ''
+
+  if (!membersSet) {
     // we shouldn't be rendered
     return null
   }
+  const members = [...membersSet]
 
   // Members tab functions
   const onAddToChannel = () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID, usernames: [...members]}, selected: 'teamAddToChannels'}],
+        path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
       })
     )
-  const onEditRoles = () => console.log('onEditRoles not implemented') // TODO
-  const onRemoveFromChannel = () => console.log('onRemoveFromChannel not implemented') // TODO
+  const onRemoveFromChannel = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, members: [...members], teamID},
+            selected: 'teamReallyRemoveChannelMember',
+          },
+        ],
+      })
+    )
 
   return (
     <ActionsWrapper>
@@ -309,13 +389,15 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         onClick={onAddToChannel}
         fullWidth={Styles.isMobile}
       />
-      <Kb.Button label="Edit role" mode="Secondary" onClick={onEditRoles} fullWidth={Styles.isMobile} />
-      <Kb.Button
-        label="Remove from channel"
-        type="Danger"
-        onClick={onRemoveFromChannel}
-        fullWidth={Styles.isMobile}
-      />
+      <EditRoleButton teamID={teamID} members={members} />
+      {channelname !== 'general' && (
+        <Kb.Button
+          label="Remove from channel"
+          type="Danger"
+          onClick={onRemoveFromChannel}
+          fullWidth={Styles.isMobile}
+        />
+      )}
     </ActionsWrapper>
   )
 }

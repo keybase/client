@@ -25,6 +25,7 @@ export type User = {
   username: string // username on service (or keybase username if service is keybase)
   serviceId: ServiceIdWithContact
   prettyName: string
+  pictureUrl?: string
   label?: string
   contact?: boolean // not a keybase user, a phone / email from our contacts
 }

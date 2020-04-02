@@ -43,7 +43,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     saving: false,
     selected: retentionPolicies.policyRetain,
   }
-  _timeoutID: NodeJS.Timeout | undefined
+  _timeoutID: ReturnType<typeof setInterval> | undefined
   _showSaved: boolean = false
 
   // We just updated the state with a new selection, do we show the warning
@@ -267,8 +267,9 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.tiny,
   },
   label: {
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     minHeight: Styles.isMobile ? 40 : 32,
+    paddingLeft: Styles.globalMargins.xsmall,
   },
   progressIndicator: {
     height: 30,

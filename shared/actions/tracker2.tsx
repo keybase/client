@@ -7,6 +7,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
+import {WebOfTrustVerificationType} from '../constants/types/more'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 
@@ -128,6 +129,34 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
     }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
+  }
+}
+
+const loadWebOfTrustEntries = async (
+  action: Tracker2Gen.LoadPayload | EngineGen.Keybase1NotifyUsersWebOfTrustChangedPayload
+) => {
+  const username =
+    action.type === Tracker2Gen.load ? action.payload.assertion : action.payload.params.username
+  try {
+    const wotVouches = await RPCTypes.wotWotFetchVouchesRpcPromise(
+      {vouchee: username, voucher: ''},
+      Constants.profileLoadWaitingKey
+    )
+    const webOfTrustEntries =
+      wotVouches?.map(entry => ({
+        attestation: (entry.vouchTexts || []).join(', '),
+        attestingUser: entry.voucherUsername,
+        status: entry.status,
+        verificationType: (entry.confidence?.usernameVerifiedVia || 'none') as WebOfTrustVerificationType,
+        vouchedAt: entry.vouchedAt,
+      })) || []
+    return Tracker2Gen.createUpdateWotEntries({
+      entries: webOfTrustEntries,
+      voucheeUsername: username,
+    })
+  } catch (err) {
+    logger.error(`Error loading web-of-trust info: ${err.message}`)
+    return false
   }
 }
 
@@ -291,6 +320,8 @@ function* tracker2Saga() {
   yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
   yield* Saga.chainAction(Tracker2Gen.load, loadFollowers)
   yield* Saga.chainAction(Tracker2Gen.load, loadFollowing)
+  yield* Saga.chainAction(Tracker2Gen.load, loadWebOfTrustEntries)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyUsersWebOfTrustChanged, loadWebOfTrustEntries)
   yield* Saga.chainAction2(Tracker2Gen.getProofSuggestions, getProofSuggestions)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingChanged, refreshChanged)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3Result, identify3Result)

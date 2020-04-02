@@ -17,10 +17,12 @@ import newTeamWizard from './new-team/wizard/index.stories'
 import addMembersWizard from './add-members-wizard/index.stories'
 import channels from './channel/index.stories'
 import confirmModals from './confirm-modals/index.stories'
+import emojis from './emojis/index.stories'
 
 const load = () => {
   main()
   common()
+  emojis()
   team()
   deleteTeam()
   editTeamDescription()

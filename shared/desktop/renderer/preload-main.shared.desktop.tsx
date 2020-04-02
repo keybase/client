@@ -88,7 +88,16 @@ const darwinCopyToChatTempUploadFile = isDarwin
 // Improved experience over HTML <input type='file' />
 const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   try {
-    const {title, message, buttonLabel, allowDirectories, allowFiles, allowMultiselect, defaultPath} = opts
+    const {
+      title,
+      message,
+      buttonLabel,
+      allowDirectories,
+      allowFiles,
+      allowMultiselect,
+      defaultPath,
+      filters,
+    } = opts
     // If on Windows or Linux and allowDirectories, prefer allowDirectories.
     // Can't have both openFile and openDirectory on Windows/Linux
     // Source: https://www.electronjs.org/docs/api/dialog#dialogshowopendialogbrowserwindow-options
@@ -102,6 +111,7 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
     const allowedOptions = {
       buttonLabel,
       defaultPath,
+      filters,
       message,
       properties: allowedProperties,
       title,
@@ -118,6 +128,9 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
     return
   }
 }
+
+// A helper to allow console logs while building but have TS catch it
+const debugConsoleLog: () => void = console.log.bind(console) as any
 
 const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   try {
@@ -145,6 +158,7 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
 
 target.KB = {
   __dirname: __dirname,
+  debugConsoleLog,
   electron: {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
@@ -168,7 +182,7 @@ target.KB = {
     extname: path.extname,
     join: path.join,
     resolve: path.resolve,
-    sep: path.sep,
+    sep: path.sep as any,
   },
   process: kbProcess,
   // punycode, // used by a dep

@@ -231,9 +231,9 @@ type State = {
 }
 
 class ThreadWrapper extends React.Component<Props, State> {
-  _injectMessagesIntervalID?: NodeJS.Timer
-  _loadMoreTimeoutID?: NodeJS.Timer
-  _loadConvoTimeoutID?: NodeJS.Timer
+  _injectMessagesIntervalID?: ReturnType<typeof setTimeout>
+  _loadMoreTimeoutID?: ReturnType<typeof setTimeout>
+  _loadConvoTimeoutID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
     super(props)

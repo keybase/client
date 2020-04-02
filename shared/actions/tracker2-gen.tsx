@@ -16,6 +16,7 @@ export const proofSuggestionsUpdated = 'tracker2:proofSuggestionsUpdated'
 export const showUser = 'tracker2:showUser'
 export const updateFollows = 'tracker2:updateFollows'
 export const updateResult = 'tracker2:updateResult'
+export const updateWotEntries = 'tracker2:updateWotEntries'
 export const updatedDetails = 'tracker2:updatedDetails'
 
 // Payload Types
@@ -59,6 +60,10 @@ type _UpdateResultPayload = {
   readonly guiID: string
   readonly result: Types.DetailsState
   readonly reason?: string
+}
+type _UpdateWotEntriesPayload = {
+  readonly voucheeUsername: string
+  readonly entries: Array<Types.WebOfTrustEntry>
 }
 type _UpdatedDetailsPayload = {
   readonly guiID: string
@@ -110,6 +115,10 @@ export const createUpdateResult = (payload: _UpdateResultPayload): UpdateResultP
   payload,
   type: updateResult,
 })
+export const createUpdateWotEntries = (payload: _UpdateWotEntriesPayload): UpdateWotEntriesPayload => ({
+  payload,
+  type: updateWotEntries,
+})
 export const createUpdatedDetails = (payload: _UpdatedDetailsPayload): UpdatedDetailsPayload => ({
   payload,
   type: updatedDetails,
@@ -142,6 +151,10 @@ export type UpdateFollowsPayload = {
   readonly type: typeof updateFollows
 }
 export type UpdateResultPayload = {readonly payload: _UpdateResultPayload; readonly type: typeof updateResult}
+export type UpdateWotEntriesPayload = {
+  readonly payload: _UpdateWotEntriesPayload
+  readonly type: typeof updateWotEntries
+}
 export type UpdatedDetailsPayload = {
   readonly payload: _UpdatedDetailsPayload
   readonly type: typeof updatedDetails
@@ -161,5 +174,6 @@ export type Actions =
   | ShowUserPayload
   | UpdateFollowsPayload
   | UpdateResultPayload
+  | UpdateWotEntriesPayload
   | UpdatedDetailsPayload
   | {type: 'common:resetStore', payload: {}}

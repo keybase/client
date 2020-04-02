@@ -63,7 +63,7 @@ export default Container.connect(
       error: error.username === username && error.teamID === teamID ? error.error : '',
       follower: state.config.followers.has(username),
       following: state.config.following.has(username),
-      loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
+      loading: anyWaiting(state, Constants.teamWaitingKey(teamID)),
       teamID,
       teamname,
       yourOperations: Constants.getCanPerform(state, teamname),

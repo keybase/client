@@ -15,7 +15,7 @@ const Kb = {
 
 const emojiTypes = {
   Big: 32,
-  Medium: 24,
+  Medium: 20,
   Small: 16,
 }
 

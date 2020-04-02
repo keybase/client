@@ -87,6 +87,7 @@ const expensiveDeriveResults = (
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
       isYou: info.username === myUsername,
       key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
+      pictureUrl: info.pictureUrl,
       prettyName: formatAnyPhoneNumbers(info.prettyName),
       services: info.serviceMap,
       userId: info.id,
@@ -117,6 +118,7 @@ const deriveTeamSoFar = memoize(
         serviceId = userInfo.serviceId
       }
       return {
+        pictureUrl: userInfo.pictureUrl,
         prettyName: userInfo.prettyName !== username ? userInfo.prettyName : '',
         service: serviceId,
         userId: userInfo.id,

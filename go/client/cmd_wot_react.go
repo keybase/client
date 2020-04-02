@@ -40,7 +40,7 @@ func (c *CmdWotAccept) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdWotAccept) Run() error {
-	arg := keybase1.WotReactCLIArg{
+	arg := keybase1.WotReactArg{
 		Voucher:  c.Voucher,
 		Reaction: keybase1.WotReactionType_ACCEPT,
 	}
@@ -49,7 +49,7 @@ func (c *CmdWotAccept) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.WotReactCLI(context.Background(), arg)
+	return cli.WotReact(context.Background(), arg)
 }
 
 func (c *CmdWotAccept) GetUsage() libkb.Usage {
@@ -93,7 +93,7 @@ func (c *CmdWotReject) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdWotReject) Run() error {
-	arg := keybase1.WotReactCLIArg{
+	arg := keybase1.WotReactArg{
 		Voucher:  c.Voucher,
 		Reaction: keybase1.WotReactionType_REJECT,
 	}
@@ -102,7 +102,7 @@ func (c *CmdWotReject) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.WotReactCLI(context.Background(), arg)
+	return cli.WotReact(context.Background(), arg)
 }
 
 func (c *CmdWotReject) GetUsage() libkb.Usage {

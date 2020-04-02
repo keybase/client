@@ -130,6 +130,7 @@ export default () => {
         onCancel={Sb.action('onCancel')}
         targetName="Secret treat spot blasjeiofjawiefjksadjflaj long name blahblah"
         index={0}
+        isShare={false}
         onCopyHere={Sb.action('onCopyHere')}
         onMoveHere={Sb.action('onMoveHere')}
         onNewFolder={Sb.action('onNewFolder')}

@@ -4,16 +4,7 @@ import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
 import {pluralize} from '../../util/string'
 import {TeamRoleType} from '../../constants/types/teams'
-
-// Contact info coming from the native contacts library.
-export type Contact = {
-  id: string // unique per-contact ID
-  name: string
-  pictureUri?: string
-  type: 'phone' | 'email'
-  value: string
-  valueFormatted?: string
-}
+import {Contact} from '../common/use-contacts.native'
 
 // Contact info + other things needed for list row.
 export type ContactRowProps = Contact & {

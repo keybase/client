@@ -6,10 +6,13 @@ const invalidPreload = () => {
   throw new Error('invalid preload call on RN')
 }
 
+const debugConsoleLog: () => void = console.log.bind(console) as any
+
 global.KB = {
   get __dirname() {
     return invalidPreload()
   },
+  debugConsoleLog,
   electron: {
     app: {
       get appPath() {

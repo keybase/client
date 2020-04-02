@@ -244,6 +244,7 @@ func (o EmojiRemoteSource) DeepCopy() EmojiRemoteSource {
 
 type HarvestedEmoji struct {
 	Alias       string            `codec:"alias" json:"alias"`
+	IsBig       bool              `codec:"isBig" json:"isBig"`
 	IsCrossTeam bool              `codec:"isCrossTeam" json:"isCrossTeam"`
 	Source      EmojiRemoteSource `codec:"source" json:"source"`
 }
@@ -251,6 +252,7 @@ type HarvestedEmoji struct {
 func (o HarvestedEmoji) DeepCopy() HarvestedEmoji {
 	return HarvestedEmoji{
 		Alias:       o.Alias,
+		IsBig:       o.IsBig,
 		IsCrossTeam: o.IsCrossTeam,
 		Source:      o.Source.DeepCopy(),
 	}
@@ -270,6 +272,8 @@ func (o EmojiCreationInfo) DeepCopy() EmojiCreationInfo {
 
 type Emoji struct {
 	Alias        string             `codec:"alias" json:"alias"`
+	IsBig        bool               `codec:"isBig" json:"isBig"`
+	IsReacji     bool               `codec:"isReacji" json:"isReacji"`
 	IsCrossTeam  bool               `codec:"isCrossTeam" json:"isCrossTeam"`
 	Source       EmojiLoadSource    `codec:"source" json:"source"`
 	RemoteSource EmojiRemoteSource  `codec:"remoteSource" json:"remoteSource"`
@@ -279,6 +283,8 @@ type Emoji struct {
 func (o Emoji) DeepCopy() Emoji {
 	return Emoji{
 		Alias:        o.Alias,
+		IsBig:        o.IsBig,
+		IsReacji:     o.IsReacji,
 		IsCrossTeam:  o.IsCrossTeam,
 		Source:       o.Source.DeepCopy(),
 		RemoteSource: o.RemoteSource.DeepCopy(),

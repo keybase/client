@@ -606,7 +606,9 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
   state.config.loggedIn &&
   RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
     serverConfigPath: Platform.serverConfigFileName,
-  }).catch(() => {})
+  }).catch(e => {
+    logger.warn("Can't call UpdateLastLoggedInAndServerConfig", e)
+  })
 
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator

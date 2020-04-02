@@ -87,6 +87,8 @@ func (l lruEntry) GetPath() string {
 
 type FullCachingSource struct {
 	libkb.Contextified
+	sync.Mutex
+	started              bool
 	diskLRU              *lru.DiskLRU
 	diskLRUCleanerCancel context.CancelFunc
 	staleThreshold       time.Duration
@@ -201,24 +203,38 @@ func (c *FullCachingSource) makeRemoteFetchRequests(reqs []remoteFetchArg,
 	}
 }
 
-func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
-	go c.monitorAppState(m)
+func (c *FullCachingSource) StartBackgroundTasks(mctx libkb.MetaContext) {
+	defer mctx.TraceTimed("FullCachingSource.StartBackgroundTasks", func() error { return nil })()
+	c.Lock()
+	defer c.Unlock()
+	if c.started {
+		return
+	}
+	c.started = true
+	go c.monitorAppState(mctx)
 	c.populateCacheCh = make(chan populateArg, 100)
 	for i := 0; i < 10; i++ {
-		go c.populateCacheWorker(m)
+		go c.populateCacheWorker(mctx)
 	}
-	m, cancel := m.WithContextCancel()
+	mctx, cancel := mctx.WithContextCancel()
 	c.diskLRUCleanerCancel = cancel
-	go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
+	go lru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(mctx), 10*time.Second)
 }
 
-func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
+func (c *FullCachingSource) StopBackgroundTasks(mctx libkb.MetaContext) {
+	defer mctx.TraceTimed("FullCachingSource.StopBackgroundTasks", func() error { return nil })()
+	c.Lock()
+	defer c.Unlock()
+	if !c.started {
+		return
+	}
+	c.started = false
 	close(c.populateCacheCh)
 	if c.diskLRUCleanerCancel != nil {
 		c.diskLRUCleanerCancel()
 	}
-	if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
-		c.debug(m, "StopBackgroundTasks: unable to flush diskLRU %v", err)
+	if err := c.diskLRU.Flush(mctx.Ctx(), mctx.G()); err != nil {
+		c.debug(mctx, "StopBackgroundTasks: unable to flush diskLRU %v", err)
 	}
 }
 
@@ -433,6 +449,11 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 
 func (c *FullCachingSource) dispatchPopulateFromRes(m libkb.MetaContext, res keybase1.LoadAvatarsRes,
 	spec avatarLoadSpec) {
+	c.Lock()
+	defer c.Unlock()
+	if !c.started {
+		return
+	}
 	for name, rec := range res.Picmap {
 		for format, url := range rec {
 			if url != "" {

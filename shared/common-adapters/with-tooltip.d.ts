@@ -12,6 +12,7 @@ export type Props = {
   position?: Position // on mobile only 'top center' and 'bottom center' are supported,,
   className?: string
   toastClassName?: string
+  toastStyle?: StylesCrossPlatform
   textStyle?: StylesCrossPlatform
   showOnPressMobile?: boolean | null
 }
