@@ -440,6 +440,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	conv, created, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
 		arg.TopicType, arg.MembersType, arg.TlfVisibility, nil, h.remoteClient, NewConvFindExistingNormal)
 	if err != nil {
+		h.Debug(ctx, "NewConversationLocal: failed to make conv: %s", err)
 		return res, err
 	}
 
@@ -462,7 +463,17 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			&globals.DefaultTeamTopic, arg.MembersType, keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			body, chat1.MessageType_SYSTEM)
 		if err != nil {
-			h.Debug(ctx, "unable to post new channel system message: %v", err)
+			h.Debug(ctx, "NewConversationLocal: unable to post new channel system message: %v", err)
+		}
+	}
+
+	// If we have this conv hidden, then let's bring it back before returning
+	if !utils.GetConversationStatusBehavior(conv.Info.Status).ShowInInbox {
+		h.Debug(ctx, "NewConversationLocal: new conversation not shown, unhiding: %s", conv.GetConvID())
+		if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, conv.GetConvID(),
+			chat1.ConversationStatus_UNFILED); err != nil {
+			h.Debug(ctx, "NewConversationLocal: unable to unhide conv: %s", err)
+			return res, err
 		}
 	}
 

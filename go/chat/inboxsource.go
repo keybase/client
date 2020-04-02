@@ -1657,7 +1657,10 @@ func (s *HybridInboxSource) TeamBotSettingsForConv(ctx context.Context, uid greg
 func (s *HybridInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
 	defer s.maybeNuke(ctx, uid, &convID, err)
-	return s.baseInboxSource.RemoteSetConversationStatus(ctx, uid, convID, status)
+	if err := s.baseInboxSource.RemoteSetConversationStatus(ctx, uid, convID, status); err != nil {
+		return err
+	}
+	return s.createInbox().SetStatus(ctx, uid, 0, convID, status)
 }
 
 func (s *HybridInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
