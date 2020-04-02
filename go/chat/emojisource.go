@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -378,8 +377,6 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	return res, nil
 }
 
-var emojiPattern = regexp.MustCompile(`(?::)([^:\s]+)(?::)`)
-
 type emojiMatch struct {
 	name     string
 	position []int
@@ -387,7 +384,7 @@ type emojiMatch struct {
 
 func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emojiMatch) {
 	body = utils.ReplaceQuotedSubstrings(body, false)
-	hits := emojiPattern.FindAllStringSubmatchIndex(body, -1)
+	hits := globals.EmojiPattern.FindAllStringSubmatchIndex(body, -1)
 	for _, hit := range hits {
 		if len(hit) < 4 {
 			s.Debug(ctx, "parse: malformed hit: %d", len(hit))
