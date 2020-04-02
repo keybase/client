@@ -79,7 +79,7 @@
     },
     "teamLoaded": {
       "teamID": "Types.TeamID",
-      "details": "Types.TeamDetails"
+      "team": "RPCTypes.AnnotatedTeam"
     },
     "unsubscribeTeamDetails": {
       "_description": "Stop listening for team details for this team",
