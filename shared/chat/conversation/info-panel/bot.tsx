@@ -73,14 +73,7 @@ export const Bot = (props: BotProps) => {
   }, [dispatch, botUsername, conversationIDKey, showChannelAdd])
 
   const lower = (
-    <Kb.Box2
-      direction="horizontal"
-      alignItems="center"
-      gap="xtiny"
-      alignSelf="flex-start"
-      fullWidth={true}
-      style={{flex: 1}}
-    >
+    <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
       {description !== '' && (
         <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
           {description}
@@ -91,29 +84,32 @@ export const Bot = (props: BotProps) => {
 
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
-        {botAlias || botUsername}
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
+          {botAlias || botUsername}
+        </Kb.Text>
+        <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
+        {ownerTeam ? (
+          <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
+        ) : (
+          <Kb.ConnectedUsernames
+            inline={true}
+            usernames={ownerUser ?? botUsername}
+            type="BodySmall"
+            withProfileCardPopup={true}
+            onUsernameClicked="profile"
+          />
+        )}
       </Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
-      {ownerTeam ? (
-        <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
-      ) : (
-        <Kb.ConnectedUsernames
-          inline={true}
-          usernames={ownerUser ?? botUsername}
-          type="BodySmall"
-          withProfileCardPopup={true}
-          onUsernameClicked="profile"
-        />
-      )}
     </Kb.Box2>
   )
   return (
     <Kb.ListItem2
+      containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
       firstItem={!!firstItem}
-      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />}
+      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={botUsername} />}
       action={
         showTeamAdd ? (
           <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
@@ -142,10 +138,6 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.small,
       },
       addButton: {marginLeft: Styles.globalMargins.tiny},
-      avatarStyle: Styles.platformStyles({
-        isElectron: {marginRight: Styles.globalMargins.tiny},
-        isMobile: {marginRight: Styles.globalMargins.small},
-      }),
       botHeaders: {
         marginBottom: Styles.globalMargins.tiny,
         marginLeft: Styles.globalMargins.small,
@@ -154,12 +146,10 @@ const styles = Styles.styleSheetCreate(
       },
       container: Styles.platformStyles({
         isElectron: {
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          marginRight: Styles.globalMargins.small,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
         },
       }),
       divider: Styles.platformStyles({
@@ -167,6 +157,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: 56},
         isMobile: {marginLeft: 81},
       }),
+      listItemContainer: {paddingRight: Styles.globalMargins.tiny},
       row: {
         alignItems: 'center',
         flex: 1,
