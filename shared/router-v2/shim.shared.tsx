@@ -1,3 +1,14 @@
+import * as React from 'react'
+
+let _renderDebug = false
+export const useRenderDebug = () => {
+  const [renderDebug, setRenderDebug] = React.useState(_renderDebug)
+  React.useEffect(() => {
+    _renderDebug = renderDebug
+  }, [renderDebug])
+  return [renderDebug, setRenderDebug]
+}
+
 export const shim = (routes: any, platformWrapper: any) => {
   return Object.keys(routes).reduce((map, route) => {
     let _cached = null
