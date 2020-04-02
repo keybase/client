@@ -136,7 +136,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             <MinWriterRole conversationIDKey={conversationIDKey} />
           )}
 
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.section}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.section} gap="small">
             <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
 
             {canDeleteHistory && (
@@ -145,7 +145,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Secondary"
                 label="Clear entire conversation"
                 onClick={onShowClearConversationDialog}
-                style={styles.buttonStyle}
               />
             )}
             {entityType === 'adhoc' && (
