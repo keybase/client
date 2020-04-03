@@ -188,10 +188,12 @@ func TestServiceMapBecomesEmpty(t *testing.T) {
 	pkgs = serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
 		freshness, DefaultNetworkBudget)
 
+	var nilMap libkb.UserServiceSummary
+
 	require.Len(t, pkgs, 1)
 	require.Contains(t, pkgs, tTracy)
 	require.True(t, pkgs[tTracy].CachedAt >= now)
-	require.Equal(t, make(libkb.UserServiceSummary), pkgs[tTracy].ServiceMap)
+	require.Equal(t, nilMap, pkgs[tTracy].ServiceMap)
 
 	fakeClock.Advance(1 * time.Hour)
 
@@ -202,5 +204,5 @@ func TestServiceMapBecomesEmpty(t *testing.T) {
 	require.Len(t, pkgs, 1)
 	require.Contains(t, pkgs, tTracy)
 	require.True(t, pkgs[tTracy].CachedAt >= now)
-	require.Equal(t, make(libkb.UserServiceSummary), pkgs[tTracy].ServiceMap)
+	require.Equal(t, nilMap, pkgs[tTracy].ServiceMap)
 }
