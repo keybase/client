@@ -81,9 +81,10 @@ const actionTransformMap = {
   [WaitingGen.clearWaiting]: fullOutput,
 }
 
-const transformActionForLog = (action: any, state: TypedState) =>
-  actionTransformMap[action.type]
-    ? actionTransformMap[action.type](action, state)
-    : defaultTransformer(action)
+const transformActionForLog = (action: any, state: TypedState) => action
+// TEMP
+// actionTransformMap[action.type]
+// ? actionTransformMap[action.type](action, state)
+// : defaultTransformer(action)
 
 export default transformActionForLog
