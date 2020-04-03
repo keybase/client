@@ -7,7 +7,6 @@ import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
-import * as ChatGen from '../../../actions/chat2-gen'
 import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
@@ -43,7 +42,7 @@ const AddToChannels = (props: Props) => {
   const usernames = Container.getRouteProps(props, 'usernames', undefined) ?? [myUsername]
   const mode = Container.getRouteProps(props, 'usernames', undefined) ? 'others' : 'self'
 
-  const {channelMetas, loadingChannels} = useAllChannelMetas(teamID)
+  const {channelMetas, loadingChannels, triggerReload} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetasFiltered, channelMetaGeneral} = getChannelsForList(channelMetas)
 
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
@@ -128,6 +127,7 @@ const AddToChannels = (props: Props) => {
             }
             onSelect={() => onSelect(item.channelMeta.conversationIDKey)}
             mode={mode}
+            triggerReload={triggerReload}
           />
         )
     }
@@ -188,7 +188,7 @@ const AddToChannels = (props: Props) => {
       noScrollView={true}
       onClose={onCancel}
     >
-      {loadingChannels ? (
+      {loadingChannels && !channelMetas?.size ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
@@ -237,7 +237,13 @@ const HeaderRow = ({mode, onCreate, onSelectAll, onSelectNone}) => (
   </Kb.Box2>
 )
 
-const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
+const SelfChannelActions = ({
+  meta,
+  triggerReload,
+}: {
+  meta: ChatTypes.ConversationMeta
+  triggerReload: () => void
+}) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
@@ -252,11 +258,15 @@ const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
   const onDelete = () =>
     // TODO: reload this list or at least hide this row
     dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamDeleteChannel'}]}))
-  const onLeave = () =>
-    dispatch(
-      ChatGen.createLeaveConversation({conversationIDKey: meta.conversationIDKey, dontNavigateToInbox: true})
-    )
-  const onJoin = () => dispatch(ChatGen.createJoinConversation({conversationIDKey: meta.conversationIDKey}))
+
+  const joinRPC = Container.useRPC(RPCChatGen.localJoinConversationByIDLocalRpcPromise)
+  const leaveRPC = Container.useRPC(RPCChatGen.localLeaveConversationLocalRpcPromise)
+
+  const waitingKey = `joinOrLeave:${meta.conversationIDKey}`
+  const waiting = Container.useAnyWaiting(waitingKey)
+  const convID = ChatTypes.keyToConversationID(meta.conversationIDKey)
+  const onLeave = () => leaveRPC([{convID}, waitingKey], triggerReload, () => {})
+  const onJoin = () => joinRPC([{convID}, waitingKey], triggerReload, () => {})
 
   const menuItems = [
     {onClick: onEditChannel, title: 'Edit channel'},
@@ -281,8 +291,6 @@ const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
     <Kb.Box2 direction="horizontal" gap="xtiny" fullHeight={true}>
       {popup}
       {meta.channelname !== 'general' && (
-        // TODO: waiting state
-        // TODO: flip this to the other button after being clicked
         <Kb.Button
           type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
           mode={inChannel ? 'Secondary' : 'Primary'}
@@ -303,6 +311,7 @@ const SelfChannelActions = ({meta}: {meta: ChatTypes.ConversationMeta}) => {
           onClick={Styles.isMobile ? (inChannel ? onLeave : onJoin) : undefined}
           small={true}
           style={styles.joinLeaveButton}
+          waiting={waiting}
         />
       )}
       <Kb.Button
@@ -321,8 +330,9 @@ type ChannelRowProps = {
   selected: boolean
   onSelect: () => void
   mode: 'self' | 'others'
+  triggerReload: () => void
 }
-const ChannelRow = ({channelMeta, mode, selected, onSelect}: ChannelRowProps) => {
+const ChannelRow = ({channelMeta, mode, selected, onSelect, triggerReload}: ChannelRowProps) => {
   const selfMode = mode === 'self'
   const numParticipants = Container.useSelector(
     s => ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey).name.length
@@ -343,7 +353,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect}: ChannelRowProps) =>
           <Common.Activity level={activityLevel} />
         </Kb.Box2>
         {selfMode ? (
-          <SelfChannelActions meta={channelMeta} />
+          <SelfChannelActions meta={channelMeta} triggerReload={triggerReload} />
         ) : (
           <Kb.CheckCircle
             checked={selected}
@@ -367,7 +377,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect}: ChannelRowProps) =>
       type="Large"
       action={
         selfMode ? (
-          <SelfChannelActions meta={channelMeta} />
+          <SelfChannelActions meta={channelMeta} triggerReload={triggerReload} />
         ) : (
           <Kb.CheckCircle
             checked={selected}

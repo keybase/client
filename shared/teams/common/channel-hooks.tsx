@@ -16,14 +16,24 @@ function filterNull<A>(arr: Array<A | null>): Array<A> {
 export const useAllChannelMetas = (
   teamID: Types.TeamID,
   dontCallRPC?: boolean
-): {channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>; loadingChannels: boolean} => {
+): {
+  channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>
+  loadingChannels: boolean
+  triggerReload: () => void
+} => {
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
   const [inboxUIItems, setConvs] = React.useState<RPCChatTypes.InboxUIItem[] | null>(null)
+  const [reloadValue, setReloadValue] = React.useState(0)
+  const triggerReload = () => setReloadValue(reloadValue + 1)
 
+  const [loadingChannels, setLoadingChannels] = React.useState(true)
+
+  // TODO: ensure only one RPC can be in flight at a time
   React.useEffect(() => {
     if (!dontCallRPC) {
+      setLoadingChannels(true)
       getConversations(
         [
           {
@@ -35,11 +45,14 @@ export const useAllChannelMetas = (
         ],
         ({convs}) => {
           convs && setConvs(convs)
+          setLoadingChannels(false)
         },
-        () => {} // TODO error handling
+        () => {
+          setLoadingChannels(false)
+        } // TODO error handling
       )
     }
-  }, [teamID, teamname, dontCallRPC, getConversations])
+  }, [teamID, teamname, dontCallRPC, getConversations, reloadValue])
 
   const conversationMetas = Container.useSelector(
     state =>
@@ -48,17 +61,7 @@ export const useAllChannelMetas = (
   )
   // TODO: not always a new map?
   const channelMetas = new Map(filterNull(conversationMetas).map(a => [a.conversationIDKey, a]))
-
-  const [loadingChannels, setLoadingChannels] = React.useState(true)
-  const nowLoading = Container.useAnyWaiting(Constants.getChannelsWaitingKey(teamID))
-  const wasLoading = Container.usePrevious(nowLoading)
-  React.useEffect(() => {
-    if (wasLoading && !nowLoading) {
-      setLoadingChannels(false)
-    }
-  }, [nowLoading, wasLoading, setLoadingChannels])
-
-  return {channelMetas, loadingChannels}
+  return {channelMetas, loadingChannels, triggerReload}
 }
 
 export const useChannelMeta = (
