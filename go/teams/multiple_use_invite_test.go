@@ -13,10 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO: This test might be obsolete by the time we are done with this project.
-// But it's the first test that adds and "uses" multiple use invite "for real",
-// that is, also sending it to the server, not just testing sigchain player.
-
 func TestTeamInviteStubbing(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
@@ -92,9 +88,19 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	inner = teamObj.chain().inner
 	require.Len(t, inner.ActiveInvites, 1)
-	_, ok := inner.ActiveInvites[inviteID]
+	invite, ok := inner.ActiveInvites[inviteID]
 	require.True(t, ok, "invite found loaded by user 2")
 	require.Len(t, inner.UsedInvites[inviteID], 1)
+
+	// See if User 2 can decrypt
+	pkey, err := SeitanDecodePKey(string(invite.Name))
+	require.NoError(t, err)
+
+	keyAndLabel, err := pkey.DecryptKeyAndLabel(context.TODO(), teamObj)
+	require.NoError(t, err)
+
+	ilink := keyAndLabel.Invitelink()
+	require.Equal(t, inviteLink.Ikey, ilink.I)
 }
 
 func TestSeitanHandleExceededInvite(t *testing.T) {
