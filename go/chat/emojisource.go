@@ -1,11 +1,9 @@
 package chat
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"image"
 	"image/gif"
 	"io/ioutil"
 	"os"
@@ -28,8 +26,8 @@ import (
 const (
 	minShortNameLength = 2
 	maxShortNameLength = 48
-	minEmojiSize       = 512       // min size for reading mime type
-	maxEmojiSize       = 64 * 1000 // 64kb
+	minEmojiSize       = 512        // min size for reading mime type
+	maxEmojiSize       = 256 * 1000 // 256kb
 	minEmojiWidth      = 16
 	minEmojiHeight     = 16
 	maxEmojiWidth      = 128
@@ -106,7 +104,7 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
-	alias = fmt.Sprintf(":%s", alias)
+	alias = fmt.Sprintf(":%s:", alias)
 	alias2 := strings.ReplaceAll(alias, "-", "_")
 	return storage.EmojiExists(alias) || storage.EmojiExists(alias2)
 }
@@ -159,23 +157,10 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 		return err
 	}
 	defer func() { src.Close() }()
-	mimeType, err := attachments.DetectMIMEType(ctx, src, filename)
+	img, _, err := images.Decode(src, nil)
 	if err != nil {
-		return err
-	}
-	var img image.Image
-	switch mimeType {
-	case "image/jpeg", "image/png", "image/vnd.microsoft.icon", "image/x-icon":
-		img, _, err = images.Decode(src, nil)
-		if err != nil {
-			return err
-		}
-	case "image/gif":
-		raw, err := ioutil.ReadAll(src)
-		if err != nil {
-			return err
-		}
-		g, err := gif.DecodeAll(bytes.NewReader(raw))
+		src.Reset()
+		g, err := gif.DecodeAll(src)
 		if err != nil {
 			return err
 		}
@@ -183,8 +168,6 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 			return errors.New("no image frames in GIF")
 		}
 		img = g.Image[0]
-	default:
-		return fmt.Errorf("mime type %s invalid for custom emoji", mimeType)
 	}
 	bounds := img.Bounds()
 	if bounds.Dx() > maxEmojiWidth || bounds.Dx() < minEmojiWidth ||
