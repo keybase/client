@@ -444,13 +444,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   private cachedMenuStyles = new Map<string, Styles.StylesCrossPlatform>()
   private menuAreaStyle = (exploded: boolean, exploding: boolean) => {
+    const commonWidth = 24
     const iconSizes = [
-      this.props.isRevoked ? 24 : 0, // revoked
-      this.props.showCoinsIcon ? 24 : 0, // coin stack
+      this.props.isRevoked ? commonWidth : 0, // revoked
+      this.props.showCoinsIcon ? commonWidth : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
-      exploding ? (Styles.isMobile ? 24 : 20) : 0, // exploding
-      this.isShowingIndicator() && !exploding ? 24 : 0, // sending/failed
-      this.getKeyedBot() && !this.props.authorIsBot ? 24 : 0,
+      exploding ? (Styles.isMobile ? commonWidth : 20) : commonWidth, // exploding or gutter
+      this.getKeyedBot() && !this.props.authorIsBot ? commonWidth : 0,
     ].filter(Boolean)
     const padding = Styles.globalMargins.tiny
     const width =

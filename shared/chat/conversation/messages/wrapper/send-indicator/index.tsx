@@ -9,7 +9,6 @@ type AnimationStatus =
   | 'sending'
   | 'sendingExploding'
   | 'sent'
-  | 'sentExploding'
 const statusToIcon: {[K in AnimationStatus]: Kb.AnimationType} = {
   encrypting: 'messageStatusEncrypting',
   encryptingExploding: 'messageStatusEncryptingExploding',
@@ -17,7 +16,6 @@ const statusToIcon: {[K in AnimationStatus]: Kb.AnimationType} = {
   sending: 'messageStatusSending',
   sendingExploding: 'messageStatusSendingExploding',
   sent: 'messageStatusSent',
-  sentExploding: 'messageStatusSentExploding',
 }
 const statusToIconDark: {[K in AnimationStatus]: Kb.AnimationType} = {
   encrypting: 'darkMessageStatusEncrypting',
@@ -26,7 +24,6 @@ const statusToIconDark: {[K in AnimationStatus]: Kb.AnimationType} = {
   sending: 'darkMessageStatusSending',
   sendingExploding: 'darkMessageStatusSendingExploding',
   sent: 'darkMessageStatusSent',
-  sentExploding: 'darkMessageStatusSentExploding',
 }
 
 const encryptingTimeout = 600
@@ -134,8 +131,14 @@ class SendIndicator extends React.Component<Props, State> {
     let animationType = Styles.isDarkMode()
       ? statusToIconDark[this.state.animationStatus]
       : statusToIcon[this.state.animationStatus]
+    // There is no exploding-error state
     if (this.props.isExploding && this.state.animationStatus !== 'error') {
-      animationType = `${animationType}Exploding` as Kb.AnimationType
+      // Don't show the sent state when exploding
+      if (this.state.animationStatus === 'sent') {
+        this.setState({visible: false})
+      } else {
+        animationType = `${animationType}Exploding` as Kb.AnimationType
+      }
     }
     return animationType
   }
