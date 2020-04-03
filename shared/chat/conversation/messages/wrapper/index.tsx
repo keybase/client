@@ -844,12 +844,12 @@ const styles = Styles.styleSheetCreate(
         common: {position: 'absolute'},
         isElectron: {
           pointerEvents: 'none',
-          right: 8,
-          top: 2,
+          right: 16,
+          top: 3,
         },
         isMobile: {
           right: 0,
-          top: -8,
+          top: 0,
         },
       }),
       timestamp: Styles.platformStyles({

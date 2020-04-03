@@ -143,13 +143,13 @@ const styles = Styles.styleSheetCreate(
     ({
       animation: Styles.platformStyles({
         common: {
-          height: 24,
-          width: 36,
+          height: 20,
+          width: 20,
         },
         isMobile: {
           backgroundColor: Styles.globalColors.white,
-          height: 32,
-          width: 48,
+          height: 24,
+          width: 24,
         },
       }),
       invisible: {opacity: 0},
