@@ -2,6 +2,8 @@ package teambot
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/utils"
@@ -33,6 +35,42 @@ func NewFeaturedBotLoader(g *libkb.GlobalContext) *FeaturedBotLoader {
 
 func (l *FeaturedBotLoader) debug(mctx libkb.MetaContext, msg string, args ...interface{}) {
 	l.G().Log.CDebugf(mctx.Ctx(), "FeaturedBotLoader: %s", fmt.Sprintf(msg, args...))
+}
+
+func (l *FeaturedBotLoader) SearchLocal(mctx libkb.MetaContext, arg keybase1.SearchLocalArg) (res keybase1.SearchRes, err error) {
+	defer mctx.TraceTimed("FeaturedBotLoader: SearchLocal", func() error { return err })()
+	if len(arg.Query) == 0 || arg.Limit == 0 {
+		return res, nil
+	}
+	bots, err := l.AllFeaturedBots(mctx, arg.SkipCache)
+	if err != nil {
+		return res, err
+	}
+
+	var results []*rankedSearchItem
+	query := strings.ToLower(arg.Query)
+	for _, item := range bots.Bots {
+		score := scoreItemFromQuery(query, item)
+		if filterScore(score) {
+			continue
+		}
+		results = append(results, &rankedSearchItem{
+			item:  item,
+			score: score,
+		})
+	}
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].score > results[j].score
+	})
+	res.IsLastPage = true
+	for index, r := range results {
+		if index >= arg.Limit {
+			res.IsLastPage = false
+			break
+		}
+		res.Bots = append(res.Bots, r.item)
+	}
+	return res, nil
 }
 
 func (l *FeaturedBotLoader) Search(mctx libkb.MetaContext, arg keybase1.SearchArg) (res keybase1.SearchRes, err error) {
@@ -117,6 +155,7 @@ func (l *FeaturedBotLoader) present(mctx libkb.MetaContext, bots []keybase1.Feat
 
 func (l *FeaturedBotLoader) syncFeaturedBots(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg, existingData *keybase1.FeaturedBotsRes) (res keybase1.FeaturedBotsRes, err error) {
 	defer mctx.TraceTimed("FeaturedBotLoader: syncFeaturedBots", func() error { return err })()
+	// TODO make this happen much less often. hash system?
 	res, err = l.featuredBotsFromServer(mctx, arg)
 	if err != nil {
 		l.debug(mctx, "syncFeaturedBots: failed to load from server: %s", err)
@@ -158,4 +197,24 @@ func (l *FeaturedBotLoader) FeaturedBots(mctx libkb.MetaContext, arg keybase1.Fe
 		return res, err
 	}
 	return l.syncFeaturedBots(mctx, arg, nil)
+}
+
+func (l *FeaturedBotLoader) AllFeaturedBots(mctx libkb.MetaContext, skipCache bool) (res keybase1.FeaturedBotsRes, err error) {
+	arg := keybase1.FeaturedBotsArg{
+		Limit:     1000,
+		Offset:    0,
+		SkipCache: skipCache,
+	}
+	// Limit the number of iterations so a server bug doesn't cause an infinite
+	// loop.
+	for i := 0; !res.IsLastPage && i < 5; i++ {
+		page, err := l.FeaturedBots(mctx, arg)
+		if err != nil {
+			return res, err
+		}
+		res.Bots = append(res.Bots, page.Bots...)
+		res.IsLastPage = page.IsLastPage
+		arg.Offset += arg.Limit
+	}
+	return res, nil
 }

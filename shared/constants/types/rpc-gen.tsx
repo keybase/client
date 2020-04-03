@@ -3989,6 +3989,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
+// 'keybase.1.featuredBot.searchLocal'
 // 'keybase.1.fs.List'
 // 'keybase.1.git.putGitMetadata'
 // 'keybase.1.git.deleteGitMetadata'
