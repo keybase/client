@@ -462,7 +462,6 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	var recs []chat1.OutboxRecord
 	numCancelled := 0
 	for _, obr := range obox.Records {
-		o.Debug(ctx, "DEBUG: message: %s, cancel: %v", obr.Msg.MessageBody.Text().Body, shouldCancel(obr))
 		if shouldCancel(obr) {
 			o.cleanupOutboxItem(ctx, obr)
 			numCancelled++
