@@ -714,6 +714,13 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
+	// MapTeamAncestors runs `f` for each of a team's ancestors, excluding the team itself.
+	// `f` is an arbitrary function. if it returns an error, the load halts.
+	// `teamID` is the team whose ancestors we are mapping over.
+	// `reason` is a context string used for logging.
+	// `forceFullReloadOnceToAssert` is a predicate that will cause a force full reload if it is
+	//		false. It can be used when a new field is added to keybase1.SigChainState that requires
+	//		a full reload to obtain.
 	MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState, n keybase1.TeamName) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, *keybase1.HiddenTeamChain, error)

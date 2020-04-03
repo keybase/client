@@ -1651,11 +1651,15 @@ protocol teams {
   // indicating the role of the user in each of the teams of the partial tree wrt the teamID.  The
   // partial tree of a teamID contains that team, all of its direct ancestors, and all the subteams
   // (recursively). For example, in the team tree
-  //    A
-  // B      C
-  //      D    E
-  //     F G    H
-  //    I
+  //     .___A_____.
+  //     |         |
+  //     B     .___C__.
+  //           |      |
+  //           D   .__E__.
+  //           |   |  |  |
+  //           F   G  H  I
+  //		       |
+  //               J
   // if teamID were C, then the partial tree contains A, C, D, E, F, G, H, I.
   //
   // The logged in user must be an admin of teamID in order to call this function. This is so it can
@@ -1672,9 +1676,9 @@ protocol teams {
   // always get sent), and then wait for the specified number of TeamTreeMembershipsPartial
   // notifications (if they have not already arrived). These invariants will hold true even if there
   // is an error that causes some subtree to not be loaded. In the example above, if the tree load
-  // were started at D and (for whatever reason) the load failed at C and F, then this function
-  // would not attempt to load A or I, but would continue to load the rest of the tree.  In this
-  // case, there would only be 4 Partial notifications instead of all 6.
+  // were started at E and (for whatever reason) the load failed at C and G, then this function
+  // would not attempt to load A or J, but would continue to load the rest of the tree. In this
+  // case, there would only be 5 Partial notifications (C, E, G, H, I) instead of all 7.
   void loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
   // called when navigating out of page
   void cancelLoadTeamTree(int sessionID);
