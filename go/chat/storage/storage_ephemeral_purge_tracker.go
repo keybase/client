@@ -225,6 +225,10 @@ func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 	t.Lock()
 	defer t.Unlock()
 
+	if err := t.flushLocked(ctx); err != nil {
+		return nil, NewInternalError(ctx, t.DebugLabeler, "unable to flush: %v", err)
+	}
+
 	dbKeys, err := t.getAllKeysLocked(ctx, uid)
 	if err != nil {
 		return nil, err
