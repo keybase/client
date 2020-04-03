@@ -39,9 +39,6 @@ import com.facebook.react.modules.core.PermissionListener;
 import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
-import android.view.KeyEvent;
-import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -72,7 +69,6 @@ import static keybase.Keybase.initOnce;
 public class MainActivity extends ReactActivity {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
-  private boolean isUsingHardwareKeyboard = false;
   static boolean createdReact = false;
 
   @Override
@@ -172,8 +168,6 @@ public class MainActivity extends ReactActivity {
     }, 300);
 
     KeybasePushNotificationListenerService.createNotificationChannel(this);
-
-    updateIsUsingHardwareKeyboard();
   }
 
   @Override
@@ -434,12 +428,8 @@ public class MainActivity extends ReactActivity {
 
     try {
       setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
-    } catch (Exception e) {}
+    } catch (Exception e) {
 
-    if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
-      isUsingHardwareKeyboard = true;
-    } else if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
-      isUsingHardwareKeyboard = false;
     }
   }
 
@@ -458,27 +448,5 @@ public class MainActivity extends ReactActivity {
     handler.post(() -> {
       mainWindow.setBackgroundDrawableResource(bgColor);
     });
-  }
-
-  @Override
-  public boolean dispatchKeyEvent(KeyEvent event) {
-    if (isUsingHardwareKeyboard && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-      // Detects user pressing the enter key
-      if (event.getAction() == KeyEvent.ACTION_DOWN && !event.isShiftPressed()) {
-        // Enter is pressed
-        HWKeyboardEventModule.getInstance().keyPressed("enter");
-        return true;
-      }
-      if (event.getAction() == KeyEvent.ACTION_DOWN && event.isShiftPressed()) {
-        // Shift-Enter is pressed
-        HWKeyboardEventModule.getInstance().keyPressed("shift-enter");
-        return true;
-      }
-    }
-    return super.dispatchKeyEvent(event);
-  }
-
-  private void updateIsUsingHardwareKeyboard()  {
-    isUsingHardwareKeyboard = getResources().getConfiguration().keyboard == Configuration.KEYBOARD_QWERTY;
   }
 }

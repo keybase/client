@@ -21,7 +21,6 @@
 #import <UMCore/UMModuleRegistry.h>
 #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
 #import <UMReactNativeAdapter/UMModuleRegistryAdapter.h>
-#import <RNHWKeyboardEvent.h>
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
@@ -297,30 +296,6 @@
   // You can inject any extra modules that you would like here, more information at:
   // https://facebook.github.io/react-native/docs/native-modules-ios.html#dependency-injection
   return extraModules;
-}
-
-RNHWKeyboardEvent *hwKeyEvent = nil;
-- (NSMutableArray<UIKeyCommand *> *)keyCommands {
-  NSMutableArray *keys = [NSMutableArray new];
-  if (hwKeyEvent == nil) {
-    hwKeyEvent = [[RNHWKeyboardEvent alloc] init];
-  }
-  if ([hwKeyEvent isListening]) {
-    [keys addObject: [UIKeyCommand keyCommandWithInput:@"\r" modifierFlags:0 action:@selector(sendEnter:)]];
-    [keys addObject: [UIKeyCommand keyCommandWithInput:@"\r" modifierFlags:UIKeyModifierShift action:@selector(sendShiftEnter:)]];
-  }
-  return keys;
-}
-
-- (void)sendEnter:(UIKeyCommand *)sender {
-  // Detects user pressing the enter key
-  NSString *selected = sender.input;
-  [hwKeyEvent sendHWKeyEvent:@"enter"];
-}
-- (void)sendShiftEnter:(UIKeyCommand *)sender {
-// Detects user pressing the shift-enter combination
-  NSString *selected = sender.input;
-  [hwKeyEvent sendHWKeyEvent:@"shift-enter"];
 }
 
 @end
