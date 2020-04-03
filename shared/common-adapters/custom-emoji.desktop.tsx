@@ -15,7 +15,8 @@ const Kb = {
 
 const emojiTypes = {
   Big: 32,
-  Medium: 20,
+  MediumLarge: 26,
+  Medium: 18,
   Small: 16,
 }
 
@@ -24,6 +25,7 @@ const CustomEmoji = (props: Props) => {
   return (
     <Kb.Box2
       direction="horizontal"
+      alignItems="center"
       style={Styles.collapseStyles([
         styles.emoji,
         {
@@ -36,8 +38,9 @@ const CustomEmoji = (props: Props) => {
         <Kb.Image
           src={src}
           style={Styles.collapseStyles([
+            styles.image,
             {
-              height: emojiTypes[size],
+              maxHeight: emojiTypes[size],
               width: emojiTypes[size],
             },
           ])}
@@ -52,7 +55,13 @@ const styles = Styles.styleSheetCreate(
     ({
       emoji: Styles.platformStyles({
         isElectron: {
-          display: 'inline-block',
+          display: 'inline-flex',
+          justifyContent: 'center',
+        },
+      }),
+      image: Styles.platformStyles({
+        isElectron: {
+          display: 'inline',
           verticalAlign: 'middle',
         },
       }),

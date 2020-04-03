@@ -133,7 +133,7 @@ const emojiRenderer = (item: EmojiData, selected: boolean) => (
     gap="small"
   >
     {item.source ? (
-      <Kb.CustomEmoji size="Medium" src={item.source} />
+      <Kb.CustomEmoji size="MediumLarge" src={item.source} />
     ) : (
       <Kb.Emoji emojiName={item.short_name} size={24} />
     )}
