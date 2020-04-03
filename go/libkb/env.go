@@ -77,6 +77,7 @@ func (n NullConfiguration) GetUsernameForUID(u keybase1.UID) NormalizedUsername 
 func (n NullConfiguration) GetUIDForUsername(u NormalizedUsername) keybase1.UID {
 	return keybase1.UID("")
 }
+func (n NullConfiguration) GetSnoozeUpdates() (bool, bool)                        { return false, false }
 func (n NullConfiguration) GetStayLoggedOut() (bool, bool)                        { return false, false }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetRunMode() (RunMode, error)                          { return NoRunMode, nil }
@@ -1133,6 +1134,12 @@ func (e *Env) GetPidFile() (ret string, err error) {
 func (e *Env) GetEmail() string {
 	return e.GetString(
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
+	)
+}
+
+func (e *Env) GetSnoozeUpdates() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.GetConfig().GetSnoozeUpdates() },
 	)
 }
 

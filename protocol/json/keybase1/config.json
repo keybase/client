@@ -1049,6 +1049,10 @@
       "request": [],
       "response": null
     },
+    "snoozeUpdate": {
+      "request": [],
+      "response": null
+    },
     "waitForClient": {
       "request": [
         {

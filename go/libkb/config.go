@@ -599,6 +599,12 @@ func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (boo
 	}
 	return f.GetTopLevelBool(legacyRememberPassphraseKey)
 }
+func (f *JSONConfigFile) GetSnoozeUpdates() (bool, bool) {
+	return f.GetBoolAtPath("snooze_updates")
+}
+func (f *JSONConfigFile) SetSnoozeUpdates(snoozeUpdates bool) error {
+	return f.SetBoolAtPath("snooze_updates", snoozeUpdates)
+}
 func (f *JSONConfigFile) GetStayLoggedOut() (bool, bool) {
 	return f.GetBoolAtPath("stay_logged_out")
 }

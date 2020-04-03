@@ -392,6 +392,8 @@ func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 			return err
 		}
 	}
+	// TODO: do i need to do anything particular for snooze_updates when user
+	// switching?
 	return g.ActiveDevice.SetOrClear(m, ad)
 }
 

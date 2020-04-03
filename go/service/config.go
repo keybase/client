@@ -345,6 +345,11 @@ func (h ConfigHandler) StartUpdateIfNeeded(ctx context.Context) error {
 	return install.StartUpdateIfNeeded(ctx, h.G().Log)
 }
 
+func (h ConfigHandler) SnoozeUpdate(ctx context.Context) error {
+	m := libkb.NewMetaContext(ctx, h.G())
+	return install.SnoozeUpdate(m)
+}
+
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {
 	return h.G().ConnectionManager.WaitForClientType(arg.ClientType, arg.Timeout.Duration()), nil
 }
