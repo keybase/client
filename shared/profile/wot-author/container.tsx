@@ -21,7 +21,7 @@ export const WotAuthorRoot = (props: Props) => {
       console.log(answer) // PICNIC-1087 TODO use values
       dispatch(
         nav.safeNavigateAppendPayload({
-          path: [{props: {username: voucheeUsername, question: 'question2'}, selected: 'profileWotAuthor'}],
+          path: [{props: {question: 'question2', username: voucheeUsername}, selected: 'profileWotAuthor'}],
         })
       )
     }
