@@ -365,7 +365,6 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext,
 	uids []keybase1.UID, fullNameFreshness, networkTimeBudget time.Duration,
 	forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
-	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUserPackages(%s)", uidsToStringForLog(uids)), func() error { return err })()
 
 	u.Lock()
 	defer u.Unlock()
@@ -505,7 +504,6 @@ func (u *UIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.U
 	// returns only cached values. UIDs that were not cached at all result in
 	// default UsernamePackage, caller has to check if the result is present
 	// using `res[i].NormalizedUsername.IsNil()`.
-	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUsernamePackagesOffline(%s)", uidsToStringForLog(uids)), func() error { return err })()
 
 	u.Lock()
 	defer u.Unlock()
