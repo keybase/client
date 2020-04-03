@@ -266,7 +266,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     ),
   })
 
-  if (!waiting && customEmoji) {
+  if (!waiting && customEmoji.length) {
     sections.push({
       data: ['emoji-header'],
       key: 'emoji-header',
