@@ -81,6 +81,7 @@ const actionTransformMap = {
   [WaitingGen.clearWaiting]: fullOutput,
 }
 
+KB.debugConsoleLog('REMOVE THIS')
 const transformActionForLog = (action: any, state: TypedState) => action
 // TEMP
 // actionTransformMap[action.type]
