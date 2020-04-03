@@ -368,17 +368,17 @@ class EditAvatar extends React.Component<Props, State> {
               </Kb.Box>
             )}
             <Kb.Text center={true} type="Body" style={styles.instructions}>
-              Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
+              Drag and drop a {this.props.type} avatar or{' '}
               <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
-                browse your computer for one
-              </Kb.Text>
-              .
+                browse your computer
+              </Kb.Text>{' '}
+              for one.
             </Kb.Text>
             <HoverBox
               className={Styles.classNames({filled: this.state.hasPreview})}
               onClick={this.state.hasPreview ? null : this.filePickerOpen}
               style={{
-                borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+                borderRadius: this.props.type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
               }}
             >
               <input
@@ -478,7 +478,7 @@ class EditAvatar extends React.Component<Props, State> {
             </Kb.Box>
           )}
           <Kb.Text center={true} type="Body" style={styles.instructions}>
-            Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
+            Drag and drop a {this.props.type} avatar or{' '}
             <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
               browse your computer for one
             </Kb.Text>
@@ -488,7 +488,7 @@ class EditAvatar extends React.Component<Props, State> {
             className={Styles.classNames({filled: this.state.hasPreview})}
             onClick={this.state.hasPreview ? null : this.filePickerOpen}
             style={{
-              borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+              borderRadius: this.props.type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
             }}
           >
             <input

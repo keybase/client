@@ -59,7 +59,7 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
       ? []
       : [
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
+            path: [{props: {createdTeam: true, teamID}, selected: 'teamEditTeamAvatar'}],
           }),
         ]),
   ]
@@ -1471,11 +1471,11 @@ const startNewTeamWizard = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
 const setTeamWizardTeamType = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
-const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescriptionPayload) =>
+const setTeamWizardNameDescription = () =>
   RouteTreeGen.createNavigateAppend({
     path: [
       {
-        props: {createdTeam: true, teamname: action.payload.teamname, wizard: true},
+        props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
         selected: 'teamEditTeamAvatar',
       },
     ],

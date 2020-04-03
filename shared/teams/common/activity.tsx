@@ -48,7 +48,7 @@ export const ModalTitle = ({title, teamID}: Props) => {
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
       <Kb.Avatar
         size={32}
-        teamname={teamname}
+        teamname={teamname === 'New team' ? '' : teamname}
         style={styles.avatar}
         isTeam={true}
         imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}

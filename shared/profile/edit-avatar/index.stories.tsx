@@ -13,6 +13,7 @@ const props = {
   onSkip: Sb.action('onSkip'),
   submitting: false,
   teamID: Types.noTeamID,
+  type: 'profile' as const,
   waitingKey: 'dummyWaitingKey',
   wizard: false,
 }

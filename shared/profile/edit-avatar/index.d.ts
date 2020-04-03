@@ -1,12 +1,12 @@
 import {Component} from 'react'
-import {ImagePickerResult} from 'expo-image-picker'
+import {ImageInfo} from '../../util/expo-image-picker'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/teams'
 
 export type Props = {
   createdTeam?: boolean
   error: string
-  image?: ImagePickerResult
+  image?: ImageInfo
   onBack: () => void
   onClose: () => void
   onSave: (
@@ -21,6 +21,7 @@ export type Props = {
   submitting: boolean
   teamID: Types.TeamID
   teamname?: string
+  type: 'team' | 'profile'
   waitingKey: string
   wizard: boolean
 }

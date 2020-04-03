@@ -316,9 +316,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
     ? () =>
         dispatch(
           nav.safeNavigateAppendPayload({
-            path: [
-              {props: {sendChatNotification: true, teamname: meta.teamname}, selected: 'teamEditTeamAvatar'},
-            ],
+            path: [{props: {sendChatNotification: true, teamID}, selected: 'teamEditTeamAvatar'}],
           })
         )
     : undefined
