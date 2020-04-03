@@ -22,15 +22,22 @@ var durationRxp = regexp.MustCompile(`^([0-9]+)\s?(([nuµμm]?s)|[mhdDMyY])$`)
 //    - 'D' for days,
 //    - 'M' for months,
 //    - 'Y' for years,
-// - only whole numbers are supported,
+// - fractional numbers are *not* supported,
+// - negative numbers are *not* supported,
 // - whitespace at the beginning and end of duration string is ignored,
 // - optionally there can be one whitespace character between the number
 //   and unit.
 //
+// Long durations are handled using Time.AddDate function, which works by
+// adding given number of years, months, and days to tval. It normalizes its
+// result, for example, adding one month to October 31 yields December 1, the
+// normalized form for November 31.
+//
 // Examples:
 //   `AddLongDuration(time.Now(), "1000 Y")`
 //   `AddLongDuration(time.Now(), "7 D")`
-func AddLongDuration(now time.Time, duration string) (ret time.Time, err error) {
+//   `AddLongDuration(then, "1 M")`
+func AddLongDuration(tval time.Time, duration string) (ret time.Time, err error) {
 	duration = strings.TrimSpace(duration)
 
 	parsed := durationRxp.FindStringSubmatch(duration)
@@ -50,18 +57,18 @@ func AddLongDuration(now time.Time, duration string) (ret time.Time, err error) 
 		if err != nil {
 			return ret, err
 		}
-		return now.Add(dur), nil
+		return tval.Add(dur), nil
 	case "d":
 		return ret, fmt.Errorf("use 'D' unit for days instead of '%s'", unit)
 	case "D": // day
-		return now.AddDate(0, 0, int(amount)), nil
+		return tval.AddDate(0, 0, int(amount)), nil
 	// 'm' is minute, handled by time.ParseDuration.
 	case "M": // month
-		return now.AddDate(0, int(amount), 0), nil
+		return tval.AddDate(0, int(amount), 0), nil
 	case "y":
 		return ret, fmt.Errorf("use 'Y' unit for years instead of '%s'", unit)
 	case "Y": // year
-		return now.AddDate(int(amount), 0, 0), nil
+		return tval.AddDate(int(amount), 0, 0), nil
 	default:
 		return ret, fmt.Errorf("unhandled unit %q", unit)
 	}
