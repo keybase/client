@@ -946,7 +946,7 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 
 	if team.IsSubteam() {
 		mctx.Debug("calculating summary for subteam; loading implicit admins")
-		err = mctx.G().GetTeamLoader().MapTeamAncestors(mctx.Ctx(), func(t keybase1.TeamSigChainState, _ keybase1.TeamName) error {
+		err = mctx.G().GetTeamLoader().MapTeamAncestors(mctx.Ctx(), func(t keybase1.TeamSigChainState) error {
 			chain := TeamSigChainState{inner: t}
 			ancestorCheckpoints, err := getPUKCheckpoints(mctx, &chain, merkleSeqno, fastforwardToAddition)
 			if err != nil {

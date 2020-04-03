@@ -1065,8 +1065,8 @@ type teamNotifyHandler struct {
 	teamRoleMapCh      chan keybase1.UserTeamVersion
 	metadataUpdateCh   chan struct{}
 
-	TeamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
-	TeamTreeMembershipsDoneCh    chan int
+	teamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
+	teamTreeMembershipsDoneCh    chan int
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
@@ -1082,8 +1082,8 @@ func newTeamNotifyHandler() *teamNotifyHandler {
 		newlyAddedToTeam:             make(chan keybase1.TeamID, 10),
 		teamRoleMapCh:                make(chan keybase1.UserTeamVersion, 100),
 		metadataUpdateCh:             make(chan struct{}, 10),
-		TeamTreeMembershipsPartialCh: make(chan keybase1.TeamTreeMembership, 10),
-		TeamTreeMembershipsDoneCh:    make(chan int, 10),
+		teamTreeMembershipsPartialCh: make(chan keybase1.TeamTreeMembership, 10),
+		teamTreeMembershipsDoneCh:    make(chan int, 10),
 	}
 }
 
@@ -1161,14 +1161,14 @@ func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keyb
 func (n *teamNotifyHandler) TeamTreeMembershipsPartial(ctx context.Context,
 	arg keybase1.TeamTreeMembershipsPartialArg) error {
 
-	n.TeamTreeMembershipsPartialCh <- arg.Membership
+	n.teamTreeMembershipsPartialCh <- arg.Membership
 	return nil
 }
 
 func (n *teamNotifyHandler) TeamTreeMembershipsDone(ctx context.Context,
 	arg keybase1.TeamTreeMembershipsDoneArg) error {
 
-	n.TeamTreeMembershipsDoneCh <- arg.ExpectedCount
+	n.teamTreeMembershipsDoneCh <- arg.ExpectedCount
 	return nil
 }
 
@@ -2145,7 +2145,7 @@ func mustCreateSubteam(t *testing.T, tc *libkb.TestContext,
 }
 
 func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNotifyHandler,
-	teamID keybase1.TeamID, username string, converter teams.ITreeloaderStateConverter,
+	teamID keybase1.TeamID, username string, converter teams.TreeloaderStateConverter,
 	teamFailures []keybase1.TeamName) ([]keybase1.TeamTreeMembership, error) {
 	var err error
 	if converter == nil {
@@ -2163,13 +2163,13 @@ func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNoti
 loop:
 	for {
 		select {
-		case res := <-notifications.TeamTreeMembershipsDoneCh:
+		case res := <-notifications.teamTreeMembershipsDoneCh:
 			// We don't immediately break in this case because we are not guaranteed to receive this
 			// notification last by the RPC layer. So we wait until all of the messages are
 			// received. Even if there were errors, we should still get exactly this many
-			// notifications in TeamTreeMembershipsPartialCh.
+			// notifications in teamTreeMembershipsPartialCh.
 			expectedCount = &res
-		case res := <-notifications.TeamTreeMembershipsPartialCh:
+		case res := <-notifications.teamTreeMembershipsPartialCh:
 			got++
 			results = append(results, res)
 			s, err := res.Result.S()
@@ -2216,12 +2216,12 @@ func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 
 type mockConverter struct {
 	failureTeamIDs []keybase1.TeamID
-	converter      teams.ITreeloaderStateConverter
+	converter      teams.TreeloaderStateConverter
 }
 
 func (m mockConverter) SigchainStateToTeamTreeMembership(mctx libkb.MetaContext,
-	s *keybase1.TeamSigChainState, uv keybase1.UserVersion,
-	np teams.NodePosition) (res keybase1.TeamTreeMembershipResult) {
+	s *keybase1.TeamSigChainState,
+	uv keybase1.UserVersion) (res keybase1.TeamTreeMembershipResult) {
 
 	for _, failureTeamID := range m.failureTeamIDs {
 		if failureTeamID == s.Id {
@@ -2234,7 +2234,7 @@ func (m mockConverter) SigchainStateToTeamTreeMembership(mctx libkb.MetaContext,
 func newMockConverter(failureTeamIDs []keybase1.TeamID) mockConverter {
 	return mockConverter{
 		failureTeamIDs: failureTeamIDs,
-		converter:      &teams.TreeloaderStateConverter{},
+		converter:      &teams.DefaultTreeloaderStateConverter{},
 	}
 }
 
@@ -2253,6 +2253,29 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	tang := tt.addUser("tang")
 
 	t.Logf("Creating teams")
+
+	// Create the folowing team tree:
+	//
+	//     .___A_____.
+	//     |         |
+	//     B     .___C__.
+	//           |      |
+	//           D   .__E__.
+	//           |   |  |  |
+	//           F   G  H  I
+	//
+	// Teams are going to have the following members:
+	//
+	// A: zulu (adm)
+	// B: yank (adm)
+	// C: yank (adm), vict, tang
+	// D: xray (adm), unif
+	// E: tang (adm), vict
+	// F: yank (adm)
+	// G: yank, whis (adm), vict
+	// H: zulu, xray
+	// I: zulu, unif
+
 	aID, aName := alfa.createTeam2()
 	bName := mustAppend(t, aName, "bb")
 	cName := mustAppend(t, aName, "cc")
