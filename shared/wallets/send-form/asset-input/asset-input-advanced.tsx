@@ -111,22 +111,24 @@ const LeftBlock = (_: EmptyProps) => {
   } else if (builtPaymentAdvanced.sourceDisplay) {
     return (
       <Kb.Box2 direction="vertical" alignItems="flex-start">
-        <Kb.Text
-          type="HeaderBigExtrabold"
-          style={builtPaymentAdvanced.amountError ? styles.error : undefined}
-        >
-          ~{builtPaymentAdvanced.sourceDisplay}
-        </Kb.Text>
-        <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
-        {!!buildingAdvanced.recipientAsset && (
-          <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
-        )}
         {builtPaymentAdvanced.amountError ? (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
             {builtPaymentAdvanced.amountError}
           </Kb.Text>
         ) : (
-          <Available />
+          <>
+            <Kb.Text
+              type="HeaderBigExtrabold"
+              style={builtPaymentAdvanced.amountError ? styles.error : undefined}
+            >
+              ~{builtPaymentAdvanced.sourceDisplay}
+            </Kb.Text>
+            <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
+            {!!buildingAdvanced.recipientAsset && (
+              <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
+            )}
+            <Available />
+          </>
         )}
       </Kb.Box2>
     )
