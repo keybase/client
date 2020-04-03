@@ -19,40 +19,46 @@ export const useAllChannelMetas = (
 ): {
   channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>
   loadingChannels: boolean
-  triggerReload: () => void
+  reloadChannels: () => Promise<undefined>
 } => {
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
   const [inboxUIItems, setConvs] = React.useState<RPCChatTypes.InboxUIItem[] | null>(null)
-  const [reloadValue, setReloadValue] = React.useState(0)
-  const triggerReload = () => setReloadValue(reloadValue + 1)
-
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
-  // TODO: ensure only one RPC can be in flight at a time
+  const reloadChannels = React.useCallback(
+    () =>
+      new Promise<undefined>((resolve, reject) => {
+        setLoadingChannels(true)
+        getConversations(
+          [
+            {
+              membersType: RPCChatTypes.ConversationMembersType.team,
+              tlfName: teamname,
+              topicType: RPCChatTypes.TopicType.chat,
+            },
+            Constants.getChannelsWaitingKey(teamID),
+          ],
+          ({convs}) => {
+            resolve()
+            convs && setConvs(convs)
+            setLoadingChannels(false)
+          },
+          error => {
+            setLoadingChannels(false)
+            reject(error)
+          }
+        )
+      }),
+    [setLoadingChannels, teamID, teamname, getConversations]
+  )
+
   React.useEffect(() => {
     if (!dontCallRPC) {
-      setLoadingChannels(true)
-      getConversations(
-        [
-          {
-            membersType: RPCChatTypes.ConversationMembersType.team,
-            tlfName: teamname,
-            topicType: RPCChatTypes.TopicType.chat,
-          },
-          Constants.getChannelsWaitingKey(teamID),
-        ],
-        ({convs}) => {
-          convs && setConvs(convs)
-          setLoadingChannels(false)
-        },
-        () => {
-          setLoadingChannels(false)
-        } // TODO error handling
-      )
+      reloadChannels()
     }
-  }, [teamID, teamname, dontCallRPC, getConversations, reloadValue])
+  }, [reloadChannels, dontCallRPC])
 
   const conversationMetas = Container.useSelector(
     state =>
@@ -61,7 +67,7 @@ export const useAllChannelMetas = (
   )
   // TODO: not always a new map?
   const channelMetas = new Map(filterNull(conversationMetas).map(a => [a.conversationIDKey, a]))
-  return {channelMetas, loadingChannels, triggerReload}
+  return {channelMetas, loadingChannels, reloadChannels}
 }
 
 export const useChannelMeta = (

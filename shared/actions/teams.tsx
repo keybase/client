@@ -1510,9 +1510,12 @@ const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
 
 const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
   RouteTreeGen.createNavigateAppend({
-    path: flags.teamsRedesign
-      ? [{props: {mode: 'self', teamID: action.payload.teamID}, selected: 'teamAddToChannels'}]
-      : [{props: {teamID: action.payload.teamID}, selected: 'chatManageChannels'}],
+    path: [
+      {
+        props: {teamID: action.payload.teamID},
+        selected: flags.teamsRedesign ? 'teamAddToChannels' : 'chatManageChannels',
+      },
+    ],
   })
 
 const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogger) => {
