@@ -23,7 +23,7 @@ type WotModalProps = {
 
 const WotModal = (props: WotModalProps) => {
   const dispatch = Container.useDispatch()
-  const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
+  const onClose = () => dispatch(RouteTreeGen.createNavigateUp()) // xxx todo safe nav
   return (
     <Kb.Modal
       onClose={onClose}
@@ -335,9 +335,8 @@ const OtherInput = (props: {otherText: string; setOtherText: (_: string) => void
 
 // Store checkedness for a list of checkboxes.
 function useCheckboxesState<T>(items: T[]): (T & {checked: boolean; onCheck: (_: boolean) => void})[] {
-  const initial = items.map(() => false)
-  const [stateStored, setState] = React.useState<boolean[]>(initial)
-  const state = items.length === stateStored.length ? stateStored : initial
+  const [stateStored, setState] = React.useState<boolean[]>(items.map(() => false))
+  const state = items.length === stateStored.length ? stateStored : items.map(() => false)
   return items.map((item, i) => ({
     ...item,
     checked: state[i],

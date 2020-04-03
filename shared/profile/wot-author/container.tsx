@@ -31,7 +31,7 @@ export const WotAuthorRoot = (props: Props) => {
   } else {
     const onSubmit = answer => {
       console.log(answer) // PICNIC-1087 TODO use values
-      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(RouteTreeGen.createNavigateUp()) // xxx todo nav
     }
     return (
       <Question2
