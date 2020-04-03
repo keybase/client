@@ -41,7 +41,7 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 		return err
 	}
 	conv, _, err := NewConversation(ctx, s.G(), uid, username, &name, chat1.TopicType_DEV,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, s.ri,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, nil, s.ri,
 		NewConvFindExistingNormal)
 	if err != nil {
 		return err

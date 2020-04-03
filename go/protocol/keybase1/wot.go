@@ -87,21 +87,25 @@ func (e WotReactionType) String() string {
 }
 
 type WotVouch struct {
-	Status     WotStatusType `codec:"status" json:"status"`
-	VouchProof SigID         `codec:"vouchProof" json:"vouchProof"`
-	Vouchee    UserVersion   `codec:"vouchee" json:"vouchee"`
-	Voucher    UserVersion   `codec:"voucher" json:"voucher"`
-	VouchTexts []string      `codec:"vouchTexts" json:"vouchTexts"`
-	VouchedAt  Time          `codec:"vouchedAt" json:"vouchedAt"`
-	Confidence *Confidence   `codec:"confidence,omitempty" json:"confidence,omitempty"`
+	Status          WotStatusType `codec:"status" json:"status"`
+	VouchProof      SigID         `codec:"vouchProof" json:"vouchProof"`
+	Vouchee         UserVersion   `codec:"vouchee" json:"vouchee"`
+	VoucheeUsername string        `codec:"voucheeUsername" json:"voucheeUsername"`
+	Voucher         UserVersion   `codec:"voucher" json:"voucher"`
+	VoucherUsername string        `codec:"voucherUsername" json:"voucherUsername"`
+	VouchTexts      []string      `codec:"vouchTexts" json:"vouchTexts"`
+	VouchedAt       Time          `codec:"vouchedAt" json:"vouchedAt"`
+	Confidence      *Confidence   `codec:"confidence,omitempty" json:"confidence,omitempty"`
 }
 
 func (o WotVouch) DeepCopy() WotVouch {
 	return WotVouch{
-		Status:     o.Status.DeepCopy(),
-		VouchProof: o.VouchProof.DeepCopy(),
-		Vouchee:    o.Vouchee.DeepCopy(),
-		Voucher:    o.Voucher.DeepCopy(),
+		Status:          o.Status.DeepCopy(),
+		VouchProof:      o.VouchProof.DeepCopy(),
+		Vouchee:         o.Vouchee.DeepCopy(),
+		VoucheeUsername: o.VoucheeUsername,
+		Voucher:         o.Voucher.DeepCopy(),
+		VoucherUsername: o.VoucherUsername,
 		VouchTexts: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -125,13 +129,6 @@ func (o WotVouch) DeepCopy() WotVouch {
 }
 
 type WotVouchArg struct {
-	SessionID  int         `codec:"sessionID" json:"sessionID"`
-	Vouchee    UserVersion `codec:"vouchee" json:"vouchee"`
-	VouchTexts []string    `codec:"vouchTexts" json:"vouchTexts"`
-	Confidence Confidence  `codec:"confidence" json:"confidence"`
-}
-
-type WotVouchCLIArg struct {
 	SessionID  int        `codec:"sessionID" json:"sessionID"`
 	Assertion  string     `codec:"assertion" json:"assertion"`
 	VouchTexts []string   `codec:"vouchTexts" json:"vouchTexts"`
@@ -139,13 +136,6 @@ type WotVouchCLIArg struct {
 }
 
 type WotReactArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Voucher   UserVersion     `codec:"voucher" json:"voucher"`
-	Proof     SigID           `codec:"proof" json:"proof"`
-	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
-}
-
-type WotReactCLIArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Voucher   string          `codec:"voucher" json:"voucher"`
 	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
@@ -157,7 +147,7 @@ type DismissWotNotificationsArg struct {
 	Vouchee   string `codec:"vouchee" json:"vouchee"`
 }
 
-type WotListCLIArg struct {
+type WotFetchVouchesArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Vouchee   string `codec:"vouchee" json:"vouchee"`
 	Voucher   string `codec:"voucher" json:"voucher"`
@@ -165,11 +155,9 @@ type WotListCLIArg struct {
 
 type WotInterface interface {
 	WotVouch(context.Context, WotVouchArg) error
-	WotVouchCLI(context.Context, WotVouchCLIArg) error
 	WotReact(context.Context, WotReactArg) error
-	WotReactCLI(context.Context, WotReactCLIArg) error
 	DismissWotNotifications(context.Context, DismissWotNotificationsArg) error
-	WotListCLI(context.Context, WotListCLIArg) ([]WotVouch, error)
+	WotFetchVouches(context.Context, WotFetchVouchesArg) ([]WotVouch, error)
 }
 
 func WotProtocol(i WotInterface) rpc.Protocol {
@@ -191,21 +179,6 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 					return
 				},
 			},
-			"wotVouchCLI": {
-				MakeArg: func() interface{} {
-					var ret [1]WotVouchCLIArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]WotVouchCLIArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]WotVouchCLIArg)(nil), args)
-						return
-					}
-					err = i.WotVouchCLI(ctx, typedArgs[0])
-					return
-				},
-			},
 			"wotReact": {
 				MakeArg: func() interface{} {
 					var ret [1]WotReactArg
@@ -218,21 +191,6 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 						return
 					}
 					err = i.WotReact(ctx, typedArgs[0])
-					return
-				},
-			},
-			"wotReactCLI": {
-				MakeArg: func() interface{} {
-					var ret [1]WotReactCLIArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]WotReactCLIArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]WotReactCLIArg)(nil), args)
-						return
-					}
-					err = i.WotReactCLI(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -251,18 +209,18 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 					return
 				},
 			},
-			"wotListCLI": {
+			"wotFetchVouches": {
 				MakeArg: func() interface{} {
-					var ret [1]WotListCLIArg
+					var ret [1]WotFetchVouchesArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]WotListCLIArg)
+					typedArgs, ok := args.(*[1]WotFetchVouchesArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]WotListCLIArg)(nil), args)
+						err = rpc.NewTypeError((*[1]WotFetchVouchesArg)(nil), args)
 						return
 					}
-					ret, err = i.WotListCLI(ctx, typedArgs[0])
+					ret, err = i.WotFetchVouches(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -279,18 +237,8 @@ func (c WotClient) WotVouch(ctx context.Context, __arg WotVouchArg) (err error) 
 	return
 }
 
-func (c WotClient) WotVouchCLI(ctx context.Context, __arg WotVouchCLIArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouchCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
-	return
-}
-
 func (c WotClient) WotReact(ctx context.Context, __arg WotReactArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.wot.wotReact", []interface{}{__arg}, nil, 0*time.Millisecond)
-	return
-}
-
-func (c WotClient) WotReactCLI(ctx context.Context, __arg WotReactCLIArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotReactCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -299,7 +247,7 @@ func (c WotClient) DismissWotNotifications(ctx context.Context, __arg DismissWot
 	return
 }
 
-func (c WotClient) WotListCLI(ctx context.Context, __arg WotListCLIArg) (res []WotVouch, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotListCLI", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c WotClient) WotFetchVouches(ctx context.Context, __arg WotFetchVouchesArg) (res []WotVouch, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotFetchVouches", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

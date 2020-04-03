@@ -4,6 +4,7 @@ import {ViewStyle, TextStyle, ImageStyle} from 'react-native'
 export type Color = null | string
 type _StylesDesktopOverride = {
   backgroundImage?: string
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'
   overflowX?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible'
   overflowY?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible'
   wordBreak?: 'normal' | 'break-all' | 'keep-all' | 'inherit' | 'initial' | 'unset' | 'break-word'

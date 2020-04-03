@@ -112,6 +112,7 @@ type NotifyListener interface {
 	UpdateInviteCounts(keybase1.InviteCounts)
 	TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)
 	TeamTreeMembershipsDone(int)
+	WebOfTrustChanged(username string)
 }
 
 type NoopNotifyListener struct{}
@@ -257,6 +258,8 @@ func (n *NoopNotifyListener) UpdateInviteCounts(keybase1.InviteCounts) {
 }
 func (n *NoopNotifyListener) TeamTreeMembershipsPartial(keybase1.TeamTreeMembership) {}
 func (n *NoopNotifyListener) TeamTreeMembershipsDone(int)                            {}
+func (n *NoopNotifyListener) WebOfTrustChanged(username string) {
+}
 
 type NotifyListenerID string
 
@@ -524,6 +527,29 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username Normaliz
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.TrackingChanged(uid, username)
+	})
+}
+
+func (n *NotifyRouter) HandleWebOfTrustChanged(username string) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the notification type
+		if n.getNotificationChannels(id).Tracking {
+			// In the background do...
+			go func() {
+				// A send of a `WebOfTrustChanged` RPC with the user's username
+				_ = (keybase1.NotifyUsersClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).WebOfTrustChanged(context.Background(), username)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.WebOfTrustChanged(username)
 	})
 }
 

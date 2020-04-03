@@ -1355,15 +1355,23 @@ protocol local {
     array<InboxUIItem> convs;
     union { null, RateLimit } rateLimit;
   }
-  GetDefaultTeamChannelsLocalRes getDefaultTeamChannelsLocal(string teamName);
+  GetDefaultTeamChannelsLocalRes getDefaultTeamChannelsLocal(keybase1.TeamID teamID);
 
   record SetDefaultTeamChannelsLocalRes {
     union { null, RateLimit } rateLimit;
   }
-  SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(string teamName, array<ConvIDStr> convs);
+  SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(keybase1.TeamID teamID, array<ConvIDStr> convs);
 
   LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
-  map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
+  record LastActiveTimeAll {
+    map<TLFIDStr, gregor1.Time> teams;
+    map<ConvIDStr, gregor1.Time> channels;
+  }
+  record LastActiveStatusAll {
+    map<TLFIDStr, LastActiveStatus> teams; // top level active status for teams
+    map<ConvIDStr, LastActiveStatus> channels; // active status for all team channels
+  }
+  LastActiveStatusAll getLastActiveForTeams();
 
   int getRecentJoinsLocal(ConversationID convID);
 
@@ -1378,6 +1386,12 @@ protocol local {
     union { null, RateLimit } rateLimit;
   }
   AddEmojiRes addEmoji(ConversationID convID, string alias, string filename);
+  record AddEmojisRes {
+    union { null, RateLimit } rateLimit;
+    array<string> successFilenames;
+    map<string, string> failedFilenames; // filename => error message
+  }
+  AddEmojisRes addEmojis(ConversationID convID, array<string> aliases, array<string> filenames);
   AddEmojiRes addEmojiAlias(ConversationID convID, string newAlias, string existingAlias);
    record RemoveEmojiRes {
     union { null, RateLimit } rateLimit;

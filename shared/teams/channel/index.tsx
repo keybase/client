@@ -19,6 +19,7 @@ import {TabKey} from './tabs'
 import ChannelMemberRow from './rows/member-row'
 import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
+import EmptyRow from '../team/rows/empty-row'
 
 export type OwnProps = Container.RouteProps<{
   teamID: Types.TeamID
@@ -97,12 +98,15 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
+const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
+
 const emptyMapForUseSelector = new Map()
 const Channel = (props: OwnProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
   const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
 
+  // TODO this will thrash every time
   const {bots, participants} = Container.useSelector(state =>
     ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */)
   )
@@ -156,6 +160,28 @@ const Channel = (props: OwnProps) => {
         ),
         title: `Members (${participants.length})`,
       })
+      if (participants.length === 0) {
+        sections.push(
+          makeSingleRow('membersEmpty', () => (
+            <EmptyRow
+              teamID={teamID}
+              type="members"
+              conversationIDKey={conversationIDKey}
+              notChannelMember={true}
+            />
+          ))
+        )
+      } else if (
+        participants.length === 1 &&
+        meta.membershipType !== 'notMember' &&
+        meta.membershipType !== 'youArePreviewing'
+      ) {
+        sections.push(
+          makeSingleRow('membersFew', () => (
+            <EmptyRow teamID={teamID} type="members" conversationIDKey={conversationIDKey} />
+          ))
+        )
+      }
       break
     case 'bots': {
       const botsInTeamNotInConv = [...teamMembers.values()]
@@ -187,18 +213,16 @@ const Channel = (props: OwnProps) => {
       sections.push(...attachmentSections)
       break
     case 'settings':
-      sections.push({
-        data: ['settings'],
-        key: 'settings',
-        renderItem: () => (
+      sections.push(
+        makeSingleRow('settings', () => (
           <SettingsList
             conversationIDKey={conversationIDKey}
             isPreview={isPreview}
             renderTabs={() => undefined}
             commonSections={[]}
           />
-        ),
-      })
+        ))
+      )
   }
 
   const renderSectionHeader = ({section}) =>
@@ -226,6 +250,7 @@ Channel.navigationOptions = () => ({
   headerHideBorder: true,
 })
 
+// TODO: scrolling name magic
 const MobileHeader = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -262,6 +287,9 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.fillAbsolute,
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
+    },
+    isMobile: {
+      marginTop: 40,
     },
   }),
   listContentContainer: Styles.platformStyles({

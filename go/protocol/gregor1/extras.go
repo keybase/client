@@ -315,6 +315,10 @@ func (r ReminderID) UID() gregor.UID     { return r.Uid_ }
 func (r ReminderID) MsgID() gregor.MsgID { return r.MsgID_ }
 func (r ReminderID) Seqno() int          { return r.Seqno_ }
 
+func (s State) Size() int {
+	return len(s.Items_)
+}
+
 func (s State) Items() ([]gregor.Item, error) {
 	ret := make([]gregor.Item, 0, len(s.Items_))
 	for _, i := range s.Items_ {

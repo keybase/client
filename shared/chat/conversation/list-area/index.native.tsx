@@ -67,13 +67,8 @@ type SentProps = {
   ordinal: Types.Ordinal
 }
 const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
-  const {message, you} = Container.useSelector(state => {
-    const map = state.chat2.messageMap.get(conversationIDKey)
-    return {
-      message: map ? map.get(ordinal) : undefined,
-      you: state.config.username,
-    }
-  })
+  const you = Container.useSelector(state => state.config.username)
+  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
   const youSent = message && message.author === you && message.ordinal !== message.id
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)
@@ -98,6 +93,10 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
 let markedInitiallyLoaded = false
 
 class ConversationList extends React.PureComponent<Props> {
+  private mounted = true
+  componentWillUnmount() {
+    this.mounted = false
+  }
   componentDidMount() {
     if (markedInitiallyLoaded) {
       return
@@ -175,8 +174,14 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
-  private getItemCount = (messageOrdinals: Array<Types.Ordinal>) =>
-    messageOrdinals ? messageOrdinals.length + 2 : 2
+  private getItemCount = (messageOrdinals: Array<Types.Ordinal>) => {
+    if (this.mounted) {
+      return messageOrdinals ? messageOrdinals.length + 2 : 2
+    } else {
+      // needed else VirtualizedList will yellowbox
+      return 0
+    }
+  }
 
   private keyExtractor = (item: ItemType) => {
     if (item === 'specialTop') {

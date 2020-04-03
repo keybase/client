@@ -523,6 +523,7 @@ type UIRouter interface {
 	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
+	GetLogUI() (LogUI, error)
 
 	// WaitForUIType returns true if a UI of the specified type is registered,
 	// or waits until timeout for such UI to register and returns false if this
@@ -776,6 +777,7 @@ type HiddenTeamChainManager interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	Shutdown(m MetaContext)
 	TeamSupportsHiddenChain(m MetaContext, id keybase1.TeamID) (state bool, err error)
+	ClearSupportFlagIfFalse(m MetaContext, id keybase1.TeamID)
 }
 
 type TeamRoleMapManager interface {

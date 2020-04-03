@@ -35,9 +35,9 @@ class NewRepo extends React.Component<Props, State> {
   _makeDropdownItem = (item: string | null) => {
     if (!item) {
       return (
-        <Kb.Box style={Styles.globalStyles.flexBoxCenter}>
+        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>
           <Kb.Text type="BodyBig">Pick a team</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )
     }
 
@@ -175,7 +175,7 @@ const styles = Styles.styleSheetCreate(() => ({
   avatarBox: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    paddingLeft: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.small,
     width: '100%',
   },
@@ -202,6 +202,10 @@ const styles = Styles.styleSheetCreate(() => ({
   dropdown: {
     marginBottom: Styles.globalMargins.small,
     width: '100%',
+  },
+  dropdownItem: {
+    justifyContent: 'flex-start',
+    paddingLeft: Styles.globalMargins.xsmall,
   },
   error: {
     alignSelf: 'stretch',

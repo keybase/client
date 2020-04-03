@@ -144,6 +144,8 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Len(t, vouches, 1)
 	bobVouch := vouches[0]
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
+	require.Equal(t, bobName, bobVouch.VoucherUsername)
+	require.Equal(t, aliceName, bobVouch.VoucheeUsername)
 	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
 	require.NotNil(t, bobVouch.Confidence)
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
@@ -228,6 +230,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	t.Log("alice and bob follow each other")
 
 	aliceName := alice.User.GetName()
+	bobName := bob.User.GetName()
 
 	vouchTexts := []string{"alice is wondibar and doug agrees"}
 	argV := &WotVouchArg{
@@ -246,6 +249,8 @@ func TestWebOfTrustAccept(t *testing.T) {
 	bobVouch := vouches[0]
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
+	require.Equal(t, bobName, bobVouch.VoucherUsername)
+	require.Equal(t, aliceName, bobVouch.VoucheeUsername)
 	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
 	t.Log("alice fetches one pending vouch")
 

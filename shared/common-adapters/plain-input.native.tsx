@@ -31,7 +31,7 @@ class PlainInput extends Component<InternalProps> {
   _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
-  _timeoutIDs: Array<NodeJS.Timeout> = []
+  _timeoutIDs: Array<ReturnType<typeof setInterval>> = []
 
   _setTimeout = (fn: () => void, timeoutMS: number) => {
     this._timeoutIDs.push(setTimeout(fn, timeoutMS))

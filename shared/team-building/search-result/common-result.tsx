@@ -23,6 +23,7 @@ export type ResultProps = {
   onAdd: () => void
   onRemove: () => void
   prettyName: string
+  pictureUrl?: string
   resultForService: Types.ServiceIdWithContact
   rightButtons?: React.ReactNode
   services: {[K in Types.ServiceIdWithContact]?: string}
@@ -73,7 +74,11 @@ const CommonResult = (props: CommonResultProps) => {
           props.highlight ? styles.highlighted : null,
         ])}
       >
-        <Avatar resultForService={props.resultForService} keybaseUsername={keybaseUsername} />
+        <Avatar
+          resultForService={props.resultForService}
+          keybaseUsername={keybaseUsername}
+          pictureUrl={props.pictureUrl}
+        />
         <Kb.Box2 direction="vertical" style={styles.username}>
           {serviceUsername ? (
             <>
@@ -136,12 +141,16 @@ const textWithConditionalSeparator = (text: string, conditional: boolean) =>
 const Avatar = ({
   resultForService,
   keybaseUsername,
+  pictureUrl,
 }: {
   keybaseUsername: string | null
   resultForService: Types.ServiceIdWithContact
+  pictureUrl?: string
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
+  } else if (pictureUrl) {
+    return <Kb.Avatar size={avatarSize} imageOverrideUrl={pictureUrl} />
   } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
     return <Kb.Avatar size={avatarSize} username="invalid username for placeholder avatar" />
   }

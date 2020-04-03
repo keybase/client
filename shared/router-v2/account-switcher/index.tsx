@@ -116,7 +116,13 @@ const AccountsRows = (props: Props) => (
 )
 
 const AccountSwitcher = (props: Props) => (
-  <Kb.HeaderHocWrapper rightActions={[{color: 'red', label: 'Sign out', onPress: props.onSignOut}]}>
+  <Kb.HeaderHocWrapper
+    leftAction="cancel"
+    onCancel={props.onCancel}
+    // else right isn't pushed over, will address in nav5
+    title=" "
+    rightActions={[{color: 'red', label: 'Sign out', onPress: props.onSignOut}]}
+  >
     <Kb.ScrollView alwaysBounceVertical={false}>
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         {Styles.isMobile && <MobileHeader {...props} />}

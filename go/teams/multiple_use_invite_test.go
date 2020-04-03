@@ -35,8 +35,12 @@ func TestTeamInviteStubbing(t *testing.T) {
 	require.NoError(t, err)
 
 	maxUses := keybase1.TeamInviteMaxUses(10)
-	_, err = CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER, maxUses, nil /* etime */)
+	inviteLink, err := CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER, maxUses, nil /* etime */)
 	require.NoError(t, err)
+
+	wasSeitan, err := ParseAndAcceptSeitanToken(context.TODO(), tc2.G, inviteLink.Ikey.String())
+	require.NoError(t, err)
+	require.True(t, wasSeitan)
 
 	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:      teamname,

@@ -1658,7 +1658,7 @@ protocol teams {
   //           D   .__E__.
   //           |   |  |  |
   //           F   G  H  I
-  //		       |
+  //           |
   //               J
   // if teamID were C, then the partial tree contains A, C, D, E, F, G, H, I.
   //

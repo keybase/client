@@ -17,10 +17,19 @@ import {validTeamname, validTeamnamePart} from '../constants/teamname'
 import URL from 'url-parse'
 import logger from '../logger'
 
-const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
-  const initialTab = action === 'manage_settings' ? 'settings' : undefined
-  const addMembers = action === 'add_or_invite' ? true : undefined
-  return [TeamsGen.createShowTeamByName({addMembers, initialTab, teamname})]
+const teamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
+type TeamPageAction = typeof teamPageActions[number]
+const isTeamPageAction = (a: any): a is TeamPageAction => teamPageActions.includes(a)
+
+const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
+  return [
+    TeamsGen.createShowTeamByName({
+      addMembers: action === 'add_or_invite' ? true : undefined,
+      initialTab: action === 'manage_settings' ? 'settings' : undefined,
+      join: action === 'join' ? true : undefined,
+      teamname,
+    }),
+  ]
 }
 
 const handleShowUserProfileLink = (username: string) => {
@@ -65,7 +74,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         return []
       }
     case 'chat':
-      if (parts.length === 2) {
+      if (parts.length === 2 || parts.length === 3) {
         if (parts[1].includes('#')) {
           const teamChat = parts[1].split('#')
           if (teamChat.length !== 2) {
@@ -79,12 +88,21 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
           const [teamname, channelname] = teamChat
           return [
             RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-            ChatGen.createPreviewConversation({channelname, reason: 'appLink', teamname}),
+            ChatGen.createPreviewConversation({
+              channelname,
+              highlightMessageID: parseInt(parts[2], 10),
+              reason: 'appLink',
+              teamname,
+            }),
           ]
         } else {
           return [
             RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-            ChatGen.createPreviewConversation({participants: parts[1].split(','), reason: 'appLink'}),
+            ChatGen.createPreviewConversation({
+              highlightMessageID: parseInt(parts[2], 10),
+              participants: parts[1].split(','),
+              reason: 'appLink',
+            }),
           ]
         }
       }
@@ -94,8 +112,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         const teamName = parts[1]
         if (teamName.length && validTeamname(teamName)) {
           const actionPart = parts[2]
-          const action =
-            actionPart === 'add_or_invite' || actionPart === 'manage_settings' ? actionPart : undefined
+          const action = isTeamPageAction(actionPart) ? actionPart : undefined
           return handleTeamPageLink(teamName, action)
         }
       }

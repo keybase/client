@@ -27,16 +27,8 @@ const useHeaderActions = (): HeaderActionProps => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   return {
-    onCreateTeam: () => {
-      if (flags.teamsRedesign) {
-        dispatch(TeamsGen.createStartNewTeamWizard())
-      } else {
-        dispatch(nav.safeNavigateAppendPayload({path: ['teamNewTeamDialog']}))
-      }
-    },
-    onJoinTeam: () => {
-      dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
-    },
+    onCreateTeam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal()),
+    onJoinTeam: () => dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']})),
   }
 }
 
@@ -90,7 +82,8 @@ const Reloadable = (props: ReloadableProps) => {
 
 Reloadable.navigationOptions = {
   header: undefined,
-  headerRightActions: () => <ConnectedHeaderRightActions />,
+  // This will be a filter box eventually
+  headerRightActions: flags.teamsRedesign ? undefined : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }
 

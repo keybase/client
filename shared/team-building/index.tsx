@@ -42,6 +42,7 @@ export type SearchResult = {
   userId: string
   username: string
   prettyName: string
+  pictureUrl?: string
   displayLabel: string
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
@@ -101,7 +102,6 @@ export type Props = ContactProps & {
   recommendedHideYourself?: boolean
   highlightedIndex: number | null
   includeContacts: boolean
-  justContacts: boolean
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
   onBackspace: () => void
@@ -217,7 +217,7 @@ const ContactsImportButton = (props: ContactProps) => {
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black_20} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -259,36 +259,6 @@ const FilteredServiceTabBar = (
     />
   )
 }
-
-const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: string}) => (
-  <Kb.Box2
-    alignSelf="center"
-    centerChildren={!Styles.isMobile}
-    direction="vertical"
-    fullWidth={true}
-    gap="tiny"
-    style={styles.emptyContainer}
-  >
-    {!Styles.isMobile && (
-      <Kb.Icon
-        fontSize={Styles.isMobile ? 48 : 64}
-        type={serviceIdToIconFont(props.selectedService)}
-        style={Styles.collapseStyles([
-          !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
-        ])}
-      />
-    )}
-    {!Styles.isMobile && (
-      <Kb.Text center={true} type="BodyBig">
-        Enter a {serviceIdToLabel(props.selectedService)} username above.
-      </Kb.Text>
-    )}
-    <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-      {props.action} anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a Keybase
-      account.
-    </Kb.Text>
-  </Kb.Box2>
-)
 
 // TODO: the type of this is any
 // If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
@@ -410,10 +380,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   )
 
   _searchInput = () => {
-    const searchPlaceholder = this.props.justContacts
-      ? 'Search contacts'
-      : 'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)
-
+    const searchPlaceholder = 'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)
     return (
       <Input
         onChangeText={this.props.onChangeText}
@@ -454,13 +421,45 @@ class TeamBuilding extends React.PureComponent<Props> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      if (this.props.namespace === 'people') {
-        return <EmptyResultText selectedService={this.props.selectedService} action="Search for" />
-      } else {
-        return (
-          <EmptyResultText selectedService={this.props.selectedService} action="Start a Keybase chat with" />
-        )
-      }
+      return (
+        <Kb.Box2
+          alignSelf="center"
+          centerChildren={!Styles.isMobile}
+          direction="vertical"
+          fullWidth={true}
+          gap="tiny"
+          style={styles.emptyContainer}
+        >
+          {!Styles.isMobile && (
+            <Kb.Icon
+              fontSize={48}
+              type={serviceIdToIconFont(this.props.selectedService)}
+              style={Styles.collapseStyles([
+                !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
+              ])}
+            />
+          )}
+          {this.props.namespace === 'people' ? (
+            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+              Search for anyone on {serviceIdToLabel(this.props.selectedService)} and start a chat. Your
+              messages will unlock after they install Keybase and prove their{' '}
+              {serviceIdToLabel(this.props.selectedService)} username.
+            </Kb.Text>
+          ) : this.props.namespace === 'teams' ? (
+            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+              Add anyone from {serviceIdToLabel(this.props.selectedService)}, then tell them to install
+              Keybase. They will automatically join the team once they sign up and prove their{' '}
+              {serviceIdToLabel(this.props.selectedService)} username.
+            </Kb.Text>
+          ) : (
+            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+              Start a chat with anyone on {serviceIdToLabel(this.props.selectedService)}, then tell them to
+              install Keybase. Your messages will unlock after they sign up and prove their{' '}
+              {serviceIdToLabel(this.props.selectedService)} username.
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+      )
     }
     if (this.props.showRecs && this.props.recommendations) {
       const highlightDetails = this._listIndexToSectionAndLocalIndex(
@@ -503,6 +502,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                     resultForService={this.props.selectedService}
                     username={result.username}
                     prettyName={result.prettyName}
+                    pictureUrl={result.pictureUrl}
                     displayLabel={result.displayLabel}
                     services={result.services}
                     inTeam={result.inTeam}
@@ -553,6 +553,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                 resultForService={this.props.selectedService}
                 username={result.username}
                 prettyName={result.prettyName}
+                pictureUrl={result.pictureUrl}
                 displayLabel={result.displayLabel}
                 services={result.services}
                 namespace={this.props.namespace}
@@ -568,7 +569,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           />
         ) : (
           <Kb.Text type="BodySmall" style={styles.noResults}>
-            No results were found
+            Sorry, no results were found.
           </Kb.Text>
         )}
       </>
@@ -726,7 +727,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           </>
         )
     }
-    const teamBox = !!props.teamSoFar.length && !props.justContacts && (
+    const teamBox = !!props.teamSoFar.length && (
       <TeamBox
         allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
         onChangeText={props.onChangeText}
@@ -767,7 +768,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             </Kb.Text>
           </Kb.Text>
         )}
-        {(props.namespace !== 'people' || Styles.isMobile) && !props.justContacts && (
+        {(props.namespace !== 'people' || Styles.isMobile) && (
           <FilteredServiceTabBar
             filterServices={props.filterServices}
             selectedService={props.selectedService}
@@ -851,7 +852,8 @@ const styles = Styles.styleSheetCreate(
       }),
       emptyServiceText: Styles.platformStyles({
         isMobile: {
-          padding: Styles.globalMargins.small,
+          paddingBottom: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
         },
       }),
       headerContainer: Styles.platformStyles({
@@ -913,6 +915,7 @@ const styles = Styles.styleSheetCreate(
       }),
       noResults: {
         flex: 1,
+        textAlign: 'center',
         ...Styles.padding(Styles.globalMargins.small),
       },
       peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),

@@ -177,13 +177,15 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 
 	// build a WotVouch
 	return keybase1.WotVouch{
-		Status:     status,
-		Vouchee:    voucheeUser.ToUserVersion(),
-		Voucher:    voucher.ToUserVersion(),
-		VouchTexts: wotObj.VouchTexts,
-		VouchProof: serverVouch.VouchSigID,
-		VouchedAt:  keybase1.ToTime(wotVouchLink.GetCTime()),
-		Confidence: wotObj.Confidence,
+		Status:          status,
+		Vouchee:         voucheeUser.ToUserVersion(),
+		VoucheeUsername: voucheeUser.GetNormalizedName().String(),
+		Voucher:         voucher.ToUserVersion(),
+		VoucherUsername: voucher.GetNormalizedName().String(),
+		VouchTexts:      wotObj.VouchTexts,
+		VouchProof:      serverVouch.VouchSigID,
+		VouchedAt:       keybase1.ToTime(wotVouchLink.GetCTime()),
+		Confidence:      wotObj.Confidence,
 	}, nil
 }
 

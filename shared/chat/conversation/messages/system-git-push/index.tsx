@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate(
     ({
       commitHash: Styles.platformStyles({
         common: {
-          color: Styles.globalColors.blueDark,
+          color: Styles.globalColors.blueDarkOrBlueLight,
           fontSize: 12,
           lineHeight: 16,
         },

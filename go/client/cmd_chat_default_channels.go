@@ -47,21 +47,30 @@ func (c *CmdChatDefaultChannels) Run() (err error) {
 		return err
 	}
 
+	cli, err := GetTeamsClient(c.G())
+	if err != nil {
+		return err
+	}
+	teamID, err := cli.GetTeamID(context.Background(), c.tlfName)
+	if err != nil {
+		return err
+	}
+
 	if len(c.convs) > 0 { // set channels first
 		convIDs, err := lookupConvIDsByTopicName(c.G(), c.tlfName, chat1.ConversationMembersType_TEAM, c.convs)
 		if err != nil {
 			return err
 		}
 		_, err = chatClient.SetDefaultTeamChannelsLocal(context.TODO(), chat1.SetDefaultTeamChannelsLocalArg{
-			TeamName: c.tlfName,
-			Convs:    convIDs,
+			TeamID: teamID,
+			Convs:  convIDs,
 		})
 		if err != nil {
 			return err
 		}
 	}
 
-	resp, err := chatClient.GetDefaultTeamChannelsLocal(context.TODO(), c.tlfName)
+	resp, err := chatClient.GetDefaultTeamChannelsLocal(context.TODO(), teamID)
 	if err != nil {
 		return err
 	}

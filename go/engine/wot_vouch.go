@@ -229,5 +229,6 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	}
 
 	voucherUsername := mctx.ActiveDevice().Username(mctx).String()
+	mctx.G().NotifyRouter.HandleWebOfTrustChanged(voucherUsername)
 	return libkb.DismissWotNotifications(mctx, voucherUsername, them.GetName())
 }

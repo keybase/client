@@ -35,15 +35,12 @@ const showCrown: Types.BoolTypeMap = {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const {infoMap, participantInfo, teamMemberInfo, you} = Container.useSelector(s => {
-    return {
-      infoMap: s.users.infoMap,
-      participantInfo: ChatConstants.getParticipantInfo(s, conversationIDKey),
-      teamMemberInfo:
-        Constants.getTeamDetails(s, teamID)?.members?.get(username) ?? Constants.initialMemberInfo,
-      you: s.config.username,
-    }
-  })
+  const infoMap = Container.useSelector(s => s.users.infoMap)
+  const participantInfo = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey))
+  const teamMemberInfo = Container.useSelector(
+    s => Constants.getTeamDetails(s, teamID)?.members?.get(username) ?? Constants.initialMemberInfo
+  )
+  const you = Container.useSelector(s => s.config.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type

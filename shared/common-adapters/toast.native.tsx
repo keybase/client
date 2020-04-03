@@ -29,6 +29,7 @@ const Toast = (props: Props) => {
           duration: 100,
           easing: NativeEasing.linear,
           toValue: 0,
+          useNativeDriver: false,
         }).start()
         setShouldRenderFalseLater()
       }
@@ -41,6 +42,7 @@ const Toast = (props: Props) => {
         duration: 100,
         easing: NativeEasing.linear,
         toValue: 1,
+        useNativeDriver: false,
       })
       animation.start()
       return () => {

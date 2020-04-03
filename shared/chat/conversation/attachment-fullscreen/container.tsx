@@ -17,11 +17,16 @@ type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey
 const Connected = (props: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
   const inOrdinal = Container.getRouteProps(props, 'ordinal', 0)
-  const state = Container.useSelector(s => s)
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
-  const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const lastOrdinal = Container.useSelector(
+    state => [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
+  )
+  const getLastOrdinal = () => lastOrdinal
+  const username = Container.useSelector(state => state.config.username)
+  const currentDeviceName = Container.useSelector(state => state.config.deviceName ?? '')
   const message = m?.type === 'attachment' ? m : blankMessage
   const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
   const {id} = message
@@ -50,7 +55,13 @@ const Connected = (props: OwnProps) => {
         ],
         result => {
           if (result.message) {
-            const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
+            const goodMessage = Constants.uiMessageToMessage(
+              conversationIDKey,
+              result.message,
+              username,
+              getLastOrdinal,
+              currentDeviceName
+            )
             if (goodMessage && goodMessage.type === 'attachment') {
               setAutoPlay(false)
               addToMessageMap(goodMessage)

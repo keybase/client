@@ -43,6 +43,13 @@ func strPtr(str string) *string {
 	return nil
 }
 
+func numPtr(num int) *int {
+	if num != 0 {
+		return &num
+	}
+	return nil
+}
+
 func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (items []keybase1.IncomingShareItem, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	manifestPath := filepath.Join(h.G().Env.GetMobileSharedHome(), "Library", "Caches", "incoming-shares", "manifest.json")
@@ -78,16 +85,30 @@ loop:
 			mctx.Debug("incoming-share: skippping unknown type: %v", jsonItem.Type)
 			continue loop
 		}
-		fi, err := os.Stat(jsonItem.OriginalPath)
+
+		fiOriginal, err := os.Stat(jsonItem.OriginalPath)
 		if err != nil {
-			mctx.Debug("incoming-share: stat error on shared item: %v", err)
+			mctx.Debug("incoming-share: stat error on original: %v", err)
 			return nil, err
 		}
+		originalSize := int(fiOriginal.Size())
+
+		var scaledSize int
+		if len(jsonItem.ScaledPath) > 0 {
+			fiScaled, err := os.Stat(jsonItem.ScaledPath)
+			if err != nil {
+				mctx.Debug("incoming-share: stat error on scaled: %v", err)
+				return nil, err
+			}
+			scaledSize = int(fiScaled.Size())
+		}
+
 		items = append(items, keybase1.IncomingShareItem{
 			Type:          t,
 			OriginalPath:  jsonItem.OriginalPath,
-			OriginalSize:  int(fi.Size()),
+			OriginalSize:  originalSize,
 			ScaledPath:    strPtr(jsonItem.ScaledPath),
+			ScaledSize:    numPtr(scaledSize),
 			ThumbnailPath: strPtr(jsonItem.ThumbnailPath),
 			Content:       strPtr(jsonItem.Content),
 		})

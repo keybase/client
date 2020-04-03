@@ -55,6 +55,11 @@ func (d *DelegateUICtlHandler) RegisterChatUI(_ context.Context) error {
 	return nil
 }
 
+func (d *DelegateUICtlHandler) RegisterLogUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.LogUIKind)
+	return nil
+}
+
 func (d *DelegateUICtlHandler) RegisterSecretUI(_ context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.SecretUIKind)
 	return nil

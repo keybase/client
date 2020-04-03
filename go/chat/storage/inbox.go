@@ -304,11 +304,19 @@ func (i *Inbox) readConvs(ctx context.Context, uid gregor1.UID, convIDs []chat1.
 			memHits[convID.ConvIDStr()] = true
 		}
 	}
+	if len(memHits) == len(convIDs) {
+		return res, nil
+	}
+	dbReads := 0
+	defer func() {
+		i.Debug(ctx, "readConvs: read %d convs from db", dbReads)
+	}()
 	for _, convID := range convIDs {
 		if memHits[convID.ConvIDStr()] {
 			continue
 		}
 		var conv types.RemoteConversation
+		dbReads++
 		found, err := i.readDiskBox(ctx, i.dbConvKey(uid, convID), &conv)
 		if err != nil {
 			if _, ok := err.(libkb.LoginRequiredError); ok {
@@ -320,6 +328,7 @@ func (i *Inbox) readConvs(ctx context.Context, uid gregor1.UID, convIDs []chat1.
 		if !found {
 			return res, MissError{}
 		}
+		inboxMemCache.PutConv(uid, conv)
 		res = append(res, conv)
 	}
 	return res, nil
@@ -450,7 +459,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			continue
 		}
 		topicName := convLocal.Info.TopicName
-		snippetDecoration, snippet := utils.GetConvSnippet(convLocal,
+		snippetDecoration, snippet, _ := utils.GetConvSnippet(ctx, i.G(), convLocal,
 			i.G().GetEnv().GetUsername().String())
 		rcm := &types.RemoteConversationMetadata{
 			Name:              convLocal.Info.TlfName,

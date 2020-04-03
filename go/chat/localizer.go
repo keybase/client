@@ -697,13 +697,16 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 	}
 	body := pinMessage.Valid().MessageBody
 	pinnedMsgID := body.Pin().MsgID
-	messages, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{pinnedMsgID}, nil, nil)
+	messages, err := s.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid, []chat1.MessageID{pinnedMsgID},
+		nil, nil, false)
 	if err != nil {
 		return pinnedMsg, pinnerUsername, false, nil
 	}
-	xformRes, err := s.G().ConvSource.TransformSupersedes(ctx, conv, uid, messages, &chat1.GetThreadQuery{
-		EnableDeletePlaceholders: true,
-	}, nil, nil)
+	maxDeletedUpTo := conv.GetMaxDeletedUpTo()
+	xformRes, err := s.G().ConvSource.TransformSupersedes(ctx, conv.GetConvID(), uid, messages,
+		&chat1.GetThreadQuery{
+			EnableDeletePlaceholders: true,
+		}, nil, nil, &maxDeletedUpTo)
 	if err != nil {
 		return pinnedMsg, pinnerUsername, false, nil
 	}
@@ -820,8 +823,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				summaries = append(summaries, tlfSummary)
 			}
 		}
-		msgs, err := s.G().ConvSource.GetMessages(ctx, conversationRemote,
-			uid, utils.PluckMessageIDs(summaries), nil, nil)
+		msgs, err := s.G().ConvSource.GetMessages(ctx, conversationRemote.GetConvID(),
+			uid, utils.PluckMessageIDs(summaries), nil, nil, false)
 		if !s.isErrPermanent(err) {
 			errTyp = chat1.ConversationErrorType_TRANSIENT
 		}
@@ -918,9 +921,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 	// Resolve edits/deletes on snippet message
 	if conversationLocal.Info.SnippetMsg != nil {
+		maxDeletedUpTo := conversationRemote.GetMaxDeletedUpTo()
 		superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
-		if newMsg, err := superXform.Run(ctx, conversationRemote, uid,
-			[]chat1.MessageUnboxed{*conversationLocal.Info.SnippetMsg}); err != nil {
+		if newMsg, err := superXform.Run(ctx, conversationRemote.GetConvID(), uid,
+			[]chat1.MessageUnboxed{*conversationLocal.Info.SnippetMsg}, &maxDeletedUpTo); err != nil {
 			s.Debug(ctx, "failed to transform message: id: %d err: %s",
 				conversationLocal.Info.SnippetMsg.GetMessageID(), err)
 		} else {

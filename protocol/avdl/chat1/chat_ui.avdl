@@ -139,6 +139,7 @@ protocol chatUi {
     boolean isDefaultConv;
     string name;
     string snippet;
+    string snippetDecorated;
     SnippetDecoration snippetDecoration;
     string channel;
     string headline;
@@ -245,7 +246,7 @@ protocol chatUi {
     string decorated;
     map<string, Reaction> users;
   }
-  
+
   record UIReactionMap {
     map<string, UIReactionDesc> reactions;
   }

@@ -13,6 +13,7 @@ describe('team building list', () => {
       inTeam: false,
       isPreExistingTeamMember: false,
       isYou: false,
+      pictureUrl: '',
       prettyName: '',
       services: {},
       userId: '',
@@ -142,6 +143,7 @@ describe('team building list', () => {
       isPreExistingTeamMember: false,
       isYou: false,
       key: '',
+      pictureUrl: '',
       prettyName: '',
       services: {},
       userId: '',
@@ -165,7 +167,6 @@ describe('team building list', () => {
     const sections =
       sortAndSplitRecommendations(
         tests.map(t => t.result),
-        false,
         false
       ) || []
     const sectionMap = {}

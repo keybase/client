@@ -159,8 +159,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	}
 
 	// Resolve supersedes & replies
-	if thread.Messages, err = s.TransformSupersedes(ctx, conv, uid, thread.Messages, q, superXform,
-		replyFiller); err != nil {
+	deletedUpTo := conv.GetMaxDeletedUpTo()
+	if thread.Messages, err = s.TransformSupersedes(ctx, conv.GetConvID(), uid, thread.Messages, q, superXform,
+		replyFiller, &deletedUpTo); err != nil {
 		return err
 	}
 	s.Debug(ctx, "postProcessThread: thread messages after supersedes: %d", len(thread.Messages))
@@ -191,8 +192,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 }
 
 func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
-	unboxInfo types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed,
-	q *chat1.GetThreadQuery, superXform types.SupersedesTransform, replyFiller types.ReplyFiller) (res []chat1.MessageUnboxed, err error) {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed,
+	q *chat1.GetThreadQuery, superXform types.SupersedesTransform, replyFiller types.ReplyFiller,
+	maxDeletedUpTo *chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TransformSupersedes")()
 	if q == nil || !q.DisableResolveSupersedes {
 		deletePlaceholders := q != nil && q.EnableDeletePlaceholders
@@ -201,7 +203,7 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
 				UseDeletePlaceholders: deletePlaceholders,
 			})
 		}
-		if res, err = superXform.Run(ctx, unboxInfo, uid, msgs); err != nil {
+		if res, err = superXform.Run(ctx, convID, uid, msgs, maxDeletedUpTo); err != nil {
 			return nil, err
 		}
 	} else {
@@ -210,7 +212,7 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
 	if replyFiller == nil {
 		replyFiller = NewReplyFiller(s.G())
 	}
-	return replyFiller.Fill(ctx, uid, unboxInfo, res)
+	return replyFiller.Fill(ctx, uid, convID, res)
 }
 
 // patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
@@ -236,6 +238,20 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 		// If any message is prior to the nukepoint, say this is the last page.
 		page.Last = true
 	}
+}
+
+func (s *baseConversationSource) GetMessage(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID, reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface,
+	resolveSupersedes bool) (chat1.MessageUnboxed, error) {
+	msgs, err := s.G().ConvSource.GetMessages(ctx, convID, uid, []chat1.MessageID{msgID},
+		reason, s.ri, resolveSupersedes)
+	if err != nil {
+		return chat1.MessageUnboxed{}, err
+	}
+	if len(msgs) != 1 {
+		return chat1.MessageUnboxed{}, errors.New("message not found")
+	}
+	return msgs[0], nil
 }
 
 func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
@@ -358,12 +374,19 @@ func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.Conve
 	return nil
 }
 
-func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
+func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason,
-	customRi func() chat1.RemoteInterface) ([]chat1.MessageUnboxed, error) {
+	customRi func() chat1.RemoteInterface, resolveSupersedes bool) (res []chat1.MessageUnboxed, err error) {
+	defer func() {
+		// unless arg says not to, transform the superseded messages
+		if !resolveSupersedes {
+			return
+		}
+		res, err = s.TransformSupersedes(ctx, convID, uid, res, nil, nil, nil, nil)
+	}()
 
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
-		ConversationID: conv.GetConvID(),
+		ConversationID: convID,
 		MessageIDs:     msgIDs,
 		ThreadReason:   threadReason,
 	})
@@ -371,6 +394,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.U
 		return nil, err
 	}
 
+	conv := newBasicUnboxConversationInfo(convID, rres.MembersType, nil, rres.Visibility)
 	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, conv)
 	if err != nil {
 		return nil, err
@@ -580,7 +604,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 		return nil
 	}
 	// Fetch all missing messages from server, and sub in the real ones into the placeholder slots
-	msgs, err := s.GetMessages(ctx, conv, uid, msgIDs, &reason, customRi)
+	msgs, err := s.GetMessages(ctx, conv.GetConvID(), uid, msgIDs, &reason, customRi, false)
 	if err != nil {
 		s.Debug(ctx, "resolveHoles: failed to get missing messages: %s", err.Error())
 		return err
@@ -773,10 +797,10 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	defer func() {
 		if err == nil {
 			superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
-			superXform.SetMessagesFunc(func(ctx context.Context, conv types.UnboxConversationInfo,
+			superXform.SetMessagesFunc(func(ctx context.Context, convID chat1.ConversationID,
 				uid gregor1.UID, msgIDs []chat1.MessageID,
-				_ *chat1.GetThreadReason, _ func() chat1.RemoteInterface) (res []chat1.MessageUnboxed, err error) {
-				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
+				_ *chat1.GetThreadReason, _ func() chat1.RemoteInterface, _ bool) (res []chat1.MessageUnboxed, err error) {
+				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, convID, uid, msgIDs)
 				if err != nil {
 					return nil, err
 				}
@@ -791,7 +815,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			// Form a fake version of a conversation so we don't need to hit the network ever here
 			var conv chat1.Conversation
 			conv.Metadata.ConversationID = convID
-			err = s.postProcessThread(ctx, uid, reason, conv, &tv, query, superXform, replyFiller, false, true, nil)
+			err = s.postProcessThread(ctx, uid, reason, conv, &tv, query, superXform, replyFiller, false,
+				true, nil)
 		}
 	}()
 
@@ -831,21 +856,53 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return tv, nil
 }
 
-func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.ClearAll(ctx, convID, uid)
+func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
+	defer s.PerfTrace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Clearing conv for %s", convID)
+		} else {
+			message = fmt.Sprintf("Failed to clear conv %s", convID)
+		}
+		s.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_CLEARCONV,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
+	if (s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String()))) && s.G().UIRouter != nil {
+		ui, err := s.G().UIRouter.GetLogUI()
+		if err == nil && ui != nil {
+			ui.Critical("Clearing conv")
+		}
+	}
+
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(s.storage.ClearAll(ctx, convID, uid))
+	epick.Push(s.G().Indexer.Clear(ctx, uid, convID))
+	return epick.Error()
 }
 
-func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
+func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason,
-	customRi func() chat1.RemoteInterface) (res []chat1.MessageUnboxed, err error) {
+	customRi func() chat1.RemoteInterface, resolveSupersedes bool) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
-		conv.GetConvID(), len(msgIDs))()
-	convID := conv.GetConvID()
+		convID, len(msgIDs))()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
 	defer s.maybeNuke(ctx, convID, uid, err)
+	defer func() {
+		// unless arg says not to, transform the superseded messages
+		if !resolveSupersedes {
+			return
+		}
+		res, err = s.TransformSupersedes(ctx, convID, uid, res, nil, nil, nil, nil)
+	}()
 
 	// Grab local messages
 	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
@@ -876,6 +933,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 		}
 
 		// Unbox all the remote messages
+		conv := newBasicUnboxConversationInfo(convID, rmsgs.MembersType, nil, rmsgs.Visibility)
 		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, conv)
 		if err != nil {
 			return nil, err
@@ -1014,13 +1072,14 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		s.Debug(ctx, "notifyUpdated: failed to get conv: %s", err)
 		return
 	}
-	updatedMsgs, err := s.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
+	maxDeletedUpTo := conv.GetMaxDeletedUpTo()
+	updatedMsgs, err := s.TransformSupersedes(ctx, convID, uid, msgs, nil, nil, nil, &maxDeletedUpTo)
 	if err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to transform supersedes: %s", err)
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: %d messages after transform", len(updatedMsgs))
-	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv, updatedMsgs); err != nil {
+	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, convID, updatedMsgs); err != nil {
 		s.Debug(ctx, "notifyUpdated: failed to fill replies %s", err)
 		return
 	}
@@ -1045,7 +1104,8 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 			s.Debug(ctx, "notifyReactionUpdates: failed to get conversations: %s", err)
 			return
 		}
-		msgs, err = s.TransformSupersedes(ctx, conv, uid, msgs, nil, nil, nil)
+		maxDeletedUpTo := conv.GetMaxDeletedUpTo()
+		msgs, err = s.TransformSupersedes(ctx, convID, uid, msgs, nil, nil, nil, &maxDeletedUpTo)
 		if err != nil {
 			s.Debug(ctx, "notifyReactionUpdates: failed to transform supersedes: %s", err)
 			return

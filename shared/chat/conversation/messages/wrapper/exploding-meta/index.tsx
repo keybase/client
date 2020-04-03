@@ -28,7 +28,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   state = {mode: 'none'} as State
   tickerID?: TickerID
   sharedTimerID?: SharedTimerID
-  forceUpdateID?: NodeJS.Timer
+  forceUpdateID?: ReturnType<typeof setTimeout>
   sharedTimerKey: string = ''
 
   componentDidMount() {
@@ -114,7 +114,6 @@ class ExplodingMeta extends React.Component<Props, State> {
     switch (this.state.mode) {
       case 'countdown':
         {
-          const stopWatchIconSize = Styles.isMobile ? 16 : 14
           children = (
             <Kb.Box2 direction="horizontal" gap="xtiny">
               {this.props.pending ? (
@@ -122,39 +121,31 @@ class ExplodingMeta extends React.Component<Props, State> {
                   <Kb.ProgressIndicator style={{height: 12, width: 12}} />
                 </Kb.Box2>
               ) : (
-                <Kb.Box2
-                  className="explodingTimeContainer"
-                  direction="horizontal"
-                  style={Styles.collapseStyles([
-                    styles.countdownContainer,
-                    {
-                      backgroundColor,
-                    },
-                    this.props.isParentHighlighted && styles.countdownContainerHighlighted,
-                  ])}
-                >
-                  <Kb.Text
-                    className="explodingTimeText"
-                    type="Body"
+                <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
+                  <Kb.Box2
+                    className="explodingTimeContainer"
+                    direction="horizontal"
                     style={Styles.collapseStyles([
-                      styles.countdown,
-                      this.props.isParentHighlighted && styles.countdownHighlighted,
+                      styles.countdownContainer,
+                      {
+                        backgroundColor,
+                      },
+                      this.props.isParentHighlighted && styles.countdownContainerHighlighted,
                     ])}
                   >
-                    {formatDurationShort(this.props.explodesAt - Date.now())}
-                  </Kb.Text>
-                </Kb.Box2>
+                    <Kb.Text
+                      className="explodingTimeText"
+                      type="Body"
+                      style={Styles.collapseStyles([
+                        styles.countdown,
+                        this.props.isParentHighlighted && styles.countdownHighlighted,
+                      ])}
+                    >
+                      {formatDurationShort(this.props.explodesAt - Date.now())}
+                    </Kb.Text>
+                  </Kb.Box2>
+                </Kb.WithTooltip>
               )}
-              <Kb.Icon
-                className="explodingTimeIcon"
-                type="iconfont-timer"
-                fontSize={stopWatchIconSize}
-                color={
-                  this.props.isParentHighlighted
-                    ? Styles.globalColors.blackOrBlack
-                    : Styles.globalColors.black
-                }
-              />
             </Kb.Box2>
           )
         }
@@ -238,35 +229,30 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.tiny,
           position: 'relative',
         },
-        isMobile: {height: 21},
+        isElectron: {height: 20},
+        isMobile: {height: 24},
       }),
       countdown: Styles.platformStyles({
         common: {color: Styles.globalColors.white, fontWeight: 'bold'},
-        isElectron: {fontSize: 10, lineHeight: 14},
-        isMobile: {fontSize: 11, lineHeight: 16},
+        isElectron: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
+        isMobile: {fontSize: 10, letterSpacing: -0.2, lineHeight: 14},
       }),
       countdownContainer: Styles.platformStyles({
         common: {
           alignItems: 'center',
-          borderRadius: 2,
           justifyContent: 'center',
-          paddingLeft: 2,
-          paddingRight: 2,
         },
-        isElectron: {
-          height: 14,
-          width: 28,
-        },
-        isMobile: {
-          height: 16,
-          width: 30,
-        },
+        isElectron: {borderRadius: 10, height: 20, width: 20},
+        isMobile: {borderRadius: 14, height: 24, width: 24},
       }),
       countdownContainerHighlighted: {
         backgroundColor: Styles.globalColors.blackOrBlack,
       },
       countdownHighlighted: {
         color: Styles.globalColors.whiteOrWhite,
+      },
+      explodingTooltip: {
+        marginRight: -Styles.globalMargins.xxtiny,
       },
       progressContainer: Styles.platformStyles({
         common: {
