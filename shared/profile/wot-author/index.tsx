@@ -149,7 +149,7 @@ export const Question1 = (props: Question1Props) => {
             onSelect={() => setVt(vtLoop)}
           >
             {/* For 'proofs': Show a row for each proof */}
-            {vtLoop === 'proofs' && <ProofList selected={selectedVt === 'proofs'} proofs={proofs} />}
+            {vtLoop === 'proofs' && proofList(selectedVt === 'proofs', proofs)}
             {/* For 'other': Show an input area when active */}
             {vtLoop === 'other' && selectedVt === vtLoop && (
               <OtherInput otherText={otherText} setOtherText={setOtherText} />
@@ -289,33 +289,30 @@ const VerificationChoice = (props: {
   )
 }
 
-const ProofList = (props: {
-  selected: boolean
-  proofs: {key: string; value: string; checked: boolean; onCheck: (_: boolean) => void}[]
-}) => (
-  <>
-    {props.proofs.map(proof => (
-      <Kb.Box2
-        key={`${proof.key}:${proof.value}`}
-        direction="horizontal"
-        alignSelf="stretch"
-        alignItems="center"
-        style={styles.insetContainer}
-      >
-        <Kb.Checkbox
-          checked={proof.checked && props.selected}
-          onCheck={proof.onCheck}
-          disabled={!props.selected}
-          labelComponent={
-            <Kb.Text type="Body">
-              {proof.value}@{proof.key}
-            </Kb.Text>
-          }
-        />
-      </Kb.Box2>
-    ))}
-  </>
-)
+const proofList = (
+  selected: boolean,
+  proofs: Array<{key: string; value: string; checked: boolean; onCheck: (_: boolean) => void}>
+) =>
+  proofs.map(proof => (
+    <Kb.Box2
+      key={`${proof.key}:${proof.value}`}
+      direction="horizontal"
+      alignSelf="stretch"
+      alignItems="center"
+      style={styles.insetContainer}
+    >
+      <Kb.Checkbox
+        checked={proof.checked && selected}
+        onCheck={proof.onCheck}
+        disabled={!selected}
+        labelComponent={
+          <Kb.Text type="Body">
+            {proof.value}@{proof.key}
+          </Kb.Text>
+        }
+      />
+    </Kb.Box2>
+  ))
 
 const OtherInput = (props: {otherText: string; setOtherText: (_: string) => void}) => (
   <Kb.Box2
