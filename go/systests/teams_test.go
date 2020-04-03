@@ -2228,7 +2228,7 @@ func (m mockConverter) SigchainStateToTeamTreeMembership(mctx libkb.MetaContext,
 			return teams.MakeLoadTeamTreeErrorResult(fmt.Errorf("mock failure"))
 		}
 	}
-	return m.converter.SigchainStateToTeamTreeMembership(mctx, s, uv, np)
+	return m.converter.SigchainStateToTeamTreeMembership(mctx, s, uv)
 }
 
 func newMockConverter(failureTeamIDs []keybase1.TeamID) mockConverter {
