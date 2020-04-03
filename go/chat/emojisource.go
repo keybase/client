@@ -159,7 +159,9 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 	defer func() { src.Close() }()
 	img, _, err := images.Decode(src, nil)
 	if err != nil {
-		src.Reset()
+		if err := src.Reset(); err != nil {
+			return err
+		}
 		g, err := gif.DecodeAll(src)
 		if err != nil {
 			return err
