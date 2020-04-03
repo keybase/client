@@ -1,8 +1,9 @@
 import * as React from 'react'
-import {Question1, Question2} from '.'
+import {Question1, Question2, Proof} from '.'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/profile'
+import * as Tracker2Constants from '../../constants/tracker2'
 
 export type Props = Container.RouteProps<{username: string; question?: Types.WotAuthorQuestion}>
 
@@ -15,8 +16,18 @@ export const WotAuthorRoot = (props: Props) => {
   if (!error && !voucheeUsername) {
     error = 'Routing missing username.'
   }
+  const {username: trackerUsername, assertions} = Container.useSelector(state =>
+    Tracker2Constants.getDetails(state, voucheeUsername)
+  )
   if (whichQuestion === 'question1') {
-    const proofs = [{key: 'web', value: 'fake.proof'}] // PICNIC-1088 TODO
+    let proofs: Proof[] = []
+    if (trackerUsername === voucheeUsername) {
+      if (assertions) {
+        proofs = Array.from(assertions, ([_, assertion]) => assertion).filter(x => x.type !== 'stellar')
+      }
+    } else {
+      error = `Proofs not loaded: ${trackerUsername} != ${voucheeUsername}`
+    }
     const onSubmit = answer => {
       console.log(answer) // PICNIC-1087 TODO use values
       dispatch(
