@@ -1,3 +1,6 @@
+// TEMP
+import * as React from 'react'
+// TEMP
 module.exports = {
   get Animated() {
     return require('./animated').default
@@ -188,7 +191,14 @@ module.exports = {
     return require('./name-with-icon').default
   },
   get NavigationEvents() {
-    return require('@react-navigation/core').NavigationEvents
+    const TEXT = require('./text').default
+    const TEMP = () => (
+      <TEXT type="Header" style={{backgroundColor: 'red', color: 'yellow'}}>
+        NAVEVENT
+      </TEXT>
+    )
+    return TEMP
+    // return require('@react-navigation/core').NavigationEvents
   },
   get NewInput() {
     return require('./new-input').default

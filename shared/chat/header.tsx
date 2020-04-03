@@ -11,9 +11,8 @@ import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
 
 type OwnProps = {
-  navigation: any
+  conversationIDKey: Types.ConversationIDKey
 }
-
 type Props = {
   canEditDesc: boolean
   channel: string | null
@@ -272,14 +271,10 @@ const styles = Styles.styleSheetCreate(
 
 const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
-    // temp until nav 5 when this all goes away
-    const _conversationIDKey =
-      (Container.isTablet
-        ? ownProps.navigation.state.params?.conversationIDKey
-        : ownProps.navigation.state.routes[0]?.params?.conversationIDKey) ?? Constants.noConversationIDKey
+    const {conversationIDKey} = ownProps
     const userInfo = state.users.infoMap
-    const _meta = Constants.getMeta(state, _conversationIDKey)
-    const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
+    const _meta = Constants.getMeta(state, conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const {infoPanelShowing} = state.chat2
     const {username} = state.config
 
@@ -294,7 +289,7 @@ const Connected = Container.connect(
     const fullName = otherInfo && otherInfo.fullname
 
     return {
-      _conversationIDKey,
+      conversationIDKey,
       _meta,
       _participantInfo: participantInfo,
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
@@ -318,7 +313,7 @@ const Connected = Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const {infoPanelShowing, username, fullName, desc} = stateProps
-    const {_meta, _conversationIDKey, _participantInfo} = stateProps
+    const {_meta, conversationIDKey, _participantInfo} = stateProps
     const {teamType, channelname, teamname, isMuted} = _meta
     const {_onOpenFolder, _onToggleThreadSearch, _unMuteConversation} = dispatchProps
     const {onHideInfoPanel, onNewChat, onShowInfoPanel} = dispatchProps
@@ -331,12 +326,12 @@ const Connected = Container.connect(
       isTeam: ['small', 'big'].includes(teamType),
       muted: isMuted,
       onNewChat,
-      onOpenFolder: () => _onOpenFolder(_conversationIDKey),
-      onToggleInfoPanel: infoPanelShowing ? onHideInfoPanel : () => onShowInfoPanel(_conversationIDKey),
-      onToggleThreadSearch: () => _onToggleThreadSearch(_conversationIDKey),
+      onOpenFolder: () => _onOpenFolder(conversationIDKey),
+      onToggleInfoPanel: infoPanelShowing ? onHideInfoPanel : () => onShowInfoPanel(conversationIDKey),
+      onToggleThreadSearch: () => _onToggleThreadSearch(conversationIDKey),
       participants: teamType === 'adhoc' ? _participantInfo.name : null,
-      showActions: Constants.isValidConversationIDKey(_conversationIDKey),
-      unMuteConversation: () => _unMuteConversation(_conversationIDKey),
+      showActions: Constants.isValidConversationIDKey(conversationIDKey),
+      unMuteConversation: () => _unMuteConversation(conversationIDKey),
       username,
     }
   }

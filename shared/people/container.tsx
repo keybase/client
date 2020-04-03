@@ -41,10 +41,7 @@ export class LoadOnMount extends React.PureComponent<Props> {
   static navigationOptions = {
     header: undefined,
     headerTitle: () => <ConnectedHeader />,
-    headerTitleContainerStyle: {
-      left: 40,
-      right: 0,
-    },
+    headerTitleContainerStyle: {alignSelf: 'flex-end', flexGrow: 1, marginLeft: 40, marginRight: 0},
     underNotch: true,
   }
   _onReload = () => this.props.getData(false)

@@ -7,6 +7,7 @@ import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-rout
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector} from 'react-redux'
+import {RouteProp as _RouteProp, ParamListBase} from '@react-navigation/native'
 import flowRight from 'lodash/flowRight'
 
 // to keep fallback objects static for react
@@ -23,12 +24,13 @@ export const networkErrorCodes = [
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
 
+/** Deprecated **/
 export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R>(
   ownProps: O,
   key: K,
   notSetVal: R[K] // this could go away if we type the routes better and ensure its always passed as a prop
 ): R[K] {
-  const val = ownProps.navigation.getParam(key)
+  const val = ownProps.route.params?.[key]
   return val === undefined ? notSetVal : val
 }
 
@@ -100,3 +102,8 @@ export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 export {default as useFocusBlur} from './use-focus-blur'
+export {useIsFocused, useNavigation, useRoute, useFocusEffect} from '@react-navigation/native'
+export type RouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList> = _RouteProp<
+  ParamList,
+  RouteName
+>

@@ -8,10 +8,6 @@ import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox from '.'
 import {isPhone} from '../../constants/platform'
 import {Props} from '.'
-import * as Kb from '../../common-adapters'
-import {HeaderNewChatButton} from './new-chat-button'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
 
 type OwnProps = {
   navKey: string
@@ -68,23 +64,17 @@ const makeSmallRows = (
   })
 }
 
-let InboxWrapper = (props: Props) => {
+const InboxWrapper = (props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
 
-  // temporary until nav 5
-  // @ts-ignore
-  const {isFocused} = props
-
-  if (Container.isMobile) {
-    // eslint-disable-next-line
-    React.useEffect(() => {
-      if (isFocused && Constants.isSplit) {
+  Container.useFocusEffect(
+    React.useCallback(() => {
+      if (Constants.isSplit) {
         dispatch(Chat2Gen.createTabSelected())
       }
-      // eslint-disable-next-line
-    }, [isFocused])
-  }
+    }, [dispatch])
+  )
 
   React.useEffect(() => {
     if (!Container.isMobile) {
@@ -99,23 +89,6 @@ let InboxWrapper = (props: Props) => {
   }, [])
 
   return <Inbox {...props} />
-}
-
-// temporary until nav 5
-if (Container.isMobile) {
-  InboxWrapper = withNavigationFocus(InboxWrapper)
-}
-
-// @ts-ignore
-InboxWrapper.navigationOptions = {
-  header: undefined,
-  headerRight: <HeaderNewChatButton />,
-  headerTitle: () => (
-    <Kb.Text type="BodyBig" lineClamp={1}>
-      {' '}
-      Chats{' '}
-    </Kb.Text>
-  ),
 }
 
 const Connected = Container.namedConnect(

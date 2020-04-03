@@ -9,14 +9,12 @@ import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import HeaderArea from './header-area/container'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
 type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
-let Conversation = (p: SwitchProps) => {
+const Conversation = (p: SwitchProps) => {
   const conversationIDKey = Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 
@@ -67,11 +65,6 @@ let Conversation = (p: SwitchProps) => {
   }
 }
 
-if (Container.isMobile) {
-  Conversation = withNavigationFocus(Conversation)
-}
-
-// @ts-ignore
 Conversation.navigationOptions = {
   header: undefined,
   headerLeft: null,

@@ -135,11 +135,13 @@ class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
     )
   }
 }
-const SettingsSubNavigator = createNavigator(
-  SettingsSubNav,
-  StackRouter(Shim.shim(subRoutes), {initialRouteName: Constants.accountTab}),
-  {}
-)
+const SettingsSubNavigator = () => null
+// TODO
+// const SettingsSubNavigator = createNavigator(
+// SettingsSubNav,
+// StackRouter(Shim.shim(subRoutes), {initialRouteName: Constants.accountTab}),
+// {}
+// )
 
 SettingsSubNavigator.navigationOptions = {
   header: undefined,

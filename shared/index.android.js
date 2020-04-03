@@ -7,6 +7,9 @@ import {enableES5, enableMapSet} from 'immer'
 enableES5()
 enableMapSet()
 
+import {enableScreens} from 'react-native-screens'
+enableScreens()
+
 // Load storybook or the app
 if (__STORYBOOK__) {
   const load = require('./storybook/index.native').default
