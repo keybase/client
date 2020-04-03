@@ -622,6 +622,8 @@
     // only used by conversation name search
     int maxNameConvs;
     int maxTeams;
+    int maxBots;
+    boolean skipBotCache;
   }
 
   // The search indexer uses the EmptyStruct to implement a set using a map

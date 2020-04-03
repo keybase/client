@@ -438,6 +438,7 @@ type ChatUI interface {
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
 	ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHits) error
+	ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)

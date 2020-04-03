@@ -3871,6 +3871,15 @@ func (b FeaturedBot) Eq(o FeaturedBot) bool {
 		b.Owner() == o.Owner()
 }
 
+func (a SearchArg) String() string {
+	// Don't leak user's query string
+	return fmt.Sprintf("Limit: %d, Offset: %d", a.Limit, a.Offset)
+}
+func (a SearchLocalArg) String() string {
+	// Don't leak user's query string
+	return fmt.Sprintf("Limit: %d, SkipCache: %v", a.Limit, a.SkipCache)
+}
+
 func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {
 	if len(b.Bots) != len(o.Bots) {
 		return false

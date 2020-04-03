@@ -1241,6 +1241,10 @@ func (c *ChatUI) ChatSearchTeamHits(ctx context.Context, hits chat1.UIChatSearch
 	return nil
 }
 
+func (c *ChatUI) ChatSearchBotHits(ctx context.Context, hits chat1.UIChatSearchBotHits) error {
+	return nil
+}
+
 func (c *ChatUI) ChatSearchInboxStart(ctx context.Context) error {
 	return nil
 }

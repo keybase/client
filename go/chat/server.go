@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/teams/opensearch"
 	"github.com/keybase/pipeliner"
@@ -2329,95 +2330,118 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
+	eg := errgroup.Group{}
 
 	// stream hits back to client UI
 	hitUICh := make(chan chat1.ChatSearchInboxHit, 10)
-	hitUIDone := make(chan struct{})
-	numHits := 0
-	go func() {
-		defer close(hitUIDone)
+	var numHits int
+	eg.Go(func() error {
 		if !doSearch {
-			return
+			return nil
 		}
 		for searchHit := range hitUICh {
 			numHits += len(searchHit.Hits)
 			select {
 			case <-ctx.Done():
-				return
+				return ctx.Err()
 			default:
 				_ = chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
 					SearchHit: searchHit,
 				})
 			}
 		}
-	}()
+		return nil
+	})
+
 	// stream index status back to client UI
 	indexUICh := make(chan chat1.ChatSearchIndexStatus, 10)
-	indexUIDone := make(chan struct{})
-	go func() {
-		defer close(indexUIDone)
+	eg.Go(func() error {
 		if !doSearch {
-			return
+			return nil
 		}
 		for status := range indexUICh {
 			select {
 			case <-ctx.Done():
-				return
+				return ctx.Err()
 			default:
 				_ = chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
 					Status: status,
 				})
 			}
 		}
-	}()
+		return nil
+	})
 
 	// send up conversation name matches
-	convUIDone := make(chan struct{})
-	go func() {
-		defer close(convUIDone)
+	eg.Go(func() error {
 		if opts.MaxNameConvs == 0 {
-			return
+			return nil
 		}
 		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs,
 			types.InboxSourceSearchEmptyModeUnread)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
-		} else {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				_ = chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
-					Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
-					UnreadMatches: len(query) == 0,
-				})
-			}
+			return err
 		}
-	}()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			_ = chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
+				Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
+				UnreadMatches: len(query) == 0,
+			})
+		}
+		return nil
+	})
 
 	// send up team name matches
-	teamUIDone := make(chan struct{})
-	go func() {
-		defer close(teamUIDone)
+	g := h.G().ExternalG()
+	mctx := libkb.NewMetaContext(ctx, g)
+	eg.Go(func() error {
 		if opts.MaxTeams == 0 {
-			return
+			return nil
 		}
-		teamHits, err := opensearch.Local(libkb.NewMetaContext(ctx, h.G().ExternalG()), query,
+		hits, err := opensearch.Local(mctx, query,
 			opts.MaxTeams)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
-		} else {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				_ = chatUI.ChatSearchTeamHits(ctx, chat1.UIChatSearchTeamHits{
-					Hits:             teamHits,
-					SuggestedMatches: len(query) == 0,
-				})
-			}
+			return err
 		}
-	}()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			_ = chatUI.ChatSearchTeamHits(ctx, chat1.UIChatSearchTeamHits{
+				Hits:             hits,
+				SuggestedMatches: len(query) == 0,
+			})
+		}
+		return nil
+	})
+
+	eg.Go(func() error {
+		hits, err := teambot.NewFeaturedBotLoader(g).SearchLocal(
+			mctx, keybase1.SearchLocalArg{
+				Query:     query,
+				Limit:     opts.MaxBots,
+				SkipCache: opts.SkipBotCache,
+			})
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to get bot hits: %s", err)
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			_ = chatUI.ChatSearchBotHits(ctx, chat1.UIChatSearchBotHits{
+				Hits:             hits.Bots,
+				SuggestedMatches: len(query) == 0,
+			})
+		}
+		return nil
+	})
 
 	var searchRes *chat1.ChatSearchInboxResults
 	if doSearch {
@@ -2430,10 +2454,10 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			return res, err
 		}
 	}
-	<-hitUIDone
-	<-indexUIDone
-	<-convUIDone
-	<-teamUIDone
+
+	if err := eg.Wait(); err != nil {
+		h.Debug(ctx, "unable to wait for search: %v")
+	}
 
 	var doneRes chat1.ChatSearchInboxDone
 	if searchRes != nil {
