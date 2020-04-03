@@ -771,23 +771,20 @@ func verifySeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 }
 
 func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, ikey keybase1.SeitanIKeyInvitelink, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
-	sikey, err := GenerateSIKeyInvitelink(ikey)
+	// We repeat the steps that user does when they request access using the
+	// invite ID and see if we get the same answer for the same parameters (UV
+	// and unixCTime).
+	uv := keybase1.UserVersion{
+		Uid:         seitan.Uid,
+		EldestSeqno: seitan.EldestSeqno,
+	}
+	ourAccept, err := generateAcceptanceSeitanInviteLink(ikey, uv, seitan.UnixCTime)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to generate acceptance key to test: %w", err)
 	}
 
-	inviteID, err := sikey.GenerateTeamInviteID()
-	if err != nil {
-		return err
-	}
-
-	if !inviteID.Eq(invite.Id) {
+	if !ourAccept.inviteID.Eq(invite.Id) {
 		return errors.New("invite ID mismatch (seitan invitelink)")
-	}
-
-	akey, _, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
-	if err != nil {
-		return err
 	}
 
 	// Decode given AKey to be able to do secure hash comparison.
@@ -796,7 +793,7 @@ func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, i
 		return err
 	}
 
-	if !libkb.SecureByteArrayEq(akey, decodedAKey) {
+	if !libkb.SecureByteArrayEq(ourAccept.akey, decodedAKey) {
 		return fmt.Errorf("did not end up with the same invitelink AKey")
 	}
 

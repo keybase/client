@@ -521,16 +521,17 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 		return err
 	}
 
-	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
-	maybeSeitan, keepSecret := teams.ParseSeitanTokenFromPaste(arg.Token)
-	if keepSecret {
+	// If token looks at all like Seitan, don't pass to functions that might
+	// log or send to server.
+	parsedToken, wasSeitany := teams.ParseSeitanTokenFromPaste(arg.Token)
+	if wasSeitany {
 		ui := h.getTeamsUI(arg.SessionID)
-		_, err = teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), ui, maybeSeitan)
+		_, err = teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), ui, parsedToken)
 		return err
 	}
 
 	// Fallback to legacy email TOFU token
-	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
+	return teams.AcceptServerTrustInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
 func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) (res keybase1.TeamRequestAccessResult, err error) {
