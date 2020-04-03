@@ -183,14 +183,6 @@ func (a *apiReply) GetAppStatus() *libkb.AppStatus {
 	return &a.Status
 }
 
-func uidsToStringForLog(uids []keybase1.UID) string {
-	if len(uids) < 5 {
-		return libkb.UidsToString(uids)
-	}
-
-	return fmt.Sprintf("%s,...,%s [%d total UIDs]", uids[0], uids[len(uids)-1], len(uids))
-}
-
 func (u *UIDMap) refreshersForUIDs(uids []keybase1.UID) string {
 	var v []string
 	for _, uid := range uids {
