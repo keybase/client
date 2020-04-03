@@ -65,7 +65,7 @@ export type InviteInfo = {
   id: string
 }
 
-export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings' | 'channels'
+export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'emoji' | 'settings' | 'channels'
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
