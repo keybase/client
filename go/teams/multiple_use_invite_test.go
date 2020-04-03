@@ -177,6 +177,9 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	// Login back to admin, use same seitan gregor message
 	// to try to add the user back in.
 	kbtest.LogoutAndLoginAs(tc, admin)
+
+	// `HandleTeamSeitan` should not return an error but skip over bad
+	// `TeamSeitanRequest`.
 	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
 
@@ -186,9 +189,10 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// The person shouldn't have been added
 	members, err := teamObj.Members()
 	require.NoError(t, err)
 
 	uvs := members.AllUserVersions()
-	require.Len(t, uvs, 1)
+	require.Equal(t, []keybase1.UserVersion{admin.GetUserVersion()}, uvs)
 }
