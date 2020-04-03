@@ -16,6 +16,8 @@ export type WotAuthor = {
   initialVerificationType: WebOfTrustVerificationType
 }
 
+export type WotAuthorQuestion = 'question1' | 'question2'
+
 export type State = {
   readonly errorCode?: number
   readonly errorText: string

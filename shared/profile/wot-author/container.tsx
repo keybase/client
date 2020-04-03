@@ -2,13 +2,15 @@ import * as React from 'react'
 import {Question1, Question2} from '.'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Types from '../../constants/types/profile'
 
-export type Props = Container.RouteProps<{username: string}>
+export type Props = Container.RouteProps<{username: string; question?: Types.WotAuthorQuestion}>
 
 export const WotAuthorRoot = (props: Props) => {
   const voucheeUsername = Container.getRouteProps(props, 'username', '')
+  const whichQuestion = Container.getRouteProps(props, 'question', 'question1')
+  const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
-  const [whichQuestion, setWhichQuestion] = React.useState<'question1' | 'question2'>('question1')
   let {error, initialVerificationType} = Container.useSelector(state => state.profile.wotAuthor)
   if (!error && !voucheeUsername) {
     error = 'Routing missing username.'
@@ -17,7 +19,11 @@ export const WotAuthorRoot = (props: Props) => {
     const proofs = [{key: 'web', value: 'fake.proof'}] // PICNIC-1088 TODO
     const onSubmit = answer => {
       console.log(answer) // PICNIC-1087 TODO use values
-      setWhichQuestion('question2')
+      dispatch(
+        nav.safeNavigateAppendPayload({
+          path: [{props: {username: voucheeUsername, question: 'question2'}, selected: 'profileWotAuthor'}],
+        })
+      )
     }
     return (
       <Question1
@@ -31,12 +37,12 @@ export const WotAuthorRoot = (props: Props) => {
   } else {
     const onSubmit = answer => {
       console.log(answer) // PICNIC-1087 TODO use values
-      dispatch(RouteTreeGen.createNavigateUp()) // xxx todo nav
+      dispatch(RouteTreeGen.createClearModals())
     }
     return (
       <Question2
         error={error}
-        onBack={() => setWhichQuestion('question1')}
+        onBack={() => dispatch(nav.safeNavigateUpPayload())}
         onSubmit={onSubmit}
         voucheeUsername={voucheeUsername}
       />

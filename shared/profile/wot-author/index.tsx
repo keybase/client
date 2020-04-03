@@ -23,7 +23,7 @@ type WotModalProps = {
 
 const WotModal = (props: WotModalProps) => {
   const dispatch = Container.useDispatch()
-  const onClose = () => dispatch(RouteTreeGen.createNavigateUp()) // xxx todo safe nav
+  const onClose = () => dispatch(RouteTreeGen.createClearModals())
   return (
     <Kb.Modal
       onClose={onClose}
