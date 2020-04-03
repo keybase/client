@@ -524,7 +524,8 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
 	maybeSeitan, keepSecret := teams.ParseSeitanTokenFromPaste(arg.Token)
 	if keepSecret {
-		_, err = teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), maybeSeitan)
+		ui := h.getTeamsUI(arg.SessionID)
+		_, err = teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), ui, maybeSeitan)
 		return err
 	}
 
@@ -548,7 +549,8 @@ func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg 
 		return res, err
 	}
 
-	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
+	ui := h.getTeamsUI(arg.SessionID)
+	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), ui, arg.TokenOrName)
 }
 
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, arg keybase1.TeamListRequestsArg) (res []keybase1.TeamJoinRequest, err error) {
@@ -898,4 +900,11 @@ func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (e
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
 
 	return fmt.Errorf("unimplemented")
+}
+
+func (h *TeamsHandler) GetInviteLinkDetails(ctx context.Context, inviteID keybase1.TeamInviteID) (details keybase1.InviteLinkDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetInviteLinkDetails(%s)", inviteID), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetInviteLinkDetails(mctx, inviteID)
 }

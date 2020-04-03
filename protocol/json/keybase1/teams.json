@@ -3006,6 +3006,52 @@
     },
     {
       "type": "record",
+      "name": "InviteLinkDetails",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        },
+        {
+          "type": "UID",
+          "name": "inviterUID"
+        },
+        {
+          "type": "string",
+          "name": "inviterUsername"
+        },
+        {
+          "type": "boolean",
+          "name": "inviterResetOrDel"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "teamDesc"
+        },
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "int",
+          "name": "teamNumMembers"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AvatarUrl",
+            "keys": "AvatarFormat"
+          },
+          "name": "teamAvatars"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamUserSet",
       "fields": [
         {
@@ -4216,6 +4262,15 @@
         }
       ],
       "response": "Invitelink"
+    },
+    "getInviteLinkDetails": {
+      "request": [
+        {
+          "name": "inviteID",
+          "type": "TeamInviteID"
+        }
+      ],
+      "response": "InviteLinkDetails"
     },
     "teamAddEmailsBulk": {
       "request": [

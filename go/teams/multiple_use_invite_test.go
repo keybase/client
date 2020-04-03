@@ -38,7 +38,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 	inviteLink, err := CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER, maxUses, nil /* etime */)
 	require.NoError(t, err)
 
-	wasSeitan, err := ParseAndAcceptSeitanToken(context.TODO(), tc2.G, inviteLink.Ikey.String())
+	wasSeitan, err := ParseAndAcceptSeitanToken(context.TODO(), tc2.G, &teamsUI{}, inviteLink.Ikey.String())
 	require.NoError(t, err)
 	require.True(t, wasSeitan)
 

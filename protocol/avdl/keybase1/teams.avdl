@@ -1410,6 +1410,20 @@ protocol teams {
     array<string> malformed;
   }
 
+  record InviteLinkDetails{
+      TeamInviteID inviteID; 
+      UID inviterUID;
+      string inviterUsername;
+      boolean inviterResetOrDel;
+      TeamID teamID;
+      string teamDesc;
+      TeamName teamName;
+      int teamNumMembers;
+      map<AvatarFormat, AvatarUrl> teamAvatars;
+  }
+
+  InviteLinkDetails getInviteLinkDetails(TeamInviteID inviteID);
+
   // emails is a list of email addresses separated by whitespace or commas.
   // returns a list of emails that were not invited, most likely because of
   // malformed email addresses.
