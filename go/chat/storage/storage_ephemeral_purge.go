@@ -79,8 +79,6 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 
 func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (explodedMsgs []chat1.MessageUnboxed, err Error) {
-	defer s.Trace(ctx, func() error { return err }, "explodeExpiredMessages")()
-
 	purgeInfo, explodedMsgs, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
 	if err != nil {
 		return nil, err
@@ -147,7 +145,6 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 		}
 	}()
 
-	s.Debug(ctx, "purging %v ephemeral messages", len(explodedMsgs))
 	if err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs); err != nil {
 		s.Debug(ctx, "write messages failed: %v", err)
 		return nil, nil, err
