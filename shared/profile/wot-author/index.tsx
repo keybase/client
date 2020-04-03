@@ -86,10 +86,10 @@ type Question1Props = {
 
 export const Question1 = (props: Question1Props) => {
   const scrollViewRef = React.useRef<Kb.ScrollView>(null)
-  const [vt, _setVt] = React.useState<WebOfTrustVerificationType>(props.initialVerificationType)
+  const [selectedVt, _setVt] = React.useState<WebOfTrustVerificationType>(props.initialVerificationType)
   const [otherText, setOtherText] = React.useState('')
   const setVt = newVt => {
-    if (newVt === 'other' && newVt !== vt && scrollViewRef.current) {
+    if (newVt === 'other' && newVt !== selectedVt && scrollViewRef.current) {
       const hackDelay = 50 // With no delay scrolling undershoots. Perhaps the bottom component doesn't exist yet.
       setTimeout(() => scrollViewRef.current?.scrollToEnd({animated: true}), hackDelay)
     }
@@ -97,17 +97,17 @@ export const Question1 = (props: Question1Props) => {
   }
   const proofs = useCheckboxesState(props.proofs)
   const submitDisabled =
-    (vt === 'other' && otherText === '') || (vt === 'proofs' && !proofs.some(x => x.checked))
+    (selectedVt === 'other' && otherText === '') || (selectedVt === 'proofs' && !proofs.some(x => x.checked))
   const onSubmit = () => {
     props.onSubmit({
-      otherText: vt === 'other' ? otherText : '',
+      otherText: selectedVt === 'other' ? otherText : '',
       proofs: proofs
         .filter(({checked}) => checked)
         .map(proof => ({
           key: proof.key,
           value: proof.value,
         })),
-      verificationType: vt,
+      verificationType: selectedVt,
     })
   }
 
@@ -139,50 +139,20 @@ export const Question1 = (props: Question1Props) => {
         </Kb.Text>
       </Kb.Box2>
       {Constants.choosableWotVerificationTypes
-        .filter(vt2 => vt2 !== 'proofs' || proofs.length)
-        .map(vt2 => (
+        .filter(vtLoop => vtLoop !== 'proofs' || proofs.length)
+        .map(vtLoop => (
           <VerificationChoice
-            key={vt2}
+            key={vtLoop}
             voucheeUsername={props.voucheeUsername}
-            verificationType={vt2}
-            selected={vt === vt2}
-            onSelect={() => setVt(vt2)}
+            verificationType={vtLoop}
+            selected={selectedVt === vtLoop}
+            onSelect={() => setVt(vtLoop)}
           >
-            {vt2 === 'proofs' &&
-              proofs.map(proof => (
-                <Kb.Box2
-                  key={`${proof.key}:${proof.value}`}
-                  direction="horizontal"
-                  alignSelf="stretch"
-                  alignItems="center"
-                  style={styles.insetContainer}
-                >
-                  <Kb.Checkbox
-                    checked={proof.checked && vt === 'proofs'}
-                    onCheck={proof.onCheck}
-                    disabled={vt !== 'proofs'}
-                    labelComponent={
-                      <Kb.Text type="Body">
-                        {proof.value}@{proof.key}
-                      </Kb.Text>
-                    }
-                  />
-                </Kb.Box2>
-              ))}
-            {vt2 === 'other' && vt === vt2 && (
-              <Kb.Box2
-                direction="vertical"
-                alignSelf="stretch"
-                alignItems="flex-start"
-                style={Styles.collapseStyles([styles.insetContainer, styles.otherInputContainer])}
-              >
-                <Kb.LabeledInput
-                  placeholder={'Specify (required)'}
-                  value={otherText}
-                  onChangeText={setOtherText}
-                  maxLength={otherLimit}
-                />
-              </Kb.Box2>
+            {/* For 'proofs': Show a row for each proof */}
+            {vtLoop === 'proofs' && <ProofList selected={selectedVt === 'proofs'} proofs={proofs} />}
+            {/* For 'other': Show an input area when active */}
+            {vtLoop === 'other' && selectedVt === vtLoop && (
+              <OtherInput otherText={otherText} setOtherText={setOtherText} />
             )}
           </VerificationChoice>
         ))}
@@ -318,6 +288,50 @@ const VerificationChoice = (props: {
     </Kb.Box2>
   )
 }
+
+const ProofList = (props: {
+  selected: boolean
+  proofs: {key: string; value: string; checked: boolean; onCheck: (_: boolean) => void}[]
+}) => (
+  <>
+    {props.proofs.map(proof => (
+      <Kb.Box2
+        key={`${proof.key}:${proof.value}`}
+        direction="horizontal"
+        alignSelf="stretch"
+        alignItems="center"
+        style={styles.insetContainer}
+      >
+        <Kb.Checkbox
+          checked={proof.checked && props.selected}
+          onCheck={proof.onCheck}
+          disabled={!props.selected}
+          labelComponent={
+            <Kb.Text type="Body">
+              {proof.value}@{proof.key}
+            </Kb.Text>
+          }
+        />
+      </Kb.Box2>
+    ))}
+  </>
+)
+
+const OtherInput = (props: {otherText: string; setOtherText: (_: string) => void}) => (
+  <Kb.Box2
+    direction="vertical"
+    alignSelf="stretch"
+    alignItems="flex-start"
+    style={Styles.collapseStyles([styles.insetContainer, styles.otherInputContainer])}
+  >
+    <Kb.LabeledInput
+      placeholder={'Specify (required)'}
+      value={props.otherText}
+      onChangeText={props.setOtherText}
+      maxLength={otherLimit}
+    />
+  </Kb.Box2>
+)
 
 // Store checkedness for a list of checkboxes.
 function useCheckboxesState<T>(items: T[]): (T & {checked: boolean; onCheck: (_: boolean) => void})[] {
