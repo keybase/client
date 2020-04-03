@@ -53,8 +53,7 @@ const addWizardRoutes = {
     getScreen: (): typeof TeamAddToTeamConfirm => require('./add-members-wizard/confirm').default,
   },
   teamAddToTeamContacts: {
-    getScreen: (): typeof TeamAddToTeamContacts =>
-      require('./add-members-wizard/add-contacts.native').default,
+    getScreen: (): typeof TeamAddToTeamContacts => require('./add-members-wizard/add-contacts').default,
   },
   teamAddToTeamEmail: {
     getScreen: (): typeof TeamAddToTeamEmail => require('./add-members-wizard/add-email').default,
