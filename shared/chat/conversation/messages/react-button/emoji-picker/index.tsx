@@ -78,7 +78,7 @@ type Section = _Section<
 type Props = {
   topReacjis: Array<RPCTypes.UserReacji>
   filter?: string
-  onChoose: (emojiStr: string) => void
+  onChoose: (emojiStr: string, emojiData: EmojiData) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: Types.EmojiSkinTone
   customSections?: RPCChatGen.EmojiGroup[]
@@ -220,7 +220,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
-        onClick={() => this.props.onChoose(emojiStr)}
+        onClick={() => this.props.onChoose(emojiStr, emoji)}
         onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
         style={styles.emoji}
         key={emoji.short_name}

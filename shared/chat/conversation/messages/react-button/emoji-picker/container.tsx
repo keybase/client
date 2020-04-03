@@ -15,11 +15,13 @@ import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
 import {EmojiData} from '../../../../../util/emoji'
 
+export type EmojiData = EmojiData
+
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   onDidPick?: () => void
   onPickAddToMessageOrdinal?: Types.Ordinal
-  onPickAction?: (emoji: string) => void
+  onPickAction?: (emoji: string, emojiData: EmojiData) => void
 }
 
 type RoutableProps = Container.RouteProps<Props>
@@ -28,8 +30,8 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
   const dispatch = Container.useDispatch()
-  const onAddReaction = React.useCallback(
-    (emoji: string) => {
+  const onChoose = React.useCallback(
+    (emoji: string, emojiData: EmojiData) => {
       if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
         dispatch(
           Chat2Gen.createToggleMessageReaction({
@@ -39,14 +41,14 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
           })
         )
       }
-      onPickAction?.(emoji)
+      onPickAction?.(emoji, emojiData)
       onDidPick?.()
     },
     [dispatch, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
   )
   return {
     filter,
-    onAddReaction,
+    onChoose,
     setFilter,
     topReacjis,
   }
@@ -90,7 +92,7 @@ const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.Con
 }
 
 const WrapperMobile = (props: Props) => {
-  const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
+  const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
@@ -123,7 +125,7 @@ const WrapperMobile = (props: Props) => {
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
-        onChoose={onAddReaction}
+        onChoose={onChoose}
         customSections={customEmojiGroups}
         waitingForEmoji={waiting}
         width={width}
@@ -151,7 +153,7 @@ const WrapperMobile = (props: Props) => {
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
-  const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
+  const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
@@ -186,7 +188,7 @@ export const EmojiPickerDesktop = (props: Props) => {
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
-        onChoose={onAddReaction}
+        onChoose={onChoose}
         onHover={setHoveredEmoji}
         width={336}
         skinTone={currentSkinTone}

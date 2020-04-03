@@ -146,7 +146,7 @@ export const AddEmojiModal = (props: Props) => {
   const pick = () => pickEmojisPromise().then(addFiles)
   return !emojisToAdd.length ? (
     <Modal
-      bannerError=""
+      title="Add emoji"
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
       footerButtonLabel={Styles.isMobile ? 'Choose Images' : debug ? 'Add for debug' : undefined}
@@ -162,6 +162,7 @@ export const AddEmojiModal = (props: Props) => {
     </Modal>
   ) : (
     <Modal
+      title="Add emoji"
       bannerError={bannerError}
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}

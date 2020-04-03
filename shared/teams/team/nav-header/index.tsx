@@ -7,12 +7,31 @@ import TeamMenu from '../menu-container'
 import {TeamID} from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 
+const tmp = (teamID: TeamID) => {
+  const dispatch = require('../../../util/container').useDispatch()
+  const RouteTreeGen = require('../../../actions/route-tree-gen')
+  return (
+    <Kb.Button
+      label="Add emoji alias (debug)"
+      onClick={() =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamAddEmojiAlias'}]})
+        )
+      }
+      small={true}
+      type="Default"
+      mode="Secondary"
+    />
+  )
+}
+
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const {popup, showingPopup, toggleShowingPopup, popupAnchor} = Kb.usePopup(attachTo => (
     <AddPeopleHow attachTo={attachTo} onHidden={toggleShowingPopup} teamID={teamID} visible={showingPopup} />
   ))
   return (
     <>
+      {tmp(teamID)}
       <Kb.Button
         label="Add members"
         onClick={toggleShowingPopup}

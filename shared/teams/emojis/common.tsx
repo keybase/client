@@ -25,26 +25,30 @@ export const AliasInput = (props: AliasInputProps) => (
 )
 
 type ModalProps = {
+  backButtonOnClick?: () => void
   bannerImage: Kb.IconType
-  bannerError: string
+  bannerError?: string
   children: React.ReactNode
-  desktopHeight: number
+  desktopHeight?: number
   footerButtonLabel?: string
   footerButtonOnClick?: () => void
   footerButtonWaiting?: boolean
-  backButtonOnClick?: () => void
+  title: string
 }
 
 export const Modal = (props: ModalProps) => {
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createClearModals())
   return (
-    <Kb.PopupWrapper onCancel={onCancel} title="Add emoji">
+    <Kb.PopupWrapper onCancel={onCancel} title={props.title}>
       <Kb.Box2
         direction="vertical"
         fullHeight={Styles.isMobile}
         fullWidth={Styles.isMobile}
-        style={Styles.collapseStyles([styles.container, !Styles.isMobile && {height: props.desktopHeight}])}
+        style={Styles.collapseStyles([
+          styles.container,
+          !Styles.isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
+        ])}
       >
         {!Styles.isMobile && (
           <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
@@ -146,7 +150,6 @@ const styles = Styles.styleSheetCreate(() => ({
       position: 'relative',
     },
     isElectron: {
-      height: 537,
       width: 400,
     },
   }),
