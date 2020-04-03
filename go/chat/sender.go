@@ -150,7 +150,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 			break
 		} else if thread.Pagination.Last && !reachedLast {
 			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v). Nuking local storage and retrying.", len(thread.Messages))
-			if err := s.G().ConvSource.Clear(ctx, conv.GetConvID(), msg.ClientHeader.Sender, types.ClearOpts{
+			if err := s.G().ConvSource.Clear(ctx, conv.GetConvID(), msg.ClientHeader.Sender, &types.ClearOpts{
 				SendLocalAdminNotification: true,
 				Reason:                     "missing prev pointer",
 			}); err != nil {
@@ -1197,7 +1197,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
 				if !clearedCache {
 					s.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
-					if err := s.G().InboxSource.Clear(ctx, sender, types.ClearOpts{
+					if err := s.G().InboxSource.Clear(ctx, sender, &types.ClearOpts{
 						SendLocalAdminNotification: true,
 						Reason:                     "stale previous topic state",
 					}); err != nil {
@@ -1206,7 +1206,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					s.Debug(ctx, "Send: clearing conversation cache to retry stale previous state: %d convs",
 						len(prepareRes.TopicNameStateConvs))
 					for _, convID := range prepareRes.TopicNameStateConvs {
-						if err := s.G().ConvSource.Clear(ctx, convID, sender, types.ClearOpts{}); err != nil {
+						if err := s.G().ConvSource.Clear(ctx, convID, sender, nil); err != nil {
 							s.Debug(ctx, "Send: error clearing: %v %+v", convID, err)
 						}
 					}

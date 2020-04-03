@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -599,7 +598,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	require.Equal(t, "MIKE: 2", thread.Messages[0].Valid().MessageBody.Text().Body)
 
 	// Make sure we don't consider it a hit if we end the fetch with a hole
-	require.NoError(t, tc.Context().ConvSource.Clear(ctx, convID, uid, types.ClearOpts{}))
+	require.NoError(t, tc.Context().ConvSource.Clear(ctx, convID, uid, nil))
 	_, err = tc.Context().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL, nil, nil, nil)
 	require.Error(t, err)
 }
