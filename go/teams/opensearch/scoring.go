@@ -1,6 +1,7 @@
 package opensearch
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -16,8 +17,45 @@ const (
 	lastActiveWeight        = 20
 )
 
-func filterScore(score float64) bool {
-	return score-.0001 < 0
+type RankedSearchItem interface {
+	Score(query string) float64
+	String() string
+}
+
+type rankedSearchItem struct {
+	item  keybase1.TeamSearchItem
+	score float64
+}
+
+func (i rankedSearchItem) String() string {
+	description := ""
+	if i.item.Description != nil {
+		description = *i.item.Description
+	}
+	return fmt.Sprintf(
+		"Name: %s Description: %s MemberCount: %d LastActive: %v Score: %.2f isDemoted: %v",
+		i.item.Name, description, i.item.MemberCount,
+		i.item.LastActive.Time(), i.score, i.item.IsDemoted)
+}
+
+func (i rankedSearchItem) Score(query string) (score float64) {
+	query = strings.ToLower(query)
+	name := strings.ToLower(i.item.Name)
+	// demoted teams require an exact name match to be returned
+	if i.item.IsDemoted && query != name {
+		return 0
+	}
+	for _, qtok := range strings.Split(query, " ") {
+		score += ScoreName(name, qtok)
+		if i.item.Description != nil {
+			score += ScoreDescription(*i.item.Description, qtok)
+		}
+	}
+	if FilterScore(score) {
+		return score
+	}
+	return score + normalizeMemberCount(i.item.MemberCount)*memberCountWeight +
+		normalizeLastActive(i.item.LastActive)*lastActiveWeight
 }
 
 func normalizeMemberCount(memberCount int) float64 {
@@ -39,30 +77,26 @@ func normalizeLastActive(lastActive keybase1.Time) float64 {
 	return 1 - hours/(maxScoringActivityHours-minScoringActivityHours)
 }
 
-func scoreItemFromQuery(query string, item keybase1.TeamSearchItem) (score float64) {
-	name := strings.ToLower(item.Name)
-	// demoted teams require an exact name match to be returned
-	if item.IsDemoted && query != name {
-		return 0
+func FilterScore(score float64) bool {
+	return score-.0001 < 0
+}
+
+func ScoreName(name, qtok string) (score float64) {
+	name = strings.ToLower(name)
+	if qtok == name || strings.HasPrefix(name, qtok) || strings.HasSuffix(name, qtok) {
+		score += 1000
+	} else if strings.Contains(name, qtok) {
+		score += 100
 	}
-	for _, qtok := range strings.Split(query, " ") {
-		if qtok == name || strings.HasPrefix(name, qtok) || strings.HasSuffix(name, qtok) {
-			score += 1000
-		} else if strings.Contains(name, qtok) {
-			score += 100
+	return score
+}
+
+func ScoreDescription(desc, qtok string) (score float64) {
+	desc = strings.ToLower(desc)
+	for _, dtok := range strings.Split(desc, " ") {
+		if dtok == qtok {
+			score += 25
 		}
-		if item.Description != nil {
-			desc := strings.ToLower(*item.Description)
-			for _, dtok := range strings.Split(desc, " ") {
-				if dtok == qtok {
-					score += 25
-				}
-			}
-		}
 	}
-	if filterScore(score) {
-		return score
-	}
-	return score + normalizeMemberCount(item.MemberCount)*memberCountWeight +
-		normalizeLastActive(item.LastActive)*lastActiveWeight
+	return score
 }
