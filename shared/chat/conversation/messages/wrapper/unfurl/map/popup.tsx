@@ -26,13 +26,9 @@ const UnfurlMapPopup = (props: Props) => {
   const author = Container.getRouteProps(props, 'author', '')
   const isLiveLocation = Container.getRouteProps(props, 'isLiveLocation', false)
   const url = Container.getRouteProps(props, 'url', '')
-  // state
-  const {httpSrvAddress, httpSrvToken} = Container.useSelector(state => ({
-    httpSrvAddress: state.config.httpSrvAddress,
-    httpSrvToken: state.config.httpSrvToken,
-  }))
+  const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
+  const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
 
-  //dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -51,7 +47,6 @@ const UnfurlMapPopup = (props: Props) => {
     )
   }
 
-  // render
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight)
   const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`

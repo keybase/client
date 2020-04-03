@@ -30,9 +30,7 @@ const AudioRecorder = (props: Props) => {
   const ampTracker = React.useRef(new AmpTracker()).current
   const [visible, setVisible] = React.useState(false)
   const [closingDown, setClosingDown] = React.useState(false)
-  const {audioRecording} = Container.useSelector(state => ({
-    audioRecording: state.chat2.audioRecording.get(conversationIDKey),
-  }))
+  const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
   const closingDownRef = React.useRef(false)
 
   // dispatch

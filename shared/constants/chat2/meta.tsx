@@ -297,7 +297,14 @@ export const inboxUIItemToConversationMeta = (
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
   let pinnedMsg: PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
-    const message = Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg.message)
+    const {getLastOrdinal, username, devicename} = Message.getMessageStateExtras(state, conversationIDKey)
+    const message = Message.uiMessageToMessage(
+      conversationIDKey,
+      i.pinnedMsg.message,
+      username,
+      getLastOrdinal,
+      devicename
+    )
     if (message) {
       pinnedMsg = {
         message,
