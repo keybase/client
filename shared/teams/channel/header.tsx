@@ -19,7 +19,7 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const {teamname} = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID)).teamname
   const channelMeta = useChannelMeta(teamID, conversationIDKey)
   const channelname = channelMeta?.channelname ?? ''
   const description = channelMeta?.description ?? ''

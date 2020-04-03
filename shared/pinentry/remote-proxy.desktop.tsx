@@ -27,11 +27,11 @@ const Pinentry = (p: ProxyProps) => {
 const PinentryMemo = React.memo(Pinentry)
 
 const PinentryProxy = () => {
-  const state = Container.useSelector(s => s)
-  const {showTyping, type} = state.pinentry
+  const pinentry = Container.useSelector(s => s.pinentry)
+  const {showTyping, type} = pinentry
   const show = type !== RPCTypes.PassphraseType.none && !!showTyping
   if (show) {
-    const {cancelLabel, prompt, retryLabel, submitLabel, windowTitle} = state.pinentry
+    const {cancelLabel, prompt, retryLabel, submitLabel, windowTitle} = pinentry
     return (
       <PinentryMemo
         cancelLabel={cancelLabel}

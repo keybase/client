@@ -17,11 +17,10 @@ type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey
 const Connected = (props: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
   const inOrdinal = Container.getRouteProps(props, 'ordinal', 0)
-  const state = Container.useSelector(s => s)
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
-  const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const message = m?.type === 'attachment' ? m : blankMessage
   const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
   const {id} = message

@@ -15,9 +15,7 @@ const AudioSend = (props: Props) => {
   // props
   const {conversationIDKey} = props
   // state
-  const {audioRecording} = Container.useSelector(state => ({
-    audioRecording: state.chat2.audioRecording.get(conversationIDKey),
-  }))
+  const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
   // dispatch
   const dispatch = Container.useDispatch()
   const onCancel = () => {

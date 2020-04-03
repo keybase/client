@@ -25,10 +25,10 @@ const UnlockFolders = (p: ProxyProps) => {
 const UnlockFoldersMemo = React.memo(UnlockFolders)
 
 export default () => {
-  const state = Container.useSelector(s => s)
-  const {popupOpen} = state.unlockFolders
+  const unlockFolders = Container.useSelector(s => s.unlockFolders)
+  const {popupOpen} = unlockFolders
   if (popupOpen) {
-    const {devices, phase, paperkeyError, waiting} = state.unlockFolders
+    const {devices, phase, paperkeyError, waiting} = unlockFolders
     return (
       <UnlockFoldersMemo
         darkMode={Styles.isDarkMode()}
