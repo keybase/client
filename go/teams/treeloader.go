@@ -13,9 +13,8 @@ import (
 type nodePosition int
 
 const (
-	nodePositionTarget   = 0
-	nodePositionAncestor = 1
-	nodePositionChild    = 2
+	nodePositionTarget = 0
+	nodePositionChild  = 1
 )
 
 func LoadTeamTreeMemberships(mctx libkb.MetaContext,

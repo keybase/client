@@ -2194,7 +2194,12 @@ func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 	failureTeamNames []keybase1.TeamName, results []keybase1.TeamTreeMembership) {
 	require.Equal(t, len(expected)+len(failureTeamNames),
 		len(results), "got right number of results back")
+	m := make(map[string]struct{})
 	for _, result := range results {
+		_, alreadyExists := m[result.TeamName.String()]
+		require.False(t, alreadyExists, "got a duplicate got %s", result.TeamName.String())
+		m[result.TeamName.String()] = struct{}{}
+
 		s, err := result.Result.S()
 		require.NoError(t, err)
 
@@ -2299,71 +2304,71 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	t.Logf("Populating teams with members")
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, aID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: zulu.username, Role: keybase1.TeamRole_ADMIN},
+			{Assertion: zulu.username, Role: keybase1.TeamRole_ADMIN},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, bID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: yank.username, Role: keybase1.TeamRole_ADMIN},
+			{Assertion: yank.username, Role: keybase1.TeamRole_ADMIN},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, cID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: yank.username, Role: keybase1.TeamRole_ADMIN},
-			keybase1.UserRolePair{Assertion: vict.username, Role: keybase1.TeamRole_WRITER},
-			keybase1.UserRolePair{Assertion: tang.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: yank.username, Role: keybase1.TeamRole_ADMIN},
+			{Assertion: vict.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: tang.username, Role: keybase1.TeamRole_WRITER},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, dID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: xray.username, Role: keybase1.TeamRole_ADMIN},
-			keybase1.UserRolePair{Assertion: unif.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: xray.username, Role: keybase1.TeamRole_ADMIN},
+			{Assertion: unif.username, Role: keybase1.TeamRole_WRITER},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, eID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: tang.username, Role: keybase1.TeamRole_ADMIN},
-			keybase1.UserRolePair{Assertion: vict.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: tang.username, Role: keybase1.TeamRole_ADMIN},
+			{Assertion: vict.username, Role: keybase1.TeamRole_WRITER},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, fID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: yank.username, Role: keybase1.TeamRole_ADMIN},
+			{Assertion: yank.username, Role: keybase1.TeamRole_ADMIN},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, gID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: yank.username, Role: keybase1.TeamRole_WRITER},
-			keybase1.UserRolePair{Assertion: whis.username, Role: keybase1.TeamRole_ADMIN},
-			keybase1.UserRolePair{Assertion: vict.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: yank.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: whis.username, Role: keybase1.TeamRole_ADMIN},
+			{Assertion: vict.username, Role: keybase1.TeamRole_WRITER},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, hID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: zulu.username, Role: keybase1.TeamRole_WRITER},
-			keybase1.UserRolePair{Assertion: xray.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: zulu.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: xray.username, Role: keybase1.TeamRole_WRITER},
 		},
 		nil,
 	)
 	require.NoError(t, err)
 	_, _, err = teams.AddMembers(context.Background(), alfa.tc.G, iID,
 		[]keybase1.UserRolePair{
-			keybase1.UserRolePair{Assertion: zulu.username, Role: keybase1.TeamRole_WRITER},
-			keybase1.UserRolePair{Assertion: unif.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: zulu.username, Role: keybase1.TeamRole_WRITER},
+			{Assertion: unif.username, Role: keybase1.TeamRole_WRITER},
 		},
 		nil,
 	)

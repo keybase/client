@@ -1658,9 +1658,9 @@ protocol teams {
   //           D   .__E__.
   //           |   |  |  |
   //           F   G  H  I
-  //           |
+  //               |
   //               J
-  // if teamID were C, then the partial tree contains A, C, D, E, F, G, H, I.
+  // if teamID were C, then the partial tree contains A, C, D, E, F, G, H, I, J.
   //
   // The logged in user must be an admin of teamID in order to call this function. This is so it can
   // get memberships for all subteams. If this were not the case, then the client would be OK with
@@ -1669,7 +1669,7 @@ protocol teams {
   // does have the rights to view that team's memberships. We avoid this problem by requiring
   // adminship, and thus no stubbing.
   //
-  // After sending n TeamTreeMembershipsPartial notifications, it will send TeamTreeMembershipDone
+  // After sending n TeamTreeMembershipsPartial notifications, it will send TeamTreeMembershipsDone
   // indicating the number of TeamTreeMembershipsPartial notifications (which is unknown prior to
   // beginning the process). There are no specific guarantees about notification ordering from the
   // RPC layer, so the user should wait for the TeamTreeMembershipsDone notification (which will
