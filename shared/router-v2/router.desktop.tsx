@@ -308,6 +308,10 @@ const createElectronApp = Component => {
 
     _getScreenProps = () => this.props.screenProps
 
+    private setRef = () => {
+      this.props.updateNavigator(this)
+    }
+
     render() {
       let navigation = this.props.navigation
       const navState = this.state.nav
@@ -327,7 +331,7 @@ const createElectronApp = Component => {
       navigation = this.navigation
       return (
         <NavigationContext.Provider key={this.props.isDarkMode ? 'dark' : 'light'} value={navigation}>
-          <Component {...this.props} navigation={navigation} />
+          <Component {...this.props} navigation={navigation} ref={this.setRef} />
         </NavigationContext.Provider>
       )
     }

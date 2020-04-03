@@ -41,6 +41,7 @@ import Geolocation from '@react-native-community/geolocation'
 // @ts-ignore
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
+import {_getNavigator} from '../../constants/router2'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -903,6 +904,30 @@ const onPersistRoute = async () => {
   return ConfigGen.createPersistRoute({path})
 }
 
+function* checkNav(
+  state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  logger: Saga.SagaLogger
+) {
+  // have one
+  if (_getNavigator()) {
+    return
+  }
+
+  const name = 'mobileNav'
+  const {version} = action.payload
+
+  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  while (true) {
+    logger.info('Waiting on nav')
+    yield Saga.take(ConfigGen.setNavigator)
+    if (_getNavigator()) {
+      break
+    }
+  }
+  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction(ConfigGen.mobileAppState, updateChangedFocus)
@@ -946,6 +971,8 @@ export function* platformConfigSaga() {
   if (isAndroid) {
     yield* Saga.chainAction2(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
   }
+
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
 
   // Audio
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording)
