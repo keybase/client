@@ -6,16 +6,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-func (s *Storage) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) (allPurgeInfo []chat1.EphemeralPurgeInfo, err error) {
-	defer s.Trace(ctx, func() error { return err }, "GetAllPurgeInfo")()
-	return s.ephemeralTracker.getAllPurgeInfo(ctx, uid)
-}
-
-func (s *Storage) GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (info chat1.EphemeralPurgeInfo, err error) {
-	defer s.Trace(ctx, func() error { return err }, "AllPurgeInfo")()
-	return s.ephemeralTracker.getPurgeInfo(ctx, uid, convID)
-}
-
 // For a given conversation, purge all ephemeral messages from
 // purgeInfo.MinUnexplodedID to the present, updating bookkeeping for the next
 // time we need to purge this conv.
@@ -58,14 +48,20 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	case nil:
 		// ok
 		if len(rc.Result()) == 0 {
-			err := s.ephemeralTracker.inactivatePurgeInfo(ctx, convID, uid)
-			return nil, nil, err
+			ierr := s.G().EphemeralTracker.InactivatePurgeInfo(ctx, convID, uid)
+			if ierr != nil {
+				return nil, nil, NewInternalError(ctx, s.DebugLabeler, "EphemeralTracker unable to InactivatePurgeInfo: %v", ierr)
+			}
+			return nil, nil, nil
 		}
 	case MissError:
 		// We don't have these messages in cache, so don't retry this
 		// conversation until further notice.
-		err := s.ephemeralTracker.inactivatePurgeInfo(ctx, convID, uid)
-		return nil, nil, err
+		ierr := s.G().EphemeralTracker.InactivatePurgeInfo(ctx, convID, uid)
+		if ierr != nil {
+			return nil, nil, NewInternalError(ctx, s.DebugLabeler, "EphemeralTracker unable to InactivatePurgeInfo: %v", ierr)
+		}
+		return nil, nil, nil
 	default:
 		return nil, nil, err
 	}
@@ -73,7 +69,10 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return nil, nil, err
 	}
-	err = s.ephemeralTracker.setPurgeInfo(ctx, convID, uid, newPurgeInfo)
+	ierr = s.G().EphemeralTracker.SetPurgeInfo(ctx, convID, uid, newPurgeInfo)
+	if ierr != nil {
+		return nil, nil, NewInternalError(ctx, s.DebugLabeler, "EphemeralTracker unable to SetPurgeInfo: %v", ierr)
+	}
 	return newPurgeInfo, explodedMsgs, err
 }
 
@@ -85,7 +84,11 @@ func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.Conve
 	}
 	// We may only be merging in some subset of messages, we only update if the
 	// info we get is more restrictive that what we have already
-	return explodedMsgs, s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	ierr := s.G().EphemeralTracker.MaybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	if ierr != nil {
+		return nil, NewInternalError(ctx, s.DebugLabeler, "EphemeralTracker unable to MaybeUpdatePurgeInfo: %v", ierr)
+	}
+	return explodedMsgs, nil
 }
 
 // Before adding or removing messages from storage, nuke any expired ones and

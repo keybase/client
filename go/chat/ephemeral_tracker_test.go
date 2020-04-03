@@ -1,18 +1,19 @@
-package storage
+package chat
 
 import (
-	"context"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
-func TestStorageEphemeralPurge(t *testing.T) {
+func TestEphemeralPurgeTracker(t *testing.T) {
 	// Uses this conversation:
 	// A start                            <not deletable>
 	// B text                             <not ephemeral>
@@ -23,11 +24,17 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// G delete --^    ___  deletes F     <not deletable>
 	// H text           |                 <ephemeral with 1 "lifetime">
 
-	_, storage, uid := setupStorageTest(t, "ephemeral purge")
+	ctx, tc, world, _, _, _, _ := setupLoaderTest(t)
+	defer world.Cleanup()
 
+	g := globals.NewContext(tc.G, tc.ChatG)
+	u := world.GetUsers()[0]
+	uid := gregor1.UID(u.GetUID().ToBytes())
+	g.EphemeralTracker = NewEphemeralTracker(g)
 	clock := clockwork.NewFakeClockAt(time.Now())
-	storage.SetClock(clock)
-	convID := makeConvID()
+	chatStorage := storage.New(g, tc.ChatG.ConvSource)
+	chatStorage.SetClock(clock)
+	convID := storage.MakeConvID()
 
 	type expectedM struct {
 		Name         string // letter label
@@ -56,8 +63,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	}
 
 	assertState := func(maxMsgID chat1.MessageID) {
-		var rc ResultCollector
-		fetchRes, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc,
+		var rc storage.ResultCollector
+		fetchRes, err := chatStorage.Fetch(ctx, storage.MakeConversationAt(convID, maxMsgID), uid, rc,
 			nil, nil)
 		res := fetchRes.Thread
 		require.NoError(t, err)
@@ -90,10 +97,10 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	}
 
 	verifyTrackerState := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo) {
-		purgeInfo, err := storage.ephemeralTracker.getPurgeInfo(context.Background(), uid, convID)
+		purgeInfo, err := g.EphemeralTracker.GetPurgeInfo(ctx, uid, convID)
 		if expectedPurgeInfo == nil {
 			require.Error(t, err)
-			require.IsType(t, MissError{}, err, "wrong error type")
+			require.IsType(t, storage.MissError{}, err, "wrong error type")
 		} else {
 			require.NoError(t, err)
 		}
@@ -101,8 +108,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	}
 
 	ephemeralPurgeAndVerify := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo, msgIDs []chat1.MessageID) {
-		purgeInfo, _ := storage.ephemeralTracker.getPurgeInfo(context.Background(), uid, convID)
-		newPurgeInfo, purgedMsgs, err := storage.EphemeralPurge(context.Background(), convID, uid, &purgeInfo)
+		purgeInfo, _ := g.EphemeralTracker.GetPurgeInfo(ctx, uid, convID)
+		newPurgeInfo, purgedMsgs, err := chatStorage.EphemeralPurge(ctx, convID, uid, &purgeInfo)
 		require.NoError(t, err)
 		if msgIDs == nil {
 			require.Nil(t, purgedMsgs)
@@ -120,17 +127,17 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	lifetime := gregor1.DurationSec(1)
 	sleepLifetime := lifetime.ToDuration()
 	now := gregor1.ToTime(clock.Now())
-	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
-	msgB := makeText(2, "some text")
-	msgC := makeEphemeralText(3, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime}, now)
-	msgD := makeHeadlineMessage(4)
-	msgE := makeEphemeralEdit(5, msgC.GetMessageID(), &chat1.MsgEphemeralMetadata{Lifetime: lifetime * 3}, now)
-	msgF := makeEphemeralText(6, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime * 2}, now)
-	msgG := makeDelete(7, msgF.GetMessageID(), nil)
-	msgH := makeEphemeralText(8, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime}, now)
+	msgA := storage.MakeMsgWithType(1, chat1.MessageType_TLFNAME)
+	msgB := storage.MakeText(2, "some text")
+	msgC := storage.MakeEphemeralText(3, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime}, now)
+	msgD := storage.MakeHeadlineMessage(4)
+	msgE := storage.MakeEphemeralEdit(5, msgC.GetMessageID(), &chat1.MsgEphemeralMetadata{Lifetime: lifetime * 3}, now)
+	msgF := storage.MakeEphemeralText(6, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime * 2}, now)
+	msgG := storage.MakeDelete(7, msgF.GetMessageID(), nil)
+	msgH := storage.MakeEphemeralText(8, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime}, now)
 
 	t.Logf("initial merge")
-	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
+	storage.MustMerge(t, chatStorage, convID, uid, storage.SortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
 
 	// We set the initial tracker info when we merge in
 	expectedPurgeInfo := &chat1.EphemeralPurgeInfo{
@@ -178,7 +185,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// We add msgH, which is already expired, so it should get purged on entry,
 	// but our nextPurgeTime should be unchanged, since msgE's etime is still
 	// the min.
-	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgH}))
+	storage.MustMerge(t, chatStorage, convID, uid, storage.SortMessagesDesc([]chat1.MessageUnboxed{msgH}))
 	verifyTrackerState(expectedPurgeInfo)
 	// H should have it's body nuked off the bat.
 	setExpected("H", msgH, false, dontCare)
@@ -218,7 +225,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	assertState(msgH.GetMessageID())
 
 	// Force a purge with 0 messages, and make sure we process it correctly.
-	newPurgeInfo, purgedMsgs, err := storage.EphemeralPurge(context.Background(), convID, uid,
+	newPurgeInfo, purgedMsgs, err := chatStorage.EphemeralPurge(ctx, convID, uid,
 		&chat1.EphemeralPurgeInfo{
 			ConvID:          convID,
 			NextPurgeTime:   0,
