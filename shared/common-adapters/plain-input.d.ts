@@ -67,7 +67,7 @@ export type Props = {
   flexable?: boolean
   maxLength?: number
   // doesn't fire onChangeText if value would exceed maxBytes (utf-8)
-  // i.e. can only have an effect if this is a controlled input
+  // i.e. can only have an effect if this is an uncontrolled input
   // doesn't enforce on longer `props.value`s coming in
   maxBytes?: number
   multiline?: boolean
