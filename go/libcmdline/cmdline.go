@@ -475,10 +475,6 @@ func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	return 0, false
 }
 
-func (p CommandLine) GetChatOutboxStorageEngine() string {
-	return p.GetGString("chat-outboxstorageengine")
-}
-
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {

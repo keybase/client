@@ -107,7 +107,6 @@ type configGetter interface {
 	GetRememberPassphrase(NormalizedUsername) (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
-	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
 	GetDisableTeamBoxAuditor() (bool, bool)
 	GetDisableEKBackgroundKeygen() (bool, bool)
