@@ -415,7 +415,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (!this.props.showSendIndicator) {
       return null
     }
-    const {sent, failed} = this.sentFailedStatus()
+    const {failed, sent} = this.sentFailedStatus()
     return (
       <SendIndicator
         key="sendIndicator"
@@ -434,11 +434,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
     const failed =
       (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
-    return {sent, failed}
+    return {failed, sent}
   }
 
   private isShowingIndicator = () => {
-    const {sent, failed} = this.sentFailedStatus()
+    const {failed, sent} = this.sentFailedStatus()
     return !sent || failed
   }
 
