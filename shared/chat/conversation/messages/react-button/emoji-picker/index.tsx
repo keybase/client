@@ -313,7 +313,13 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       // so I'm not adding a ScrollView here. If we increase that later check
       // if this can sometimes overflow the screen here & add a ScrollView
       return (
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          centerChildren={true}
+          style={Styles.globalStyles.flexGrow}
+          alignItems="flex-start"
+        >
           <Kb.Box2
             direction="horizontal"
             fullWidth={true}
