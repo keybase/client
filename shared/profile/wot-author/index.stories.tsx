@@ -3,6 +3,7 @@ import * as Sb from '../../stories/storybook'
 import {Question1, Question2} from '.'
 
 const props = {
+  initialVerificationType: 'in_person',
   onBack: Sb.action('onBack'),
   onSubmit: Sb.action('onSubmit'),
   proofs: [
