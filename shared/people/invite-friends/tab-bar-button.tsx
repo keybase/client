@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import logger from '../../logger'
 import InviteHow from './invite-how'
+import {ShareLinkPopup} from './modal'
 
 const InviteFriends = () => {
   const requestInviteCounts = Container.useRPC(RPCTypes.inviteFriendsRequestInviteCountsRpcPromise)
@@ -24,8 +25,16 @@ const InviteFriends = () => {
   const onInviteFriends = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{selected: 'inviteFriendsModal'}]}))
 
+  const {popup: shareLinkPopup, setShowingPopup: setShowingShareLinkPopup} = Kb.usePopup(() => (
+    <ShareLinkPopup onClose={() => setShowingShareLinkPopup(false)} />
+  ))
+
   const {popup, toggleShowingPopup, showingPopup} = Kb.usePopup(() => (
-    <InviteHow visible={showingPopup} onHidden={toggleShowingPopup} />
+    <InviteHow
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      onShareLink={() => setShowingShareLinkPopup(true)}
+    />
   ))
   const inviteButton = (
     <Kb.Button
@@ -65,6 +74,7 @@ const InviteFriends = () => {
         <Kb.Box style={Styles.globalStyles.flexOne} />
       )}
       {popup}
+      {shareLinkPopup}
     </Kb.Box2>
   ) : (
     <>
