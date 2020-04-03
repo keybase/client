@@ -19,6 +19,14 @@ import {assertNever} from '../../util/container'
 import invert from 'lodash/invert'
 import shallowEqual from 'shallowequal'
 
+export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const getLastOrdinal = () =>
+    [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
+  const username = state.config.username
+  const devicename = state.config.deviceName ?? ''
+  return {devicename, getLastOrdinal, username}
+}
+
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
     case RPCChatTypes.MessageUnboxedState.valid:
@@ -861,7 +869,7 @@ const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   m: RPCChatTypes.UIMessageValid,
   currentUsername: string,
-  lastOrdinal: Types.Ordinal,
+  getLastOrdinal: () => Types.Ordinal,
   currentDeviceName: string
 ) => {
   const minimum = {
@@ -940,7 +948,13 @@ const validUIMessagetoMessage = (
           (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
         ),
         replyTo: m.replyTo
-          ? uiMessageToMessage(conversationIDKey, m.replyTo, currentUsername, lastOrdinal, currentDeviceName)
+          ? uiMessageToMessage(
+              conversationIDKey,
+              m.replyTo,
+              currentUsername,
+              getLastOrdinal,
+              currentDeviceName
+            )
           : null,
         text: new HiddenString(rawText),
         unfurls: new Map((m.unfurls || []).map(u => [u.url, u])),
@@ -1104,7 +1118,7 @@ const outboxUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   o: RPCChatTypes.UIMessageOutbox,
   currentUsername: string,
-  lastOrdinal: Types.Ordinal,
+  getLastOrdinal: () => Types.Ordinal,
   currentDeviceName: string
 ) => {
   const errorReason =
@@ -1132,7 +1146,7 @@ const outboxUIMessagetoMessage = (
       return makePendingAttachmentMessage(
         conversationIDKey,
         currentUsername,
-        lastOrdinal,
+        getLastOrdinal,
         title,
         FsTypes.getLocalPathName(fileName),
         previewURL,
@@ -1224,7 +1238,7 @@ export const uiMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
   currentUsername: string,
-  lastOrdinal: Types.Ordinal,
+  getLastOrdinal: () => Types.Ordinal,
   currentDeviceName: string
 ): Types.Message | null => {
   switch (uiMessage.state) {
@@ -1233,7 +1247,7 @@ export const uiMessageToMessage = (
         conversationIDKey,
         uiMessage.valid,
         currentUsername,
-        lastOrdinal,
+        getLastOrdinal,
         currentDeviceName
       )
     case RPCChatTypes.MessageUnboxedState.error:
@@ -1243,7 +1257,7 @@ export const uiMessageToMessage = (
         conversationIDKey,
         uiMessage.outbox,
         currentUsername,
-        lastOrdinal,
+        getLastOrdinal,
         currentDeviceName
       )
     case RPCChatTypes.MessageUnboxedState.placeholder:
@@ -1264,7 +1278,7 @@ export function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
 export const makePendingTextMessage = (
   conversationIDKey: Types.ConversationIDKey,
   currentUsername: string,
-  lastOrdinal: Types.Ordinal,
+  getLastOrdinal: () => Types.Ordinal,
   text: HiddenString,
   outboxID: Types.OutboxID,
   explodeTime?: number
@@ -1273,7 +1287,7 @@ export const makePendingTextMessage = (
   // would cause the timer to count down while the message is still pending
   // and probably reset when we get the real message back.
 
-  const ordinal = nextFractionalOrdinal(lastOrdinal)
+  const ordinal = nextFractionalOrdinal(getLastOrdinal())
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
   return makeMessageText({
@@ -1294,7 +1308,7 @@ export const makePendingTextMessage = (
 export const makePendingAttachmentMessage = (
   conversationIDKey: Types.ConversationIDKey,
   currentUsername: string,
-  lastOrdinal: Types.Ordinal,
+  getLastOrdinal: () => Types.Ordinal,
   title: string,
   fileName: string,
   previewURL: string,
@@ -1305,7 +1319,7 @@ export const makePendingAttachmentMessage = (
   errorTyp?: number,
   explodeTime?: number
 ) => {
-  const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
+  const ordinal = !inOrdinal ? nextFractionalOrdinal(getLastOrdinal()) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
   return makeMessageAttachment({

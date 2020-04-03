@@ -297,14 +297,13 @@ export const inboxUIItemToConversationMeta = (
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
   let pinnedMsg: PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
-    const lastOrdinal =
-      [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
+    const {getLastOrdinal, username, devicename} = Message.getMessageStateExtras(state, conversationIDKey)
     const message = Message.uiMessageToMessage(
       conversationIDKey,
       i.pinnedMsg.message,
-      state.config.username,
-      lastOrdinal,
-      state.config.deviceName ?? ''
+      username,
+      getLastOrdinal,
+      devicename
     )
     if (message) {
       pinnedMsg = {

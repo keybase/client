@@ -24,6 +24,7 @@ const Connected = (props: OwnProps) => {
   const lastOrdinal = Container.useSelector(
     state => [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
   )
+  const getLastOrdinal = () => lastOrdinal
   const username = Container.useSelector(state => state.config.username)
   const currentDeviceName = Container.useSelector(state => state.config.deviceName ?? '')
   const message = m?.type === 'attachment' ? m : blankMessage
@@ -58,7 +59,7 @@ const Connected = (props: OwnProps) => {
               conversationIDKey,
               result.message,
               username,
-              lastOrdinal,
+              getLastOrdinal,
               currentDeviceName
             )
             if (goodMessage && goodMessage.type === 'attachment') {
