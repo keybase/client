@@ -101,7 +101,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     index,
     isShare,
     // If we are are dealing with incoming share, the first view is root,
-    // so rely on the header back burtton instead of showing a separate row
+    // so rely on the header back button instead of showing a separate row
     // for going to parent directory.
     onBack: showHeaderBackInsteadOfCancel ? dispatchProps.onBack : undefined,
     onBackUp:
