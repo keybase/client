@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
@@ -13,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 const ephemeralTrackerDiskVersion = 1
@@ -23,7 +25,15 @@ type ephemeralTracker struct {
 	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
-	lru *lru.Cache
+	lru     *lru.Cache
+	started bool
+	stopCh  chan struct{}
+	eg      errgroup.Group
+}
+
+type ephemeralTrackerMemCache struct {
+	uid  gregor1.UID
+	info chat1.EphemeralPurgeInfo
 }
 
 type ephemeralTrackerEntry struct {
@@ -43,6 +53,50 @@ func newEphemeralTracker(g *globals.Context) *ephemeralTracker {
 	}
 }
 
+func (t *ephemeralTracker) Start(ctx context.Context) {
+	defer t.Trace(ctx, func() error { return nil }, "Start")()
+	t.Lock()
+	defer t.Unlock()
+	if t.started {
+		return
+	}
+	t.stopCh = make(chan struct{})
+	t.started = true
+	t.eg.Go(func() error { return t.flushLoop(t.stopCh) })
+}
+
+func (t *ephemeralTracker) Stop(ctx context.Context) chan struct{} {
+	defer t.Trace(ctx, func() error { return nil }, "Stop")()
+	t.Lock()
+	defer t.Unlock()
+	ch := make(chan struct{})
+	if t.started {
+		close(t.stopCh)
+		t.started = false
+		go func() {
+			_ = t.eg.Wait()
+			close(ch)
+		}()
+	} else {
+		close(ch)
+	}
+	return ch
+}
+
+func (t *ephemeralTracker) flushLoop(stopCh chan struct{}) error {
+	ctx := context.Background()
+	for {
+		select {
+		case <-t.G().Clock().After(30 * time.Second):
+			if err := t.Flush(ctx); err != nil {
+				t.Debug(ctx, "unable to flush: %v", err)
+			}
+		case <-stopCh:
+			return nil
+		}
+	}
+}
+
 func (t *ephemeralTracker) key(uid gregor1.UID, convID chat1.ConversationID) string {
 	return fmt.Sprintf(dbKeyPrefix, uid) + convID.String()
 }
@@ -54,12 +108,11 @@ func (t *ephemeralTracker) dbKey(uid gregor1.UID, convID chat1.ConversationID) l
 	}
 }
 
-func (t *ephemeralTracker) get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (*chat1.EphemeralPurgeInfo, Error) {
-
+func (t *ephemeralTracker) get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (*ephemeralTrackerMemCache, Error) {
 	memKey := t.key(uid, convID)
 	data, found := t.lru.Get(memKey)
 	if found {
-		info, ok := data.(chat1.EphemeralPurgeInfo)
+		info, ok := data.(ephemeralTrackerMemCache)
 		if ok {
 			return &info, nil
 		}
@@ -80,8 +133,12 @@ func (t *ephemeralTracker) get(ctx context.Context, uid gregor1.UID, convID chat
 
 	switch dbRes.StorageVersion {
 	case ephemeralTrackerDiskVersion:
-		t.lru.Add(memKey, dbRes.Info)
-		return &dbRes.Info, nil
+		entry := ephemeralTrackerMemCache{
+			uid:  uid,
+			info: dbRes.Info,
+		}
+		t.lru.Add(memKey, entry)
+		return &entry, nil
 	default:
 		// ignore other versions
 		return nil, nil
@@ -89,19 +146,41 @@ func (t *ephemeralTracker) get(ctx context.Context, uid gregor1.UID, convID chat
 }
 
 func (t *ephemeralTracker) put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, info chat1.EphemeralPurgeInfo) (err Error) {
-	var entry ephemeralTrackerEntry
-	entry.StorageVersion = ephemeralTrackerDiskVersion
-	entry.Info = info
-	data, lerr := encode(entry)
-	if lerr != nil {
-		return NewInternalError(ctx, t.DebugLabeler, "encode error: %s", lerr)
+	entry := ephemeralTrackerMemCache{
+		uid:  uid,
+		info: info,
 	}
+	t.lru.Add(t.key(uid, convID), entry)
+	return nil
+}
 
-	dbKey := t.dbKey(uid, convID)
-	if err := t.G().LocalChatDb.PutRaw(dbKey, data); err != nil {
-		return NewInternalError(ctx, t.DebugLabeler, "PutRaw error: %s", err)
+func (t *ephemeralTracker) Flush(ctx context.Context) error {
+	t.Lock()
+	defer t.Unlock()
+	return t.flushLocked(ctx)
+}
+
+func (t *ephemeralTracker) flushLocked(ctx context.Context) error {
+	for _, key := range t.lru.Keys() {
+		cache, found := t.lru.Get(key)
+		info, ok := cache.(ephemeralTrackerMemCache)
+		if !found || !ok {
+			continue
+		}
+
+		var entry ephemeralTrackerEntry
+		entry.StorageVersion = ephemeralTrackerDiskVersion
+		entry.Info = info.info
+		data, lerr := encode(entry)
+		if lerr != nil {
+			return NewInternalError(ctx, t.DebugLabeler, "encode error: %s", lerr)
+		}
+
+		dbKey := t.dbKey(info.uid, info.info.ConvID)
+		if err := t.G().LocalChatDb.PutRaw(dbKey, data); err != nil {
+			return NewInternalError(ctx, t.DebugLabeler, "PutRaw error: %s", err)
+		}
 	}
-	t.lru.Add(t.key(uid, convID), info)
 	return nil
 }
 
@@ -116,7 +195,7 @@ func (t *ephemeralTracker) getPurgeInfo(ctx context.Context,
 	} else if info == nil {
 		return chat1.EphemeralPurgeInfo{}, MissError{}
 	}
-	return *info, nil
+	return info.info, nil
 }
 
 func (t *ephemeralTracker) getAllKeysLocked(ctx context.Context, uid gregor1.UID) (keys []libkb.DbKey, err Error) {
@@ -163,7 +242,7 @@ func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 		} else if info == nil {
 			continue
 		}
-		allPurgeInfo = append(allPurgeInfo, *info)
+		allPurgeInfo = append(allPurgeInfo, info.info)
 	}
 	return allPurgeInfo, nil
 }
@@ -198,23 +277,23 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 		return nil
 	}
 
-	curPurgeInfo, err := t.get(ctx, uid, convID)
+	cache, err := t.get(ctx, uid, convID)
 	if err != nil {
 		return err
 	}
-	if curPurgeInfo != nil { // Throw away our update info if what we already have is more restrictive.
-		if curPurgeInfo.IsActive {
+	if cache != nil { // Throw away our update info if what we already have is more restrictive.
+		if cache.info.IsActive {
 			purgeInfo.IsActive = true
 		}
 
-		if purgeInfo.MinUnexplodedID == 0 || curPurgeInfo.MinUnexplodedID < purgeInfo.MinUnexplodedID {
-			purgeInfo.MinUnexplodedID = curPurgeInfo.MinUnexplodedID
+		if purgeInfo.MinUnexplodedID == 0 || cache.info.MinUnexplodedID < purgeInfo.MinUnexplodedID {
+			purgeInfo.MinUnexplodedID = cache.info.MinUnexplodedID
 		}
-		if purgeInfo.NextPurgeTime == 0 || (curPurgeInfo.NextPurgeTime != 0 && curPurgeInfo.NextPurgeTime < purgeInfo.NextPurgeTime) {
-			purgeInfo.NextPurgeTime = curPurgeInfo.NextPurgeTime
+		if purgeInfo.NextPurgeTime == 0 || (cache.info.NextPurgeTime != 0 && cache.info.NextPurgeTime < purgeInfo.NextPurgeTime) {
+			purgeInfo.NextPurgeTime = cache.info.NextPurgeTime
 		}
 	}
-	if purgeInfo == curPurgeInfo {
+	if cache != nil && purgeInfo.Eq(cache.info) {
 		return nil
 	}
 	if err = t.put(ctx, uid, convID, *purgeInfo); err != nil {
@@ -231,21 +310,26 @@ func (t *ephemeralTracker) inactivatePurgeInfo(ctx context.Context,
 	t.Lock()
 	defer t.Unlock()
 
-	info, err := t.get(ctx, uid, convID)
+	cache, err := t.get(ctx, uid, convID)
 	if err != nil {
 		return err
-	} else if info == nil {
+	} else if cache == nil {
 		return nil
 	}
+	info := cache.info
 	info.IsActive = false
-	if err = t.put(ctx, uid, convID, *info); err != nil {
+	if err = t.put(ctx, uid, convID, info); err != nil {
 		return err
 	}
 	// Let our background monitor know about the new info.
-	if qerr := t.G().EphemeralPurger.Queue(ctx, *info); qerr != nil {
+	if qerr := t.G().EphemeralPurger.Queue(ctx, info); qerr != nil {
 		return NewInternalError(ctx, t.DebugLabeler, "purger.Queue error: %v", qerr)
 	}
 	return nil
+}
+
+func (t *ephemeralTracker) clearMemory() {
+	t.lru.Purge()
 }
 
 func (t *ephemeralTracker) clear(uid gregor1.UID) error {
@@ -256,11 +340,10 @@ func (t *ephemeralTracker) clear(uid gregor1.UID) error {
 	if err != nil {
 		return err
 	}
+	epick := libkb.FirstErrorPicker{}
 	for _, dbKey := range dbKeys {
-		if err := t.G().LocalChatDb.Delete(dbKey); err != nil {
-			return err
-		}
+		epick.Push(t.G().LocalChatDb.Delete(dbKey))
 	}
-	t.lru.Purge()
-	return nil
+	t.clearMemory()
+	return epick.Error()
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -68,17 +69,37 @@ func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, co
 }
 
 func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
+	ephemeralTracker := newEphemeralTracker(g)
+	ephemeralTracker.Start(context.TODO())
 	return &Storage{
 		Contextified:     globals.NewContextified(g),
 		engine:           newBlockEngine(g),
 		idtracker:        newMsgIDTracker(g),
 		breakTracker:     newBreakTracker(g),
 		delhTracker:      newDelhTracker(g),
-		ephemeralTracker: newEphemeralTracker(g),
+		ephemeralTracker: ephemeralTracker,
 		assetDeleter:     assetDeleter,
 		clock:            clockwork.NewRealClock(),
 		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "Storage", false),
 	}
+}
+
+func (s *Storage) Shutdown(mctx libkb.MetaContext) error {
+	select {
+	case <-s.ephemeralTracker.Stop(mctx.Ctx()):
+	case <-time.After(30 * time.Second):
+		mctx.Debug("Storage Shutdown: ephemeralTracker stalled, charging forward")
+	}
+	return nil
+}
+
+func (s *Storage) OnDbNuke(mctx libkb.MetaContext) error {
+	s.ephemeralTracker.clearMemory()
+	return nil
+}
+
+func (s *Storage) OnLogout(mctx libkb.MetaContext) error {
+	return s.ephemeralTracker.Flush(mctx.Ctx())
 }
 
 func (s *Storage) setEngine(engine storageEngine) {

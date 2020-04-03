@@ -468,10 +468,15 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.InboxSource = inboxSource
 	d.badger.SetLocalChatState(inboxSource)
+
 	chatStorage := storage.New(g, nil)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
+	g.PushShutdownHook(chatStorage.Shutdown)
+	g.AddLogoutHook(chatStorage, "chatStorage")
+	g.AddDbNukeHook(chatStorage, "chatStorage")
+
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
 	g.AddDbNukeHook(g.Indexer, "Indexer")
