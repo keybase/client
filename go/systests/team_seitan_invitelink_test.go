@@ -123,3 +123,42 @@ func TestTeamInviteLinkAfterLeave(t *testing.T) {
 
 	alice.waitForTeamChangedGregor(teamID, keybase1.Seqno(5))
 }
+
+func TestCreateSeitanInvitelinkWithDuration(t *testing.T) {
+	// Test for the GUI RPC.
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("ali")
+	_, teamName := alice.createTeam2()
+
+	now := alice.tc.G.Clock().Now()
+
+	maxUses := keybase1.TeamMaxUsesInfinite
+	expireAfter := "1000 Y"
+	_, err := alice.teamsClient.TeamCreateSeitanInvitelinkWithDuration(
+		context.TODO(),
+		keybase1.TeamCreateSeitanInvitelinkWithDurationArg{
+			Teamname:    teamName.String(),
+			Role:        keybase1.TeamRole_WRITER,
+			MaxUses:     maxUses,
+			ExpireAfter: &expireAfter,
+		})
+	require.NoError(t, err)
+
+	details := alice.teamGetDetails(teamName.String())
+	require.Len(t, details.AnnotatedActiveInvites, 1)
+	for _, aInvite := range details.AnnotatedActiveInvites {
+		invite := aInvite.Invite
+		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
+		require.NotNil(t, invite.MaxUses)
+		require.Equal(t, keybase1.TeamMaxUsesInfinite, *invite.MaxUses)
+		require.NotNil(t, invite.Etime)
+		require.Equal(t, now.Year()+1000, invite.Etime.Time().Year())
+		require.Equal(t, keybase1.TeamMaxUsesInfinite, *invite.MaxUses)
+		tic, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_INVITELINK, tic)
+	}
+}

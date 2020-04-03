@@ -2667,7 +2667,7 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 
 // TeamMaxUsesInfinite is a value for max_uses field which makes team invite
 // multiple use, with infinite number of uses.
-const TeamMaxUsesInfinite = -1
+const TeamMaxUsesInfinite = TeamInviteMaxUses(-1)
 
 func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
 	if maxUses <= 0 {

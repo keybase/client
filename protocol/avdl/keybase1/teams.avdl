@@ -1402,6 +1402,10 @@ protocol teams {
   Invitelink teamCreateSeitanInvitelink(int sessionID, string teamname, TeamRole role,
     TeamInviteMaxUses maxUses, union { null, UnixTime } etime);
 
+  // expireAfter is a duration string, e.g. "1 Y" (1 year), "1000 Y" (1000 years), "1 M" (1 month).
+  Invitelink teamCreateSeitanInvitelinkWithDuration(int sessionID, string teamname, TeamRole role,
+    TeamInviteMaxUses maxUses, union { null, string } expireAfter);
+
   record BulkRes {
     array<string> malformed;
   }

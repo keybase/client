@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbtime"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -653,6 +655,29 @@ func (h *TeamsHandler) TeamCreateSeitanInvitelink(ctx context.Context,
 	}
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.CreateInvitelink(mctx, arg.Teamname, arg.Role, arg.MaxUses, arg.Etime)
+}
+
+func (h *TeamsHandler) TeamCreateSeitanInvitelinkWithDuration(ctx context.Context,
+	arg keybase1.TeamCreateSeitanInvitelinkWithDurationArg) (invitelink keybase1.Invitelink, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
+		return invitelink, err
+	}
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+
+	var etimeUnixPtr *keybase1.UnixTime
+	if arg.ExpireAfter != nil {
+		etime, err := kbtime.AddLongDuration(h.G().Clock().Now(), *arg.ExpireAfter)
+		if err != nil {
+			return invitelink, err
+		}
+		mctx.Debug("Etime from duration %q is: %s", arg.ExpireAfter, etime.String())
+		etimeUnix := keybase1.ToUnixTime(etime)
+		etimeUnixPtr = &etimeUnix
+	}
+
+	return teams.CreateInvitelink(mctx, arg.Teamname, arg.Role, arg.MaxUses, etimeUnixPtr)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {

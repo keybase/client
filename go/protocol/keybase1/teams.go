@@ -4247,6 +4247,14 @@ type TeamCreateSeitanInvitelinkArg struct {
 	Etime     *UnixTime         `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
+type TeamCreateSeitanInvitelinkWithDurationArg struct {
+	SessionID   int               `codec:"sessionID" json:"sessionID"`
+	Teamname    string            `codec:"teamname" json:"teamname"`
+	Role        TeamRole          `codec:"role" json:"role"`
+	MaxUses     TeamInviteMaxUses `codec:"maxUses" json:"maxUses"`
+	ExpireAfter *string           `codec:"expireAfter,omitempty" json:"expireAfter,omitempty"`
+}
+
 type TeamAddEmailsBulkArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -4437,6 +4445,7 @@ type TeamsInterface interface {
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
 	TeamCreateSeitanTokenV2(context.Context, TeamCreateSeitanTokenV2Arg) (SeitanIKeyV2, error)
 	TeamCreateSeitanInvitelink(context.Context, TeamCreateSeitanInvitelinkArg) (Invitelink, error)
+	TeamCreateSeitanInvitelinkWithDuration(context.Context, TeamCreateSeitanInvitelinkWithDurationArg) (Invitelink, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -5042,6 +5051,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamCreateSeitanInvitelink(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamCreateSeitanInvitelinkWithDuration": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamCreateSeitanInvitelinkWithDurationArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamCreateSeitanInvitelinkWithDurationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamCreateSeitanInvitelinkWithDurationArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateSeitanInvitelinkWithDuration(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5667,6 +5691,11 @@ func (c TeamsClient) TeamCreateSeitanTokenV2(ctx context.Context, __arg TeamCrea
 
 func (c TeamsClient) TeamCreateSeitanInvitelink(ctx context.Context, __arg TeamCreateSeitanInvitelinkArg) (res Invitelink, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelink", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamCreateSeitanInvitelinkWithDuration(ctx context.Context, __arg TeamCreateSeitanInvitelinkWithDurationArg) (res Invitelink, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelinkWithDuration", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
