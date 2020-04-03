@@ -174,6 +174,7 @@ class CodePage2 extends React.Component<Props, State> {
         </Kb.Box2>
         {!this._inModal() &&
           currentDeviceType === 'desktop' &&
+          currentDeviceType === this.props.otherDevice.type &&
           !this.props.currentDeviceAlreadyProvisioned &&
           this._heyWaitBanner()}
         {!this._inModal() && this.state.troubleshooting && (
@@ -185,7 +186,10 @@ class CodePage2 extends React.Component<Props, State> {
     )
   }
   _footer = () => {
-    const showHeyWaitInFooter = currentDeviceType === 'mobile' && !this.props.currentDeviceAlreadyProvisioned
+    const showHeyWaitInFooter =
+      currentDeviceType === 'mobile' &&
+      currentDeviceType === this.props.otherDevice.type &&
+      !this.props.currentDeviceAlreadyProvisioned
     return {
       content: (
         <Kb.Box2

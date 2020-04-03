@@ -19,7 +19,9 @@ import (
 
 	_ "github.com/keybase/golang-ico" // for image decoding
 	"github.com/nfnt/resize"
+	"golang.org/x/image/bmp"
 	_ "golang.org/x/image/bmp" // for image decoding
+	"golang.org/x/image/tiff"
 	"golang.org/x/net/context"
 
 	"camlistore.org/pkg/images"
@@ -41,10 +43,35 @@ type PreviewRes struct {
 	PreviewDurationMs int
 }
 
+func IsFatalImageErr(err error) bool {
+	switch err {
+	case image.ErrFormat,
+		bmp.ErrUnsupported:
+		return true
+	}
+	switch err.(type) {
+	case png.FormatError,
+		png.UnsupportedError,
+		tiff.FormatError,
+		tiff.UnsupportedError,
+		jpeg.FormatError,
+		jpeg.UnsupportedError:
+		return true
+	}
+	return false
+}
+
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
 func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
-	basename string, nvh types.NativeVideoHelper) (*PreviewRes, error) {
+	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	defer func() {
+		if IsFatalImageErr(err) {
+			log.Debug(ctx, "squashing %v", err)
+			err = nil
+			res = nil
+		}
+	}()
 	switch contentType {
 	case "image/jpeg", "image/png", "image/vnd.microsoft.icon", "image/x-icon":
 		return previewImage(ctx, log, src, basename, contentType)
