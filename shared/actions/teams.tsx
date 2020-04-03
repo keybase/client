@@ -527,7 +527,8 @@ async function createNewTeamFromConversation(
   const me = state.config.username
 
   const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-  const participants = participantInfo.all.filter(p => p !== me) // we will already be in as 'owner'
+  // exclude bots from the newly created team, they can be added back later.
+  const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
   const users = participants.map(assertion => ({
     assertion,
     role: assertion === me ? ('admin' as const) : ('writer' as const),
