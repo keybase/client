@@ -365,6 +365,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatSearchIndexStatus': enginegen.Chat1ChatUiChatSearchIndexStatusPayload
   'engine-gen:chat1ChatUiChatSearchConvHits': enginegen.Chat1ChatUiChatSearchConvHitsPayload
   'engine-gen:chat1ChatUiChatSearchTeamHits': enginegen.Chat1ChatUiChatSearchTeamHitsPayload
+  'engine-gen:chat1ChatUiChatSearchBotHits': enginegen.Chat1ChatUiChatSearchBotHitsPayload
   'engine-gen:chat1ChatUiChatConfirmChannelDelete': enginegen.Chat1ChatUiChatConfirmChannelDeletePayload
   'engine-gen:chat1ChatUiChatStellarShowConfirm': enginegen.Chat1ChatUiChatStellarShowConfirmPayload
   'engine-gen:chat1ChatUiChatStellarDataConfirm': enginegen.Chat1ChatUiChatStellarDataConfirmPayload
