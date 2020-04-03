@@ -16,12 +16,10 @@ type Props = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 const LocationPopup = (props: Props) => {
   // state
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
-  const {httpSrvAddress, httpSrvToken, location, username} = Container.useSelector(state => ({
-    httpSrvAddress: state.config.httpSrvAddress,
-    httpSrvToken: state.config.httpSrvToken,
-    location: state.chat2.lastCoord,
-    username: state.config.username,
-  }))
+  const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
+  const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
+  const location = Container.useSelector(state => state.chat2.lastCoord)
+  const username = Container.useSelector(state => state.config.username)
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const [locationDenied, setLocationDenied] = React.useState(false)
   // dispatch

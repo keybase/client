@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
-import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
+import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 const AddFromWhere = () => {
@@ -19,7 +19,7 @@ const AddFromWhere = () => {
   const onSkip = () => dispatch(TeamsGen.createFinishNewTeamWizard())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
-  const onAddFromContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
+  const onContinueContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
   const onContinueEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
   return (
     <Kb.Modal
@@ -80,7 +80,7 @@ const AddFromWhere = () => {
             icon="icon-teams-add-phone-contacts-64"
             title="From your contacts"
             description="Add your friends, family, or colleagues."
-            onClick={onAddFromContacts}
+            onClick={onContinueContacts}
           />
         )}
         <Kb.RichButton

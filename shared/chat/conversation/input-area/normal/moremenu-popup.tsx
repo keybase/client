@@ -17,11 +17,11 @@ type Props = {
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
   // state
-  const {participantInfo, wallet, you} = Container.useSelector(state => ({
-    participantInfo: Constants.getParticipantInfo(state, conversationIDKey),
-    wallet: Constants.shouldShowWalletsIcon(state, conversationIDKey),
-    you: state.config.username,
-  }))
+  const participantInfo = Container.useSelector(state =>
+    Constants.getParticipantInfo(state, conversationIDKey)
+  )
+  const wallet = Container.useSelector(state => Constants.shouldShowWalletsIcon(state, conversationIDKey))
+  const you = Container.useSelector(state => state.config.username)
   // dispatch
   const dispatch = Container.useDispatch()
   const onLumens = (to: string, isRequest: boolean) => {

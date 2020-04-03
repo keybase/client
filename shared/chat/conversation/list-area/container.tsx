@@ -33,8 +33,7 @@ export default Container.connect(
     const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
     const lastOrdinal = [...messageOrdinals].pop()
     const maybeCenterMessage = Constants.getMessageCenterOrdinal(state, conversationIDKey)
-    const centeredOrdinal =
-      maybeCenterMessage === null || maybeCenterMessage === undefined ? undefined : maybeCenterMessage.ordinal
+    const centeredOrdinal = maybeCenterMessage?.ordinal
     const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
     let lastMessageIsOurs = false
     if (lastOrdinal) {

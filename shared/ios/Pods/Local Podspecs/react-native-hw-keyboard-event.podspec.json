@@ -1,0 +1,23 @@
+{
+  "name": "react-native-hw-keyboard-event",
+  "version": "0.0.4",
+  "summary": "Event handler for hardware keyboard keystrokes",
+  "authors": "Emilio Rodriguez",
+  "homepage": "https://github.com/emilioicai/react-native-hw-keyboard-event",
+  "license": "MIT",
+  "platforms": {
+    "ios": "7.0",
+    "tvos": "9.0"
+  },
+  "source": {
+    "git": "https://github.com/emilioicai/react-native-hw-keyboard-event.git",
+    "tag": "0.0.4"
+  },
+  "source_files": "ios/**/*.{h,m}",
+  "requires_arc": true,
+  "dependencies": {
+    "React": [
+
+    ]
+  }
+}

@@ -14,6 +14,7 @@ type Props = {
   deviceType: DeviceType
   onAddReaction?: () => void
   onCopy?: () => void
+  onCopyLink?: () => void
   onDelete?: () => void
   onDeleteMessageHistory?: () => void
   onEdit?: () => void
@@ -67,6 +68,9 @@ const TextPopupMenu = (props: Props) => {
       ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
       : []),
     ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
+    ...(props.onCopyLink
+      ? [{icon: 'iconfont-link', onClick: props.onCopyLink, title: 'Copy a link to this message'}]
+      : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately
       ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}]

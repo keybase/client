@@ -106,6 +106,7 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
   const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
 
+  // TODO this will thrash every time
   const {bots, participants} = Container.useSelector(state =>
     ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */)
   )

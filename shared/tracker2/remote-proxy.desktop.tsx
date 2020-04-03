@@ -14,13 +14,15 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
-  const state = Container.useSelector(s => s)
-  const details = Constants.getDetails(state, trackerUsername)
-  const {blockMap, infoMap} = state.users
-  const {avatarRefreshCounter, following, followers, httpSrvToken, httpSrvAddress, username} = state.config
+  const details = Container.useSelector(state => Constants.getDetails(state, trackerUsername))
+  const users = Container.useSelector(state => state.users)
+  const {blockMap, infoMap} = users
+  const config = Container.useSelector(state => state.config)
+  const {avatarRefreshCounter, following, followers, httpSrvToken, httpSrvAddress, username} = config
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
-  const {counts, errors} = state.waiting
+  const waiting = Container.useSelector(state => state.waiting)
+  const {counts, errors} = waiting
   const trackerUsernames = new Set([trackerUsername])
   const waitingKeys = new Set([Constants.waitingKey])
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
