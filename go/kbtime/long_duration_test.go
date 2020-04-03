@@ -1,4 +1,4 @@
-package libkb
+package kbtime
 
 import (
 	"fmt"

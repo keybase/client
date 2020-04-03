@@ -1,4 +1,4 @@
-package libkb
+package kbtime
 
 import (
 	"fmt"
@@ -15,6 +15,21 @@ var durationRxp = regexp.MustCompile(`^([0-9]+)\s?(([nuµμm]?s)|[mhdDMyY])$`)
 // don't allow units like 'd' for days - expect uppercase units for all of the
 // "longer durations".
 
+// AddLongDuration parses time duration from `duration` argument and adds to
+// time in `now`, returning the resulting time. The duration format is similar
+// to `time` package duration format, with the following changes:
+// - additional duration units are supported:
+//    - 'D' for days,
+//    - 'M' for months,
+//    - 'Y' for years,
+// - only whole numbers are supported,
+// - whitespace at the beginning and end of duration string is ignored,
+// - optionally there can be one whitespace character between the number
+//   and unit.
+//
+// Examples:
+//   `AddLongDuration(time.Now(), "1000 Y")`
+//   `AddLongDuration(time.Now(), "7 D")`
 func AddLongDuration(now time.Time, duration string) (ret time.Time, err error) {
 	duration = strings.TrimSpace(duration)
 

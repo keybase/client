@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/kbtime"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -79,7 +80,7 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 
 	if ctx.IsSet("duration") {
 		durationStr := ctx.String("duration")
-		then, err := libkb.AddLongDuration(time.Now(), durationStr)
+		then, err := kbtime.AddLongDuration(time.Now(), durationStr)
 		if err != nil {
 			return fmt.Errorf("failed to compute expiration date: %w", err)
 		}
