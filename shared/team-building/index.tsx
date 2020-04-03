@@ -102,7 +102,6 @@ export type Props = ContactProps & {
   recommendedHideYourself?: boolean
   highlightedIndex: number | null
   includeContacts: boolean
-  justContacts: boolean
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
   onBackspace: () => void
@@ -381,10 +380,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   )
 
   _searchInput = () => {
-    const searchPlaceholder = this.props.justContacts
-      ? 'Search contacts'
-      : 'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)
-
+    const searchPlaceholder = 'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)
     return (
       <Input
         onChangeText={this.props.onChangeText}
@@ -731,7 +727,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           </>
         )
     }
-    const teamBox = !!props.teamSoFar.length && !props.justContacts && (
+    const teamBox = !!props.teamSoFar.length && (
       <TeamBox
         allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
         onChangeText={props.onChangeText}
@@ -772,7 +768,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             </Kb.Text>
           </Kb.Text>
         )}
-        {(props.namespace !== 'people' || Styles.isMobile) && !props.justContacts && (
+        {(props.namespace !== 'people' || Styles.isMobile) && (
           <FilteredServiceTabBar
             filterServices={props.filterServices}
             selectedService={props.selectedService}

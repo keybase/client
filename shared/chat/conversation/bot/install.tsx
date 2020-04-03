@@ -64,58 +64,46 @@ const InstallBotPopup = (props: Props) => {
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
   const [disableDone, setDisableDone] = React.useState(false)
-  const {
-    commands,
-    featured,
-    inTeam,
-    inTeamUnrestricted,
-    isBot,
-    readOnly,
-    settings,
-    teamID,
-    teamName,
-  } = Container.useSelector((state: Container.TypedState) => {
-    let inTeam: boolean | undefined
-    let isBot: boolean | undefined
-    let teamRole: TeamTypes.TeamRoleType | null | undefined
-    let teamName: string | null | undefined
-    let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
-    let readOnly = false
+
+  const meta = Container.useSelector(state =>
+    conversationIDKey ? state.chat2.metaMap.get(conversationIDKey) : undefined
+  )
+
+  // TODO will thrash every time
+  const commands = Container.useSelector(state => {
     let commands: Array<string> = []
-    if (conversationIDKey) {
-      const meta = state.chat2.metaMap.get(conversationIDKey)
+    if (conversationIDKey && meta) {
       commands = Constants.getBotCommands(state, conversationIDKey)
         .filter(c => c.username === botUsername)
         .map(c => c.name)
-      if (meta && meta.teamname) {
-        teamID = meta.teamID
-        teamName = meta.teamname
-        readOnly = !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots
-      }
-      teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
-      if (teamRole !== undefined) {
-        inTeam = !!teamRole
-      }
-
-      if (teamRole === 'bot' || teamRole === 'restrictedbot') {
-        isBot = true
-      }
     }
     const convCommands: Types.BotPublicCommands = {commands, loadError: false}
-    return {
-      commands: commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername),
-      featured: state.chat2.featuredBotsMap.get(botUsername),
-      inTeam,
-      inTeamUnrestricted: inTeam && teamRole === 'bot',
-      isBot,
-      readOnly,
-      settings: conversationIDKey
-        ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
-        : undefined,
-      teamID,
-      teamName,
-    }
+    return commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername)
   })
+
+  const featured = Container.useSelector(state => state.chat2.featuredBotsMap.get(botUsername))
+  const teamRole = Container.useSelector(state =>
+    conversationIDKey ? state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername) : undefined
+  )
+  const inTeam = teamRole !== undefined ? !!teamRole : undefined
+  const inTeamUnrestricted = inTeam && teamRole === 'bot'
+  const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
+
+  const readOnly = Container.useSelector(state =>
+    meta && meta.teamname ? !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots : false
+  )
+  const settings = Container.useSelector(state =>
+    conversationIDKey
+      ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
+      : undefined
+  )
+  let teamname: string | null | undefined
+  let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
+  if (meta && meta.teamname) {
+    teamID = meta.teamID
+    teamname = meta.teamname
+  }
+
   const {channelMetas} = useAllChannelMetas(teamID)
   const error = Container.useAnyErrors(Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove)
   // dispatch
@@ -305,7 +293,7 @@ const InstallBotPopup = (props: Props) => {
               onCheck={() => setInstallWithMentions(!installWithMentions)}
             />
           </Kb.Box2>
-          {teamID && teamName && channelMetas && (
+          {teamID && teamname && channelMetas && (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               <Kb.Text type="BodyBig">In these channels:</Kb.Text>
               <Kb.DropdownButton
@@ -313,11 +301,11 @@ const InstallBotPopup = (props: Props) => {
                   <Kb.Box2 direction="horizontal" alignItems="center">
                     <Kb.Avatar
                       size={16}
-                      teamname={teamName}
+                      teamname={teamname}
                       style={{marginRight: Styles.globalMargins.tiny}}
                     />
                     <Kb.Text type="BodySemibold">
-                      {teamName}{' '}
+                      {teamname}{' '}
                       {installInConvs.length === 1
                         ? `(#${channelMetas.get(installInConvs[0])?.channelname ?? ''})`
                         : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
@@ -349,7 +337,7 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2>
   )
 
-  const channelPickerContent = channelPickerScreen && teamID && teamName && channelMetas && (
+  const channelPickerContent = channelPickerScreen && teamID && teamname && channelMetas && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <ChannelPicker
         channelMetas={channelMetas}
@@ -358,7 +346,7 @@ const InstallBotPopup = (props: Props) => {
         setDisableDone={setDisableDone}
         setInstallInConvs={setInstallInConvs}
         teamID={teamID}
-        teamName={teamName}
+        teamName={teamname}
       />
     </Kb.Box2>
   )

@@ -67,6 +67,7 @@ const TeamMember = (props: OwnProps) => {
   React.useEffect(() => {
     dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
   }, [teamID, username, dispatch])
+  // TODO this will keep thrasing
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )

@@ -36,6 +36,7 @@ const defaultProps = {
   onAddReaction: Sb.action('onAddReaction'),
   onAllMedia: Sb.action('onAllMedia'),
   onCopy: Sb.action('onCopy'),
+  onCopyLink: Sb.action('onCopyLink'),
   onDelete: Sb.action('onDelete'),
   onDeleteMessageHistory: Sb.action('onDeleteMessageHistory'),
   onDownload: Sb.action('onDownload'),
