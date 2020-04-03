@@ -45,7 +45,7 @@ const WotModal = (props: WotModalProps) => {
       mode="DefaultFullHeight"
       banners={[
         !!props.error && (
-          <Kb.Banner color="red">
+          <Kb.Banner key="error" color="red">
             <Kb.BannerParagraph bannerColor="red" content={props.error} />
           </Kb.Banner>
         ),
