@@ -1467,15 +1467,32 @@ function* threadSearch(
   logger: Saga.SagaLogger
 ) {
   const {conversationIDKey, query} = action.payload
+  const lastOrdinal =
+    [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
+  const username = state.config.username
+  const devicename = state.config.deviceName ?? ''
   const onHit = (hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam']) => {
-    const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
+    const message = Constants.uiMessageToMessage(
+      state,
+      conversationIDKey,
+      hit.searchHit.hitMessage,
+      username,
+      lastOrdinal,
+      devicename
+    )
     return message
       ? Saga.put(Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]}))
       : false
   }
   const onInboxHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
-      const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, h.hitMessage)
+      const uiMsg = Constants.uiMessageToMessage(
+        conversationIDKey,
+        h.hitMessage,
+        username,
+        lastOrdinal,
+        devicename
+      )
       if (uiMsg) {
         l.push(uiMsg)
       }

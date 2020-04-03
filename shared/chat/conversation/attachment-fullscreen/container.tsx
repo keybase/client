@@ -21,6 +21,11 @@ const Connected = (props: OwnProps) => {
   const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
   const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const lastOrdinal = Container.useSelector(
+    state => [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
+  )
+  const username = Container.useSelector(state => state.config.username)
+  const currentDeviceName = Container.useSelector(state => state.config.deviceName ?? '')
   const message = m?.type === 'attachment' ? m : blankMessage
   const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
   const {id} = message
@@ -49,7 +54,13 @@ const Connected = (props: OwnProps) => {
         ],
         result => {
           if (result.message) {
-            const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
+            const goodMessage = Constants.uiMessageToMessage(
+              conversationIDKey,
+              result.message,
+              username,
+              lastOrdinal,
+              currentDeviceName
+            )
             if (goodMessage && goodMessage.type === 'attachment') {
               setAutoPlay(false)
               addToMessageMap(goodMessage)

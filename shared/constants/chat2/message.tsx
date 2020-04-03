@@ -858,9 +858,11 @@ export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGeneric
 }
 
 const validUIMessagetoMessage = (
-  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  m: RPCChatTypes.UIMessageValid
+  m: RPCChatTypes.UIMessageValid,
+  currentUsername: string,
+  lastOrdinal: Types.Ordinal,
+  currentDeviceName: string
 ) => {
   const minimum = {
     author: m.senderUsername,
@@ -937,7 +939,9 @@ const validUIMessagetoMessage = (
         mentionsChannelName: new Map(
           (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
         ),
-        replyTo: m.replyTo ? uiMessageToMessage(state, conversationIDKey, m.replyTo) : null,
+        replyTo: m.replyTo
+          ? uiMessageToMessage(conversationIDKey, m.replyTo, currentUsername, lastOrdinal, currentDeviceName)
+          : null,
         text: new HiddenString(rawText),
         unfurls: new Map((m.unfurls || []).map(u => [u.url, u])),
       })
@@ -1097,9 +1101,11 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
 }
 
 const outboxUIMessagetoMessage = (
-  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  o: RPCChatTypes.UIMessageOutbox
+  o: RPCChatTypes.UIMessageOutbox,
+  currentUsername: string,
+  lastOrdinal: Types.Ordinal,
+  currentDeviceName: string
 ) => {
   const errorReason =
     o.state && o.state.state === RPCChatTypes.OutboxStateType.error
@@ -1124,8 +1130,9 @@ const outboxUIMessagetoMessage = (
         pre = previewSpecs(md, baseMd)
       }
       return makePendingAttachmentMessage(
-        state,
         conversationIDKey,
+        currentUsername,
+        lastOrdinal,
         title,
         FsTypes.getLocalPathName(fileName),
         previewURL,
@@ -1139,10 +1146,10 @@ const outboxUIMessagetoMessage = (
     case RPCChatTypes.MessageType.flip:
     case RPCChatTypes.MessageType.text:
       return makeMessageText({
-        author: state.config.username,
+        author: currentUsername,
         conversationIDKey,
         decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : null,
-        deviceName: state.config.deviceName || '',
+        deviceName: currentDeviceName,
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
         errorTyp,
@@ -1214,17 +1221,31 @@ const journeycardUIMessageToMessage = (
 }
 
 export const uiMessageToMessage = (
-  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage
+  uiMessage: RPCChatTypes.UIMessage,
+  currentUsername: string,
+  lastOrdinal: Types.Ordinal,
+  currentDeviceName: string
 ): Types.Message | null => {
   switch (uiMessage.state) {
     case RPCChatTypes.MessageUnboxedState.valid:
-      return validUIMessagetoMessage(state, conversationIDKey, uiMessage.valid)
+      return validUIMessagetoMessage(
+        conversationIDKey,
+        uiMessage.valid,
+        currentUsername,
+        lastOrdinal,
+        currentDeviceName
+      )
     case RPCChatTypes.MessageUnboxedState.error:
       return errorUIMessagetoMessage(conversationIDKey, uiMessage.error)
     case RPCChatTypes.MessageUnboxedState.outbox:
-      return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage.outbox)
+      return outboxUIMessagetoMessage(
+        conversationIDKey,
+        uiMessage.outbox,
+        currentUsername,
+        lastOrdinal,
+        currentDeviceName
+      )
     case RPCChatTypes.MessageUnboxedState.placeholder:
       return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
     case RPCChatTypes.MessageUnboxedState.journeycard:
@@ -1241,8 +1262,9 @@ export function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
 }
 
 export const makePendingTextMessage = (
-  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
+  currentUsername: string,
+  lastOrdinal: Types.Ordinal,
   text: HiddenString,
   outboxID: Types.OutboxID,
   explodeTime?: number
@@ -1251,16 +1273,12 @@ export const makePendingTextMessage = (
   // would cause the timer to count down while the message is still pending
   // and probably reset when we get the real message back.
 
-  const lastOrdinal =
-    [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].pop() || Types.numberToOrdinal(0)
-
   const ordinal = nextFractionalOrdinal(lastOrdinal)
-
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
   return makeMessageText({
     ...explodeInfo,
-    author: state.config.username,
+    author: currentUsername,
     conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
@@ -1274,8 +1292,9 @@ export const makePendingTextMessage = (
 }
 
 export const makePendingAttachmentMessage = (
-  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
+  currentUsername: string,
+  lastOrdinal: Types.Ordinal,
   title: string,
   fileName: string,
   previewURL: string,
@@ -1286,8 +1305,6 @@ export const makePendingAttachmentMessage = (
   errorTyp?: number,
   explodeTime?: number
 ) => {
-  const lastOrdinal =
-    [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].pop() || Types.numberToOrdinal(0)
   const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
@@ -1296,7 +1313,7 @@ export const makePendingAttachmentMessage = (
     attachmentType: previewSpec.attachmentType,
     audioAmps: previewSpec.audioAmps,
     audioDuration: previewSpec.audioDuration,
-    author: state.config.username,
+    author: currentUsername,
     conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
