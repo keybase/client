@@ -81,7 +81,7 @@ const InviteFriends = () => {
       <Kb.Divider style={styles.goToBottom} />
       <Kb.Box2 direction="vertical" gap="xsmall" style={styles.container} className="invite-friends-big">
         {inviteButton}
-        {!!inviteCounts && (
+        {!!inviteCounter && inviteCounts && (
           <Kb.WithTooltip
             tooltip={
               <Kb.Box2 direction="vertical" alignItems="flex-start">
