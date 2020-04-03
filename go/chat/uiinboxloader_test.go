@@ -130,11 +130,11 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		layout = recvLayout()
 		require.Equal(t, 1, len(layout.SmallTeams))
 		require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
-		select {
-		case <-chatUI.InboxLayoutCb:
-			require.Fail(t, "unexpected layout")
-		default:
-		}
+	}
+	select {
+	case <-chatUI.InboxLayoutCb:
+		require.Fail(t, "unexpected layout")
+	default:
 	}
 
 	t.Logf("big teams")
