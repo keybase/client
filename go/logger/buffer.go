@@ -5,13 +5,14 @@ package logger
 
 import (
 	"bufio"
-	"github.com/keybase/go-logging"
 	"io"
 	"sync"
 	"time"
+
+	"github.com/keybase/go-logging"
 )
 
-const loggingFrequency = 10 * time.Millisecond
+const loggingFrequency = 1000 * time.Millisecond
 
 type triggerableTimer struct {
 	C          chan struct{}
@@ -99,8 +100,8 @@ func (writer *autoFlushingBufferedWriter) backgroundFlush() {
 func NewAutoFlushingBufferedWriter(baseWriter io.Writer,
 	flushFrequency time.Duration) (w io.Writer, shutdown chan struct{}, done chan struct{}) {
 	result := &autoFlushingBufferedWriter{
-		bufferedWriter: bufio.NewWriter(baseWriter),
-		backupWriter:   bufio.NewWriter(baseWriter),
+		bufferedWriter: bufio.NewWriterSize(baseWriter, 1000000),
+		backupWriter:   bufio.NewWriterSize(baseWriter, 1000000),
 		frequency:      flushFrequency,
 		timer:          newTriggerableTimer(flushFrequency),
 		shutdown:       make(chan struct{}),
