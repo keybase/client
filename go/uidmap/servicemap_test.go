@@ -163,7 +163,6 @@ func TestServiceMapBecomesEmpty(t *testing.T) {
 
 	tc.G.API = apiMock
 
-	const zeroFreshness = time.Duration(0)
 	const freshness = 24 * time.Hour
 	serviceMapper := NewServiceSummaryMap(10)
 	uids := []keybase1.UID{tTracy}
