@@ -6319,6 +6319,30 @@ func (o AddEmojisRes) DeepCopy() AddEmojisRes {
 	}
 }
 
+type AddEmojiAliasRes struct {
+	RateLimit   *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	ErrorString *string    `codec:"errorString,omitempty" json:"errorString,omitempty"`
+}
+
+func (o AddEmojiAliasRes) DeepCopy() AddEmojiAliasRes {
+	return AddEmojiAliasRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+		ErrorString: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ErrorString),
+	}
+}
+
 type RemoveEmojiRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
@@ -7143,7 +7167,7 @@ type LocalInterface interface {
 	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
 	AddEmojis(context.Context, AddEmojisArg) (AddEmojisRes, error)
-	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiRes, error)
+	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiAliasRes, error)
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
 }
@@ -9439,7 +9463,7 @@ func (c LocalClient) AddEmojis(ctx context.Context, __arg AddEmojisArg) (res Add
 	return
 }
 
-func (c LocalClient) AddEmojiAlias(ctx context.Context, __arg AddEmojiAliasArg) (res AddEmojiRes, err error) {
+func (c LocalClient) AddEmojiAlias(ctx context.Context, __arg AddEmojiAliasArg) (res AddEmojiAliasRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addEmojiAlias", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

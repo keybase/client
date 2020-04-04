@@ -10,7 +10,7 @@ const load = () => {
     .add('Add Emoji', () => (
       <AddEmojiModal conversationIDKey={ChatConstants.noConversationIDKey} teamID={TeamsTypes.noTeamID} />
     ))
-    .add('Add Alias', () => <AddAliasModal teamID={TeamsTypes.noTeamID} />)
+    .add('Add Alias', () => <AddAliasModal conversationIDKey={ChatConstants.noConversationIDKey} />)
 }
 
 export default load

@@ -25,7 +25,17 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
         ],
       })
     )
-  const onAddAlias = () => {}
+  const onAddAlias = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {conversationIDKey: convID, teamID},
+            selected: 'teamAddEmojiAlias',
+          },
+        ],
+      })
+    )
   // clear filter on unmount
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>

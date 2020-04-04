@@ -307,6 +307,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly username: String; readonly botSettings?: Keybase1.TeamBotSettings | null; readonly role: Keybase1.TeamRole}
     outParam: void
   }
+  'chat.1.local.addEmojiAlias': {
+    inParam: {readonly convID: ConversationID; readonly newAlias: String; readonly existingAlias: String}
+    outParam: AddEmojiAliasRes
+  }
   'chat.1.local.addEmojis': {
     inParam: {readonly convID: ConversationID; readonly aliases?: Array<String> | null; readonly filenames?: Array<String> | null}
     outParam: AddEmojisRes
@@ -1126,6 +1130,7 @@ export enum UnfurlType {
   maps = 3,
 }
 export type AddBotConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
+export type AddEmojiAliasRes = {readonly rateLimit?: RateLimit | null; readonly errorString?: String | null}
 export type AddEmojiRes = {readonly rateLimit?: RateLimit | null}
 export type AddEmojisRes = {readonly rateLimit?: RateLimit | null; readonly successFilenames?: Array<String> | null; readonly failedFilenames: {[key: string]: String}}
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
@@ -1642,6 +1647,7 @@ export type CustomResponseIncomingCallMap = {
 }
 export const localAddBotConvSearchRpcPromise = (params: MessageTypes['chat.1.local.addBotConvSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotConvSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotConvSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddBotMemberRpcPromise = (params: MessageTypes['chat.1.local.addBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localAddEmojiAliasRpcPromise = (params: MessageTypes['chat.1.local.addEmojiAlias']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addEmojiAlias']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addEmojiAlias', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddEmojisRpcPromise = (params: MessageTypes['chat.1.local.addEmojis']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addEmojis']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addEmojis', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1793,7 +1799,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.addEmoji'
-// 'chat.1.local.addEmojiAlias'
 // 'chat.1.local.removeEmoji'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'

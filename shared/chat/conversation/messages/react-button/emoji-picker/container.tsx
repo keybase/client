@@ -15,10 +15,9 @@ import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {addSkinToneIfAvailable} from '.'
 import {EmojiData} from '../../../../../util/emoji'
 
-export type EmojiData = EmojiData
-
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  small?: boolean
   onDidPick?: () => void
   onPickAddToMessageOrdinal?: Types.Ordinal
   onPickAction?: (emoji: string, emojiData: EmojiData) => void
@@ -126,7 +125,7 @@ const WrapperMobile = (props: Props) => {
         topReacjis={topReacjis}
         filter={filter}
         onChoose={onChoose}
-        customSections={customEmojiGroups}
+        customEmojiGroups={customEmojiGroups}
         waitingForEmoji={waiting}
         width={width}
         skinTone={currentSkinTone}
@@ -138,7 +137,7 @@ const WrapperMobile = (props: Props) => {
           setSkinTone={setSkinTone}
         />
         <Kb.Box style={Styles.globalStyles.flexOne} />
-        {!skinTonePickerExpanded && (
+        {!props.small && !skinTonePickerExpanded && (
           <Kb.Button
             mode="Secondary"
             small={true}
@@ -165,7 +164,11 @@ export const EmojiPickerDesktop = (props: Props) => {
 
   return (
     <Kb.Box
-      style={Styles.collapseStyles([styles.containerDesktop, styles.contain])}
+      style={Styles.collapseStyles([
+        styles.containerDesktop,
+        styles.contain,
+        props.small && styles.containerDesktopSmall,
+      ])}
       onClick={e => e.stopPropagation()}
       gap="tiny"
     >
@@ -192,33 +195,38 @@ export const EmojiPickerDesktop = (props: Props) => {
         onHover={setHoveredEmoji}
         width={336}
         skinTone={currentSkinTone}
-        customSections={customEmojiGroups}
+        customEmojiGroups={customEmojiGroups}
         waitingForEmoji={waiting}
       />
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        alignItems="center"
-        style={styles.footerContainer}
-        gap="small"
-      >
-        {hoveredEmoji.source ? (
-          <Kb.CustomEmoji size="Big" src={hoveredEmoji.source} alias={hoveredEmoji.short_name} />
-        ) : (
-          <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
-        )}
-        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-          <Kb.Text type="BodyBig" lineClamp={1}>
-            {hoveredEmoji.source
-              ? hoveredEmoji.short_name
-              : startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
-          </Kb.Text>
-          <Kb.Text type="BodySmall" lineClamp={1}>
-            {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
-          </Kb.Text>
+      {!props.small && (
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          style={styles.footerContainer}
+          gap="small"
+        >
+          {hoveredEmoji.source ? (
+            <Kb.CustomEmoji size="Big" src={hoveredEmoji.source} alias={hoveredEmoji.short_name} />
+          ) : (
+            <Kb.Emoji
+              size={36}
+              emojiName={hoveredEmoji.aliasTo ?? addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)}
+            />
+          )}
+          <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+            <Kb.Text type="BodyBig" lineClamp={1}>
+              {hoveredEmoji.source
+                ? hoveredEmoji.short_name
+                : startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+            </Kb.Text>
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
         </Kb.Box2>
-        <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
-      </Kb.Box2>
+      )}
     </Kb.Box>
   )
 }
@@ -251,6 +259,10 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 336,
         minHeight: 561,
         width: 336,
+      },
+      containerDesktopSmall: {
+        height: 250,
+        minHeight: 250,
       },
       footerContainer: Styles.platformStyles({
         common: {
@@ -291,6 +303,7 @@ export const Routable = (routableProps: RoutableProps) => {
     'conversationIDKey',
     Constants.noConversationIDKey
   )
+  const small = Container.getRouteProps(routableProps, 'small', undefined)
   const onPickAction = Container.getRouteProps(routableProps, 'onPickAction', undefined)
   const onPickAddToMessageOrdinal = Container.getRouteProps(
     routableProps,
@@ -309,6 +322,7 @@ export const Routable = (routableProps: RoutableProps) => {
   return (
     <WrapperMobile
       conversationIDKey={conversationIDKey}
+      small={small}
       onPickAction={onPickAction}
       onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}
       onDidPick={onDidPick}

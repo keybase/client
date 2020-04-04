@@ -3738,7 +3738,14 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	return res, nil
 }
 
-func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiRes, err error) {
+func strPtr(str string) *string {
+	if len(str) > 0 {
+		return &str
+	}
+	return nil
+}
+
+func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiAliasRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddEmojiAlias")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
@@ -3746,8 +3753,15 @@ func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) 
 	if err != nil {
 		return res, err
 	}
+	if arg.NewAlias == "debug-test-error" {
+		return chat1.AddEmojiAliasRes{
+			ErrorString: strPtr("this is a test error"),
+		}, nil
+	}
 	if _, err := h.G().EmojiSource.AddAlias(ctx, uid, arg.ConvID, arg.NewAlias, arg.ExistingAlias); err != nil {
-		return res, err
+		return chat1.AddEmojiAliasRes{
+			ErrorString: strPtr(err.Error()),
+		}, nil
 	}
 	return res, nil
 }

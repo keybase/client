@@ -81,7 +81,7 @@ type Props = {
   onChoose: (emojiStr: string, emojiData: EmojiData) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: Types.EmojiSkinTone
-  customSections?: RPCChatGen.EmojiGroup[]
+  customEmojiGroups?: RPCChatGen.EmojiGroup[]
   width: number
   waitingForEmoji?: boolean
 }
@@ -160,7 +160,7 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 const getSectionsAndBookmarks = (
   width: number,
   topReacjis: Array<RPCTypes.UserReacji>,
-  customSections?: RPCChatGen.EmojiGroup[]
+  customEmojiGroups?: RPCChatGen.EmojiGroup[]
 ) => {
   if (!width) {
     return {bookmarks: [], sections: []}
@@ -171,7 +171,7 @@ const getSectionsAndBookmarks = (
   const bookmarks: Array<Bookmark> = []
 
   if (topReacjis.length) {
-    const frequentSection = getFrequentSection(topReacjis, customSections || emptyArray, emojisPerLine)
+    const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
     bookmarks.push({
       coveredSectionKeys: new Set([frequentSection.key]),
       iconType: 'iconfont-clock',
@@ -191,13 +191,13 @@ const getSectionsAndBookmarks = (
     sections.push(section)
   })
 
-  if (customSections?.length) {
+  if (customEmojiGroups?.length) {
     const bookmark = {
       coveredSectionKeys: new Set<string>(),
       iconType: 'iconfont-keybase',
       sectionIndex: sections.length,
     } as Bookmark
-    getCustomEmojiSections(customSections, emojisPerLine).forEach(section => {
+    getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
       bookmark.coveredSectionKeys.add(section.key)
       sections.push(section)
     })
@@ -216,7 +216,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
-    const emojiStr = addSkinToneIfAvailable(emoji, skinTone)
+    const emojiStr = emoji.aliasTo ?? addSkinToneIfAvailable(emoji, skinTone)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
@@ -299,10 +299,10 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     const {bookmarks, sections} = getSectionsAndBookmarks(
       this.props.width,
       this.props.topReacjis,
-      this.props.customSections
+      this.props.customEmojiGroups
     )
     const emojisPerLine = getEmojisPerLine(this.props.width)
-    const getFilterResults = getResultFilter(this.props.customSections)
+    const getFilterResults = getResultFilter(this.props.customEmojiGroups)
     // For filtered results, we have <= `maxEmojiSearchResults` emojis
     // to render. Render them directly rather than going through chunkData
     // pipeline for fast list of results. Go through chunkData only

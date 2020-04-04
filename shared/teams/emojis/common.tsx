@@ -8,21 +8,53 @@ type AliasInputProps = {
   error?: string
   alias: string
   onChangeAlias: (alias: string) => void
+  onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   small: boolean
 }
 
-export const AliasInput = (props: AliasInputProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
-    <Kb.NewInput
-      error={!!props.error}
-      textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
-      value={`:${props.alias}:`}
-      containerStyle={Styles.collapseStyles([styles.aliasInput, !props.small && styles.aliasInputLarge])}
-      onChangeText={newText => props.onChangeAlias(newText.replace(/:/g, ''))}
-    />
-    {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
-  </Kb.Box2>
-)
+export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
+  focus() {
+    this.inputRef.current?.focus()
+  }
+  private inputRef = React.createRef<Kb.PlainInput>()
+  private mounted = true
+  componentWillUnmount() {
+    this.mounted = false
+  }
+  private onFocus = () => {
+    setTimeout(
+      () =>
+        this.mounted &&
+        this.inputRef.current?.setSelection({
+          end: this.props.alias.length + 1,
+          start: this.props.alias.length + 1,
+        })
+    )
+  }
+  render() {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
+        <Kb.NewInput
+          ref={this.inputRef}
+          error={!!this.props.error}
+          textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
+          value={`:${this.props.alias}:`}
+          containerStyle={Styles.collapseStyles([
+            styles.aliasInput,
+            !this.props.small && styles.aliasInputLarge,
+          ])}
+          onChangeText={newText =>
+            // Remove both colon and special characters.
+            this.props.onChangeAlias(newText.replace(/[^a-zA-Z0-9-_+]/g, ''))
+          }
+          onEnterKeyDown={this.props.onEnterKeyDown}
+          onFocus={this.onFocus}
+        />
+        {!!this.props.error && <Kb.Text type="BodySmallError">{this.props.error}</Kb.Text>}
+      </Kb.Box2>
+    )
+  }
+}
 
 type ModalProps = {
   backButtonOnClick?: () => void
@@ -71,7 +103,7 @@ export const Modal = (props: ModalProps) => {
           )}
         </Kb.Box2>
         {props.children}
-        {props.footerButtonLabel && props.footerButtonOnClick && (
+        {props.footerButtonLabel && (
           <Kb.Box2
             direction="vertical"
             centerChildren={true}
@@ -84,6 +116,7 @@ export const Modal = (props: ModalProps) => {
               label={props.footerButtonLabel}
               fullWidth={true}
               onClick={props.footerButtonOnClick}
+              disabled={!props.footerButtonOnClick}
               waiting={props.footerButtonWaiting}
             />
           </Kb.Box2>
