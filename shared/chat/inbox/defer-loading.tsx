@@ -24,4 +24,5 @@ export const screenOptions = {
       Chats{' '}
     </Kb.Text>
   ),
+  headerTitleContainerStyle: undefined,
 }

@@ -155,9 +155,6 @@ const defaultScreenOptions: StackNavigationOptions = {
         customIconColor={tintColor}
       />
     ) : null,
-  headerTitleContainerStyle: {
-    flexGrow: 1,
-  },
   headerRight: undefined,
   headerStyle: {
     get backgroundColor() {
@@ -175,6 +172,9 @@ const defaultScreenOptions: StackNavigationOptions = {
       {children}
     </Kb.Text>
   ),
+  headerTitleContainerStyle: {
+    width: '100%',
+  },
 }
 
 const NavTabs = () => {
