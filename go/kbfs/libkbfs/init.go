@@ -495,7 +495,7 @@ func InitLogWithPrefix(
 	}
 
 	if params.LogFileConfig.Path != "" {
-		err = logger.SetLogFileConfig(&params.LogFileConfig)
+		err = logger.SetLogFileConfig(&params.LogFileConfig, nil)
 	}
 	log := logger.New(prefix)
 

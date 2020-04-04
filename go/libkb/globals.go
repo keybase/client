@@ -372,7 +372,10 @@ func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 	// Start redirecting logs if the logFile should be used
 	// If this is not called, prints logs to stdout.
 	if ok {
-		err := logger.SetLogFileConfig(g.Env.GetLogFileConfig(logFile))
+		err := logger.SetLogFileConfig(g.Env.GetLogFileConfig(logFile), &logger.BufferedLoggerConfig{
+			Frequency: time.Second,
+			Size:      1000000,
+		})
 		if err != nil {
 			return err
 		}
