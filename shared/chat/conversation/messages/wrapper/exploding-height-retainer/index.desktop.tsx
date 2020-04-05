@@ -138,7 +138,11 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
   for (let i = 0; i < numBoxes; i++) {
     children.push(
       <Kb.Box style={styles.flame}>
-        <Kb.Animation animationType="exploding" width={64} height={64} />
+        <Kb.Animation
+          animationType={Styles.isDarkMode() ? 'darkExploding' : 'exploding'}
+          width={64}
+          height={64}
+        />
       </Kb.Box>
     )
   }
