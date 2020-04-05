@@ -118,8 +118,8 @@ const DevicePage = (props: Props) => {
 
   const metaTwo = {
     backup: 'Paper key',
-    desktop: 'Computer',
-    mobile: 'Phone',
+    desktop: 'Device',
+    mobile: 'Device',
   }[device.type]
 
   return (
