@@ -10,7 +10,7 @@ const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
-export const animationDuration = 50000
+export const animationDuration = 3000
 
 const retainedHeights = new Set<string>()
 
@@ -129,54 +129,24 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   )
 }
 
-const maxFlameWidth = 32
-const flameOffset = 5
 const FlameFront = (props: {height: number; stop: boolean}) => {
   if (props.stop) {
     return null
   }
-  const numBoxes = Math.ceil(props.height / 15)
+  const numBoxes = Math.ceil(props.height / 17 - 1)
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numBoxes; i++) {
-    children.push(<Flame key={i} />)
+    children.push(
+      <Kb.Box style={styles.flame}>
+        <Kb.Animation animationType="exploding" width={64} height={64} />
+      </Kb.Box>
+    )
   }
   return (
     <Kb.Box className="flame-container" style={styles.flameContainer}>
       {children}
     </Kb.Box>
   )
-}
-
-const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
-
-class Flame extends React.Component<{}, {timer: number; width: number}> {
-  state = {timer: 0, width: randWidth()}
-  intervalID?: ReturnType<typeof setTimeout>
-
-  componentDidMount() {
-    this.intervalID = setInterval(this._randomize, 100)
-  }
-
-  componentWillUnmount() {
-    if (this.intervalID) {
-      clearInterval(this.intervalID)
-      this.intervalID = undefined
-    }
-  }
-
-  _randomize = () =>
-    this.setState(prevState => ({
-      timer: prevState.timer + 100,
-      width: randWidth(),
-    }))
-
-  render() {
-    return (
-      <Kb.Box style={styles.flame}>
-        <Kb.Animation animationType="exploding" width={64} height={64} />
-      </Kb.Box>
-    )
-  }
 }
 
 const explodedIllustrationUrl = (): string =>
@@ -221,9 +191,9 @@ const styles = Styles.styleSheetCreate(
       },
       flameContainer: {
         position: 'absolute',
-        right: -1 * (maxFlameWidth + flameOffset),
+        right: -32,
         top: -22,
-        width: maxFlameWidth + flameOffset,
+        width: 64,
       },
     } as const)
 )
