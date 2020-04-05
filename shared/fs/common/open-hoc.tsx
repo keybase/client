@@ -19,7 +19,7 @@ function OpenHOC(Component: React.ComponentType<Props & InjectedProps>): React.C
 
     if (typeof props.destinationPickerIndex !== 'number') {
       const onOpen = () =>
-        dispatch(nav.safeNavigateAppendPayload({path: [{props: {path: props.path}, selected: 'main'}]}))
+        dispatch(nav.safeNavigateAppendPayload({path: [{props: {path: props.path}, selected: 'fsRoot'}]}))
       return <Component {...props} onOpen={onOpen} />
     }
 

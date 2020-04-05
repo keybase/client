@@ -1107,6 +1107,21 @@ const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTree
   return false
 }
 
+const maybeOnFSTab = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  // const wasTab = prev[2]?.routeName === Tabs.fsTab
+  // const isTab = next[2]?.routeName === Tabs.fsTab
+
+  const routeName = 'fsRoot'
+  const wasScreen = prev[prev.length - 1]?.routeName === routeName
+  const isScreen = next[next.length - 1]?.routeName === routeName
+
+  if (wasScreen === isScreen) {
+    return false
+  }
+  return wasScreen ? FsGen.createUserOut() : FsGen.createUserIn()
+}
+
 function* fsSaga() {
   yield* Saga.chainAction2(FsGen.upload, upload)
   yield* Saga.chainAction2(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
@@ -1170,6 +1185,7 @@ function* fsSaga() {
   yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
 
   yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearCriticalUpdate)
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeOnFSTab)
 
   yield Saga.spawn(platformSpecificSaga)
 }

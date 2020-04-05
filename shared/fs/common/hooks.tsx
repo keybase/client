@@ -197,38 +197,6 @@ export const useFsWatchDownloadForMobile = isMobile
     }
   : () => false
 
-let useUserIsLookingAtFsCounter = 0
-export const useUserIsLookingAtFs = isMobile
-  ? () => {
-      // On mobile views remain mounted, so we need to watch for navigation
-      // events to know if user is looking at the Fs tab.
-
-      const dispatch = Container.useDispatch()
-      NavigationHooks.useNavigationEvents((e: NavigationEventPayload) => {
-        // On mobile stack actions cause willFocus and willBlur too, but they
-        // don't mean navigating into or away from the Fs tab. Could just be
-        // navigating inside the Fs tabn. So only trigger for JUMP_TO.
-        if (e.type === 'willFocus' && e.action.type === SwitchActions.JUMP_TO) {
-          dispatch(FsGen.createUserIn())
-        } else if (e.type === 'willBlur' && e.action.type === SwitchActions.JUMP_TO) {
-          dispatch(FsGen.createUserOut())
-        }
-      })
-    }
-  : () => {
-      // On desktop navigation events don't fire when user switch to or away
-      // away from the Fs tab, but views are only mounted when user is inside
-      // the Fs tab, so just keep track of mounting situations.
-
-      const dispatch = Container.useDispatch()
-      React.useEffect(() => {
-        useUserIsLookingAtFsCounter++ || dispatch(FsGen.createUserIn())
-        return () => {
-          !--useUserIsLookingAtFsCounter && dispatch(FsGen.createUserOut())
-        }
-      }, [dispatch])
-    }
-
 export const useFuseClosedSourceConsent = (
   disabled: boolean,
   backgroundColor?: Styles.Color,
