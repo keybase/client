@@ -17,7 +17,7 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 sudo docker rmi golang:1.13.7-stretch || true
 sudo docker rmi debian:stretch || true
 
-# Build all three variants
+# Build all variants
 sudo docker build \
   --build-arg SOURCE_COMMIT="$source_commit" \
   --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
@@ -41,6 +41,18 @@ sudo docker build \
   --build-arg BASE_IMAGE="keybaseio/client:$tag" \
   -f "$client_dir/packaging/linux/docker/node-slim/Dockerfile" \
   -t "keybaseio/client:$tag-node-slim" \
+  "$client_dir"
+
+sudo docker build \
+  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
+  -f "$client_dir/packaging/linux/docker/python/Dockerfile" \
+  -t "keybaseio/client:$tag-python" \
+  "$client_dir"
+
+sudo docker build \
+  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
+  -f "$client_dir/packaging/linux/docker/python-slim/Dockerfile" \
+  -t "keybaseio/client:$tag-python-slim" \
   "$client_dir"
 
 # Don't store any secrets in the repo dir

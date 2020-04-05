@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=keybaseio/client:latest
 FROM $BASE_IMAGE AS base
 
-FROM node:12.16.1-buster
+FROM python:3.8.2-buster
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
@@ -29,8 +29,7 @@ RUN gpg --import /gosu_key.asc \
 COPY --from=base /usr/bin/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-RUN usermod -l keybase -d /home/keybase -m node \
-    && groupmod -n keybase node
+RUN useradd --create-home --shell /bin/bash keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
