@@ -55,6 +55,7 @@ export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
+export const inboxSearchBotsResults = 'chat2:inboxSearchBotsResults'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
 export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
 export const inboxSearchOpenTeamsResults = 'chat2:inboxSearchOpenTeamsResults'
@@ -326,6 +327,10 @@ type _InboxRefreshPayload = {
     | 'maybeKickedFromTeam'
     | 'widgetRefresh'
     | 'shareConfigSearch'
+}
+type _InboxSearchBotsResultsPayload = {
+  readonly results: Array<RPCTypes.FeaturedBot>
+  readonly suggested: boolean
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
@@ -1050,6 +1055,12 @@ export const createAttachmentPasted = (payload: _AttachmentPastedPayload): Attac
   payload,
   type: attachmentPasted,
 })
+/**
+ * Inbox search bot results received
+ */
+export const createInboxSearchBotsResults = (
+  payload: _InboxSearchBotsResultsPayload
+): InboxSearchBotsResultsPayload => ({payload, type: inboxSearchBotsResults})
 /**
  * Inbox search has started
  */
@@ -2016,6 +2027,10 @@ export type IgnorePinnedMessagePayload = {
   readonly type: typeof ignorePinnedMessage
 }
 export type InboxRefreshPayload = {readonly payload: _InboxRefreshPayload; readonly type: typeof inboxRefresh}
+export type InboxSearchBotsResultsPayload = {
+  readonly payload: _InboxSearchBotsResultsPayload
+  readonly type: typeof inboxSearchBotsResults
+}
 export type InboxSearchMoveSelectedIndexPayload = {
   readonly payload: _InboxSearchMoveSelectedIndexPayload
   readonly type: typeof inboxSearchMoveSelectedIndex
@@ -2527,6 +2542,7 @@ export type Actions =
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | InboxRefreshPayload
+  | InboxSearchBotsResultsPayload
   | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
   | InboxSearchOpenTeamsResultsPayload

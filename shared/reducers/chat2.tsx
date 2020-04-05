@@ -245,6 +245,15 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       inboxSearch.openTeamsStatus = 'success'
     }
   },
+  [Chat2Gen.inboxSearchBotsResults]: (draftState, action) => {
+    const {inboxSearch} = draftState
+    if (inboxSearch?.botsStatus === 'inprogress') {
+      const {results, suggested} = action.payload
+      inboxSearch.botsResultsSuggested = suggested
+      inboxSearch.botsResults = results
+      inboxSearch.botsStatus = 'success'
+    }
+  },
   [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
     const {status} = action.payload
     const inboxSearch = draftState.inboxSearch ?? Constants.makeInboxSearchInfo()
@@ -285,6 +294,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       inboxSearch.textResults = []
       inboxSearch.textStatus = 'inprogress'
       inboxSearch.openTeamsStatus = 'inprogress'
+      inboxSearch.botsStatus = 'inprogress'
     }
   },
   [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {

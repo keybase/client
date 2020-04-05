@@ -1651,6 +1651,14 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
       })
     )
 
+  const onBotsHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam']) =>
+    Saga.put(
+      Chat2Gen.createInboxSearchBotsResults({
+        results: resp.hits.hits || [],
+        suggested: resp.hits.suggestedMatches,
+      })
+    )
+
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
     return Saga.put(
@@ -1675,6 +1683,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
+        'chat.1.chatUi.chatSearchBotHits': onBotsHits,
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,

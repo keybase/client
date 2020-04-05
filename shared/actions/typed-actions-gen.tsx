@@ -199,6 +199,7 @@ export type TypedActionsMap = {
   'chat2:inboxSearchStarted': chat2.InboxSearchStartedPayload
   'chat2:toggleInboxSearch': chat2.ToggleInboxSearchPayload
   'chat2:inboxSearchOpenTeamsResults': chat2.InboxSearchOpenTeamsResultsPayload
+  'chat2:inboxSearchBotsResults': chat2.InboxSearchBotsResultsPayload
   'chat2:inboxSearchNameResults': chat2.InboxSearchNameResultsPayload
   'chat2:inboxSearchTextResult': chat2.InboxSearchTextResultPayload
   'chat2:inboxSearchMoveSelectedIndex': chat2.InboxSearchMoveSelectedIndexPayload
