@@ -54,7 +54,12 @@ const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null) => {
 
 export const TeamMember = (props: Props) => {
   useTeamDetailsSubscribe(props.teamID)
-  Container.useFocusBlur(undefined, props.onBlur)
+  const {onBlur} = props
+  Container.useFocusEffect(
+    React.useCallback(() => {
+      return () => onBlur()
+    }, [onBlur])
+  )
   const {user, you, error} = props
   const iconType = user.type && roleIconMap[user.type]
   useCloseIfNoLongerInTeam(user.type)

@@ -101,7 +101,6 @@ export {default as makeReducer} from './make-reducer'
 export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export {default as useFocusBlur} from './use-focus-blur'
 export {useIsFocused, useNavigation, useRoute, useFocusEffect} from '@react-navigation/native'
 export type RouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList> = _RouteProp<
   ParamList,

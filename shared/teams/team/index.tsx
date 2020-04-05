@@ -84,8 +84,12 @@ const Team = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-  const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
-  Container.useFocusBlur(undefined, onBlur)
+
+  Container.useFocusEffect(
+    React.useCallback(() => {
+      return () => dispatch(TeamsGen.createTeamSeen({teamID}))
+    }, [dispatch, teamID])
+  )
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
