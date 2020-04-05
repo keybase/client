@@ -17,13 +17,12 @@ export default namedConnect(
   state => ({_inboxSearch: state.chat2.inboxSearch ?? emptySearch}),
   dispatch => ({
     onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
-    onInstallBot: (username: string) => {
+    onInstallBot: (username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [{props: {botUsername: username, navToChat: false}, selected: 'chatInstallBotPick'}],
         })
-      )
-    },
+      ),
     onSelectConversation: (
       conversationIDKey: Types.ConversationIDKey,
       selectedIndex: number,

@@ -40,11 +40,25 @@ type SectionExtra<T> = {
 }
 type Section<T> = _Section<T, SectionExtra<T>>
 
-export type Props = Types.InboxSearchInfo & {
+export type Props = {
+  botsResults: Array<RPCTypes.FeaturedBot>
+  botsResultsSuggested: boolean
+  botsStatus: Types.InboxSearchStatus
   header?: React.ReactElement | null
+  indexPercent: number
+  nameResults: Array<NameResult>
+  nameResultsUnread: boolean
+  nameStatus: Types.InboxSearchStatus
   onInstallBot: (username: string) => void
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
+  openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
+  openTeamsResultsSuggested: boolean
+  openTeamsStatus: Types.InboxSearchStatus
+  query: string
+  selectedIndex: number
+  textResults: Array<TextResult>
+  textStatus: Types.InboxSearchStatus
 }
 
 type State = {
