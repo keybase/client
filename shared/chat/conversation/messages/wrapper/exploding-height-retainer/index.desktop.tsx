@@ -10,7 +10,7 @@ const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
-export const animationDuration = 1500
+export const animationDuration = 50000
 
 const retainedHeights = new Set<string>()
 
@@ -80,7 +80,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
           // to make sure we don't rewrap text when showing the animation
           this.props.retainHeight && {
             height: this.state.height,
-            overflow: 'hidden',
+            overflow: 'visible',
             paddingRight: 28,
             position: 'relative',
           },
@@ -129,7 +129,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   )
 }
 
-const maxFlameWidth = 10
+const maxFlameWidth = 32
 const flameOffset = 5
 const FlameFront = (props: {height: number; stop: boolean}) => {
   if (props.stop) {
@@ -147,12 +147,10 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
   )
 }
 
-const colors = ['yellow', 'red', Styles.globalColors.greyDark, Styles.globalColors.black]
 const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
-const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 
-class Flame extends React.Component<{}, {color: string; timer: number; width: number}> {
-  state = {color: randColor(), timer: 0, width: randWidth()}
+class Flame extends React.Component<{}, {timer: number; width: number}> {
+  state = {timer: 0, width: randWidth()}
   intervalID?: ReturnType<typeof setTimeout>
 
   componentDidMount() {
@@ -168,19 +166,15 @@ class Flame extends React.Component<{}, {color: string; timer: number; width: nu
 
   _randomize = () =>
     this.setState(prevState => ({
-      color: randColor(),
       timer: prevState.timer + 100,
       width: randWidth(),
     }))
 
   render() {
     return (
-      <Kb.Box
-        style={Styles.collapseStyles([
-          {backgroundColor: this.state.color, width: this.state.width * (1 + this.state.timer / 1000)},
-          styles.flame,
-        ])}
-      />
+      <Kb.Box style={styles.flame}>
+        <Kb.Animation animationType="exploding" width={64} height={64} />
+      </Kb.Box>
     )
   }
 }
@@ -201,7 +195,7 @@ const styles = Styles.styleSheetCreate(
           backgroundSize: '400px 68px',
           bottom: 0,
           left: 0,
-          overflow: 'hidden',
+          overflow: 'visible',
           position: 'absolute',
           top: 0,
           transition: `width 0s`,
@@ -224,13 +218,11 @@ const styles = Styles.styleSheetCreate(
       }),
       flame: {
         height: 17,
-        marginBottom: 1,
-        marginTop: 1,
-        opacity: 1,
       },
       flameContainer: {
         position: 'absolute',
         right: -1 * (maxFlameWidth + flameOffset),
+        top: -22,
         width: maxFlameWidth + flameOffset,
       },
     } as const)

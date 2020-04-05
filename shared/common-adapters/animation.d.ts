@@ -7,6 +7,7 @@ export type AnimationType =
   | 'darkMessageStatusSending'
   | 'darkMessageStatusSent'
   | 'disconnected'
+  | 'exploding'
   | 'loadingInfinity'
   | 'messageStatusEncrypting'
   | 'messageStatusError'
