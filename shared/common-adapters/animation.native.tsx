@@ -11,7 +11,6 @@ const Animation = (props: Props) => {
         autoPlay={true}
         loop={true}
         source={animationData[props.animationType]}
-        // @ts-ignore TODO fix styles
         style={props.style || {}}
       />
     </Box>

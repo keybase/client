@@ -82,7 +82,6 @@ export const rpcDetailsToMemberInfos = (
   }
   types.forEach(type => {
     const key = typeToKey[type]
-    // @ts-ignore
     const members: Array<RPCTypes.TeamMemberDetails> = (allRoleMembers[key] || []) as any
     members.forEach(({fullName, joinTime, status, username}) => {
       infos.push([

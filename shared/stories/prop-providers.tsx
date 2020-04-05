@@ -123,7 +123,6 @@ const Mention = ({username, key, style}: any) => ({
   key,
   onClick: action('onClick Mention'),
   style,
-  // @ts-ignore
   theme: usernameToTheme[username] || (isSpecialMention(username) ? 'highlight' : 'none'),
   username,
 })
