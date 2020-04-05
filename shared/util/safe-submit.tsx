@@ -20,6 +20,7 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
       }, {})
 
       componentDidUpdate(prevProps: P) {
+        // @ts-ignore strict: Fundamentally unsafe, but we don't actually care about the types
         if (resetSafeProps.some(k => this.props[k] !== prevProps[k])) {
           // reset safe settings
           Object.keys(this._safeToCallWrappedMap).forEach(n => (this._safeToCallWrappedMap[n] = true))
@@ -28,6 +29,7 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
 
       render() {
         const wrapped = submitProps.reduce<{[key: string]: unknown}>((map, name) => {
+          // @ts-ignore strict
           const old: unknown = this.props[name]
           if (old) {
             map[name] = (...args: Array<unknown>) => {
