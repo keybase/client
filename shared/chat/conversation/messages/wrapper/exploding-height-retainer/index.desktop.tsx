@@ -169,7 +169,7 @@ const styles = Styles.styleSheetCreate(
           backgroundSize: '400px 68px',
           bottom: 0,
           left: 0,
-          overflow: 'visible',
+          overflow: 'hidden',
           position: 'absolute',
           top: 0,
           transition: `width 0s`,
