@@ -68,38 +68,12 @@ const useSkinTone = () => {
   return {currentSkinTone, setSkinTone}
 }
 const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
-  const getUserEmoji = Container.useRPC(RPCChatGen.localUserEmojisRpcPromise)
-  const [customEmojiGroups, setCustomEmojiGroups] = React.useState<RPCChatGen.EmojiGroup[]>([])
-  const [waiting, setWaiting] = React.useState(true)
-
+  const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    setWaiting(true)
-    getUserEmoji(
-      [
-        {
-          convID:
-            conversationIDKey !== Constants.noConversationIDKey
-              ? Types.keyToConversationID(conversationIDKey)
-              : null,
-          opts: {
-            getAliases: true,
-            getCreationInfo: false,
-            onlyInTeam: false,
-          },
-        },
-      ],
-      result => {
-        setCustomEmojiGroups(result.emojis.emojis ?? [])
-        setWaiting(false)
-      },
-      _ => {
-        setCustomEmojiGroups([])
-        setWaiting(false)
-      }
-    )
-  }, [conversationIDKey, getUserEmoji])
-
-  return {customEmojiGroups, waiting}
+    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
+  }, [conversationIDKey, dispatch])
+  return {customEmojiGroups, waiting: false}
 }
 
 const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.ConversationIDKey) => {

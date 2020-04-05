@@ -256,6 +256,7 @@ export type State = {
   readonly unreadMap: ConversationCountMap // how many unread messages there are,
   readonly unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
   readonly userReacjis: UserReacjis
+  readonly userEmojis: RPCChatTypes.EmojiGroup[] | undefined
   readonly userEmojisForAutocomplete: Array<RPCChatTypes.Emoji> | undefined
 }
 

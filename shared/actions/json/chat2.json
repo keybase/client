@@ -937,11 +937,12 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "teamIDs": "Array<TeamsTypes.TeamID>"
     },
-    "fetchUserEmojiForAutocomplete": {
-      "_description": "Refresh user emoji and put it in store for autocomplete"
+    "fetchUserEmoji": {
+      "_description": "Refresh user emoji and put it in store for picker",
+      "conversationIDKey?": "Types.ConversationIDKey"
     },
-    "loadedUserEmojiForAutocomplete": {
-      "fetchedEmojis": "RPCChatTypes.UserEmojis"
+    "loadedUserEmoji": {
+      "results": "RPCChatTypes.UserEmojiRes"
     }
   }
 }
