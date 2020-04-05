@@ -16,13 +16,10 @@ const Deferred = () => {
 export default Deferred
 
 export const screenOptions = {
-  header: undefined,
   headerRight: () => <HeaderNewChatButton />,
   headerTitle: () => (
     <Kb.Text type="BodyBig" lineClamp={1}>
-      {' '}
-      Chats{' '}
+      Chats
     </Kb.Text>
   ),
-  headerTitleContainerStyle: undefined,
 }

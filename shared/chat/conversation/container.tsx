@@ -66,7 +66,6 @@ const Conversation = (p: SwitchProps) => {
 }
 
 Conversation.navigationOptions = {
-  header: undefined,
   headerLeft: null,
   headerTitle: () => <HeaderArea />,
 }

@@ -342,7 +342,6 @@ type Tab = 'followers' | 'following' | 'webOfTrust'
 
 class User extends React.Component<Props, State> {
   static navigationOptions = () => ({
-    header: undefined,
     headerBackIconColor: Styles.globalColors.white,
     headerHideBorder: false,
     headerStyle: {
@@ -354,8 +353,8 @@ class User extends React.Component<Props, State> {
     headerTintColor: Styles.globalColors.white,
     headerTitle: Header,
     headerTitleContainerStyle: {
-      flexGrow: 1,
       paddingLeft: Styles.globalMargins.mediumLarge,
+      width: '100%',
     },
     headerTransparent: true,
     underNotch: true,

@@ -70,10 +70,9 @@ const Reloadable = (props: ReloadableProps) => {
 }
 
 Reloadable.navigationOptions = {
-  header: undefined,
   // This will be a filter box eventually
   headerRightActions: flags.teamsRedesign ? undefined : () => <ConnectedHeaderRightActions />,
-  title: 'Teams',
+  headerTitle: 'Teams',
 }
 
 const Connected = Container.connect(

@@ -101,6 +101,8 @@ const convertNavigationOptionsToStackOptions = (C: any): any => {
   return navigationOptions
 }
 
+console.log('aaaa routes', routes)
+
 const getScreens = memoize(() => [
   // TODO deprecate this at some point
   ...Object.keys(routes).map(name => {
@@ -172,9 +174,6 @@ const defaultScreenOptions: StackNavigationOptions = {
       {children}
     </Kb.Text>
   ),
-  headerTitleContainerStyle: {
-    width: '100%',
-  },
 }
 
 const NavTabs = () => {

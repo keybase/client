@@ -180,11 +180,12 @@ const Team = (props: Props) => {
     </Kb.Box>
   )
 
-  if (flags.teamsRedesign) {
-    return body
-  } else {
-    return <Kb.HeaderHocWrapper onBack={onBack}>{body}</Kb.HeaderHocWrapper>
-  }
+  return body
+  // if (flags.teamsRedesign) {
+  // return body
+  // } else {
+  // return <Kb.HeaderHocWrapper onBack={onBack}>{body}</Kb.HeaderHocWrapper>
+  // }
 }
 
 const newNavigationOptions = () => ({
@@ -194,14 +195,14 @@ const newNavigationOptions = () => ({
 Team.navigationOptions = flags.teamsRedesign
   ? newNavigationOptions
   : (props: Props) => ({
-      header: null,
+      header: undefined,
       headerExpandable: true,
       headerHideBorder: true,
       headerRightActions: Container.isMobile
         ? undefined
         : () => <HeaderRightActions teamID={Container.getRouteProps(props, 'teamID', '')} />,
       headerTitle: Container.isMobile
-        ? undefined
+        ? ''
         : () => <HeaderTitle teamID={Container.getRouteProps(props, 'teamID', '')} />,
       subHeader: Container.isMobile
         ? undefined
