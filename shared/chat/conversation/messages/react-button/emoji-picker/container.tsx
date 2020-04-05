@@ -69,11 +69,12 @@ const useSkinTone = () => {
 }
 const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
   const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
+  const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
   }, [conversationIDKey, dispatch])
-  return {customEmojiGroups, waiting: false}
+  return {customEmojiGroups, waiting}
 }
 
 const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.ConversationIDKey) => {
