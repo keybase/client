@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {useNavigationEvents} from './navigation-hooks'
 import {NavigationEventCallback} from '@react-navigation/core'
 
 /**

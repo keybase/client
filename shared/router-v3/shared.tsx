@@ -64,21 +64,23 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
 
       const path = Constants._getVisiblePathForNavigator(navigation.state)
       const visible = path[path.length - 1]
-      if (visible) {
-        if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
-          console.log('Skipping append dupe')
-          return
-        }
-      }
+      // Just handle this in this reduce, should work
+      // if (visible) {
+      // if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
+      // console.log('Skipping append dupe')
+      // return
+      // }
+      // }
 
-      if (action.payload.fromKey) {
-        const {fromKey} = action.payload
-        const activeKey = getActiveKey(navigation.getRootState())
-        if (fromKey !== activeKey) {
-          logger.warn('Skipping append on wrong screen')
-          return
-        }
-      }
+      // TODO make a navSafe hook, like safe submit
+      // if (action.payload.fromKey) {
+      // const {fromKey} = action.payload
+      // const activeKey = getActiveKey(navigation.getRootState())
+      // if (fromKey !== activeKey) {
+      // logger.warn('Skipping append on wrong screen')
+      // return
+      // }
+      // }
 
       if (action.payload.replace) {
         return [StackActions.replace(routeName, params)]
