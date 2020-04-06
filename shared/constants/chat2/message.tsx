@@ -1415,9 +1415,9 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
         }
         break
       default:
-        // @ts-ignore key is just a string here so TS doesn't like it
+        // @ts-ignore strict: key is just a string here so TS doesn't like it
         if (old[key] === m[key]) {
-          // @ts-ignore
+          // @ts-ignore strict
           toRet[key] = old[key]
         }
     }

@@ -6,12 +6,10 @@ import TurnOnNotifications from './turn-on-notifications.native'
 import {Props} from '.'
 
 const MobileNotifications = (props: Props) => (
-  <Kb.HeaderHocWrapper title="Notifications" onBack={props.onBack} skipHeader={!Styles.isPhone}>
-    <Kb.ScrollView style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
-      {!props.mobileHasPermissions && <TurnOnNotifications />}
-      <Notifications {...props} />
-    </Kb.ScrollView>
-  </Kb.HeaderHocWrapper>
+  <Kb.ScrollView style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
+    {!props.mobileHasPermissions && <TurnOnNotifications />}
+    <Notifications {...props} />
+  </Kb.ScrollView>
 )
 
 export default MobileNotifications

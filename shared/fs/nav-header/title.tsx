@@ -35,7 +35,7 @@ const _Breadcrumb = (props: Props & Kb.OverlayParentProps) => {
           path,
           nav.safeNavigateAppendPayload
         ).forEach(action => dispatch(action))
-      : dispatch(nav.safeNavigateAppendPayload({path: [{props: {path}, selected: 'main'}]}))
+      : dispatch(nav.safeNavigateAppendPayload({path: [{props: {path}, selected: 'fsRoot'}]}))
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>

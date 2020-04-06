@@ -856,7 +856,7 @@ const onChatShowManageChannels = (
 ) => {
   const {teamname} = action.payload.params
   const teamID = state.teams.teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
-  return RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
+  return TeamsGen.createManageChatChannels({teamID})
 }
 
 const onNewChatActivity = (
@@ -2473,9 +2473,14 @@ const refreshMutualTeamsInConv = async (
   return Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []})
 }
 
-const fetchUserEmojiForAutocomplete = async () => {
+const fetchUserEmoji = async (action: Chat2Gen.FetchUserEmojiPayload) => {
+  const {conversationIDKey} = action.payload
   const results = await RPCChatTypes.localUserEmojisRpcPromise(
     {
+      convID:
+        conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
+          ? Types.keyToConversationID(conversationIDKey)
+          : null,
       opts: {
         getAliases: true,
         getCreationInfo: false,
@@ -2484,7 +2489,7 @@ const fetchUserEmojiForAutocomplete = async () => {
     },
     Constants.waitingKeyLoadingEmoji
   )
-  return Chat2Gen.createLoadedUserEmojiForAutocomplete({fetchedEmojis: results.emojis})
+  return Chat2Gen.createLoadedUserEmoji({results})
 }
 
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
@@ -3904,7 +3909,7 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
 
-  yield* Saga.chainAction2(Chat2Gen.fetchUserEmojiForAutocomplete, fetchUserEmojiForAutocomplete)
+  yield* Saga.chainAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
   yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)

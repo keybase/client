@@ -104,7 +104,7 @@ const InstallBotPopup = (props: Props) => {
     teamname = meta.teamname
   }
 
-  const channelMetas = useAllChannelMetas(teamID)
+  const {channelMetas} = useAllChannelMetas(teamID)
   const error = Container.useAnyErrors(Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove)
   // dispatch
   const dispatch = Container.useDispatch()

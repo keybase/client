@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {isIPhoneX} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
-// @ts-ignore
+// @ts-ignore strict
 import lagRadar from 'lag-radar'
 
 type Props = {

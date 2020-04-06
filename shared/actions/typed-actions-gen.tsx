@@ -250,8 +250,8 @@ export type TypedActionsMap = {
   'chat2:addToMessageMap': chat2.AddToMessageMapPayload
   'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
   'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
-  'chat2:fetchUserEmojiForAutocomplete': chat2.FetchUserEmojiForAutocompletePayload
-  'chat2:loadedUserEmojiForAutocomplete': chat2.LoadedUserEmojiForAutocompletePayload
+  'chat2:fetchUserEmoji': chat2.FetchUserEmojiPayload
+  'chat2:loadedUserEmoji': chat2.LoadedUserEmojiPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -1003,6 +1003,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
+  'teams:manageChatChannels': teams.ManageChatChannelsPayload
   'teams:teamSeen': teams.TeamSeenPayload
   'teams:setActivityLevels': teams.SetActivityLevelsPayload
   'tracker2:load': tracker2.LoadPayload

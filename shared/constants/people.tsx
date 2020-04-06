@@ -118,8 +118,6 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }
     default: {
-      // @ts-ignore this variant compilation seems wrong. ts todo.t can only be
-      // of 3 types but that's not what we do in avdl.
       const type = todoTypeEnumToType[todo.t]
       return todoTypeToInstructions[type]
     }

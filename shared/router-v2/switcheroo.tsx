@@ -30,7 +30,11 @@ const RouterSwitcheroo = React.memo(() => {
   )
 
   return (
-    <Router ref={updateNavigator} onNavigationStateChange={onNavigationStateChange} isDarkMode={isDarkMode} />
+    <Router
+      updateNavigator={updateNavigator}
+      onNavigationStateChange={onNavigationStateChange}
+      isDarkMode={isDarkMode}
+    />
   )
 })
 

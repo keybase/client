@@ -264,7 +264,6 @@ class OrientedImage extends React.Component<Props, State> {
     return (
       <>
         {this.state.srcTransformed && (
-          // @ts-ignore codemod issue
           <ImageRef
             ref={this.props.forwardedRef}
             // @ts-ignore TODO type

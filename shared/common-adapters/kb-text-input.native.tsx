@@ -76,7 +76,6 @@ if (isAndroid) {
       )
 
       return (
-        // @ts-ignore
         <TouchableWithoutFeedback
           onLayout={p.onLayout}
           accessible={p.accessible}
@@ -87,7 +86,6 @@ if (isAndroid) {
           accessibilityStates={p.accessibilityStates}
           // @ts-ignore no RN types
           nativeID={this.props.nativeID}
-          // @ts-ignore no RN types
           testID={this.props.testID}
         >
           {textContainer}

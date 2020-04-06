@@ -128,7 +128,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
       this._attachmentRef.current = r
       if (typeof this.props.forwardedRef === 'function') {
-        // @ts-ignore this function probably needs some cleanup
         this.props.forwardedRef(r)
       } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
         // @ts-ignore we probably shouldn't be doing this
@@ -205,7 +204,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(
           this.props.suggestorToMarker
         )) {
-          // @ts-ignore
           const matchInfo = matchesMarker(word, marker)
           if (matchInfo.matches && this._inputRef.current && this._inputRef.current.isFocused()) {
             this.setState({active: suggestor, filter: word.substring(matchInfo.marker.length)})

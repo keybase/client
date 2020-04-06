@@ -9,7 +9,7 @@ const ParticipantMeta = (props: MetaProps) => (
     color={Styles.globalColors.black_50}
     icon="iconfont-people"
     iconColor={Styles.globalColors.black_20}
-    title={props.numParticipants}
+    title={props.numParticipants.toLocaleString()}
     backgroundColor={Styles.globalColors.black_10}
     style={styles.meta}
   />

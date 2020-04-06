@@ -1,7 +1,7 @@
 import path from 'path'
 import os from 'os'
 import * as Electron from 'electron'
-// @ts-ignore
+// @ts-ignore strict
 import fse from 'fs-extra'
 
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
@@ -11,7 +11,7 @@ const isDarwin = platform === 'darwin'
 const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
 
-// @ts-ignore
+// @ts-ignore strict
 const pid = isRenderer ? Electron.remote.process.pid : process.pid
 
 const kbProcess = {

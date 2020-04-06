@@ -26,6 +26,5 @@ export {
   useFsTlf,
   useFsTlfs,
   useFsWatchDownloadForMobile,
-  useUserIsLookingAtFs,
   useFuseClosedSourceConsent,
 } from './hooks'

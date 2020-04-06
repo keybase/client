@@ -1509,6 +1509,16 @@ const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
 
+const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
+  RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {teamID: action.payload.teamID},
+        selected: flags.teamsRedesign ? 'teamAddToChannels' : 'chatManageChannels',
+      },
+    ],
+  })
+
 const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogger) => {
   const {teamID} = action.payload
   try {
@@ -1516,6 +1526,14 @@ const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogge
   } catch (e) {
     logger.error(e.message)
   }
+}
+
+const maybeClearBadges = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  if (prev[2]?.routeName === Tabs.teamsTab && next[2]?.routeName !== Tabs.teamsTab) {
+    return TeamsGen.createClearNavBadges()
+  }
+  return false
 }
 
 const teamsSaga = function*() {
@@ -1575,6 +1593,7 @@ const teamsSaga = function*() {
     addTeamWithChosenChannels
   )
   yield* Saga.chainAction(TeamsGen.renameTeam, renameTeam)
+  yield* Saga.chainAction(TeamsGen.manageChatChannels, manageChatChannels)
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, badgeAppForTeams)
   yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTeamTeamChangedByID, teamChangedByID)
@@ -1624,6 +1643,7 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction(TeamsGen.teamSeen, teamSeen)
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeClearBadges)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

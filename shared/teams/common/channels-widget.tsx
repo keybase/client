@@ -44,8 +44,9 @@ type ChannelInputProps = {
 
 const ChannelInputDesktop = ({disableGeneral, onAdd, selected, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
-  const channels = useAllChannelMetas(teamID)
-  const channelItems = [...channels.values()]
+
+  const {channelMetas} = useAllChannelMetas(teamID)
+  const channelItems = [...channelMetas.values()]
     .filter(
       c =>
         !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&

@@ -87,7 +87,6 @@ function* chainAction2Impl<Actions extends {readonly type: string}>(
   pattern: Types.Pattern<any>,
   f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn
 ) {
-  // @ts-ignore
   return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainAction2Helper(
     action: TypedActions
   ) {
@@ -134,7 +133,6 @@ function* chainActionImpl<Actions extends {readonly type: string}>(
   pattern: Types.Pattern<any>,
   f: (action: Actions, logger: SagaLogger) => ChainActionReturn
 ) {
-  // @ts-ignore
   return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainActionHelper(
     action: TypedActions
   ) {
