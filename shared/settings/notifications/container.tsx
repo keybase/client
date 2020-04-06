@@ -29,6 +29,11 @@ const ReloadableNotifications = (props: Props & ExtraProps) => {
   )
 }
 
+ReloadableNotifications.navigationOptions = {
+  header: undefined,
+  title: 'Notifications',
+}
+
 export default Container.connect(
   state => ({
     _groups: state.settings.notifications.groups,
