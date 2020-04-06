@@ -499,7 +499,9 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, opts); err != nil {
 		return res, err
 	}
-	s.putAliasLookup(ctx, uid, aliasLookup)
+	if err := s.putAliasLookup(ctx, uid, aliasLookup); err != nil {
+		s.Debug(ctx, "Get: failed to put alias lookup: %s", err)
+	}
 	return res, nil
 }
 
