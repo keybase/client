@@ -17,7 +17,6 @@ export default function Bootstrapable<P extends Object>(
 ): React.ComponentClass<BootstrapableProp<P>, void> {
   return class extends React.Component<BootstrapableProp<P>, void> {
     componentDidMount() {
-      // @ts-ignore codemod-issue
       !this.props.bootstrapDone && this.props.onBootstrap()
     }
 

@@ -38,7 +38,6 @@ const load = () => {
       curr.countryCallingCodes.length &&
       supported.includes(curr.alpha2)
     ) {
-      // @ts-ignore
       const emojiText: string = emojiIndexByChar[curr.emoji || -1] || ''
       // see here for why we check status is 'assigned'
       // https://github.com/OpenBookPrices/country-data/tree/011dbb6658b0df5a36690af7086baa3e5c20c30c#status-notes

@@ -31,7 +31,6 @@ const StyledRadio: any = Styles.styled.div(
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
   <div
-    // @ts-ignore clash between StylesCrossPlatform and React.CSSProperties
     style={{...styles.container, ...(disabled ? {} : Styles.desktopStyles.clickable), ...style}}
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >

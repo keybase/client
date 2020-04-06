@@ -60,7 +60,6 @@ const createPropProvider = (...maps: SelectorMap[]) => {
    * children to GatewayProvider which only takes one child
    */
   return (story: () => React.ReactNode) => (
-    // @ts-ignore complains about merged
     <Provider
       key={`provider:${uniqueProviderKey++}`}
       store={
@@ -88,7 +87,6 @@ const actionLog = () => (next: any) => (a: any) => {
 
 // Includes common old-style propProvider temporarily
 export const MockStore = ({store, children}: any): any => (
-  // @ts-ignore
   <Provider
     key={`storyprovider:${uniqueProviderKey++}`}
     store={createStore(state => state, {...store, ...PP.Common()}, applyMiddleware(actionLog))}
@@ -238,7 +236,6 @@ class PerfBox extends React.Component<
   }
 
   _getTime = () => {
-    // @ts-ignore
     const perf: any = window ? window.performance : undefined
     if (typeof perf !== 'undefined') {
       return perf.now()

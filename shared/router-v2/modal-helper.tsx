@@ -18,7 +18,6 @@ function Modal<P extends {}>(
     () => ({}),
     dispatchProps,
     (_, dp, op: P) => ({...dp, ...op})
-    // @ts-ignore TODO figure out this types
   )(withPopup)
 }
 

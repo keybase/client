@@ -236,7 +236,6 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-// @ts-ignore
 const AshBox = Styles.styled.div(
   {
     '&.full-width': {

@@ -58,7 +58,6 @@ const load = () => {
       </Kb.Reloadable>
     ))
     .add('Reload with back', () => (
-      // @ts-ignore need that helper thats not merged yet
       <Kb.Reloadable
         {...props}
         onBack={Sb.action('onBack')}

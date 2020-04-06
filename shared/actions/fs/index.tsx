@@ -39,7 +39,6 @@ const rpcConflictStateToConflictState = (
       const nv = rpcConflictState.normalview
       return Constants.makeConflictStateNormalView({
         localViewTlfPaths: ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
-          // @ts-ignore TODO fix p.kbfs.path is a path already
           p.PathType === RPCTypes.PathType.kbfs && arr.push(Constants.rpcPathToPath(p.kbfs))
           return arr
         }, []),

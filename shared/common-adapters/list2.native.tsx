@@ -61,7 +61,6 @@ class List2<T> extends PureComponent<Props<T>> {
           onEndReached={this.props.onEndReached}
           windowSize={this.props.windowSize || 10}
           debug={false /* set to true to debug the list */}
-          // @ts-ignore TODO fix styles
           contentContainerStyle={this.props.style}
         />
       </View>

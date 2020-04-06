@@ -47,7 +47,6 @@ const finishedRegularDownload = async (state: TypedState, action: FsGen.Finished
     return null
   }
   try {
-    // @ts-ignore codemod-issue
     await require('rn-fetch-blob').default.android.addCompleteDownload({
       description: `Keybase downloaded ${downloadInfo.filename}`,
       mime: mimeType,
