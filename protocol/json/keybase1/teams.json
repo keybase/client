@@ -4189,6 +4189,34 @@
       ],
       "response": "Invitelink"
     },
+    "teamCreateSeitanInvitelinkWithDuration": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamname",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "maxUses",
+          "type": "TeamInviteMaxUses"
+        },
+        {
+          "name": "expireAfter",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": "Invitelink"
+    },
     "teamAddEmailsBulk": {
       "request": [
         {
