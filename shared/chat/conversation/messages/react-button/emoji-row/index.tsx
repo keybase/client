@@ -36,7 +36,11 @@ class HoverEmoji extends React.Component<
         style={styles.emojiBox}
       >
         {this.props.emoji.customAddr ? (
-          <Kb.CustomEmoji alias={this.props.emoji.name} src={this.props.emoji.customAddr} size="Small" />
+          <Kb.CustomEmoji
+            alias={this.props.emoji.name}
+            src={this.props.emoji.customAddr}
+            size={this.state.hovering ? 'Medium' : 'Small'}
+          />
         ) : (
           <Kb.Emoji
             disableSelecting={true}
