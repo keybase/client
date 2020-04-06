@@ -117,6 +117,7 @@ const (
 	PerfEventType_TEAMCHAIN    PerfEventType = 4
 	PerfEventType_CLEARCONV    PerfEventType = 5
 	PerfEventType_CLEARINBOX   PerfEventType = 6
+	PerfEventType_TEAMTREELOAD PerfEventType = 7
 )
 
 func (o PerfEventType) DeepCopy() PerfEventType { return o }
@@ -129,6 +130,7 @@ var PerfEventTypeMap = map[string]PerfEventType{
 	"TEAMCHAIN":    4,
 	"CLEARCONV":    5,
 	"CLEARINBOX":   6,
+	"TEAMTREELOAD": 7,
 }
 
 var PerfEventTypeRevMap = map[PerfEventType]string{
@@ -139,6 +141,7 @@ var PerfEventTypeRevMap = map[PerfEventType]string{
 	4: "TEAMCHAIN",
 	5: "CLEARCONV",
 	6: "CLEARINBOX",
+	7: "TEAMTREELOAD",
 }
 
 func (e PerfEventType) String() string {

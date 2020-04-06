@@ -1378,13 +1378,13 @@ protocol teams {
   // Get a list of all recursive subteams of this team's root team that are visible to the user.
   // Sorted alphabetically like a tree.
   // Example: "a" or "a.b" -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
-  TeamTreeResult teamTree(int sessionID, TeamName name);
+  TeamTreeResult teamTreeUnverified(int sessionID, TeamName name);
 
   // Get a list of all recursive subteams of this team's root team that are visible to the user.
   // Sorted alphabetically like a tree.
   // Example: "a" or "a.b" -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   // This list is generated without loading each team, and is therefore server-trust.
-  SubteamListResult teamGetSubteams(int sessionID, TeamName name);
+  SubteamListResult teamGetSubteamsUnverified(int sessionID, TeamName name);
 
   void teamDelete(int sessionID, TeamID teamID);
 
@@ -1628,4 +1628,58 @@ protocol teams {
     TeamRole role;
   }
   array<AnnotatedSubteamMemberDetails> getUserSubteamMemberships(TeamID teamID, string username);
+
+  // For member page
+  record TeamTreeMembershipValue {
+    TeamRole role;
+    // last time the user joined the team
+    union { null, Time } joinTime;
+  }
+  enum TeamTreeMembershipStatus {
+    OK_0,
+    ERROR_1
+  }
+  variant TeamTreeMembershipResult switch (TeamTreeMembershipStatus s) {
+    case OK: TeamTreeMembershipValue;
+    case ERROR: GenericError;
+  }
+  record TeamTreeMembership {
+    TeamName teamName;
+    TeamTreeMembershipResult result;
+  }
+  // loadTeamTreeMemberships takes a teamID and a username and asynchronously spawns notifications
+  // indicating the role of the user in each of the teams of the partial tree wrt the teamID.  The
+  // partial tree of a teamID contains that team, all of its direct ancestors, and all the subteams
+  // (recursively). For example, in the team tree
+  //     .___A_____.
+  //     |         |
+  //     B     .___C__.
+  //           |      |
+  //           D   .__E__.
+  //           |   |  |  |
+  //           F   G  H  I
+  //               |
+  //               J
+  // if teamID were C, then the partial tree contains A, C, D, E, F, G, H, I, J.
+  //
+  // The logged in user must be an admin of teamID in order to call this function. This is so it can
+  // get memberships for all subteams. If this were not the case, then the client would be OK with
+  // the server stubbing out subteams that the user is not allowed to view. Since the stubbing is
+  // not verified, the server has the ability to elide subteam memberships even if the user actually
+  // does have the rights to view that team's memberships. We avoid this problem by requiring
+  // adminship, and thus no stubbing.
+  //
+  // After sending n TeamTreeMembershipsPartial notifications, it will send TeamTreeMembershipsDone
+  // indicating the number of TeamTreeMembershipsPartial notifications (which is unknown prior to
+  // beginning the process). There are no specific guarantees about notification ordering from the
+  // RPC layer, so the user should wait for the TeamTreeMembershipsDone notification (which will
+  // always get sent), and then wait for the specified number of TeamTreeMembershipsPartial
+  // notifications (if they have not already arrived). These invariants will hold true even if there
+  // is an error that causes some subtree to not be loaded. In the example above, if the tree load
+  // were started at E and (for whatever reason) the load failed at C and G, then this function
+  // would not attempt to load A or J, but would continue to load the rest of the tree. In this
+  // case, there would only be 5 Partial notifications (C, E, G, H, I) instead of all 7.
+  void loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
+  // called when navigating out of page
+  void cancelLoadTeamTree(int sessionID);
 }

@@ -401,7 +401,7 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 	if hasID {
 		id, err := keybase1.TeamIDFromString(lArg.ID.String())
 		if err != nil {
-			return fmt.Errorf("team load arg has invalid ID: %v", lArg.ID)
+			return fmt.Errorf("team load arg has invalid ID: %q", lArg.ID)
 		}
 		if id.IsPublic() != lArg.Public {
 			return libkb.NewTeamVisibilityError(lArg.Public, id.IsPublic())
@@ -1814,7 +1814,7 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 // Always sends a flurry of RPCs to get the most up to date info.
 func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error) {
 	impAdminsMap := make(map[string]keybase1.UserVersion) // map to remove dups
-	err = l.MapTeamAncestors(ctx, func(t keybase1.TeamSigChainState) error {
+	err = l.MapTeamAncestors(ctx, func(t keybase1.TeamSigChainState, _ keybase1.TeamName) error {
 		ancestorChain := TeamSigChainState{inner: t}
 		// Gather the admins.
 		adminRoles := []keybase1.TeamRole{keybase1.TeamRole_OWNER, keybase1.TeamRole_ADMIN}
@@ -1839,10 +1839,18 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 }
 
 // MapTeamAncestors does NOT map over the team itself.
-func (l *TeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) (err error) {
+func (l *TeamLoader) MapTeamAncestors(
+	ctx context.Context,
+	f func(keybase1.TeamSigChainState, keybase1.TeamName) error,
+	teamID keybase1.TeamID,
+	reason string,
+	forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool,
+) (err error) {
+	initialTeamIdx := 0
+
 	me, err := l.world.getMe(ctx)
 	if err != nil {
-		return err
+		return NewMapAncestorsError(err, initialTeamIdx)
 	}
 
 	// Load the argument team
@@ -1852,22 +1860,39 @@ func (l *TeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.Tea
 		StaleOK: true, // We only use immutable fields.
 	})
 	if err != nil {
-		return err
+		return NewMapAncestorsError(err, initialTeamIdx)
 	}
 	teamChain := TeamSigChainState{inner: team.Chain}
 	if !teamChain.IsSubteam() {
-		return fmt.Errorf("cannot map over parents of a root team: %v", teamID)
+		return NewMapAncestorsError(
+			fmt.Errorf("cannot map over parents of a root team: %v", teamID),
+			initialTeamIdx,
+		)
 	}
 	return l.mapTeamAncestorsHelper(ctx, f, teamID, teamChain.GetParentID(), reason, forceFullReloadOnceToAssert)
 }
 
-func (l *TeamLoader) mapTeamAncestorsHelper(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, ancestorID *keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) (err error) {
+func (l *TeamLoader) mapTeamAncestorsHelper(
+	ctx context.Context,
+	f func(keybase1.TeamSigChainState, keybase1.TeamName) error,
+	teamID keybase1.TeamID,
+	ancestorID *keybase1.TeamID,
+	reason string,
+	forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool,
+) (err error) {
+	i := 0
+
+	defer func() {
+		if err != nil {
+			err = NewMapAncestorsError(err, i)
+		}
+	}()
+
 	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return err
 	}
 
-	i := 0
 	for {
 		i++
 		if i >= 100 {
@@ -1892,7 +1917,8 @@ func (l *TeamLoader) mapTeamAncestorsHelper(ctx context.Context, f func(t keybas
 				return err
 			}
 
-			if forceFullReloadOnceToAssert(ancestor.team.Chain) {
+			if forceFullReloadOnceToAssert == nil ||
+				forceFullReloadOnceToAssert(ancestor.team.Chain) {
 				break
 			}
 			if load2Arg.forceFullReload {
@@ -1905,7 +1931,7 @@ func (l *TeamLoader) mapTeamAncestorsHelper(ctx context.Context, f func(t keybas
 		// Do not let it out of sight.
 		ancestorChain := TeamSigChainState{inner: ancestor.team.Chain}
 
-		err = f(ancestor.team.Chain)
+		err = f(ancestor.team.Chain, ancestor.team.Name)
 		if err != nil {
 			return err
 		}

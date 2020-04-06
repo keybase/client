@@ -31,7 +31,7 @@ func (n nullTeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.Team
 	return nil, fmt.Errorf("null team loader")
 }
 
-func (n nullTeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error {
+func (n nullTeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState, n keybase1.TeamName) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error {
 	return fmt.Errorf("null team loader")
 }
 

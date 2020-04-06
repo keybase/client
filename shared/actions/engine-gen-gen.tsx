@@ -179,6 +179,10 @@ export const keybase1NotifyTeamTeamDeleted = 'engine-gen:keybase1NotifyTeamTeamD
 export const keybase1NotifyTeamTeamExit = 'engine-gen:keybase1NotifyTeamTeamExit'
 export const keybase1NotifyTeamTeamMetadataUpdate = 'engine-gen:keybase1NotifyTeamTeamMetadataUpdate'
 export const keybase1NotifyTeamTeamRoleMapChanged = 'engine-gen:keybase1NotifyTeamTeamRoleMapChanged'
+export const keybase1NotifyTeamTeamTreeMembershipsDone =
+  'engine-gen:keybase1NotifyTeamTeamTreeMembershipsDone'
+export const keybase1NotifyTeamTeamTreeMembershipsPartial =
+  'engine-gen:keybase1NotifyTeamTeamTreeMembershipsPartial'
 export const keybase1NotifyTeambotNewTeambotKey = 'engine-gen:keybase1NotifyTeambotNewTeambotKey'
 export const keybase1NotifyTeambotTeambotKeyNeeded = 'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded'
 export const keybase1NotifyTrackingNotifyUserBlocked = 'engine-gen:keybase1NotifyTrackingNotifyUserBlocked'
@@ -1510,6 +1514,28 @@ type _Keybase1NotifyTeamTeamRoleMapChangedPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void
   }
 }
+type _Keybase1NotifyTeamTeamTreeMembershipsDonePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifyTeamTeamTreeMembershipsPartialPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {
     sessionID: number
@@ -2541,6 +2567,18 @@ export const createKeybase1NotifyTeamTeamMetadataUpdate = (
 export const createKeybase1NotifyTeamTeamRoleMapChanged = (
   payload: _Keybase1NotifyTeamTeamRoleMapChangedPayload
 ): Keybase1NotifyTeamTeamRoleMapChangedPayload => ({payload, type: keybase1NotifyTeamTeamRoleMapChanged})
+export const createKeybase1NotifyTeamTeamTreeMembershipsDone = (
+  payload: _Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+): Keybase1NotifyTeamTeamTreeMembershipsDonePayload => ({
+  payload,
+  type: keybase1NotifyTeamTeamTreeMembershipsDone,
+})
+export const createKeybase1NotifyTeamTeamTreeMembershipsPartial = (
+  payload: _Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+): Keybase1NotifyTeamTeamTreeMembershipsPartialPayload => ({
+  payload,
+  type: keybase1NotifyTeamTeamTreeMembershipsPartial,
+})
 export const createKeybase1NotifyTeambotNewTeambotKey = (
   payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
 ): Keybase1NotifyTeambotNewTeambotKeyPayload => ({payload, type: keybase1NotifyTeambotNewTeambotKey})
@@ -3358,6 +3396,14 @@ export type Keybase1NotifyTeamTeamRoleMapChangedPayload = {
   readonly payload: _Keybase1NotifyTeamTeamRoleMapChangedPayload
   readonly type: typeof keybase1NotifyTeamTeamRoleMapChanged
 }
+export type Keybase1NotifyTeamTeamTreeMembershipsDonePayload = {
+  readonly payload: _Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+  readonly type: typeof keybase1NotifyTeamTeamTreeMembershipsDone
+}
+export type Keybase1NotifyTeamTeamTreeMembershipsPartialPayload = {
+  readonly payload: _Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+  readonly type: typeof keybase1NotifyTeamTeamTreeMembershipsPartial
+}
 export type Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
   readonly type: typeof keybase1NotifyTeambotNewTeambotKey
@@ -3745,6 +3791,8 @@ export type Actions =
   | Keybase1NotifyTeamTeamExitPayload
   | Keybase1NotifyTeamTeamMetadataUpdatePayload
   | Keybase1NotifyTeamTeamRoleMapChangedPayload
+  | Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+  | Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
   | Keybase1NotifyTeambotNewTeambotKeyPayload
   | Keybase1NotifyTeambotTeambotKeyNeededPayload
   | Keybase1NotifyTrackingNotifyUserBlockedPayload

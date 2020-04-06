@@ -1412,7 +1412,7 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown team")
 	}
-	require.EqualError(t, err, "team load arg has invalid ID: notateam")
+	require.EqualError(t, err, "team load arg has invalid ID: \"notateam\"")
 }
 
 // Test two users racing to post chain links to the same team.

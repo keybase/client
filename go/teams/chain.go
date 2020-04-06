@@ -566,46 +566,7 @@ func (t *TeamSigChainState) informSubteamDelete(id keybase1.TeamID, seqno keybas
 // Since this should only be called when you are an admin,
 // none of that should really come up, but it's here just to be less fragile.
 func (t *TeamSigChainState) ListSubteams() (res []keybase1.TeamIDAndName) {
-	type Entry struct {
-		ID   keybase1.TeamID
-		Name keybase1.TeamName
-		// Seqno of the last cached rename of this team
-		Seqno keybase1.Seqno
-	}
-	// Use a map to deduplicate names. If there is a subteam name
-	// collision, take the one with the latest (parent) seqno
-	// modifying its name.
-	// A collision could occur if you were removed from a team
-	// and miss its renaming or deletion to stubbing.
-	resMap := make(map[string] /*TeamName*/ Entry)
-	for subteamID, points := range t.inner.SubteamLog {
-		if len(points) == 0 {
-			// this should never happen
-			continue
-		}
-		lastPoint := points[len(points)-1]
-		if lastPoint.Name.IsNil() {
-			// the subteam has been deleted
-			continue
-		}
-		entry := Entry{
-			ID:    subteamID,
-			Name:  lastPoint.Name,
-			Seqno: lastPoint.Seqno,
-		}
-		existing, ok := resMap[entry.Name.String()]
-		replace := !ok || (entry.Seqno >= existing.Seqno)
-		if replace {
-			resMap[entry.Name.String()] = entry
-		}
-	}
-	for _, entry := range resMap {
-		res = append(res, keybase1.TeamIDAndName{
-			Id:   entry.ID,
-			Name: entry.Name,
-		})
-	}
-	return res
+	return t.inner.ListSubteams()
 }
 
 // Check that a subteam rename occurred just so.

@@ -2276,6 +2276,10 @@ func TeamNameFromString(s string) (TeamName, error) {
 	return TeamName{Parts: tmp}, nil
 }
 
+func (p TeamNamePart) String() string {
+	return string(p)
+}
+
 func (t TeamName) AssertEqString(s string) error {
 	tmp, err := TeamNameFromString(s)
 	if err != nil {
@@ -3625,6 +3629,49 @@ func (s TeamSigChainState) HasAnyStubbedLinks() bool {
 		}
 	}
 	return false
+}
+
+func (s TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
+	type Entry struct {
+		ID   TeamID
+		Name TeamName
+		// Seqno of the last cached rename of this team
+		Seqno Seqno
+	}
+	// Use a map to deduplicate names. If there is a subteam name
+	// collision, take the one with the latest (parent) seqno
+	// modifying its name.
+	// A collision could occur if you were removed from a team
+	// and miss its renaming or deletion to stubbing.
+	resMap := make(map[string] /*TeamName*/ Entry)
+	for subteamID, points := range s.SubteamLog {
+		if len(points) == 0 {
+			// this should never happen
+			continue
+		}
+		lastPoint := points[len(points)-1]
+		if lastPoint.Name.IsNil() {
+			// the subteam has been deleted
+			continue
+		}
+		entry := Entry{
+			ID:    subteamID,
+			Name:  lastPoint.Name,
+			Seqno: lastPoint.Seqno,
+		}
+		existing, ok := resMap[entry.Name.String()]
+		replace := !ok || (entry.Seqno >= existing.Seqno)
+		if replace {
+			resMap[entry.Name.String()] = entry
+		}
+	}
+	for _, entry := range resMap {
+		res = append(res, TeamIDAndName{
+			Id:   entry.ID,
+			Name: entry.Name,
+		})
+	}
+	return res
 }
 
 func (h *HiddenTeamChain) IsStale() bool {
