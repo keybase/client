@@ -46,7 +46,7 @@ export const LeftAction = ({
   leftActionText,
   onLeftAction,
   theme,
-}: LeftActionProps): React.ReactNode => (
+}: LeftActionProps) => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
