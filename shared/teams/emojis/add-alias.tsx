@@ -13,6 +13,8 @@ import useRPC from '../../util/use-rpc'
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
+  onChange?: () => void
+  defaultSelected?: EmojiData
 }
 type RoutableProps = Container.RouteProps<Props>
 
@@ -40,6 +42,16 @@ export const AddAliasModal = (props: Props) => {
     aliasInputRef.current?.focus()
   }
 
+  React.useEffect(
+    () =>
+      props.defaultSelected &&
+      onChoose(
+        props.defaultSelected.aliasTo ?? `:${props.defaultSelected.short_name}:`,
+        props.defaultSelected
+      ),
+    [props.defaultSelected]
+  )
+
   const dispatch = Container.useDispatch()
   const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
@@ -56,7 +68,12 @@ export const AddAliasModal = (props: Props) => {
           ],
           res => {
             setAddAliasWaiting(false)
-            res.errorString ? setError(res.errorString) : dispatch(RouteTreeGen.createClearModals())
+            if (res.errorString) {
+              setError(res.errorString)
+              return
+            }
+            dispatch(RouteTreeGen.createClearModals())
+            props.onChange?.()
           },
           err => {
             throw err
@@ -208,5 +225,13 @@ export default (routableProps: RoutableProps) => {
     'conversationIDKey',
     ChatConstants.noConversationIDKey
   )
-  return <AddAliasModal conversationIDKey={conversationIDKey} />
+  const defaultSelected = Container.getRouteProps(routableProps, 'defaultSelected', undefined)
+  const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
+  return (
+    <AddAliasModal
+      conversationIDKey={conversationIDKey}
+      defaultSelected={defaultSelected}
+      onChange={onChange}
+    />
+  )
 }

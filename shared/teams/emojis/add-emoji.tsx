@@ -18,6 +18,7 @@ const pickEmojisPromise = () => pickFiles('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
+  onChange?: () => void
   teamID: TeamsTypes.TeamID // not supported yet
 }
 type RoutableProps = Container.RouteProps<Props>
@@ -32,7 +33,8 @@ const useDoAddEmojis = (
   conversationIDKey: ChatTypes.ConversationIDKey,
   emojisToAdd: Array<EmojiToAdd>,
   setErrors: (errors: Map<string, string>) => void,
-  removeFilePath: (toRemove: Set<string> | string) => void
+  removeFilePath: (toRemove: Set<string> | string) => void,
+  onChange?: () => void
 ) => {
   const dispatch = Container.useDispatch()
   const addEmojisRpc = useRPC(RPCChatGen.localAddEmojisRpcPromise)
@@ -55,6 +57,7 @@ const useDoAddEmojis = (
 
               if (!failedFilenamesKeys.length) {
                 dispatch(RouteTreeGen.createClearModals())
+                onChange?.()
               }
 
               res.successFilenames && removeFilePath(new Set(res.successFilenames))
@@ -76,7 +79,7 @@ const useDoAddEmojis = (
   return {bannerError, doAddEmojis, waitingAddEmojis}
 }
 
-const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
+const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () => void) => {
   const [filePaths, setFilePaths] = React.useState<Array<string>>([])
 
   const [aliasMap, setAliasMap] = React.useState(new Map<string, string>())
@@ -123,7 +126,8 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
     conversationIDKey,
     emojisToAdd,
     setErrors,
-    removeFilePath
+    removeFilePath,
+    onChange
   )
 
   return {
@@ -141,7 +145,8 @@ const debug = true
 
 export const AddEmojiModal = (props: Props) => {
   const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
-    props.conversationIDKey
+    props.conversationIDKey,
+    props.onChange
   )
   const pick = () => pickEmojisPromise().then(addFiles)
   return !emojisToAdd.length ? (
@@ -183,7 +188,8 @@ export default (routableProps: RoutableProps) => {
     ChatConstants.noConversationIDKey
   )
   const teamID = Container.getRouteProps(routableProps, 'teamID', TeamsTypes.noTeamID)
-  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
+  const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
+  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} onChange={onChange} />
 }
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {

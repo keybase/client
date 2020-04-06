@@ -543,6 +543,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly username: String}
     outParam: void
   }
+  'chat.1.local.removeEmoji': {
+    inParam: {readonly convID: ConversationID; readonly alias: String}
+    outParam: RemoveEmojiRes
+  }
   'chat.1.local.requestInboxLayout': {
     inParam: {readonly reselectMode: InboxLayoutReselectMode}
     outParam: void
@@ -1710,6 +1714,7 @@ export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRefreshParticipantsRpcPromise = (params: MessageTypes['chat.1.local.refreshParticipants']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.refreshParticipants']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.refreshParticipants', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRemoveEmojiRpcPromise = (params: MessageTypes['chat.1.local.removeEmoji']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeEmoji']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeEmoji', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxLayoutRpcPromise = (params: MessageTypes['chat.1.local.requestInboxLayout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxLayout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxLayout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxSmallIncreaseRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallIncrease']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallIncrease', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxSmallResetRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1799,7 +1804,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.addEmoji'
-// 'chat.1.local.removeEmoji'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

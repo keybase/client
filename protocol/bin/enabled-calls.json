@@ -91,6 +91,7 @@
   "chat.1.local.userEmojis": {"promise": true},
   "chat.1.local.addEmojis": {"promise": true},
   "chat.1.local.addEmojiAlias": {"promise": true},
+  "chat.1.local.removeEmoji": {"promise": true},
   "keybase.1.Proxy.getProxyData": {"promise": true},
   "keybase.1.Proxy.setProxyData": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCancel": {"promise": true},

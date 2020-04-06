@@ -216,37 +216,40 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
 
   const [filter, setFilter] = React.useState('')
 
-  React.useEffect(() => {
-    setWaiting(true)
-    if (convID && shouldActuallyLoad) {
-      getUserEmoji(
-        [
-          {
-            convID: Chat2Types.keyToConversationID(convID),
-            opts: {
-              getAliases: true,
-              getCreationInfo: true,
-              onlyInTeam: true,
-            },
-          },
-        ],
-        result => {
-          let emojis: Array<RPCChatTypes.Emoji> = []
-          result.emojis.emojis?.forEach(g => {
-            emojis = emojis.concat(g.emojis ?? [])
-          })
-          setCustomEmoji(emojis)
-          setWaiting(false)
-        },
-        _ => {
-          setCustomEmoji([])
-          setWaiting(false)
-        }
-      )
-    } else {
-      setWaiting(false)
+  const doGetUserEmoji = React.useCallback(() => {
+    if (!convID || convID === Chat2Constants.noConversationIDKey || !shouldActuallyLoad) {
+      return
     }
+    setWaiting(true)
+    getUserEmoji(
+      [
+        {
+          convID: Chat2Types.keyToConversationID(convID),
+          opts: {
+            getAliases: true,
+            getCreationInfo: true,
+            onlyInTeam: true,
+          },
+        },
+      ],
+      result => {
+        let emojis: Array<RPCChatTypes.Emoji> = []
+        result.emojis.emojis?.forEach(g => {
+          emojis = emojis.concat(g.emojis ?? [])
+        })
+        setCustomEmoji(emojis)
+        setWaiting(false)
+      },
+      _ => {
+        setCustomEmoji([])
+        setWaiting(false)
+      }
+    )
   }, [convID, getUserEmoji, shouldActuallyLoad])
+
+  React.useEffect(() => {
+    doGetUserEmoji()
+  }, [doGetUserEmoji])
 
   let filteredEmoji: RPCChatTypes.Emoji[] = customEmoji
   if (filter != '') {
@@ -264,6 +267,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
         convID={convID ?? Chat2Constants.noConversationIDKey}
         filter={filter}
         setFilter={setFilter}
+        reloadEmojis={doGetUserEmoji}
       />
     ),
   })
@@ -278,7 +282,13 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     sections.push({
       data: filteredEmoji,
       key: 'emoji-item',
-      renderItem: ({item}) => <EmojiItemRow emoji={item} />,
+      renderItem: ({item}) => (
+        <EmojiItemRow
+          emoji={item}
+          conversationIDKey={convID ?? Chat2Constants.noConversationIDKey}
+          reloadEmojis={doGetUserEmoji}
+        />
+      ),
     })
   }
   return sections
