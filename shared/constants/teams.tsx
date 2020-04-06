@@ -752,6 +752,7 @@ const annotatedInvitesToInviteDetails = (
         inviteLinks.add({
           creatorUsername: invite.inviterUsername,
           expirationTime: invite.invite.etime ?? 0,
+          expired: Date.now() / 1000 > (invite.invite.etime ?? 0), // TODO Y2K-1715 get from invite
           id: invite.invite.id,
           lastJoinedUsername,
           maxUses: invite.invite.maxUses ?? 0,

@@ -97,7 +97,8 @@ export type TeamMeta = {
 
 export type InviteLink = {
   creatorUsername: string
-  expirationTime: number
+  expirationTime: number // unix time
+  expired: boolean
   id: string
   lastJoinedUsername: string
   maxUses: number
