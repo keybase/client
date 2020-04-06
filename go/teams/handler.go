@@ -597,6 +597,13 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return err
 		}
 
+		err = tx.CanConsumeInvite(ctx, invite.Id)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Can't use invite: %s", err)
+			// TODO: Cancel pending acceptance. (Y2K-1634)
+			continue
+		}
+
 		isNewStyle, err := IsNewStyleInvite(invite)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Error checking whether invite is new-style: %s", isNewStyle)
@@ -623,7 +630,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		// PUKless user accepts seitan token invite status is set to
 		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
 		// PUK and status is set to ACCEPTED.
-		err = tx.ConsumeInviteByID(ctx, g, invite.Id, uv)
+		err = tx.ConsumeInviteByID(ctx, invite.Id, uv)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to consume invite: %v", err)
 			continue
@@ -637,6 +644,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	}
 
 	if tx.IsEmpty() {
+		g.Log.CDebugf(ctx, "Transaction is empty - nothing to post")
 		return nil
 	}
 
