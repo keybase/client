@@ -12,7 +12,7 @@ import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
-import shallowEqual from 'shallowequal'
+import isEqual from 'lodash/isEqual'
 import Input from '.'
 
 type OwnProps = {
@@ -89,7 +89,7 @@ const getChannelSuggestions = (
       return arr
     }, [])
 
-    if (!shallowEqual(_channelSuggestions, suggestions)) {
+    if (!isEqual(_channelSuggestions, suggestions)) {
       _channelSuggestions = suggestions
     }
     return _channelSuggestions
@@ -107,7 +107,7 @@ const getChannelSuggestions = (
     []
   )
 
-  if (!shallowEqual(_channelSuggestions, suggestions)) {
+  if (!isEqual(_channelSuggestions, suggestions)) {
     _channelSuggestions = suggestions
   }
   return _channelSuggestions
