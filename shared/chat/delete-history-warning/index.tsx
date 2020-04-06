@@ -8,7 +8,7 @@ type Props = {
 }
 
 const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
-  <Kb.MaybePopup onClose={onCancel}>
+  <Kb.MaybePopup onClose={onCancel} style={styles.parent}>
     {Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.padding, styles.box])}>
       <Kb.Icon type={Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
@@ -45,6 +45,8 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         backgroundColor: Styles.globalColors.white,
         justifyContent: 'center',
+        marginLeft: 'auto',
+        marginRight: 'auto',
         maxWidth: 560,
         padding: Styles.globalMargins.small,
       },
