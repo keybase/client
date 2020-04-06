@@ -3704,7 +3704,7 @@ func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename); err != nil {
+	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename, arg.AllowOverwrite); err != nil {
 		return res, err
 	}
 	return res, nil
@@ -3728,7 +3728,7 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 			res.FailedFilenames[arg.Filenames[i]] = "this is a test error"
 			continue
 		}
-		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i])
+		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i], arg.AllowOverwrite[i])
 		if err != nil {
 			res.FailedFilenames[arg.Filenames[i]] = err.Error()
 		} else {
