@@ -373,7 +373,7 @@ func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 	// If this is not called, prints logs to stdout.
 	if ok {
 		err := logger.SetLogFileConfig(g.Env.GetLogFileConfig(logFile), &logger.BufferedLoggerConfig{
-			Frequency: time.Second,
+			Frequency: 200 * time.Millisecond,
 			Size:      1000000,
 		})
 		if err != nil {
