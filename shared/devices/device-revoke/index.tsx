@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Types from '../../constants/types/devices'
 import * as Kb from '../../common-adapters'
+import {HeaderLeftCancel} from '../../common-adapters/header-hoc'
 import * as Styles from '../../styles'
 
 export type Props = {
@@ -74,44 +75,47 @@ const getIcon = (deviceType: Types.DeviceType, iconNumber: number) => {
   return Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
 const DeviceRevoke = (props: Props) => (
-  <Kb.HeaderHocWrapper onCancel={props.onCancel}>
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      gap="small"
-      gapEnd={true}
-      style={styles.container}
-    >
-      <Kb.NameWithIcon
-        icon={getIcon(props.device.type, props.iconNumber)}
-        title={props.device.name}
-        titleStyle={styles.headerName}
-        size="small"
-      />
-      <Kb.Text center={true} type="Header">
-        Are you sure you want to revoke{' '}
-        {props.device.currentDevice ? (
-          'your current device'
-        ) : (
-          <Kb.Text type="Header" style={styles.italicName}>
-            {props.device.name}
-          </Kb.Text>
-        )}
-        ?
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
-        {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
-      </Kb.Box2>
-      <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
-      {props.waiting && (
-        <Kb.Text center={true} type="BodySmallItalic">
-          Calculating any side effects...
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    gap="small"
+    gapEnd={true}
+    style={styles.container}
+  >
+    <Kb.NameWithIcon
+      icon={getIcon(props.device.type, props.iconNumber)}
+      title={props.device.name}
+      titleStyle={styles.headerName}
+      size="small"
+    />
+    <Kb.Text center={true} type="Header">
+      Are you sure you want to revoke{' '}
+      {props.device.currentDevice ? (
+        'your current device'
+      ) : (
+        <Kb.Text type="Header" style={styles.italicName}>
+          {props.device.name}
         </Kb.Text>
       )}
+      ?
+    </Kb.Text>
+    <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
+      {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
     </Kb.Box2>
-  </Kb.HeaderHocWrapper>
+    <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
+    {props.waiting && (
+      <Kb.Text center={true} type="BodySmallItalic">
+        Calculating any side effects...
+      </Kb.Text>
+    )}
+  </Kb.Box2>
 )
+
+DeviceRevoke.navigationOptions = {
+  header: undefined,
+  headerLeft: HeaderLeftCancel,
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
