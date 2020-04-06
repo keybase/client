@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as BotsGen from '../../actions/bots-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -84,7 +83,6 @@ const Team = (props: Props) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
   const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
   Container.useFocusBlur(undefined, onBlur)
 

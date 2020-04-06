@@ -543,6 +543,11 @@ function isNotLoadingProps(props: Props): props is NotLoadingProps {
 }
 
 class LoadTransactionDetails extends React.Component<NotLoadingProps /*Props TODO fix*/> {
+  static navigationOptions = {
+    header: undefined,
+    title: 'Transaction details',
+  }
+
   componentDidMount() {
     this.props.onLoadPaymentDetail()
   }
@@ -574,11 +579,6 @@ class LoadTransactionDetails extends React.Component<NotLoadingProps /*Props TOD
     const props = this.props as NotLoadingProps
     return <TransactionDetails {...props} />
   }
-}
-
-LoadTransactionDetails.navigationOptions = {
-  header: undefined,
-  title: 'Transaction details',
 }
 
 export default LoadTransactionDetails
