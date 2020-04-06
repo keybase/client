@@ -4,16 +4,18 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
+import * as dateFns from 'date-fns'
 
 type Props = {
   teamID: Types.TeamID
 }
-const formatNicely = (_: number) => '1 year'
+const formatNicely = (etime: number) => (etime === 0 ? 'after 10,000 ys' : dateFns.formatDistanceToNow(etime))
 
 const InviteLinks = (props: Props) => {
   const {teamID} = props
   const inviteLinksSet = Container.useSelector(state => Constants.getTeamDetails(state, teamID).inviteLinks)
   const inviteLinks = inviteLinksSet ? [...inviteLinksSet] : []
+  // TODO: how to get the most recent nonexpired link
   const mostRecentInviteLink = inviteLinks.length ? inviteLinks[0] : undefined
 
   const dispatch = Container.useDispatch()
@@ -33,9 +35,8 @@ const InviteLinks = (props: Props) => {
         <Kb.Box2 direction="vertical" style={styles.inviteBox}>
           <Kb.CopyText text={mostRecentInviteLink.url} />
           <Kb.Text type="BodySmall">
-            Invites as {mostRecentInviteLink.role}
-            {mostRecentInviteLink.expirationTime &&
-              ` · Expires after ${formatNicely(mostRecentInviteLink.expirationTime)}`}
+            Invites as {mostRecentInviteLink.role} · Expires{' '}
+            {formatNicely(mostRecentInviteLink.expirationTime)}
           </Kb.Text>
         </Kb.Box2>
       )}
