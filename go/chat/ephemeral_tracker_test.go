@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"sort"
 	"testing"
 	"time"
@@ -30,6 +31,8 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 	g := globals.NewContext(tc.G, tc.ChatG)
 	u := world.GetUsers()[0]
 	uid := gregor1.UID(u.GetUID().ToBytes())
+	// we manually run purging in this
+	<-g.EphemeralPurger.Stop(context.TODO())
 	g.EphemeralTracker = NewEphemeralTracker(g)
 	clock := clockwork.NewFakeClockAt(time.Now())
 	chatStorage := storage.New(g, tc.ChatG.ConvSource)
