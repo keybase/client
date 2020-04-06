@@ -162,7 +162,7 @@ const InviteFriendsModal = () => {
   )
 }
 
-const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
+export const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
   <Kb.MobilePopup>
     <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
       <Kb.Text type="Header">Share a link to Keybase</Kb.Text>

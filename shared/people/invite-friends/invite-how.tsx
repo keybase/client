@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 type Props = {
   visible: boolean
   onHidden: () => void
+  onShareLink: () => void
 }
 const InviteHow = (props: Props) => {
   const dispatch = Container.useDispatch()
@@ -13,15 +14,11 @@ const InviteHow = (props: Props) => {
     dispatch(nav.safeNavigateAppendPayload({path: [{selected: 'inviteFriendsModal'}]}))
   const invitePhoneContacts = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{selected: 'inviteFriendsContacts'}]}))
-  const shareLink = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({path: [{props: {linkModalOpen: true}, selected: 'inviteFriendsModal'}]})
-    )
 
   const items: Kb.MenuItems = [
     {icon: 'iconfont-mention', onClick: byPhoneOrEmail, title: 'By email or phone number'},
     {icon: 'iconfont-contact-book', onClick: invitePhoneContacts, title: 'Invite phone contacts'},
-    {icon: 'iconfont-link', onClick: shareLink, title: 'Share a link'},
+    {icon: 'iconfont-link', onClick: props.onShareLink, title: 'Share a link'},
   ]
   const header = (
     <Kb.Box2 direction="horizontal" centerChildren={true} alignItems="center">
