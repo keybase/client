@@ -70,38 +70,50 @@ export default Container.connect(
           : 'This image format is not supported.'
     }
     const wizard = Container.getRouteProps(ownProps, 'wizard', false)
-    return {
-      createdTeam: stateProps.createdTeam,
+    const bothProps = {
       error,
       image: stateProps.image?.cancelled ? undefined : stateProps.image,
       onBack: dispatchProps.onBack,
       onClose: dispatchProps.onClose,
-      onSave: (
-        filename: string,
-        crop?: RPCTypes.ImageCropRect,
-        scaledWidth?: number,
-        offsetLeft?: number,
-        offsetTop?: number
-      ) => {
-        if (wizard) {
-          dispatchProps.onSaveWizardAvatar(
-            filename,
-            crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined
-          )
-        } else if (stateProps.teamname) {
-          dispatchProps.onSaveTeamAvatar(filename, stateProps.teamname, stateProps.sendChatNotification, crop)
-        } else {
-          dispatchProps.onSaveUserAvatar(filename, crop)
-        }
-      },
-      onSkip: dispatchProps.onSkip,
       sendChatNotification: stateProps.sendChatNotification,
       submitting: stateProps.submitting,
-      teamID: stateProps.teamID,
-      teamname: stateProps.teamname,
-      type: stateProps.teamID ? 'team' : 'profile',
       waitingKey: Constants.uploadAvatarWaitingKey,
-      wizard,
     }
+    return stateProps.teamID
+      ? {
+          ...bothProps,
+          createdTeam: stateProps.createdTeam,
+          onSave: (
+            filename: string,
+            crop?: RPCTypes.ImageCropRect,
+            scaledWidth?: number,
+            offsetLeft?: number,
+            offsetTop?: number
+          ) => {
+            if (wizard) {
+              dispatchProps.onSaveWizardAvatar(
+                filename,
+                crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined
+              )
+            } else {
+              dispatchProps.onSaveTeamAvatar(
+                filename,
+                stateProps.teamname!,
+                stateProps.sendChatNotification,
+                crop
+              )
+            }
+          },
+          onSkip: dispatchProps.onSkip,
+          teamID: stateProps.teamID,
+          teamname: stateProps.teamname!,
+          type: 'team' as const,
+          wizard,
+        }
+      : {
+          ...bothProps,
+          onSave: dispatchProps.onSaveUserAvatar,
+          type: 'profile' as const,
+        }
   }
 )(EditAvatar)

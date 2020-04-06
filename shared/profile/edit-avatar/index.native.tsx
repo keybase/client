@@ -146,52 +146,56 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       </Kb.ZoomableBox>
     )
   }
-  private renderWizard = () => (
-    <Kb.Modal
-      banners={
-        this.props.error
-          ? [
-              <Kb.Banner key="err" color="red">
-                {this.props.error}
-              </Kb.Banner>,
-            ]
-          : []
-      }
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />,
-        rightButton: (
-          <Kb.Text type="BodyBigLink" onClick={this.props.onSkip}>
-            Skip
-          </Kb.Text>
-        ),
-
-        title: (
-          <ModalTitle
-            teamID={this.props.teamID}
-            title={this.props.image && isIOS ? 'Zoom and pan' : 'Upload avatar'}
-          />
-        ),
-      }}
-      footer={{
-        content: (
-          <Kb.Button fullWidth={true} label="Continue" onClick={this.onSave} disabled={!this.props.image} />
-        ),
-      }}
-    >
-      <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
-        {this.renderImageZoomer()}
-        <Kb.Button
-          label={this.props.image ? 'Pick a new avatar' : 'Pick an avatar'}
-          mode="Secondary"
-          onClick={this.props.onChooseNewAvatar}
-        />
-      </Kb.Box2>
-    </Kb.Modal>
-  )
 
   render() {
     if (this.props.wizard) {
-      return this.renderWizard()
+      return (
+        <Kb.Modal
+          banners={
+            this.props.error
+              ? [
+                  <Kb.Banner key="err" color="red">
+                    {this.props.error}
+                  </Kb.Banner>,
+                ]
+              : []
+          }
+          header={{
+            leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />,
+            rightButton: (
+              <Kb.Text type="BodyBigLink" onClick={this.props.onSkip}>
+                Skip
+              </Kb.Text>
+            ),
+
+            title: (
+              <ModalTitle
+                teamID={this.props.teamID}
+                title={this.props.image && isIOS ? 'Zoom and pan' : 'Upload avatar'}
+              />
+            ),
+          }}
+          footer={{
+            content: (
+              <Kb.Button
+                fullWidth={true}
+                label="Continue"
+                onClick={this.onSave}
+                disabled={!this.props.image}
+              />
+            ),
+          }}
+        >
+          <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
+            {this.renderImageZoomer()}
+            <Kb.Button
+              label={this.props.image ? 'Pick a new avatar' : 'Pick an avatar'}
+              mode="Secondary"
+              onClick={this.props.onChooseNewAvatar}
+            />
+          </Kb.Box2>
+        </Kb.Modal>
+      )
     }
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -205,7 +209,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
                 : Styles.collapseStyles([
                     styles.zoomContainer,
                     {
-                      borderRadius: this.props.teamname ? 32 : this.avatar_size(),
+                      borderRadius: this.props.type === 'team' ? 32 : this.avatar_size(),
                       height: this.avatar_size(),
                       width: this.avatar_size(),
                     },

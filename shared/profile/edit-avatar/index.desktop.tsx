@@ -328,7 +328,12 @@ class EditAvatar extends React.Component<Props, State> {
                 type="Default"
               />
             ) : null,
-            title: <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />,
+            title:
+              this.props.type === 'team' ? (
+                <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />
+              ) : (
+                'Upload an avatar'
+              ),
           }}
           allowOverflow={true}
           footer={{
@@ -360,7 +365,7 @@ class EditAvatar extends React.Component<Props, State> {
             onMouseDown={this.onMouseDown}
             onMouseMove={this.onMouseMove}
           >
-            {this.props.createdTeam && !this.props.wizard && (
+            {this.props.type === 'team' && this.props.createdTeam && !this.props.wizard && (
               <Kb.Box style={styles.createdBanner}>
                 <Kb.Text type="BodySmallSemibold" negative={true}>
                   Hoorah! Your team {this.props.teamname} was created.
