@@ -22,6 +22,9 @@ type Props = MemberProps & {
 }
 
 export class TeamMemberStateWrapper extends React.Component<Props, State> {
+  static navigationOptions = {
+    header: undefined,
+  }
   state = {
     rolePickerOpen: false,
     selectedRole: null,
@@ -29,20 +32,18 @@ export class TeamMemberStateWrapper extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.HeaderHocWrapper onBack={this.props.onBack}>
-        <TeamMember
-          {...this.props}
-          isRolePickerOpen={this.state.rolePickerOpen}
-          onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
-          onEditMembership={() => this.setState({rolePickerOpen: true})}
-          onConfirmRolePicker={role => {
-            this.props.onEditRole(role)
-            this.setState({rolePickerOpen: false})
-          }}
-          onSelectRole={selectedRole => this.setState({selectedRole})}
-          selectedRole={this.state.selectedRole}
-        />
-      </Kb.HeaderHocWrapper>
+      <TeamMember
+        {...this.props}
+        isRolePickerOpen={this.state.rolePickerOpen}
+        onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
+        onEditMembership={() => this.setState({rolePickerOpen: true})}
+        onConfirmRolePicker={role => {
+          this.props.onEditRole(role)
+          this.setState({rolePickerOpen: false})
+        }}
+        onSelectRole={selectedRole => this.setState({selectedRole})}
+        selectedRole={this.state.selectedRole}
+      />
     )
   }
 }

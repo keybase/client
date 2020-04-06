@@ -161,4 +161,24 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
+export const HeaderLeftArrow = hp =>
+  hp.scene.index === 0 ? null : (
+    <LeftAction
+      badgeNumber={0}
+      leftAction="back"
+      onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
+      customIconColor={hp.tintColor}
+    />
+  )
+
+export const HeaderLeftCancel = hp =>
+  hp.scene.index === 0 ? null : (
+    <LeftAction
+      badgeNumber={0}
+      leftAction="cancel"
+      onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
+      customIconColor={hp.tintColor}
+    />
+  )
+
 export default HeaderHoc

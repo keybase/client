@@ -13,7 +13,7 @@ import * as Container from '../util/container'
 import shallowEqual from 'shallowequal'
 import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
-import {LeftAction} from '../common-adapters/header-hoc'
+import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 import {Props} from './router'
 import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
@@ -35,15 +35,7 @@ useScreens()
 const defaultNavigationOptions: any = {
   backBehavior: 'none',
   header: null,
-  headerLeft: hp =>
-    hp.scene.index === 0 ? null : (
-      <LeftAction
-        badgeNumber={0}
-        leftAction="back"
-        onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
-        customIconColor={hp.tintColor}
-      />
-    ),
+  headerLeft: HeaderLeftArrow,
   headerStyle: {
     get backgroundColor() {
       return Styles.globalColors.fastBlank
