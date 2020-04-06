@@ -171,19 +171,22 @@ const TabBar = (props: Props) => {
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
-  // TODO move this logic into the sagas
-  const onTabClick = (tab: Tabs.AppTab) => {
-    if (selectedTab === tab) {
-      navigation.navigate(tabRoots[tab])
-    } else {
-      navigation.navigate(tab)
-    }
-  }
+  const navRef = React.useRef(navigation.navigate)
+
+  const onChangeTab = React.useCallback((tab: Tabs.AppTab) => {
+    navRef.current(tab)
+  }, [])
+  const onNavUp = React.useCallback((tab: Tabs.AppTab) => {
+    navRef.current(tabRoots[tab])
+  }, [])
+  const onHotKey = React.useCallback((cmd: string) => {
+    navRef.current(keysMap[cmd])
+  }, [])
 
   return username ? (
     <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
       <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
-        <Kb.HotKey hotKeys={hotKeys} onHotKey={(cmd: string) => onTabClick(keysMap[cmd])} />
+        <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
         <Header />
         <Kb.Divider style={styles.divider} />
@@ -194,7 +197,7 @@ const TabBar = (props: Props) => {
           tab={t}
           index={i}
           isSelected={selectedTab === t}
-          onTabClick={onTabClick}
+          onTabClick={selectedTab === t ? onNavUp : onChangeTab}
           badge={t === Tabs.fsTab && fsCriticalUpdate ? (badgeNumbers.get(t) ?? 0) + 1 : badgeNumbers.get(t)}
         />
       ))}

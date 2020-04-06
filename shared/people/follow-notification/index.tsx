@@ -33,7 +33,9 @@ const FollowNotification = (props: Props) => {
   if (props.newFollows.length !== 1) {
     throw new Error('Single follow notification must have exactly one user supplied')
   }
-  const username = props.newFollows[0].username
+
+  const {newFollows, onClickUser, type} = props
+  const username = newFollows[0].username
   const usernameComponent = (
     <Kb.ConnectedUsernames
       {...connectedUsernamesProps}
@@ -41,11 +43,14 @@ const FollowNotification = (props: Props) => {
       onUsernameClicked={props.onClickUser}
     />
   )
-  const desc = props.newFollows[0].contactDescription
+  const desc = newFollows[0].contactDescription
 
-  const onClickBox = props.type === 'follow' ? () => props.onClickUser(username) : undefined
+  const onClick = React.useCallback(() => {
+    onClickUser(username)
+  }, [username, onClickUser])
+
   return (
-    <Kb.ClickableBox onClick={onClickBox}>
+    <Kb.ClickableBox onClick={type === 'follow' ? onClick : undefined}>
       <PeopleItem
         badged={props.badged}
         buttons={
@@ -56,13 +61,7 @@ const FollowNotification = (props: Props) => {
               ]
             : undefined
         }
-        icon={
-          <Kb.Avatar
-            username={username}
-            onClick={() => props.onClickUser(username)}
-            size={Styles.isMobile ? 48 : 32}
-          />
-        }
+        icon={<Kb.Avatar username={username} onClick={onClick} size={Styles.isMobile ? 48 : 32} />}
         iconContainerStyle={styles.iconContainer}
         when={props.notificationTime}
         contentStyle={styles.peopleItem}
@@ -84,6 +83,7 @@ export const MultiFollowNotification = React.memo((props: Props) => {
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
+
   const usernames = props.newFollows.map(f => f.username)
   const usernamesComponent = (
     <>
