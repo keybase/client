@@ -28,10 +28,6 @@ const WalletOrOnboarding = (props: Props) =>
 
 WalletOrOnboarding.navigationOptions = {
   header: () => <Header />,
-  headerStyle: {
-    height: 150,
-    width: '100%',
-  },
 }
 
 export default Container.connect(

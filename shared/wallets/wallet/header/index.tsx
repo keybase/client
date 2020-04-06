@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Container from '../../../util/container'
 import {useSafeArea} from '../../../common-adapters/safe-area-view'
 import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
@@ -10,7 +11,7 @@ type Props = {
   accountID: Types.AccountID
   isDefaultWallet: boolean
   keybaseUser: string
-  onBack: (() => void) | null
+  onBack?: () => void
   onBuy: () => void
   onReceive: () => void
   onSettings: () => void
@@ -20,7 +21,17 @@ type Props = {
 }
 
 const Header = (props: Props) => {
+  const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
   const insets = useSafeArea()
+  // TODO can handle this better in nav5
+  if (!acceptedDisclaimer) {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        style={{backgroundColor: Styles.globalColors.purple, paddingTop: insets.top, width: '100%'}}
+      />
+    )
+  }
   const backButton = Styles.isPhone && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
   // Only show caret/unread badge when we have a switcher,
   // i.e. when isMobile is true.
@@ -75,7 +86,11 @@ const Header = (props: Props) => {
       gap="tiny"
       gapStart={true}
       gapEnd={true}
-      style={Styles.collapseStyles([styles.container, {paddingTop: insets.top}])}
+      style={Styles.collapseStyles([
+        styles.container,
+        {paddingTop: insets.top},
+        acceptedDisclaimer && {height: 150},
+      ])}
     >
       {nameAndInfo}
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
@@ -126,6 +141,7 @@ const styles = Styles.styleSheetCreate(
         borderBottomWidth: 1,
         borderStyle: 'solid',
         flexShrink: 0,
+        width: '100%',
       },
       gear: {
         position: 'relative',

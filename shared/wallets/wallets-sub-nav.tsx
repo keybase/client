@@ -1,4 +1,5 @@
 import * as Kb from '../common-adapters'
+import {LeftAction} from '../common-adapters/header-hoc'
 import * as React from 'react'
 import {
   NavigationViewProps,
@@ -62,6 +63,20 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
   static navigationOptions = ({navigation}) => {
     return {
       header: undefined,
+      headerLeft: Container.isTablet
+        ? hp => {
+            const subNav = hp.scene.route?.index === 1
+            const subNavDepth = subNav && (hp.scene.route.routes[1]?.index ?? 0 > 0)
+            return subNavDepth ? (
+              <LeftAction
+                badgeNumber={0}
+                leftAction="back"
+                onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
+                customIconColor={hp.tintColor}
+              />
+            ) : null
+          }
+        : undefined,
       headerExpandable: true,
       // index 0 means we're on the onboarding page, so hide the header
       headerMode: navigation.state.index === 0 ? 'none' : undefined,
