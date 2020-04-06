@@ -2,7 +2,6 @@ import logger from '../logger'
 import * as React from 'react'
 import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
 import trim from 'lodash/trim'
 import TeamBuilding, {
   RolePickerProps,
