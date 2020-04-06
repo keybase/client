@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -38,9 +39,10 @@ type DevConvEmojiSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	getLock     sync.Mutex
-	aliasLookup map[string]chat1.Emoji
-	ri          func() chat1.RemoteInterface
+	aliasLookupLock sync.Mutex
+	aliasLookup     map[string]chat1.Emoji
+	ri              func() chat1.RemoteInterface
+	encryptedDB     *encrypteddb.EncryptedDB
 
 	testingCreatedSyncConv   chan struct{}
 	testingRefreshedSyncConv chan struct{}
@@ -49,10 +51,17 @@ type DevConvEmojiSource struct {
 var _ types.EmojiSource = (*DevConvEmojiSource)(nil)
 
 func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) *DevConvEmojiSource {
+	keyFn := func(ctx context.Context) ([32]byte, error) {
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
+	}
+	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalChatDb
+	}
 	return &DevConvEmojiSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConvEmojiSource", false),
 		ri:           ri,
+		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 }
 
@@ -66,6 +75,43 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 		ret += *suffix
 	}
 	return ret
+}
+
+func (s *DevConvEmojiSource) dbKey(uid gregor1.UID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBChatUserEmojis,
+		Key: uid.String(),
+	}
+}
+
+func (s *DevConvEmojiSource) getAliasLookup(ctx context.Context, uid gregor1.UID) (res map[string]chat1.Emoji, err error) {
+	s.aliasLookupLock.Lock()
+	defer s.aliasLookupLock.Unlock()
+	if s.aliasLookup != nil {
+		res = make(map[string]chat1.Emoji, len(s.aliasLookup))
+		for alias, emoji := range s.aliasLookup {
+			res[alias] = emoji
+		}
+		return res, nil
+	}
+	res = make(map[string]chat1.Emoji)
+	s.Debug(ctx, "getAliasLookup: missed alias lookup, reading from disk")
+	found, err := s.encryptedDB.Get(ctx, s.dbKey(uid), &res)
+	if err != nil {
+		return res, err
+	}
+	if !found {
+		return make(map[string]chat1.Emoji), nil
+	}
+	return res, nil
+}
+
+func (s *DevConvEmojiSource) putAliasLookup(ctx context.Context, uid gregor1.UID,
+	aliasLookup map[string]chat1.Emoji) error {
+	s.aliasLookupLock.Lock()
+	defer s.aliasLookupLock.Unlock()
+	s.aliasLookup = aliasLookup
+	return s.encryptedDB.Put(ctx, s.dbKey(uid), s.aliasLookup)
 }
 
 func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
@@ -103,15 +149,17 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	return res, storage.PutToKnownConv(ctx, uid, *storageConv, stored)
 }
 
-func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
-	alias = fmt.Sprintf(":%s:", alias)
+func (s *DevConvEmojiSource) IsStockEmoji(alias string) bool {
+	if !strings.HasPrefix(alias, ":") {
+		alias = fmt.Sprintf(":%s:", alias)
+	}
 	alias2 := strings.ReplaceAll(alias, "-", "_")
 	return storage.EmojiExists(alias) || storage.EmojiExists(alias2)
 }
 
 func (s *DevConvEmojiSource) validateShortName(shortName string) (string, error) {
 	shortName = strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
-	if s.isStockEmoji(shortName) {
+	if s.IsStockEmoji(shortName) {
 		return "", errors.New("cannot use existing stock emoji short name")
 	}
 	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
@@ -300,7 +348,7 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 	return storage.Put(ctx, uid, convID, topicName, stored)
 }
 
-func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
+func (s *DevConvEmojiSource) RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
 	noAnim bool) (res chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {
@@ -398,7 +446,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					continue
 				}
 				var creationInfo *chat1.EmojiCreationInfo
-				source, err := s.remoteToLocalSource(ctx, storedEmoji, false)
+				source, err := s.RemoteToLocalSource(ctx, storedEmoji, false)
 				if err != nil {
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
@@ -451,9 +499,9 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, opts); err != nil {
 		return res, err
 	}
-	s.getLock.Lock()
-	defer s.getLock.Unlock()
-	s.aliasLookup = aliasLookup
+	if err := s.putAliasLookup(ctx, uid, aliasLookup); err != nil {
+		s.Debug(ctx, "Get: failed to put alias lookup: %s", err)
+	}
 	return res, nil
 }
 
@@ -648,12 +696,11 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	s.getLock.Lock()
-	aliasMap := make(map[string]chat1.Emoji, len(s.aliasLookup))
-	for alias, emoji := range s.aliasLookup {
-		aliasMap[alias] = emoji
+	aliasMap, err := s.getAliasLookup(ctx, uid)
+	if err != nil {
+		s.Debug(ctx, "Harvest: failed to get alias lookup: %s", err)
+		return res, err
 	}
-	s.getLock.Unlock()
 	var emojis chat1.UserEmojis
 	switch mode {
 	case types.EmojiHarvestModeNormal:
@@ -737,7 +784,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	isReacji := messageType == chat1.MessageType_REACTION
 	for _, match := range matches {
 		if source, ok := emojiMap[match.name]; ok {
-			localSource, err := s.remoteToLocalSource(ctx, source, noAnim)
+			localSource, err := s.RemoteToLocalSource(ctx, source, noAnim)
 			if err != nil {
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue

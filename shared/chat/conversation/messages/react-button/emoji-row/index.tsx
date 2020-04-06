@@ -2,13 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as Types from '../../../../../constants/types/chat2'
+import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {EmojiPickerDesktop} from '../emoji-picker/container'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
   className?: string
   conversationIDKey: Types.ConversationIDKey
-  emojis: Array<string>
+  emojis: Array<RPCTypes.UserReacji>
   onReact: (arg0: string) => void
   onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
@@ -17,7 +18,10 @@ type Props = {
   tooltipPosition?: Position
 }
 
-class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {hovering: boolean}> {
+class HoverEmoji extends React.Component<
+  {emoji: RPCTypes.UserReacji; onClick: () => void},
+  {hovering: boolean}
+> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
   _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
@@ -31,7 +35,19 @@ class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {h
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        <Kb.Emoji disableSelecting={true} size={this.state.hovering ? 22 : 18} emojiName={this.props.name} />
+        {this.props.emoji.customAddr ? (
+          <Kb.CustomEmoji
+            alias={this.props.emoji.name}
+            src={this.props.emoji.customAddr}
+            size={this.state.hovering ? 'Medium' : 'Small'}
+          />
+        ) : (
+          <Kb.Emoji
+            disableSelecting={true}
+            size={this.state.hovering ? 22 : 18}
+            emojiName={this.props.emoji.name}
+          />
+        )}
       </Kb.ClickableBox>
     )
   }
@@ -57,7 +73,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
       >
         <Kb.Box2 direction="horizontal" gap="tiny">
           {this.props.emojis.map(e => (
-            <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
+            <HoverEmoji emoji={e} key={e.name} onClick={() => this.props.onReact(e.name)} />
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal">

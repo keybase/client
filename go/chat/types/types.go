@@ -832,6 +832,12 @@ func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UI
 	return res, err
 }
 
+func (DummyEmojiSource) IsStockEmoji(alias string) bool { return true }
+
+func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource, noAnim bool) (res chat1.EmojiLoadSource, err error) {
+	return res, nil
+}
+
 type ClearOpts struct {
 	SendLocalAdminNotification bool
 	Reason                     string

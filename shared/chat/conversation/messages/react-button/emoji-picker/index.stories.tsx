@@ -1,11 +1,12 @@
 import * as React from 'react'
+import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {Box, Box2, NewInput} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
 import ChooseEmoji from '.'
 import {defaultTopReacjis} from '../../../../../constants/chat2'
 
 class WithFilter extends React.Component<
-  {topReacjis: Array<string>},
+  {topReacjis: Array<RPCTypes.UserReacji>},
   {
     filter: string
   }
