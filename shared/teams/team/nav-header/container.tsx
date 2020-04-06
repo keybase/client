@@ -62,7 +62,7 @@ export const HeaderTitle = Container.connect(
       // is a desktop-only component right now, so just do this.
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {sendChatNotification: true, teamID}, selected: 'teamEditTeamAvatar'}],
+          path: [{props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'}],
         })
       ),
     onEditDescription: () =>

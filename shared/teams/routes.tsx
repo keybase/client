@@ -8,7 +8,6 @@ import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
 import TeamAddEmoji from './emojis/add-emoji'
 import TeamEditChannel from './channel'
-import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
 import TeamInviteByEmail from './invite-by-email/container'
@@ -88,9 +87,6 @@ export const newModalRoutes = {
     getScreen: (): typeof DeleteChannel => require('./confirm-modals/delete-channel').default,
   },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
-  teamEditTeamAvatar: {
-    getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
-  },
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description').default,
   },

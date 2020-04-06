@@ -45,7 +45,7 @@ export default Container.connect(
     _onEditIcon: (image?: ImagePicker.ImagePickerResult) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {image, sendChatNotification: true, teamID}, selected: 'teamEditTeamAvatar'}],
+          path: [{props: {image, sendChatNotification: true, teamID}, selected: 'profileEditAvatar'}],
         })
       ),
     _onRename: (teamname: string) =>
