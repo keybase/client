@@ -138,3 +138,49 @@ func GenerateInvitelinkURL(
 	}
 	return fmt.Sprintf("%s%s#%s", prefix, id, ikey), nil
 }
+
+type TeamInviteLinkDetails struct {
+	libkb.AppStatusEmbed
+	InviterUID        keybase1.UID                                 `json:"inviter_uid"`
+	InviterUsername   string                                       `json:"inviter_username"`
+	InviterResetOrDel int                                          `json:"inviter_reset_or_del"`
+	TeamID            keybase1.TeamID                              `json:"team_id"`
+	TeamDescription   string                                       `json:"team_desc"`
+	TeamName          string                                       `json:"team_name"`
+	TeamNumMembers    int                                          `json:"team_num_members"`
+	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
+}
+
+func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID) (info keybase1.InviteLinkDetails, err error) {
+	arg := libkb.APIArg{
+		Endpoint:    "team/get_invite_details",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
+			"invite_id": libkb.S{Val: string(inviteID)},
+		},
+	}
+
+	var resp TeamInviteLinkDetails
+	if err = mctx.G().API.GetDecode(mctx, arg, &resp); err != nil {
+		// the server knows about invite ids (but not keys), so it is fine to put this in the log.
+		mctx.Debug("GetInviteLinkDetails: failed to get team invite details for %v: %s", inviteID, err)
+		return info, err
+	}
+
+	teamName, err := keybase1.TeamNameFromString(resp.TeamName)
+	if err != nil {
+		return info, err
+	}
+
+	return keybase1.InviteLinkDetails{
+		InviteID:          inviteID,
+		InviterUID:        resp.InviterUID,
+		InviterUsername:   resp.InviterUsername,
+		InviterResetOrDel: resp.InviterResetOrDel == 1,
+		TeamID:            resp.TeamID,
+		TeamName:          teamName,
+		TeamDesc:          resp.TeamDescription,
+		TeamNumMembers:    resp.TeamNumMembers,
+		TeamAvatars:       resp.TeamAvatars,
+	}, nil
+}

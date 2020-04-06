@@ -235,6 +235,7 @@ export const keybase1StreamUiClose = 'engine-gen:keybase1StreamUiClose'
 export const keybase1StreamUiRead = 'engine-gen:keybase1StreamUiRead'
 export const keybase1StreamUiReset = 'engine-gen:keybase1StreamUiReset'
 export const keybase1StreamUiWrite = 'engine-gen:keybase1StreamUiWrite'
+export const keybase1TeamsUiConfirmInviteLinkAccept = 'engine-gen:keybase1TeamsUiConfirmInviteLinkAccept'
 export const keybase1TeamsUiConfirmRootTeamDelete = 'engine-gen:keybase1TeamsUiConfirmRootTeamDelete'
 export const keybase1TeamsUiConfirmSubteamDelete = 'engine-gen:keybase1TeamsUiConfirmSubteamDelete'
 export const keybase1UiPromptYesNo = 'engine-gen:keybase1UiPromptYesNo'
@@ -1944,6 +1945,17 @@ type _Keybase1StreamUiWritePayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.streamUi.write']['outParam']) => void
   }
 }
+type _Keybase1TeamsUiConfirmInviteLinkAcceptPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['outParam']
+    ) => void
+  }
+}
 type _Keybase1TeamsUiConfirmRootTeamDeletePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['inParam'] & {
     sessionID: number
@@ -2752,6 +2764,9 @@ export const createKeybase1StreamUiReset = (
 export const createKeybase1StreamUiWrite = (
   payload: _Keybase1StreamUiWritePayload
 ): Keybase1StreamUiWritePayload => ({payload, type: keybase1StreamUiWrite})
+export const createKeybase1TeamsUiConfirmInviteLinkAccept = (
+  payload: _Keybase1TeamsUiConfirmInviteLinkAcceptPayload
+): Keybase1TeamsUiConfirmInviteLinkAcceptPayload => ({payload, type: keybase1TeamsUiConfirmInviteLinkAccept})
 export const createKeybase1TeamsUiConfirmRootTeamDelete = (
   payload: _Keybase1TeamsUiConfirmRootTeamDeletePayload
 ): Keybase1TeamsUiConfirmRootTeamDeletePayload => ({payload, type: keybase1TeamsUiConfirmRootTeamDelete})
@@ -3603,6 +3618,10 @@ export type Keybase1StreamUiWritePayload = {
   readonly payload: _Keybase1StreamUiWritePayload
   readonly type: typeof keybase1StreamUiWrite
 }
+export type Keybase1TeamsUiConfirmInviteLinkAcceptPayload = {
+  readonly payload: _Keybase1TeamsUiConfirmInviteLinkAcceptPayload
+  readonly type: typeof keybase1TeamsUiConfirmInviteLinkAccept
+}
 export type Keybase1TeamsUiConfirmRootTeamDeletePayload = {
   readonly payload: _Keybase1TeamsUiConfirmRootTeamDeletePayload
   readonly type: typeof keybase1TeamsUiConfirmRootTeamDelete
@@ -3855,6 +3874,7 @@ export type Actions =
   | Keybase1StreamUiReadPayload
   | Keybase1StreamUiResetPayload
   | Keybase1StreamUiWritePayload
+  | Keybase1TeamsUiConfirmInviteLinkAcceptPayload
   | Keybase1TeamsUiConfirmRootTeamDeletePayload
   | Keybase1TeamsUiConfirmSubteamDeletePayload
   | Keybase1UiPromptYesNoPayload
