@@ -262,6 +262,10 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	})
 	require.NoError(tt.t, err)
 
+	// register fake teams UI for tests
+	err = srv.Register(keybase1.TeamsUiProtocol(&teamsUI{}))
+	require.NoError(tt.t, err)
+
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
 	u.userClient = keybase1.UserClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
