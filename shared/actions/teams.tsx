@@ -1401,8 +1401,16 @@ function* loadTreeTeamActivity(
 ) {
   logger.info("PARAMS ", action.payload)
   const {membership} = action.payload.params
-  if (RPCTypes.TeamTreeMembershipStatus.ok != membership.result.s) {
-    return
+  switch (membership.result.s) {
+    case RPCTypes.TeamTreeMembershipStatus.ok: {
+      break;
+    }
+    case RPCTypes.TeamTreeMembershipStatus.error: {
+      return;
+    }
+    case RPCTypes.TeamTreeMembershipStatus.hidden: {
+      return;
+    }
   }
   const teamIDs = [membership.result.ok.teamID]
   const username = membership.targetUsername

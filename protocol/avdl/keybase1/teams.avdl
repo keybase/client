@@ -1631,11 +1631,24 @@ protocol teams {
   }
   enum TeamTreeMembershipStatus {
     OK_0,
-    ERROR_1
+    ERROR_1,
+  HIDDEN_2
+  }
+  record TeamTreeError {
+    string message;
+    // willSkipSubtree is true if loading of the subtree rooted at the team associated
+    // with this error was cancelled due to this error.
+    // is reached loading an ancestor team.
+    boolean willSkipSubtree;
+    // willSkipAncestors is true if loading of the ancestor chain of the team associated
+    // with this error was cancelled due to this error.
+    boolean willSkipAncestors;
   }
   variant TeamTreeMembershipResult switch (TeamTreeMembershipStatus s) {
     case OK: TeamTreeMembershipValue;
-    case ERROR: GenericError;
+    case ERROR: TeamTreeError;
+  // HIDDEN is used for membership results of teams the user is not in
+    case HIDDEN: void;
   }
   record TeamTreeMembership {
     string teamName;

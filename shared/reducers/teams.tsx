@@ -418,6 +418,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (memberships.guid < sessionID) {
       Object.assign(memberships, newMemberships)
     } else if (memberships.guid > sessionID) {
+      memberships.expectedCount = undefined;
       return //noop
     }
 

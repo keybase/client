@@ -3897,20 +3897,23 @@ func (o TeamTreeMembershipValue) DeepCopy() TeamTreeMembershipValue {
 type TeamTreeMembershipStatus int
 
 const (
-	TeamTreeMembershipStatus_OK    TeamTreeMembershipStatus = 0
-	TeamTreeMembershipStatus_ERROR TeamTreeMembershipStatus = 1
+	TeamTreeMembershipStatus_OK     TeamTreeMembershipStatus = 0
+	TeamTreeMembershipStatus_ERROR  TeamTreeMembershipStatus = 1
+	TeamTreeMembershipStatus_HIDDEN TeamTreeMembershipStatus = 2
 )
 
 func (o TeamTreeMembershipStatus) DeepCopy() TeamTreeMembershipStatus { return o }
 
 var TeamTreeMembershipStatusMap = map[string]TeamTreeMembershipStatus{
-	"OK":    0,
-	"ERROR": 1,
+	"OK":     0,
+	"ERROR":  1,
+	"HIDDEN": 2,
 }
 
 var TeamTreeMembershipStatusRevMap = map[TeamTreeMembershipStatus]string{
 	0: "OK",
 	1: "ERROR",
+	2: "HIDDEN",
 }
 
 func (e TeamTreeMembershipStatus) String() string {
@@ -3920,10 +3923,24 @@ func (e TeamTreeMembershipStatus) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type TeamTreeError struct {
+	Message           string `codec:"message" json:"message"`
+	WillSkipSubtree   bool   `codec:"willSkipSubtree" json:"willSkipSubtree"`
+	WillSkipAncestors bool   `codec:"willSkipAncestors" json:"willSkipAncestors"`
+}
+
+func (o TeamTreeError) DeepCopy() TeamTreeError {
+	return TeamTreeError{
+		Message:           o.Message,
+		WillSkipSubtree:   o.WillSkipSubtree,
+		WillSkipAncestors: o.WillSkipAncestors,
+	}
+}
+
 type TeamTreeMembershipResult struct {
 	S__     TeamTreeMembershipStatus `codec:"s" json:"s"`
 	Ok__    *TeamTreeMembershipValue `codec:"ok,omitempty" json:"ok,omitempty"`
-	Error__ *GenericError            `codec:"error,omitempty" json:"error,omitempty"`
+	Error__ *TeamTreeError           `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o *TeamTreeMembershipResult) S() (ret TeamTreeMembershipStatus, err error) {
@@ -3952,7 +3969,7 @@ func (o TeamTreeMembershipResult) Ok() (res TeamTreeMembershipValue) {
 	return *o.Ok__
 }
 
-func (o TeamTreeMembershipResult) Error() (res GenericError) {
+func (o TeamTreeMembershipResult) Error() (res TeamTreeError) {
 	if o.S__ != TeamTreeMembershipStatus_ERROR {
 		panic("wrong case accessed")
 	}
@@ -3969,10 +3986,16 @@ func NewTeamTreeMembershipResultWithOk(v TeamTreeMembershipValue) TeamTreeMember
 	}
 }
 
-func NewTeamTreeMembershipResultWithError(v GenericError) TeamTreeMembershipResult {
+func NewTeamTreeMembershipResultWithError(v TeamTreeError) TeamTreeMembershipResult {
 	return TeamTreeMembershipResult{
 		S__:     TeamTreeMembershipStatus_ERROR,
 		Error__: &v,
+	}
+}
+
+func NewTeamTreeMembershipResultWithHidden() TeamTreeMembershipResult {
+	return TeamTreeMembershipResult{
+		S__: TeamTreeMembershipStatus_HIDDEN,
 	}
 }
 
@@ -3986,7 +4009,7 @@ func (o TeamTreeMembershipResult) DeepCopy() TeamTreeMembershipResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Ok__),
-		Error__: (func(x *GenericError) *GenericError {
+		Error__: (func(x *TeamTreeError) *TeamTreeError {
 			if x == nil {
 				return nil
 			}

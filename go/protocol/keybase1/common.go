@@ -1137,16 +1137,6 @@ func (e WotStatusType) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
-type GenericError struct {
-	Message string `codec:"message" json:"message"`
-}
-
-func (o GenericError) DeepCopy() GenericError {
-	return GenericError{
-		Message: o.Message,
-	}
-}
-
 type CommonInterface interface {
 }
 

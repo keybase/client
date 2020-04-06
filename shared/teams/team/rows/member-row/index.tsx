@@ -210,7 +210,7 @@ export const TeamMemberRow = (props: Props) => {
         body={body}
         firstItem={props.firstItem}
         style={selected ? styles.selected : undefined}
-        onClick={anySelected ? () => onSelect(!selected) : (props.youCanManageMembers && props.onClick)}
+        onClick={anySelected ? () => onSelect(!selected) : (props.youCanManageMembers ? props.onClick : () => {})}
       />
     )
   }

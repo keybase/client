@@ -413,8 +413,4 @@ protocol Common {
     REJECTED_3,
     REVOKED_4
   }
-
-  record GenericError {
-    string message;
-  }
 }

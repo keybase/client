@@ -3432,7 +3432,26 @@
       "name": "TeamTreeMembershipStatus",
       "symbols": [
         "OK_0",
-        "ERROR_1"
+        "ERROR_1",
+        "HIDDEN_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "boolean",
+          "name": "willSkipSubtree"
+        },
+        {
+          "type": "boolean",
+          "name": "willSkipAncestors"
+        }
       ]
     },
     {
@@ -3455,7 +3474,14 @@
             "name": "ERROR",
             "def": false
           },
-          "body": "GenericError"
+          "body": "TeamTreeError"
+        },
+        {
+          "label": {
+            "name": "HIDDEN",
+            "def": false
+          },
+          "body": null
         }
       ]
     },

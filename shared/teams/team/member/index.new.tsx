@@ -37,31 +37,22 @@ type TeamTreeRowIn = {
 } & TeamTreeRowNotIn
 
 const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
+  const errors: Array<RPCTypes.TeamTreeMembership> = []
   const subteamsNotIn: Array<TeamTreeRowNotIn> = []
   const subteamsIn: Array<TeamTreeRowIn> = []
 
   const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
   if (!memberships) {
-    return {subteamsIn, subteamsNotIn}
+    return {subteamsIn, subteamsNotIn, errors}
   }
 
   for (const membership of memberships.memberships) {
+    const teamname = membership.teamName
+
     if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
       const result = membership.result.ok
-      const teamname = membership.teamName
 
       const ops = Constants.getCanPerformByID(state, result.teamID)
-
-// export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSubteams: Boolean;
-      // readonly createChannel: Boolean; readonly chat: Boolean; readonly deleteChannel: Boolean;
-      // readonly renameChannel: Boolean; readonly renameTeam: Boolean; readonly
-      // editChannelDescription: Boolean; readonly editTeamDescription: Boolean; readonly
-      // setTeamShowcase: Boolean; readonly setMemberShowcase: Boolean; readonly setRetentionPolicy:
-      // Boolean; readonly setMinWriterRole: Boolean; readonly changeOpenTeam: Boolean; readonly
-      // leaveTeam: Boolean; readonly joinTeam: Boolean; readonly setPublicityAny: Boolean; readonly
-      // listFirst: Boolean; readonly changeTarsDisabled: Boolean; readonly deleteChatHistory:
-      // Boolean; readonly deleteOtherMessages: Boolean; readonly deleteTeam: Boolean; readonly
-      // pinMessage: Boolean; readonly manageBots: Boolean}
 
       const row = {
         teamID: result.teamID,
@@ -76,13 +67,6 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
         result.teamID, username,
       )
 
-      // const sparseMemberInfos = state.teams.treeLoaderTeamIDToSparseMemberInfos.
-      //   get(result.teamID)
-      // if (!sparseMemberInfos) {
-      //    // should never happen
-      //    continue
-      // }
-      // const sparseMemberInfo = sparseMemberInfos.get(username)
       if (sparseMemberInfo) {
         subteamsIn.push({
           role: sparseMemberInfo.type,
@@ -93,11 +77,14 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
       } else {
         subteamsNotIn.push(row)
       }
+    } else if (RPCTypes.TeamTreeMembershipStatus.error == membership.result.s) {
+      errors.push(membership)
     }
   }
   return {
     subteamsIn,
     subteamsNotIn,
+    errors,
   }
 }
 
@@ -109,12 +96,18 @@ const TeamMember = (props: OwnProps) => {
   const username = Container.getRouteProps(props, 'username', '')
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
 
+  const isMe = username == Container.useSelector(state => state.config.username)
   const loading = Container.useSelector(state => {
     const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
     if (!memberships || !memberships.expectedCount) {
       return true
     }
-    return memberships.expectedCount != memberships.memberships.length
+    const got = memberships.memberships.length
+    const want = memberships.expectedCount
+    if (got > want) {
+      logger.error(`got ${got} notifications for ${teamID}; only wanted ${want}`)
+    }
+    return got < want
   })
 
   // Load up the memberships when the page is opened
@@ -122,7 +115,7 @@ const TeamMember = (props: OwnProps) => {
     dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
   }, [teamID, username, dispatch])
   // TODO this will keep thrasing
-  const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
+  const {subteamsIn, subteamsNotIn, errors} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )
 
@@ -163,16 +156,27 @@ const TeamMember = (props: OwnProps) => {
         }}
       />
     ),
-    title: makeTitle(`${username} is in:`),
+    title: makeTitle(isMe ? 'You are in:' : `${username} is in:`),
   }
 
+  const canAddToAnyTeam = subteamsNotIn.some((x) => x.canAdminister)
+  var subteamNotInTitle: string;
+  if (canAddToAnyTeam && isMe) {
+    subteamNotInTitle = `Add yourself to:`
+  } else if (canAddToAnyTeam) {
+    subteamNotInTitle = `Add ${username} to:`
+  } else if (isMe) {
+    subteamNotInTitle = `You are in:`
+  } else {
+    subteamNotInTitle = `${username} is in:`
+  }
   const subteamsNotInSection = {
     data: subteamsNotIn,
     key: 'section-add-subteams',
     renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
       <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
     ),
-    title: makeTitle(`Add ${username} to:`),
+    title: makeTitle(subteamNotInTitle),
   }
 
   const sections = [
@@ -180,12 +184,52 @@ const TeamMember = (props: OwnProps) => {
     ...(subteamsNotIn.length > 0 ? [subteamsNotInSection] : []),
   ]
   return (
+    <>
+      { (errors.length > 0 ) && (
+      <Kb.Banner color="red">
+        { loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
+        <Kb.BannerParagraph key="teamTreeErrorHeader" bannerColor="red" content={[
+          "The following teams could not be loaded. ",
+          {onClick: () => dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username})), 
+              text: 'Click to reload.'},
+        ]} />
+        <>
+      {
+        errors.map((error, idx) => {
+          if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
+            return (<></>)
+          }
+
+          const failedAt = [error.teamName]
+          if (error.result.error.willSkipSubtree) {
+            failedAt.push("its subteams")
+          }
+          if (error.result.error.willSkipAncestors) {
+            failedAt.push("its parent teams")
+          }
+          var failedAtStr = ""
+          if (failedAt.length > 1) {
+            const last = failedAt.pop()
+            failedAtStr = failedAt.join(', ') + ', and ' + last
+          } else {
+            failedAtStr = failedAt[0]
+          }
+          return (
+            <Kb.BannerParagraph key={"teamTreeErrorRow" + idx.toString()} 
+              bannerColor="red" content={"• " + failedAtStr} />
+          )
+        })
+      }
+      </>
+    </Kb.Banner>
+      )}
     <Kb.SectionList<Section>
       stickySectionHeadersEnabled={true}
       renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
       sections={sections}
       keyExtractor={item => `member:${username}:${item.teamname}`}
     />
+</>
   )
 }
 
@@ -695,6 +739,10 @@ const styles = Styles.styleSheetCreate(() => ({
   headerTextContainer: Styles.platformStyles({
     isMobile: {paddingBottom: Styles.globalMargins.tiny},
   }),
+  reloadButton: {
+    marginTop:Styles.globalMargins.tiny,
+    minWidth: 56,
+  },
   inviteButton: {
     minWidth: 56,
   },

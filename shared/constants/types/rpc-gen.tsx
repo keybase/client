@@ -2690,6 +2690,7 @@ export enum TeamStatus {
 export enum TeamTreeMembershipStatus {
   ok = 0,
   error = 1,
+  hidden = 2,
 }
 
 export enum TeamType {
@@ -2925,7 +2926,6 @@ export type GUIEntryFeatures = {readonly showTyping: Feature}
 export type GUIFileContext = {readonly viewType: GUIViewType; readonly contentType: String; readonly url: String}
 export type GcOptions = {readonly maxLooseRefs: Int; readonly pruneMinLooseObjects: Int; readonly pruneExpireTime: Time; readonly maxObjectPacks: Int}
 export type Generic = {readonly m: {[key: string]: Generic}; readonly a?: Array<Generic> | null; readonly s?: String | null; readonly i?: Int | null}
-export type GenericError = {readonly message: String}
 export type GetBlockRes = {readonly blockKey: String; readonly buf: Bytes; readonly size: Int; readonly status: BlockStatus}
 export type GetBlockSizesRes = {readonly sizes?: Array<Int> | null; readonly statuses?: Array<BlockStatus> | null}
 export type GetLockdownResponse = {readonly history?: Array<LockdownHistory> | null; readonly status: Boolean}
@@ -3299,9 +3299,10 @@ export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
 export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly usedInvites: {[key: string]: Array<TeamUsedInviteLogPoint> | null}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly bots: {[key: string]: TeamBotSettings}; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
+export type TeamTreeError = {readonly message: String; readonly willSkipSubtree: Boolean; readonly willSkipAncestors: Boolean}
 export type TeamTreeInitial = {readonly guid: Int}
 export type TeamTreeMembership = {readonly teamName: String; readonly result: TeamTreeMembershipResult; readonly targetTeamID: TeamID; readonly targetUsername: String; readonly sessionID: Int}
-export type TeamTreeMembershipResult = {s: TeamTreeMembershipStatus.ok; ok: TeamTreeMembershipValue} | {s: TeamTreeMembershipStatus.error; error: GenericError}
+export type TeamTreeMembershipResult = {s: TeamTreeMembershipStatus.ok; ok: TeamTreeMembershipValue} | {s: TeamTreeMembershipStatus.error; error: TeamTreeError} | {s: TeamTreeMembershipStatus.hidden}
 export type TeamTreeMembershipValue = {readonly role: TeamRole; readonly joinTime?: Time | null; readonly teamID: TeamID; readonly memberCount: Int}
 export type TeamTreeMembershipsDoneResult = {readonly expectedCount: Int; readonly targetTeamID: TeamID; readonly targetUsername: String; readonly sessionID: Int}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
