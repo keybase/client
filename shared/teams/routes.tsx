@@ -33,6 +33,7 @@ import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
 import TeamAddToTeamContacts from './add-members-wizard/add-contacts.native'
 import TeamAddToTeamConfirm from './add-members-wizard/confirm'
+import TeamInviteHistory from './team/invites/invite-history'
 import Team from './team'
 import ExternalTeam from './external-team'
 import flags from '../util/feature-flags'
@@ -106,6 +107,9 @@ export const newModalRoutes = {
   },
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
+  },
+  teamInviteHistory: {
+    getScreen: (): typeof TeamInviteHistory => require('./team/invites/invite-history').default,
   },
   teamJoinTeamDialog: {
     getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,
