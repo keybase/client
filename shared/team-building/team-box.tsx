@@ -19,7 +19,6 @@ type Props = {
   onUpArrowKeyDown: () => void
   teamSoFar: Array<SelectedUser>
   onRemove: (userId: string) => void
-  onBackspace: () => void
   onFinishTeamBuilding: () => void
   searchString: string
   rolePickerProps?: RolePickerProps

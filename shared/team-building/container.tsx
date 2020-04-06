@@ -2,7 +2,6 @@ import logger from '../logger'
 import * as React from 'react'
 import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
 import trim from 'lodash/trim'
 import TeamBuilding, {
   RolePickerProps,
@@ -259,14 +258,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
   onSelectRole: (role: TeamTypes.TeamRoleType) =>
     namespace === 'teams' && dispatch(TeamBuildingGen.createSelectRole({namespace, role})),
 })
-
-const deriveOnBackspace = throttle(
-  memoize((searchString, teamSoFar, onRemove) => () => {
-    // Check if empty and we have a team so far
-    !searchString && teamSoFar.length && onRemove(teamSoFar[teamSoFar.length - 1].userId)
-  }),
-  100
-)
 
 const deriveOnEnterKeyDown = memoizeShallow(
   (p: {
@@ -598,7 +589,6 @@ const mergeProps = (
     includeContacts: ownProps.namespace === 'chat2',
     namespace: ownProps.namespace,
     onAdd,
-    onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: deriveOnChangeService(
       ownProps.onChangeService,
       ownProps.incFocusInputCounter,

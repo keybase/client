@@ -118,7 +118,6 @@ const contactProps = {
 
 const eventHandlers = {
   incFocusInputCounter: Sb.action('incFocusInputCounter'),
-  onBackspace: Sb.action('onBackspace'),
   onChangeService: Sb.action('onChangeService'),
   onChangeText: Sb.action('onChangeText'),
   onClear: Sb.action('onClear'),
@@ -649,7 +648,6 @@ const load = () => {
       <Input
         placeholder="Type in some input inside"
         searchString=""
-        onBackspace={Sb.action('onBackspace')}
         onChangeText={Sb.action('onChangeText')}
         onClear={Sb.action('onClear')}
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
@@ -668,7 +666,6 @@ const load = () => {
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onBackspace={Sb.action('onBackspace')}
         onRemove={Sb.action('onRemove')}
         teamSoFar={[
           {
