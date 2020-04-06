@@ -1,7 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-// TODO: is there something better to do that ignore this?
-// @ts-ignore
 import emojiData from 'emoji-datasource'
 // MUST be lodash for node to work simply
 // eslint-disable-next-line

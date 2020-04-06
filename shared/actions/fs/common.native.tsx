@@ -47,7 +47,6 @@ const finishedDownloadWithIntent = async (
         await saveAttachmentToCameraRoll(localPath, mimeType)
         return FsGen.createDismissDownload({downloadID})
       case Types.DownloadIntent.Share:
-        // @ts-ignore codemod-issue probably a real issue
         await showShareActionSheet({filePath: localPath, mimeType})
         return FsGen.createDismissDownload({downloadID})
       case Types.DownloadIntent.None:

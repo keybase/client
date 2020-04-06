@@ -79,7 +79,6 @@ class AppView extends React.PureComponent<NavigationViewProps<any>> {
             {/*
           // @ts-ignore Header typing not finished yet */}
             <Header
-              // @ts-ignore
               loggedIn={!!selectedTab}
               options={descriptor.options}
               onPop={() => childNav.goBack(activeKey)}

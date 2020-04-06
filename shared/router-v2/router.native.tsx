@@ -215,7 +215,6 @@ const VanillaTabNavigator = createBottomTabNavigator(
             <></>
           ) : (
             <Kb.Text
-              // @ts-ignore expecting a literal color, not a getter
               style={Styles.collapseStyles([
                 tabStyles.label,
                 Styles.isDarkMode()

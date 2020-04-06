@@ -19,7 +19,6 @@ const SectionList = React.forwardRef<NativeSectionList, Props<any>>(
         }
       : undefined
 
-    // @ts-ignore I tried but eventually gave up typing this.
     const NativeSectionListAny = NativeSectionList as any
     return (
       <NativeSectionListAny

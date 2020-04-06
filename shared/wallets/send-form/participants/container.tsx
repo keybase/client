@@ -128,13 +128,10 @@ const ConnectedParticipantsOtherAccount = namedConnect(
 const ParticipantsChooser = props => {
   switch (props.recipientType) {
     case 'keybaseUser':
-      // @ts-ignore not sure what's up here
       return <ConnectedParticipantsKeybaseUser />
     case 'stellarPublicKey':
-      // @ts-ignore not sure what's up here
       return <ConnectedParticipantsStellarPublicKey />
     case 'otherAccount':
-      // @ts-ignore not sure what's up here
       return <ConnectedParticipantsOtherAccount />
 
     default:

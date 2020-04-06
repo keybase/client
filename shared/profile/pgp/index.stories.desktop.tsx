@@ -59,9 +59,7 @@ const load = () => {
         })}
       />
     ))
-    // @ts-ignore
     .add('Import', () => <Import />)
-    // @ts-ignore
     .add('Finished Generated Pgp', () => <Finished />)
     .add('Generating', () => <Generate />)
 }

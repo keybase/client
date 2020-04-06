@@ -30,7 +30,7 @@ import {
 } from 'react-native'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-// @ts-ignore
+// @ts-ignore strict
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
@@ -38,7 +38,7 @@ import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
-// @ts-ignore
+// @ts-ignore strict
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
 
