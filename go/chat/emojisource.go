@@ -150,7 +150,9 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConvEmojiSource) IsStockEmoji(alias string) bool {
-	alias = fmt.Sprintf(":%s:", alias)
+	if !strings.HasPrefix(alias, ":") {
+		alias = fmt.Sprintf(":%s:", alias)
+	}
 	alias2 := strings.ReplaceAll(alias, "-", "_")
 	return storage.EmojiExists(alias) || storage.EmojiExists(alias2)
 }

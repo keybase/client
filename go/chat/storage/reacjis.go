@@ -26,7 +26,13 @@ const (
 )
 
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
-var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada:"}
+var DefaultTopReacjis = []keybase1.UserReacji{
+	{Name: ":+1:"},
+	{Name: ":-1:"},
+	{Name: ":joy:"},
+	{Name: ":sunglasses:"},
+	{Name: ":tada:"},
+}
 
 func EmojiAliasList(shortCode string) []string {
 	return emojiRevCodeMap[emojiCodeMap[shortCode]]
@@ -335,9 +341,9 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 		if len(cache.FrequencyMap) >= len(DefaultTopReacjis) {
 			break
 		}
-		if _, ok := cache.FrequencyMap[el]; !ok {
-			cache.FrequencyMap[el] = 0
-			cache.MtimeMap[el] = 0
+		if _, ok := cache.FrequencyMap[el.Name]; !ok {
+			cache.FrequencyMap[el.Name] = 0
+			cache.MtimeMap[el.Name] = 0
 		}
 	}
 
