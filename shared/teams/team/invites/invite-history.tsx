@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {Section} from '../../../common-adapters/section-list'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
@@ -63,10 +64,75 @@ const InviteHistory = (props: Props) => {
       <Kb.SectionList
         sections={sections}
         keyExtractor={item => item.id}
-        renderItem={({item}) => <Kb.Text type="Body">{item.url}</Kb.Text>}
+        renderItem={({item}) => <InviteItem inviteLink={item} teamID={teamID} />}
+        contentContainerStyle={styles.listContent}
       />
     </Kb.Modal>
   )
 }
+
+const InviteItem = React.memo(
+  ({inviteLink, teamID}: {inviteLink: Types.InviteLink; teamID: Types.TeamID}) => {
+    const dispatch = Container.useDispatch()
+    const yourUsername = Container.useSelector(s => s.config.username)
+    const onExpire = () => dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
+    return (
+      <Kb.Box2 direction="vertical" style={styles.inviteContainer} gap="xtiny">
+        <Kb.CopyText text={inviteLink.url} />
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Text type="BodySmall">
+            Invites as {inviteLink.role} • Expires at {inviteLink.expirationTime}
+          </Kb.Text>
+          <Kb.Text type="BodySmall">
+            Created by{' '}
+            {inviteLink.creatorUsername === yourUsername ? (
+              'you'
+            ) : (
+              <Kb.ConnectedUsernames
+                inline={true}
+                colorFollowing={true}
+                type="BodySmall"
+                usernames={inviteLink.creatorUsername}
+              />
+            )}{' '}
+            • {inviteLink.numUses.toLocaleString()} joined
+            {!!inviteLink.lastJoinedUsername && (
+              <Kb.Text type="BodySmall">
+                , most recently{' '}
+                <Kb.ConnectedUsernames
+                  inline={true}
+                  colorFollowing={true}
+                  type="BodySmall"
+                  usernames={inviteLink.lastJoinedUsername}
+                />
+              </Kb.Text>
+            )}
+          </Kb.Text>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onExpire}>
+            Expire now
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+)
+
+const styles = Styles.styleSheetCreate(() => ({
+  inviteContainer: {
+    borderColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    marginBottom: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
+  },
+  listContent: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+}))
 
 export default InviteHistory
