@@ -1518,6 +1518,14 @@ const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogge
   }
 }
 
+const maybeClearBadges = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  if (prev[2]?.routeName === Tabs.teamsTab && next[2]?.routeName !== Tabs.teamsTab) {
+    return TeamsGen.createClearNavBadges()
+  }
+  return false
+}
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1624,6 +1632,7 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction(TeamsGen.teamSeen, teamSeen)
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeClearBadges)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()
