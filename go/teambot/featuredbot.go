@@ -43,7 +43,7 @@ func (l *FeaturedBotLoader) debug(mctx libkb.MetaContext, msg string, args ...in
 
 func (l *FeaturedBotLoader) SearchLocal(mctx libkb.MetaContext, arg keybase1.SearchLocalArg) (res keybase1.SearchRes, err error) {
 	defer mctx.TraceTimed("FeaturedBotLoader: SearchLocal", func() error { return err })()
-	if len(arg.Query) == 0 || arg.Limit == 0 {
+	if arg.Limit == 0 {
 		return res, nil
 	}
 	bots, err := l.AllFeaturedBots(mctx, arg.SkipCache)
@@ -52,16 +52,29 @@ func (l *FeaturedBotLoader) SearchLocal(mctx libkb.MetaContext, arg keybase1.Sea
 	}
 
 	var results []rankedSearchItem
-	query := strings.ToLower(arg.Query)
-	for _, item := range bots.Bots {
-		rankedItem := rankedSearchItem{
-			item: item,
+	if len(arg.Query) == 0 {
+		for _, bot := range bots.Bots {
+			score := float64(bot.Rank)
+			if !bot.IsPromoted || opensearch.FilterScore(score) {
+				continue
+			}
+			results = append(results, rankedSearchItem{
+				item:  bot,
+				score: score,
+			})
 		}
-		rankedItem.score = rankedItem.Score(query)
-		if opensearch.FilterScore(rankedItem.score) {
-			continue
+	} else {
+		query := strings.ToLower(arg.Query)
+		for _, item := range bots.Bots {
+			rankedItem := rankedSearchItem{
+				item: item,
+			}
+			rankedItem.score = rankedItem.Score(query)
+			if opensearch.FilterScore(rankedItem.score) {
+				continue
+			}
+			results = append(results, rankedItem)
 		}
-		results = append(results, rankedItem)
 	}
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].score > results[j].score

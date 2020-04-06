@@ -116,6 +116,9 @@ export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 
 export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
+  botsResults: [],
+  botsResultsSuggested: false,
+  botsStatus: 'initial',
   indexPercent: 0,
   nameResults: [],
   nameResultsUnread: false,
@@ -170,8 +173,8 @@ export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingIn
 }
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
-  const {selectedIndex, nameResults, openTeamsResults, textResults} = inboxSearch
-  const firstTextResultIdx = openTeamsResults.length + nameResults.length
+  const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
+  const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
   const firstOpenTeamResultIdx = nameResults.length
 
   if (selectedIndex < firstOpenTeamResultIdx) {
