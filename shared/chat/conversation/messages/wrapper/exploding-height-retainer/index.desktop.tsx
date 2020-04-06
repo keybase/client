@@ -22,7 +22,11 @@ type State = {
 
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   _boxRef = React.createRef<HTMLDivElement>()
-  state = {animating: false, children: copyChildren(this.props.children), height: 17}
+  state = {
+    animating: false,
+    children: this.props.retainHeight ? null : copyChildren(this.props.children), // no children if we already exploded
+    height: 17,
+  }
   timerID?: SharedTimerID
 
   static getDerivedStateFromProps(nextProps: Props, _: State) {
