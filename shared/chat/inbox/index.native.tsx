@@ -323,10 +323,10 @@ const styles = Styles.styleSheetCreate(
       noChatsContainer: {
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingBottom: Styles.globalMargins.xlarge,
+        paddingBottom: Styles.globalMargins.large,
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.large,
       },
     } as const)
 )
