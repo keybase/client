@@ -1570,6 +1570,23 @@
     },
     {
       "type": "record",
+      "name": "UIChatSearchBotHits",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.FeaturedBot"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "boolean",
+          "name": "suggestedMatches"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIChatPayment",
       "fields": [
         {
@@ -2289,6 +2306,19 @@
         {
           "name": "hits",
           "type": "UIChatSearchTeamHits"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchBotHits": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "hits",
+          "type": "UIChatSearchBotHits"
         }
       ],
       "response": null

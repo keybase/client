@@ -697,6 +697,11 @@
       "results": "Array<Types.InboxSearchOpenTeamHit>",
       "suggested": "boolean"
     },
+    "inboxSearchBotsResults": {
+      "_description": "Inbox search bot results received",
+      "results": "Array<RPCTypes.FeaturedBot>",
+      "suggested": "boolean"
+    },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",
       "results": "Array<Types.InboxSearchConvHit>",

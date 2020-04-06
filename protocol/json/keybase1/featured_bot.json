@@ -124,6 +124,23 @@
         }
       ],
       "response": "SearchRes"
+    },
+    "searchLocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "skipCache",
+          "type": "boolean"
+        }
+      ],
+      "response": "SearchRes"
     }
   },
   "namespace": "keybase.1"

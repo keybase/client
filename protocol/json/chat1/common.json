@@ -1609,6 +1609,14 @@
         {
           "type": "int",
           "name": "maxTeams"
+        },
+        {
+          "type": "int",
+          "name": "maxBots"
+        },
+        {
+          "type": "boolean",
+          "name": "skipBotCache"
         }
       ]
     },

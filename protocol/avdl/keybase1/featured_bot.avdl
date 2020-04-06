@@ -27,4 +27,5 @@ protocol featuredBot {
 
     FeaturedBotsRes featuredBots(int limit, int offset, boolean skipCache);
     SearchRes search(string query, int limit, int offset);
+    SearchRes searchLocal(string query, int limit, boolean skipCache);
 }
