@@ -1109,9 +1109,6 @@ const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTree
 
 const maybeOnFSTab = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  // const wasTab = prev[2]?.routeName === Tabs.fsTab
-  // const isTab = next[2]?.routeName === Tabs.fsTab
-
   const routeName = 'fsRoot'
   const wasScreen = prev[prev.length - 1]?.routeName === routeName
   const isScreen = next[next.length - 1]?.routeName === routeName
