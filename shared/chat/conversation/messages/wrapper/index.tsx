@@ -415,30 +415,42 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (!this.props.showSendIndicator) {
       return null
     }
-    const message = this.props.message
-    const sent =
-      (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
-    const failed =
-      (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
+    const {failed, sent} = this.sentFailedStatus()
     return (
       <SendIndicator
         key="sendIndicator"
         sent={sent}
         failed={failed}
         id={this.props.message.timestamp}
+        isExploding={this.isExploding()}
         style={styles.send}
       />
     )
   }
 
+  private sentFailedStatus = () => {
+    const message = this.props.message
+    const sent =
+      (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
+    const failed =
+      (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
+    return {failed, sent}
+  }
+
+  private isShowingIndicator = () => {
+    const {failed, sent} = this.sentFailedStatus()
+    return !sent || failed
+  }
+
   private cachedMenuStyles = new Map<string, Styles.StylesCrossPlatform>()
   private menuAreaStyle = (exploded: boolean, exploding: boolean) => {
+    const commonWidth = 24
     const iconSizes = [
-      this.props.isRevoked ? 24 : 0, // revoked
-      this.props.showCoinsIcon ? 24 : 0, // coin stack
+      this.props.isRevoked ? commonWidth : 0, // revoked
+      this.props.showCoinsIcon ? commonWidth : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
-      exploding ? (Styles.isMobile ? 24 : 20) : 0, // exploding
-      this.getKeyedBot() && !this.props.authorIsBot ? 24 : 0,
+      exploding ? (Styles.isMobile ? commonWidth : 20) : commonWidth, // exploding or gutter
+      this.getKeyedBot() && !this.props.authorIsBot ? commonWidth : 0,
     ].filter(Boolean)
     const padding = Styles.globalMargins.tiny
     const width =
@@ -581,7 +593,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
           <Kb.Box2 direction="horizontal" style={this.menuAreaStyle(exploded, exploding)}>
-            {exploding && (
+            {this.sendIndicator()}
+            {exploding && !this.isShowingIndicator() && (
               <ExplodingMeta
                 conversationIDKey={this.props.conversationIDKey}
                 isParentHighlighted={this.showCenteredHighlight()}
@@ -687,7 +700,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               ])
             ),
             this.orangeLine(),
-            this.sendIndicator(),
           ]}
         />
         {this.popup()}
@@ -841,15 +853,8 @@ const styles = Styles.styleSheetCreate(
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
-        common: {position: 'absolute'},
         isElectron: {
           pointerEvents: 'none',
-          right: 8,
-          top: 2,
-        },
-        isMobile: {
-          right: 0,
-          top: -8,
         },
       }),
       timestamp: Styles.platformStyles({

@@ -215,7 +215,8 @@ func (l *LoaderPackage) UpdateTeamMetadata(encKID keybase1.KID, encKIDGen keybas
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON, maxUncommittedSeqnoPromised keybase1.Seqno) (err error) {
 	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), func() error { return err })()
-	mctx.Debug("LoaderPackage#Update pre: %s", l.data.LinkAndKeySummary())
+	mctx.G().GetVDebugLog().CLogf(mctx.Ctx(), libkb.VLog1,
+		"LoaderPackage#Update pre: %s", l.data.LinkAndKeySummary())
 
 	var data *keybase1.HiddenTeamChain
 	data, err = l.updatePrecheck(mctx, update, maxUncommittedSeqnoPromised)
@@ -242,7 +243,8 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON,
 		}
 	}
 
-	mctx.Debug("LoaderPackage#Update post: %s", l.data.LinkAndKeySummary())
+	mctx.G().GetVDebugLog().CLogf(mctx.Ctx(), libkb.VLog1,
+		"LoaderPackage#Update post: %s", l.data.LinkAndKeySummary())
 	return nil
 }
 

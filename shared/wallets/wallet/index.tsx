@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
 import AccountReloader from '../common/account-reloader'
-import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
 
@@ -143,7 +142,6 @@ class Wallet extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
-        {Styles.isPhone && <Header onBack={this.props.onBack} />}
         {!!this.props.loadError && <Kb.Banner color="yellow">{this.props.loadError}</Kb.Banner>}
         <Kb.SectionList
           sections={this.props.sections}

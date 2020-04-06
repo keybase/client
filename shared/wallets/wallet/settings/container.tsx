@@ -40,80 +40,81 @@ const prepareExternalPartners = (
     url: transformUrl(accountID, partner.url, username),
   }))
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const accountID = Constants.getSelectedAccount(state)
-  const account = Constants.getAccount(state, accountID)
-  const name = account.name
-  const mobileOnlyEditable = account.mobileOnlyEditable
-  const me = state.config.username || ''
-  // External partner URLs include the keybase username even for non-primary accounts.
-  const externalPartners = prepareExternalPartners(Constants.getExternalPartners(state), accountID, me)
-  const user = account.isDefault ? me : ''
-  const currencies = Constants.getDisplayCurrencies(state)
-  const currency = Constants.getDisplayCurrency(state, accountID)
-  const currencyWaiting = anyWaiting(
-    state,
-    Constants.changeDisplayCurrencyWaitingKey,
-    Constants.getDisplayCurrencyWaitingKey(accountID)
-  )
-  const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
-  const thisDeviceIsLockedOut = account.deviceReadOnly
-  const secretKey = !thisDeviceIsLockedOut ? Constants.getSecretKey(state, accountID).stringValue() : ''
-  const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID) ?? false
-  const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
-  const canSubmitTx = account.canSubmitTx
-  return {
-    accountID,
-    canSubmitTx,
-    currencies,
-    currency,
-    currencyWaiting,
-    externalPartners,
-    isDefault: account.isDefault,
-    mobileOnlyEditable,
-    mobileOnlyMode,
-    mobileOnlyWaiting,
-    name,
-    saveCurrencyWaiting,
-    secretKey,
-    showExternalPartners: true,
-    thisDeviceIsLockedOut,
-    user,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onBack: (accountID: Types.AccountID) => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(WalletsGen.createLoadPayments({accountID}))
-  },
-  _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>
-    dispatch(WalletsGen.createChangeMobileOnlyMode({accountID, enabled})),
-  _onDelete: (accountID: Types.AccountID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'removeAccount'}]})),
-  _onEditName: (accountID: Types.AccountID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'renameAccount'}]})),
-  _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
-  _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
-  _onSetDefault: (accountID: Types.AccountID) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setDefaultAccount'}]})
-    ),
-  _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
-    dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
-  _refresh: (accountID: Types.AccountID) => {
-    dispatch(WalletsGen.createLoadDisplayCurrencies())
-    dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
-    dispatch(WalletsGen.createLoadMobileOnlyMode({accountID}))
-    dispatch(WalletsGen.createLoadExternalPartners())
-  },
-})
-
 // TODO remove compose
 export default Container.compose(
   Container.namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
+    state => {
+      const accountID = Constants.getSelectedAccount(state)
+      const account = Constants.getAccount(state, accountID)
+      const name = account.name
+      const mobileOnlyEditable = account.mobileOnlyEditable
+      const me = state.config.username || ''
+      // External partner URLs include the keybase username even for non-primary accounts.
+      const externalPartners = prepareExternalPartners(Constants.getExternalPartners(state), accountID, me)
+      const user = account.isDefault ? me : ''
+      const currencies = Constants.getDisplayCurrencies(state)
+      const currency = Constants.getDisplayCurrency(state, accountID)
+      const currencyWaiting = anyWaiting(
+        state,
+        Constants.changeDisplayCurrencyWaitingKey,
+        Constants.getDisplayCurrencyWaitingKey(accountID)
+      )
+      const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+      const thisDeviceIsLockedOut = account.deviceReadOnly
+      const secretKey = !thisDeviceIsLockedOut ? Constants.getSecretKey(state, accountID).stringValue() : ''
+      const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID) ?? false
+      const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
+      const canSubmitTx = account.canSubmitTx
+      return {
+        accountID,
+        canSubmitTx,
+        currencies,
+        currency,
+        currencyWaiting,
+        externalPartners,
+        isDefault: account.isDefault,
+        mobileOnlyEditable,
+        mobileOnlyMode,
+        mobileOnlyWaiting,
+        name,
+        saveCurrencyWaiting,
+        secretKey,
+        showExternalPartners: true,
+        thisDeviceIsLockedOut,
+        user,
+      }
+    },
+    (dispatch: Container.TypedDispatch) => ({
+      _onBack: (accountID: Types.AccountID) => {
+        dispatch(RouteTreeGen.createNavigateUp())
+        dispatch(WalletsGen.createLoadPayments({accountID}))
+      },
+      _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>
+        dispatch(WalletsGen.createChangeMobileOnlyMode({accountID, enabled})),
+      _onDelete: (accountID: Types.AccountID) =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'removeAccount'}]})
+        ),
+      _onEditName: (accountID: Types.AccountID) =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'renameAccount'}]})
+        ),
+      _onLoadSecretKey: (accountID: Types.AccountID) =>
+        dispatch(WalletsGen.createExportSecretKey({accountID})),
+      _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
+      _onSetDefault: (accountID: Types.AccountID) =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setDefaultAccount'}]})
+        ),
+      _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
+        dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
+      _refresh: (accountID: Types.AccountID) => {
+        dispatch(WalletsGen.createLoadDisplayCurrencies())
+        dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
+        dispatch(WalletsGen.createLoadMobileOnlyMode({accountID}))
+        dispatch(WalletsGen.createLoadExternalPartners())
+      },
+    }),
     (stateProps, dispatchProps, _: OwnProps) => ({
       ...stateProps,
       onBack: () => dispatchProps._onBack(stateProps.accountID),

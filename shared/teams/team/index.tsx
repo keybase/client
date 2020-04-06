@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as BotsGen from '../../actions/bots-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -84,7 +83,6 @@ const Team = (props: Props) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
   const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
   Container.useFocusBlur(undefined, onBlur)
 
@@ -181,11 +179,7 @@ const Team = (props: Props) => {
     </Kb.Box>
   )
 
-  if (flags.teamsRedesign) {
-    return body
-  } else {
-    return <Kb.HeaderHocWrapper onBack={onBack}>{body}</Kb.HeaderHocWrapper>
-  }
+  return body
 }
 
 const newNavigationOptions = () => ({
@@ -195,14 +189,14 @@ const newNavigationOptions = () => ({
 Team.navigationOptions = flags.teamsRedesign
   ? newNavigationOptions
   : (props: Props) => ({
-      header: null,
+      header: undefined,
       headerExpandable: true,
       headerHideBorder: true,
       headerRightActions: Container.isMobile
         ? undefined
         : () => <HeaderRightActions teamID={Container.getRouteProps(props, 'teamID', '')} />,
       headerTitle: Container.isMobile
-        ? undefined
+        ? ' '
         : () => <HeaderTitle teamID={Container.getRouteProps(props, 'teamID', '')} />,
       subHeader: Container.isMobile
         ? undefined

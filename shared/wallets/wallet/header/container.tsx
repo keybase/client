@@ -10,45 +10,38 @@ const otherUnreadPayments = memoize(
     [...map.entries()].some(([id, u]) => id !== accID && !!u)
 )
 
-type OwnProps = {
-  onBack: () => void
-}
-
-const mapStateToProps = (state: Container.TypedState) => {
-  const accountID = Constants.getSelectedAccount(state)
-  const selectedAccount = Constants.getAccount(state, accountID)
-  return {
-    accountID: selectedAccount.accountID,
-    isDefaultWallet: selectedAccount.isDefault,
-    keybaseUser: state.config.username,
-    thisDeviceIsLockedOut: selectedAccount.deviceReadOnly,
-    unreadPayments: otherUnreadPayments(state.wallets.unreadPaymentsMap, selectedAccount.accountID),
-    walletName: selectedAccount.name,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onReceive: (accountID: Types.AccountID) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {accountID},
-            selected: 'receive',
-          },
-        ],
-      })
-    ),
-  onBuy: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['partners']})),
-  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
-})
+type OwnProps = {}
 
 export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  state => {
+    const accountID = Constants.getSelectedAccount(state)
+    const selectedAccount = Constants.getAccount(state, accountID)
+    return {
+      accountID: selectedAccount.accountID,
+      isDefaultWallet: selectedAccount.isDefault,
+      keybaseUser: state.config.username,
+      thisDeviceIsLockedOut: selectedAccount.deviceReadOnly,
+      unreadPayments: otherUnreadPayments(state.wallets.unreadPaymentsMap, selectedAccount.accountID),
+      walletName: selectedAccount.name,
+    }
+  },
+  (dispatch: Container.TypedDispatch) => ({
+    _onReceive: (accountID: Types.AccountID) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {accountID},
+              selected: 'receive',
+            },
+          ],
+        })
+      ),
+    onBuy: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['partners']})),
+    onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
     ...stateProps,
-    onBack: Container.isMobile ? ownProps.onBack : null,
     onBuy: dispatchProps.onBuy,
     onReceive: () => dispatchProps._onReceive(stateProps.accountID),
     onSettings: dispatchProps.onSettings,

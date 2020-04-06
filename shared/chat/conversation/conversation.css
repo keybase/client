@@ -17,17 +17,19 @@
 .WrapperMessage-hoverBox .WrapperMessage-buttons {
   display: none;
   flex-direction: row;
+  justify-content: flex-end;
   max-width: 100%;
   width: 100%;
-  margin-left: 8px;
+  margin-left: 0;
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
 .WrapperMessage-decorated.active .WrapperMessage-buttons {
   display: flex;
   flex-direction: row;
+  justify-content: flex-end;
   max-width: 100%;
   width: 100%;
-  margin-left: 8px;
+  margin-left: 0;
 }
 .WrapperMessage-hoverColor:hover {
   background-color: #f7f9fc;

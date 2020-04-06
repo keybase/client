@@ -656,34 +656,6 @@ func (s *localizerPipeline) getResetUsernamesMetadata(ctx context.Context, uidMa
 	return res
 }
 
-// returns an incomplete list in case of error
-func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMapper libkb.UIDMapper,
-	membersType chat1.ConversationMembersType, info types.NameInfo, public bool) (res []string, err error) {
-	// NOTE: If this is too slow, it could be cached on local metadata.
-	team, err := NewTeamLoader(s.G().ExternalG()).loadTeam(ctx, info.ID, info.CanonicalName,
-		membersType, public, nil)
-	if err != nil {
-		return nil, err
-	}
-	var resetUIDs []keybase1.UID
-	for _, uv := range team.AllUserVersions(ctx) {
-		err = s.G().Pegboard.CheckUV(s.MetaContext(ctx), uv)
-		if err != nil {
-			// Turn peg failures into reset usernames.
-			s.Debug(ctx, "pegboard rejected %v: %v", uv, err)
-			resetUIDs = append(resetUIDs, uv.Uid)
-		}
-	}
-	rows, err := uidMapper.MapUIDsToUsernamePackages(ctx, s.G(), resetUIDs, 0, 0, false)
-	if err != nil {
-		return nil, err
-	}
-	for _, row := range rows {
-		res = append(res, row.NormalizedUsername.String())
-	}
-	return res, nil
-}
-
 func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, conv chat1.Conversation,
 	pinMessage chat1.MessageUnboxed) (pinnedMsg chat1.MessageUnboxed, pinnerUsername string, valid bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "getPinnedMsg: %v", pinMessage.GetMessageID())()
@@ -1012,15 +984,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	case chat1.ConversationMembersType_TEAM:
 		// do nothing
 	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		public := conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC
-		resetUsernamesPegboard, err := s.getResetUsernamesPegboard(ctx, umapper, membersType, info, public)
-		if err != nil {
-			s.Debug(ctx, "getResetUsernamesPegboard error: %v", err)
-			resetUsernamesPegboard = nil
-		}
 		conversationLocal.Info.ResetNames = utils.DedupStringLists(
 			s.getResetUsernamesMetadata(ctx, umapper, conversationRemote),
-			resetUsernamesPegboard,
+			nil,
 		)
 		var kuids []keybase1.UID
 		for _, uid := range info.VerifiedMembers {

@@ -23,11 +23,12 @@ func TestBackgroundPurge(t *testing.T) {
 	uid := gregor1.UID(u.GetUID().ToBytes())
 	trip1 := newConvTriple(ctx, t, tc, u.Username)
 	clock := world.Fc
+	g.EphemeralTracker = NewEphemeralTracker(g)
 	chatStorage := storage.New(g, tc.ChatG.ConvSource)
 	chatStorage.SetClock(clock)
 
 	<-g.EphemeralPurger.Stop(ctx)
-	purger := NewBackgroundEphemeralPurger(g, chatStorage)
+	purger := NewBackgroundEphemeralPurger(g)
 	purger.SetClock(world.Fc)
 	g.EphemeralPurger = purger
 	g.ConvSource.(*HybridConversationSource).storage = chatStorage
@@ -90,7 +91,7 @@ func TestBackgroundPurge(t *testing.T) {
 	}
 
 	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
-		purgeInfo, err := chatStorage.GetPurgeInfo(ctx, uid, convID)
+		purgeInfo, err := g.EphemeralTracker.GetPurgeInfo(ctx, uid, convID)
 		if expectedPurgeInfo.IsNil() {
 			require.Error(t, err)
 			require.IsType(t, storage.MissError{}, err)
@@ -300,9 +301,8 @@ func TestQueueState(t *testing.T) {
 	u := world.GetUsers()[0]
 	uid := gregor1.UID(u.GetUID().ToBytes())
 
-	chatStorage := storage.New(g, nil)
-	chatStorage.SetClock(world.Fc)
-	purger := NewBackgroundEphemeralPurger(g, chatStorage)
+	g.EphemeralTracker = NewEphemeralTracker(g)
+	purger := NewBackgroundEphemeralPurger(g)
 	purger.SetClock(world.Fc)
 	purger.Start(context.Background(), uid)
 	<-purger.Stop(context.Background())
