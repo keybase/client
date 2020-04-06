@@ -136,7 +136,7 @@ var _ Chat = (*ChatRPC)(nil)
 //
 // When sending:
 //   * chat1.NewConversationLocal
-//   * chat1.PostLocalNonblock
+//   * chat1.PostLocal
 //     * ClientPrev can be 0.  Can outbox ID be nil? mikem: yes
 
 // Gathering recent notifications:
@@ -276,7 +276,7 @@ func (c *ChatRPC) SendTextMessage(
 		return nil
 	}
 
-	arg := chat1.PostLocalNonblockArg{
+	arg := chat1.PostLocalArg{
 		ConversationID: convID,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -293,7 +293,7 @@ func (c *ChatRPC) SendTextMessage(
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
-	_, err := c.client.PostLocalNonblock(ctx, arg)
+	_, err := c.client.PostLocal(ctx, arg)
 	if err != nil {
 		return err
 	}
@@ -337,7 +337,7 @@ func (c *ChatRPC) SendTextMessage(
 		return err
 	}
 
-	arg = chat1.PostLocalNonblockArg{
+	arg = chat1.PostLocalArg{
 		ConversationID: selfConvID,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -354,7 +354,7 @@ func (c *ChatRPC) SendTextMessage(
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
-	_, err = c.client.PostLocalNonblock(ctx, arg)
+	_, err = c.client.PostLocal(ctx, arg)
 	if err != nil {
 		return err
 	}
