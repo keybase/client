@@ -1007,11 +1007,8 @@ export type TypedActionsMap = {
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'teams:manageChatChannels': teams.ManageChatChannelsPayload
   'teams:teamSeen': teams.TeamSeenPayload
-<<<<<<< HEAD
   'teams:setActivityLevels': teams.SetActivityLevelsPayload
-=======
   'teams:setTreeMembershipGUID': teams.SetTreeMembershipGUIDPayload
->>>>>>> e093eca6d6... whatever
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

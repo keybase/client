@@ -1053,17 +1053,17 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh           chan keybase1.TeamChangedByIDArg
-	abandonCh          chan keybase1.TeamID
-	badgeCh            chan keybase1.BadgeState
-	newTeamEKCh        chan keybase1.NewTeamEkArg
-	newTeambotEKCh     chan keybase1.NewTeambotEkArg
-	teambotEKNeededCh  chan keybase1.TeambotEkNeededArg
-	newTeambotKeyCh    chan keybase1.NewTeambotKeyArg
-	teambotKeyNeededCh chan keybase1.TeambotKeyNeededArg
-	newlyAddedToTeam   chan keybase1.TeamID
-	teamRoleMapCh      chan keybase1.UserTeamVersion
-	metadataUpdateCh   chan struct{}
+	changeCh                     chan keybase1.TeamChangedByIDArg
+	abandonCh                    chan keybase1.TeamID
+	badgeCh                      chan keybase1.BadgeState
+	newTeamEKCh                  chan keybase1.NewTeamEkArg
+	newTeambotEKCh               chan keybase1.NewTeambotEkArg
+	teambotEKNeededCh            chan keybase1.TeambotEkNeededArg
+	newTeambotKeyCh              chan keybase1.NewTeambotKeyArg
+	teambotKeyNeededCh           chan keybase1.TeambotKeyNeededArg
+	newlyAddedToTeam             chan keybase1.TeamID
+	teamRoleMapCh                chan keybase1.UserTeamVersion
+	metadataUpdateCh             chan struct{}
 	teamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
 	teamTreeMembershipsDoneCh    chan int
 }
@@ -2246,18 +2246,6 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	defer tt.cleanup()
 
 	t.Logf("Creating users")
-	alfa := tt.addUserWithPaper("alfa")
-<<<<<<< HEAD
-	zulu := tt.addUser("zulu")
-	yank := tt.addUser("yank")
-	xray := tt.addUser("xray")
-	whis := tt.addUser("whis")
-	vict := tt.addUser("vict")
-	unif := tt.addUser("unif")
-	tang := tt.addUser("tang")
-
-	t.Logf("Creating teams")
-
 	// Create the folowing team tree:
 	//
 	//     .___A_____.
@@ -2279,8 +2267,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	// G: yank, whis (adm), vict
 	// H: zulu, xray
 	// I: zulu, unif
-
-=======
+	alfa := tt.addUserWithPaper("alfa")
 	t.Logf("ALFAPAPER %s %s", alfa.username, alfa.backupKey.secret)
 	zulu := tt.addUserWithPaper("zulu")
 	t.Logf("ZULUPAPER %s %s", zulu.username, zulu.backupKey.secret)
@@ -2298,7 +2285,6 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	t.Logf("TANGPAPER %s %s", tang.username, tang.backupKey.secret)
 
 	t.Logf("Creating teams")
->>>>>>> e093eca6d6... whatever
 	aID, aName := alfa.createTeam2()
 	bName := mustAppend(t, aName, "bb")
 	cName := mustAppend(t, aName, "cc")
