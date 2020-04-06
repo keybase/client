@@ -10,7 +10,7 @@ const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
-export const animationDuration = 3000
+export const animationDuration = 2000
 
 const retainedHeights = new Set<string>()
 
@@ -84,7 +84,6 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
           // to make sure we don't rewrap text when showing the animation
           this.props.retainHeight && {
             height: this.state.height,
-            overflow: 'visible',
             paddingRight: 28,
             position: 'relative',
           },
@@ -137,7 +136,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
   if (props.stop) {
     return null
   }
-  const numBoxes = Math.ceil(props.height / 17 - 1)
+  const numBoxes = Math.max(Math.ceil(props.height / 17) - 1, 1)
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numBoxes; i++) {
     children.push(
