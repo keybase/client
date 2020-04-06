@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-const YouAreReset = ({onBack}: {onBack: () => void}) => (
+const YouAreReset = () => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
     <Kb.Box
       style={{
