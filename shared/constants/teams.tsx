@@ -783,14 +783,15 @@ const annotatedInvitesToInviteDetails = (
     {inviteLinks: new Set(), invites: new Set()}
   )
 
-export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
+export const emptyTeamDetails: Types.TeamDetails = {
   description: '',
+  inviteLinks: new Set(),
   invites: new Set(),
   members: new Map(),
   requests: new Set(),
   settings: {open: false, openJoinAs: 'reader', tarsDisabled: false, teamShowcased: false},
   subteams: new Set(),
-} as Types.TeamDetails)
+}
 
 export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
 
