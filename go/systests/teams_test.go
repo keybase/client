@@ -499,7 +499,8 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 }
 
 func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) keybase1.TeamAcceptOrRequestResult {
-	ret, err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
+	tui := &teamsUI{}
+	ret, err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tui, tokenOrName)
 	require.NoError(u.tc.T, err)
 	return ret
 }
