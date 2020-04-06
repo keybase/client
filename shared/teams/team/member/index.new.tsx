@@ -144,6 +144,7 @@ const TeamMember = (props: OwnProps) => {
         subteam={item}
         membership={item}
         idx={index}
+        isMe={isMe}
         username={username}
         expanded={expandedSet.has(item.teamID)}
         setExpanded={newExpanded => {
@@ -159,24 +160,13 @@ const TeamMember = (props: OwnProps) => {
     title: makeTitle(isMe ? 'You are in:' : `${username} is in:`),
   }
 
-  const canAddToAnyTeam = subteamsNotIn.some((x) => x.canAdminister)
-  var subteamNotInTitle: string;
-  if (canAddToAnyTeam && isMe) {
-    subteamNotInTitle = `Add yourself to:`
-  } else if (canAddToAnyTeam) {
-    subteamNotInTitle = `Add ${username} to:`
-  } else if (isMe) {
-    subteamNotInTitle = `You are in:`
-  } else {
-    subteamNotInTitle = `${username} is in:`
-  }
   const subteamsNotInSection = {
     data: subteamsNotIn,
     key: 'section-add-subteams',
     renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
-      <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
+      <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} isMe={isMe}/>
     ),
-    title: makeTitle(subteamNotInTitle),
+    title: makeTitle(isMe ? "You are not in:" : `${username} is not in:`),
   }
 
   const sections = [
@@ -255,6 +245,7 @@ type SubteamNotInRowProps = {
   idx: number
   subteam: TeamTreeRowNotIn
   teamID: Types.TeamID
+  isMe: boolean
   username: string
 }
 const SubteamNotInRow = (props: SubteamNotInRowProps) => {
@@ -402,6 +393,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
   const disabledRoles = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, props.subteam.teamID, props.username)
   )
+  const amLastOwner = Container.useSelector(state => Constants.isLastOwner(state, props.subteam.teamID))
   const changingRole = Container.useAnyWaiting(
     Constants.editMembershipWaitingKey(props.subteam.teamID, props.username)
   )
@@ -531,7 +523,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   </Kb.Text>
                 </Kb.Box2>
               )}
-              {expanded && props.subteam.canAdminister && (
+              {expanded && (props.subteam.canAdminister||props.isMe) && (
                 <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
                   <Kb.Button
                     mode="Secondary"
@@ -539,17 +531,22 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                     label="Add to channels"
                     small={true}
                   />
+                  {(!(props.isMe && amLastOwner)) && (
                   <Kb.WaitingButton
                     mode="Secondary"
-                    icon="iconfont-block"
+                    icon={props.isMe ? "iconfont-leave" : "iconfont-block"}
                     type="Danger"
                     onClick={onKickOut}
-                    label="Kick out"
+                    label={props.isMe ? "Leave" : "Kick out"}
                     small={true}
                     waitingKey={onKickOutWaitingKey}
                   />
+                  )
+                }
                 </Kb.Box2>
-              )}
+              )
+
+              }
 
               {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
             </Kb.Box2>
