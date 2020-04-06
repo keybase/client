@@ -5,17 +5,24 @@ import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
+import {memoize} from '../../../util/memoize'
 import {Section} from '../../../common-adapters/section-list'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID}>
 
+const splitInviteLinks = memoize((inviteLinks: Set<Types.InviteLink>): {
+  active: Array<Types.InviteLink>
+  expired: Array<Types.InviteLink>
+} => ({active: [...inviteLinks].filter(i => !i.expired), expired: [...inviteLinks].filter(i => i.expired)}))
+
 const InviteHistory = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   useTeamDetailsSubscribe(teamID)
   const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const loading = teamDetails === Constants.emptyTeamDetails // TODO should be a better way to check this
+  const [showingExpired, setShowingExpired] = React.useState(false)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -23,13 +30,16 @@ const InviteHistory = (props: Props) => {
   const onGenerate = () => {} // TODO
 
   const {inviteLinks} = teamDetails
+  const {active, expired} = splitInviteLinks(inviteLinks)
   const sections: Array<Section<Types.InviteLink>> = [
     {
-      data: [...inviteLinks],
+      data: showingExpired ? expired : active,
       key: 'invites',
     },
   ]
 
+  const activeTitle = `Valid (${active.length})`
+  const expiredTitle = `Expired (${expired.length})`
   return (
     <Kb.Modal
       header={{
@@ -65,6 +75,13 @@ const InviteHistory = (props: Props) => {
         sections={sections}
         keyExtractor={item => item.id}
         renderItem={({item}) => <InviteItem inviteLink={item} teamID={teamID} />}
+        renderSectionHeader={() => (
+          <Kb.Tabs
+            tabs={[{title: activeTitle}, {title: expiredTitle}]}
+            onSelect={title => setShowingExpired(title === expiredTitle)}
+            selectedTab={showingExpired ? expiredTitle : activeTitle}
+          />
+        )}
         contentContainerStyle={styles.listContent}
       />
     </Kb.Modal>
@@ -123,15 +140,13 @@ const styles = Styles.styleSheetCreate(() => ({
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
-    marginBottom: Styles.globalMargins.tiny,
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.small,
     padding: Styles.globalMargins.tiny,
   },
   listContent: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.small,
   },
 }))
 
