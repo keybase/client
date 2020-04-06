@@ -12,8 +12,8 @@ import * as Data from './data'
 import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
-import EmojiPicker, {addSkinToneIfAvailable} from '.'
-import {EmojiData} from '../../../../../util/emoji'
+import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
+import {expandAlias, EmojiData} from '../../../../../util/emoji'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -211,7 +211,10 @@ export const EmojiPickerDesktop = (props: Props) => {
           ) : (
             <Kb.Emoji
               size={36}
-              emojiName={hoveredEmoji.aliasTo ?? addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)}
+              emojiName={expandAlias(
+                hoveredEmoji,
+                getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+              )}
             />
           )}
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>

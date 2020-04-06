@@ -26,6 +26,7 @@ class HoverEmoji extends React.Component<
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
   _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
   render() {
+    //      KB.debugConsoleLog({songgao: 'HoverEmoji', emoji: this.props.emoji})
     return (
       <Kb.ClickableBox
         onClick={this.props.onClick}

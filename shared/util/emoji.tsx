@@ -12,6 +12,10 @@ export type EmojiData = {
   skin_variations?: {[K in Chat2Types.EmojiSkinTone]: Object}
   source?: string
 }
+
+export const expandAlias = (emoji: EmojiData, modifierStr?: string) =>
+  emoji.aliasTo ?? `:${emoji.short_name}:${modifierStr ?? ''}`
+
 export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, category?: string): EmojiData {
   return {
     aliasTo: emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str ? emoji.source.str : undefined,

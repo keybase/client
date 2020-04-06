@@ -8,7 +8,7 @@ import {isMobile} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
 import debounce from 'lodash/debounce'
 import {memoize} from '../../../../../util/memoize'
-import {EmojiData, RPCToEmojiData} from '../../../../../util/emoji'
+import {expandAlias, EmojiData, RPCToEmojiData} from '../../../../../util/emoji'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
@@ -216,7 +216,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
-    const emojiStr = emoji.aliasTo ?? addSkinToneIfAvailable(emoji, skinTone)
+    const emojiStr = expandAlias(emoji, getSkinToneModifierStrIfAvailable(emoji, skinTone))
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
@@ -365,10 +365,10 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 }
 
-export const addSkinToneIfAvailable = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) =>
+export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) =>
   skinTone && emoji.skin_variations?.[skinTone]
-    ? `:${emoji.short_name}::${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
-    : `:${emoji.short_name}:`
+    ? `:${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
+    : undefined
 
 const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
