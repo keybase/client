@@ -112,7 +112,7 @@ const TeamMember = (props: OwnProps) => {
 
   // Load up the memberships when the page is opened
   React.useEffect(() => {
-    dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
+    dispatch(TeamsGen.createLoadTeamTree({teamID, username}))
   }, [teamID, username, dispatch])
   // TODO this will keep thrasing
   const {subteamsIn, subteamsNotIn, errors} = Container.useSelector(state =>
@@ -180,7 +180,7 @@ const TeamMember = (props: OwnProps) => {
         { loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
         <Kb.BannerParagraph key="teamTreeErrorHeader" bannerColor="red" content={[
           "The following teams could not be loaded. ",
-          {onClick: () => dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username})), 
+          {onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})), 
               text: 'Click to reload.'},
         ]} />
         <>
@@ -398,7 +398,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
     Constants.editMembershipWaitingKey(props.subteam.teamID, props.username)
   )
   const loadingActivity = Container.useAnyWaiting(
-    Constants.loadSubteamActivityWaitingKey(props.subteam.teamID, props.username)
+    Constants.loadteamTreeActivityWaitingKey(props.subteam.teamID, props.username)
   )
 
   const channelsJoined = Array.from(channelMetas)

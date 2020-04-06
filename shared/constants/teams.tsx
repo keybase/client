@@ -52,10 +52,8 @@ export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${te
 export const teamRenameWaitingKey = 'teams:rename'
 export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
 export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
-export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username: string) =>
-  `loadSubteamMemberships:${teamID};${username}`
-export const loadSubteamActivityWaitingKey = (teamID: Types.TeamID, username: string) =>
-  `loadSubteamActivity:${teamID};${username}`
+export const loadTeamTreeActivityWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `loadTeamTreeActivity:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
 export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
@@ -860,26 +858,6 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
-
-export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
-  const subteamsAll = getTeamDetails(state, teamID).subteams
-  const subteamsNotIn: Array<Types.TeamMeta> = []
-  const subteamsIn: Array<Types.TeamMeta> = []
-  subteamsAll.forEach(subteamID => {
-    const subteamDetails = getTeamDetails(state, subteamID)
-    const subteamMeta = getTeamMeta(state, subteamID)
-    const memberInSubteam = subteamDetails.members.has(username)
-    if (memberInSubteam) {
-      subteamsIn.push(subteamMeta)
-    } else {
-      subteamsNotIn.push(subteamMeta)
-    }
-  })
-  return {
-    subteamsIn,
-    subteamsNotIn,
-  }
-}
 
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>

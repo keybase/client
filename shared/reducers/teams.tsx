@@ -267,14 +267,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setWelcomeMessage]: (draftState, _) => {
     draftState.errorInEditWelcomeMessage = ''
   },
-  // [TeamsGen.setMemberSubteamDetails]: (draftState, action) => {
-  //   action.payload.memberships.forEach((info, teamID) => {
-  //     if (!draftState.teamMemberToSubteams.has(teamID)) {
-  //       draftState.teamMemberToSubteams.set(teamID, new Map())
-  //     }
-  //     draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
-  //   })
-  // },
   [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
     action.payload.activityMap.forEach((lastActivity, teamID) => {
       if (!draftState.teamMemberToLastActivity.has(teamID)) {

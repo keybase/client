@@ -227,12 +227,6 @@ export type State = {
   readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
 
-  // teamMemberToTreeMembership is a list of roles for populating the member page
-  // It can contain error rows for teams that were not successfully loaded.
-  // In the happy path, it will contain entries for every team in the partial tree induced by
-  // that teamID (i.e., ancestors and all transitive subteams).
-  // Key is a guid.
-  // readonly teamMemberToSubteams: Map<TeamID, Map<string, MemberInfo>>
   readonly treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, SparseMemberInfo>>
   readonly teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
 

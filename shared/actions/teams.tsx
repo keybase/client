@@ -1378,14 +1378,12 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
-function* getMemberSubteamDetails(
+function* loadTeamTree(
   _: TypedState,
-  action: TeamsGen.GetMemberSubteamDetailsPayload,
+  action: TeamsGen.LoadTeamTreePayload,
   logger: Saga.SagaLogger
 ) {
   const {teamID, username} = action.payload
-
-  logger.info(`GOT HEJ ${teamID}:${username}`)
 
   // Spawn a request to the service.
   yield RPCTypes.teamsLoadTeamTreeMembershipsRpcPromise({
@@ -1421,7 +1419,7 @@ function* loadTreeTeamActivity(
       WaitingGen.createBatchChangeWaiting({
         changes: teamIDs.map(id => ({
           increment: true,
-          key: Constants.loadSubteamActivityWaitingKey(id, username),
+          key: Constants.loadTeamTreeActivityWaitingKey(id, username),
         })),
       })
     )
@@ -1445,7 +1443,7 @@ function* loadTreeTeamActivity(
       WaitingGen.createBatchChangeWaiting({
         changes: teamIDs.map(id => ({
           increment: false,
-          key: Constants.loadSubteamActivityWaitingKey(id, username),
+          key: Constants.loadTeamTreeActivityWaitingKey(id, username),
         })),
       })
     )
@@ -1615,9 +1613,9 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
   yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
-  yield* Saga.chainGenerator<TeamsGen.GetMemberSubteamDetailsPayload>(
-    TeamsGen.getMemberSubteamDetails,
-    getMemberSubteamDetails
+  yield* Saga.chainGenerator<TeamsGen.LoadTeamTreePayload>(
+    TeamsGen.loadTeamTree,
+    loadTeamTree
   )
   yield* Saga.chainGenerator<EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload>(
     EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial,
