@@ -10,7 +10,6 @@ type Props = {
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
-  onBackspace: () => void
   placeholder: string
   searchString: string
   focusOnMount: boolean
@@ -43,9 +42,6 @@ const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string
     case 'ArrowUp':
       preventDefault()
       props.onUpArrowKeyDown()
-      break
-    case 'Backspace':
-      props.onBackspace()
       break
   }
 }
